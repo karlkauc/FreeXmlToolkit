@@ -249,7 +249,7 @@ public class XsdVisualTreeBuilder {
         // This allows the same element definitions to be reused in multiple type instances
         Set<String> localVisitedElements = new HashSet<>();
 
-        // Process children to find compositors and attributes
+        // Process children to find compositors, attributes, and content models
         for (XsdNode child : complexType.getChildren()) {
             logger.debug("ComplexType child: {} (type: {})", child.getClass().getSimpleName(), child.getClass().getName());
 
@@ -267,6 +267,14 @@ public class XsdVisualTreeBuilder {
             } else if (child instanceof XsdAttribute) {
                 VisualNode attributeNode = createAttributeNode((XsdAttribute) child, parentNode);
                 parentNode.addChild(attributeNode);
+            } else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent) {
+                // Process simpleContent (base type + attributes from extension/restriction)
+                logger.debug("Processing simpleContent with {} children", simpleContent.getChildren().size());
+                processSimpleContent(simpleContent, parentNode, visitedTypes, localVisitedElements);
+            } else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexContent complexContent) {
+                // Process complexContent (base type + content model from extension/restriction)
+                logger.debug("Processing complexContent with {} children", complexContent.getChildren().size());
+                processComplexContent(complexContent, parentNode, visitedTypes, localVisitedElements);
             }
         }
     }
@@ -516,6 +524,119 @@ public class XsdVisualTreeBuilder {
             logger.warn("Referenced element '{}' not found in global element index (has {} elements). " +
                     "This may be because the element is defined in an imported schema that hasn't been loaded.",
                     elementName, globalElementIndex.size());
+        }
+    }
+
+    /**
+     * Processes simpleContent (used in complexType with text content and attributes).
+     * Example: <xs:simpleContent><xs:extension base="xs:decimal"><xs:attribute.../></xs:extension></xs:simpleContent>
+     *
+     * @param simpleContent   the simpleContent node
+     * @param parentNode      the parent visual node
+     * @param visitedTypes    set of visited type names
+     * @param visitedElements set of visited element IDs
+     */
+    private void processSimpleContent(org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent,
+                                     VisualNode parentNode, Set<String> visitedTypes, Set<String> visitedElements) {
+        // SimpleContent contains either extension or restriction
+        for (XsdNode child : simpleContent.getChildren()) {
+            if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdExtension extension) {
+                logger.debug("Processing extension in simpleContent, base='{}'", extension.getBase());
+                // Process attributes from the extension
+                for (XsdNode extChild : extension.getChildren()) {
+                    if (extChild instanceof XsdAttribute attribute) {
+                        VisualNode attributeNode = createAttributeNode(attribute, parentNode);
+                        parentNode.addChild(attributeNode);
+                        logger.debug("Added attribute '{}' from simpleContent extension", attribute.getName());
+                    }
+                }
+            } else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction) {
+                logger.debug("Processing restriction in simpleContent, base='{}'", restriction.getBase());
+                // Process attributes from the restriction (if any)
+                for (XsdNode restChild : restriction.getChildren()) {
+                    if (restChild instanceof XsdAttribute attribute) {
+                        VisualNode attributeNode = createAttributeNode(attribute, parentNode);
+                        parentNode.addChild(attributeNode);
+                        logger.debug("Added attribute '{}' from simpleContent restriction", attribute.getName());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Processes complexContent (used in complexType for type derivation).
+     * Example: <xs:complexContent><xs:extension base="BaseType"><xs:sequence>...</xs:sequence></xs:extension></xs:complexContent>
+     *
+     * @param complexContent  the complexContent node
+     * @param parentNode      the parent visual node
+     * @param visitedTypes    set of visited type names
+     * @param visitedElements set of visited element IDs
+     */
+    private void processComplexContent(org.fxt.freexmltoolkit.controls.v2.model.XsdComplexContent complexContent,
+                                      VisualNode parentNode, Set<String> visitedTypes, Set<String> visitedElements) {
+        // ComplexContent contains either extension or restriction
+        for (XsdNode child : complexContent.getChildren()) {
+            if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdExtension extension) {
+                logger.debug("Processing extension in complexContent, base='{}'", extension.getBase());
+
+                // First, resolve the base type to get inherited content
+                String baseType = extension.getBase();
+                if (baseType != null && !baseType.isEmpty() && !baseType.startsWith("xs:")) {
+                    logger.debug("Resolving base type '{}' for complexContent extension", baseType);
+                    // Create a dummy element to pass to resolveTypeReference
+                    org.fxt.freexmltoolkit.controls.v2.model.XsdElement dummyElement =
+                        new org.fxt.freexmltoolkit.controls.v2.model.XsdElement("extension");
+                    dummyElement.setType(baseType);
+                    resolveTypeReference(baseType, parentNode, dummyElement, visitedTypes, visitedElements);
+                }
+
+                // Then process additional content from the extension
+                for (XsdNode extChild : extension.getChildren()) {
+                    if (extChild instanceof XsdSequence) {
+                        VisualNode compositor = createCompositorNode(extChild, parentNode, "sequence", visitedTypes, visitedElements);
+                        parentNode.addChild(compositor);
+                    } else if (extChild instanceof XsdChoice) {
+                        VisualNode compositor = createCompositorNode(extChild, parentNode, "choice", visitedTypes, visitedElements);
+                        parentNode.addChild(compositor);
+                    } else if (extChild instanceof XsdAll) {
+                        VisualNode compositor = createCompositorNode(extChild, parentNode, "all", visitedTypes, visitedElements);
+                        parentNode.addChild(compositor);
+                    } else if (extChild instanceof XsdAttribute attribute) {
+                        VisualNode attributeNode = createAttributeNode(attribute, parentNode);
+                        parentNode.addChild(attributeNode);
+                    }
+                }
+            } else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction) {
+                logger.debug("Processing restriction in complexContent, base='{}'", restriction.getBase());
+
+                // Resolve the base type to get inherited content
+                String baseType = restriction.getBase();
+                if (baseType != null && !baseType.isEmpty() && !baseType.startsWith("xs:")) {
+                    logger.debug("Resolving base type '{}' for complexContent restriction", baseType);
+                    org.fxt.freexmltoolkit.controls.v2.model.XsdElement dummyElement =
+                        new org.fxt.freexmltoolkit.controls.v2.model.XsdElement("restriction");
+                    dummyElement.setType(baseType);
+                    resolveTypeReference(baseType, parentNode, dummyElement, visitedTypes, visitedElements);
+                }
+
+                // Process additional content from the restriction
+                for (XsdNode restChild : restriction.getChildren()) {
+                    if (restChild instanceof XsdSequence) {
+                        VisualNode compositor = createCompositorNode(restChild, parentNode, "sequence", visitedTypes, visitedElements);
+                        parentNode.addChild(compositor);
+                    } else if (restChild instanceof XsdChoice) {
+                        VisualNode compositor = createCompositorNode(restChild, parentNode, "choice", visitedTypes, visitedElements);
+                        parentNode.addChild(compositor);
+                    } else if (restChild instanceof XsdAll) {
+                        VisualNode compositor = createCompositorNode(restChild, parentNode, "all", visitedTypes, visitedElements);
+                        parentNode.addChild(compositor);
+                    } else if (restChild instanceof XsdAttribute attribute) {
+                        VisualNode attributeNode = createAttributeNode(attribute, parentNode);
+                        parentNode.addChild(attributeNode);
+                    }
+                }
+            }
         }
     }
 
