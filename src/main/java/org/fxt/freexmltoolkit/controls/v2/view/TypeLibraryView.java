@@ -9,9 +9,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,16 +34,29 @@ import java.util.stream.Collectors;
  */
 public class TypeLibraryView extends BorderPane {
 
+    private static final Logger logger = LoggerFactory.getLogger(TypeLibraryView.class);
+
     private final XsdSchema schema;
     private TableView<TypeInfo> typeTable;
     private TextField searchField;
     private ChoiceBox<String> filterChoice;
     private Label statsLabel;
+    private String schemaName = "Unknown Schema";
 
     public TypeLibraryView(XsdSchema schema) {
         this.schema = schema;
+        if (schema != null && schema.getTargetNamespace() != null) {
+            this.schemaName = schema.getTargetNamespace();
+        }
         initializeUI();
         populateTypes();
+    }
+
+    /**
+     * Set the schema name for export file naming
+     */
+    public void setSchemaName(String schemaName) {
+        this.schemaName = schemaName;
     }
 
     private void initializeUI() {
@@ -102,12 +119,16 @@ public class TypeLibraryView extends BorderPane {
             "-fx-text-fill: #2c5aa0;"
         );
 
+        // Export button with menu
+        MenuButton exportButton = createExportButton();
+
         HBox.setHgrow(searchField, Priority.NEVER);
         toolbar.getChildren().addAll(
             searchLabel, searchField,
             filterLabel, filterChoice,
             createSpacer(),
-            statsLabel
+            statsLabel,
+            exportButton
         );
 
         setTop(toolbar);
@@ -483,6 +504,147 @@ public class TypeLibraryView extends BorderPane {
         HBox spacer = new HBox();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         return spacer;
+    }
+
+    /**
+     * Create Export MenuButton with all export format options
+     */
+    private MenuButton createExportButton() {
+        MenuButton exportButton = new MenuButton("Export");
+
+        // Style the button
+        FontIcon exportIcon = new FontIcon("mdi2f-file-export");
+        exportIcon.setIconSize(16);
+        exportButton.setGraphic(exportIcon);
+        exportButton.setStyle(
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;" +
+            "-fx-background-color: #4a90e2;" +
+            "-fx-text-fill: white;" +
+            "-fx-background-radius: 3px;" +
+            "-fx-padding: 5px 10px;" +
+            "-fx-cursor: hand;"
+        );
+
+        // CSV MenuItem
+        MenuItem csvItem = new MenuItem("Export to CSV");
+        csvItem.setGraphic(new FontIcon("mdi2f-file-delimited"));
+        csvItem.setOnAction(e -> exportTo("CSV"));
+
+        // Excel MenuItem
+        MenuItem excelItem = new MenuItem("Export to Excel (XLSX)");
+        excelItem.setGraphic(new FontIcon("mdi2f-file-excel"));
+        excelItem.setOnAction(e -> exportTo("XLSX"));
+
+        // HTML MenuItem
+        MenuItem htmlItem = new MenuItem("Export to HTML");
+        htmlItem.setGraphic(new FontIcon("mdi2f-file-code"));
+        htmlItem.setOnAction(e -> exportTo("HTML"));
+
+        // JSON MenuItem
+        MenuItem jsonItem = new MenuItem("Export to JSON");
+        jsonItem.setGraphic(new FontIcon("mdi2f-code-json"));
+        jsonItem.setOnAction(e -> exportTo("JSON"));
+
+        // XML MenuItem
+        MenuItem xmlItem = new MenuItem("Export to XML");
+        xmlItem.setGraphic(new FontIcon("mdi2f-file-xml"));
+        xmlItem.setOnAction(e -> exportTo("XML"));
+
+        // Markdown MenuItem
+        MenuItem markdownItem = new MenuItem("Export to Markdown");
+        markdownItem.setGraphic(new FontIcon("mdi2f-file-document"));
+        markdownItem.setOnAction(e -> exportTo("MARKDOWN"));
+
+        exportButton.getItems().addAll(
+            csvItem, excelItem, htmlItem, jsonItem, xmlItem, markdownItem
+        );
+
+        return exportButton;
+    }
+
+    /**
+     * Export type library data to specified format
+     */
+    private void exportTo(String format) {
+        // Get all types from the table
+        ObservableList<TypeInfo> types = typeTable.getItems();
+        if (types.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "No Data", "There are no types to export.");
+            return;
+        }
+
+        // Create FileChooser
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Type Library - " + format);
+        fileChooser.setInitialFileName("type-library." + getFileExtension(format));
+
+        // Set file extension filter
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(
+            format + " Files (*." + getFileExtension(format) + ")",
+            "*." + getFileExtension(format)
+        );
+        fileChooser.getExtensionFilters().add(extFilter);
+
+        // Show save dialog
+        File file = fileChooser.showSaveDialog(this.getScene().getWindow());
+        if (file == null) {
+            return; // User cancelled
+        }
+
+        // Convert TypeInfo to TypeLibraryExporter.TypeInfo
+        List<TypeLibraryExporter.TypeInfo> exportTypes = new ArrayList<>();
+        for (TypeInfo type : types) {
+            TypeLibraryExporter.TypeInfo exportType = new TypeLibraryExporter.TypeInfo();
+            exportType.kind = type.kind;
+            exportType.name = type.name;
+            exportType.baseType = type.baseType;
+            exportType.documentation = type.documentation;
+            exportType.usageCount = type.usageCount;
+            exportType.usageLocations = new ArrayList<>(type.usageLocations);
+            exportTypes.add(exportType);
+        }
+
+        // Export
+        try {
+            switch (format) {
+                case "CSV" -> TypeLibraryExporter.exportToCSV(exportTypes, file);
+                case "XLSX" -> TypeLibraryExporter.exportToExcel(exportTypes, file);
+                case "HTML" -> TypeLibraryExporter.exportToHTML(exportTypes, file, schemaName);
+                case "JSON" -> TypeLibraryExporter.exportToJSON(exportTypes, file, schemaName);
+                case "XML" -> TypeLibraryExporter.exportToXML(exportTypes, file, schemaName);
+                case "MARKDOWN" -> TypeLibraryExporter.exportToMarkdown(exportTypes, file, schemaName);
+            }
+
+            logger.info("Exported type library to {} format: {}", format, file.getAbsolutePath());
+            showAlert(Alert.AlertType.INFORMATION, "Export Successful",
+                "Type library exported successfully to:\n" + file.getAbsolutePath());
+
+        } catch (Exception ex) {
+            logger.error("Error exporting type library to {}: {}", format, ex.getMessage(), ex);
+            showAlert(Alert.AlertType.ERROR, "Export Failed",
+                "Failed to export type library:\n" + ex.getMessage());
+        }
+    }
+
+    private String getFileExtension(String format) {
+        return switch (format) {
+            case "CSV" -> "csv";
+            case "XLSX" -> "xlsx";
+            case "HTML" -> "html";
+            case "JSON" -> "json";
+            case "XML" -> "xml";
+            case "MARKDOWN" -> "md";
+            default -> "txt";
+        };
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     /**
