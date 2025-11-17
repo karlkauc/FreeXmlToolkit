@@ -1,6 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
-import org.w3c.dom.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -9,6 +15,8 @@ import java.io.File;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Factory for creating XSD model instances from XSD files or strings using the XsdNode hierarchy.
@@ -21,7 +29,17 @@ import java.nio.file.Path;
  */
 public class XsdNodeFactory {
 
+    private static final Logger logger = LogManager.getLogger(XsdNodeFactory.class);
     private static final String XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
+
+    /**
+     * Tracks schema files that are currently being processed to prevent circular includes.
+     */
+    private final Set<Path> includeStack = new HashSet<>();
+    private final Set<Path> processedIncludes = new HashSet<>();
+    private final Set<String> processedImports = new HashSet<>(); // Track processed import URLs to prevent duplicates
+    private final java.util.Map<String, XsdSchema> importedSchemas = new java.util.HashMap<>(); // Cache for imported schemas
+    private Path currentSchemaFile;
 
     /**
      * Creates an XSD model from a file.
@@ -42,8 +60,15 @@ public class XsdNodeFactory {
      * @throws Exception if parsing fails
      */
     public XsdSchema fromFile(Path xsdFile) throws Exception {
-        String content = Files.readString(xsdFile);
-        return fromString(content);
+        Path absoluteFile = xsdFile.toAbsolutePath().normalize();
+        String content = Files.readString(absoluteFile);
+        Path previousRoot = currentSchemaFile;
+        currentSchemaFile = absoluteFile;
+        try {
+            return fromString(content, absoluteFile.getParent());
+        } finally {
+            currentSchemaFile = previousRoot;
+        }
     }
 
     /**
@@ -54,6 +79,18 @@ public class XsdNodeFactory {
      * @throws Exception if parsing fails
      */
     public XsdSchema fromString(String xsdContent) throws Exception {
+        return fromString(xsdContent, null);
+    }
+
+    /**
+     * Creates an XSD model from a string with optional base directory for resolving schema references.
+     *
+     * @param xsdContent   the XSD content as string
+     * @param baseDirectory optional base directory used to resolve xs:include locations (can be null)
+     * @return the parsed XSD schema model
+     * @throws Exception if parsing fails
+     */
+    public XsdSchema fromString(String xsdContent, Path baseDirectory) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -64,13 +101,30 @@ public class XsdNodeFactory {
             throw new IllegalArgumentException("Root element must be xs:schema");
         }
 
-        return parseSchema(schemaElement);
+        includeStack.clear();
+        processedIncludes.clear();
+        processedImports.clear();
+        importedSchemas.clear();
+        if (currentSchemaFile != null) {
+            processedIncludes.add(currentSchemaFile);
+        }
+
+        XsdSchema schema = parseSchema(schemaElement, baseDirectory, factory);
+
+        // Process imports after the schema is fully parsed
+        processImports(schema);
+
+        return schema;
     }
 
     /**
      * Parses the xs:schema root element.
      */
     private XsdSchema parseSchema(Element schemaElement) {
+        return parseSchema(schemaElement, null, null);
+    }
+
+    private XsdSchema parseSchema(Element schemaElement, Path baseDirectory, DocumentBuilderFactory factory) {
         XsdSchema schema = new XsdSchema();
 
         // Parse schema attributes
@@ -99,7 +153,15 @@ public class XsdNodeFactory {
             }
         }
 
-        // Parse child elements
+        parseSchemaChildren(schemaElement, schema, baseDirectory, factory);
+        return schema;
+    }
+
+    /**
+     * Parses child nodes of a schema (or included schema) and attaches them to the provided parent schema.
+     */
+    private void parseSchemaChildren(Element schemaElement, XsdSchema schema, Path baseDirectory,
+                                     DocumentBuilderFactory factory) {
         NodeList children = schemaElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
@@ -132,6 +194,7 @@ public class XsdNodeFactory {
             } else if (isXsdElement(childElement, "include")) {
                 XsdInclude xsdInclude = parseInclude(childElement);
                 schema.addChild(xsdInclude);
+                inlineSchemaReference(childElement, baseDirectory, schema, factory);
             } else if (isXsdElement(childElement, "redefine")) {
                 XsdRedefine xsdRedefine = parseRedefine(childElement);
                 schema.addChild(xsdRedefine);
@@ -140,8 +203,71 @@ public class XsdNodeFactory {
                 schema.addChild(xsdOverride);
             }
         }
+    }
 
-        return schema;
+    /**
+     * Resolves xs:include references by loading the referenced schema and adding its top-level components
+     * to the current schema. This keeps the visual tree functional even when schemas are split across files.
+     */
+    private void inlineSchemaReference(Element directiveElement, Path baseDirectory, XsdSchema targetSchema,
+                                       DocumentBuilderFactory factory) {
+        if (baseDirectory == null || factory == null) {
+            return; // Cannot resolve without file context
+        }
+
+        String schemaLocation = directiveElement.getAttribute("schemaLocation");
+        if (schemaLocation == null || schemaLocation.isBlank()) {
+            logger.warn("Encountered xs:include without schemaLocation. Skipping.");
+            return;
+        }
+
+        if (schemaLocation.contains("://")) {
+            logger.debug("Skipping remote schema include '{}'", schemaLocation);
+            return;
+        }
+
+        Path resolvedPath = baseDirectory.resolve(schemaLocation).normalize();
+        if (!Files.exists(resolvedPath)) {
+            logger.warn("Included schema '{}' not found relative to '{}'", schemaLocation, baseDirectory);
+            return;
+        }
+
+        Path realPath;
+        try {
+            realPath = resolvedPath.toRealPath();
+        } catch (Exception ex) {
+            logger.warn("Failed to resolve real path for included schema '{}': {}", resolvedPath, ex.getMessage());
+            return;
+        }
+
+        if (processedIncludes.contains(realPath)) {
+            logger.debug("Schema '{}' already processed. Skipping duplicate include.", realPath);
+            return;
+        }
+
+        if (!includeStack.add(realPath)) {
+            logger.warn("Circular include detected for '{}'. Skipping to prevent infinite recursion.", realPath);
+            return;
+        }
+
+        try {
+            DocumentBuilder includeBuilder = factory.newDocumentBuilder();
+            Document includedDocument = includeBuilder.parse(realPath.toFile());
+            Element includedRoot = includedDocument.getDocumentElement();
+
+            if (!isXsdElement(includedRoot, "schema")) {
+                logger.warn("Included file '{}' does not contain an xs:schema root. Skipping.", realPath);
+                return;
+            }
+
+            Path nextBaseDir = realPath.getParent();
+            parseSchemaChildren(includedRoot, targetSchema, nextBaseDir, factory);
+            processedIncludes.add(realPath);
+        } catch (Exception ex) {
+            logger.warn("Failed to inline schema include '{}': {}", realPath, ex.getMessage());
+        } finally {
+            includeStack.remove(realPath);
+        }
     }
 
     /**
@@ -149,11 +275,23 @@ public class XsdNodeFactory {
      */
     private XsdElement parseElement(Element elementNode) {
         String name = elementNode.getAttribute("name");
-        if (name == null || name.isEmpty()) {
+        String ref = elementNode.getAttribute("ref");
+
+        // Element can have either 'name' or 'ref', not both
+        if (ref != null && !ref.isEmpty()) {
+            // Element reference - use ref as the name for now
+            // The actual element will be resolved later in the visual tree builder
+            name = ref;
+        } else if (name == null || name.isEmpty()) {
             name = "element";
         }
 
         XsdElement element = new XsdElement(name);
+
+        // Store the ref attribute if present
+        if (ref != null && !ref.isEmpty()) {
+            element.setRef(ref);
+        }
 
         // Parse basic attributes
         if (elementNode.hasAttribute("type")) {
@@ -1118,5 +1256,200 @@ public class XsdNodeFactory {
     private boolean isXsdElement(Element element, String localName) {
         return XSD_NAMESPACE.equals(element.getNamespaceURI())
                 && localName.equals(element.getLocalName());
+    }
+
+    /**
+     * Processes all xs:import elements in the schema and loads the referenced schemas.
+     * This method loads external schemas via HTTP/HTTPS or from local files,
+     * parses them, and merges their global elements and types into the main schema.
+     *
+     * @param schema the schema containing import elements
+     */
+    private void processImports(XsdSchema schema) {
+        if (schema == null) {
+            return;
+        }
+
+        logger.info("Processing imports for schema with {} children", schema.getChildren().size());
+
+        // Find all XsdImport nodes
+        java.util.List<XsdImport> imports = schema.getChildren().stream()
+                .filter(node -> node instanceof XsdImport)
+                .map(node -> (XsdImport) node)
+                .toList();
+
+        logger.info("Found {} import statements", imports.size());
+
+        for (XsdImport xsdImport : imports) {
+            try {
+                loadAndMergeImportedSchema(xsdImport, schema);
+            } catch (Exception e) {
+                logger.error("Failed to process import: namespace='{}', schemaLocation='{}', error: {}",
+                        xsdImport.getNamespace(), xsdImport.getSchemaLocation(), e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * Loads an imported schema and merges its global elements and types into the main schema.
+     *
+     * @param xsdImport the import element
+     * @param mainSchema the main schema to merge into
+     * @throws Exception if loading or parsing fails
+     */
+    private void loadAndMergeImportedSchema(XsdImport xsdImport, XsdSchema mainSchema) throws Exception {
+        String schemaLocation = xsdImport.getSchemaLocation();
+        String namespace = xsdImport.getNamespace();
+
+        if (schemaLocation == null || schemaLocation.isEmpty()) {
+            logger.warn("Import has no schemaLocation, skipping: namespace='{}'", namespace);
+            return;
+        }
+
+        // Check if we've already processed this import
+        if (processedImports.contains(schemaLocation)) {
+            logger.debug("Import already processed, skipping: {}", schemaLocation);
+            return;
+        }
+
+        processedImports.add(schemaLocation);
+        logger.info("Loading imported schema: namespace='{}', location='{}'", namespace, schemaLocation);
+
+        // Load the schema content
+        String schemaContent = loadSchemaFromLocation(schemaLocation);
+        if (schemaContent == null || schemaContent.isEmpty()) {
+            logger.warn("Failed to load schema content from: {}", schemaLocation);
+            return;
+        }
+
+        // Parse the imported schema
+        XsdNodeFactory importFactory = new XsdNodeFactory();
+        XsdSchema importedSchema = importFactory.fromString(schemaContent);
+        importedSchemas.put(namespace != null ? namespace : schemaLocation, importedSchema);
+
+        logger.info("Successfully loaded imported schema with {} children", importedSchema.getChildren().size());
+
+        // Merge global elements and types from imported schema into main schema
+        mergeSchemaComponents(importedSchema, mainSchema, namespace);
+    }
+
+    /**
+     * Loads schema content from a location (HTTP URL or local file).
+     *
+     * @param location the schema location (URL or file path)
+     * @return the schema content as string
+     * @throws Exception if loading fails
+     */
+    private String loadSchemaFromLocation(String location) throws Exception {
+        if (location.startsWith("http://") || location.startsWith("https://")) {
+            // Load from HTTP/HTTPS using ConnectionService
+            return loadSchemaFromHTTP(location);
+        } else {
+            // Load from local file
+            return loadSchemaFromFile(location);
+        }
+    }
+
+    /**
+     * Loads schema content from an HTTP/HTTPS URL using ConnectionService.
+     *
+     * @param url the schema URL
+     * @return the schema content as string
+     * @throws Exception if loading fails
+     */
+    private String loadSchemaFromHTTP(String url) throws Exception {
+        logger.info("Loading schema from HTTP: {}", url);
+
+        try {
+            // Use ConnectionService for HTTP downloads (respects proxy settings)
+            org.fxt.freexmltoolkit.service.ConnectionService connectionService =
+                    org.fxt.freexmltoolkit.service.ConnectionServiceImpl.getInstance();
+
+            java.net.URI uri = java.net.URI.create(url);
+            String content = connectionService.getTextContentFromURL(uri);
+
+            if (content != null && !content.isEmpty()) {
+                logger.info("Successfully loaded schema from HTTP: {} ({} bytes)", url, content.length());
+                return content;
+            } else {
+                logger.warn("Empty content received from HTTP: {}", url);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.error("Failed to load schema from HTTP: {}, error: {}", url, e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * Loads schema content from a local file.
+     *
+     * @param filePath the file path (relative or absolute)
+     * @return the schema content as string
+     * @throws Exception if loading fails
+     */
+    private String loadSchemaFromFile(String filePath) throws Exception {
+        logger.info("Loading schema from file: {}", filePath);
+
+        Path path;
+        if (currentSchemaFile != null) {
+            // Resolve relative to current schema file
+            path = currentSchemaFile.getParent().resolve(filePath);
+        } else {
+            path = Path.of(filePath);
+        }
+
+        if (!Files.exists(path)) {
+            logger.warn("Schema file not found: {}", path);
+            return null;
+        }
+
+        String content = Files.readString(path);
+        logger.info("Successfully loaded schema from file: {} ({} bytes)", path, content.length());
+        return content;
+    }
+
+    /**
+     * Merges global elements and types from imported schema into main schema.
+     * This allows referencing components from the imported schema via namespace prefix.
+     *
+     * @param importedSchema the imported schema
+     * @param mainSchema the main schema to merge into
+     * @param namespace the target namespace of the imported schema
+     */
+    private void mergeSchemaComponents(XsdSchema importedSchema, XsdSchema mainSchema, String namespace) {
+        int mergedElements = 0;
+        int mergedTypes = 0;
+
+        // Merge global elements
+        for (XsdNode child : importedSchema.getChildren()) {
+            if (child instanceof XsdElement element) {
+                // Add element to main schema (it will be available for ref resolution)
+                // Note: We don't add it as a direct child to avoid cluttering the tree
+                // Instead, it will be accessible via the globalElementIndex in XsdVisualTreeBuilder
+                logger.debug("Found global element in imported schema: {}", element.getName());
+                mergedElements++;
+            } else if (child instanceof XsdComplexType complexType) {
+                // Add complex type to main schema
+                logger.debug("Found complex type in imported schema: {}", complexType.getName());
+                mergedTypes++;
+            } else if (child instanceof XsdSimpleType simpleType) {
+                // Add simple type to main schema
+                logger.debug("Found simple type in imported schema: {}", simpleType.getName());
+                mergedTypes++;
+            }
+        }
+
+        logger.info("Merged {} elements and {} types from imported schema (namespace='{}')",
+                mergedElements, mergedTypes, namespace);
+    }
+
+    /**
+     * Gets all imported schemas that have been loaded.
+     *
+     * @return map of namespace/location to imported schema
+     */
+    public java.util.Map<String, XsdSchema> getImportedSchemas() {
+        return new java.util.HashMap<>(importedSchemas);
     }
 }

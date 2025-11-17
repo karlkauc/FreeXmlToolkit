@@ -7,38 +7,52 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
+import javafx.scene.layout.Priority;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.panels.FacetsPanel;
+import org.fxt.freexmltoolkit.controls.v2.model.*;
 
 /**
  * Main view for editing a SimpleType.
  * Shows tabbed panels: General, Restriction, List, Union, Annotation
  *
- * DUMMY IMPLEMENTATION - Phase 0
- * This shows placeholder content matching the mockups.
+ * Phase 3 Implementation - Real panels with model integration
  *
  * @since 2.0
  */
 public class SimpleTypeEditorView extends BorderPane {
 
-    private final XsdSimpleType simpleType;
+    private static final Logger logger = LogManager.getLogger(SimpleTypeEditorView.class);
 
-    // UI Components (DUMMY)
+    private final XsdSimpleType simpleType;
+    private final XsdEditorContext editorContext;
+    private Runnable onChangeCallback;
+
+    // UI Components
     private ToolBar toolbar;
     private TabPane tabPane;
+
+    // Restriction Panel Components
+    private ComboBox<String> baseTypeCombo;
+    private FacetsPanel facetsPanel;
 
     /**
      * Creates a new SimpleType editor view.
      *
      * @param simpleType the simple type to edit
+     * @param editorContext the editor context
      */
-    public SimpleTypeEditorView(XsdSimpleType simpleType) {
+    public SimpleTypeEditorView(XsdSimpleType simpleType, XsdEditorContext editorContext) {
         this.simpleType = simpleType;
+        this.editorContext = editorContext;
         initializeUI();
     }
 
     /**
      * Initializes the UI components.
-     * DUMMY: Shows placeholder layout
+     * Phase 3: Real panels with model integration
      */
     private void initializeUI() {
         // Top: Toolbar
@@ -49,13 +63,31 @@ public class SimpleTypeEditorView extends BorderPane {
         tabPane = createTabPane();
         setCenter(tabPane);
 
-        // TODO Phase 3:
-        // - Implement real General panel
-        // - Wire up FacetsPanel for Restriction
-        // - Implement List panel
-        // - Implement Union panel
-        // - Implement Annotation panel
-        // - Connect to model
+        // Setup change tracking
+        setupChangeTracking();
+    }
+
+    /**
+     * Sets up change tracking for all model changes.
+     */
+    private void setupChangeTracking() {
+        // Listen to SimpleType changes
+        simpleType.addPropertyChangeListener(evt -> {
+            logger.debug("SimpleType property changed: {}", evt.getPropertyName());
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+        });
+    }
+
+    /**
+     * Sets the callback to be called when changes are detected.
+     * Used by the parent tab to set dirty flag.
+     *
+     * @param callback the callback to run on change
+     */
+    public void setOnChangeCallback(Runnable callback) {
+        this.onChangeCallback = callback;
     }
 
     /**
@@ -117,7 +149,7 @@ public class SimpleTypeEditorView extends BorderPane {
 
     /**
      * Creates the General panel.
-     * DUMMY: Shows name and final checkboxes
+     * Real implementation with name and final attributes.
      */
     private VBox createGeneralPanel() {
         VBox panel = new VBox(15);
@@ -130,37 +162,54 @@ public class SimpleTypeEditorView extends BorderPane {
         grid.setHgap(10);
         grid.setVgap(10);
 
+        // Name field (read-only - name cannot be changed for existing types)
         Label nameLabel = new Label("Name:");
         TextField nameField = new TextField(simpleType.getName());
-        nameField.setDisable(true); // DUMMY
+        nameField.setEditable(false);
+        nameField.setStyle("-fx-background-color: #f0f0f0;");
+        nameField.setTooltip(new Tooltip("Type name cannot be changed after creation"));
 
         grid.add(nameLabel, 0, 0);
         grid.add(nameField, 1, 0);
 
+        // Final attribute - prevents further derivation
         Label finalLabel = new Label("Final:");
-        HBox finalBox = new HBox(10);
-        CheckBox finalRestriction = new CheckBox("restriction");
-        CheckBox finalList = new CheckBox("list");
-        CheckBox finalUnion = new CheckBox("union");
-        finalRestriction.setDisable(true); // DUMMY
-        finalList.setDisable(true); // DUMMY
-        finalUnion.setDisable(true); // DUMMY
-        finalBox.getChildren().addAll(finalRestriction, finalList, finalUnion);
+
+        CheckBox finalCheck = new CheckBox("Prevent further derivation");
+        finalCheck.setSelected(simpleType.isFinal());
+        finalCheck.setTooltip(new Tooltip("When checked, this type cannot be further derived"));
+
+        // Listen to changes
+        finalCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            logger.info("Updating final attribute to: {}", newVal);
+            simpleType.setFinal(newVal);
+
+            // Trigger change callback
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+        });
 
         grid.add(finalLabel, 0, 1);
-        grid.add(finalBox, 1, 1);
+        grid.add(finalCheck, 1, 1);
 
-        Label dummyNote = new Label("(Dummy Panel - Phase 0)");
-        dummyNote.setStyle("-fx-font-size: 10px; -fx-text-fill: #6c757d;");
+        // Information label
+        Label infoLabel = new Label(
+                "The 'final' attribute prevents this type from being further derived.\n" +
+                "When set, other types cannot use this type as a base."
+        );
+        infoLabel.setWrapText(true);
+        infoLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+        infoLabel.setPrefWidth(400);
 
-        panel.getChildren().addAll(title, grid, new Label(""), dummyNote);
+        panel.getChildren().addAll(title, grid, new Label(""), infoLabel);
 
         return panel;
     }
 
     /**
      * Creates the Restriction panel.
-     * DUMMY: Placeholder for FacetsPanel integration
+     * Real implementation with FacetsPanel integration.
      */
     private VBox createRestrictionPanel() {
         VBox panel = new VBox(15);
@@ -169,43 +218,118 @@ public class SimpleTypeEditorView extends BorderPane {
         Label title = new Label("Restriction");
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
+        // Base Type selector
         Label baseLabel = new Label("Base Type:");
-        ComboBox<String> baseCombo = new ComboBox<>();
-        baseCombo.getItems().addAll("xs:string", "xs:int", "xs:decimal", "xs:date");
-        baseCombo.setValue("xs:string");
-        baseCombo.setDisable(true); // DUMMY
+        baseTypeCombo = new ComboBox<>();
 
+        // Populate with common XSD built-in types
+        baseTypeCombo.getItems().addAll(
+                "xs:string", "xs:normalizedString", "xs:token",
+                "xs:int", "xs:integer", "xs:long", "xs:short", "xs:byte",
+                "xs:decimal", "xs:float", "xs:double",
+                "xs:boolean",
+                "xs:date", "xs:time", "xs:dateTime",
+                "xs:duration", "xs:gYear", "xs:gYearMonth", "xs:gMonth", "xs:gMonthDay", "xs:gDay",
+                "xs:hexBinary", "xs:base64Binary",
+                "xs:anyURI", "xs:QName",
+                "xs:positiveInteger", "xs:nonNegativeInteger", "xs:negativeInteger", "xs:nonPositiveInteger",
+                "xs:unsignedLong", "xs:unsignedInt", "xs:unsignedShort", "xs:unsignedByte"
+        );
+
+        // Find existing restriction to get base type
+        XsdRestriction currentRestriction = findRestrictionInSimpleType();
+        if (currentRestriction != null && currentRestriction.getBase() != null) {
+            baseTypeCombo.setValue(currentRestriction.getBase());
+        } else {
+            baseTypeCombo.setValue("xs:string"); // Default
+        }
+
+        // Listen to base type changes
+        baseTypeCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            handleBaseTypeChange(newVal);
+        });
+
+        // FacetsPanel integration
         Label facetsLabel = new Label("Facets:");
         facetsLabel.setStyle("-fx-font-weight: bold;");
 
-        // Placeholder for FacetsPanel
-        VBox facetsPlaceholder = new VBox(10);
-        facetsPlaceholder.setStyle("-fx-border-color: #dee2e6; -fx-padding: 10;");
-        facetsPlaceholder.setAlignment(Pos.CENTER);
-        Label facetsNote = new Label("FacetsPanel will be integrated here");
-        facetsNote.setStyle("-fx-font-style: italic; -fx-text-fill: #6c757d;");
-        facetsPlaceholder.getChildren().add(facetsNote);
+        facetsPanel = new FacetsPanel(editorContext);
 
-        Label dummyNote = new Label("(Dummy Panel - Phase 0)");
-        dummyNote.setStyle("-fx-font-size: 10px; -fx-text-fill: #6c757d;");
+        // Load current restriction into FacetsPanel
+        if (currentRestriction != null) {
+            facetsPanel.setRestriction(currentRestriction);
+            logger.debug("Loaded restriction with base '{}' and {} facets",
+                    currentRestriction.getBase(), currentRestriction.getFacets().size());
+        } else {
+            logger.debug("No restriction found in SimpleType, FacetsPanel disabled");
+        }
+
+        VBox.setVgrow(facetsPanel, Priority.ALWAYS);
 
         panel.getChildren().addAll(
                 title,
                 new Label(""),
-                baseLabel, baseCombo,
+                baseLabel, baseTypeCombo,
                 new Label(""),
                 facetsLabel,
-                facetsPlaceholder,
-                new Label(""),
-                dummyNote
+                facetsPanel
         );
 
         return panel;
     }
 
     /**
+     * Finds the restriction child in the SimpleType.
+     *
+     * @return the restriction, or null if not found
+     */
+    private XsdRestriction findRestrictionInSimpleType() {
+        for (XsdNode child : simpleType.getChildren()) {
+            if (child instanceof XsdRestriction) {
+                return (XsdRestriction) child;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Handles base type changes.
+     * Creates or updates the restriction with the new base type.
+     *
+     * @param newBaseType the new base type
+     */
+    private void handleBaseTypeChange(String newBaseType) {
+        if (newBaseType == null || newBaseType.isEmpty()) {
+            return;
+        }
+
+        logger.info("Base type changed to: {}", newBaseType);
+
+        XsdRestriction restriction = findRestrictionInSimpleType();
+
+        if (restriction == null) {
+            // Create new restriction
+            restriction = new XsdRestriction(newBaseType);
+            simpleType.addChild(restriction);
+            logger.info("Created new restriction with base '{}'", newBaseType);
+        } else {
+            // Update existing restriction
+            restriction.setBase(newBaseType);
+            logger.info("Updated restriction base to '{}'", newBaseType);
+        }
+
+        // Update FacetsPanel with the restriction
+        facetsPanel.setRestriction(restriction);
+
+        // Trigger change callback
+        if (onChangeCallback != null) {
+            onChangeCallback.run();
+        }
+    }
+
+    /**
      * Creates the List panel.
-     * DUMMY: Placeholder for list item type selector
+     * Real implementation with itemType selector.
      */
     private VBox createListPanel() {
         VBox panel = new VBox(15);
@@ -216,7 +340,30 @@ public class SimpleTypeEditorView extends BorderPane {
 
         Label itemTypeLabel = new Label("Item Type:");
         ComboBox<String> itemTypeCombo = new ComboBox<>();
-        itemTypeCombo.setDisable(true); // DUMMY
+
+        // Populate with XSD built-in types
+        itemTypeCombo.getItems().addAll(
+                "xs:string", "xs:normalizedString", "xs:token",
+                "xs:int", "xs:integer", "xs:long", "xs:short", "xs:byte",
+                "xs:decimal", "xs:float", "xs:double",
+                "xs:boolean",
+                "xs:date", "xs:time", "xs:dateTime",
+                "xs:hexBinary", "xs:base64Binary",
+                "xs:anyURI", "xs:QName"
+        );
+
+        // Find existing list to get itemType
+        XsdList currentList = findListInSimpleType();
+        if (currentList != null && currentList.getItemType() != null) {
+            itemTypeCombo.setValue(currentList.getItemType());
+        } else {
+            itemTypeCombo.setValue("xs:string"); // Default
+        }
+
+        // Listen to changes
+        itemTypeCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            handleItemTypeChange(newVal);
+        });
 
         Label description = new Label(
                 "A list creates space-separated values of the specified item type.\n" +
@@ -225,25 +372,67 @@ public class SimpleTypeEditorView extends BorderPane {
         description.setWrapText(true);
         description.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
 
-        Label dummyNote = new Label("(Dummy Panel - Phase 0)");
-        dummyNote.setStyle("-fx-font-size: 10px; -fx-text-fill: #6c757d;");
-
         panel.getChildren().addAll(
                 title,
                 new Label(""),
                 itemTypeLabel, itemTypeCombo,
                 new Label(""),
-                description,
-                new Label(""),
-                dummyNote
+                description
         );
 
         return panel;
     }
 
     /**
+     * Finds the list child in the SimpleType.
+     *
+     * @return the list, or null if not found
+     */
+    private XsdList findListInSimpleType() {
+        for (XsdNode child : simpleType.getChildren()) {
+            if (child instanceof XsdList) {
+                return (XsdList) child;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Handles item type changes for list.
+     * Creates or updates the list with the new item type.
+     *
+     * @param newItemType the new item type
+     */
+    private void handleItemTypeChange(String newItemType) {
+        if (newItemType == null || newItemType.isEmpty()) {
+            return;
+        }
+
+        logger.info("Item type changed to: {}", newItemType);
+
+        XsdList list = findListInSimpleType();
+
+        if (list == null) {
+            // Create new list
+            list = new XsdList();
+            list.setItemType(newItemType);
+            simpleType.addChild(list);
+            logger.info("Created new list with itemType '{}'", newItemType);
+        } else {
+            // Update existing list
+            list.setItemType(newItemType);
+            logger.info("Updated list itemType to '{}'", newItemType);
+        }
+
+        // Trigger change callback
+        if (onChangeCallback != null) {
+            onChangeCallback.run();
+        }
+    }
+
+    /**
      * Creates the Union panel.
-     * DUMMY: Placeholder for member types selector
+     * Real implementation with member types list.
      */
     private VBox createUnionPanel() {
         VBox panel = new VBox(15);
@@ -255,12 +444,24 @@ public class SimpleTypeEditorView extends BorderPane {
         Label memberTypesLabel = new Label("Member Types:");
         ListView<String> memberTypesList = new ListView<>();
         memberTypesList.setPrefHeight(150);
-        memberTypesList.setDisable(true); // DUMMY
+
+        // Find existing union to get member types
+        XsdUnion currentUnion = findUnionInSimpleType();
+        if (currentUnion != null) {
+            memberTypesList.getItems().addAll(currentUnion.getMemberTypes());
+        }
 
         Button addBtn = new Button("Add Member Type");
+        addBtn.setOnAction(e -> handleAddMemberType(memberTypesList));
+
         Button removeBtn = new Button("Remove");
-        addBtn.setDisable(true); // DUMMY
-        removeBtn.setDisable(true); // DUMMY
+        removeBtn.setOnAction(e -> handleRemoveMemberType(memberTypesList));
+        removeBtn.setDisable(true);
+
+        // Enable/disable remove button based on selection
+        memberTypesList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            removeBtn.setDisable(newVal == null);
+        });
 
         HBox buttonsBox = new HBox(10, addBtn, removeBtn);
 
@@ -271,9 +472,6 @@ public class SimpleTypeEditorView extends BorderPane {
         description.setWrapText(true);
         description.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
 
-        Label dummyNote = new Label("(Dummy Panel - Phase 0)");
-        dummyNote.setStyle("-fx-font-size: 10px; -fx-text-fill: #6c757d;");
-
         panel.getChildren().addAll(
                 title,
                 new Label(""),
@@ -281,12 +479,92 @@ public class SimpleTypeEditorView extends BorderPane {
                 memberTypesList,
                 buttonsBox,
                 new Label(""),
-                description,
-                new Label(""),
-                dummyNote
+                description
         );
 
         return panel;
+    }
+
+    /**
+     * Finds the union child in the SimpleType.
+     *
+     * @return the union, or null if not found
+     */
+    private XsdUnion findUnionInSimpleType() {
+        for (XsdNode child : simpleType.getChildren()) {
+            if (child instanceof XsdUnion) {
+                return (XsdUnion) child;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Handles adding a member type to the union.
+     *
+     * @param memberTypesList the member types list view
+     */
+    private void handleAddMemberType(ListView<String> memberTypesList) {
+        // Show dialog to select type
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("xs:string",
+                "xs:string", "xs:normalizedString", "xs:token",
+                "xs:int", "xs:integer", "xs:long", "xs:short", "xs:byte",
+                "xs:decimal", "xs:float", "xs:double",
+                "xs:boolean",
+                "xs:date", "xs:time", "xs:dateTime",
+                "xs:hexBinary", "xs:base64Binary",
+                "xs:anyURI", "xs:QName"
+        );
+        dialog.setTitle("Add Member Type");
+        dialog.setHeaderText("Select a type to add to the union");
+        dialog.setContentText("Type:");
+
+        dialog.showAndWait().ifPresent(selectedType -> {
+            logger.info("Adding member type: {}", selectedType);
+
+            XsdUnion union = findUnionInSimpleType();
+
+            if (union == null) {
+                // Create new union
+                union = new XsdUnion();
+                simpleType.addChild(union);
+                logger.info("Created new union");
+            }
+
+            // Add member type
+            union.addMemberType(selectedType);
+            memberTypesList.getItems().add(selectedType);
+
+            // Trigger change callback
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+        });
+    }
+
+    /**
+     * Handles removing a member type from the union.
+     *
+     * @param memberTypesList the member types list view
+     */
+    private void handleRemoveMemberType(ListView<String> memberTypesList) {
+        String selected = memberTypesList.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        logger.info("Removing member type: {}", selected);
+
+        XsdUnion union = findUnionInSimpleType();
+        if (union != null) {
+            union.removeMemberType(selected);
+            memberTypesList.getItems().remove(selected);
+
+            // Trigger change callback
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+        }
     }
 
     /**

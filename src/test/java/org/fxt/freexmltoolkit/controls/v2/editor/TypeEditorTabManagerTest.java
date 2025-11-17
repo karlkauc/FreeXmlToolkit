@@ -7,6 +7,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.tabs.ComplexTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypesListTab;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +53,8 @@ class TypeEditorTabManagerTest {
         Platform.runLater(() -> {
             try {
                 tabPane = new TabPane();
-                manager = new TypeEditorTabManager(tabPane);
+                XsdSchema schema = new XsdSchema();
+                manager = new TypeEditorTabManager(tabPane, schema);
                 latch.countDown();
             } catch (Exception e) {
                 e.printStackTrace();

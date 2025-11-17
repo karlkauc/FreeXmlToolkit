@@ -88,8 +88,8 @@ public class TypeEditorTabManager {
             // Tab already open, just select it
             tabPane.getSelectionModel().select(openTypeTabs.get(typeId));
         } else {
-            // Create new tab
-            SimpleTypeEditorTab tab = new SimpleTypeEditorTab(simpleType);
+            // Create new tab with main schema
+            SimpleTypeEditorTab tab = new SimpleTypeEditorTab(simpleType, mainSchema);
 
             // Set close handler with unsaved changes check
             tab.setOnCloseRequest(e -> {

@@ -55,7 +55,8 @@
       "Bash(build/dist/windows-x64-app-image/FreeXmlToolkit/runtime/bin/java.exe -version)",
       "Bash(build/dist/windows-x64-app-image/FreeXmlToolkit/FreeXmlToolkit.exe --version)",
       "Bash(./FreeXmlToolkit.exe)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(ssh-add:*)"
     ],
     "deny": []
   }

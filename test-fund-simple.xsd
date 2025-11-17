@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- Root element -->
+    <xs:element name="Root">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Fund" type="FundType" maxOccurs="unbounded">
+                    <xs:annotation>
+                        <xs:documentation>Fund element with type reference</xs:documentation>
+                    </xs:annotation>
+                    <xs:key name="benchmarkID">
+                        <xs:selector xpath="FundStaticData/Benchmarks/Benchmark"/>
+                        <xs:field xpath="BenchmarkID"/>
+                    </xs:key>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Fund type definition -->
+    <xs:complexType name="FundType">
+        <xs:sequence>
+            <xs:element name="Identifiers" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Identifiers of fund</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Names" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Names of fund</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Currency" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Main currency</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

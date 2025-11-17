@@ -38,6 +38,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private static final Logger logger = LogManager.getLogger(XsdGraphView.class);
 
     private final XsdSchema xsdSchema;
+    private Map<String, org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> importedSchemas = new HashMap<>();
     private final Canvas canvas;
     private final ScrollPane scrollPane;
     private final XsdNodeRenderer renderer;
@@ -274,7 +275,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
         // Provide rebuild callback for Model → View synchronization
         // For structural changes (add/delete child), we need to rebuild the tree
-        rootNode = builder.buildFromSchema(xsdSchema, this::rebuildVisualTree);
+        rootNode = builder.buildFromSchema(xsdSchema, this::rebuildVisualTree, importedSchemas);
         nodeMap.putAll(builder.getNodeMap());
         logger.debug("Visual tree built from XsdSchema with {} nodes (with auto-rebuild on model changes)", nodeMap.size());
     }
@@ -330,7 +331,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             // 3. Rebuild tree from schema
             // Temporarily use this::redraw to avoid recursion during rebuild
             XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
-            rootNode = builder.buildFromSchema(xsdSchema, this::redraw);
+            rootNode = builder.buildFromSchema(xsdSchema, this::redraw, importedSchemas);
             nodeMap.clear();
             nodeMap.putAll(builder.getNodeMap());
             logger.debug("Visual tree rebuilt with {} nodes", nodeMap.size());
@@ -441,7 +442,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * Redraws the entire canvas.
      */
     private void redraw() {
-        logger.debug("redraw() called, rootNode has {} children", rootNode != null ? rootNode.getChildren().size() : "null");
+        // logger.debug("redraw() called, rootNode has {} children", rootNode != null ? rootNode.getChildren().size() : "null");
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         if (rootNode == null) {
@@ -465,7 +466,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         if (canvas.getWidth() != canvasWidth || canvas.getHeight() != canvasHeight) {
             canvas.setWidth(canvasWidth);
             canvas.setHeight(canvasHeight);
-            logger.debug("Canvas resized to {}x{}", canvasWidth, canvasHeight);
+            // logger.debug("Canvas resized to {}x{}", canvasWidth, canvasHeight);
         }
 
         // Clear canvas
@@ -771,6 +772,19 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         for (VisualNode child : node.getChildren()) {
             collapseAll(child);
         }
+    }
+
+    /**
+     * Sets the imported schemas for this graph view.
+     * This should be called after loading the schema to provide access to imported schema elements.
+     *
+     * @param importedSchemas map of namespace/location to imported schema
+     */
+    public void setImportedSchemas(Map<String, org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> importedSchemas) {
+        this.importedSchemas = importedSchemas != null ? importedSchemas : new HashMap<>();
+        logger.info("Set {} imported schemas", this.importedSchemas.size());
+        // Rebuild visual tree to include imported elements
+        rebuildVisualTree();
     }
 
     /**
