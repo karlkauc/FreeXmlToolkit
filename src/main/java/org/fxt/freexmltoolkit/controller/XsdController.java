@@ -3212,8 +3212,9 @@ public class XsdController {
         if (typeLibraryTab != null) {
             typeLibraryTab.setOnSelectionChanged(event -> {
                 if (typeLibraryTab.isSelected()) {
-                    // TODO: refreshTypeLibrary() method needs to be implemented
                     logger.debug("Type library tab selected");
+                    // Type library is now automatically populated via TypeEditorTabManager
+                    // when a schema is loaded via updateTypeEditorWithSchema()
                 }
             });
         }
@@ -3412,17 +3413,13 @@ public class XsdController {
             // Initialize TypeEditorTabManager
             typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
 
-            // Create main Type Editor tab
-            typeEditorTab = new Tab("Type Editor");
-            typeEditorTab.setContent(typeEditorTabPane);
-            typeEditorTab.setClosable(false); // Main tab should not be closable
-
-            // Add to main TabPane
-            if (tabPane != null) {
-                tabPane.getTabs().add(typeEditorTab);
-                logger.info("Type Editor tab initialized successfully");
+            // Place the typeEditorTabPane into the Type Library tab's StackPane
+            if (typeLibraryStackPane != null) {
+                typeLibraryStackPane.getChildren().clear();
+                typeLibraryStackPane.getChildren().add(typeEditorTabPane);
+                logger.info("Type Library tab initialized with TypeEditorTabManager");
             } else {
-                logger.warn("Main TabPane is not initialized - cannot add Type Editor tab");
+                logger.warn("Type Library StackPane is not initialized");
             }
 
         } catch (Exception e) {
