@@ -56,12 +56,17 @@ public class FOPService {
      * @param xslFile     the XSL file to use for transformation
      * @param pdfOutput   the output PDF file
      * @param pdfSettings the settings for the PDF file
-     * @return
+     * @return the created PDF file
+     * @throws FOPServiceException if PDF generation fails due to malformed input, transformation errors, or I/O issues
      */
-    public File createPdfFile(File xmlFile, File xslFile, File pdfOutput, PDFSettings pdfSettings) {
+    public File createPdfFile(File xmlFile, File xslFile, File pdfOutput, PDFSettings pdfSettings) throws FOPServiceException {
 
-        assert xmlFile.exists();
-        assert xslFile.exists();
+        if (!xmlFile.exists()) {
+            throw new FOPServiceException("XML file does not exist: " + xmlFile.getAbsolutePath());
+        }
+        if (!xslFile.exists()) {
+            throw new FOPServiceException("XSL file does not exist: " + xslFile.getAbsolutePath());
+        }
 
         setDefaultParameter();
         try {
@@ -100,10 +105,20 @@ public class FOPService {
             Result res = new SAXResult(fop.getDefaultHandler());
             transformer.transform(src, res);
             out.close();
+
+            logger.debug("PDF generation completed successfully: {}", pdfOutput);
+        } catch (javax.xml.transform.TransformerException e) {
+            logger.error("XSLT transformation failed", e);
+            throw new FOPServiceException("Failed to transform XML using XSL stylesheet: " + e.getMessage(), e);
+        } catch (org.apache.fop.apps.FOPException e) {
+            logger.error("FOP processing failed", e);
+            throw new FOPServiceException("FOP processing error: " + e.getMessage(), e);
+        } catch (java.io.IOException e) {
+            logger.error("I/O error during PDF generation", e);
+            throw new FOPServiceException("I/O error while creating PDF: " + e.getMessage(), e);
         } catch (Exception e) {
-            logger.error(e.getMessage());
-            logger.error(e.getStackTrace());
-            logger.error(e);
+            logger.error("Unexpected error during PDF generation", e);
+            throw new FOPServiceException("Unexpected error during PDF generation: " + e.getMessage(), e);
         }
         return pdfOutput;
     }
