@@ -1,0 +1,476 @@
+/*
+ * FreeXmlToolkit - Unified Context Menu Theme
+ * Modern context menu and menu bar styling for consistency across the application
+ *
+ * This stylesheet provides:
+ * - Context menu container styling
+ * - Menu item styling (normal, hover, disabled)
+ * - Icon and text styling
+ * - Submenu styling
+ * - Separator styling
+ * - Accelerator (keyboard shortcut) styling
+ * - Check/Radio menu items
+ */
+
+/* ============================================
+   CONTEXT MENU CONTAINER
+   ============================================ */
+
+.context-menu {
+    -fx-font-family: var(--font-family-base);
+    -fx-font-size: var(--font-size-base);
+    -fx-background-color: var(--bg-primary);
+    -fx-border-color: var(--border-medium);
+    -fx-border-width: 1;
+    -fx-background-radius: var(--border-radius-md);
+    -fx-border-radius: var(--border-radius-md);
+    -fx-padding: var(--spacing-1);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);
+}
+
+/* ============================================
+   MENU ITEMS
+   ============================================ */
+
+.context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-radius: var(--border-radius-sm);
+    -fx-cursor: hand;
+}
+
+.context-menu .menu-item:hover {
+    -fx-background-color: var(--bg-hover);
+}
+
+.context-menu .menu-item:focused {
+    -fx-background-color: var(--bg-hover);
+}
+
+.context-menu .menu-item:disabled {
+    -fx-opacity: 0.5;
+    -fx-cursor: default;
+}
+
+/* Menu item label */
+.context-menu .menu-item > .label {
+    -fx-text-fill: var(--text-primary);
+    -fx-font-size: var(--font-size-base);
+    -fx-padding: 0 0 0 var(--spacing-sm);
+}
+
+.context-menu .menu-item:disabled > .label {
+    -fx-text-fill: var(--text-muted);
+}
+
+/* ============================================
+   MENU ITEM ICONS
+   ============================================ */
+
+.context-menu .menu-item .ikonli-font-icon {
+    -fx-icon-size: var(--icon-menu);
+}
+
+/* Semantic icon colors */
+.menu-icon-success {
+    -fx-icon-color: var(--color-success);
+}
+
+.menu-icon-info {
+    -fx-icon-color: var(--color-info);
+}
+
+.menu-icon-warning {
+    -fx-icon-color: var(--color-warning);
+}
+
+.menu-icon-danger {
+    -fx-icon-color: var(--color-danger);
+}
+
+.menu-icon-primary {
+    -fx-icon-color: var(--color-primary);
+}
+
+.menu-icon-secondary {
+    -fx-icon-color: var(--text-secondary);
+}
+
+/* Purple/Green/Blue for tab groups */
+.menu-icon-purple {
+    -fx-icon-color: var(--color-purple);
+}
+
+.menu-icon-green {
+    -fx-icon-color: var(--color-success);
+}
+
+.menu-icon-blue {
+    -fx-icon-color: var(--color-primary);
+}
+
+.menu-icon-orange {
+    -fx-icon-color: var(--color-orange);
+}
+
+.menu-icon-teal {
+    -fx-icon-color: var(--color-teal);
+}
+
+.menu-icon-indigo {
+    -fx-icon-color: var(--color-indigo);
+}
+
+/* ============================================
+   SUBMENU (Menu with children)
+   ============================================ */
+
+.context-menu .menu {
+    -fx-background-color: transparent;
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-radius: var(--border-radius-sm);
+}
+
+.context-menu .menu:hover {
+    -fx-background-color: var(--bg-hover);
+}
+
+.context-menu .menu:showing {
+    -fx-background-color: var(--bg-hover);
+}
+
+.context-menu .menu > .label {
+    -fx-text-fill: var(--text-primary);
+    -fx-font-size: var(--font-size-base);
+    -fx-padding: 0 0 0 var(--spacing-sm);
+}
+
+/* Submenu arrow */
+.context-menu .menu > .arrow {
+    -fx-shape: "M0,0 L4,4 L0,8 Z";
+    -fx-background-color: var(--text-secondary);
+    -fx-padding: 4;
+    -fx-scale-shape: true;
+}
+
+.context-menu .menu:hover > .arrow {
+    -fx-background-color: var(--text-primary);
+}
+
+/* ============================================
+   SEPARATOR
+   ============================================ */
+
+.context-menu .separator {
+    -fx-padding: var(--spacing-1) 0;
+}
+
+.context-menu .separator .line {
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 1 0 0 0;
+}
+
+/* ============================================
+   ACCELERATOR TEXT (Keyboard Shortcuts)
+   ============================================ */
+
+.context-menu .menu-item .accelerator-text {
+    -fx-text-fill: var(--text-muted);
+    -fx-font-size: var(--font-size-sm);
+    -fx-padding: 0 0 0 var(--spacing-xl);
+}
+
+.context-menu .menu-item:hover .accelerator-text {
+    -fx-text-fill: var(--text-secondary);
+}
+
+/* ============================================
+   CHECK MENU ITEM
+   ============================================ */
+
+.context-menu .check-menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-radius: var(--border-radius-sm);
+}
+
+.context-menu .check-menu-item:hover {
+    -fx-background-color: var(--bg-hover);
+}
+
+/* Check box indicator */
+.context-menu .check-menu-item > .left-container > .check {
+    -fx-background-color: transparent;
+    -fx-border-color: var(--border-medium);
+    -fx-border-width: 1;
+    -fx-border-radius: var(--border-radius-sm);
+    -fx-padding: 2;
+}
+
+.context-menu .check-menu-item:selected > .left-container > .check {
+    -fx-background-color: var(--color-primary);
+    -fx-border-color: var(--color-primary);
+    -fx-shape: "M0,4 L3,7 L8,0 L9,1 L3,9 L-1,5 Z";
+    -fx-background-insets: 0;
+}
+
+/* ============================================
+   RADIO MENU ITEM
+   ============================================ */
+
+.context-menu .radio-menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-radius: var(--border-radius-sm);
+}
+
+.context-menu .radio-menu-item:hover {
+    -fx-background-color: var(--bg-hover);
+}
+
+/* Radio indicator */
+.context-menu .radio-menu-item > .left-container > .radio {
+    -fx-background-color: transparent;
+    -fx-border-color: var(--border-medium);
+    -fx-border-width: 1;
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+    -fx-padding: 2;
+}
+
+.context-menu .radio-menu-item:selected > .left-container > .radio {
+    -fx-background-color: var(--color-primary);
+    -fx-border-color: var(--color-primary);
+    -fx-background-insets: 3;
+}
+
+/* ============================================
+   CUSTOM MENU ITEM (with graphic)
+   ============================================ */
+
+.context-menu .custom-menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-radius: var(--border-radius-sm);
+}
+
+.context-menu .custom-menu-item:hover {
+    -fx-background-color: var(--bg-hover);
+}
+
+.context-menu .custom-menu-item .ikonli-font-icon {
+    -fx-icon-size: var(--icon-menu);
+}
+
+/* ============================================
+   MENU BAR (Main application menu)
+   ============================================ */
+
+.menu-bar {
+    -fx-background-color: var(--bg-primary);
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: var(--spacing-1) var(--spacing-md);
+    -fx-font-family: var(--font-family-base);
+    -fx-font-size: var(--font-size-base);
+}
+
+/* Menu bar items */
+.menu-bar > .container > .menu-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: var(--border-radius-sm);
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.menu-bar > .container > .menu-button:hover {
+    -fx-background-color: var(--bg-hover);
+}
+
+.menu-bar > .container > .menu-button:showing {
+    -fx-background-color: var(--bg-active);
+}
+
+.menu-bar > .container > .menu-button > .label {
+    -fx-text-fill: var(--text-primary);
+    -fx-font-size: var(--font-size-base);
+}
+
+/* ============================================
+   MENU BUTTON (Standalone menu button)
+   ============================================ */
+
+.menu-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: var(--border-radius-base);
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-cursor: hand;
+}
+
+.menu-button:hover {
+    -fx-background-color: var(--bg-hover);
+}
+
+.menu-button:showing {
+    -fx-background-color: var(--bg-active);
+}
+
+.menu-button > .label {
+    -fx-text-fill: var(--text-primary);
+    -fx-font-size: var(--font-size-base);
+    -fx-padding: 0 var(--spacing-sm) 0 0;
+}
+
+.menu-button > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 0 0 var(--spacing-sm);
+}
+
+.menu-button > .arrow-button > .arrow {
+    -fx-shape: "M0,0 L4,4 L8,0 Z";
+    -fx-background-color: var(--text-secondary);
+    -fx-padding: 3;
+    -fx-scale-shape: true;
+}
+
+.menu-button:hover > .arrow-button > .arrow {
+    -fx-background-color: var(--text-primary);
+}
+
+/* ============================================
+   SPLIT MENU BUTTON
+   ============================================ */
+
+.split-menu-button {
+    -fx-background-color: transparent;
+}
+
+.split-menu-button > .label {
+    -fx-text-fill: var(--text-primary);
+    -fx-font-size: var(--font-size-base);
+}
+
+.split-menu-button:hover > .label {
+    -fx-background-color: var(--bg-hover);
+}
+
+.split-menu-button > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0 var(--border-radius-base) var(--border-radius-base) 0;
+    -fx-padding: var(--spacing-sm);
+}
+
+.split-menu-button > .arrow-button:hover {
+    -fx-background-color: var(--bg-hover);
+}
+
+.split-menu-button > .arrow-button > .arrow {
+    -fx-shape: "M0,0 L4,4 L8,0 Z";
+    -fx-background-color: var(--text-secondary);
+    -fx-padding: 3;
+    -fx-scale-shape: true;
+}
+
+/* ============================================
+   CONTEXT MENU SPECIAL ITEMS
+   ============================================ */
+
+/* Header item (non-interactive) */
+.context-menu .menu-header {
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-color: var(--bg-secondary);
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 0 0 1 0;
+}
+
+.context-menu .menu-header > .label {
+    -fx-text-fill: var(--text-secondary);
+    -fx-font-size: var(--font-size-sm);
+    -fx-font-weight: var(--font-weight-bold);
+}
+
+/* Footer item (non-interactive) */
+.context-menu .menu-footer {
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-color: var(--bg-secondary);
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 1 0 0 0;
+}
+
+.context-menu .menu-footer > .label {
+    -fx-text-fill: var(--text-muted);
+    -fx-font-size: var(--font-size-xs);
+    -fx-font-style: italic;
+}
+
+/* ============================================
+   CONTEXT MENU ANIMATIONS
+   ============================================ */
+
+.context-menu {
+    -fx-opacity: 0;
+}
+
+.context-menu:showing {
+    -fx-opacity: 1;
+}
+
+/* ============================================
+   XML/XSD EDITOR SPECIFIC STYLES
+   ============================================ */
+
+/* Matches the style from XmlGraphicEditor and XsdContextMenuFactory */
+.xml-context-menu,
+.xsd-context-menu {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.xml-context-menu .menu-item,
+.xsd-context-menu .menu-item {
+    -fx-padding: 6 12;
+}
+
+.xml-context-menu .menu-item .ikonli-font-icon,
+.xsd-context-menu .menu-item .ikonli-font-icon {
+    -fx-icon-size: 12;
+}
+
+/* Pre-styled icons with colors */
+.xml-context-menu .add-icon,
+.xsd-context-menu .add-icon {
+    -fx-icon-color: #28a745; /* Green */
+}
+
+.xml-context-menu .delete-icon,
+.xsd-context-menu .delete-icon {
+    -fx-icon-color: #dc3545; /* Red */
+}
+
+.xml-context-menu .edit-icon,
+.xsd-context-menu .edit-icon {
+    -fx-icon-color: #fd7e14; /* Orange */
+}
+
+.xml-context-menu .copy-icon,
+.xsd-context-menu .copy-icon {
+    -fx-icon-color: #20c997; /* Teal */
+}
+
+.xml-context-menu .change-icon,
+.xsd-context-menu .change-icon {
+    -fx-icon-color: #007bff; /* Blue */
+}
+
+.xml-context-menu .attribute-icon,
+.xsd-context-menu .attribute-icon {
+    -fx-icon-color: #ffc107; /* Warning/Yellow */
+}
+
+.xml-context-menu .cardinality-icon,
+.xsd-context-menu .cardinality-icon {
+    -fx-icon-color: #6f42c1; /* Purple */
+}
+
+.xml-context-menu .info-icon,
+.xsd-context-menu .info-icon {
+    -fx-icon-color: #17a2b8; /* Info/Cyan */
+}

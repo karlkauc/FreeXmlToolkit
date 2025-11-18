@@ -1,0 +1,368 @@
+/*
+ * FreeXmlToolkit - Global Application Theme
+ * Bootstrap-inspired color palette and design system
+ *
+ * This stylesheet defines the global design tokens (colors, spacing, typography)
+ * used across the entire application for consistency.
+ */
+
+/* ============================================
+   COLOR PALETTE
+   ============================================ */
+
+:root {
+    /* Primary Semantic Colors */
+    --color-success: #28a745;
+    --color-info: #17a2b8;
+    --color-warning: #ffc107;
+    --color-danger: #dc3545;
+    --color-primary: #007bff;
+
+    /* Secondary Semantic Colors */
+    --color-purple: #6f42c1;
+    --color-indigo: #6610f2;
+    --color-pink: #e83e8c;
+    --color-orange: #fd7e14;
+    --color-teal: #20c997;
+    --color-cyan: #17a2b8;
+
+    /* Neutral/Gray Scale */
+    --color-white: #ffffff;
+    --color-gray-100: #f8f9fa;
+    --color-gray-200: #e9ecef;
+    --color-gray-300: #dee2e6;
+    --color-gray-400: #ced4da;
+    --color-gray-500: #adb5bd;
+    --color-gray-600: #6c757d;
+    --color-gray-700: #495057;
+    --color-gray-800: #343a40;
+    --color-gray-900: #212529;
+    --color-black: #000000;
+
+    /* Tab Category Colors */
+    --color-tab-primary: #9c27b0;      /* Purple for primary editing */
+    --color-tab-primary-light: #e1bee7;
+    --color-tab-output: #43a047;       /* Green for output generation */
+    --color-tab-output-light: #c8e6c9;
+    --color-tab-utility: #1e88e5;      /* Blue for utilities */
+    --color-tab-utility-light: #bbdefb;
+
+    /* Background Colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #f1f3f5;
+    --bg-hover: rgba(74, 144, 226, 0.1);
+    --bg-active: rgba(74, 144, 226, 0.2);
+
+    /* Border Colors */
+    --border-light: #dee2e6;
+    --border-medium: #ced4da;
+    --border-dark: #adb5bd;
+    --border-focus: #4a90e2;
+
+    /* Text Colors */
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-muted: #adb5bd;
+    --text-white: #ffffff;
+
+    /* ============================================
+       SPACING SYSTEM
+       ============================================ */
+
+    --spacing-0: 0;
+    --spacing-1: 4px;
+    --spacing-2: 8px;
+    --spacing-3: 12px;
+    --spacing-4: 16px;
+    --spacing-5: 20px;
+    --spacing-6: 24px;
+    --spacing-8: 32px;
+    --spacing-10: 40px;
+
+    /* Common spacing aliases */
+    --spacing-xs: var(--spacing-1);    /* 4px */
+    --spacing-sm: var(--spacing-2);    /* 8px */
+    --spacing-md: var(--spacing-4);    /* 16px */
+    --spacing-lg: var(--spacing-5);    /* 20px */
+    --spacing-xl: var(--spacing-6);    /* 24px */
+
+    /* ============================================
+       TYPOGRAPHY
+       ============================================ */
+
+    /* Font Families */
+    --font-family-base: 'Segoe UI', Arial, sans-serif;
+    --font-family-monospace: 'Courier New', Courier, monospace;
+    --font-family-code: 'Consolas', 'Monaco', 'Courier New', monospace;
+
+    /* Font Sizes */
+    --font-size-xs: 10px;
+    --font-size-sm: 11px;
+    --font-size-base: 12px;
+    --font-size-md: 13px;
+    --font-size-lg: 14px;
+    --font-size-xl: 16px;
+    --font-size-2xl: 18px;
+    --font-size-3xl: 24px;
+    --font-size-4xl: 32px;
+
+    /* Font Weights */
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Line Heights */
+    --line-height-tight: 1.2;
+    --line-height-base: 1.5;
+    --line-height-relaxed: 1.8;
+
+    /* ============================================
+       ICON SIZES
+       ============================================ */
+
+    --icon-size-xs: 10px;
+    --icon-size-sm: 12px;
+    --icon-size-base: 14px;
+    --icon-size-md: 16px;
+    --icon-size-lg: 20px;
+    --icon-size-xl: 24px;
+    --icon-size-2xl: 32px;
+    --icon-size-3xl: 48px;
+    --icon-size-4xl: 64px;
+
+    /* Icon size aliases */
+    --icon-menu: var(--icon-size-sm);      /* 12px for menu items */
+    --icon-toolbar: var(--icon-size-md);   /* 16px for toolbar buttons */
+    --icon-header: var(--icon-size-2xl);   /* 32px for revolutionary headers */
+    --icon-dialog: var(--icon-size-2xl);   /* 32px for dialog icons */
+    --icon-empty-state: var(--icon-size-4xl); /* 64px for empty states */
+
+    /* ============================================
+       BORDER RADIUS
+       ============================================ */
+
+    --border-radius-none: 0;
+    --border-radius-sm: 2px;
+    --border-radius-base: 4px;
+    --border-radius-md: 6px;
+    --border-radius-lg: 8px;
+    --border-radius-xl: 12px;
+    --border-radius-full: 9999px;
+
+    /* ============================================
+       SHADOWS
+       ============================================ */
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+    /* ============================================
+       TRANSITIONS
+       ============================================ */
+
+    --transition-fast: 150ms ease-in-out;
+    --transition-base: 200ms ease-in-out;
+    --transition-slow: 300ms ease-in-out;
+
+    /* ============================================
+       Z-INDEX LAYERS
+       ============================================ */
+
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+}
+
+/* ============================================
+   GLOBAL STYLES
+   ============================================ */
+
+/* Root font settings */
+.root {
+    -fx-font-family: var(--font-family-base);
+    -fx-font-size: var(--font-size-base);
+    -fx-text-fill: var(--text-primary);
+}
+
+/* Labels */
+.label {
+    -fx-font-family: var(--font-family-base);
+    -fx-font-size: var(--font-size-base);
+    -fx-text-fill: var(--text-primary);
+}
+
+.label.bold {
+    -fx-font-weight: var(--font-weight-bold);
+}
+
+.label.muted {
+    -fx-text-fill: var(--text-secondary);
+}
+
+.label.small {
+    -fx-font-size: var(--font-size-sm);
+}
+
+.label.large {
+    -fx-font-size: var(--font-size-lg);
+}
+
+/* Buttons */
+.button {
+    -fx-font-family: var(--font-family-base);
+    -fx-font-size: var(--font-size-base);
+    -fx-cursor: hand;
+    -fx-background-radius: var(--border-radius-base);
+    -fx-border-radius: var(--border-radius-base);
+}
+
+.button:hover {
+    -fx-opacity: 0.9;
+}
+
+.button:pressed {
+    -fx-opacity: 0.8;
+}
+
+/* Text Fields */
+.text-field,
+.text-area {
+    -fx-font-family: var(--font-family-base);
+    -fx-font-size: var(--font-size-base);
+    -fx-background-radius: var(--border-radius-base);
+    -fx-border-radius: var(--border-radius-base);
+}
+
+/* Tooltips */
+.tooltip {
+    -fx-font-family: var(--font-family-base);
+    -fx-font-size: var(--font-size-sm);
+    -fx-background-color: var(--color-gray-800);
+    -fx-text-fill: var(--text-white);
+    -fx-background-radius: var(--border-radius-base);
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Spacing utilities */
+.p-0 { -fx-padding: var(--spacing-0); }
+.p-1 { -fx-padding: var(--spacing-1); }
+.p-2 { -fx-padding: var(--spacing-2); }
+.p-3 { -fx-padding: var(--spacing-3); }
+.p-4 { -fx-padding: var(--spacing-4); }
+.p-5 { -fx-padding: var(--spacing-5); }
+
+.m-0 { -fx-margin: var(--spacing-0); }
+.m-1 { -fx-margin: var(--spacing-1); }
+.m-2 { -fx-margin: var(--spacing-2); }
+.m-3 { -fx-margin: var(--spacing-3); }
+.m-4 { -fx-margin: var(--spacing-4); }
+.m-5 { -fx-margin: var(--spacing-5); }
+
+/* Text alignment */
+.text-left { -fx-alignment: CENTER_LEFT; }
+.text-center { -fx-alignment: CENTER; }
+.text-right { -fx-alignment: CENTER_RIGHT; }
+
+/* Background colors */
+.bg-white { -fx-background-color: var(--bg-primary); }
+.bg-gray-100 { -fx-background-color: var(--color-gray-100); }
+.bg-gray-200 { -fx-background-color: var(--color-gray-200); }
+
+/* Border utilities */
+.border-bottom {
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: var(--border-light);
+}
+
+.border-top {
+    -fx-border-width: 1 0 0 0;
+    -fx-border-color: var(--border-light);
+}
+
+/* ============================================
+   COMPONENT-SPECIFIC STYLES
+   ============================================ */
+
+/* Revolutionary Header */
+.revolutionary-header {
+    -fx-background-color: linear-gradient(to bottom, var(--color-gray-100), var(--color-gray-200));
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: var(--spacing-md) var(--spacing-lg);
+    -fx-spacing: var(--spacing-md);
+    -fx-alignment: CENTER_LEFT;
+}
+
+.revolutionary-title {
+    -fx-font-size: var(--font-size-2xl);
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-text-fill: var(--text-primary);
+}
+
+.revolutionary-subtitle {
+    -fx-font-size: var(--font-size-md);
+    -fx-text-fill: var(--text-secondary);
+}
+
+/* Card Component */
+.card {
+    -fx-background-color: var(--bg-primary);
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 1;
+    -fx-border-radius: var(--border-radius-md);
+    -fx-background-radius: var(--border-radius-md);
+    -fx-padding: var(--spacing-lg);
+    -fx-spacing: var(--spacing-md);
+}
+
+.card-title {
+    -fx-font-size: var(--font-size-lg);
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-text-fill: var(--text-primary);
+}
+
+.card-subtitle {
+    -fx-font-size: var(--font-size-base);
+    -fx-text-fill: var(--text-secondary);
+}
+
+/* Info Panel */
+.info-panel {
+    -fx-background-color: var(--bg-tertiary);
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: var(--spacing-md);
+    -fx-spacing: var(--spacing-md);
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* Empty State */
+.empty-state {
+    -fx-alignment: CENTER;
+    -fx-spacing: var(--spacing-lg);
+    -fx-padding: var(--spacing-10);
+}
+
+.empty-state .label {
+    -fx-text-fill: var(--text-secondary);
+}
+
+.empty-state .title {
+    -fx-font-size: var(--font-size-2xl);
+    -fx-font-weight: var(--font-weight-medium);
+    -fx-text-fill: var(--text-secondary);
+}

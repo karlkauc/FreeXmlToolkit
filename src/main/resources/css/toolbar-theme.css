@@ -1,0 +1,412 @@
+/*
+ * FreeXmlToolkit - Unified Toolbar Theme
+ * Modern toolbar styling with icon buttons and consistent behavior
+ *
+ * This stylesheet provides:
+ * - Unified toolbar container styling
+ * - Icon button styling (primary interaction pattern)
+ * - Text button styling (secondary pattern)
+ * - MenuButton styling for dropdowns
+ * - Button group separators
+ * - Hover, focus, and pressed states
+ */
+
+/* ============================================
+   TOOLBAR CONTAINER
+   ============================================ */
+
+.unified-toolbar,
+.xsd-toolbar {
+    -fx-background-color: linear-gradient(to bottom, var(--color-gray-100), var(--color-gray-200));
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-spacing: var(--spacing-1);
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* Toolbar sections for grouping */
+.toolbar-section {
+    -fx-spacing: var(--spacing-1);
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* ============================================
+   ICON BUTTONS (Primary Pattern)
+   ============================================ */
+
+.unified-toolbar .button,
+.xsd-toolbar .button {
+    -fx-background-color: transparent;
+    -fx-background-radius: var(--border-radius-base);
+    -fx-padding: var(--spacing-sm);
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-border-radius: var(--border-radius-base);
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+    -fx-pref-width: 28px;
+    -fx-pref-height: 28px;
+    -fx-max-width: 28px;
+    -fx-max-height: 28px;
+}
+
+/* Icon-only button - hide text */
+.unified-toolbar .button.icon-only,
+.xsd-toolbar .button.icon-only {
+    -fx-content-display: GRAPHIC_ONLY;
+}
+
+/* Text+Icon button - show both */
+.unified-toolbar .button.text-icon,
+.xsd-toolbar .button.text-icon {
+    -fx-content-display: LEFT;
+    -fx-graphic-text-gap: var(--spacing-sm);
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-min-width: -1;
+    -fx-pref-width: -1;
+    -fx-max-width: -1;
+}
+
+/* Button hover state */
+.unified-toolbar .button:hover,
+.xsd-toolbar .button:hover {
+    -fx-background-color: var(--bg-hover);
+    -fx-border-color: var(--border-focus);
+}
+
+/* Button pressed state */
+.unified-toolbar .button:pressed,
+.xsd-toolbar .button:pressed {
+    -fx-background-color: var(--bg-active);
+    -fx-border-color: var(--border-focus);
+}
+
+/* Button disabled state */
+.unified-toolbar .button:disabled,
+.xsd-toolbar .button:disabled {
+    -fx-opacity: 0.4;
+    -fx-cursor: default;
+}
+
+/* ============================================
+   ICON STYLING
+   ============================================ */
+
+.unified-toolbar .button .ikonli-font-icon,
+.xsd-toolbar .button .ikonli-font-icon {
+    -fx-icon-color: var(--text-secondary);
+    -fx-icon-size: var(--icon-toolbar);
+}
+
+.unified-toolbar .button:hover .ikonli-font-icon,
+.xsd-toolbar .button:hover .ikonli-font-icon {
+    -fx-icon-color: var(--border-focus);
+}
+
+.unified-toolbar .button:disabled .ikonli-font-icon,
+.xsd-toolbar .button:disabled .ikonli-font-icon {
+    -fx-icon-color: var(--text-muted);
+}
+
+/* Colored icons for semantic actions */
+.toolbar-icon-success { -fx-icon-color: var(--color-success) !important; }
+.toolbar-icon-info { -fx-icon-color: var(--color-info) !important; }
+.toolbar-icon-warning { -fx-icon-color: var(--color-warning) !important; }
+.toolbar-icon-danger { -fx-icon-color: var(--color-danger) !important; }
+.toolbar-icon-primary { -fx-icon-color: var(--color-primary) !important; }
+
+/* Icon hover state for colored icons */
+.unified-toolbar .button:hover .toolbar-icon-success,
+.xsd-toolbar .button:hover .toolbar-icon-success {
+    -fx-icon-color: derive(var(--color-success), -20%) !important;
+}
+
+.unified-toolbar .button:hover .toolbar-icon-danger,
+.xsd-toolbar .button:hover .toolbar-icon-danger {
+    -fx-icon-color: derive(var(--color-danger), -20%) !important;
+}
+
+/* ============================================
+   MENU BUTTONS (Dropdowns)
+   ============================================ */
+
+.unified-toolbar .menu-button,
+.xsd-toolbar .menu-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: var(--border-radius-base);
+    -fx-padding: var(--spacing-sm);
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-border-radius: var(--border-radius-base);
+}
+
+.unified-toolbar .menu-button:hover,
+.xsd-toolbar .menu-button:hover {
+    -fx-background-color: var(--bg-hover);
+    -fx-border-color: var(--border-focus);
+}
+
+.unified-toolbar .menu-button:showing,
+.xsd-toolbar .menu-button:showing {
+    -fx-background-color: var(--bg-active);
+    -fx-border-color: var(--border-focus);
+}
+
+/* MenuButton icon styling */
+.unified-toolbar .menu-button .ikonli-font-icon,
+.xsd-toolbar .menu-button .ikonli-font-icon {
+    -fx-icon-color: var(--text-secondary);
+    -fx-icon-size: var(--icon-toolbar);
+}
+
+.unified-toolbar .menu-button:hover .ikonli-font-icon,
+.xsd-toolbar .menu-button:hover .ikonli-font-icon {
+    -fx-icon-color: var(--border-focus);
+}
+
+/* Hide arrow button for icon-only menu buttons */
+.unified-toolbar .menu-button.icon-only .arrow-button,
+.xsd-toolbar .menu-button.icon-only .arrow-button {
+    -fx-padding: 0;
+}
+
+.unified-toolbar .menu-button.icon-only .arrow,
+.xsd-toolbar .menu-button.icon-only .arrow {
+    -fx-shape: null;
+}
+
+/* Show arrow for text menu buttons */
+.unified-toolbar .menu-button.text-icon,
+.xsd-toolbar .menu-button.text-icon {
+    -fx-content-display: LEFT;
+    -fx-graphic-text-gap: var(--spacing-sm);
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+}
+
+/* ============================================
+   SEPARATORS
+   ============================================ */
+
+.unified-toolbar .separator,
+.xsd-toolbar .separator {
+    -fx-padding: 0 var(--spacing-sm);
+}
+
+.unified-toolbar .separator .line,
+.xsd-toolbar .separator .line {
+    -fx-border-color: var(--border-medium);
+    -fx-border-width: 0 1 0 0;
+    -fx-pref-height: 20px;
+}
+
+/* ============================================
+   TOGGLE BUTTONS
+   ============================================ */
+
+.unified-toolbar .toggle-button,
+.xsd-toolbar .toggle-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: var(--border-radius-base);
+    -fx-padding: var(--spacing-sm);
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-border-radius: var(--border-radius-base);
+}
+
+.unified-toolbar .toggle-button:hover,
+.xsd-toolbar .toggle-button:hover {
+    -fx-background-color: var(--bg-hover);
+    -fx-border-color: var(--border-focus);
+}
+
+.unified-toolbar .toggle-button:selected,
+.xsd-toolbar .toggle-button:selected {
+    -fx-background-color: var(--bg-active);
+    -fx-border-color: var(--border-focus);
+}
+
+.unified-toolbar .toggle-button:selected .ikonli-font-icon,
+.xsd-toolbar .toggle-button:selected .ikonli-font-icon {
+    -fx-icon-color: var(--border-focus);
+}
+
+/* ============================================
+   LABELS IN TOOLBAR
+   ============================================ */
+
+.unified-toolbar .label,
+.xsd-toolbar .label {
+    -fx-text-fill: var(--text-secondary);
+    -fx-font-size: var(--font-size-sm);
+    -fx-font-weight: var(--font-weight-medium);
+    -fx-padding: 0 var(--spacing-sm);
+}
+
+.unified-toolbar .label.bold,
+.xsd-toolbar .label.bold {
+    -fx-font-weight: var(--font-weight-bold);
+}
+
+/* ============================================
+   BUTTON GROUPS
+   ============================================ */
+
+/* Tight spacing for related buttons */
+.toolbar-button-group {
+    -fx-spacing: 2;
+}
+
+/* First button in group */
+.toolbar-button-group .button:first-child {
+    -fx-background-radius: var(--border-radius-base) 0 0 var(--border-radius-base);
+    -fx-border-radius: var(--border-radius-base) 0 0 var(--border-radius-base);
+}
+
+/* Last button in group */
+.toolbar-button-group .button:last-child {
+    -fx-background-radius: 0 var(--border-radius-base) var(--border-radius-base) 0;
+    -fx-border-radius: 0 var(--border-radius-base) var(--border-radius-base) 0;
+}
+
+/* Middle buttons in group */
+.toolbar-button-group .button:not(:first-child):not(:last-child) {
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+/* ============================================
+   COMBO BOX IN TOOLBAR
+   ============================================ */
+
+.unified-toolbar .combo-box,
+.xsd-toolbar .combo-box {
+    -fx-background-color: var(--bg-primary);
+    -fx-border-color: var(--border-medium);
+    -fx-border-width: 1;
+    -fx-border-radius: var(--border-radius-base);
+    -fx-background-radius: var(--border-radius-base);
+    -fx-padding: var(--spacing-1) var(--spacing-sm);
+    -fx-font-size: var(--font-size-sm);
+}
+
+.unified-toolbar .combo-box:hover,
+.xsd-toolbar .combo-box:hover {
+    -fx-border-color: var(--border-focus);
+}
+
+.unified-toolbar .combo-box:focused,
+.xsd-toolbar .combo-box:focused {
+    -fx-border-color: var(--border-focus);
+    -fx-background-color: var(--bg-primary);
+}
+
+/* ============================================
+   TEXT FIELD IN TOOLBAR
+   ============================================ */
+
+.unified-toolbar .text-field,
+.xsd-toolbar .text-field {
+    -fx-background-color: var(--bg-primary);
+    -fx-border-color: var(--border-medium);
+    -fx-border-width: 1;
+    -fx-border-radius: var(--border-radius-base);
+    -fx-background-radius: var(--border-radius-base);
+    -fx-padding: var(--spacing-1) var(--spacing-sm);
+    -fx-font-size: var(--font-size-sm);
+    -fx-pref-height: 28px;
+}
+
+.unified-toolbar .text-field:hover,
+.xsd-toolbar .text-field:hover {
+    -fx-border-color: var(--border-focus);
+}
+
+.unified-toolbar .text-field:focused,
+.xsd-toolbar .text-field:focused {
+    -fx-border-color: var(--border-focus);
+    -fx-background-color: var(--bg-primary);
+}
+
+/* ============================================
+   SPACER
+   ============================================ */
+
+.toolbar-spacer {
+    -fx-min-width: var(--spacing-md);
+    -fx-pref-width: var(--spacing-md);
+}
+
+.toolbar-spacer-large {
+    -fx-min-width: var(--spacing-xl);
+    -fx-pref-width: var(--spacing-xl);
+}
+
+/* ============================================
+   SPRING SPACER (fills available space)
+   ============================================ */
+
+.toolbar-spring {
+    -fx-hgrow: ALWAYS;
+}
+
+/* ============================================
+   SPECIAL BUTTON VARIANTS
+   ============================================ */
+
+/* Primary action button (more prominent) */
+.unified-toolbar .button.primary-action,
+.xsd-toolbar .button.primary-action {
+    -fx-background-color: var(--color-primary);
+    -fx-border-color: var(--color-primary);
+}
+
+.unified-toolbar .button.primary-action .ikonli-font-icon,
+.xsd-toolbar .button.primary-action .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+.unified-toolbar .button.primary-action:hover,
+.xsd-toolbar .button.primary-action:hover {
+    -fx-background-color: derive(var(--color-primary), -20%);
+    -fx-border-color: derive(var(--color-primary), -20%);
+}
+
+/* Success action button */
+.unified-toolbar .button.success-action,
+.xsd-toolbar .button.success-action {
+    -fx-background-color: var(--color-success);
+    -fx-border-color: var(--color-success);
+}
+
+.unified-toolbar .button.success-action .ikonli-font-icon,
+.xsd-toolbar .button.success-action .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+.unified-toolbar .button.success-action:hover,
+.xsd-toolbar .button.success-action:hover {
+    -fx-background-color: derive(var(--color-success), -20%);
+    -fx-border-color: derive(var(--color-success), -20%);
+}
+
+/* Danger action button */
+.unified-toolbar .button.danger-action,
+.xsd-toolbar .button.danger-action {
+    -fx-background-color: var(--color-danger);
+    -fx-border-color: var(--color-danger);
+}
+
+.unified-toolbar .button.danger-action .ikonli-font-icon,
+.xsd-toolbar .button.danger-action .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+.unified-toolbar .button.danger-action:hover,
+.xsd-toolbar .button.danger-action:hover {
+    -fx-background-color: derive(var(--color-danger), -20%);
+    -fx-border-color: derive(var(--color-danger), -20%);
+}

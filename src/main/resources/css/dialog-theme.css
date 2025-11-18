@@ -1,0 +1,551 @@
+/*
+ * FreeXmlToolkit - Unified Dialog Theme
+ * Modern dialog and alert styling for consistency across the application
+ *
+ * This stylesheet provides:
+ * - Standard Alert dialog styling (Information, Warning, Error, Confirmation)
+ * - Custom dialog headers with icons
+ * - Content area styling
+ * - Button bar layout
+ * - Info boxes and feature sections
+ * - Dialog-specific component variants
+ */
+
+/* ============================================
+   DIALOG PANE (Base for all dialogs)
+   ============================================ */
+
+.dialog-pane {
+    -fx-background-color: var(--bg-primary);
+    -fx-padding: 0;
+}
+
+.dialog-pane > .content {
+    -fx-padding: var(--spacing-lg);
+}
+
+.dialog-pane > .button-bar {
+    -fx-background-color: var(--bg-secondary);
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: var(--spacing-md) var(--spacing-lg);
+    -fx-spacing: var(--spacing-md);
+}
+
+.dialog-pane > .button-bar > .container {
+    -fx-spacing: var(--spacing-md);
+}
+
+/* Dialog buttons */
+.dialog-pane .button {
+    -fx-font-size: var(--font-size-md);
+    -fx-font-weight: var(--font-weight-medium);
+    -fx-padding: var(--spacing-sm) var(--spacing-lg);
+    -fx-background-radius: var(--border-radius-base);
+    -fx-cursor: hand;
+}
+
+/* Primary/Default button */
+.dialog-pane .button:default {
+    -fx-background-color: var(--color-primary);
+    -fx-text-fill: white;
+    -fx-font-weight: var(--font-weight-bold);
+}
+
+.dialog-pane .button:default:hover {
+    -fx-background-color: derive(var(--color-primary), -20%);
+}
+
+/* Cancel button */
+.dialog-pane .button:cancel-button {
+    -fx-background-color: var(--color-gray-200);
+    -fx-text-fill: var(--text-primary);
+}
+
+.dialog-pane .button:cancel-button:hover {
+    -fx-background-color: var(--color-gray-300);
+}
+
+/* ============================================
+   DIALOG HEADERS
+   ============================================ */
+
+.dialog-header {
+    -fx-background-color: linear-gradient(to bottom, var(--color-primary), derive(var(--color-primary), -20%));
+    -fx-padding: var(--spacing-lg);
+    -fx-spacing: var(--spacing-md);
+}
+
+.dialog-header .label {
+    -fx-text-fill: white;
+}
+
+.dialog-header-title {
+    -fx-font-size: var(--font-size-3xl);
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-text-fill: white;
+}
+
+.dialog-header-subtitle {
+    -fx-font-size: var(--font-size-lg);
+    -fx-text-fill: rgba(255, 255, 255, 0.9);
+}
+
+.dialog-header .ikonli-font-icon {
+    -fx-icon-color: white;
+    -fx-icon-size: var(--icon-dialog);
+}
+
+/* Header color variants */
+.dialog-header-primary {
+    -fx-background-color: linear-gradient(to bottom, var(--color-primary), derive(var(--color-primary), -20%));
+}
+
+.dialog-header-success {
+    -fx-background-color: linear-gradient(to bottom, var(--color-success), derive(var(--color-success), -20%));
+}
+
+.dialog-header-info {
+    -fx-background-color: linear-gradient(to bottom, var(--color-info), derive(var(--color-info), -20%));
+}
+
+.dialog-header-warning {
+    -fx-background-color: linear-gradient(to bottom, var(--color-warning), derive(var(--color-warning), -20%));
+}
+
+.dialog-header-danger {
+    -fx-background-color: linear-gradient(to bottom, var(--color-danger), derive(var(--color-danger), -20%));
+}
+
+.dialog-header-purple {
+    -fx-background-color: linear-gradient(to bottom, var(--color-tab-primary), derive(var(--color-tab-primary), -20%));
+}
+
+/* ============================================
+   ALERT DIALOGS (Information, Warning, Error, Confirmation)
+   ============================================ */
+
+/* Alert header text */
+.dialog-pane > .header-panel {
+    -fx-background-color: var(--bg-secondary);
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: var(--spacing-lg);
+}
+
+.dialog-pane > .header-panel > .label {
+    -fx-font-size: var(--font-size-xl);
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-text-fill: var(--text-primary);
+}
+
+/* Content text */
+.dialog-pane > .content > .label {
+    -fx-font-size: var(--font-size-md);
+    -fx-text-fill: var(--text-primary);
+    -fx-line-spacing: 2px;
+}
+
+/* Alert icon styling */
+.dialog-pane .graphic-container {
+    -fx-padding: 0 var(--spacing-md) 0 0;
+}
+
+/* Information Alert */
+.dialog-pane.information .graphic-container .ikonli-font-icon {
+    -fx-icon-color: var(--color-info);
+    -fx-icon-size: var(--icon-dialog);
+}
+
+/* Warning Alert */
+.dialog-pane.warning .graphic-container .ikonli-font-icon {
+    -fx-icon-color: var(--color-warning);
+    -fx-icon-size: var(--icon-dialog);
+}
+
+/* Error Alert */
+.dialog-pane.error .graphic-container .ikonli-font-icon {
+    -fx-icon-color: var(--color-danger);
+    -fx-icon-size: var(--icon-dialog);
+}
+
+/* Confirmation Alert */
+.dialog-pane.confirmation .graphic-container .ikonli-font-icon {
+    -fx-icon-color: var(--color-primary);
+    -fx-icon-size: var(--icon-dialog);
+}
+
+/* ============================================
+   CONTENT SECTIONS AND CARDS
+   ============================================ */
+
+.dialog-section {
+    -fx-background-color: var(--bg-secondary);
+    -fx-padding: var(--spacing-lg);
+    -fx-spacing: var(--spacing-md);
+    -fx-background-radius: var(--border-radius-md);
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 1;
+    -fx-border-radius: var(--border-radius-md);
+}
+
+.dialog-section-title {
+    -fx-font-size: var(--font-size-2xl);
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-text-fill: var(--text-primary);
+}
+
+.dialog-section-subtitle {
+    -fx-font-size: var(--font-size-base);
+    -fx-text-fill: var(--text-secondary);
+}
+
+/* Quick action buttons in sections */
+.dialog-section .button.action-primary {
+    -fx-background-color: var(--color-success);
+    -fx-text-fill: white;
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-radius: var(--border-radius-base);
+}
+
+.dialog-section .button.action-primary:hover {
+    -fx-background-color: derive(var(--color-success), -20%);
+}
+
+.dialog-section .button.action-secondary {
+    -fx-background-color: var(--color-warning);
+    -fx-text-fill: var(--color-gray-900);
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-radius: var(--border-radius-base);
+}
+
+.dialog-section .button.action-secondary:hover {
+    -fx-background-color: derive(var(--color-warning), -20%);
+}
+
+.dialog-section .button.action-info {
+    -fx-background-color: var(--color-primary);
+    -fx-text-fill: white;
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-radius: var(--border-radius-base);
+}
+
+.dialog-section .button.action-info:hover {
+    -fx-background-color: derive(var(--color-primary), -20%);
+}
+
+/* ============================================
+   FEATURE ITEMS (Icon + Title + Description)
+   ============================================ */
+
+.dialog-feature-item {
+    -fx-spacing: var(--spacing-md);
+    -fx-alignment: TOP_LEFT;
+}
+
+.dialog-feature-icon {
+    -fx-icon-size: var(--icon-size-xl);
+}
+
+.dialog-feature-icon.purple {
+    -fx-icon-color: var(--color-tab-primary);
+}
+
+.dialog-feature-icon.green {
+    -fx-icon-color: var(--color-tab-output);
+}
+
+.dialog-feature-icon.blue {
+    -fx-icon-color: var(--color-tab-utility);
+}
+
+.dialog-feature-icon.success {
+    -fx-icon-color: var(--color-success);
+}
+
+.dialog-feature-icon.warning {
+    -fx-icon-color: var(--color-warning);
+}
+
+.dialog-feature-icon.danger {
+    -fx-icon-color: var(--color-danger);
+}
+
+.dialog-feature-icon.info {
+    -fx-icon-color: var(--color-info);
+}
+
+.dialog-feature-title {
+    -fx-font-size: var(--font-size-lg);
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-text-fill: var(--text-primary);
+}
+
+.dialog-feature-description {
+    -fx-text-fill: var(--text-secondary);
+    -fx-font-size: var(--font-size-base);
+    -fx-wrap-text: true;
+}
+
+/* ============================================
+   INFO BOXES (Tips, Notes, Warnings)
+   ============================================ */
+
+.dialog-info-box {
+    -fx-background-color: var(--color-gray-100);
+    -fx-padding: var(--spacing-md);
+    -fx-spacing: var(--spacing-sm);
+    -fx-background-radius: var(--border-radius-md);
+    -fx-border-width: 1;
+    -fx-border-radius: var(--border-radius-md);
+}
+
+.dialog-info-box-info {
+    -fx-background-color: #e3f2fd;
+    -fx-border-color: #90caf9;
+}
+
+.dialog-info-box-info .label {
+    -fx-text-fill: #1976d2;
+}
+
+.dialog-info-box-info .ikonli-font-icon {
+    -fx-icon-color: #1976d2;
+}
+
+.dialog-info-box-success {
+    -fx-background-color: #e8f5e9;
+    -fx-border-color: #a5d6a7;
+}
+
+.dialog-info-box-success .label {
+    -fx-text-fill: #2e7d32;
+}
+
+.dialog-info-box-success .ikonli-font-icon {
+    -fx-icon-color: #2e7d32;
+}
+
+.dialog-info-box-warning {
+    -fx-background-color: #fff3e0;
+    -fx-border-color: #ffcc80;
+}
+
+.dialog-info-box-warning .label {
+    -fx-text-fill: #e65100;
+}
+
+.dialog-info-box-warning .ikonli-font-icon {
+    -fx-icon-color: #e65100;
+}
+
+.dialog-info-box-danger {
+    -fx-background-color: #ffebee;
+    -fx-border-color: #ef9a9a;
+}
+
+.dialog-info-box-danger .label {
+    -fx-text-fill: #c62828;
+}
+
+.dialog-info-box-danger .ikonli-font-icon {
+    -fx-icon-color: #c62828;
+}
+
+.dialog-info-box-title {
+    -fx-font-size: var(--font-size-md);
+    -fx-font-weight: var(--font-weight-bold);
+}
+
+.dialog-info-box-text {
+    -fx-font-size: var(--font-size-sm);
+}
+
+/* ============================================
+   GROUP LABELS (Category Headers)
+   ============================================ */
+
+.dialog-group-label {
+    -fx-font-size: var(--font-size-sm);
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-padding: var(--spacing-sm) 0 0 0;
+}
+
+.dialog-group-label-primary {
+    -fx-text-fill: var(--color-tab-primary);
+}
+
+.dialog-group-label-output {
+    -fx-text-fill: var(--color-tab-output);
+}
+
+.dialog-group-label-utility {
+    -fx-text-fill: var(--color-tab-utility);
+}
+
+/* ============================================
+   BOTTOM ACTION BAR
+   ============================================ */
+
+.dialog-action-bar {
+    -fx-background-color: var(--bg-secondary);
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: var(--spacing-md);
+    -fx-spacing: var(--spacing-md);
+}
+
+.dialog-action-bar .check-box {
+    -fx-font-size: var(--font-size-sm);
+}
+
+.dialog-action-bar .button {
+    -fx-font-size: var(--font-size-md);
+    -fx-font-weight: var(--font-weight-bold);
+    -fx-padding: var(--spacing-sm) var(--spacing-xl);
+    -fx-background-radius: var(--border-radius-base);
+}
+
+.dialog-action-bar .button.primary {
+    -fx-background-color: var(--color-primary);
+    -fx-text-fill: white;
+}
+
+.dialog-action-bar .button.primary:hover {
+    -fx-background-color: derive(var(--color-primary), -20%);
+}
+
+.dialog-action-bar .button.primary .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+/* ============================================
+   SCROLL PANE IN DIALOGS
+   ============================================ */
+
+.dialog-pane .scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.dialog-pane .scroll-pane > .viewport {
+    -fx-background-color: var(--bg-primary);
+}
+
+.dialog-pane .scroll-pane > .scroll-bar:vertical {
+    -fx-background-color: var(--bg-secondary);
+}
+
+.dialog-pane .scroll-pane > .scroll-bar:vertical > .thumb {
+    -fx-background-color: var(--color-gray-400);
+    -fx-background-radius: 4;
+}
+
+.dialog-pane .scroll-pane > .scroll-bar:vertical > .thumb:hover {
+    -fx-background-color: var(--color-gray-500);
+}
+
+/* ============================================
+   EXPANDABLE CONTENT
+   ============================================ */
+
+.dialog-pane > .expandable-content {
+    -fx-background-color: var(--bg-tertiary);
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: var(--spacing-md);
+}
+
+.dialog-pane > .expandable-content > .label {
+    -fx-font-family: var(--font-family-monospace);
+    -fx-font-size: var(--font-size-sm);
+}
+
+/* ============================================
+   TEXT INPUT DIALOG
+   ============================================ */
+
+.dialog-pane.text-input-dialog .text-field {
+    -fx-font-size: var(--font-size-md);
+    -fx-padding: var(--spacing-sm) var(--spacing-md);
+    -fx-background-radius: var(--border-radius-base);
+    -fx-border-radius: var(--border-radius-base);
+}
+
+.dialog-pane.text-input-dialog .label {
+    -fx-font-size: var(--font-size-md);
+    -fx-text-fill: var(--text-primary);
+}
+
+/* ============================================
+   CHOICE DIALOG
+   ============================================ */
+
+.dialog-pane.choice-dialog .combo-box {
+    -fx-font-size: var(--font-size-md);
+    -fx-background-radius: var(--border-radius-base);
+    -fx-border-radius: var(--border-radius-base);
+}
+
+/* ============================================
+   PROGRESS DIALOG
+   ============================================ */
+
+.dialog-pane .progress-bar {
+    -fx-pref-height: 8px;
+    -fx-background-radius: var(--border-radius-base);
+}
+
+.dialog-pane .progress-bar > .track {
+    -fx-background-color: var(--color-gray-300);
+    -fx-background-radius: var(--border-radius-base);
+}
+
+.dialog-pane .progress-bar > .bar {
+    -fx-background-color: var(--color-primary);
+    -fx-background-radius: var(--border-radius-base);
+}
+
+.dialog-pane .progress-indicator {
+    -fx-progress-color: var(--color-primary);
+}
+
+/* ============================================
+   SEPARATOR IN DIALOGS
+   ============================================ */
+
+.dialog-separator {
+    -fx-padding: var(--spacing-sm) 0;
+}
+
+.dialog-separator .line {
+    -fx-border-color: var(--border-light);
+    -fx-border-width: 1 0 0 0;
+}
+
+/* ============================================
+   CUSTOM DIALOG SIZES
+   ============================================ */
+
+.dialog-small {
+    -fx-pref-width: 400px;
+    -fx-pref-height: 300px;
+}
+
+.dialog-medium {
+    -fx-pref-width: 600px;
+    -fx-pref-height: 450px;
+}
+
+.dialog-large {
+    -fx-pref-width: 850px;
+    -fx-pref-height: 650px;
+}
+
+.dialog-xlarge {
+    -fx-pref-width: 1000px;
+    -fx-pref-height: 750px;
+}
