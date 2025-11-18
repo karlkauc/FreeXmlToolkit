@@ -46,7 +46,7 @@
         <!-- Generate Action -->
         <Button>
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-pdf" iconSize="16"/>
+                <FontIcon iconLiteral="bi-filetype-pdf" iconSize="16"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Generate PDF"/>

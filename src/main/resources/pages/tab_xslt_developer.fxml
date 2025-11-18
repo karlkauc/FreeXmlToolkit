@@ -52,14 +52,14 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="liveTransformToggle" text="Live">
+        <ToggleButton fx:id="liveTransformToggle" text="Live">
             <graphic>
                 <FontIcon iconLiteral="bi-lightning" iconSize="16"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle Live Transform"/>
             </tooltip>
-        </Button>
+        </ToggleButton>
 
         <Region HBox.hgrow="ALWAYS"/>
 
