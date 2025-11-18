@@ -26,10 +26,56 @@
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XsltDeveloperController"
-      styleClass="revolutionary-page">
+      stylesheets="@../css/xsd-tab-groups.css">
+
+    <!-- XSLT Developer Operations Toolbar -->
+    <ToolBar styleClass="xsd-toolbar">
+        <!-- File Operations Group -->
+        <Button fx:id="loadXmlBtn">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Load XML File"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Transform Action -->
+        <Button fx:id="transformBtn">
+            <graphic>
+                <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Execute Transformation"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="liveTransformToggle" text="Live">
+            <graphic>
+                <FontIcon iconLiteral="bi-lightning" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle Live Transform"/>
+            </tooltip>
+        </Button>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <!-- Help -->
+        <Button>
+            <graphic>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Help (F1)"/>
+            </tooltip>
+        </Button>
+    </ToolBar>
 
     <!-- Enhanced XSLT Developer Header -->
-    <HBox styleClass="revolutionary-header" spacing="15" alignment="CENTER_LEFT">
+    <HBox spacing="15" alignment="CENTER_LEFT">
         <padding>
             <Insets top="15" bottom="15" left="20" right="20"/>
         </padding>

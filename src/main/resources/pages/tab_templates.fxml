@@ -26,10 +26,44 @@
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.TemplatesController"
-      styleClass="revolutionary-page">
+      stylesheets="@../css/xsd-tab-groups.css">
+
+    <!-- Templates Operations Toolbar -->
+    <ToolBar styleClass="xsd-toolbar">
+        <!-- File Operations Group -->
+        <Button fx:id="createTemplateBtn" text="Create New">
+            <graphic>
+                <FontIcon iconLiteral="bi-plus-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Create New Template"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="refreshTemplatesBtn" text="Refresh">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Refresh Templates"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Help -->
+        <Button>
+            <graphic>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Help (F1)"/>
+            </tooltip>
+        </Button>
+    </ToolBar>
 
     <!-- Enhanced Smart Templates Header -->
-    <HBox styleClass="revolutionary-header" spacing="15" alignment="CENTER_LEFT">
+    <HBox spacing="15" alignment="CENTER_LEFT">
         <padding>
             <Insets top="15" bottom="15" left="20" right="20"/>
         </padding>
