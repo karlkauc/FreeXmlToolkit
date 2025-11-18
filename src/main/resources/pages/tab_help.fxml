@@ -1,26 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
-<AnchorPane fx:id="anchorPane"
-            AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-            AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
-            xmlns="http://javafx.com/javafx/11.0.14-internal"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.fxt.freexmltoolkit.controller.HelpController">
-    <TabPane tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-             AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <Tab text="FreeXmlToolkit Documentation" fx:id="tabFXTDoc">
+<?import org.kordamp.ikonli.javafx.*?>
+<VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
+      xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.fxt.freexmltoolkit.controller.HelpController"
+      stylesheets="@../css/xsd-tab-groups.css">
+
+    <!-- Help Toolbar -->
+    <ToolBar styleClass="xsd-toolbar">
+        <Button>
+            <graphic>
+                <FontIcon iconLiteral="bi-house" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Home"/>
+            </tooltip>
+        </Button>
+
+        <Button>
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-left" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Back"/>
+            </tooltip>
+        </Button>
+
+        <Button>
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-right" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Forward"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <Button>
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Refresh"/>
+            </tooltip>
+        </Button>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <Button>
+            <graphic>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Help"/>
+            </tooltip>
+        </Button>
+    </ToolBar>
+
+    <!-- Documentation Tabs -->
+    <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <Tab text="FreeXmlToolkit Documentation" fx:id="tabFXTDoc" styleClass="primary-tab">
+            <graphic>
+                <FontIcon iconLiteral="bi-book" iconSize="16"/>
+            </graphic>
             <WebView fx:id="viewFXTDoc"/>
         </Tab>
-        <Tab text="FundsXML Documentation" fx:id="tabFundsXMlSite">
+        <Tab text="FundsXML Documentation" fx:id="tabFundsXMlSite" styleClass="primary-tab">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-text" iconSize="16"/>
+            </graphic>
             <WebView fx:id="viewFundsXMLSite"/>
         </Tab>
-        <Tab text="FundsXML Migration Guide" fx:id="tabMigrationGuide">
+        <Tab text="Migration Guide" fx:id="tabMigrationGuide" styleClass="utility-tab">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16"/>
+            </graphic>
             <WebView fx:id="viewMigrationGuide"/>
         </Tab>
     </TabPane>
 
-</AnchorPane>
+</VBox>
