@@ -15,6 +15,8 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.XmlUltimateController;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.util.ContextMenuFactory;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
@@ -679,27 +681,13 @@ public class FavoritesPanelController implements Initializable {
     }
 
     private ContextMenu createContextMenu(FileFavorite favorite) {
-        ContextMenu menu = new ContextMenu();
-
-        MenuItem open = new MenuItem("Open");
-        open.setGraphic(new FontIcon("bi-folder2-open"));
-        open.setOnAction(e -> openFavorite(favorite));
-
-        MenuItem rename = new MenuItem("Rename");
-        rename.setGraphic(new FontIcon("bi-pencil"));
-        rename.setOnAction(e -> renameFavorite(favorite));
-
-        MenuItem remove = new MenuItem("Remove");
-        remove.setGraphic(new FontIcon("bi-trash"));
-        remove.setOnAction(e -> removeFavorite(favorite));
-
-        MenuItem properties = new MenuItem("Properties");
-        properties.setGraphic(new FontIcon("bi-info-circle"));
-        properties.setOnAction(e -> showProperties(favorite));
-
-        menu.getItems().addAll(open, rename, new SeparatorMenuItem(), remove, properties);
-
-        return menu;
+        return ContextMenuFactory.builder()
+            .addItem("Open", "bi-folder2-open", ContextMenuFactory.COLOR_PRIMARY, () -> openFavorite(favorite))
+            .addItem("Rename", "bi-pencil-square", ContextMenuFactory.COLOR_WARNING, () -> renameFavorite(favorite))
+            .addSeparator()
+            .addDeleteItem("Remove", () -> removeFavorite(favorite))
+            .addItem("Properties", "bi-info-circle", ContextMenuFactory.COLOR_INFO, () -> showProperties(favorite))
+            .build();
     }
 
     private void renameFavorite(FileFavorite favorite) {
@@ -716,23 +704,19 @@ public class FavoritesPanelController implements Initializable {
     }
 
     private void removeFavorite(FileFavorite favorite) {
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Remove Favorite");
-        confirm.setContentText("Remove " + favorite.getAlias() + " from favorites?");
+        boolean confirmed = DialogHelper.showConfirmation(
+            "Remove Favorite",
+            "Remove " + favorite.getAlias() + "?",
+            "Are you sure you want to remove this favorite from your collection?"
+        );
 
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                favoritesService.removeFavorite(favorite);
-                loadFavorites();
-            }
-        });
+        if (confirmed) {
+            favoritesService.removeFavorite(favorite);
+            loadFavorites();
+        }
     }
 
     private void showProperties(FileFavorite favorite) {
-        Alert dialog = new Alert(Alert.AlertType.INFORMATION);
-        dialog.setTitle("Favorite Properties");
-        dialog.setHeaderText(favorite.getAlias());
-
         String content = String.format(
                 "Path: %s\nCategory: %s\nAdded: %s\nLast Accessed: %s\nAccess Count: %d",
                 favorite.getFilePath(),
@@ -742,7 +726,10 @@ public class FavoritesPanelController implements Initializable {
                 favorite.getAccessCount()
         );
 
-        dialog.setContentText(content);
-        dialog.showAndWait();
+        DialogHelper.showInformation(
+            "Favorite Properties",
+            favorite.getAlias(),
+            content
+        );
     }
 }
