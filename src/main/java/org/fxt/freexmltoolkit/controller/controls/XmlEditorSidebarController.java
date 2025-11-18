@@ -552,13 +552,8 @@ public class XmlEditorSidebarController {
             return;
         }
 
-        // Get the XmlCodeEditor from the XmlEditor
-        org.fxt.freexmltoolkit.controls.XmlCodeEditor xmlCodeEditor = xmlEditor.getXmlCodeEditor();
-        if (xmlCodeEditor == null) {
-            return;
-        }
-
-        org.fxmisc.richtext.CodeArea codeArea = xmlCodeEditor.getCodeArea();
+        // Get the CodeArea from the XmlEditor (works with both V1 and V2)
+        org.fxmisc.richtext.CodeArea codeArea = xmlEditor.codeArea;
         if (codeArea == null) {
             return;
         }
@@ -1024,14 +1019,9 @@ public class XmlEditorSidebarController {
         }
 
         try {
-            // Get the code editor from the XmlEditor
-            var codeEditor = xmlEditor.getXmlCodeEditor();
-            if (codeEditor != null) {
-                codeEditor.insertTextAtCursor(value);
-                logger.info("Inserted example value '{}' into editor at cursor position", value);
-            } else {
-                logger.warn("Cannot insert example value - codeEditor is null");
-            }
+            // Insert text at cursor using wrapper method (works with both V1 and V2)
+            xmlEditor.insertTextAtCursor(value);
+            logger.info("Inserted example value '{}' into editor at cursor position", value);
         } catch (Exception e) {
             logger.error("Error inserting example value into editor", e);
         }
@@ -1080,20 +1070,17 @@ public class XmlEditorSidebarController {
                 // Build the complete XML node with opening and closing tags
                 String xmlNode = "<" + elementName + "></" + elementName + ">";
 
-                // Get the code editor from the XmlEditor
-                var codeEditor = xmlEditor.getXmlCodeEditor();
-                if (codeEditor != null) {
-                    codeEditor.insertTextAtCursor(xmlNode);
+                // Insert text at cursor using wrapper method (works with both V1 and V2)
+                xmlEditor.insertTextAtCursor(xmlNode);
 
-                    // Move cursor between the tags for easy content insertion
-                    // The cursor should be positioned after the opening tag
-                    int cursorOffset = elementName.length() + 2; // Length of "<elementName>"
-                    codeEditor.getCodeArea().moveTo(codeEditor.getCodeArea().getCaretPosition() - elementName.length() - 3);
-
-                    logger.info("Inserted child element '{}' as complete XML node at cursor position", elementName);
-                } else {
-                    logger.warn("Cannot insert child element - codeEditor is null");
+                // Move cursor between the tags for easy content insertion
+                // The cursor should be positioned after the opening tag
+                org.fxmisc.richtext.CodeArea codeArea = xmlEditor.codeArea;
+                if (codeArea != null) {
+                    codeArea.moveTo(codeArea.getCaretPosition() - elementName.length() - 3);
                 }
+
+                logger.info("Inserted child element '{}' as complete XML node at cursor position", elementName);
             }
         } catch (Exception e) {
             logger.error("Error inserting child element into editor", e);
@@ -1172,7 +1159,7 @@ public class XmlEditorSidebarController {
      */
     private void addXsdDocumentationComments() {
         try {
-            String xmlContent = xmlEditor.getXmlCodeEditor().getText();
+            String xmlContent = xmlEditor.getEditorText();
             if (xmlContent == null || xmlContent.trim().isEmpty()) {
                 xsdCommentsStatusLabel.setText("No XML content");
                 return;
@@ -1181,7 +1168,7 @@ public class XmlEditorSidebarController {
             String modifiedXml = insertXsdCommentsIntoXml(xmlContent);
             
             if (!modifiedXml.equals(xmlContent)) {
-                xmlEditor.getXmlCodeEditor().setText(modifiedXml);
+                xmlEditor.setEditorText(modifiedXml);
                 xsdCommentsActive = true;
                 xsdCommentsStatusLabel.setText("XSD comments active");
                 logger.info("XSD documentation comments added to XML");
@@ -1202,7 +1189,7 @@ public class XmlEditorSidebarController {
      */
     private void removeXsdDocumentationComments() {
         try {
-            String xmlContent = xmlEditor.getXmlCodeEditor().getText();
+            String xmlContent = xmlEditor.getEditorText();
             if (xmlContent == null || xmlContent.trim().isEmpty()) {
                 xsdCommentsStatusLabel.setText("No XML content");
                 return;
@@ -1211,7 +1198,7 @@ public class XmlEditorSidebarController {
             String modifiedXml = removeXsdCommentsFromXml(xmlContent);
             
             if (!modifiedXml.equals(xmlContent)) {
-                xmlEditor.getXmlCodeEditor().setText(modifiedXml);
+                xmlEditor.setEditorText(modifiedXml);
                 xsdCommentsActive = false;
                 xsdCommentsStatusLabel.setText("XSD comments removed");
                 logger.info("XSD documentation comments removed from XML");

@@ -302,7 +302,7 @@ public class XmlUltimateController implements Initializable {
             xmlFilesPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
                 if (newTab instanceof XmlEditor xmlEditor) {
                     Platform.runLater(() -> {
-                        xmlEditor.getXmlCodeEditor().refreshHighlighting();
+                        xmlEditor.refreshEditorHighlighting();
                         updateButtonStates();
                     });
                 }
@@ -512,7 +512,7 @@ public class XmlUltimateController implements Initializable {
         XmlEditor xmlEditor = new XmlEditor();
         xmlEditor.setMainController(parentController);
         xmlEditor.setText(file.getName());
-        xmlEditor.getXmlCodeEditor().setText(content);
+        xmlEditor.setEditorText(content);
 
         // Set the XML file to trigger automatic XSD schema detection
         xmlEditor.setXmlFile(file);
@@ -675,14 +675,14 @@ public class XmlUltimateController implements Initializable {
             XmlEditor xmlEditor = new XmlEditor();
             xmlEditor.setMainController(parentController);
             xmlEditor.setText("Untitled.xml");
-            xmlEditor.getXmlCodeEditor().setText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>");
+            xmlEditor.setEditorText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>");
 
             // Apply current sidebar visibility setting
             String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
             if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
                 xmlEditor.setXmlEditorSidebarVisible(false);
             }
-            
+
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
             updateButtonStates();
@@ -725,7 +725,7 @@ public class XmlUltimateController implements Initializable {
             XmlEditor xmlEditor = new XmlEditor();
             xmlEditor.setMainController(parentController);
             xmlEditor.setText("Untitled" + (xmlFilesPane.getTabs().size() + 1) + ".xml");
-            xmlEditor.getXmlCodeEditor().setText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>");
+            xmlEditor.setEditorText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>");
 
             // Apply current sidebar visibility setting
             String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
@@ -836,7 +836,7 @@ public class XmlUltimateController implements Initializable {
 
         Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
-            currentXmlContent = editor.getXmlCodeEditor().getText();
+            currentXmlContent = editor.getEditorText();
             File editorFile = editor.getXmlFile();
 
             if (editorFile == null) {
@@ -847,7 +847,7 @@ public class XmlUltimateController implements Initializable {
 
             try {
                 Files.writeString(editorFile.toPath(), currentXmlContent);
-                editor.getXmlCodeEditor().notifyFileSaved();
+                editor.notifyEditorFileSaved();
                 currentTab.setText(editorFile.getName());
                 logToConsole("Saved file: " + editorFile.getAbsolutePath());
             } catch (IOException e) {
@@ -864,7 +864,7 @@ public class XmlUltimateController implements Initializable {
 
         Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
-            currentXmlContent = editor.getXmlCodeEditor().getText();
+            currentXmlContent = editor.getEditorText();
 
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save XML File As");
@@ -900,7 +900,7 @@ public class XmlUltimateController implements Initializable {
             if (selectedFile != null) {
                 try {
                     Files.writeString(selectedFile.toPath(), currentXmlContent);
-                    editor.getXmlCodeEditor().notifyFileSaved();
+                    editor.notifyEditorFileSaved();
 
                     // Update the editor with the new file
                     editor.setXmlFile(selectedFile);
@@ -940,7 +940,7 @@ public class XmlUltimateController implements Initializable {
 
         Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
-            String xml = editor.getXmlCodeEditor().getText();
+            String xml = editor.getEditorText();
 
             try {
                 String formatted = formatXml(xml, true);
@@ -967,7 +967,7 @@ public class XmlUltimateController implements Initializable {
     private void validateCurrentXml() {
         Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
-            String xml = editor.getXmlCodeEditor().getText();
+            String xml = editor.getEditorText();
 
             Task<List<String>> validationTask = new Task<>() {
                 @Override
@@ -1015,7 +1015,7 @@ public class XmlUltimateController implements Initializable {
 
         Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
-            String xml = editor.getXmlCodeEditor().getText();
+            String xml = editor.getEditorText();
 
             List<String> issues = new ArrayList<>();
 
@@ -1199,7 +1199,7 @@ public class XmlUltimateController implements Initializable {
             // Set current XML if available
             Tab currentTab = xmlFilesPane.getSelectionModel().getSelectedItem();
             if (currentTab instanceof XmlEditor editor) {
-                controller.setSourceXml(editor.getXmlCodeEditor().getText());
+                controller.setSourceXml(editor.getEditorText());
                 controller.setSourceFile(editor.getXmlFile());
             }
 
@@ -1242,7 +1242,7 @@ public class XmlUltimateController implements Initializable {
         if (selected && documentTreeView != null) {
             Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
             if (currentTab != null && currentTab instanceof XmlEditor editor) {
-                updateDocumentTree(editor.getXmlCodeEditor().getText());
+                updateDocumentTree(editor.getEditorText());
             }
         }
     }
@@ -1506,7 +1506,7 @@ public class XmlUltimateController implements Initializable {
 
                 Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
                 if (currentTab != null && currentTab instanceof XmlEditor editor) {
-                    String currentContent = editor.getXmlCodeEditor().getText();
+                    String currentContent = editor.getEditorText();
 
                     // Insert at cursor position or append
                     editor.codeArea.replaceText(currentContent + "\n\n" + generatedXml);
@@ -1628,12 +1628,12 @@ public class XmlUltimateController implements Initializable {
     @FXML
     private void runXpathQueryPressed() {
         XmlEditor currentEditor = getCurrentEditor();
-        if (currentEditor == null || currentEditor.getXmlCodeEditor() == null) {
+        if (currentEditor == null) {
             showError("No Editor", "No XML editor is currently active");
             return;
         }
 
-        CodeArea currentCodeArea = currentEditor.getXmlCodeEditor().getCodeArea();
+        CodeArea currentCodeArea = currentEditor.codeArea;
         if (currentCodeArea == null || currentCodeArea.getText() == null) {
             return;
         }
@@ -1906,7 +1906,7 @@ public class XmlUltimateController implements Initializable {
     public String getCurrentXmlContent() {
         Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
-            return editor.getXmlCodeEditor().getText();
+            return editor.getEditorText();
         }
         return "";
     }
@@ -1917,7 +1917,7 @@ public class XmlUltimateController implements Initializable {
     public void setCurrentXmlContent(String content) {
         Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
-            editor.getXmlCodeEditor().setText(content);
+            editor.setEditorText(content);
         }
     }
 
@@ -1927,8 +1927,8 @@ public class XmlUltimateController implements Initializable {
     public void insertXmlContent(String content) {
         Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
-            int caretPosition = editor.getXmlCodeEditor().getCodeArea().getCaretPosition();
-            editor.getXmlCodeEditor().getCodeArea().insertText(caretPosition, content);
+            int caretPosition = editor.codeArea.getCaretPosition();
+            editor.codeArea.insertText(caretPosition, content);
         }
     }
 

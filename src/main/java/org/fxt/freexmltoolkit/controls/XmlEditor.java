@@ -61,8 +61,11 @@ public class XmlEditor extends Tab {
     private final Tab xml = new Tab("XML");
     private final Tab graphic = new Tab("Graphic");
 
-    private final XmlCodeEditor xmlCodeEditor = new XmlCodeEditor();
-    public final CodeArea codeArea = xmlCodeEditor.getCodeArea();
+    // V1 or V2 editor - created based on feature flag
+    private final XmlCodeEditor xmlCodeEditor;
+    private final org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2 xmlCodeEditorV2;
+    private final boolean useV2Editor;
+    public final CodeArea codeArea;
 
 
     private final static Logger logger = LogManager.getLogger(XmlEditor.class);
@@ -109,16 +112,32 @@ public class XmlEditor extends Tab {
         }
 
     public XmlEditor() {
-        init();
-        // Set a temporary URI for new documents and parent reference
-        if (xmlCodeEditor != null) {
+        // Check feature flag for V2 editor
+        PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+        String v2Flag = propertiesService.get("xml.editor.use.v2");
+        this.useV2Editor = v2Flag != null && Boolean.parseBoolean(v2Flag);
+
+        // Create V1 or V2 editor based on flag
+        if (useV2Editor) {
+            logger.info("🆕 Using XmlCodeEditorV2 (NEW)");
+            this.xmlCodeEditor = null;
+            this.xmlCodeEditorV2 = org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory.createForXmlEditor(this);
+            this.codeArea = xmlCodeEditorV2.getCodeArea();
+            xmlCodeEditorV2.setDocumentUri("untitled:" + System.nanoTime() + ".xml");
+        } else {
+            logger.info("📝 Using XmlCodeEditor (V1 Legacy)");
+            this.xmlCodeEditor = new XmlCodeEditor();
+            this.xmlCodeEditorV2 = null;
+            this.codeArea = xmlCodeEditor.getCodeArea();
             xmlCodeEditor.setDocumentUri("untitled:" + System.nanoTime() + ".xml");
             xmlCodeEditor.setParentXmlEditor(this);
         }
+
+        init();
     }
 
     public XmlEditor(File file) {
-        init();
+        this(); // Call default constructor which sets up editor
         this.setXmlFile(file);
     }
 
@@ -185,7 +204,8 @@ public class XmlEditor extends Tab {
         setupHover();
         setupSearchAndReplace();
 
-        xml.setContent(xmlCodeEditor);
+        // Set XML tab content based on which editor version is used
+        xml.setContent(useV2Editor ? xmlCodeEditorV2 : xmlCodeEditor);
         this.setText(DEFAULT_FILE_NAME);
         this.setClosable(true);
 
@@ -1068,13 +1088,24 @@ public class XmlEditor extends Tab {
         if (xsdFile != null) {
             List<String> elementNames = extractElementNamesFromXsd(xsdFile);
             Map<String, List<String>> contextElementNames = extractContextElementNamesFromXsd(xsdFile);
-            xmlCodeEditor.setAvailableElementNames(elementNames);
-            xmlCodeEditor.setContextElementNames(contextElementNames);
+
+            // Update IntelliSense based on editor version
+            if (useV2Editor) {
+                // V2: Schema provider is already connected, invalidate cache to trigger reload
+                if (xmlCodeEditorV2 != null && xmlCodeEditorV2.getIntelliSenseEngine() != null) {
+                    xmlCodeEditorV2.getIntelliSenseEngine().invalidateCacheForSchema();
+                    logger.debug("V2: IntelliSense cache invalidated for new XSD schema");
+                }
+            } else {
+                // V1: Direct update
+                xmlCodeEditor.setAvailableElementNames(elementNames);
+                xmlCodeEditor.setContextElementNames(contextElementNames);
+            }
 
             // Load XSD documentation data in background
             loadXsdDocumentationDataAsync();
         }
-        
+
         validateXml();
     }
 
@@ -1765,10 +1796,17 @@ public class XmlEditor extends Tab {
                 logger.debug("Successfully loaded XSD documentation data with {} elements",
                         xsdDocumentationData.getExtendedXsdElementMap().size());
 
-                // Notify XmlCodeEditor to refresh its XSD integration data
-                if (xmlCodeEditor != null) {
+                // Notify editor to refresh its XSD integration data
+                if (useV2Editor) {
+                    // V2: Invalidate cache to trigger reload with new schema data
+                    if (xmlCodeEditorV2 != null && xmlCodeEditorV2.getIntelliSenseEngine() != null) {
+                        xmlCodeEditorV2.getIntelliSenseEngine().invalidateCacheForSchema();
+                        logger.debug("V2: IntelliSense cache invalidated after XSD documentation loaded");
+                    }
+                } else if (xmlCodeEditor != null) {
+                    // V1: Direct refresh
                     xmlCodeEditor.refreshXsdIntegrationData();
-                    logger.debug("XSD integration data refreshed for XmlCodeEditor");
+                    logger.debug("V1: XSD integration data refreshed");
                 }
 
             } catch (Exception e) {
@@ -2066,7 +2104,11 @@ public class XmlEditor extends Tab {
         xmlService.setCurrentXmlFile(xmlFile);
 
         // Set the document URI for completion requests and parent reference
-        if (xmlCodeEditor != null) {
+        if (useV2Editor) {
+            if (xmlCodeEditorV2 != null) {
+                xmlCodeEditorV2.setDocumentUri(xmlFile.toURI().toString());
+            }
+        } else if (xmlCodeEditor != null) {
             xmlCodeEditor.setDocumentUri(xmlFile.toURI().toString());
             xmlCodeEditor.setParentXmlEditor(this);
             xmlCodeEditor.setCurrentFile(xmlFile);
@@ -2109,7 +2151,7 @@ public class XmlEditor extends Tab {
         }
         try {
             final String content = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
-            xmlCodeEditor.setText(content);
+            setEditorText(content);
 
             // Also initialize the DOM when loading a file
             if (!content.isEmpty()) {
@@ -2121,7 +2163,7 @@ public class XmlEditor extends Tab {
                 }
             }
         } catch (IOException e) {
-            xmlCodeEditor.setText("Error: Could not read file.\n" + e.getMessage());
+            setEditorText("Error: Could not read file.\n" + e.getMessage());
             document = null;
         }
     }
@@ -2151,8 +2193,111 @@ public class XmlEditor extends Tab {
     }
 
     public XmlCodeEditor getXmlCodeEditor() {
+        if (useV2Editor) {
+            // V2 is in use - return null and log warning
+            // TODO: Refactor callers to use getCodeArea() or check version first
+            logger.warn("getXmlCodeEditor() called but V2 editor is active - returning null");
+            return null;
+        }
         return xmlCodeEditor;
     }
+
+    /**
+     * Gets the V2 editor if active.
+     * @return V2 editor or null if V1 is active
+     */
+    public org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2 getXmlCodeEditorV2() {
+        return xmlCodeEditorV2;
+    }
+
+    /**
+     * Checks if V2 editor is active.
+     * @return true if V2 is used
+     */
+    public boolean isUsingV2Editor() {
+        return useV2Editor;
+    }
+
+    // ==================== Wrapper methods that work with both V1 and V2 ====================
+
+    /**
+     * Sets the text content in the editor (works with both V1 and V2).
+     *
+     * @param text the text to set
+     */
+    public void setEditorText(String text) {
+        if (useV2Editor) {
+            codeArea.replaceText(text);
+        } else {
+            xmlCodeEditor.setText(text);
+        }
+    }
+
+    /**
+     * Gets the text content from the editor (works with both V1 and V2).
+     *
+     * @return the current text
+     */
+    public String getEditorText() {
+        return codeArea.getText();
+    }
+
+    /**
+     * Refreshes syntax highlighting (works with both V1 and V2).
+     */
+    public void refreshEditorHighlighting() {
+        if (useV2Editor) {
+            // V2 handles highlighting automatically via SyntaxHighlightManagerV2
+            // Force a refresh by triggering the syntax manager
+            String currentText = codeArea.getText();
+            // Trigger re-highlighting (V2 syntax manager listens to text changes)
+            logger.debug("V2 syntax highlighting refresh requested (automatic)");
+        } else {
+            xmlCodeEditor.refreshHighlighting();
+        }
+    }
+
+    /**
+     * Notifies the editor that the file has been saved (works with both V1 and V2).
+     */
+    public void notifyEditorFileSaved() {
+        if (useV2Editor) {
+            xmlCodeEditorV2.setDirty(false);
+        } else {
+            xmlCodeEditor.notifyFileSaved();
+        }
+    }
+
+    /**
+     * Checks if the editor has unsaved changes (works with both V1 and V2).
+     * Note: V1 does not track dirty state, always returns false.
+     *
+     * @return true if there are unsaved changes (V2 only)
+     */
+    public boolean isEditorDirty() {
+        if (useV2Editor) {
+            return xmlCodeEditorV2.isDirty();
+        } else {
+            // V1 doesn't track dirty state
+            return false;
+        }
+    }
+
+    /**
+     * Inserts text at the current cursor position (works with both V1 and V2).
+     *
+     * @param text the text to insert
+     */
+    public void insertTextAtCursor(String text) {
+        if (useV2Editor) {
+            int caretPosition = codeArea.getCaretPosition();
+            codeArea.insertText(caretPosition, text);
+        } else {
+            xmlCodeEditor.insertTextAtCursor(text);
+        }
+    }
+
+    // ==================== End of wrapper methods ====================
 
     public XmlService getXmlService() {
         return xmlService;
@@ -2169,13 +2314,13 @@ public class XmlEditor extends Tab {
 
                 // Update the text editor with the new content
                 String newXmlContent = writer.toString();
-                xmlCodeEditor.setText(newXmlContent);
+                setEditorText(newXmlContent);
 
                 // Update the file if it exists
                 if (xmlFile != null && xmlFile.exists()) {
                     try {
                         Files.writeString(xmlFile.toPath(), newXmlContent, StandardCharsets.UTF_8);
-                        xmlCodeEditor.notifyFileSaved();
+                        notifyEditorFileSaved();
                     } catch (IOException e) {
                         logger.error("Failed to write updated XML to file", e);
                     }
@@ -2237,7 +2382,9 @@ public class XmlEditor extends Tab {
      * Test method to verify syntax highlighting is working in the XML editor.
      */
     public void testSyntaxHighlighting() {
-        if (xmlCodeEditor != null) {
+        if (useV2Editor) {
+            logger.info("V2 Editor: Syntax highlighting test not yet implemented");
+        } else if (xmlCodeEditor != null) {
             xmlCodeEditor.testSyntaxHighlighting();
         }
     }
@@ -2246,8 +2393,11 @@ public class XmlEditor extends Tab {
      * Debug method to check CSS loading in the XML editor.
      */
     public void debugCssLoading() {
-        if (xmlCodeEditor != null) {
-            logger.debug("=== Debugging CSS Loading in XmlEditor ===");
+        if (useV2Editor) {
+            logger.debug("=== Debugging CSS Loading in XmlEditor (V2) ===");
+            logger.debug("V2 Editor active - CSS debug not yet implemented");
+        } else if (xmlCodeEditor != null) {
+            logger.debug("=== Debugging CSS Loading in XmlEditor (V1) ===");
             xmlCodeEditor.debugCssStatus();
         } else {
             logger.error("ERROR: XmlCodeEditor is null");
@@ -2490,9 +2640,9 @@ public class XmlEditor extends Tab {
         }
 
         try {
-            String content = xmlCodeEditor.getText();
+            String content = getEditorText();
             Files.writeString(xmlFile.toPath(), content, StandardCharsets.UTF_8);
-            xmlCodeEditor.notifyFileSaved();
+            notifyEditorFileSaved();
             logger.info("File saved: {}", xmlFile.getAbsolutePath());
             return true;
         } catch (Exception e) {
@@ -2526,9 +2676,9 @@ public class XmlEditor extends Tab {
                 fileChooser.setInitialFileName(xmlFile.getName());
             }
 
-            File selectedFile = fileChooser.showSaveDialog(xmlCodeEditor.getScene().getWindow());
+            File selectedFile = fileChooser.showSaveDialog(codeArea.getScene().getWindow());
             if (selectedFile != null) {
-                String content = xmlCodeEditor.getText();
+                String content = getEditorText();
                 Files.writeString(selectedFile.toPath(), content, StandardCharsets.UTF_8);
 
                 // Update this editor with the new file

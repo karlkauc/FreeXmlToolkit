@@ -98,6 +98,7 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("sendUsageStatistics", "false");
         properties.setProperty("usageDuration", "0");
         properties.setProperty("useSystemTempFolder", "true");
+        properties.setProperty("xml.editor.use.v2", "false"); // Feature flag for XmlCodeEditorV2
         properties.setProperty("version", "20241209");
         properties.setProperty("manualProxy", "false");
         properties.setProperty("useSystemProxy", "true");
