@@ -6,15 +6,80 @@
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.SchematronController">
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.SchematronController"
+      stylesheets="@../css/xsd-tab-groups.css">
+
+    <!-- Schematron Operations Toolbar -->
+    <ToolBar styleClass="xsd-toolbar">
+        <!-- File Operations Group -->
+        <Button fx:id="loadSchematronFileButton" onAction="#loadSchematronFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Load Schematron File"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="newSchematronFileButton" onAction="#newSchematronFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Create New Schematron File"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="saveSchematronButton" onAction="#saveSchematron">
+            <graphic>
+                <FontIcon iconLiteral="bi-save" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save Schematron File"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="saveAsSchematronButton" onAction="#saveAsSchematron">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-earmark-arrow-down" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save As..."/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Editing Group -->
+        <Button fx:id="newRuleButton">
+            <graphic>
+                <FontIcon iconLiteral="bi-plus-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Add New Rule"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Help -->
+        <Button>
+            <graphic>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Help (F1)"/>
+            </tooltip>
+        </Button>
+    </ToolBar>
 
     <!-- Main Tab Container -->
     <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS">
 
         <!-- Welcome/Overview Tab -->
-        <Tab fx:id="overviewTab" text="Overview" closable="false">
+        <Tab fx:id="overviewTab" text="Overview" closable="false" styleClass="primary-tab">
             <graphic>
-                <FontIcon iconLiteral="bi-info-circle" iconColor="#007bff" iconSize="16"/>
+                <FontIcon iconLiteral="bi-info-circle" iconSize="16"/>
             </graphic>
             <ScrollPane fitToWidth="true" fitToHeight="true">
                 <VBox spacing="15" style="-fx-padding: 20;">
@@ -144,7 +209,7 @@
         </Tab>
 
         <!-- Code Editor Tab -->
-        <Tab fx:id="codeTab" text="Code" closable="false">
+        <Tab fx:id="codeTab" text="Code" closable="false" styleClass="primary-tab">
             <graphic>
                 <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
             </graphic>
@@ -372,7 +437,7 @@
         </Tab>
 
         <!-- Visual Builder Tab -->
-        <Tab fx:id="visualBuilderTab" text="Visual Builder" closable="false">
+        <Tab fx:id="visualBuilderTab" text="Visual Builder" closable="false" styleClass="primary-tab">
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-3" iconColor="dodgerblue" iconSize="16"/>
             </graphic>
@@ -384,7 +449,7 @@
         </Tab>
 
         <!-- Test Tab -->
-        <Tab fx:id="testTab" text="Test" closable="false">
+        <Tab fx:id="testTab" text="Test" closable="false" styleClass="output-tab">
             <graphic>
                 <FontIcon iconLiteral="bi-play-circle" iconColor="#ff6b6b" iconSize="16"/>
             </graphic>
@@ -597,7 +662,7 @@
         </Tab>
 
         <!-- Documentation Tab -->
-        <Tab fx:id="documentationTab" text="Documentation" closable="false">
+        <Tab fx:id="documentationTab" text="Documentation" closable="false" styleClass="utility-tab">
             <graphic>
                 <FontIcon iconLiteral="bi-book" iconColor="#16a34a" iconSize="16"/>
             </graphic>
