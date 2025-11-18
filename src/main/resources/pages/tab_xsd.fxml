@@ -27,285 +27,163 @@
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
       AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="org.fxt.freexmltoolkit.controller.XsdController">
+      fx:controller="org.fxt.freexmltoolkit.controller.XsdController" stylesheets="@../css/xsd-tab-groups.css">
+
+    <!-- XSD Operations Toolbar -->
+    <ToolBar styleClass="xsd-toolbar">
+        <!-- File Operations -->
+        <Button fx:id="toolbarNewFile" onAction="#handleToolbarNewFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-plus" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="New XSD File"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="toolbarLoadFile" onAction="#handleToolbarLoadFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Load XSD File"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="toolbarSave" onAction="#handleToolbarSave">
+            <graphic>
+                <FontIcon iconLiteral="bi-save" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save (Ctrl+S)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="toolbarSaveAs" onAction="#handleToolbarSaveAs">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-earmark-arrow-down" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save As"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <Button fx:id="toolbarReload" onAction="#handleToolbarReload">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Reload from Disk"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="toolbarClose" onAction="#handleToolbarClose">
+            <graphic>
+                <FontIcon iconLiteral="bi-x-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Close File"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="toolbarValidate" onAction="#handleToolbarValidate">
+            <graphic>
+                <FontIcon iconLiteral="bi-check-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Validate XSD Schema"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Editing Operations -->
+        <Button fx:id="toolbarUndo" onAction="#handleToolbarUndo">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Undo (Ctrl+Z)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="toolbarRedo" onAction="#handleToolbarRedo">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Redo (Ctrl+Y)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="toolbarFind" onAction="#handleToolbarFind">
+            <graphic>
+                <FontIcon iconLiteral="bi-search" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Find/Replace (Ctrl+F)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="toolbarFormat" onAction="#handleToolbarFormat">
+            <graphic>
+                <FontIcon iconLiteral="bi-code-square" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Format/Pretty Print"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Favorites & Recent -->
+        <Button fx:id="toolbarAddFavorite" onAction="#handleToolbarAddFavorite">
+            <graphic>
+                <FontIcon iconLiteral="bi-star" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Add to Favorites"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="toolbarShowFavorites" onAction="#handleToolbarShowFavorites">
+            <graphic>
+                <FontIcon iconLiteral="bi-star-fill" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Show/Hide Favorites"/>
+            </tooltip>
+        </Button>
+
+        <MenuButton fx:id="toolbarRecentFiles" text="">
+            <graphic>
+                <FontIcon iconLiteral="bi-clock-history" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Recent Files"/>
+            </tooltip>
+        </MenuButton>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Help -->
+        <Button fx:id="toolbarHelp" onAction="#handleToolbarHelp">
+            <graphic>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Help/Overview (Ctrl+H / F1)"/>
+            </tooltip>
+        </Button>
+    </ToolBar>
 
     <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS">
-        <Tab text="Overview" closable="false">
-            <graphic>
-                <FontIcon iconLiteral="bi-info-circle"/>
-            </graphic>
-            <content>
-                <ScrollPane fitToWidth="true" style="-fx-background-color: white;">
-                    <VBox spacing="25" style="-fx-padding: 25px;">
-
-                        <!-- Header -->
-                        <VBox spacing="10" alignment="CENTER_LEFT">
-                            <Label styleClass="h2" text="Welcome to the XSD Toolkit"/>
-                            <Label wrapText="true" style="-fx-font-size: 14px;"
-                                   text="This tool helps you to view, analyze, and generate comprehensive HTML documentation and sample data from your XML Schema Definition (XSD) files. Here is a guide to the available features:"/>
-                        </VBox>
-
-                        <Separator/>
-
-                        <!-- Section: Quick Start with Favorites -->
-                        <HBox spacing="15" alignment="TOP_LEFT">
-                            <FontIcon iconLiteral="bi-star-fill" iconSize="24" iconColor="#ffc107"/>
-                            <VBox spacing="10" HBox.hgrow="ALWAYS">
-                                <Label styleClass="h3" text="Quick Start with Favorites"/>
-                                <Label wrapText="true"
-                                       text="Load your favorite XSD files quickly to get started:"/>
-
-                                <!-- Favorites Actions -->
-                                <HBox spacing="10" alignment="CENTER_LEFT">
-                                    <Button onAction="#createNewXsdFile" style="-fx-font-size: 12px;"
-                                            text="New XSD File">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Create a new XSD schema file"/>
-                                        </tooltip>
-                                    </Button>
-
-                                    <Button fx:id="loadXsdFavoritesOverview" style="-fx-font-size: 12px;"
-                                            text="Load from Favorites">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-star-fill" iconColor="#ffc107"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Select an XSD file from your favorites"/>
-                                        </tooltip>
-                                    </Button>
-
-                                    <Button onAction="#openXsdFileChooser" style="-fx-font-size: 12px;"
-                                            text="Browse Files">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-folder2-open" iconColor="#4a90e2"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Browse and select an XSD file"/>
-                                        </tooltip>
-                                    </Button>
-                                </HBox>
-
-                                <!-- Recent Favorites Display -->
-                                <VBox fx:id="recentFavoritesContainer" spacing="5"
-                                      style="-fx-background-color: #f8f9fa; -fx-padding: 10; -fx-background-radius: 5;">
-                                    <Label text="Recent Favorites:"
-                                           style="-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #6c757d;"/>
-                                    <ListView fx:id="recentFavoritesList" maxHeight="120"
-                                              style="-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-radius: 3;"/>
-                                </VBox>
-                            </VBox>
-                        </HBox>
-
-                        <Separator/>
-
-                        <!-- Section: Text Tab -->
-                        <HBox spacing="15" alignment="CENTER_LEFT">
-                            <FontIcon iconLiteral="bi-card-text" iconSize="24" iconColor="#4a5568"/>
-                            <VBox>
-                                <Label styleClass="h3" text="Text View"/>
-                                <Label wrapText="true"
-                                       text="Displays the raw source code of the loaded XSD file. This is a read-only view for a quick reference of the original schema."/>
-                            </VBox>
-                        </HBox>
-
-                        <!-- Section: Graphic Tab -->
-                        <HBox spacing="15" alignment="CENTER_LEFT">
-                            <FontIcon iconLiteral="bi-diagram-2" iconSize="24" iconColor="#4a5568"/>
-                            <VBox>
-                                <Label styleClass="h3" text="Graphic View"/>
-                                <Label wrapText="true"
-                                       text="Shows an interactive, graphical representation of the XSD structure. You can explore the relationships between different elements visually."/>
-                            </VBox>
-                        </HBox>
-
-                        <!-- Section: Documentation Tab -->
-                        <HBox spacing="15" alignment="TOP_LEFT">
-                            <FontIcon iconLiteral="win10-notebook" iconSize="24" iconColor="#4a5568"/>
-                            <VBox spacing="5">
-                                <Label styleClass="h3" text="Documentation Generator"/>
-                                <Label wrapText="true"
-                                       text="This is the main control panel for generating the documentation. Here you can:"/>
-                                <VBox style="-fx-padding: 5 0 0 20;" spacing="5">
-                                    <Label text="• Select the XSD file and the output directory."/>
-                                    <Label text="• Choose the format for the generated diagrams (SVG or PNG)."/>
-                                    <Label text="• Configure other options for the output."/>
-                                    <Label text="• Start the generation process."/>
-                                </VBox>
-                            </VBox>
-                        </HBox>
-
-                        <!-- Section: Generate Example Data Tab -->
-                        <HBox spacing="15" alignment="CENTER_LEFT">
-                            <FontIcon iconLiteral="bi-keyboard" iconSize="24" iconColor="#4a5568"/>
-                            <VBox>
-                                <Label styleClass="h3" text="Sample Data Generator"/>
-                                <Label wrapText="true"
-                                       text="This tab allows you to generate sample XML data that conforms to the loaded XSD schema."/>
-                            </VBox>
-                        </HBox>
-
-                    </VBox>
-                </ScrollPane>
-            </content>
-        </Tab>
-        <Tab fx:id="textTab" closable="false" text="Text">
-            <graphic>
-                <FontIcon iconLiteral="bi-card-text"/>
-            </graphic>
-            <BorderPane>
-                <top>
-                    <HBox fx:id="textInfoPane" alignment="CENTER_LEFT" managed="false" spacing="15.0"
-                          style="-fx-padding: 10; -fx-background-color: #f1f3f5; -fx-border-width: 0 0 1 0; -fx-border-color: #dee2e6;"
-                          visible="false">
-                        <children>
-                            <VBox spacing="5.0">
-                                <children>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                        <children>
-                                            <Label style="-fx-font-weight: bold;" text="File Path:"/>
-                                            <Label fx:id="textInfoPathLabel"/>
-                                        </children>
-                                    </HBox>
-                                </children>
-                            </VBox>
-                            <Region HBox.hgrow="ALWAYS"/>
-
-                            <!-- New XSD Button -->
-                            <Button onAction="#createNewXsdFile" style="-fx-font-size: 11px;"
-                                    text="New XSD">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
-                                </graphic>
-                                <tooltip>
-                                    <Tooltip text="Create a new XSD schema file"/>
-                                </tooltip>
-                            </Button>
-
-                            <!-- Save Button -->
-                            <Button fx:id="saveXsdButton" onAction="#saveXsdFile"
-                                    style="-fx-font-size: 11px; -fx-font-weight: bold;"
-                                    text="Save XSD" disable="false">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-save" iconColor="#28a745"/>
-                                </graphic>
-                                <tooltip>
-                                    <Tooltip text="Save changes to XSD file"/>
-                                </tooltip>
-                            </Button>
-
-                            <!-- Save As Button -->
-                            <Button fx:id="saveAsXsdButton" onAction="#saveXsdFileAs"
-                                    style="-fx-font-size: 11px; -fx-font-weight: bold;"
-                                    text="Save As...">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-save-fill" iconColor="#17a2b8"/>
-                                </graphic>
-                                <tooltip>
-                                    <Tooltip text="Save XSD file with a new name"/>
-                                </tooltip>
-                            </Button>
-
-                            <!-- Pretty Print Button -->
-                            <Button fx:id="prettyPrintButton" onAction="#prettyPrintXsd"
-                                    style="-fx-font-size: 11px; -fx-font-weight: bold;"
-                                    text="Pretty Print">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-code" iconColor="#6610f2"/>
-                                </graphic>
-                                <tooltip>
-                                    <Tooltip text="Format XSD with proper indentation"/>
-                                </tooltip>
-                            </Button>
-
-                            <Separator orientation="VERTICAL" style="-fx-padding: 0 5 0 5;"/>
-
-                            <!-- Favorites Section -->
-                            <Button fx:id="addXsdToFavoritesButton" onAction="#addCurrentXsdToFavorites"
-                                    style="-fx-font-size: 11px;"
-                                    text="★ Add">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-star" iconColor="#ffc107"/>
-                                </graphic>
-                                <tooltip>
-                                    <Tooltip text="Add current XSD file to favorites"/>
-                                </tooltip>
-                            </Button>
-
-                            <MenuButton fx:id="loadXsdFavoritesButton" style="-fx-font-size: 11px;" text="Favorites">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-star-fill" iconColor="#ffc107"/>
-                                </graphic>
-                                <tooltip>
-                                    <Tooltip text="Load from favorites"/>
-                                </tooltip>
-                            </MenuButton>
-
-                            <ToggleButton fx:id="toggleFavoritesButton" style="-fx-font-size: 11px;" text="Panel"
-                                          onAction="#toggleFavoritesPanel">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-layout-sidebar-inset" iconColor="#6f42c1"/>
-                                </graphic>
-                                <tooltip>
-                                    <Tooltip text="Toggle Favorites Panel"/>
-                                </tooltip>
-                            </ToggleButton>
-
-                            <Button onAction="#openXsdFileChooser" style="-fx-font-size: 11px;"
-                                    text="Load another file...">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-arrow-repeat"/>
-                                </graphic>
-                            </Button>
-                        </children>
-                    </HBox>
-                </top>
-                <center>
-                    <SplitPane fx:id="textTabSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
-                        <items>
-                            <!-- Main content area -->
-                            <StackPane style="-fx-background-color: #f8f9fa;">
-                                <children>
-                                    <VBox fx:id="noFileLoadedPaneText" alignment="CENTER" spacing="20.0">
-                                        <children>
-                                            <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
-                                                      iconSize="64"/>
-                                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
-                                                   text="No XSD file loaded"/>
-                                            <Label style="-fx-text-fill: #6c757d;"
-                                                   text="Please load an XSD file to see the source code."/>
-                                            <HBox alignment="CENTER" spacing="10">
-                                                <Button onAction="#createNewXsdFile" styleClass="button"
-                                                        text="New XSD File">
-                                                    <graphic>
-                                                        <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
-                                                    </graphic>
-                                                </Button>
-                                                <Button onAction="#openXsdFileChooser" styleClass="button, :default"
-                                                        text="Load XSD File">
-                                                    <graphic>
-                                                        <FontIcon iconLiteral="bi-folder2-open"/>
-                                                    </graphic>
-                                                </Button>
-                                            </HBox>
-                                        </children>
-                                    </VBox>
-                                    <XmlCodeEditor fx:id="sourceCodeEditor" managed="false" visible="false"/>
-                                    <ProgressIndicator fx:id="textProgress" maxHeight="80" maxWidth="80"
-                                                       visible="false"/>
-                                </children>
-                            </StackPane>
-
-                            <!-- Favorites Panel -->
-                            <fx:include fx:id="favoritesPanel" source="controls/FavoritesPanel.fxml"/>
-                        </items>
-                    </SplitPane>
-                </center>
-            </BorderPane>
-        </Tab>
-        <Tab fx:id="xsdTab" closable="false" text="Graphic">
+        <Tab fx:id="xsdTab" text="Graphic View" styleClass="primary-tab" closable="false">
+            <tooltip>
+                <Tooltip text="Visual XSD Editor - Interactive schema design (Ctrl+1)"/>
+            </tooltip>
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-2"/>
             </graphic>
@@ -338,109 +216,6 @@
                                             </HBox>
                                         </children>
                                     </VBox>
-                                    <Region HBox.hgrow="ALWAYS"/>
-
-                                    <!-- New XSD Button for Graphic Tab -->
-                                    <Button onAction="#createNewXsdFile" style="-fx-font-size: 11px;"
-                                            text="New XSD">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Create a new XSD schema file"/>
-                                        </tooltip>
-                                    </Button>
-
-                                    <!-- Save Button for Graphic Tab -->
-                                    <Button fx:id="saveXsdButtonGraphic" onAction="#saveXsdFile"
-                                            style="-fx-font-size: 11px; -fx-font-weight: bold;"
-                                            text="Save XSD" disable="false">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-save" iconColor="#28a745"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Save changes to XSD file"/>
-                                        </tooltip>
-                                    </Button>
-
-                                    <!-- Save As Button for Graphic Tab -->
-                                    <Button fx:id="saveAsXsdButtonGraphic" onAction="#saveXsdFileAs"
-                                            style="-fx-font-size: 11px; -fx-font-weight: bold;"
-                                            text="Save As...">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-save-fill" iconColor="#17a2b8"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Save XSD file with a new name"/>
-                                        </tooltip>
-                                    </Button>
-
-                                    <!-- Pretty Print Button for Graphic Tab -->
-                                    <Button fx:id="prettyPrintButtonGraphic" onAction="#prettyPrintXsd"
-                                            style="-fx-font-size: 11px; -fx-font-weight: bold;"
-                                            text="Pretty Print">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-code" iconColor="#6610f2"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Format XSD with proper indentation"/>
-                                        </tooltip>
-                                    </Button>
-
-                                    <Separator orientation="VERTICAL" style="-fx-padding: 0 5 0 5;"/>
-
-                                    <!-- Favorites Section for Graphic Tab -->
-                                    <Button fx:id="addXsdToFavoritesButtonGraphic" onAction="#addCurrentXsdToFavorites"
-                                            style="-fx-font-size: 11px;"
-                                            text="★ Add">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-star" iconColor="#ffc107"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Add current XSD file to favorites"/>
-                                        </tooltip>
-                                    </Button>
-
-                                    <MenuButton fx:id="loadXsdFavoritesButtonGraphic" style="-fx-font-size: 11px;"
-                                                text="Favorites">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-star-fill" iconColor="#ffc107"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Load from favorites"/>
-                                        </tooltip>
-                                    </MenuButton>
-
-                                    <ToggleButton fx:id="toggleFavoritesButtonGraphic" style="-fx-font-size: 11px;"
-                                                  text="Panel"
-                                                  onAction="#toggleFavoritesPanelGraphic">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-layout-sidebar-inset" iconColor="#6f42c1"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Toggle Favorites Panel"/>
-                                        </tooltip>
-                                    </ToggleButton>
-
-                                    <Button onAction="#openXsdFileChooser" style="-fx-font-size: 11px;"
-                                            text="Load another file...">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-arrow-repeat"/>
-                                        </graphic>
-                                    </Button>
-
-                                    <Separator orientation="VERTICAL" style="-fx-padding: 0 5 0 5;"/>
-
-                                    <!-- V1/V2 Editor Toggle -->
-                                    <ToggleButton fx:id="editorVersionToggle" style="-fx-font-size: 11px;"
-                                                  text="Editor V2 (Beta)" selected="true" onAction="#toggleEditorVersion">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-star" iconColor="#ff6b6b"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Switch between V1 (stable) and V2 (beta) editor"/>
-                                        </tooltip>
-                                    </ToggleButton>
                                 </children>
                             </HBox>
                         </content>
@@ -488,10 +263,9 @@
                                             <StackPane fx:id="xsdStackPane" visible="false" managed="false"/>
 
                                             <!-- V2 Editor Container (New/Beta) -->
-                                            <StackPane fx:id="xsdStackPaneV2" visible="true" managed="true"
+                                            <StackPane fx:id="xsdStackPaneV2" visible="false" managed="false"
                                                        style="-fx-background-color: white;">
-                                                <Label text="XSD Editor V2 - Coming Soon!"
-                                                       style="-fx-font-size: 16px; -fx-text-fill: #6c757d;"/>
+                                                <!-- V2 Editor content will be added dynamically -->
                                             </StackPane>
 
                                             <ProgressIndicator fx:id="xsdDiagramProgress" maxHeight="80" maxWidth="80"
@@ -508,7 +282,92 @@
                 </center>
             </BorderPane>
         </Tab>
-        <Tab fx:id="documentation" closable="false" text="Documentation">
+        <Tab fx:id="typeLibraryTab" text="Type Library" styleClass="primary-tab" closable="false">
+            <tooltip>
+                <Tooltip text="Type Library - Browse and analyze all types (Ctrl+2)"/>
+            </tooltip>
+            <graphic>
+                <FontIcon iconLiteral="bi-collection"/>
+            </graphic>
+            <content>
+                <StackPane fx:id="typeLibraryStackPane" style="-fx-background-color: #fafafa;">
+                    <!-- Type library panel will be dynamically added here -->
+                </StackPane>
+            </content>
+        </Tab>
+        <Tab fx:id="textTab" text="Text View" styleClass="primary-tab" closable="false">
+            <tooltip>
+                <Tooltip text="Source Code View - Raw XSD editing (Ctrl+3)"/>
+            </tooltip>
+            <graphic>
+                <FontIcon iconLiteral="bi-card-text"/>
+            </graphic>
+            <BorderPane>
+                <top>
+                    <HBox fx:id="textInfoPane" alignment="CENTER_LEFT" managed="false" spacing="15.0"
+                          style="-fx-padding: 10; -fx-background-color: #f1f3f5; -fx-border-width: 0 0 1 0; -fx-border-color: #dee2e6;"
+                          visible="false">
+                        <children>
+                            <VBox spacing="5.0">
+                                <children>
+                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                        <children>
+                                            <Label style="-fx-font-weight: bold;" text="File Path:"/>
+                                            <Label fx:id="textInfoPathLabel"/>
+                                        </children>
+                                    </HBox>
+                                </children>
+                            </VBox>
+                        </children>
+                    </HBox>
+                </top>
+                <center>
+                    <SplitPane fx:id="textTabSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
+                        <items>
+                            <!-- Main content area -->
+                            <StackPane style="-fx-background-color: #f8f9fa;">
+                                <children>
+                                    <VBox fx:id="noFileLoadedPaneText" alignment="CENTER" spacing="20.0">
+                                        <children>
+                                            <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                                                      iconSize="64"/>
+                                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                                   text="No XSD file loaded"/>
+                                            <Label style="-fx-text-fill: #6c757d;"
+                                                   text="Please load an XSD file to see the source code."/>
+                                            <HBox alignment="CENTER" spacing="10">
+                                                <Button onAction="#createNewXsdFile" styleClass="button"
+                                                        text="New XSD File">
+                                                    <graphic>
+                                                        <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
+                                                    </graphic>
+                                                </Button>
+                                                <Button onAction="#openXsdFileChooser" styleClass="button, :default"
+                                                        text="Load XSD File">
+                                                    <graphic>
+                                                        <FontIcon iconLiteral="bi-folder2-open"/>
+                                                    </graphic>
+                                                </Button>
+                                            </HBox>
+                                        </children>
+                                    </VBox>
+                                    <XmlCodeEditor fx:id="sourceCodeEditor" managed="false" visible="false"/>
+                                    <ProgressIndicator fx:id="textProgress" maxHeight="80" maxWidth="80"
+                                                       visible="false"/>
+                                </children>
+                            </StackPane>
+
+                            <!-- Favorites Panel -->
+                            <fx:include fx:id="favoritesPanel" source="controls/FavoritesPanel.fxml"/>
+                        </items>
+                    </SplitPane>
+                </center>
+            </BorderPane>
+        </Tab>
+        <Tab fx:id="documentation" text="Documentation" styleClass="output-tab" closable="false">
+            <tooltip>
+                <Tooltip text="Documentation Generator - Create HTML docs (Ctrl+4)"/>
+            </tooltip>
             <graphic>
                 <FontIcon iconLiteral="win10-notebook" iconSize="16"/>
             </graphic>
@@ -610,20 +469,6 @@
             </VBox>
 
         </Tab>
-
-        <!-- Type Library Tab -->
-        <Tab fx:id="typeLibraryTab" closable="false" text="Type Library">
-            <graphic>
-                <FontIcon iconLiteral="bi-collection"/>
-            </graphic>
-            <content>
-                <StackPane fx:id="typeLibraryStackPane" style="-fx-background-color: #fafafa;">
-                    <!-- Type library panel will be dynamically added here -->
-                </StackPane>
-            </content>
-        </Tab>
-
-        <!-- NEU: Tab für die Live-Vorschau der Dokumentation -->
         <Tab fx:id="docPreviewTab" text="Preview">
             <content>
                 <BorderPane>
@@ -665,8 +510,10 @@
                 </BorderPane>
             </content>
         </Tab>
-
-        <Tab closable="false" text="Generate Example Data">
+        <Tab styleClass="output-tab" closable="false" text="Generate Example Data">
+            <tooltip>
+                <Tooltip text="Sample Data Generator - Create XML examples (Ctrl+6)"/>
+            </tooltip>
             <graphic>
                 <FontIcon iconLiteral="bi-keyboard" iconSize="16"/>
             </graphic>
@@ -736,7 +583,10 @@
                 </StackPane>
             </VBox>
         </Tab>
-        <Tab fx:id="flattenTab" closable="false" text="Flatten Schema">
+        <Tab fx:id="flattenTab" text="Flatten Schema" styleClass="utility-tab" closable="false">
+            <tooltip>
+                <Tooltip text="Schema Flattener - Merge includes into one file (Ctrl+7)"/>
+            </tooltip>
             <graphic>
                 <FontIcon iconLiteral="bi-layers-half" iconSize="16"/>
             </graphic>

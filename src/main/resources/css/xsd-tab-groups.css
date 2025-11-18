@@ -1,0 +1,150 @@
+/*
+ * XSD Tab Groups Styling
+ * Color-coded tab backgrounds for visual grouping
+ */
+
+/* PRIMARY EDITING Group - Purple/Violet */
+.tab-pane .tab.primary-tab {
+    -fx-background-color: linear-gradient(to bottom, #f3e5f5, #e1bee7);
+}
+
+.tab-pane .tab.primary-tab:selected {
+    -fx-background-color: linear-gradient(to bottom, #ba68c8, #9c27b0);
+}
+
+.tab-pane .tab.primary-tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+.tab-pane .tab.primary-tab:hover {
+    -fx-background-color: linear-gradient(to bottom, #e1bee7, #ce93d8);
+}
+
+/* OUTPUT GENERATION Group - Green */
+.tab-pane .tab.output-tab {
+    -fx-background-color: linear-gradient(to bottom, #e8f5e9, #c8e6c9);
+}
+
+.tab-pane .tab.output-tab:selected {
+    -fx-background-color: linear-gradient(to bottom, #66bb6a, #43a047);
+}
+
+.tab-pane .tab.output-tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+.tab-pane .tab.output-tab:hover {
+    -fx-background-color: linear-gradient(to bottom, #c8e6c9, #a5d6a7);
+}
+
+/* UTILITIES Group - Blue */
+.tab-pane .tab.utility-tab {
+    -fx-background-color: linear-gradient(to bottom, #e3f2fd, #bbdefb);
+}
+
+.tab-pane .tab.utility-tab:selected {
+    -fx-background-color: linear-gradient(to bottom, #42a5f5, #1e88e5);
+}
+
+.tab-pane .tab.utility-tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+.tab-pane .tab.utility-tab:hover {
+    -fx-background-color: linear-gradient(to bottom, #bbdefb, #90caf9);
+}
+
+/* Tab label styling */
+.tab-pane .tab .tab-label {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* Selected tab enhancements */
+.tab-pane .tab:selected {
+    -fx-border-color: transparent transparent #4a90e2 transparent;
+    -fx-border-width: 0 0 3 0;
+}
+
+/* Smooth transitions */
+.tab-pane .tab {
+    -fx-background-radius: 4 4 0 0;
+    -fx-padding: 8 16;
+}
+
+/*
+ * XSD Toolbar Styling
+ * Professional toolbar with icon buttons
+ */
+
+.xsd-toolbar {
+    -fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 6 10;
+    -fx-spacing: 4;
+}
+
+.xsd-toolbar .button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4;
+    -fx-padding: 6 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+}
+
+.xsd-toolbar .button:hover {
+    -fx-background-color: rgba(74, 144, 226, 0.1);
+    -fx-border-color: #4a90e2;
+}
+
+.xsd-toolbar .button:pressed {
+    -fx-background-color: rgba(74, 144, 226, 0.2);
+}
+
+.xsd-toolbar .button .ikonli-font-icon {
+    -fx-icon-color: #495057;
+}
+
+.xsd-toolbar .button:hover .ikonli-font-icon {
+    -fx-icon-color: #4a90e2;
+}
+
+.xsd-toolbar .separator {
+    -fx-padding: 0 6;
+}
+
+/* MenuButton styling for Recent Files */
+.xsd-toolbar .menu-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4;
+    -fx-padding: 6 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+}
+
+.xsd-toolbar .menu-button:hover {
+    -fx-background-color: rgba(74, 144, 226, 0.1);
+    -fx-border-color: #4a90e2;
+}
+
+.xsd-toolbar .menu-button .ikonli-font-icon {
+    -fx-icon-color: #495057;
+}
+
+.xsd-toolbar .menu-button:hover .ikonli-font-icon {
+    -fx-icon-color: #4a90e2;
+}
+
+.xsd-toolbar .menu-button .arrow-button {
+    -fx-padding: 0;
+}
+
+.xsd-toolbar .menu-button .arrow {
+    -fx-shape: null;
+}

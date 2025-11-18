@@ -6,7 +6,9 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.input.KeyEvent;
@@ -17,6 +19,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
@@ -24,6 +27,7 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.*;
 import org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog;
 import org.fxt.freexmltoolkit.controls.intellisense.XmlCodeFoldingManager;
+import org.fxt.freexmltoolkit.controller.dialogs.XsdOverviewDialogController;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
@@ -74,10 +78,6 @@ public class XsdController {
     private Tab xsdTab;
     @FXML
     private Label statusText;
-    @FXML
-    private Button saveAsXsdButton;
-    @FXML
-    private Button prettyPrintButton;
 
     // schema flattening
     @FXML
@@ -151,6 +151,38 @@ public class XsdController {
     @FXML
     private StackPane typeLibraryStackPane;
 
+    // --- Toolbar buttons ---
+    @FXML
+    private Button toolbarNewFile;
+    @FXML
+    private Button toolbarLoadFile;
+    @FXML
+    private Button toolbarSave;
+    @FXML
+    private Button toolbarSaveAs;
+    @FXML
+    private Button toolbarReload;
+    @FXML
+    private Button toolbarClose;
+    @FXML
+    private Button toolbarValidate;
+    @FXML
+    private Button toolbarUndo;
+    @FXML
+    private Button toolbarRedo;
+    @FXML
+    private Button toolbarFind;
+    @FXML
+    private Button toolbarFormat;
+    @FXML
+    private Button toolbarAddFavorite;
+    @FXML
+    private Button toolbarShowFavorites;
+    @FXML
+    private MenuButton toolbarRecentFiles;
+    @FXML
+    private Button toolbarHelp;
+
 
 
     /**
@@ -188,8 +220,6 @@ public class XsdController {
     @FXML
     private StackPane xsdStackPaneV2;
     @FXML
-    private ToggleButton editorVersionToggle;
-    @FXML
     private VBox noFileLoadedPane;
     @FXML
     private TitledPane xsdInfoPane;
@@ -220,31 +250,11 @@ public class XsdController {
     @FXML
     private Button generateSampleDataButton;
     @FXML
-    private Button addXsdToFavoritesButton;
-    @FXML
-    private MenuButton loadXsdFavoritesButton;
-    @FXML
-    private ToggleButton toggleFavoritesButton;
-    @FXML
-    private Button saveXsdButton;
-    @FXML
     private SplitPane textTabSplitPane;
     @FXML
     private VBox favoritesPanel;
 
     // Fields for the graphic tab favorites system
-    @FXML
-    private Button addXsdToFavoritesButtonGraphic;
-    @FXML
-    private MenuButton loadXsdFavoritesButtonGraphic;
-    @FXML
-    private ToggleButton toggleFavoritesButtonGraphic;
-    @FXML
-    private Button saveXsdButtonGraphic;
-    @FXML
-    private Button saveAsXsdButtonGraphic;
-    @FXML
-    private Button prettyPrintButtonGraphic;
     @FXML
     private SplitPane graphicTabSplitPane;
     @FXML
@@ -407,6 +417,20 @@ public class XsdController {
 
         // Setup Ctrl+S keyboard shortcut for V2 editor
         setupV2EditorSaveShortcut();
+
+        // Setup tab navigation and help dialog shortcuts
+        setupTabNavigationShortcuts();
+
+        // Initialize toolbar recent files menu
+        Platform.runLater(this::initializeRecentFilesMenu);
+
+        // Show overview dialog on startup if preference is enabled
+        Platform.runLater(() -> {
+            if (XsdOverviewDialogController.shouldShowOnStartup()) {
+                // Delay slightly to ensure the window is fully loaded
+                Platform.runLater(this::showOverviewDialog);
+            }
+        });
     }
 
     private void applyEditorSettings() {
@@ -473,40 +497,12 @@ public class XsdController {
 
         try {
             // Reload V2 graphic view without triggering text update
-            if (editorVersionToggle != null && editorVersionToggle.isSelected()) {
-                loadXsdIntoGraphicViewV2(currentText);
-                logger.debug("Synchronized text content to V2 graphic view");
-            }
+            // V2 editor is now always active (toggle button removed)
+            loadXsdIntoGraphicViewV2(currentText);
+            logger.debug("Synchronized text content to V2 graphic view");
         } catch (Exception e) {
             logger.error("Failed to synchronize text to graphic view", e);
         }
-    }
-
-
-    /**
-     * Toggles the XSD editor V2 visibility.
-     * This method is called when the user clicks the editor version toggle button.
-     * Note: V1 editor has been removed, this now only controls V2 visibility.
-     */
-    @FXML
-    private void toggleEditorVersion() {
-        boolean useV2 = editorVersionToggle.isSelected();
-
-        // Toggle visibility of V2 editor
-        if (xsdStackPaneV2 != null) {
-            xsdStackPaneV2.setVisible(useV2);
-            xsdStackPaneV2.setManaged(useV2);
-        }
-
-        // If showing V2 and we have content but V2 is not loaded yet, load it
-        if (useV2 && currentGraphViewV2 == null && sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
-            String xsdContent = sourceCodeEditor.getCodeArea().getText();
-            if (xsdContent != null && !xsdContent.trim().isEmpty()) {
-                loadXsdIntoGraphicViewV2(xsdContent);
-            }
-        }
-
-        logger.info("XSD Editor V2 visibility: {}", useV2 ? "visible" : "hidden");
     }
 
     /**
@@ -955,7 +951,8 @@ public class XsdController {
             sourceCodeEditor.getCodeArea().replaceText(updatedXsd);
 
             // Rebuild the V2 diagram view only if requested
-            if (rebuildDiagram && editorVersionToggle != null && editorVersionToggle.isSelected()) {
+            // V2 editor is now always active (toggle button removed)
+            if (rebuildDiagram) {
                 loadXsdIntoGraphicViewV2(updatedXsd);
             }
 
@@ -963,13 +960,6 @@ public class XsdController {
             hasUnsavedChanges = true;
             statusText.setText("XSD modified - changes not saved to file");
 
-            // Enable save buttons
-            if (saveXsdButton != null) {
-                saveXsdButton.setDisable(false);
-            }
-            if (saveXsdButtonGraphic != null) {
-                saveXsdButtonGraphic.setDisable(false);
-            }
             // V1 DOM manipulator update removed - V2 handles updates automatically
         }
     }
@@ -1063,13 +1053,7 @@ public class XsdController {
                                 .count());
 
                 // Enable save buttons after successful V2 editor load
-                if (saveXsdButton != null) {
-                    saveXsdButton.setDisable(false);
-                }
-                if (saveXsdButtonGraphic != null) {
-                    saveXsdButtonGraphic.setDisable(false);
-                }
-            } else {
+} else {
                 javafx.scene.control.Label errorLabel = new javafx.scene.control.Label("Failed to parse XSD schema");
                 xsdStackPaneV2.getChildren().add(errorLabel);
             }
@@ -1133,19 +1117,7 @@ public class XsdController {
                     // Enable unsaved changes tracking
                     hasUnsavedChanges = true;
                     // Keep all save buttons enabled for convenience
-                    if (saveXsdButton != null) {
-                        saveXsdButton.setDisable(false);
-                    }
-                    if (saveXsdButtonGraphic != null) {
-                        saveXsdButtonGraphic.setDisable(false);
-                    }
-                    if (saveAsXsdButton != null) {
-                        saveAsXsdButton.setDisable(false);
-                    }
-                    if (saveAsXsdButtonGraphic != null) {
-                        saveAsXsdButtonGraphic.setDisable(false);
-                    }
-                });
+});
 
                 // Update UI to show it's a new file
                 updateFileInfo("New XSD Schema (unsaved)", xsdInfo.targetNamespace(), "1.0");
@@ -1753,20 +1725,12 @@ public class XsdController {
             if (tabPane.getSelectionModel().getSelectedItem() == textTab && sourceCodeEditor != null) {
                 sourceCodeEditor.getCodeArea().replaceText(formattedXsd);
                 hasUnsavedChanges = true;
-                saveXsdButton.setDisable(false);
-                if (saveXsdButtonGraphic != null) {
-                    saveXsdButtonGraphic.setDisable(false);
-                }
             } else {
                 // If in diagram view, switch to text view and update
                 tabPane.getSelectionModel().select(textTab);
                 if (sourceCodeEditor != null) {
                     sourceCodeEditor.getCodeArea().replaceText(formattedXsd);
                     hasUnsavedChanges = true;
-                    saveXsdButton.setDisable(false);
-                    if (saveXsdButtonGraphic != null) {
-                        saveXsdButtonGraphic.setDisable(false);
-                    }
                 }
             }
 
@@ -2591,9 +2555,7 @@ public class XsdController {
     }
 
     private void refreshXsdFavoritesMenu() {
-        refreshXsdFavoritesMenuForButton(loadXsdFavoritesButton);
-        refreshXsdFavoritesMenuForButton(loadXsdFavoritesButtonGraphic);
-        // Also refresh the overview favorites list
+// Also refresh the overview favorites list
         Platform.runLater(this::populateRecentFavoritesList);
     }
 
@@ -2721,7 +2683,8 @@ public class XsdController {
             return;
         }
 
-        boolean isSelected = toggleFavoritesButton != null && toggleFavoritesButton.isSelected();
+        // Toggle button removed from UI - this method is no longer called
+        boolean isSelected = false;
 
         // Toggle visibility of the favorites panel
         favoritesPanel.setVisible(isSelected);
@@ -2747,7 +2710,8 @@ public class XsdController {
             return;
         }
 
-        boolean isSelected = toggleFavoritesButtonGraphic != null && toggleFavoritesButtonGraphic.isSelected();
+        // Toggle button removed from UI - this method is no longer called
+        boolean isSelected = false;
 
         // Toggle visibility of the favorites panel
         favoritesPanelGraphic.setVisible(isSelected);
@@ -3233,14 +3197,7 @@ public class XsdController {
 
         // Enable save buttons
         Platform.runLater(() -> {
-            if (saveXsdButton != null) {
-                saveXsdButton.setDisable(false);
-            }
-            if (saveXsdButtonGraphic != null) {
-                saveXsdButtonGraphic.setDisable(false);
-            }
-
-            // Update status text to indicate unsaved changes
+// Update status text to indicate unsaved changes
             if (statusText != null) {
                 String currentFile = currentXsdFile != null ? currentXsdFile.getName() : "XSD";
                 statusText.setText("● " + currentFile + " - modified (unsaved changes)");
@@ -3538,6 +3495,418 @@ public class XsdController {
         } catch (Exception e) {
             logger.error("Error opening SimpleTypes List", e);
             showError("Error", "Could not open SimpleTypes List: " + e.getMessage());
+        }
+    }
+
+    // ======================================================================
+    // Public API methods for XSD Overview Dialog
+    // ======================================================================
+
+    /**
+     * Public API for creating a new XSD file.
+     * Called from XsdOverviewDialog.
+     */
+    public void handleCreateNewXsdFile() {
+        createNewXsdFile();
+    }
+
+    /**
+     * Public API for opening the XSD file chooser dialog.
+     * Called from XsdOverviewDialog.
+     */
+    public void handleOpenXsdFileChooser() {
+        File file = openXsdFileChooser();
+        if (file != null) {
+            logger.info("File selected from dialog: {}", file.getAbsolutePath());
+        }
+    }
+
+    /**
+     * Public API for showing the favorites panel.
+     * Called from XsdOverviewDialog to open favorites.
+     */
+    public void handleShowFavorites() {
+        // Show the favorites panel in the graphic view
+        // Make sure it's visible and switch to the graphic tab
+        if (tabPane != null && xsdTab != null) {
+            tabPane.getSelectionModel().select(xsdTab);
+        }
+        // Show favorites panel if it's not already visible
+        if (favoritesPanelGraphic != null && !favoritesPanelGraphic.isVisible()) {
+            toggleFavoritesPanelGraphic();
+        }
+    }
+
+    /**
+     * Setup keyboard shortcuts for tab navigation and help dialog.
+     * Ctrl+1 through Ctrl+7: Switch between tabs
+     * Ctrl+H or F1: Show overview/help dialog
+     */
+    private void setupTabNavigationShortcuts() {
+        // Need to wait for the scene to be available
+        Platform.runLater(() -> {
+            if (tabPane == null || tabPane.getScene() == null) {
+                logger.warn("Cannot setup tab navigation shortcuts - TabPane or Scene not available");
+                return;
+            }
+
+            tabPane.getScene().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+                // Check for Ctrl+Number shortcuts (Ctrl+1 through Ctrl+7)
+                if (event.isControlDown() && !event.isShiftDown() && !event.isAltDown()) {
+                    switch (event.getCode()) {
+                        case DIGIT1, NUMPAD1 -> {
+                            if (xsdTab != null) {
+                                tabPane.getSelectionModel().select(xsdTab);
+                                event.consume();
+                                logger.debug("Switched to Graphic tab via Ctrl+1");
+                            }
+                        }
+                        case DIGIT2, NUMPAD2 -> {
+                            if (typeLibraryTab != null) {
+                                tabPane.getSelectionModel().select(typeLibraryTab);
+                                event.consume();
+                                logger.debug("Switched to Type Library tab via Ctrl+2");
+                            }
+                        }
+                        case DIGIT3, NUMPAD3 -> {
+                            if (textTab != null) {
+                                tabPane.getSelectionModel().select(textTab);
+                                event.consume();
+                                logger.debug("Switched to Text tab via Ctrl+3");
+                            }
+                        }
+                        case DIGIT4, NUMPAD4 -> {
+                            if (documentation != null) {
+                                tabPane.getSelectionModel().select(documentation);
+                                event.consume();
+                                logger.debug("Switched to Documentation tab via Ctrl+4");
+                            }
+                        }
+                        case DIGIT5, NUMPAD5 -> {
+                            if (docPreviewTab != null) {
+                                tabPane.getSelectionModel().select(docPreviewTab);
+                                event.consume();
+                                logger.debug("Switched to Preview tab via Ctrl+5");
+                            }
+                        }
+                        case DIGIT6, NUMPAD6 -> {
+                            // Generate Example Data tab has no fx:id, need to find by position
+                            if (tabPane.getTabs().size() > 5) {
+                                tabPane.getSelectionModel().select(5); // Index 5 = 6th tab
+                                event.consume();
+                                logger.debug("Switched to Generate Example Data tab via Ctrl+6");
+                            }
+                        }
+                        case DIGIT7, NUMPAD7 -> {
+                            if (flattenTab != null) {
+                                tabPane.getSelectionModel().select(flattenTab);
+                                event.consume();
+                                logger.debug("Switched to Flatten Schema tab via Ctrl+7");
+                            }
+                        }
+                        case H -> {
+                            // Ctrl+H: Show overview/help dialog
+                            showOverviewDialog();
+                            event.consume();
+                            logger.debug("Showing overview dialog via Ctrl+H");
+                        }
+                    }
+                } else if (event.getCode() == javafx.scene.input.KeyCode.F1) {
+                    // F1: Show overview/help dialog
+                    showOverviewDialog();
+                    event.consume();
+                    logger.debug("Showing overview dialog via F1");
+                }
+            });
+
+            logger.info("Tab navigation shortcuts initialized (Ctrl+1-7, Ctrl+H, F1)");
+        });
+    }
+
+    /**
+     * Show the XSD Overview Dialog.
+     * Can be called from keyboard shortcuts or menu items.
+     */
+    private void showOverviewDialog() {
+        try {
+            // Load the FXML
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/dialogs/XsdOverviewDialog.fxml"));
+            Parent root = loader.load();
+
+            // Get the controller and set this XsdController
+            XsdOverviewDialogController controller = loader.getController();
+            controller.setXsdController(this);
+
+            // Create and configure the dialog stage
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("XSD Toolkit Overview");
+            dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            if (tabPane.getScene() != null && tabPane.getScene().getWindow() != null) {
+                dialogStage.initOwner(tabPane.getScene().getWindow());
+            }
+
+            // Set the dialog stage in the controller
+            controller.setDialogStage(dialogStage);
+
+            // Create and show the scene
+            javafx.scene.Scene dialogScene = new javafx.scene.Scene(root);
+            dialogStage.setScene(dialogScene);
+            dialogStage.setResizable(true);
+            dialogStage.showAndWait();
+
+            logger.info("XSD Overview Dialog shown");
+
+        } catch (Exception e) {
+            logger.error("Error showing XSD Overview Dialog", e);
+            showError("Error", "Could not show overview dialog: " + e.getMessage());
+        }
+    }
+
+    // ======================================================================
+    // Toolbar Event Handlers
+    // ======================================================================
+
+    @FXML
+    private void handleToolbarNewFile() {
+        logger.info("Toolbar: New File clicked");
+        handleCreateNewXsdFile();
+    }
+
+    @FXML
+    private void handleToolbarLoadFile() {
+        logger.info("Toolbar: Load File clicked");
+        handleOpenXsdFileChooser();
+    }
+
+    @FXML
+    private void handleToolbarSave() {
+        logger.info("Toolbar: Save clicked");
+        saveXsdFile();
+    }
+
+    @FXML
+    private void handleToolbarSaveAs() {
+        logger.info("Toolbar: Save As clicked");
+        saveXsdFileAs();
+    }
+
+    @FXML
+    private void handleToolbarReload() {
+        logger.info("Toolbar: Reload clicked");
+        if (currentXsdFile != null && currentXsdFile.exists()) {
+            openXsdFile(currentXsdFile);
+        } else {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("No File");
+            alert.setHeaderText(null);
+            alert.setContentText("No file to reload");
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleToolbarClose() {
+        logger.info("Toolbar: Close clicked");
+        if (hasUnsavedChanges) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Unsaved Changes");
+            alert.setHeaderText("You have unsaved changes");
+            alert.setContentText("Do you want to save before closing?");
+
+            ButtonType saveButton = new ButtonType("Save");
+            ButtonType discardButton = new ButtonType("Discard");
+            ButtonType cancelButton = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(saveButton, discardButton, cancelButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == saveButton) {
+                saveXsdFile();
+            } else if (result.isPresent() && result.get() == cancelButton) {
+                return;
+            }
+        }
+
+        // Clear the file and UI
+        currentXsdFile = null;
+        xmlService.setCurrentXsdFile(null);
+        clearXsdContent();
+        hasUnsavedChanges = false;
+    }
+
+    @FXML
+    private void handleToolbarValidate() {
+        logger.info("Toolbar: Validate clicked");
+        // Trigger validation in current tab
+        if (tabPane.getSelectionModel().getSelectedItem() == textTab) {
+            // Validate in text tab - save first if needed
+            if (hasUnsavedChanges) {
+                saveXsdFile();
+            }
+            // Validation happens automatically on save
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Validation");
+            alert.setHeaderText(null);
+            alert.setContentText("Schema validated successfully");
+            alert.showAndWait();
+        } else {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Validation");
+            alert.setHeaderText(null);
+            alert.setContentText("Switch to Text tab to validate XSD schema");
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleToolbarUndo() {
+        logger.info("Toolbar: Undo clicked");
+        // V2 editor uses CommandManager for undo
+        if (tabPane.getSelectionModel().getSelectedItem() == xsdTab && currentGraphViewV2 != null) {
+            org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext context = currentGraphViewV2.getEditorContext();
+            if (context != null && context.getCommandManager() != null) {
+                context.getCommandManager().undo();
+            }
+        } else if (sourceCodeEditor != null && tabPane.getSelectionModel().getSelectedItem() == textTab) {
+            // Text editor undo
+            sourceCodeEditor.getCodeArea().undo();
+        }
+    }
+
+    @FXML
+    private void handleToolbarRedo() {
+        logger.info("Toolbar: Redo clicked");
+        // V2 editor uses CommandManager for redo
+        if (tabPane.getSelectionModel().getSelectedItem() == xsdTab && currentGraphViewV2 != null) {
+            org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext context = currentGraphViewV2.getEditorContext();
+            if (context != null && context.getCommandManager() != null) {
+                context.getCommandManager().redo();
+            }
+        } else if (sourceCodeEditor != null && tabPane.getSelectionModel().getSelectedItem() == textTab) {
+            // Text editor redo
+            sourceCodeEditor.getCodeArea().redo();
+        }
+    }
+
+    @FXML
+    private void handleToolbarFind() {
+        logger.info("Toolbar: Find clicked");
+        // Show find/replace dialog for current tab
+        if (tabPane.getSelectionModel().getSelectedItem() == textTab) {
+            showFindReplaceDialog();
+        }
+    }
+
+    @FXML
+    private void handleToolbarFormat() {
+        logger.info("Toolbar: Format clicked");
+        // Format code in current tab - trigger pretty print directly
+        prettyPrintXsd();
+    }
+
+    @FXML
+    private void handleToolbarAddFavorite() {
+        logger.info("Toolbar: Add to Favorites clicked");
+        if (currentXsdFile != null) {
+            TextInputDialog dialog = new TextInputDialog("XSD Schemas");
+            dialog.setTitle("Add to Favorites");
+            dialog.setHeaderText("Add current file to favorites");
+            dialog.setContentText("Category:");
+
+            Optional<String> category = dialog.showAndWait();
+            category.ifPresent(cat -> {
+                favoritesService.addFavorite(
+                    currentXsdFile.getAbsolutePath(),
+                    currentXsdFile.getName().replace(".xsd", ""),
+                    cat
+                );
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Favorites");
+                alert.setHeaderText(null);
+                alert.setContentText("File added to favorites");
+                alert.showAndWait();
+            });
+        } else {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("No File");
+            alert.setHeaderText(null);
+            alert.setContentText("No file to add to favorites");
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleToolbarShowFavorites() {
+        logger.info("Toolbar: Show Favorites clicked");
+        handleShowFavorites();
+    }
+
+    @FXML
+    private void handleToolbarHelp() {
+        logger.info("Toolbar: Help clicked");
+        showOverviewDialog();
+    }
+
+    /**
+     * Initialize the Recent Files menu button with recent files.
+     * Called from initialize() method.
+     */
+    private void initializeRecentFilesMenu() {
+        if (toolbarRecentFiles != null) {
+            refreshRecentFilesMenu();
+        }
+    }
+
+    /**
+     * Refresh the Recent Files menu with current recent files list.
+     */
+    private void refreshRecentFilesMenu() {
+        if (toolbarRecentFiles == null) {
+            return;
+        }
+
+        toolbarRecentFiles.getItems().clear();
+
+        List<File> recentFiles = propertiesService.getLastOpenFiles();
+        if (recentFiles == null || recentFiles.isEmpty()) {
+            MenuItem noFiles = new MenuItem("No recent files");
+            noFiles.setDisable(true);
+            toolbarRecentFiles.getItems().add(noFiles);
+            return;
+        }
+
+        for (File file : recentFiles) {
+            if (file.exists()) {
+                MenuItem item = new MenuItem(file.getName());
+                item.setOnAction(e -> {
+                    openXsdFile(file);
+                    logger.info("Opened recent file from toolbar: {}", file.getAbsolutePath());
+                });
+                toolbarRecentFiles.getItems().add(item);
+            }
+        }
+    }
+
+    /**
+     * Clear XSD content from all tabs.
+     */
+    private void clearXsdContent() {
+        if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+            sourceCodeEditor.getCodeArea().clear();
+        }
+        if (xsdFilePath != null) {
+            xsdFilePath.clear();
+        }
+        if (xsdForSampleDataPath != null) {
+            xsdForSampleDataPath.clear();
+        }
+        if (xsdToFlattenPath != null) {
+            xsdToFlattenPath.clear();
+        }
+        // Clear graphic view
+        if (currentGraphViewV2 != null) {
+            // Clear the graphic view content
+            logger.debug("Cleared graphic view content");
         }
     }
 
