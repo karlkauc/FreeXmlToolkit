@@ -18,72 +18,142 @@
   ~
   -->
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
 <?import org.fxt.freexmltoolkit.controls.FileExplorer?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-<HBox style="-fx-padding: 5;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XsltController">
-    <HBox HBox.hgrow="ALWAYS">
-        <HBox style="-fx-background-color: #b1d983;">
-            <BorderPane fx:id="fileLoaderPane" maxWidth="500" minWidth="500" prefWidth="500"
-                        style="-fx-padding: 0 5 0 0; -fx-background-color: #fafff7;">
-                <center>
-                    <VBox alignment="CENTER" style="-fx-padding: 10px;" spacing="5">
-                        <FileExplorer fx:id="xmlFileExplorer" displayText="XML File"/>
-                        <Separator/>
-                        <FileExplorer fx:id="xsltFileExplorer" displayText="XSLT File"/>
-                    </VBox>
-                </center>
-                <bottom>
-                    <VBox>
-                        <HBox alignment="BASELINE_CENTER" spacing="10">
-                            <Button fx:id="openInDefaultWebBrowser" disable="true" text="Open in Web">
-                                <graphic>
-                                    <FontIcon iconColor="black" iconLiteral="cib-google-chrome"/>
-                                </graphic>
-                            </Button>
-                            <Button fx:id="openInDefaultTextEditor" disable="true" text="Open in Text Editor">
-                                <graphic>
-                                    <FontIcon iconColor="black" iconLiteral="bi-file"/>
-                                </graphic>
-                            </Button>
+<VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+      AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XsltController"
+      stylesheets="@../css/xsd-tab-groups.css">
 
-                            <Button onAction="#checkFiles" text="Reload" style="-fx-padding: 5px;">
-                                <graphic>
-                                    <ImageView fitHeight="20" fitWidth="20">
-                                        <Image url="@../img/icons8-aktualisieren-48.png"/>
-                                    </ImageView>
-                                </graphic>
-                            </Button>
-                        </HBox>
-                        <ProgressBar fx:id="progressBar" prefWidth="300"/>
-                    </VBox>
-                </bottom>
-            </BorderPane>
-            <Label fx:id="toggleBorderPaneLabel" style="-fx-font: bold" text="&lt;&lt;"
-                   onMouseClicked="#toggleBorderPane"/>
-        </HBox>
-        <TabPane fx:id="outputMethodSwitch" HBox.hgrow="ALWAYS">
-            <Tab fx:id="tabText" closable="false" text="Text View">
+    <!-- XSLT Operations Toolbar -->
+    <ToolBar styleClass="xsd-toolbar">
+        <!-- File Operations Group -->
+        <Button onAction="#checkFiles">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Reload Files"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- View Operations Group -->
+        <Button fx:id="openInDefaultWebBrowser" disable="true" onAction="#openInDefaultWebBrowser">
+            <graphic>
+                <FontIcon iconLiteral="bi-globe" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Open in Web Browser"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="openInDefaultTextEditor" disable="true" onAction="#openInDefaultTextEditor">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-earmark-text" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Open in Text Editor"/>
+            </tooltip>
+        </Button>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <!-- Help -->
+        <Button>
+            <graphic>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Help (F1)"/>
+            </tooltip>
+        </Button>
+    </ToolBar>
+
+    <!-- Main Content Area -->
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.25">
+
+        <!-- File Explorer Panel -->
+        <BorderPane style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 1 0 0;">
+            <top>
+                <VBox style="-fx-padding: 12; -fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;">
+                    <Label text="File Selection" style="-fx-font-weight: bold; -fx-font-size: 12px;"/>
+                </VBox>
+            </top>
+
+            <center>
+                <VBox alignment="TOP_CENTER" style="-fx-padding: 10px;" spacing="5">
+                    <Label text="XML Source File:" style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                    <FileExplorer fx:id="xmlFileExplorer" displayText="Select XML File" VBox.vgrow="ALWAYS"/>
+
+                    <Separator style="-fx-padding: 5 0;"/>
+
+                    <Label text="XSLT Stylesheet:" style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                    <FileExplorer fx:id="xsltFileExplorer" displayText="Select XSLT File" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </center>
+
+            <bottom>
+                <VBox style="-fx-padding: 10px; -fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0;" spacing="8">
+                    <Label text="File Actions:" style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Button text="Open in Web" fx:id="openInDefaultWebBrowserButton" disable="true"
+                                style="-fx-padding: 6 12;">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-globe" iconSize="14"/>
+                            </graphic>
+                        </Button>
+                        <Button text="Open in Editor" fx:id="openInDefaultTextEditorButton" disable="true"
+                                style="-fx-padding: 6 12;">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-file-earmark-text" iconSize="14"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                    <ProgressBar fx:id="progressBar" prefHeight="6"/>
+                </VBox>
+            </bottom>
+        </BorderPane>
+
+        <!-- Results Tabbed Panel -->
+        <TabPane fx:id="outputMethodSwitch" side="TOP" styleClass="xml-editor-tabs">
+            <Tab fx:id="tabText" closable="false" text="Text View" styleClass="primary-tab">
+                <tooltip>
+                    <Tooltip text="View transformation result as text"/>
+                </tooltip>
                 <graphic>
-                    <ImageView fitHeight="16" preserveRatio="true">
-                        <Image url="@../img/icons8-txt-26.png"/>
-                    </ImageView>
+                    <FontIcon iconLiteral="bi-file-text" iconSize="16"/>
                 </graphic>
-                <StackPane fx:id="textView" HBox.hgrow="ALWAYS"/>
+                <StackPane fx:id="textView" style="-fx-background-color: white;"/>
             </Tab>
-            <Tab fx:id="tabWeb" closable="false" text="HTML View">
+
+            <Tab fx:id="tabWeb" closable="false" text="HTML Preview" styleClass="primary-tab">
+                <tooltip>
+                    <Tooltip text="View transformation result as rendered HTML"/>
+                </tooltip>
                 <graphic>
-                    <ImageView fitHeight="16" preserveRatio="true">
-                        <Image url="@../img/icons8-www-32.png"/>
-                    </ImageView>
+                    <FontIcon iconLiteral="bi-globe" iconSize="16"/>
                 </graphic>
-                <WebView fx:id="webView" HBox.hgrow="ALWAYS"/>
+                <WebView fx:id="webView"/>
+            </Tab>
+
+            <Tab text="Performance" closable="false" styleClass="output-tab">
+                <tooltip>
+                    <Tooltip text="View transformation performance metrics"/>
+                </tooltip>
+                <graphic>
+                    <FontIcon iconLiteral="bi-speedometer2" iconSize="16"/>
+                </graphic>
+                <VBox style="-fx-padding: 15; -fx-background-color: white;" spacing="10">
+                    <Label text="Transformation Statistics" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                    <TextArea fx:id="performanceArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS"/>
+                </VBox>
             </Tab>
         </TabPane>
-    </HBox>
-</HBox>
+    </SplitPane>
+</VBox>

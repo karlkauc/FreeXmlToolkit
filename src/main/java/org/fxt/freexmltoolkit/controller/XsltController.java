@@ -74,9 +74,7 @@ public class XsltController {
     @FXML
     private Tab tabWeb, tabText;
     @FXML
-    private BorderPane fileLoaderPane;
-    @FXML
-    private Label toggleBorderPaneLabel;
+    private TextArea performanceArea;
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
@@ -92,12 +90,6 @@ public class XsltController {
             // Debug mode - test functionality can be added here if needed
         }
 
-        fileLoaderPane.heightProperty().addListener((observable, oldValue, newValue) -> {
-            double fileLoaderHeight = (newValue.doubleValue() - 100) / 2;
-            xsltFileExplorer.setPrefHeight(fileLoaderHeight);
-            xmlFileExplorer.setPrefHeight(fileLoaderHeight);
-        });
-
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
         textView.getChildren().add(virtualizedScrollPane);
@@ -105,23 +97,16 @@ public class XsltController {
         progressBar.setDisable(true);
         progressBar.setVisible(false);
 
+        if (performanceArea != null) {
+            performanceArea.setStyle("-fx-font-family: 'Courier New'; -fx-font-size: 11px;");
+        }
+
         webEngine = webView.getEngine();
         webEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
                 logger.debug("Loading Web Content successfully: {}", webEngine.getLocation());
             }
         });
-    }
-
-    @FXML
-    private void toggleBorderPane() {
-        boolean isVisible = fileLoaderPane.isVisible();
-        fileLoaderPane.setVisible(!isVisible);
-        toggleBorderPaneLabel.setText(isVisible ? ">>" : "<<");
-        fileLoaderPane.setMaxWidth(isVisible ? 0 : PANE_SIZE);
-        fileLoaderPane.setMinWidth(isVisible ? 0 : PANE_SIZE);
-        fileLoaderPane.setPrefWidth(isVisible ? 0 : PANE_SIZE);
-        fileLoaderPane.setManaged(!isVisible);
     }
 
     @FXML
