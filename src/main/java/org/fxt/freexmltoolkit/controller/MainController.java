@@ -73,7 +73,7 @@ public class MainController implements Initializable {
     AnchorPane contentPane;
 
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, templates;
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator; // templates removed
 
     @FXML
     MenuItem menuItemExit;
@@ -283,7 +283,7 @@ public class MainController implements Initializable {
             case "help" -> "/pages/tab_help.fxml";
             case "settings" -> "/pages/settings.fxml";
             // Revolutionary Features - Alleinstellungsmerkmale
-            case "templates" -> "/pages/tab_templates.fxml";
+            // case "templates" -> "/pages/tab_templates.fxml"; // Removed from menu
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             default -> null;
@@ -410,9 +410,9 @@ public class MainController implements Initializable {
             case HelpController helpController -> {
                 logger.debug("set Help Controller");
             }
-            case TemplatesController templatesController -> {
-                logger.debug("set Smart Templates Controller");
-            }
+            // case TemplatesController templatesController -> {
+            //     logger.debug("set Smart Templates Controller");
+            // }
             case SchemaGeneratorController schemaGeneratorController -> {
                 logger.debug("set Intelligent Schema Generator Controller");
             }
@@ -494,10 +494,10 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, templates, schemaGenerator, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, templates, schemaGenerator, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper);
         }
         showMenu = !showMenu;
     }
@@ -514,9 +514,17 @@ public class MainController implements Initializable {
 
     private void setButtonSize(String styleClass, Button... buttons) {
         for (Button button : buttons) {
+            // Preserve the "active" state while changing button size
+            boolean isActive = button.getStyleClass().contains("active");
+
             button.getStyleClass().remove("menu_button");
             button.getStyleClass().remove("menu_button_collapsed");
             button.getStyleClass().add(styleClass);
+
+            // Re-add "active" class if button was active
+            if (isActive && !button.getStyleClass().contains("active")) {
+                button.getStyleClass().add("active");
+            }
 
             // Hide/show button text based on collapsed state
             if (styleClass.equals("menu_button_collapsed")) {
@@ -541,7 +549,7 @@ public class MainController implements Initializable {
         else if (button == exit) button.setText("Exit");
         else if (button == xsltDeveloper) button.setText("XSLT Developer");
         else if (button == schemaGenerator) button.setText("Schema Generator");
-        else if (button == templates) button.setText("Smart Templates");
+        // else if (button == templates) button.setText("Smart Templates"); // Removed from menu
     }
 
     @FXML

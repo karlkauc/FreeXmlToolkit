@@ -582,6 +582,17 @@
   -fx-background-color: #e9ecef;
 }
 
+.menu_button.active {
+  -fx-background-color: #d0e7ff;
+  -fx-border-color: #0969da;
+  -fx-border-width: 0 0 0 3px;
+  -fx-border-insets: 0;
+}
+
+.menu_button.active:hover {
+  -fx-background-color: #b8deff;
+}
+
 .menu_button_collapsed {
     -fx-pref-height: 50;
     -fx-min-width: 50;
@@ -599,6 +610,17 @@
 
 .menu_button_collapsed:pressed {
     -fx-background-color: rgba(233, 236, 239, 0.5);
+}
+
+.menu_button_collapsed.active {
+    -fx-background-color: rgba(208, 231, 255, 0.8);
+    -fx-border-color: #0969da;
+    -fx-border-width: 0 0 0 3px;
+    -fx-border-insets: 0;
+}
+
+.menu_button_collapsed.active:hover {
+    -fx-background-color: rgba(184, 222, 255, 0.9);
 }
 
 .button:default {

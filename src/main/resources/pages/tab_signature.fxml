@@ -12,19 +12,19 @@
     <!-- Signature Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button>
+        <Button onAction="#switchToCreateCertificateTab">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                <FontIcon iconLiteral="bi-shield-lock" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Load Certificate"/>
+                <Tooltip text="Create Certificate"/>
             </tooltip>
         </Button>
 
         <Separator orientation="VERTICAL"/>
 
         <!-- Signature Actions Group -->
-        <Button>
+        <Button onAction="#switchToSignTab">
             <graphic>
                 <FontIcon iconLiteral="bi-pencil-square" iconSize="16"/>
             </graphic>
@@ -33,19 +33,31 @@
             </tooltip>
         </Button>
 
-        <Button>
+        <Button onAction="#switchToValidateTab">
             <graphic>
-                <FontIcon iconLiteral="bi-check-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-patch-check" iconSize="16"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Verify Signature"/>
             </tooltip>
         </Button>
 
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Expert Mode -->
+        <Button onAction="#switchToExpertTab">
+            <graphic>
+                <FontIcon iconLiteral="bi-gear-fill" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Expert Mode"/>
+            </tooltip>
+        </Button>
+
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button>
+        <Button onAction="#switchToInstructionsTab">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
             </graphic>

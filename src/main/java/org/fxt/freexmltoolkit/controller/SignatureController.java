@@ -90,9 +90,12 @@ public class SignatureController {
     @FXML
     private TextArea expertResultsArea;
 
+    @FXML
+    private TabPane tabPane;
+
     // Additional files for expert mode
     private File expertXmlFile, expertKeystoreFile, expertValidateFile;
-    
+
     private MainController parentController;
 
     public void setParentController(MainController parentController) {
@@ -681,6 +684,60 @@ public class SignatureController {
         } catch (Exception e) {
             logger.error("Expert document validation failed", e);
             appendToExpertResults("ERROR: Validation failed - " + e.getMessage());
+        }
+    }
+
+    // ======================================================================
+    // Toolbar Navigation Methods
+    // ======================================================================
+
+    /**
+     * Switch to the Instructions tab
+     */
+    @FXML
+    private void switchToInstructionsTab() {
+        if (tabPane != null) {
+            tabPane.getSelectionModel().select(0); // Instructions is tab 0
+        }
+    }
+
+    /**
+     * Switch to the Create Certificate tab
+     */
+    @FXML
+    private void switchToCreateCertificateTab() {
+        if (tabPane != null) {
+            tabPane.getSelectionModel().select(1); // Create Certificate is tab 1
+        }
+    }
+
+    /**
+     * Switch to the Sign XML File tab
+     */
+    @FXML
+    private void switchToSignTab() {
+        if (tabPane != null) {
+            tabPane.getSelectionModel().select(2); // Sign XML File is tab 2
+        }
+    }
+
+    /**
+     * Switch to the Validate Signed File tab
+     */
+    @FXML
+    private void switchToValidateTab() {
+        if (tabPane != null) {
+            tabPane.getSelectionModel().select(3); // Validate is tab 3
+        }
+    }
+
+    /**
+     * Switch to the Expert Mode tab
+     */
+    @FXML
+    private void switchToExpertTab() {
+        if (tabPane != null) {
+            tabPane.getSelectionModel().select(4); // Expert Mode is tab 4
         }
     }
 }
