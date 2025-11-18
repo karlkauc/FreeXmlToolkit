@@ -44,7 +44,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- View Operations Group -->
-        <Button fx:id="openInDefaultWebBrowser" disable="true" onAction="#openInDefaultWebBrowser">
+        <Button fx:id="openInDefaultWebBrowser" disable="true">
             <graphic>
                 <FontIcon iconLiteral="bi-globe" iconSize="16"/>
             </graphic>
@@ -53,7 +53,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="openInDefaultTextEditor" disable="true" onAction="#openInDefaultTextEditor">
+        <Button fx:id="openInDefaultTextEditor" disable="true">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-text" iconSize="16"/>
             </graphic>

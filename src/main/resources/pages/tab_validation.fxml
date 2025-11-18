@@ -32,7 +32,7 @@
     <!-- Validation Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="xmlLoadButton" onAction="#openXmlFileChooser">
+        <Button fx:id="xmlLoadButton">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
             </graphic>
@@ -111,7 +111,7 @@
                     <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
                         <TextField fx:id="xmlFileName" editable="false" promptText="Select the XML file to validate"
                                    HBox.hgrow="ALWAYS"/>
-                        <Button onAction="#openXmlFileChooser">
+                        <Button fx:id="xmlLoadButtonGrid">
                             <graphic>
                                 <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                             </graphic>
