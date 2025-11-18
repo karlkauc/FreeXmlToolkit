@@ -31,6 +31,7 @@ import org.fxt.freexmltoolkit.controller.dialogs.XsdOverviewDialogController;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
@@ -823,7 +824,7 @@ public class XsdController {
     public void saveDocumentation(String mainDoc, String javadoc) {
         File currentXsdFile = xmlService.getCurrentXsdFile();
         if (currentXsdFile == null || !currentXsdFile.exists()) {
-            new Alert(Alert.AlertType.WARNING, "No XSD file loaded to save to.").showAndWait();
+            DialogHelper.showWarning("Save Documentation", "No XSD File", "No XSD file loaded to save to.");
             return;
         }
 
@@ -848,7 +849,8 @@ public class XsdController {
 
         saveTask.setOnFailed(event -> {
             logger.error("Failed to save documentation", saveTask.getException());
-            new Alert(Alert.AlertType.ERROR, "Could not save documentation: " + saveTask.getException().getMessage()).showAndWait();
+            DialogHelper.showException("Save Documentation", "Failed to Save Documentation",
+                (Exception) saveTask.getException());
             statusText.setText("Failed to save documentation.");
         });
 
@@ -858,11 +860,11 @@ public class XsdController {
     public void saveElementDocumentation(String xpath, String documentation, String javadoc) {
         File currentXsdFile = xmlService.getCurrentXsdFile();
         if (currentXsdFile == null || !currentXsdFile.exists()) {
-            new Alert(Alert.AlertType.WARNING, "No XSD file loaded to save to.").showAndWait();
+            DialogHelper.showWarning("Save Element Documentation", "No XSD File", "No XSD file loaded to save to.");
             return;
         }
         if (xpath == null || xpath.isBlank()) {
-            new Alert(Alert.AlertType.WARNING, "No element selected to save documentation for.").showAndWait();
+            DialogHelper.showWarning("Save Element Documentation", "No Element Selected", "No element selected to save documentation for.");
             return;
         }
 
@@ -892,11 +894,11 @@ public class XsdController {
     public void saveExampleValues(String xpath, List<String> exampleValues) {
         File currentXsdFile = xmlService.getCurrentXsdFile();
         if (currentXsdFile == null || !currentXsdFile.exists()) {
-            new Alert(Alert.AlertType.WARNING, "No XSD file loaded to save to.").showAndWait();
+            DialogHelper.showWarning("Save Example Values", "No XSD File", "No XSD file loaded to save to.");
             return;
         }
         if (xpath == null || xpath.isBlank()) {
-            new Alert(Alert.AlertType.WARNING, "No element selected to save examples for.").showAndWait();
+            DialogHelper.showWarning("Save Example Values", "No Element Selected", "No element selected to save examples for.");
             return;
         }
 
@@ -917,7 +919,12 @@ public class XsdController {
 
         saveExamplesTask.setOnFailed(event -> {
             logger.error("Failed to save example values for xpath: " + xpath, saveExamplesTask.getException());
-            new Alert(Alert.AlertType.ERROR, "Could not save example values: " + saveExamplesTask.getException().getMessage()).showAndWait();
+            Throwable ex = saveExamplesTask.getException();
+            if (ex instanceof Exception) {
+                DialogHelper.showException("Save Example Values", "Failed to Save Example Values", (Exception) ex);
+            } else {
+                DialogHelper.showError("Save Example Values", "Error", ex != null ? ex.getMessage() : "Unknown error");
+            }
             statusText.setText("Failed to save example values.");
         });
 
@@ -1777,13 +1784,11 @@ public class XsdController {
 
     /**
      * Shows an error dialog
+     * @deprecated Use {@link DialogHelper#showError(String, String, String)} instead
      */
+    @Deprecated(since = "2.0", forRemoval = true)
     private void showError(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+        DialogHelper.showError(title, "", content);
     }
 
     // ======================================================================
@@ -1985,11 +1990,11 @@ public class XsdController {
         String outputPath = documentationOutputDirPath.getText();
 
         if (xsdPath == null || xsdPath.isBlank()) {
-            new Alert(Alert.AlertType.ERROR, "Please provide a source XSD file.").showAndWait();
+            DialogHelper.showError("Generate Documentation", "Missing XSD File", "Please provide a source XSD file.");
             return;
         }
         if (outputPath == null || outputPath.isBlank()) {
-            new Alert(Alert.AlertType.ERROR, "Please select an output directory.").showAndWait();
+            DialogHelper.showError("Generate Documentation", "Missing Output Directory", "Please select an output directory.");
             return;
         }
 
@@ -1997,15 +2002,15 @@ public class XsdController {
         File outputDir = new File(outputPath);
 
         if (!xsdFile.exists()) {
-            new Alert(Alert.AlertType.ERROR, "The specified XSD file does not exist: " + xsdPath).showAndWait();
+            DialogHelper.showError("Generate Documentation", "XSD File Not Found", "The specified XSD file does not exist: " + xsdPath);
             return;
         }
         if (!outputDir.exists() && !outputDir.mkdirs()) {
-            new Alert(Alert.AlertType.ERROR, "Could not create the output directory: " + outputPath).showAndWait();
+            DialogHelper.showError("Generate Documentation", "Cannot Create Directory", "Could not create the output directory: " + outputPath);
             return;
         }
         if (!outputDir.isDirectory()) {
-            new Alert(Alert.AlertType.ERROR, "The specified output path is not a directory: " + outputPath).showAndWait();
+            DialogHelper.showError("Generate Documentation", "Invalid Output Path", "The specified output path is not a directory: " + outputPath);
             return;
         }
 
@@ -2130,7 +2135,11 @@ public class XsdController {
         progressScrollPane.setVisible(false);
         logger.error("Failed to generate documentation.", e);
         statusText.setText("Error generating documentation.");
-        new Alert(Alert.AlertType.ERROR, "Failed to generate documentation: " + e.getMessage()).showAndWait();
+        if (e instanceof Exception) {
+            DialogHelper.showException("Generate Documentation", "Failed to Generate Documentation", (Exception) e);
+        } else {
+            DialogHelper.showError("Generate Documentation", "Error", e.getMessage());
+        }
     }
 
     private void openFolderInExplorer(File folder) {
@@ -2138,7 +2147,8 @@ public class XsdController {
             java.awt.Desktop.getDesktop().open(folder);
         } catch (IOException ex) {
             logger.error("Could not open output directory: {}", folder.getAbsolutePath(), ex);
-            new Alert(Alert.AlertType.ERROR, "Could not open the output directory. Please navigate to it manually:\n" + folder.getAbsolutePath()).showAndWait();
+            DialogHelper.showError("Open Folder", "Could Not Open Directory",
+                "Could not open the output directory. Please navigate to it manually:\n" + folder.getAbsolutePath());
         }
     }
 
@@ -2173,13 +2183,13 @@ public class XsdController {
     private void generateSampleDataAction() {
         String xsdPath = xsdForSampleDataPath.getText();
         if (xsdPath == null || xsdPath.isBlank()) {
-            new Alert(Alert.AlertType.ERROR, "Please load an XSD source file first.").showAndWait();
+            DialogHelper.showError("Generate Sample Data", "Missing XSD File", "Please load an XSD source file first.");
             return;
         }
 
         File xsdFile = new File(xsdPath);
         if (!xsdFile.exists()) {
-            new Alert(Alert.AlertType.ERROR, "The specified XSD file does not exist: " + xsdPath).showAndWait();
+            DialogHelper.showError("Generate Sample Data", "XSD File Not Found", "The specified XSD file does not exist: " + xsdPath);
             return;
         }
 
@@ -2264,7 +2274,11 @@ public class XsdController {
             Throwable e = generationTask.getException();
             logger.error("Failed to generate sample XML data.", e);
             statusText.setText("Error generating sample XML.");
-            new Alert(Alert.AlertType.ERROR, "Failed to generate sample XML: " + e.getMessage()).showAndWait();
+            if (e instanceof Exception) {
+                DialogHelper.showException("Generate Sample Data", "Failed to Generate Sample XML", (Exception) e);
+            } else {
+                DialogHelper.showError("Generate Sample Data", "Error", e != null ? e.getMessage() : "Unknown error");
+            }
         });
 
         executeTask(generationTask);
@@ -2287,7 +2301,12 @@ public class XsdController {
 
         saveTask.setOnFailed(event -> {
             logger.error("Failed to save content to file: " + file.getAbsolutePath(), saveTask.getException());
-            new Alert(Alert.AlertType.ERROR, "Could not save file: " + saveTask.getException().getMessage()).showAndWait();
+            Throwable ex = saveTask.getException();
+            if (ex instanceof Exception) {
+                DialogHelper.showException("Save File", "Could Not Save File", (Exception) ex);
+            } else {
+                DialogHelper.showError("Save File", "Error", ex != null ? ex.getMessage() : "Unknown error");
+            }
         });
 
         executeTask(saveTask);
