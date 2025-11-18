@@ -14,6 +14,7 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.service.XmlValidationError;
 import org.fxt.freexmltoolkit.service.XmlValidationResult;
+import org.fxt.freexmltoolkit.util.ContextMenuFactory;
 
 import java.time.Duration;
 import java.util.*;
@@ -1341,38 +1342,17 @@ public class EnhancedXmlCodeEditor extends StackPane {
      * Set up enhanced context menu
      */
     private void setupContextMenu() {
-        ContextMenu contextMenu = new ContextMenu();
-
-        // Basic editing operations
-        MenuItem cutItem = new MenuItem("Cut");
-        cutItem.setOnAction(e -> codeArea.cut());
-
-        MenuItem copyItem = new MenuItem("Copy");
-        copyItem.setOnAction(e -> codeArea.copy());
-
-        MenuItem pasteItem = new MenuItem("Paste");
-        pasteItem.setOnAction(e -> codeArea.paste());
-
-        // Advanced XML operations
-        MenuItem formatItem = new MenuItem("Format XML");
-        formatItem.setOnAction(e -> formatDocument());
-
-        MenuItem validateItem = new MenuItem("Validate XML");
-        validateItem.setOnAction(e -> validateXml());
-
-        MenuItem extractToFileItem = new MenuItem("Extract Selection to File");
-        extractToFileItem.setOnAction(e -> extractSelectionToFile());
-
-        MenuItem generateSchemaItem = new MenuItem("Generate XSD Schema");
-        generateSchemaItem.setOnAction(e -> generateSchema());
-
-        contextMenu.getItems().addAll(
-                cutItem, copyItem, pasteItem,
-                new MenuItem(), // Separator
-                formatItem, validateItem,
-                new MenuItem(), // Separator
-                extractToFileItem, generateSchemaItem
-        );
+        ContextMenu contextMenu = ContextMenuFactory.builder()
+            .addCopyItem("Copy", () -> codeArea.copy())
+            .addItem("Cut", "bi-scissors", ContextMenuFactory.COLOR_WARNING, () -> codeArea.cut())
+            .addItem("Paste", "bi-clipboard", ContextMenuFactory.COLOR_INFO, () -> codeArea.paste())
+            .addSeparator()
+            .addItem("Format XML", "bi-code-square", ContextMenuFactory.COLOR_PRIMARY, this::formatDocument)
+            .addItem("Validate XML", "bi-check-circle", ContextMenuFactory.COLOR_SUCCESS, this::validateXml)
+            .addSeparator()
+            .addItem("Extract Selection to File", "bi-file-earmark-arrow-down", ContextMenuFactory.COLOR_SECONDARY, this::extractSelectionToFile)
+            .addItem("Generate XSD Schema", "bi-diagram-3", ContextMenuFactory.COLOR_PURPLE, this::generateSchema)
+            .build();
 
         codeArea.setContextMenu(contextMenu);
     }
