@@ -1,5 +1,11 @@
 package org.fxt.freexmltoolkit.service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -12,6 +18,9 @@ import java.util.Map;
  * Provides all information needed for interactive XSLT development and debugging.
  */
 public class XsltTransformationResult {
+
+    private static final Logger logger = LogManager.getLogger(XsltTransformationResult.class);
+    private static final int DEFAULT_XML_INDENT = 2;
 
     public enum TransformationStatus {
         SUCCESS("Success", "Transformation completed successfully"),
@@ -326,14 +335,47 @@ public class XsltTransformationResult {
         }
     }
 
+    /**
+     * Format XML content with proper indentation.
+     * Uses XmlService.prettyFormat for consistent XML formatting.
+     *
+     * @param content Raw XML content to format
+     * @return Formatted XML content, or original content if formatting fails
+     */
     private String formatXmlContent(String content) {
-        // Basic XML formatting (in a real implementation, use a proper XML formatter)
-        return content; // TODO: Implement proper XML formatting
+        if (content == null || content.trim().isEmpty()) {
+            return content;
+        }
+
+        try {
+            String formatted = XmlService.prettyFormat(content, DEFAULT_XML_INDENT);
+            return formatted != null ? formatted : content;
+        } catch (Exception e) {
+            logger.warn("Failed to format XML content: {}", e.getMessage());
+            return content;
+        }
     }
 
+    /**
+     * Format JSON content with proper indentation.
+     * Uses Gson with pretty printing for consistent JSON formatting.
+     *
+     * @param content Raw JSON content to format
+     * @return Formatted JSON content, or original content if formatting fails
+     */
     private String formatJsonContent(String content) {
-        // Basic JSON formatting (in a real implementation, use a proper JSON formatter)
-        return content; // TODO: Implement proper JSON formatting
+        if (content == null || content.trim().isEmpty()) {
+            return content;
+        }
+
+        try {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            Object jsonObject = JsonParser.parseString(content);
+            return gson.toJson(jsonObject);
+        } catch (Exception e) {
+            logger.warn("Failed to format JSON content: {}", e.getMessage());
+            return content;
+        }
     }
 
     /**
