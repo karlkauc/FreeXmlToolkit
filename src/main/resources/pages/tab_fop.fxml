@@ -34,7 +34,7 @@
 
         <Button onAction="#openPdfFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-pdf" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-earmark" iconSize="16"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Select Output PDF File"/>
@@ -46,7 +46,7 @@
         <!-- Generate Action -->
         <Button>
             <graphic>
-                <FontIcon iconLiteral="bi-filetype-pdf" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-earmark" iconSize="16"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Generate PDF"/>
