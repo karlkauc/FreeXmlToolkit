@@ -40,6 +40,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 import java.io.File;
 import java.net.URL;
@@ -251,7 +252,9 @@ public class MainController implements Initializable {
                     switchToSchematronViewAndLoadFile(f);
                 } else {
                     logger.warn("Unhandled file type from recent files list: {}", f.getName());
-                    new Alert(Alert.AlertType.INFORMATION, "This file type cannot be opened directly from the 'Recently opened' list.").show();
+                    DialogHelper.showWarning("Open File", "Unsupported File Type",
+                        "This file type cannot be opened directly from the 'Recently opened' list.\n"
+                        + "Please use the specific tab for this file type.");
                 }
             });
             lastOpenFilesMenu.getItems().add(m);
