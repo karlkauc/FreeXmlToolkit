@@ -19,6 +19,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.*;
 import org.fxt.freexmltoolkit.domain.TestFile;
 import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
@@ -1164,35 +1165,29 @@ public class SchematronController {
 
     /**
      * Show error dialog
+     * @deprecated Use {@link DialogHelper#showError(String, String, String)} instead
      */
+    @Deprecated(since = "2.0", forRemoval = true)
     private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        DialogHelper.showError(title, "", message);
     }
 
     /**
      * Show information dialog
+     * @deprecated Use {@link DialogHelper#showInformation(String, String, String)} instead
      */
+    @Deprecated(since = "2.0", forRemoval = true)
     private void showInfo(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        DialogHelper.showInformation(title, "", message);
     }
 
     /**
      * Show warning dialog
+     * @deprecated Use {@link DialogHelper#showWarning(String, String, String)} instead
      */
+    @Deprecated(since = "2.0", forRemoval = true)
     private void showWarning(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        DialogHelper.showWarning(title, "", message);
     }
 
     // ======================================================================
