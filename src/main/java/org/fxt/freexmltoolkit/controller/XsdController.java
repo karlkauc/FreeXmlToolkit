@@ -761,7 +761,7 @@ public class XsdController {
         try {
             // Check for auto-save recovery first
             checkForAutoSaveRecovery(file);
-            
+
             // The file must be set FIRST in the service,
             // so that all subsequent methods have the correct state.
             xmlService.setCurrentXsdFile(file);
@@ -792,30 +792,96 @@ public class XsdController {
 
             // Initialize auto-save for this file
             initializeAutoSave();
-            
+
             // Populate the file path fields on other tabs to keep the UI in sync
             String absolutePath = file.getAbsolutePath();
             xsdFilePath.setText(absolutePath);
             xsdForSampleDataPath.setText(absolutePath);
             xsdToFlattenPath.setText(absolutePath); // Also set for the Flatten tab
 
-            // Load the XSD content into all relevant tabs
-            try {
-                String xsdContent = Files.readString(file.toPath());
-                loadXsdContent(xsdContent);
-
-                // Also load into V2 graphic view
-                loadXsdIntoGraphicViewV2(xsdContent);
-            } catch (IOException ioEx) {
-                logger.error("Error reading XSD file: {}", file.getAbsolutePath(), ioEx);
-                showXsdLoadingError(file, "Could not read XSD file: " + ioEx.getMessage());
-                return;
+            // Show progress indicator and status text
+            if (xsdDiagramProgress != null) {
+                xsdDiagramProgress.setVisible(true);
+                xsdDiagramProgress.setProgress(-1); // Indeterminate progress
             }
+            if (statusText != null) {
+                statusText.setText("Loading XSD file...");
+            }
+
+            // Load the XSD content asynchronously into all relevant tabs
+            Task<String> loadTask = new Task<>() {
+                @Override
+                protected String call() throws Exception {
+                    updateMessage("Reading XSD file from disk...");
+                    return Files.readString(file.toPath());
+                }
+            };
+
+            // Bind status text to task message
+            if (statusText != null) {
+                statusText.textProperty().bind(loadTask.messageProperty());
+            }
+
+            loadTask.setOnSucceeded(event -> {
+                // Unbind status text
+                if (statusText != null) {
+                    statusText.textProperty().unbind();
+                }
+
+                String xsdContent = loadTask.getValue();
+                try {
+                    if (statusText != null) {
+                        statusText.setText("Processing XSD content...");
+                    }
+                    loadXsdContent(xsdContent);
+
+                    // Also load into V2 graphic view (will show its own progress)
+                    loadXsdIntoGraphicViewV2(xsdContent);
+                } catch (Exception ex) {
+                    logger.error("Error processing XSD content: {}", file.getAbsolutePath(), ex);
+                    showXsdLoadingError(file, "Could not process XSD content: " + ex.getMessage());
+                    if (xsdDiagramProgress != null) {
+                        xsdDiagramProgress.setVisible(false);
+                    }
+                    if (statusText != null) {
+                        statusText.setText("Error loading XSD file");
+                    }
+                }
+            });
+
+            loadTask.setOnFailed(event -> {
+                // Unbind status text
+                if (statusText != null) {
+                    statusText.textProperty().unbind();
+                }
+
+                Throwable ex = loadTask.getException();
+                logger.error("Error reading XSD file: {}", file.getAbsolutePath(), ex);
+                if (ex instanceof IOException) {
+                    showXsdLoadingError(file, "Could not read XSD file: " + ex.getMessage());
+                } else {
+                    showXsdLoadingError(file, "Unexpected error reading XSD file: " + ex.getMessage());
+                }
+                if (xsdDiagramProgress != null) {
+                    xsdDiagramProgress.setVisible(false);
+                }
+                if (statusText != null) {
+                    statusText.setText("Error loading XSD file");
+                }
+            });
+
+            executorService.submit(loadTask);
 
         } catch (Exception e) {
             // Handle any unexpected exceptions
             logger.error("Unexpected error opening XSD file: {}", file.getAbsolutePath(), e);
             showXsdLoadingError(file, "An unexpected error occurred while loading the XSD file: " + e.getMessage());
+            if (xsdDiagramProgress != null) {
+                xsdDiagramProgress.setVisible(false);
+            }
+            if (statusText != null) {
+                statusText.setText("Error opening XSD file");
+            }
         }
     }
 
@@ -984,16 +1050,33 @@ public class XsdController {
         Task<org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> task = new Task<>() {
             @Override
             protected org.fxt.freexmltoolkit.controls.v2.model.XsdSchema call() throws Exception {
+                updateMessage("Parsing XSD schema...");
+
                 // Use new XsdNodeFactory to parse the schema
                 org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory factory =
                         new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
                 factoryRef[0] = factory;  // Store factory reference
+
+                updateMessage("Processing schema elements...");
                 java.nio.file.Path baseDir = currentXsdFile != null ? currentXsdFile.toPath().getParent() : null;
-                return factory.fromString(xsdContent, baseDir);
+                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = factory.fromString(xsdContent, baseDir);
+
+                updateMessage("Creating graphical representation...");
+                return schema;
             }
         };
 
+        // Bind status text to task message
+        if (statusText != null) {
+            statusText.textProperty().bind(task.messageProperty());
+        }
+
         task.setOnSucceeded(event -> {
+            // Unbind status text
+            if (statusText != null) {
+                statusText.textProperty().unbind();
+            }
+
             org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = task.getValue();
             xsdStackPaneV2.getChildren().clear();
 
@@ -1059,19 +1142,48 @@ public class XsdController {
                                 .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement)
                                 .count());
 
+                // Hide progress indicator and update status
+                if (xsdDiagramProgress != null) {
+                    xsdDiagramProgress.setVisible(false);
+                }
+                if (statusText != null) {
+                    statusText.setText("XSD file successfully loaded");
+                }
+
                 // Enable save buttons after successful V2 editor load
-} else {
+            } else {
                 javafx.scene.control.Label errorLabel = new javafx.scene.control.Label("Failed to parse XSD schema");
                 xsdStackPaneV2.getChildren().add(errorLabel);
+
+                // Hide progress indicator and show error
+                if (xsdDiagramProgress != null) {
+                    xsdDiagramProgress.setVisible(false);
+                }
+                if (statusText != null) {
+                    statusText.setText("Error parsing XSD schema");
+                }
             }
         });
 
         task.setOnFailed(event -> {
+            // Unbind status text
+            if (statusText != null) {
+                statusText.textProperty().unbind();
+            }
+
             logger.error("Failed to load XSD into V2 editor", task.getException());
             javafx.scene.control.Label errorLabel = new javafx.scene.control.Label(
                     "Error loading XSD: " + task.getException().getMessage());
             xsdStackPaneV2.getChildren().clear();
             xsdStackPaneV2.getChildren().add(errorLabel);
+
+            // Hide progress indicator and show error
+            if (xsdDiagramProgress != null) {
+                xsdDiagramProgress.setVisible(false);
+            }
+            if (statusText != null) {
+                statusText.setText("Error loading into V2 editor: " + task.getException().getMessage());
+            }
         });
 
         executorService.submit(task);
