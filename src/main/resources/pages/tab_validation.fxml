@@ -33,18 +33,18 @@
     <!-- Validation Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="xmlLoadButton">
+        <Button fx:id="xmlLoadButton" text="Load XML" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Load XML File to Validate"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="xsdLoadButton">
+        <Button fx:id="xsdLoadButton" text="Load XSD" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-diagram-3" iconSize="16"/>
+                <FontIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Load XSD Schema File (manual)"/>
@@ -54,18 +54,18 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Validation Action Group -->
-        <Button onAction="#processXmlFile">
+        <Button text="Validate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#processXmlFile">
             <graphic>
-                <FontIcon iconLiteral="bi-check-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Start Validation"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="clearResults" onAction="#clearResultAction">
+        <Button fx:id="clearResults" text="Clear" contentDisplay="TOP" styleClass="toolbar-button" onAction="#clearResultAction">
             <graphic>
-                <FontIcon iconLiteral="bi-eraser" iconSize="16"/>
+                <FontIcon iconLiteral="bi-eraser" iconSize="20" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Clear Results"/>
@@ -75,9 +75,9 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Export Group -->
-        <Button fx:id="excelExport" onAction="#excelExport">
+        <Button fx:id="excelExport" text="Export" contentDisplay="TOP" styleClass="toolbar-button" onAction="#excelExport">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-excel" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-earmark-excel" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Export Results to Excel"/>
@@ -87,9 +87,9 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button onAction="#showHelp">
+        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>

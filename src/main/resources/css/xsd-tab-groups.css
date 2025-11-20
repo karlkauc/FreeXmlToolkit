@@ -148,3 +148,55 @@
 .xsd-toolbar .menu-button .arrow {
     -fx-shape: null;
 }
+
+/* Toolbar Button with Text Below Icon */
+.xsd-toolbar .toolbar-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 8 10;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-font-size: 9px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #495057;
+}
+
+.xsd-toolbar .toolbar-button:hover {
+    -fx-background-color: rgba(74, 144, 226, 0.1);
+    -fx-border-color: #4a90e2;
+    -fx-text-fill: #4a90e2;
+}
+
+.xsd-toolbar .toolbar-button:pressed {
+    -fx-background-color: rgba(74, 144, 226, 0.2);
+}
+
+/* MenuButton toolbar-button styling */
+.xsd-toolbar .menu-button.toolbar-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 8 10;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-font-size: 9px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #495057;
+}
+
+.xsd-toolbar .menu-button.toolbar-button:hover {
+    -fx-background-color: rgba(74, 144, 226, 0.1);
+    -fx-border-color: #4a90e2;
+    -fx-text-fill: #4a90e2;
+}
+
+.xsd-toolbar .menu-button.toolbar-button .arrow-button {
+    -fx-padding: 0;
+}
+
+.xsd-toolbar .menu-button.toolbar-button .arrow {
+    -fx-shape: null;
+}

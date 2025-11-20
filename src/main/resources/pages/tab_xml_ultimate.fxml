@@ -13,36 +13,36 @@
     <!-- Ultimate XML Editor Toolbar - Modernized with unified theme -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="newFile" onAction="#newFilePressed">
+        <Button fx:id="newFile" text="New" contentDisplay="TOP" styleClass="toolbar-button" onAction="#newFilePressed">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="New XML Document (Ctrl+N)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="openFile" onAction="#openFile">
+        <Button fx:id="openFile" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openFile">
             <graphic>
-                <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open XML Document (Ctrl+O)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="saveFile" onAction="#saveFile">
+        <Button fx:id="saveFile" text="Save" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveFile">
             <graphic>
-                <FontIcon iconLiteral="bi-save" iconSize="16"/>
+                <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save Document (Ctrl+S)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="saveAsFile" onAction="#saveAsFile">
+        <Button fx:id="saveAsFile" text="Save As" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveAsFile">
             <graphic>
-                <FontIcon iconLiteral="bi-save-fill" iconSize="16"/>
+                <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save As... (Ctrl+Shift+S)"/>
@@ -52,18 +52,18 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Favorites Group -->
-        <Button fx:id="addToFavoritesButton" onAction="#addCurrentFileToFavorites">
+        <Button fx:id="addToFavoritesButton" text="Add Fav" contentDisplay="TOP" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
             <graphic>
-                <FontIcon iconLiteral="bi-star" iconSize="16"/>
+                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add to Favorites"/>
             </tooltip>
         </Button>
 
-        <ToggleButton fx:id="toggleFavoritesButton" onAction="#toggleFavoritesPanel">
+        <ToggleButton fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button" onAction="#toggleFavoritesPanel">
             <graphic>
-                <FontIcon iconLiteral="bi-star-fill" iconSize="16"/>
+                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle Favorites Panel"/>
@@ -73,9 +73,9 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Format Operations Group -->
-        <Button fx:id="prettyPrint" onAction="#prettifyingXmlText">
+        <Button fx:id="prettyPrint" text="Format" contentDisplay="TOP" styleClass="toolbar-button" onAction="#prettifyingXmlText">
             <graphic>
-                <FontIcon iconLiteral="bi-code-square" iconSize="16"/>
+                <FontIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#20c997"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Format XML (Ctrl+Alt+F)"/>
@@ -85,18 +85,18 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Validation Group -->
-        <Button fx:id="validateButton" onAction="#validateXml">
+        <Button fx:id="validateButton" text="Validate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#validateXml">
             <graphic>
-                <FontIcon iconLiteral="bi-check-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Validate XML (Ctrl+Shift+V)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="xmlExcelCsvConverterButton" onAction="#showXmlExcelCsvConverter">
+        <Button fx:id="xmlExcelCsvConverterButton" text="Convert" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showXmlExcelCsvConverter">
             <graphic>
-                <FontIcon iconLiteral="bi-table" iconSize="16"/>
+                <FontIcon iconLiteral="bi-table" iconSize="20" iconColor="#6f42c1"/>
             </graphic>
             <tooltip>
                 <Tooltip text="XML ↔ Excel/CSV Converter"/>
@@ -106,9 +106,9 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Query & Analysis Group -->
-        <Button fx:id="runXpathQuery" onAction="#runXpathQueryPressed">
+        <Button fx:id="runXpathQuery" text="Query" contentDisplay="TOP" styleClass="toolbar-button" onAction="#runXpathQueryPressed">
             <graphic>
-                <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                <FontIcon iconLiteral="bi-code-slash" iconSize="20" iconColor="#6f42c1"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Run XPath/XQuery"/>
@@ -118,27 +118,27 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Revolutionary Features Group -->
-        <Button fx:id="templateManagerButton" onAction="#showTemplateManager">
+        <Button fx:id="templateManagerButton" text="Templates" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showTemplateManager">
             <graphic>
-                <FontIcon iconLiteral="bi-file-text" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-text" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Smart Templates System"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="schemaGeneratorButton" onAction="#showSchemaGenerator">
+        <Button fx:id="schemaGeneratorButton" text="Generator" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showSchemaGenerator">
             <graphic>
-                <FontIcon iconLiteral="bi-diagram-3" iconSize="16"/>
+                <FontIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Intelligent Schema Generator"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="xsltDeveloperButton" onAction="#showXsltDeveloper">
+        <Button fx:id="xsltDeveloperButton" text="XSLT Dev" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showXsltDeveloper">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16"/>
+                <FontIcon iconLiteral="bi-arrow-repeat" iconSize="20" iconColor="#20c997"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Advanced XSLT Developer"/>
@@ -150,9 +150,9 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button onAction="#showHelp">
+        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>

@@ -31,18 +31,18 @@
     <!-- Templates Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="createTemplateBtn" text="Create New">
+        <Button fx:id="createTemplateBtn" text="New" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-plus-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Create New Template"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="refreshTemplatesBtn" text="Refresh">
+        <Button fx:id="refreshTemplatesBtn" text="Refresh" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Refresh Templates"/>
@@ -54,9 +54,9 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button onAction="#showHelp">
+        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>

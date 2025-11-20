@@ -32,36 +32,36 @@
     <!-- XSD Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations -->
-        <Button fx:id="toolbarNewFile" onAction="#handleToolbarNewFile">
+        <Button fx:id="toolbarNewFile" text="New" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarNewFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-plus" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-plus" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="New XSD File"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarLoadFile" onAction="#handleToolbarLoadFile">
+        <Button fx:id="toolbarLoadFile" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarLoadFile">
             <graphic>
-                <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Load XSD File"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarSave" onAction="#handleToolbarSave">
+        <Button fx:id="toolbarSave" text="Save" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarSave">
             <graphic>
-                <FontIcon iconLiteral="bi-save" iconSize="16"/>
+                <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save (Ctrl+S)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarSaveAs" onAction="#handleToolbarSaveAs">
+        <Button fx:id="toolbarSaveAs" text="Save As" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarSaveAs">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-arrow-down" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-earmark-arrow-down" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save As"/>
@@ -70,27 +70,27 @@
 
         <Separator orientation="VERTICAL"/>
 
-        <Button fx:id="toolbarReload" onAction="#handleToolbarReload">
+        <Button fx:id="toolbarReload" text="Reload" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarReload">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Reload from Disk"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarClose" onAction="#handleToolbarClose">
+        <Button fx:id="toolbarClose" text="Close" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarClose">
             <graphic>
-                <FontIcon iconLiteral="bi-x-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-x-circle" iconSize="20" iconColor="#dc3545"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Close File"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarValidate" onAction="#handleToolbarValidate">
+        <Button fx:id="toolbarValidate" text="Validate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarValidate">
             <graphic>
-                <FontIcon iconLiteral="bi-check-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Validate XSD Schema"/>
@@ -100,36 +100,36 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Editing Operations -->
-        <Button fx:id="toolbarUndo" onAction="#handleToolbarUndo">
+        <Button fx:id="toolbarUndo" text="Undo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarUndo">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
+                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#ffc107"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Undo (Ctrl+Z)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarRedo" onAction="#handleToolbarRedo">
+        <Button fx:id="toolbarRedo" text="Redo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarRedo">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#ffc107"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Redo (Ctrl+Y)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarFind" onAction="#handleToolbarFind">
+        <Button fx:id="toolbarFind" text="Find" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarFind">
             <graphic>
-                <FontIcon iconLiteral="bi-search" iconSize="16"/>
+                <FontIcon iconLiteral="bi-search" iconSize="20" iconColor="#6f42c1"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Find/Replace (Ctrl+F)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarFormat" onAction="#handleToolbarFormat">
+        <Button fx:id="toolbarFormat" text="Format" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarFormat">
             <graphic>
-                <FontIcon iconLiteral="bi-code-square" iconSize="16"/>
+                <FontIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#20c997"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Format/Pretty Print"/>
@@ -139,27 +139,27 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Favorites & Recent -->
-        <Button fx:id="toolbarAddFavorite" onAction="#handleToolbarAddFavorite">
+        <Button fx:id="toolbarAddFavorite" text="Favorite" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarAddFavorite">
             <graphic>
-                <FontIcon iconLiteral="bi-star" iconSize="16"/>
+                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add to Favorites"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarShowFavorites" onAction="#handleToolbarShowFavorites">
+        <Button fx:id="toolbarShowFavorites" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarShowFavorites">
             <graphic>
-                <FontIcon iconLiteral="bi-star-fill" iconSize="16"/>
+                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#fd7e14"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Show/Hide Favorites"/>
             </tooltip>
         </Button>
 
-        <MenuButton fx:id="toolbarRecentFiles" text="">
+        <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-clock-history" iconSize="16"/>
+                <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Recent Files"/>
@@ -171,9 +171,9 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button fx:id="toolbarHelp" onAction="#handleToolbarHelp">
+        <Button fx:id="toolbarHelp" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help/Overview (Ctrl+H / F1)"/>

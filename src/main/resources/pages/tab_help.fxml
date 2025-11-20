@@ -13,27 +13,27 @@
 
     <!-- Help Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
-        <Button>
+        <Button text="Home" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-house" iconSize="16"/>
+                <FontIcon iconLiteral="bi-house" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Home"/>
             </tooltip>
         </Button>
 
-        <Button>
+        <Button text="Back" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-left" iconSize="16"/>
+                <FontIcon iconLiteral="bi-arrow-left" iconSize="20" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Back"/>
             </tooltip>
         </Button>
 
-        <Button>
+        <Button text="Forward" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-right" iconSize="16"/>
+                <FontIcon iconLiteral="bi-arrow-right" iconSize="20" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Forward"/>
@@ -42,9 +42,9 @@
 
         <Separator orientation="VERTICAL"/>
 
-        <Button>
+        <Button text="Refresh" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Refresh"/>
@@ -53,9 +53,9 @@
 
         <Region HBox.hgrow="ALWAYS"/>
 
-        <Button>
+        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help"/>

@@ -31,9 +31,9 @@
     <!-- XSLT Developer Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="loadXmlBtn">
+        <Button fx:id="loadXmlBtn" text="Load XML" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Load XML File"/>
@@ -43,18 +43,18 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Transform Action -->
-        <Button fx:id="transformBtn">
+        <Button fx:id="transformBtn" text="Transform" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
+                <FontIcon iconLiteral="bi-play-fill" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Execute Transformation"/>
             </tooltip>
         </Button>
 
-        <ToggleButton fx:id="liveTransformToggle" text="Live">
+        <ToggleButton fx:id="liveTransformToggle" text="Live" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-lightning" iconSize="16"/>
+                <FontIcon iconLiteral="bi-lightning" iconSize="20" iconColor="#ffc107"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle Live Transform"/>
@@ -64,9 +64,9 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button onAction="#showHelp">
+        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>

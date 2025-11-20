@@ -30,18 +30,18 @@
     <!-- Schema Generator Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="loadXmlBtn" text="Load XML">
+        <Button fx:id="loadXmlBtn" text="Load XML" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Load XML File"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="batchProcessBtn" text="Batch Process">
+        <Button fx:id="batchProcessBtn" text="Batch" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-stack" iconSize="16"/>
+                <FontIcon iconLiteral="bi-stack" iconSize="20" iconColor="#6f42c1"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Batch Process Multiple Files"/>
@@ -53,9 +53,9 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button onAction="#showHelp">
+        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
