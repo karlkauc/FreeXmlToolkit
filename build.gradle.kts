@@ -680,6 +680,7 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "java.sql",
             "java.naming",
             "jdk.crypto.ec",
+            "jdk.httpserver",
             "jdk.jsobject",
             "javafx.base",
             "javafx.controls",
