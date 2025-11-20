@@ -44,6 +44,14 @@ erstellten Pakete sind für benutzerbezogene Installationen konfiguriert und ben
 - Installation: Drag & Drop in `/Applications` oder `~/Applications`
 - Benutzerbezogene Installation möglich
 
+**⚠️ WICHTIG für macOS:** Die DMG-Datei muss **code-signiert** werden, um Sicherheitswarnungen zu vermeiden.
+
+**Lösungen:**
+- **Nur testen (lokal):** `./gradlew signMacOSExecutableArm64AdHoc` (kostenlos)
+- **Verteilen:** Siehe [macOS Code Signing Guide](docs/MACOS_CODE_SIGNING.md) (erfordert Apple Developer Account)
+
+Ausführliche Anleitung: [docs/MACOS_CODE_SIGNING.md](docs/MACOS_CODE_SIGNING.md)
+
 #### Linux
 
 ```bash

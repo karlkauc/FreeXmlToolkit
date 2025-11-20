@@ -733,3 +733,135 @@ tasks.register<JavaExec>("runEditorV2Demo") {
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("org.fxt.freexmltoolkit.demo.XmlCodeEditorV2Demo")
 }
+
+// ===============================
+// macOS Code Signing Tasks
+// ===============================
+
+// Helper function to create code signing tasks
+fun createMacOSSigningTask(taskName: String, jpackageTaskName: String, arch: String, signType: String) {
+    val currentOs = when {
+        System.getProperty("os.name").lowercase().contains("mac") -> "macos"
+        else -> "other"
+    }
+
+    // Only create signing tasks on macOS
+    if (currentOs != "macos") {
+        tasks.register(taskName) {
+            group = "distribution"
+            description = "Skip macOS code signing (can only sign on macOS)"
+            doFirst {
+                println("⚠️ Skipping macOS code signing (not running on macOS)")
+            }
+        }
+        return
+    }
+
+    tasks.register(taskName, Exec::class) {
+        group = "distribution"
+        description = "Sign macOS DMG with $signType signing"
+        dependsOn(jpackageTaskName)
+
+        val scriptName = if (signType == "Developer ID") "sign-macos-dmg.sh" else "sign-macos-adhoc.sh"
+        val version = project.version.toString()
+        val dmgPath = "build/dist/macos-$arch-dmg/FreeXmlToolkit-$arch-$version.dmg"
+
+        // Get signing identity from environment variable (for Developer ID signing)
+        val signingIdentity = System.getenv("MACOS_SIGNING_IDENTITY") ?: ""
+
+        doFirst {
+            if (!file(dmgPath).exists()) {
+                throw GradleException("DMG file not found: $dmgPath. Please run $jpackageTaskName first.")
+            }
+
+            val scriptPath = file("scripts/$scriptName")
+            if (!scriptPath.exists()) {
+                throw GradleException("Signing script not found: ${scriptPath.absolutePath}")
+            }
+
+            println("🔐 Signing DMG with $signType: $dmgPath")
+        }
+
+        if (signType == "Developer ID" && signingIdentity.isNotEmpty()) {
+            commandLine("bash", "scripts/$scriptName", dmgPath, signingIdentity)
+        } else {
+            commandLine("bash", "scripts/$scriptName", dmgPath)
+        }
+
+        doLast {
+            println("✅ DMG signed successfully: $dmgPath")
+            println("")
+            if (signType == "ad-hoc") {
+                println("⚠️  Ad-hoc signing is for LOCAL TESTING ONLY")
+                println("    This DMG cannot be distributed to other users")
+            } else {
+                println("ℹ️  Next step: Notarize the DMG with scripts/notarize-macos-dmg.sh")
+            }
+        }
+    }
+}
+
+// Create ad-hoc signing tasks (for testing without Developer ID)
+createMacOSSigningTask("signMacOSExecutableX64AdHoc", "createMacOSExecutableX64", "x64", "ad-hoc")
+createMacOSSigningTask("signMacOSExecutableArm64AdHoc", "createMacOSExecutableArm64", "arm64", "ad-hoc")
+
+// Create Developer ID signing tasks (requires Developer ID certificate)
+createMacOSSigningTask("signMacOSExecutableX64", "createMacOSExecutableX64", "x64", "Developer ID")
+createMacOSSigningTask("signMacOSExecutableArm64", "createMacOSExecutableArm64", "arm64", "Developer ID")
+
+// Convenience task to sign all macOS packages with Developer ID
+tasks.register("signAllMacOSPackages") {
+    group = "distribution"
+    description = "Sign all macOS DMG files with Developer ID"
+    dependsOn("signMacOSExecutableX64", "signMacOSExecutableArm64")
+}
+
+// Convenience task for ad-hoc signing (testing)
+tasks.register("signAllMacOSPackagesAdHoc") {
+    group = "distribution"
+    description = "Sign all macOS DMG files with ad-hoc signature (testing only)"
+    dependsOn("signMacOSExecutableX64AdHoc", "signMacOSExecutableArm64AdHoc")
+}
+
+// Task to notarize macOS DMG files
+tasks.register("notarizeMacOSDMG", Exec::class) {
+    group = "distribution"
+    description = "Notarize macOS DMG files with Apple (requires Apple Developer Account)"
+
+    doFirst {
+        val appleId = System.getenv("APPLE_ID")
+        val teamId = System.getenv("APPLE_TEAM_ID")
+        val appPassword = System.getenv("APPLE_APP_PASSWORD")
+
+        if (appleId.isNullOrEmpty() || teamId.isNullOrEmpty() || appPassword.isNullOrEmpty()) {
+            println("⚠️  Notarization requires environment variables:")
+            println("    APPLE_ID - Your Apple Developer email")
+            println("    APPLE_TEAM_ID - Your Apple Developer Team ID")
+            println("    APPLE_APP_PASSWORD - App-specific password from appleid.apple.com")
+            println("")
+            println("Or run the script manually:")
+            println("    ./scripts/notarize-macos-dmg.sh <dmg-file> <apple-id> <team-id> <app-password>")
+            throw GradleException("Missing notarization credentials")
+        }
+
+        println("🍎 Starting notarization process...")
+        println("   This may take several minutes...")
+    }
+
+    val currentArch = when {
+        System.getProperty("os.arch").contains("aarch64") || System.getProperty("os.arch").contains("arm") -> "arm64"
+        else -> "x64"
+    }
+
+    val version = project.version.toString()
+    val dmgPath = "build/dist/macos-$currentArch-dmg/FreeXmlToolkit-$currentArch-$version.dmg"
+
+    commandLine(
+        "bash",
+        "scripts/notarize-macos-dmg.sh",
+        dmgPath,
+        System.getenv("APPLE_ID"),
+        System.getenv("APPLE_TEAM_ID"),
+        System.getenv("APPLE_APP_PASSWORD")
+    )
+}
