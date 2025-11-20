@@ -63,41 +63,8 @@
         </Button>
     </ToolBar>
 
-    <!-- Enhanced Schema Generator Header -->
-    <HBox spacing="15" alignment="CENTER_LEFT">
-        <padding>
-            <Insets top="15" bottom="15" left="20" right="20"/>
-        </padding>
-
-        <VBox alignment="CENTER_LEFT">
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <FontIcon iconColor="#dc3545" iconLiteral="bi-diagram-3" iconSize="32"/>
-                <VBox>
-                    <Label text="Intelligent Schema Generator" styleClass="revolutionary-title"/>
-                    <Label text="Auto-generate XSD schemas with advanced type inference and optimization"
-                           styleClass="revolutionary-subtitle"/>
-                </VBox>
-            </HBox>
-        </VBox>
-
-        <Region HBox.hgrow="ALWAYS"/>
-
-        <HBox spacing="10" alignment="CENTER_RIGHT">
-            <Button fx:id="loadXmlBtn" text="Open XML" styleClass="btn-secondary">
-                <graphic>
-                    <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
-                </graphic>
-            </Button>
-            <Button fx:id="batchProcessBtn" text="Batch Process" styleClass="btn-info">
-                <graphic>
-                    <FontIcon iconLiteral="bi-stack" iconSize="16"/>
-                </graphic>
-            </Button>
-        </HBox>
-    </HBox>
-
     <!-- Main Content Area -->
-    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.4" styleClass="revolutionary-split-pane">
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.4">
         <!-- Left Panel: Configuration and XML Input -->
         <VBox spacing="15" styleClass="schema-config-sidebar">
             <padding>
@@ -140,7 +107,7 @@
                     <CheckBox fx:id="preserveNamespaces" text="Preserve Namespaces" selected="true"/>
                     <CheckBox fx:id="generateTargetNamespace" text="Generate Target Namespace" selected="true"/>
                     <TextField fx:id="targetNamespaceField" promptText="Target namespace URI..."
-                               styleClass="revolutionary-input"/>
+                              />
                 </VBox>
             </VBox>
 
@@ -197,7 +164,7 @@
             </HBox>
 
             <!-- Schema Results Tabs -->
-            <TabPane fx:id="schemaResultsTabPane" VBox.vgrow="ALWAYS" styleClass="revolutionary-tab-pane">
+            <TabPane fx:id="schemaResultsTabPane" VBox.vgrow="ALWAYS">
                 <!-- Generated XSD Tab -->
                 <Tab text="Generated XSD" closable="false">
                     <VBox spacing="5">
@@ -274,12 +241,12 @@
                     <VBox spacing="10">
                         <HBox spacing="10" alignment="CENTER_LEFT">
                             <ComboBox fx:id="typeFilterCombo" promptText="Filter by type..."
-                                      styleClass="revolutionary-combo"/>
+                                     />
                             <TextField fx:id="typeSearchField" promptText="Search types..."
-                                       styleClass="revolutionary-search"/>
+                                      />
                         </HBox>
 
-                        <TableView fx:id="typeDefinitionsTable" VBox.vgrow="ALWAYS" styleClass="revolutionary-table">
+                        <TableView fx:id="typeDefinitionsTable" VBox.vgrow="ALWAYS">
                             <columns>
                                 <TableColumn fx:id="typeNameColumn" text="Type Name" prefWidth="150"/>
                                 <TableColumn fx:id="typeKindColumn" text="Kind" prefWidth="80"/>

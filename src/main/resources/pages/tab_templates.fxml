@@ -64,41 +64,8 @@
         </Button>
     </ToolBar>
 
-    <!-- Enhanced Smart Templates Header -->
-    <HBox spacing="15" alignment="CENTER_LEFT">
-        <padding>
-            <Insets top="15" bottom="15" left="20" right="20"/>
-        </padding>
-
-        <VBox alignment="CENTER_LEFT">
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <FontIcon iconColor="#28a745" iconLiteral="bi-file-text" iconSize="32"/>
-                <VBox>
-                    <Label text="Smart Templates System" styleClass="revolutionary-title"/>
-                    <Label text="Professional XML templates with intelligent parameter validation"
-                           styleClass="revolutionary-subtitle"/>
-                </VBox>
-            </HBox>
-        </VBox>
-
-        <Region HBox.hgrow="ALWAYS"/>
-
-        <HBox spacing="10" alignment="CENTER_RIGHT">
-            <Button fx:id="refreshTemplatesBtn" text="Refresh" styleClass="btn-secondary">
-                <graphic>
-                    <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
-                </graphic>
-            </Button>
-            <Button fx:id="createTemplateBtn" text="Create New" styleClass="btn-primary">
-                <graphic>
-                    <FontIcon iconLiteral="bi-plus-circle" iconSize="16"/>
-                </graphic>
-            </Button>
-        </HBox>
-    </HBox>
-
     <!-- Main Content Area -->
-    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.3" styleClass="revolutionary-split-pane">
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.3">
         <!-- Left Panel: Template Categories and List -->
         <VBox spacing="10" styleClass="templates-sidebar">
             <padding>
@@ -109,20 +76,20 @@
             <VBox spacing="8">
                 <Label text="Template Categories" styleClass="section-header"/>
                 <ComboBox fx:id="templateCategoryCombo" prefWidth="250" promptText="Select Category"
-                          styleClass="revolutionary-combo"/>
+                         />
             </VBox>
 
             <!-- Search Filter -->
             <VBox spacing="8">
                 <Label text="Search Templates" styleClass="section-header"/>
                 <TextField fx:id="templateSearchField" promptText="Search by name or description..."
-                           styleClass="revolutionary-search"/>
+                          />
             </VBox>
 
             <!-- Templates List -->
             <VBox spacing="8" VBox.vgrow="ALWAYS">
                 <Label text="Available Templates" styleClass="section-header"/>
-                <ListView fx:id="templatesListView" VBox.vgrow="ALWAYS" styleClass="revolutionary-list-view"
+                <ListView fx:id="templatesListView" VBox.vgrow="ALWAYS"
                           onMouseClicked="#onTemplateSelected"/>
             </VBox>
         </VBox>
@@ -164,7 +131,7 @@
                     <Button fx:id="resetParamsBtn" text="Reset" styleClass="btn-secondary" onAction="#resetParameters"/>
                 </HBox>
 
-                <TableView fx:id="templateParametersTable" VBox.vgrow="ALWAYS" styleClass="revolutionary-table">
+                <TableView fx:id="templateParametersTable" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="paramNameColumn" text="Parameter" prefWidth="120"/>
                         <TableColumn fx:id="paramValueColumn" text="Value" prefWidth="180"/>
@@ -188,7 +155,7 @@
                     </Button>
                 </HBox>
 
-                <TabPane fx:id="previewTabPane" prefHeight="200" styleClass="revolutionary-tab-pane">
+                <TabPane fx:id="previewTabPane" prefHeight="200">
                     <Tab text="XML Source" closable="false">
                         <TextArea fx:id="xmlPreviewArea" styleClass="code-preview" editable="false" wrapText="false"/>
                     </Tab>

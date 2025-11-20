@@ -74,39 +74,9 @@
         </Button>
     </ToolBar>
 
-    <!-- Enhanced XSLT Developer Header -->
-    <HBox spacing="15" alignment="CENTER_LEFT">
-        <padding>
-            <Insets top="15" bottom="15" left="20" right="20"/>
-        </padding>
-
-        <VBox alignment="CENTER_LEFT">
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="32"/>
-                <VBox>
-                    <Label text="Advanced XSLT Developer" styleClass="revolutionary-title"/>
-                    <Label text="Professional XSLT 3.0 development with live preview and performance profiling"
-                           styleClass="revolutionary-subtitle"/>
-                </VBox>
-            </HBox>
-        </VBox>
-
-        <Region HBox.hgrow="ALWAYS"/>
-
-        <HBox spacing="10" alignment="CENTER_RIGHT">
-            <ComboBox fx:id="xsltVersionCombo" styleClass="revolutionary-combo" prefWidth="100"/>
-            <ToggleButton fx:id="liveTransformToggle" text="Live Transform" styleClass="btn-toggle"/>
-            <Button fx:id="transformBtn" text="Transform" styleClass="btn-success" onAction="#executeTransformation">
-                <graphic>
-                    <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
-                </graphic>
-            </Button>
-        </HBox>
-    </HBox>
-
     <!-- Main Content Area -->
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.5" orientation="HORIZONTAL"
-               styleClass="revolutionary-split-pane">
+              >
         <!-- Left Panel: Input Section -->
         <VBox spacing="10" styleClass="xslt-input-section">
             <padding>
@@ -114,7 +84,7 @@
             </padding>
 
             <!-- Input Tabs -->
-            <TabPane fx:id="inputTabPane" VBox.vgrow="ALWAYS" styleClass="revolutionary-tab-pane">
+            <TabPane fx:id="inputTabPane" VBox.vgrow="ALWAYS">
                 <!-- XML Input Tab -->
                 <Tab text="XML Source" closable="false">
                     <VBox spacing="8">
@@ -186,7 +156,7 @@
                             </Button>
                         </HBox>
 
-                        <TableView fx:id="parametersTable" VBox.vgrow="ALWAYS" styleClass="revolutionary-table">
+                        <TableView fx:id="parametersTable" VBox.vgrow="ALWAYS">
                             <columns>
                                 <TableColumn fx:id="paramNameColumn" text="Parameter Name" prefWidth="150"/>
                                 <TableColumn fx:id="paramValueColumn" text="Value" prefWidth="200"/>
@@ -207,16 +177,16 @@
             <!-- Output Configuration -->
             <HBox alignment="CENTER_LEFT" spacing="15" styleClass="output-config">
                 <Label text="Output Format:" styleClass="section-label"/>
-                <ComboBox fx:id="outputFormatCombo" styleClass="revolutionary-combo" prefWidth="100"/>
+                <ComboBox fx:id="outputFormatCombo" prefWidth="100"/>
 
                 <Label text="Encoding:" styleClass="section-label"/>
-                <ComboBox fx:id="encodingCombo" styleClass="revolutionary-combo" prefWidth="100"/>
+                <ComboBox fx:id="encodingCombo" prefWidth="100"/>
 
                 <CheckBox fx:id="indentOutputCheckbox" text="Indent Output" selected="true"/>
             </HBox>
 
             <!-- Results Tabs -->
-            <TabPane fx:id="resultsTabPane" VBox.vgrow="ALWAYS" styleClass="revolutionary-tab-pane">
+            <TabPane fx:id="resultsTabPane" VBox.vgrow="ALWAYS">
                 <!-- Transformation Result Tab -->
                 <Tab text="Result" closable="false">
                     <VBox spacing="8">
@@ -283,7 +253,7 @@
                             <VBox spacing="5" HBox.hgrow="ALWAYS">
                                 <Label text="XSLT Features Used" styleClass="subsection-header"/>
                                 <ListView fx:id="featuresListView" prefHeight="120"
-                                          styleClass="revolutionary-list-view"/>
+                                         />
                             </VBox>
                         </HBox>
 
@@ -313,7 +283,7 @@
                         <SplitPane dividerPositions="0.5" orientation="VERTICAL" VBox.vgrow="ALWAYS">
                             <VBox spacing="5">
                                 <Label text="Messages &amp; Warnings" styleClass="subsection-header"/>
-                                <ListView fx:id="messagesListView" styleClass="revolutionary-list-view"/>
+                                <ListView fx:id="messagesListView"/>
                             </VBox>
 
                             <VBox spacing="5">
