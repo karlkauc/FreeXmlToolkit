@@ -65,7 +65,7 @@
     </ToolBar>
 
     <!-- Main Content Area -->
-    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.3">
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.75">
         <!-- Left Panel: Template Categories and List -->
         <VBox spacing="10" styleClass="templates-sidebar">
             <padding>

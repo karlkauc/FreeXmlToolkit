@@ -64,7 +64,7 @@
     </ToolBar>
 
     <!-- Main Content Area -->
-    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.4">
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.75">
         <!-- Left Panel: Configuration and XML Input -->
         <VBox spacing="15" styleClass="schema-config-sidebar">
             <padding>

@@ -75,7 +75,7 @@
     </ToolBar>
 
     <!-- Main Content Area -->
-    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.5" orientation="HORIZONTAL"
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.75" orientation="HORIZONTAL"
               >
         <!-- Left Panel: Input Section -->
         <VBox spacing="10" styleClass="xslt-input-section">
