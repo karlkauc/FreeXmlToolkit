@@ -188,18 +188,13 @@ public class MainController implements Initializable {
             appVersion = "1.0.0"; // Fallback version
         }
 
-        long allocated = runtime.totalMemory();
-        long used = allocated - runtime.freeMemory();
+        long used = runtime.totalMemory() - runtime.freeMemory();
         long max = runtime.maxMemory();
-        long available = max - used;
-        String size = String.format("Max: %s | Allocated: %s | Used: %s | Available: %s",
-                FileUtils.byteCountToDisplaySize(max),
-                FileUtils.byteCountToDisplaySize(allocated),
-                FileUtils.byteCountToDisplaySize(used),
-                FileUtils.byteCountToDisplaySize(available));
-        String percent = Math.round((float) used / max * 100) + "%";
+        String usedStr = FileUtils.byteCountToDisplaySize(used);
+        String maxStr = FileUtils.byteCountToDisplaySize(max);
+        int percent = Math.round((float) used / max * 100);
 
-        String statusText = String.format("Version %s | %s | Usage: %s", appVersion, size, percent);
+        String statusText = String.format("v%s | Memory: %s / %s (%d%%)", appVersion, usedStr, maxStr, percent);
         Platform.runLater(() -> version.setText(statusText));
     }
 
