@@ -111,7 +111,7 @@ public class MainController implements Initializable {
 
     @FXML
     public void initialize() {
-        scheduler.scheduleAtFixedRate(this::updateMemoryUsage, 1, 2, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::updateMemoryUsage, 1, 3, TimeUnit.SECONDS);
         exit.setOnAction(e -> handleExit());
         menuItemExit.setOnAction(e -> handleExit());
         loadLastOpenFiles();
@@ -182,18 +182,25 @@ public class MainController implements Initializable {
 
 
     private void updateMemoryUsage() {
-        String date = new Date().toString();
+        // Get version from manifest or use default
+        String appVersion = getClass().getPackage().getImplementationVersion();
+        if (appVersion == null || appVersion.isEmpty()) {
+            appVersion = "1.0.0"; // Fallback version
+        }
+
         long allocated = runtime.totalMemory();
         long used = allocated - runtime.freeMemory();
         long max = runtime.maxMemory();
         long available = max - used;
-        String size = String.format("Max: %s Allocated: %s Used: %s Available: %s",
+        String size = String.format("Max: %s | Allocated: %s | Used: %s | Available: %s",
                 FileUtils.byteCountToDisplaySize(max),
                 FileUtils.byteCountToDisplaySize(allocated),
                 FileUtils.byteCountToDisplaySize(used),
                 FileUtils.byteCountToDisplaySize(available));
-        String percent = Math.round((float) used / available * 100) + "%";
-        Platform.runLater(() -> version.setText(date + " " + size + " " + percent));
+        String percent = Math.round((float) used / max * 100) + "%";
+
+        String statusText = String.format("Version %s | %s | Usage: %s", appVersion, size, percent);
+        Platform.runLater(() -> version.setText(statusText));
     }
 
     @FXML
