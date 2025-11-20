@@ -16,6 +16,8 @@ import javafx.scene.layout.Priority;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.Comparator;
 import java.util.function.Consumer;
@@ -125,7 +127,10 @@ public class SimpleTypesListView extends BorderPane {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button addBtn = new Button("+ Add SimpleType");
+        Button addBtn = new Button("Add SimpleType");
+        addBtn.setGraphic(new FontIcon(BootstrapIcons.PLUS_CIRCLE));
+        addBtn.setTooltip(new Tooltip("Add new SimpleType (Ctrl+N)"));
+        addBtn.setStyle("-fx-font-weight: bold;");
         addBtn.setOnAction(e -> handleAddType());
 
         topBar.getChildren().addAll(title, spacer, addBtn);
@@ -163,6 +168,7 @@ public class SimpleTypesListView extends BorderPane {
         filterField = new TextField();
         filterField.setPromptText("Filter by name...");
         filterField.setPrefWidth(250);
+        filterField.setTooltip(new Tooltip("Filter types by name (Ctrl+F)"));
 
         // Wire up filter
         filterField.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -210,15 +216,20 @@ public class SimpleTypesListView extends BorderPane {
         TableColumn<SimpleTypeRow, Void> actionsCol = new TableColumn<>("Actions");
         actionsCol.setPrefWidth(150);
         actionsCol.setCellFactory(col -> new TableCell<>() {
-            private final Button editBtn = new Button("Edit");
-            private final Button delBtn = new Button("Del");
+            private final Button editBtn = new Button();
+            private final Button delBtn = new Button();
 
             {
+                editBtn.setGraphic(new FontIcon(BootstrapIcons.PENCIL));
+                editBtn.setTooltip(new Tooltip("Edit type (Double-click)"));
                 editBtn.setOnAction(e -> {
                     SimpleTypeRow row = getTableView().getItems().get(getIndex());
                     handleEditType(row.getSimpleType());
                 });
 
+                delBtn.setGraphic(new FontIcon(BootstrapIcons.TRASH));
+                delBtn.setTooltip(new Tooltip("Delete type (Delete key)"));
+                delBtn.setStyle("-fx-text-fill: red;");
                 delBtn.setOnAction(e -> {
                     SimpleTypeRow row = getTableView().getItems().get(getIndex());
                     handleDeleteType(row.getSimpleType());
@@ -288,6 +299,8 @@ public class SimpleTypesListView extends BorderPane {
         ToolBar toolbar = new ToolBar();
 
         Button editBtn = new Button("Edit Selected");
+        editBtn.setGraphic(new FontIcon(BootstrapIcons.PENCIL_SQUARE));
+        editBtn.setTooltip(new Tooltip("Edit selected type (Enter)"));
         editBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
@@ -296,6 +309,8 @@ public class SimpleTypesListView extends BorderPane {
         });
 
         Button duplicateBtn = new Button("Duplicate");
+        duplicateBtn.setGraphic(new FontIcon(BootstrapIcons.FILES));
+        duplicateBtn.setTooltip(new Tooltip("Duplicate selected type (Ctrl+D)"));
         duplicateBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
@@ -304,6 +319,8 @@ public class SimpleTypesListView extends BorderPane {
         });
 
         Button findUsageBtn = new Button("Find Usage");
+        findUsageBtn.setGraphic(new FontIcon(BootstrapIcons.SEARCH));
+        findUsageBtn.setTooltip(new Tooltip("Find where this type is used (Ctrl+U)"));
         findUsageBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
@@ -312,6 +329,9 @@ public class SimpleTypesListView extends BorderPane {
         });
 
         Button deleteBtn = new Button("Delete");
+        deleteBtn.setGraphic(new FontIcon(BootstrapIcons.TRASH));
+        deleteBtn.setTooltip(new Tooltip("Delete selected type (Delete key)"));
+        deleteBtn.setStyle("-fx-text-fill: red;");
         deleteBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
