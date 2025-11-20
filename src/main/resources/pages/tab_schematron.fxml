@@ -12,21 +12,21 @@
     <!-- Schematron Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="loadSchematronFileButton" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#loadSchematronFile">
-            <graphic>
-                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Load Schematron File"/>
-            </tooltip>
-        </Button>
-
         <Button fx:id="newSchematronFileButton" text="New" contentDisplay="TOP" styleClass="toolbar-button" onAction="#newSchematronFile">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Create New Schematron File"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="loadSchematronFileButton" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#loadSchematronFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Open Schematron File"/>
             </tooltip>
         </Button>
 

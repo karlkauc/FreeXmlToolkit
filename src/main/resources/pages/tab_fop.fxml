@@ -14,21 +14,21 @@
     <!-- FOP Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button text="Load XML" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openXmlFile">
+        <Button text="Open XML" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openXmlFile">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Load XML File"/>
+                <Tooltip text="Open XML File"/>
             </tooltip>
         </Button>
 
-        <Button text="Load XSL" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openXslFile">
+        <Button text="Open XSL" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openXslFile">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Load XSL-FO Stylesheet"/>
+                <Tooltip text="Open XSL-FO Stylesheet"/>
             </tooltip>
         </Button>
 

@@ -31,12 +31,12 @@
     <!-- XSLT Developer Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="loadXmlBtn" text="Load XML" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="loadXmlBtn" text="Open XML" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Load XML File"/>
+                <Tooltip text="Open XML File"/>
             </tooltip>
         </Button>
 
@@ -121,7 +121,7 @@
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <Label text="XML Input Document" styleClass="section-header"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Button fx:id="loadXmlBtn" text="Load" styleClass="btn-outline" onAction="#loadXmlFile">
+                            <Button fx:id="loadXmlBtn" text="Open" styleClass="btn-outline" onAction="#loadXmlFile">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                 </graphic>
@@ -144,7 +144,7 @@
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <Label text="XSLT Stylesheet" styleClass="section-header"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Button fx:id="loadXsltBtn" text="Load" styleClass="btn-outline" onAction="#loadXsltFile">
+                            <Button fx:id="loadXsltBtn" text="Open" styleClass="btn-outline" onAction="#loadXsltFile">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                 </graphic>

@@ -33,21 +33,21 @@
     <!-- Validation Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="xmlLoadButton" text="Load XML" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="xmlLoadButton" text="Open XML" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Load XML File to Validate"/>
+                <Tooltip text="Open XML File to Validate"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="xsdLoadButton" text="Load XSD" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="xsdLoadButton" text="Open XSD" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Load XSD Schema File (manual)"/>
+                <Tooltip text="Open XSD Schema File (manual)"/>
             </tooltip>
         </Button>
 

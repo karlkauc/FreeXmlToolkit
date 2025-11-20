@@ -30,12 +30,12 @@
     <!-- Schema Generator Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="loadXmlBtn" text="Load XML" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="loadXmlBtn" text="Open XML" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Load XML File"/>
+                <Tooltip text="Open XML File"/>
             </tooltip>
         </Button>
 
@@ -83,7 +83,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <HBox spacing="10" alignment="CENTER_RIGHT">
-            <Button fx:id="loadXmlBtn" text="Load XML" styleClass="btn-secondary">
+            <Button fx:id="loadXmlBtn" text="Open XML" styleClass="btn-secondary">
                 <graphic>
                     <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                 </graphic>
