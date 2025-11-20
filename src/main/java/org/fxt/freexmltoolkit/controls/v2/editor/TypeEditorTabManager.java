@@ -116,7 +116,7 @@ public class TypeEditorTabManager {
             tabPane.getSelectionModel().select(openTypeTabs.get(tabId));
         } else {
             // Create new tab
-            SimpleTypesListTab tab = new SimpleTypesListTab();
+            SimpleTypesListTab tab = new SimpleTypesListTab(mainSchema);
 
             // Set close handler (list tab cannot be dirty, so no check needed)
             tab.setOnCloseRequest(e -> removeTab(tabId));

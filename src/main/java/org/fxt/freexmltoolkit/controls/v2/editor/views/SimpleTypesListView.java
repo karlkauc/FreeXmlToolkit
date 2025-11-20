@@ -2,42 +2,116 @@ package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.Priority;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.model.*;
+
+import java.util.Comparator;
+import java.util.function.Consumer;
 
 /**
  * View showing a list of all SimpleTypes in the schema.
  * TableView with filter, sort, preview, and actions.
  *
- * DUMMY IMPLEMENTATION - Phase 0
- * This shows placeholder content matching the mockups.
+ * Phase 4 Implementation - Real functionality with schema integration
  *
  * @since 2.0
  */
 public class SimpleTypesListView extends BorderPane {
 
-    // UI Components (DUMMY)
+    private static final Logger logger = LogManager.getLogger(SimpleTypesListView.class);
+
+    private final XsdSchema schema;
+
+    // Callbacks for actions
+    private Consumer<XsdSimpleType> onEditType;
+    private Consumer<XsdSimpleType> onDuplicateType;
+    private Consumer<XsdSimpleType> onDeleteType;
+    private Consumer<XsdSimpleType> onFindUsage;
+    private Runnable onAddType;
+
+    // UI Components
     private TextField filterField;
     private ComboBox<String> sortCombo;
     private TableView<SimpleTypeRow> tableView;
     private TextArea previewArea;
     private ToolBar actionToolbar;
 
+    // Data
+    private ObservableList<SimpleTypeRow> allData;
+    private FilteredList<SimpleTypeRow> filteredData;
+    private SortedList<SimpleTypeRow> sortedData;
+
     /**
      * Creates a new SimpleTypes list view.
+     *
+     * @param schema the schema to display types from
      */
-    public SimpleTypesListView() {
+    public SimpleTypesListView(XsdSchema schema) {
+        this.schema = schema;
         initializeUI();
-        loadDummyData();
+        loadDataFromSchema();
+    }
+
+    /**
+     * Sets the callback for editing a type.
+     *
+     * @param callback the callback
+     */
+    public void setOnEditType(Consumer<XsdSimpleType> callback) {
+        this.onEditType = callback;
+    }
+
+    /**
+     * Sets the callback for duplicating a type.
+     *
+     * @param callback the callback
+     */
+    public void setOnDuplicateType(Consumer<XsdSimpleType> callback) {
+        this.onDuplicateType = callback;
+    }
+
+    /**
+     * Sets the callback for deleting a type.
+     *
+     * @param callback the callback
+     */
+    public void setOnDeleteType(Consumer<XsdSimpleType> callback) {
+        this.onDeleteType = callback;
+    }
+
+    /**
+     * Sets the callback for finding usage.
+     *
+     * @param callback the callback
+     */
+    public void setOnFindUsage(Consumer<XsdSimpleType> callback) {
+        this.onFindUsage = callback;
+    }
+
+    /**
+     * Sets the callback for adding a new type.
+     *
+     * @param callback the callback
+     */
+    public void setOnAddType(Runnable callback) {
+        this.onAddType = callback;
     }
 
     /**
      * Initializes the UI components.
-     * DUMMY: Shows placeholder layout
+     * Phase 4: Real implementation with data binding
      */
     private void initializeUI() {
         setPadding(new Insets(10));
@@ -48,10 +122,13 @@ public class SimpleTypesListView extends BorderPane {
         Label title = new Label("SimpleTypes Overview");
         title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
-        Button addBtn = new Button("+ Add SimpleType");
-        addBtn.setDisable(true); // DUMMY
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        topBar.getChildren().addAll(title, new Label(" ".repeat(50)), addBtn);
+        Button addBtn = new Button("+ Add SimpleType");
+        addBtn.setOnAction(e -> handleAddType());
+
+        topBar.getChildren().addAll(title, spacer, addBtn);
         setTop(topBar);
 
         // Center: Main content (table + preview)
@@ -73,19 +150,10 @@ public class SimpleTypesListView extends BorderPane {
         // Bottom: Action toolbar
         actionToolbar = createActionToolbar();
         setBottom(actionToolbar);
-
-        // TODO Phase 4:
-        // - Wire up filter functionality
-        // - Wire up sort functionality
-        // - Load real data from schema
-        // - Update preview on selection
-        // - Wire up action buttons
-        // - Implement double-click to open editor
     }
 
     /**
      * Creates the filter and sort bar.
-     * DUMMY: Disabled controls
      */
     private HBox createFilterBar() {
         HBox filterBar = new HBox(15);
@@ -95,13 +163,21 @@ public class SimpleTypesListView extends BorderPane {
         filterField = new TextField();
         filterField.setPromptText("Filter by name...");
         filterField.setPrefWidth(250);
-        filterField.setDisable(true); // DUMMY
+
+        // Wire up filter
+        filterField.textProperty().addListener((obs, oldVal, newVal) -> {
+            applyFilter(newVal);
+        });
 
         Label sortLabel = new Label("Sort by:");
         sortCombo = new ComboBox<>();
         sortCombo.getItems().addAll("Name", "Base Type", "Usage Count");
         sortCombo.setValue("Name");
-        sortCombo.setDisable(true); // DUMMY
+
+        // Wire up sort
+        sortCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            applySort(newVal);
+        });
 
         filterBar.getChildren().addAll(filterLabel, filterField, sortLabel, sortCombo);
 
@@ -110,7 +186,6 @@ public class SimpleTypesListView extends BorderPane {
 
     /**
      * Creates the table view.
-     * DUMMY: Sample columns and data
      */
     private TableView<SimpleTypeRow> createTable() {
         TableView<SimpleTypeRow> table = new TableView<>();
@@ -139,8 +214,15 @@ public class SimpleTypesListView extends BorderPane {
             private final Button delBtn = new Button("Del");
 
             {
-                editBtn.setDisable(true); // DUMMY
-                delBtn.setDisable(true); // DUMMY
+                editBtn.setOnAction(e -> {
+                    SimpleTypeRow row = getTableView().getItems().get(getIndex());
+                    handleEditType(row.getSimpleType());
+                });
+
+                delBtn.setOnAction(e -> {
+                    SimpleTypeRow row = getTableView().getItems().get(getIndex());
+                    handleDeleteType(row.getSimpleType());
+                });
             }
 
             @Override
@@ -158,12 +240,28 @@ public class SimpleTypesListView extends BorderPane {
         table.getColumns().addAll(nameCol, baseTypeCol, facetsCol, usageCol, actionsCol);
         table.setPrefHeight(300);
 
+        // Double-click to edit
+        table.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                SimpleTypeRow selected = table.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    handleEditType(selected.getSimpleType());
+                }
+            }
+        });
+
+        // Selection listener for preview
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                updatePreview(newVal.getSimpleType());
+            }
+        });
+
         return table;
     }
 
     /**
      * Creates the preview panel.
-     * DUMMY: Placeholder text area
      */
     private VBox createPreviewPanel() {
         VBox panel = new VBox(5);
@@ -185,20 +283,56 @@ public class SimpleTypesListView extends BorderPane {
 
     /**
      * Creates the action toolbar.
-     * DUMMY: Disabled buttons
      */
     private ToolBar createActionToolbar() {
         ToolBar toolbar = new ToolBar();
 
         Button editBtn = new Button("Edit Selected");
-        Button duplicateBtn = new Button("Duplicate");
-        Button findUsageBtn = new Button("Find Usage");
-        Button deleteBtn = new Button("Delete");
+        editBtn.setOnAction(e -> {
+            SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                handleEditType(selected.getSimpleType());
+            }
+        });
 
-        editBtn.setDisable(true); // DUMMY
-        duplicateBtn.setDisable(true); // DUMMY
-        findUsageBtn.setDisable(true); // DUMMY
-        deleteBtn.setDisable(true); // DUMMY
+        Button duplicateBtn = new Button("Duplicate");
+        duplicateBtn.setOnAction(e -> {
+            SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                handleDuplicateType(selected.getSimpleType());
+            }
+        });
+
+        Button findUsageBtn = new Button("Find Usage");
+        findUsageBtn.setOnAction(e -> {
+            SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                handleFindUsage(selected.getSimpleType());
+            }
+        });
+
+        Button deleteBtn = new Button("Delete");
+        deleteBtn.setOnAction(e -> {
+            SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                handleDeleteType(selected.getSimpleType());
+            }
+        });
+
+        // Enable/disable based on selection
+        tableView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            boolean hasSelection = newVal != null;
+            editBtn.setDisable(!hasSelection);
+            duplicateBtn.setDisable(!hasSelection);
+            findUsageBtn.setDisable(!hasSelection);
+            deleteBtn.setDisable(!hasSelection);
+        });
+
+        // Initially disabled
+        editBtn.setDisable(true);
+        duplicateBtn.setDisable(true);
+        findUsageBtn.setDisable(true);
+        deleteBtn.setDisable(true);
 
         toolbar.getItems().addAll(
                 editBtn,
@@ -213,64 +347,240 @@ public class SimpleTypesListView extends BorderPane {
     }
 
     /**
-     * Loads dummy data into the table.
-     * DUMMY: Sample data for visualization
+     * Loads data from the schema.
      */
-    private void loadDummyData() {
-        ObservableList<SimpleTypeRow> data = FXCollections.observableArrayList(
-                new SimpleTypeRow("📄 BicCodeType", "xs:string", "minL, maxL", 12),
-                new SimpleTypeRow("📄 EmailAddressType", "xs:string", "pattern", 45),
-                new SimpleTypeRow("📄 FrequencyType", "xs:string", "enumeration", 23),
-                new SimpleTypeRow("📄 ISINType", "xs:string", "length, pattern", 156),
-                new SimpleTypeRow("📄 ISOCountryCodeType", "xs:string", "minL, maxL", 289),
-                new SimpleTypeRow("📄 ISOCurrencyCodeType", "xs:string", "minL, maxL, pattern", 178),
-                new SimpleTypeRow("📄 ISOLanguageCodeType", "xs:string", "minL, maxL", 67),
-                new SimpleTypeRow("📄 LEICodeType", "xs:string", "pattern", 34),
-                new SimpleTypeRow("📄 MICCodeType", "xs:string", "length", 89),
-                new SimpleTypeRow("📄 PercentageType", "xs:decimal", "min, max", 234),
-                new SimpleTypeRow("📄 Text16Type", "xs:string", "maxLength", 45),
-                new SimpleTypeRow("📄 Text256Type", "xs:string", "maxLength", 567),
-                new SimpleTypeRow("📄 Text32Type", "xs:string", "maxLength", 123),
-                new SimpleTypeRow("📄 Text64Type", "xs:string", "maxLength", 89)
-        );
+    private void loadDataFromSchema() {
+        allData = FXCollections.observableArrayList();
 
-        tableView.setItems(data);
-
-        // Add selection listener for preview (DUMMY)
-        tableView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                // DUMMY: Show sample XSD
-                previewArea.setText(
-                        "<xs:simpleType name=\"" + newVal.getName().replace("📄 ", "") + "\">\n" +
-                        "  <xs:restriction base=\"" + newVal.getBaseType() + "\">\n" +
-                        "    <!-- Facets: " + newVal.getFacets() + " -->\n" +
-                        "  </xs:restriction>\n" +
-                        "</xs:simpleType>"
-                );
+        // Find all SimpleTypes in schema
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof XsdSimpleType) {
+                XsdSimpleType simpleType = (XsdSimpleType) child;
+                allData.add(createRowFromSimpleType(simpleType));
             }
-        });
+        }
+
+        logger.info("Loaded {} SimpleTypes from schema", allData.size());
+
+        // Setup filtered and sorted lists
+        filteredData = new FilteredList<>(allData, p -> true);
+        sortedData = new SortedList<>(filteredData);
+        sortedData.comparatorProperty().bind(tableView.comparatorProperty());
+
+        tableView.setItems(sortedData);
+
+        // Apply initial sort
+        applySort("Name");
+    }
+
+    /**
+     * Creates a row from a SimpleType.
+     *
+     * @param simpleType the simple type
+     * @return the row
+     */
+    private SimpleTypeRow createRowFromSimpleType(XsdSimpleType simpleType) {
+        String name = simpleType.getName();
+        String baseType = extractBaseType(simpleType);
+        String facets = extractFacets(simpleType);
+        int usage = calculateUsage(simpleType);
+
+        return new SimpleTypeRow(name, baseType, facets, usage, simpleType);
+    }
+
+    /**
+     * Extracts the base type from a SimpleType.
+     *
+     * @param simpleType the simple type
+     * @return the base type string
+     */
+    private String extractBaseType(XsdSimpleType simpleType) {
+        // Check for restriction
+        for (XsdNode child : simpleType.getChildren()) {
+            if (child instanceof XsdRestriction) {
+                XsdRestriction restriction = (XsdRestriction) child;
+                return restriction.getBase() != null ? restriction.getBase() : "xs:string";
+            }
+            if (child instanceof XsdList) {
+                return "List";
+            }
+            if (child instanceof XsdUnion) {
+                return "Union";
+            }
+        }
+        return simpleType.getBase() != null ? simpleType.getBase() : "-";
+    }
+
+    /**
+     * Extracts facets from a SimpleType.
+     *
+     * @param simpleType the simple type
+     * @return facets string
+     */
+    private String extractFacets(XsdSimpleType simpleType) {
+        StringBuilder facets = new StringBuilder();
+
+        for (XsdNode child : simpleType.getChildren()) {
+            if (child instanceof XsdRestriction) {
+                XsdRestriction restriction = (XsdRestriction) child;
+                for (XsdFacet facet : restriction.getFacets()) {
+                    if (facets.length() > 0) facets.append(", ");
+                    facets.append(facet.getFacetType().toString());
+                }
+            }
+        }
+
+        return facets.length() > 0 ? facets.toString() : "-";
+    }
+
+    /**
+     * Calculates usage count for a SimpleType.
+     *
+     * @param simpleType the simple type
+     * @return usage count
+     */
+    private int calculateUsage(XsdSimpleType simpleType) {
+        // TODO Phase 5: Implement actual usage finder
+        // For now return 0
+        return 0;
+    }
+
+    /**
+     * Applies filter to the table.
+     *
+     * @param filterText the filter text
+     */
+    private void applyFilter(String filterText) {
+        if (filterText == null || filterText.trim().isEmpty()) {
+            filteredData.setPredicate(p -> true);
+        } else {
+            String lowerCaseFilter = filterText.toLowerCase();
+            filteredData.setPredicate(row ->
+                    row.getName().toLowerCase().contains(lowerCaseFilter)
+            );
+        }
+        logger.debug("Applied filter '{}', showing {}/{} types", filterText, filteredData.size(), allData.size());
+    }
+
+    /**
+     * Applies sort to the table.
+     *
+     * @param sortBy the sort criterion
+     */
+    private void applySort(String sortBy) {
+        Comparator<SimpleTypeRow> comparator;
+
+        switch (sortBy) {
+            case "Base Type":
+                comparator = Comparator.comparing(SimpleTypeRow::getBaseType);
+                break;
+            case "Usage Count":
+                comparator = Comparator.comparingInt(SimpleTypeRow::getUsage).reversed();
+                break;
+            case "Name":
+            default:
+                comparator = Comparator.comparing(SimpleTypeRow::getName);
+                break;
+        }
+
+        sortedData.setComparator(comparator);
+        logger.debug("Applied sort by '{}'", sortBy);
+    }
+
+    /**
+     * Updates the preview area with XSD for the selected type.
+     *
+     * @param simpleType the simple type
+     */
+    private void updatePreview(XsdSimpleType simpleType) {
+        // TODO Phase 4: Use XsdSerializer for real XSD output
+        // For now, generate simple XSD preview
+        StringBuilder xsd = new StringBuilder();
+        xsd.append("<xs:simpleType name=\"").append(simpleType.getName()).append("\">\n");
+
+        for (XsdNode child : simpleType.getChildren()) {
+            if (child instanceof XsdRestriction) {
+                XsdRestriction restriction = (XsdRestriction) child;
+                xsd.append("  <xs:restriction base=\"").append(restriction.getBase()).append("\">\n");
+                for (XsdFacet facet : restriction.getFacets()) {
+                    xsd.append("    <xs:").append(facet.getFacetType().toString().toLowerCase())
+                            .append(" value=\"").append(facet.getValue()).append("\"/>\n");
+                }
+                xsd.append("  </xs:restriction>\n");
+            }
+        }
+
+        xsd.append("</xs:simpleType>");
+
+        previewArea.setText(xsd.toString());
+    }
+
+    // Action handlers
+
+    private void handleAddType() {
+        logger.info("Add type clicked");
+        if (onAddType != null) {
+            onAddType.run();
+        }
+    }
+
+    private void handleEditType(XsdSimpleType simpleType) {
+        logger.info("Edit type: {}", simpleType.getName());
+        if (onEditType != null) {
+            onEditType.accept(simpleType);
+        }
+    }
+
+    private void handleDuplicateType(XsdSimpleType simpleType) {
+        logger.info("Duplicate type: {}", simpleType.getName());
+        if (onDuplicateType != null) {
+            onDuplicateType.accept(simpleType);
+        }
+    }
+
+    private void handleDeleteType(XsdSimpleType simpleType) {
+        logger.info("Delete type: {}", simpleType.getName());
+        if (onDeleteType != null) {
+            onDeleteType.accept(simpleType);
+        }
+    }
+
+    private void handleFindUsage(XsdSimpleType simpleType) {
+        logger.info("Find usage: {}", simpleType.getName());
+        if (onFindUsage != null) {
+            onFindUsage.accept(simpleType);
+        }
+    }
+
+    /**
+     * Refreshes the data from schema.
+     */
+    public void refresh() {
+        loadDataFromSchema();
     }
 
     /**
      * Row model for the table.
-     * DUMMY: Simple data class
      */
     public static class SimpleTypeRow {
         private final String name;
         private final String baseType;
         private final String facets;
         private final int usage;
+        private final XsdSimpleType simpleType;
 
-        public SimpleTypeRow(String name, String baseType, String facets, int usage) {
+        public SimpleTypeRow(String name, String baseType, String facets, int usage, XsdSimpleType simpleType) {
             this.name = name;
             this.baseType = baseType;
             this.facets = facets;
             this.usage = usage;
+            this.simpleType = simpleType;
         }
 
         public String getName() { return name; }
         public String getBaseType() { return baseType; }
         public String getFacets() { return facets; }
         public int getUsage() { return usage; }
+        public XsdSimpleType getSimpleType() { return simpleType; }
     }
 }
