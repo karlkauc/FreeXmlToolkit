@@ -167,6 +167,9 @@
             <TabPane fx:id="schemaResultsTabPane" VBox.vgrow="ALWAYS">
                 <!-- Generated XSD Tab -->
                 <Tab text="Generated XSD" closable="false">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
+                    </graphic>
                     <VBox spacing="5">
                         <HBox spacing="10" alignment="CENTER_LEFT">
                             <CheckBox fx:id="formatXsdOutput" text="Format Output" selected="true"/>
@@ -185,6 +188,9 @@
 
                 <!-- Analysis Results Tab -->
                 <Tab text="Analysis Results" closable="false">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-graph-up" iconSize="16" iconColor="#28a745"/>
+                    </graphic>
                     <VBox spacing="10">
                         <HBox spacing="20">
                             <VBox spacing="5" HBox.hgrow="ALWAYS">
@@ -238,6 +244,9 @@
 
                 <!-- Type Definitions Tab -->
                 <Tab text="Type Definitions" closable="false">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-list-ul" iconSize="16" iconColor="#6c757d"/>
+                    </graphic>
                     <VBox spacing="10">
                         <HBox spacing="10" alignment="CENTER_LEFT">
                             <ComboBox fx:id="typeFilterCombo" promptText="Filter by type..."

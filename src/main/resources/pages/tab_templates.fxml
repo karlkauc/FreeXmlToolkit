@@ -157,9 +157,15 @@
 
                 <TabPane fx:id="previewTabPane" prefHeight="200">
                     <Tab text="XML Source" closable="false">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-code-slash" iconSize="16" iconColor="#007bff"/>
+                        </graphic>
                         <TextArea fx:id="xmlPreviewArea" styleClass="code-preview" editable="false" wrapText="false"/>
                     </Tab>
                     <Tab text="Formatted View" closable="false">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-eye" iconSize="16" iconColor="#28a745"/>
+                        </graphic>
                         <WebView fx:id="xmlFormattedPreview" prefHeight="200"/>
                     </Tab>
                 </TabPane>

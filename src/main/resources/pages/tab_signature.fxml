@@ -75,7 +75,7 @@
         <!-- ===================================================================== -->
         <Tab text="Instructions" styleClass="utility-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-info-circle" iconSize="20" iconColor="#17a2b8"/>
+                <FontIcon iconLiteral="bi-info-circle" iconSize="16" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="How to use the Signature Tool"/>
@@ -155,7 +155,7 @@
         <!-- ===================================================================== -->
         <Tab text="Create Certificate" styleClass="primary-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745"/>
+                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Create a new certificate and keystore"/>
@@ -237,7 +237,7 @@
         <!-- ===================================================================== -->
         <Tab text="Sign XML File" styleClass="primary-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-pencil-square" iconSize="20" iconColor="#007bff"/>
+                <FontIcon iconLiteral="bi-pencil-square" iconSize="16" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Digitally sign an XML document"/>
@@ -328,7 +328,7 @@
         <!-- ===================================================================== -->
         <Tab text="Validate Signed File" styleClass="output-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-patch-check" iconSize="20" iconColor="#28a745"/>
+                <FontIcon iconLiteral="bi-patch-check" iconSize="16" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Validate and verify XML signature"/>
@@ -374,7 +374,7 @@
         <!-- ===================================================================== -->
         <Tab text="Expert Mode" styleClass="utility-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-gear-fill" iconSize="20" iconColor="#6c757d"/>
+                <FontIcon iconLiteral="bi-gear-fill" iconSize="16" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Advanced XML-DSig operations"/>
