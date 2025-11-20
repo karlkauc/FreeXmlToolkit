@@ -65,6 +65,7 @@ public class MainController implements Initializable {
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     public final ExecutorService service = Executors.newCachedThreadPool();
     final Runtime runtime = Runtime.getRuntime();
+    private boolean shutdownCalled = false;
 
     @FXML
     Label version;
@@ -108,19 +109,6 @@ public class MainController implements Initializable {
     Boolean showMenu = true;
 
     FXMLLoader loader;
-
-    @FXML
-    public void initialize() {
-        scheduler.scheduleAtFixedRate(this::updateMemoryUsage, 1, 3, TimeUnit.SECONDS);
-        exit.setOnAction(e -> handleExit());
-        menuItemExit.setOnAction(e -> handleExit());
-        loadLastOpenFiles();
-        loadXmlEditorSidebarPreference();
-        loadXPathQueryPanePreference();
-        loadXmlEditorTheme();
-        loadPageFromPath("/pages/welcome.fxml");
-        Platform.runLater(this::applyTheme);
-    }
 
     public void applyTheme() {
         try {
@@ -200,6 +188,13 @@ public class MainController implements Initializable {
 
     @FXML
     public void shutdown() {
+        // Prevent double shutdown
+        if (shutdownCalled) {
+            logger.info("Shutdown already called, skipping duplicate call");
+            return;
+        }
+        shutdownCalled = true;
+
         logger.info("Application is shutting down. Starting cleanup tasks...");
 
         if (xmlUltimateController != null) {
@@ -228,14 +223,32 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Handles application exit by cleaning up resources and shutting down properly.
+     * Handles application exit by triggering JavaFX shutdown sequence.
+     * Platform.exit() will automatically call FxtGui.stop() which handles all cleanup.
      */
     @FXML
     private void handleExit() {
-        logger.info("Exit button clicked. Initiating application shutdown...");
-        shutdown();
-        Platform.exit();
-        System.exit(0);
+        logger.info("=== EXIT BUTTON CLICKED - Starting shutdown sequence ===");
+
+        try {
+            // Perform cleanup first
+            logger.info("Step 1: Calling shutdown() for cleanup");
+            shutdown();
+
+            logger.info("Step 2: Calling Platform.exit()");
+            Platform.exit();
+
+            // Give Platform.exit() a moment to trigger stop()
+            logger.info("Step 3: Waiting 500ms for JavaFX shutdown");
+            Thread.sleep(500);
+
+            logger.info("Step 4: Force exit with System.exit(0)");
+            System.exit(0);
+        } catch (Exception e) {
+            logger.error("Error during exit sequence", e);
+            // Force exit even on error
+            System.exit(1);
+        }
     }
 
     private void loadLastOpenFiles() {
@@ -768,10 +781,29 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         logger.info("Initializing MainController with drag and drop support");
+
+        // Set up exit handlers
+        logger.info("Setting up exit button and menu handlers");
+        exit.setOnAction(e -> handleExit());
+        menuItemExit.setOnAction(e -> handleExit());
+
+        // Start memory monitoring
+        scheduler.scheduleAtFixedRate(this::updateMemoryUsage, 1, 3, TimeUnit.SECONDS);
+
+        // Load preferences and settings
+        loadLastOpenFiles();
+        loadXmlEditorSidebarPreference();
+        loadXPathQueryPanePreference();
+        loadXmlEditorTheme();
+
+        // Initialize drag and drop
         initializeDragAndDrop();
 
         // Load the welcome page on startup
-        Platform.runLater(this::loadWelcomePage);
+        Platform.runLater(() -> {
+            loadWelcomePage();
+            applyTheme();
+        });
     }
 
     /**
