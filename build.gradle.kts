@@ -672,8 +672,9 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
         // Required modules including JavaFX (works with any JDK that includes JavaFX)
         val requiredModules = setOf(
             "java.base",
-            "java.desktop", 
+            "java.desktop",
             "java.xml",
+            "java.xml.crypto",
             "java.logging",
             "java.prefs",
             "java.sql",
@@ -682,7 +683,7 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "jdk.jsobject",
             "javafx.base",
             "javafx.controls",
-            "javafx.fxml", 
+            "javafx.fxml",
             "javafx.graphics",
             "javafx.media",
             "javafx.web",
