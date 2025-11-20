@@ -12,9 +12,9 @@
     <!-- Signature Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button onAction="#switchToCreateCertificateTab">
+        <Button text="Create Cert" contentDisplay="TOP" styleClass="toolbar-button" onAction="#switchToCreateCertificateTab">
             <graphic>
-                <FontIcon iconLiteral="bi-shield-lock" iconSize="16"/>
+                <FontIcon iconLiteral="bi-shield-lock" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Create Certificate"/>
@@ -24,18 +24,18 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Signature Actions Group -->
-        <Button onAction="#switchToSignTab">
+        <Button text="Sign" contentDisplay="TOP" styleClass="toolbar-button" onAction="#switchToSignTab">
             <graphic>
-                <FontIcon iconLiteral="bi-pencil-square" iconSize="16"/>
+                <FontIcon iconLiteral="bi-pencil-square" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Sign Document"/>
             </tooltip>
         </Button>
 
-        <Button onAction="#switchToValidateTab">
+        <Button text="Verify" contentDisplay="TOP" styleClass="toolbar-button" onAction="#switchToValidateTab">
             <graphic>
-                <FontIcon iconLiteral="bi-patch-check" iconSize="16"/>
+                <FontIcon iconLiteral="bi-patch-check" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Verify Signature"/>
@@ -45,9 +45,9 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Expert Mode -->
-        <Button onAction="#switchToExpertTab">
+        <Button text="Expert" contentDisplay="TOP" styleClass="toolbar-button" onAction="#switchToExpertTab">
             <graphic>
-                <FontIcon iconLiteral="bi-gear-fill" iconSize="16"/>
+                <FontIcon iconLiteral="bi-gear-fill" iconSize="20" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Expert Mode"/>
@@ -57,9 +57,9 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button onAction="#switchToInstructionsTab">
+        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#switchToInstructionsTab">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
@@ -73,10 +73,13 @@
         <!-- ===================================================================== -->
         <!-- NEU: TAB 0: ANLEITUNG                                                 -->
         <!-- ===================================================================== -->
-        <Tab text="Instructions">
+        <Tab text="Instructions" styleClass="utility-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-info-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-info-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
+            <tooltip>
+                <Tooltip text="How to use the Signature Tool"/>
+            </tooltip>
             <content>
                 <ScrollPane fitToWidth="true">
                     <VBox spacing="20" style="-fx-padding: 20;">
@@ -150,10 +153,13 @@
         <!-- ===================================================================== -->
         <!-- TAB 1: ZERTIFIKAT ERSTELLEN                                           -->
         <!-- ===================================================================== -->
-        <Tab text="Create Certificate">
+        <Tab text="Create Certificate" styleClass="primary-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745"/>
             </graphic>
+            <tooltip>
+                <Tooltip text="Create a new certificate and keystore"/>
+            </tooltip>
             <content>
                 <ScrollPane fitToWidth="true">
                     <VBox spacing="20" style="-fx-padding: 20;">
@@ -229,10 +235,13 @@
         <!-- ===================================================================== -->
         <!-- TAB 2: XML DATEI SIGNIEREN                                            -->
         <!-- ===================================================================== -->
-        <Tab text="Sign XML File">
+        <Tab text="Sign XML File" styleClass="primary-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-pencil-square" iconSize="16"/>
+                <FontIcon iconLiteral="bi-pencil-square" iconSize="20" iconColor="#007bff"/>
             </graphic>
+            <tooltip>
+                <Tooltip text="Digitally sign an XML document"/>
+            </tooltip>
             <content>
                 <ScrollPane fitToWidth="true">
                     <VBox spacing="20" style="-fx-padding: 20;">
@@ -317,10 +326,13 @@
         <!-- ===================================================================== -->
         <!-- TAB 3: SIGNATUR VALIDIEREN                                            -->
         <!-- ===================================================================== -->
-        <Tab text="Validate Signed File">
+        <Tab text="Validate Signed File" styleClass="output-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-patch-check" iconSize="16"/>
+                <FontIcon iconLiteral="bi-patch-check" iconSize="20" iconColor="#28a745"/>
             </graphic>
+            <tooltip>
+                <Tooltip text="Validate and verify XML signature"/>
+            </tooltip>
             <content>
                 <ScrollPane fitToWidth="true">
                     <VBox spacing="20" style="-fx-padding: 20;">
@@ -360,10 +372,13 @@
         <!-- ===================================================================== -->
         <!-- TAB 4: EXPERT MODE                                                    -->
         <!-- ===================================================================== -->
-        <Tab text="Expert Mode">
+        <Tab text="Expert Mode" styleClass="utility-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-gear-fill" iconSize="16"/>
+                <FontIcon iconLiteral="bi-gear-fill" iconSize="20" iconColor="#6c757d"/>
             </graphic>
+            <tooltip>
+                <Tooltip text="Advanced XML-DSig operations"/>
+            </tooltip>
             <content>
                 <ScrollPane fitToWidth="true">
                     <VBox spacing="20" style="-fx-padding: 20;">
