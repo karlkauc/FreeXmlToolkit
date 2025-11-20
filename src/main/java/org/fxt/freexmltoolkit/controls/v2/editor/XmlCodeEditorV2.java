@@ -10,6 +10,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorEventBus;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
+import org.fxt.freexmltoolkit.controls.v2.editor.core.ModeDetector;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.IntelliSenseEngine;
 import org.fxt.freexmltoolkit.controls.v2.editor.managers.*;
 import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
@@ -102,11 +103,45 @@ public class XmlCodeEditorV2 extends VBox {
         // Set up code area styling
         codeArea.setStyle("-fx-font-size: 11pt; -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;");
 
+        // Setup combined paragraph graphics (fold indicators + line numbers)
+        codeArea.setParagraphGraphicFactory(createCombinedParagraphGraphicFactory());
+
         // Layout: scrollpane + status line
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         getChildren().addAll(scrollPane, statusLineManager.getStatusLine());
 
         logger.debug("UI initialized");
+    }
+
+    /**
+     * Creates combined paragraph graphics factory for line numbers and fold indicators.
+     *
+     * @return the paragraph graphics factory
+     */
+    private java.util.function.IntFunction<javafx.scene.Node> createCombinedParagraphGraphicFactory() {
+        return lineIndex -> {
+            javafx.scene.layout.HBox hbox = new javafx.scene.layout.HBox(3);
+            hbox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+            // Get fold indicator from folding manager
+            javafx.scene.Node foldIndicator = foldingManager.createFoldIndicator(lineIndex);
+            if (foldIndicator != null) {
+                logger.debug("Adding fold indicator for line {}", lineIndex);
+                hbox.getChildren().add(foldIndicator);
+            } else {
+                // Add spacer to maintain alignment
+                javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+                spacer.setPrefSize(12, 12);
+                hbox.getChildren().add(spacer);
+            }
+
+            // Add line number label
+            javafx.scene.control.Label lineNumber = new javafx.scene.control.Label(String.format("%4d", lineIndex + 1));
+            lineNumber.setStyle("-fx-font-family: monospace; -fx-text-fill: gray;");
+            hbox.getChildren().add(lineNumber);
+
+            return hbox;
+        };
     }
 
     /**
@@ -174,12 +209,21 @@ public class XmlCodeEditorV2 extends VBox {
     public void setText(String text) {
         codeArea.replaceText(text);
 
-        // Auto-detect editor mode
-        // TODO: Implement mode detection
+        // Auto-detect editor mode based on content
         if (text != null && !text.isEmpty()) {
+            EditorMode detectedMode = ModeDetector.detectMode(text, editorContext.hasSchema());
+            editorContext.setCurrentMode(detectedMode);
+            logger.info("Auto-detected editor mode: {}", detectedMode);
+
             Platform.runLater(() -> {
                 syntaxManager.applySyntaxHighlighting(text);
                 foldingManager.updateFoldingRegions(text);
+
+                // Force paragraph graphics refresh after folding regions are updated
+                logger.debug("Refreshing paragraph graphics after setText()");
+                var factory = codeArea.getParagraphGraphicFactory();
+                codeArea.setParagraphGraphicFactory(null);
+                codeArea.setParagraphGraphicFactory(factory);
             });
         }
     }
@@ -294,12 +338,43 @@ public class XmlCodeEditorV2 extends VBox {
     }
 
     /**
+     * Folds all foldable regions in the editor.
+     */
+    public void foldAll() {
+        foldingManager.foldAll();
+    }
+
+    /**
+     * Unfolds all folded regions in the editor.
+     */
+    public void unfoldAll() {
+        foldingManager.unfoldAll();
+    }
+
+    /**
+     * Gets the folding manager.
+     *
+     * @return the folding manager
+     */
+    public FoldingManagerV2 getFoldingManager() {
+        return foldingManager;
+    }
+
+    /**
      * Invalidates IntelliSense cache.
      * Call this when XSD schema changes.
      */
     public void invalidateIntelliSenseCache() {
         intelliSenseEngine.invalidateCacheForSchema();
         logger.debug("IntelliSense cache invalidated");
+    }
+
+    /**
+     * Refreshes the status line display.
+     * Call this when XSD or other status information changes.
+     */
+    public void refreshStatusLine() {
+        statusLineManager.refresh();
     }
 
     @Override

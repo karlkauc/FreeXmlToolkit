@@ -593,6 +593,7 @@ public class XmlEditor extends Tab {
         String text = codeArea.getText();
         int caretPosition = codeArea.getCaretPosition();
         String xpath = getCurrentXPath(text, caretPosition);
+        logger.debug("XPath at position {}: {}", caretPosition, xpath);
         sidebarController.setXPath(xpath);
 
         // Get element information from XSD documentation data
@@ -1096,6 +1097,14 @@ public class XmlEditor extends Tab {
                     xmlCodeEditorV2.getIntelliSenseEngine().invalidateCacheForSchema();
                     logger.debug("V2: IntelliSense cache invalidated for new XSD schema");
                 }
+
+                // V2: Refresh status line to show XSD status
+                javafx.application.Platform.runLater(() -> {
+                    if (xmlCodeEditorV2 != null) {
+                        xmlCodeEditorV2.refreshStatusLine();
+                        logger.debug("V2: Status line refreshed after XSD change");
+                    }
+                });
             } else {
                 // V1: Direct update
                 xmlCodeEditor.setAvailableElementNames(elementNames);
@@ -2227,7 +2236,8 @@ public class XmlEditor extends Tab {
      */
     public void setEditorText(String text) {
         if (useV2Editor) {
-            codeArea.replaceText(text);
+            // V2: Use setText() to trigger folding updates and paragraph graphics refresh
+            xmlCodeEditorV2.setText(text);
         } else {
             xmlCodeEditor.setText(text);
         }

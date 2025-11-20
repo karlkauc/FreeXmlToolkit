@@ -62,3 +62,134 @@
 .code-area {
     -fx-font-family: monospace;
 }
+
+/* ==================== V2 XML Syntax Highlighting ==================== */
+
+/* XML Tags (opening/closing) */
+.xml-tag {
+    -fx-fill: #0066CC;  /* Blue */
+    -fx-font-weight: bold;
+}
+
+/* XML Attributes */
+.xml-attribute {
+    -fx-fill: #CC0066;  /* Purple-Red */
+    -fx-font-weight: normal;
+}
+
+/* XML Attribute Values */
+.xml-value {
+    -fx-fill: #009900;  /* Green */
+    -fx-font-style: normal;
+}
+
+/* XML Comments */
+.xml-comment {
+    -fx-fill: #008080;  /* Teal */
+    -fx-font-style: italic;
+}
+
+/* CDATA Sections */
+.xml-cdata {
+    -fx-fill: #666666;  /* Gray */
+    -fx-font-style: italic;
+    -fx-background-color: #F0F0F0;
+}
+
+/* Processing Instructions (<?xml ... ?>) */
+.xml-processing-instruction {
+    -fx-fill: #CC6600;  /* Orange */
+    -fx-font-weight: bold;
+}
+
+/* Validation Errors */
+.validation-error {
+    -fx-fill: #CC0000;  /* Red */
+    -fx-underline: true;
+    -fx-background-color: #FFE6E6;
+}
+
+/* Line Numbers */
+.line-number {
+    -fx-font-family: monospace;
+    -fx-font-size: 10pt;
+    -fx-text-fill: #999999;
+    -fx-background-color: #F5F5F5;
+    -fx-padding: 0 5 0 0;
+}
+
+/* Status Line */
+.status-line {
+    -fx-background-color: #EEEEEE;
+    -fx-border-color: #CCCCCC;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 3 5 3 5;
+}
+
+.status-label {
+    -fx-font-family: monospace;
+    -fx-font-size: 9pt;
+    -fx-text-fill: #333333;
+}
+
+.status-separator {
+    -fx-text-fill: #AAAAAA;
+    -fx-padding: 0 5 0 5;
+}
+
+/* IntelliSense Popup */
+.intellisense-popup {
+    -fx-background-color: white;
+    -fx-border-color: #CCCCCC;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 2);
+}
+
+.intellisense-list {
+    -fx-background-color: white;
+}
+
+.completion-item {
+    -fx-font-family: monospace;
+    -fx-font-size: 10pt;
+    -fx-padding: 3 5 3 5;
+}
+
+.completion-element {
+    -fx-text-fill: #0066CC;
+    -fx-font-weight: bold;
+}
+
+.completion-attribute {
+    -fx-text-fill: #CC0066;
+}
+
+.completion-value {
+    -fx-text-fill: #009900;
+}
+
+/* Dark Mode Support (optional) */
+.code-area.dark-mode {
+    -fx-background-color: #1E1E1E;
+}
+
+.code-area.dark-mode .xml-tag {
+    -fx-fill: #4EC9B0;  /* Cyan for tags */
+}
+
+.code-area.dark-mode .xml-attribute {
+    -fx-fill: #9CDCFE;  /* Light blue for attributes */
+}
+
+.code-area.dark-mode .xml-value {
+    -fx-fill: #CE9178;  /* Orange for values */
+}
+
+.code-area.dark-mode .xml-comment {
+    -fx-fill: #6A9955;  /* Green for comments */
+}
+
+.code-area.dark-mode .line-number {
+    -fx-text-fill: #858585;
+    -fx-background-color: #252526;
+}

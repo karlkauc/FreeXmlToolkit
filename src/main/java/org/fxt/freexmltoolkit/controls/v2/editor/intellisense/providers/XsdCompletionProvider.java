@@ -139,12 +139,59 @@ public class XsdCompletionProvider implements CompletionProvider {
 
     /**
      * Gets text content completions (e.g., enumeration values).
-     * TODO: Implement enumeration value completion
+     * Provides suggestions for element text content based on XSD constraints.
      */
     private List<CompletionItem> getTextContentCompletions(XmlContext context, XsdDocumentationData xsdData) {
-        // TODO: Parse XSD for enumeration constraints
-        logger.debug("Text content completions from XSD not yet implemented");
-        return new ArrayList<>();
+        List<CompletionItem> items = new ArrayList<>();
+
+        // Get current XPath
+        String currentPath = context.getXPath();
+        if (currentPath == null || currentPath.isEmpty()) {
+            return items;
+        }
+
+        // Try exact match first
+        XsdExtendedElement elementInfo = xsdData.getExtendedXsdElementMap().get(currentPath);
+
+        // Fallback to best matching
+        if (elementInfo == null) {
+            elementInfo = schemaProvider.findBestMatchingElement(currentPath);
+        }
+
+        if (elementInfo == null) {
+            logger.debug("No XSD element info found for path: {}", currentPath);
+            return items;
+        }
+
+        // Check for restriction info with enumeration facets
+        XsdExtendedElement.RestrictionInfo restrictionInfo = elementInfo.getRestrictionInfo();
+        if (restrictionInfo != null && restrictionInfo.facets() != null) {
+            List<String> enumerationValues = restrictionInfo.facets().get("enumeration");
+
+            if (enumerationValues != null && !enumerationValues.isEmpty()) {
+                logger.debug("Found {} enumeration values for {}", enumerationValues.size(), currentPath);
+
+                // Create completion items for each enumeration value
+                for (String enumValue : enumerationValues) {
+                    CompletionItem item = new CompletionItem.Builder(
+                        enumValue,
+                        enumValue,
+                        CompletionItemType.VALUE
+                    )
+                    .description("Enumeration value from XSD")
+                    .dataType(restrictionInfo.base())
+                    .build();
+
+                    items.add(item);
+                }
+            } else {
+                logger.debug("No enumeration facets found for element: {}", currentPath);
+            }
+        } else {
+            logger.debug("No restriction info found for element: {}", currentPath);
+        }
+
+        return items;
     }
 
     @Override

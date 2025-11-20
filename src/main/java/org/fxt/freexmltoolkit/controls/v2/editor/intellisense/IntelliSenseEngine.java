@@ -78,9 +78,18 @@ public class IntelliSenseEngine {
         CompletionProvider xsdProvider = new XsdCompletionProvider(editorContext.getSchemaProvider());
         providerRegistry.registerProvider(xsdProvider);
 
-        // TODO: Register SchematronCompletionProvider
-        // TODO: Register XsltCompletionProvider
-        // TODO: Register XslFoCompletionProvider
+        // Schematron provider
+        CompletionProvider schematronProvider = new org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.SchematronCompletionProvider();
+        providerRegistry.registerProvider(schematronProvider);
+
+        // XSLT provider
+        CompletionProvider xsltProvider = new org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XsltCompletionProvider();
+        providerRegistry.registerProvider(xsltProvider);
+
+        // XSL-FO provider
+        CompletionProvider xslFoProvider = new org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XslFoCompletionProvider();
+        providerRegistry.registerProvider(xslFoProvider);
+
         // TODO: Register PatternCompletionProvider (fallback)
 
         logger.debug("Registered {} providers", providerRegistry.getProviderCount());

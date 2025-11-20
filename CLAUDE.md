@@ -630,3 +630,6 @@ Platform.runLater(() -> {
     - delete unused code automatically. make sure no production code breaks.
     - avoid reflections if possible
 - in einem XSD Schema können Kind Knoten den Type des Eltern Knoten haben. Stelle bei der Verarbeitung von XSD immer sicher, dass es zu keiner Endlosschleife kommt.
+- überprüfe die ikonli bootstrap icons unter https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
+stelle sicher, dass das icon auch exisistiert bevor du es verwendest.
+- alle texte welche dem user angezeigt werden (fehlermeldunge, etc.) sollen auf englisch sein
