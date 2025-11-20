@@ -1,12 +1,18 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
+import javafx.geometry.Point2D;
+import javafx.scene.Cursor;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.IntelliSenseEngine;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextAnalyzer;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 
 /**
  * Manages all event handlers for the editor.
@@ -19,6 +25,8 @@ public class EventHandlerManager {
     private final EditorContext editorContext;
     private final CodeArea codeArea;
     private IntelliSenseEngine intelliSenseEngine;
+    private javafx.scene.control.Tooltip hoverTooltip;
+    private boolean ctrlPressed = false;
 
     public EventHandlerManager(EditorContext editorContext) {
         this.editorContext = editorContext;
@@ -70,19 +78,246 @@ public class EventHandlerManager {
 
     /**
      * Sets up mouse event handlers.
-     * TODO: Implement mouse handlers (Ctrl+Click for go-to-definition).
+     * Implements Ctrl+Click for go-to-definition and hover tooltips.
      */
     private void setupMouseHandlers() {
-        // TODO: Implement
-        logger.debug("Mouse handlers TODO");
+        // Mouse click handler (Ctrl+Click for go-to-definition)
+        codeArea.setOnMouseClicked(this::handleMouseClick);
+
+        // Mouse move handler (hover tooltips)
+        codeArea.setOnMouseMoved(this::handleMouseMove);
+
+        // Track Ctrl key state for cursor changes
+        codeArea.setOnKeyPressed(event -> {
+            if (event.isControlDown() && !ctrlPressed) {
+                ctrlPressed = true;
+                updateCursorStyle();
+            }
+        });
+
+        codeArea.setOnKeyReleased(event -> {
+            if (!event.isControlDown() && ctrlPressed) {
+                ctrlPressed = false;
+                updateCursorStyle();
+            }
+        });
+
+        logger.debug("Mouse handlers setup (Ctrl+Click, Hover)");
+    }
+
+    /**
+     * Handles mouse click events.
+     * Implements Ctrl+Click for go-to-definition.
+     */
+    private void handleMouseClick(MouseEvent event) {
+        if (event.getButton() != MouseButton.PRIMARY) {
+            return;
+        }
+
+        if (event.isControlDown()) {
+            logger.debug("Ctrl+Click detected at ({}, {})", event.getX(), event.getY());
+            handleGoToDefinition(event);
+        }
+    }
+
+    /**
+     * Handles mouse move events for hover tooltips.
+     */
+    private void handleMouseMove(MouseEvent event) {
+        // Only show tooltips when not in Ctrl mode
+        if (ctrlPressed) {
+            removeTooltip();
+            return;
+        }
+
+        // Get character position at mouse cursor
+        int charPos = getCharacterPosition(event);
+        if (charPos < 0) {
+            removeTooltip();
+            return;
+        }
+
+        // Analyze context at position
+        String text = editorContext.getText();
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        XmlContext context = ContextAnalyzer.analyze(text, charPos);
+        String tooltipText = buildTooltipText(context);
+
+        if (tooltipText != null && !tooltipText.isEmpty()) {
+            showTooltip(tooltipText);
+        } else {
+            removeTooltip();
+        }
+    }
+
+    /**
+     * Shows tooltip with given text.
+     */
+    private void showTooltip(String text) {
+        if (hoverTooltip == null) {
+            hoverTooltip = new javafx.scene.control.Tooltip(text);
+            javafx.scene.control.Tooltip.install(codeArea, hoverTooltip);
+        } else {
+            hoverTooltip.setText(text);
+        }
+    }
+
+    /**
+     * Removes the tooltip.
+     */
+    private void removeTooltip() {
+        if (hoverTooltip != null) {
+            javafx.scene.control.Tooltip.uninstall(codeArea, hoverTooltip);
+            hoverTooltip = null;
+        }
+    }
+
+    /**
+     * Handles go-to-definition functionality.
+     */
+    private void handleGoToDefinition(MouseEvent event) {
+        int charPos = getCharacterPosition(event);
+        if (charPos < 0) {
+            return;
+        }
+
+        String text = editorContext.getText();
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        // Analyze context
+        XmlContext context = ContextAnalyzer.analyze(text, charPos);
+
+        // Get element information from XSD
+        if (editorContext.hasSchema()) {
+            String xpath = context.getXPath();
+            var xsdData = editorContext.getSchemaProvider().getXsdDocumentationData();
+
+            if (xsdData != null) {
+                XsdExtendedElement elementInfo = xsdData.getExtendedXsdElementMap().get(xpath);
+
+                if (elementInfo != null) {
+                    showElementInfo(elementInfo);
+                } else {
+                    logger.debug("No XSD definition found for XPath: {}", xpath);
+                }
+            }
+        } else {
+            logger.debug("No schema loaded, go-to-definition not available");
+        }
+    }
+
+    /**
+     * Gets character position from mouse event.
+     */
+    private int getCharacterPosition(MouseEvent event) {
+        try {
+            Point2D point = new Point2D(event.getX(), event.getY());
+            var hitInfo = codeArea.hit(point.getX(), point.getY());
+            return hitInfo.getInsertionIndex();
+        } catch (Exception e) {
+            logger.debug("Error getting character position: {}", e.getMessage());
+            return -1;
+        }
+    }
+
+    /**
+     * Builds tooltip text from XML context.
+     */
+    private String buildTooltipText(XmlContext context) {
+        if (context == null) {
+            return null;
+        }
+
+        StringBuilder tooltip = new StringBuilder();
+
+        // Add context type
+        tooltip.append("Context: ").append(context.getType()).append("\n");
+
+        // Add current element
+        if (context.getCurrentElement() != null) {
+            tooltip.append("Element: ").append(context.getCurrentElement()).append("\n");
+        }
+
+        // Add current attribute
+        if (context.getCurrentAttribute() != null) {
+            tooltip.append("Attribute: ").append(context.getCurrentAttribute()).append("\n");
+        }
+
+        // Add XPath
+        if (context.getXPath() != null) {
+            tooltip.append("XPath: ").append(context.getXPath());
+        }
+
+        // Add XSD type information if available
+        if (editorContext.hasSchema()) {
+            String xpath = context.getXPath();
+            var xsdData = editorContext.getSchemaProvider().getXsdDocumentationData();
+
+            if (xsdData != null) {
+                XsdExtendedElement elementInfo = xsdData.getExtendedXsdElementMap().get(xpath);
+                if (elementInfo != null && elementInfo.getElementType() != null) {
+                    tooltip.append("\nType: ").append(elementInfo.getElementType());
+                    if (elementInfo.isMandatory()) {
+                        tooltip.append(" (required)");
+                    }
+                }
+            }
+        }
+
+        return tooltip.length() > 0 ? tooltip.toString() : null;
+    }
+
+    /**
+     * Shows element information dialog.
+     */
+    private void showElementInfo(XsdExtendedElement elementInfo) {
+        StringBuilder info = new StringBuilder();
+        info.append("Element: ").append(elementInfo.getElementName()).append("\n\n");
+
+        if (elementInfo.getElementType() != null) {
+            info.append("Type: ").append(elementInfo.getElementType()).append("\n");
+        }
+
+        info.append("Mandatory: ").append(elementInfo.isMandatory() ? "Yes" : "No").append("\n");
+
+        if (elementInfo.getChildren() != null && !elementInfo.getChildren().isEmpty()) {
+            info.append("\nChild Elements (").append(elementInfo.getChildren().size()).append("):\n");
+            for (String child : elementInfo.getChildren()) {
+                info.append("  - ").append(child).append("\n");
+            }
+        }
+
+        logger.info("Element Info:\n{}", info.toString());
+        // TODO: Show in a proper dialog instead of just logging
+    }
+
+    /**
+     * Updates cursor style based on Ctrl key state.
+     */
+    private void updateCursorStyle() {
+        if (ctrlPressed) {
+            codeArea.setCursor(Cursor.HAND);
+        } else {
+            codeArea.setCursor(Cursor.TEXT);
+        }
     }
 
     /**
      * Sets up text change handlers.
-     * TODO: Implement text change listeners for syntax highlighting and validation.
+     *
+     * <p>Note: Text change listeners for syntax highlighting and validation are
+     * already implemented in {@link org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2#setupTextChangeListeners()}.
+     * This method is currently a placeholder for any additional event handler setup
+     * that might be needed in the future.</p>
      */
     private void setupTextChangeHandlers() {
-        // TODO: Implement
-        logger.debug("Text change handlers TODO");
+        // Text change handling is already implemented in XmlCodeEditorV2
+        // No additional setup needed here at this time
+        logger.debug("Text change handlers managed by XmlCodeEditorV2");
     }
 }

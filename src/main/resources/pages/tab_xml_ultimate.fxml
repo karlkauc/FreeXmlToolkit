@@ -7,148 +7,145 @@
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlUltimateController">
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlUltimateController"
+      stylesheets="@../css/xsd-tab-groups.css">
 
-    <!-- Ultimate XML Editor Toolbar - Merged from both versions -->
-    <HBox styleClass="xml-toolbar" spacing="5" alignment="CENTER_LEFT">
-        <padding>
-            <Insets top="8" bottom="8" left="10" right="10"/>
-        </padding>
-
+    <!-- Ultimate XML Editor Toolbar - Modernized with unified theme -->
+    <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="newFile" contentDisplay="TOP" onAction="#newFilePressed" text="New">
+        <Button fx:id="newFile" onAction="#newFilePressed">
             <graphic>
-                <FontIcon iconColor="#28a745" iconLiteral="bi-file-earmark" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Create new XML document"/>
+                <Tooltip text="New XML Document (Ctrl+N)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="openFile" contentDisplay="TOP" onAction="#openFile" text="Open">
+        <Button fx:id="openFile" onAction="#openFile">
             <graphic>
-                <FontIcon iconColor="#007bff" iconLiteral="bi-folder2-open" iconSize="16"/>
+                <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Open XML document"/>
+                <Tooltip text="Open XML Document (Ctrl+O)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="saveFile" contentDisplay="TOP" onAction="#saveFile" text="Save">
+        <Button fx:id="saveFile" onAction="#saveFile">
             <graphic>
-                <FontIcon iconColor="#17a2b8" iconLiteral="bi-hdd" iconSize="16"/>
+                <FontIcon iconLiteral="bi-save" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Save current document"/>
+                <Tooltip text="Save Document (Ctrl+S)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="saveAsFile" contentDisplay="TOP" onAction="#saveAsFile" text="Save As">
+        <Button fx:id="saveAsFile" onAction="#saveAsFile">
             <graphic>
-                <FontIcon iconColor="#17a2b8" iconLiteral="bi-hdd-fill" iconSize="16"/>
+                <FontIcon iconLiteral="bi-save-fill" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Save document with new name"/>
+                <Tooltip text="Save As... (Ctrl+Shift+S)"/>
             </tooltip>
         </Button>
+
+        <Separator orientation="VERTICAL"/>
 
         <!-- Favorites Group -->
-        <Button fx:id="addToFavoritesButton" contentDisplay="TOP" onAction="#addCurrentFileToFavorites" text="★ Add">
+        <Button fx:id="addToFavoritesButton" onAction="#addCurrentFileToFavorites">
             <graphic>
-                <FontIcon iconColor="#ffc107" iconLiteral="bi-star" iconSize="16"/>
+                <FontIcon iconLiteral="bi-star" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Add current file to favorites"/>
+                <Tooltip text="Add to Favorites"/>
             </tooltip>
         </Button>
 
-        <ToggleButton fx:id="toggleFavoritesButton" contentDisplay="TOP" text="Favorites"
-                      onAction="#toggleFavoritesPanel">
+        <ToggleButton fx:id="toggleFavoritesButton" onAction="#toggleFavoritesPanel">
             <graphic>
-                <FontIcon iconColor="#ffc107" iconLiteral="bi-star-fill" iconSize="16"/>
+                <FontIcon iconLiteral="bi-star-fill" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Toggle Favorites Manager"/>
+                <Tooltip text="Toggle Favorites Panel"/>
             </tooltip>
         </ToggleButton>
 
-        <Separator orientation="VERTICAL" prefHeight="25"/>
+        <Separator orientation="VERTICAL"/>
 
         <!-- Format Operations Group -->
-        <Button fx:id="prettyPrint" contentDisplay="TOP" onAction="#prettifyingXmlText" text="Format">
+        <Button fx:id="prettyPrint" onAction="#prettifyingXmlText">
             <graphic>
-                <FontIcon iconColor="#fd7e14" iconLiteral="bi-justify" iconSize="16"/>
+                <FontIcon iconLiteral="bi-code-square" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Format and beautify XML"/>
+                <Tooltip text="Format XML (Ctrl+Alt+F)"/>
             </tooltip>
         </Button>
 
-        <Separator orientation="VERTICAL" prefHeight="25"/>
+        <Separator orientation="VERTICAL"/>
 
         <!-- Validation Group -->
-        <Button fx:id="validateButton" onAction="#validateXml" text="Validate" styleClass="secondary-button">
+        <Button fx:id="validateButton" onAction="#validateXml">
             <graphic>
-                <FontIcon iconColor="#28a745" iconLiteral="bi-check-circle" iconSize="16"/>
+                <FontIcon iconLiteral="bi-check-circle" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Validate XML structure"/>
+                <Tooltip text="Validate XML (Ctrl+Shift+V)"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="xmlExcelCsvConverterButton" contentDisplay="TOP" onAction="#showXmlExcelCsvConverter"
-                text="XML↔Excel/CSV">
+        <Button fx:id="xmlExcelCsvConverterButton" onAction="#showXmlExcelCsvConverter">
             <graphic>
-                <FontIcon iconColor="#198754" iconLiteral="bi-table" iconSize="16"/>
+                <FontIcon iconLiteral="bi-table" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Convert between XML and Excel/CSV formats"/>
+                <Tooltip text="XML ↔ Excel/CSV Converter"/>
             </tooltip>
         </Button>
 
-        <Separator orientation="VERTICAL" prefHeight="25"/>
+        <Separator orientation="VERTICAL"/>
 
         <!-- Query & Analysis Group -->
-        <Button fx:id="runXpathQuery" contentDisplay="TOP" onAction="#runXpathQueryPressed" text="XPath">
+        <Button fx:id="runXpathQuery" onAction="#runXpathQueryPressed">
             <graphic>
-                <FontIcon iconColor="#6f42c1" iconLiteral="bi-code-slash" iconSize="16"/>
+                <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Run XPath queries"/>
+                <Tooltip text="Run XPath/XQuery"/>
             </tooltip>
         </Button>
 
-        <Separator orientation="VERTICAL" prefHeight="25"/>
+        <Separator orientation="VERTICAL"/>
 
         <!-- Revolutionary Features Group -->
-        <Button fx:id="templateManagerButton" contentDisplay="TOP" onAction="#showTemplateManager" text="Templates">
+        <Button fx:id="templateManagerButton" onAction="#showTemplateManager">
             <graphic>
-                <FontIcon iconColor="#28a745" iconLiteral="bi-file-text" iconSize="16"/>
+                <FontIcon iconLiteral="bi-file-text" iconSize="16"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Smart Templates System"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="schemaGeneratorButton" contentDisplay="TOP" onAction="#showSchemaGenerator" text="Schema">
+        <Button fx:id="schemaGeneratorButton" onAction="#showSchemaGenerator">
             <graphic>
-                <FontIcon iconColor="#dc3545" iconLiteral="bi-diagram-3" iconSize="16"/>
+                <FontIcon iconLiteral="bi-diagram-3" iconSize="16"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Intelligent Schema Generator"/>
             </tooltip>
         </Button>
 
-        <Button fx:id="xsltDeveloperButton" contentDisplay="TOP" onAction="#showXsltDeveloper" text="XSLT">
+        <Button fx:id="xsltDeveloperButton" onAction="#showXsltDeveloper">
             <graphic>
-                <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
+                <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Advanced XSLT Developer"/>
             </tooltip>
         </Button>
 
-    </HBox>
+    </ToolBar>
 
     <!-- NEW: SplitPane to make the editor and development panes resizable -->
     <SplitPane fx:id="mainSplitPane" orientation="VERTICAL" VBox.vgrow="ALWAYS" dividerPositions="0.75">

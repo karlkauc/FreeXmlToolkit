@@ -22,7 +22,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
-<VBox xmlns="http://javafx.com/javafx/11.0.14-internal"
+<VBox fx:id="rootVBox"
+      xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController"
       AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
@@ -86,7 +87,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button>
+        <Button onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
             </graphic>

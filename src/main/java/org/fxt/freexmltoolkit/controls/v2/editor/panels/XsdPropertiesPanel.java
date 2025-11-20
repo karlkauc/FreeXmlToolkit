@@ -58,6 +58,7 @@ public class XsdPropertiesPanel extends VBox {
     private CheckBox nillableCheckBox;
     private CheckBox abstractCheckBox;
     private CheckBox fixedCheckBox;
+    private TextField fixedValueField;
 
     // Advanced section controls
     private ComboBox<String> formComboBox;
@@ -446,9 +447,18 @@ public class XsdPropertiesPanel extends VBox {
             }
         });
 
-        // Constraints - fixed checkbox (for now just stores boolean, later could add TextField for value)
+        // Constraints - fixed checkbox (enables/disables the text field)
         fixedCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
             if (!updating && currentNode != null) {
+                // Enable/disable text field based on checkbox
+                fixedValueField.setDisable(!newValue);
+                handleConstraintsChange();
+            }
+        });
+
+        // Constraints - fixed value text field
+        fixedValueField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!updating && wasFocused && !isNowFocused && currentNode != null && fixedCheckBox.isSelected()) {
                 handleConstraintsChange();
             }
         });
@@ -561,9 +571,18 @@ public class XsdPropertiesPanel extends VBox {
 
         nillableCheckBox = new CheckBox("Nillable (allows xsi:nil='true')");
         abstractCheckBox = new CheckBox("Abstract (cannot be used directly)");
-        fixedCheckBox = new CheckBox("Fixed value");
 
-        vbox.getChildren().addAll(nillableCheckBox, abstractCheckBox, fixedCheckBox);
+        // Fixed value section with checkbox and text field
+        fixedCheckBox = new CheckBox("Fixed value");
+        fixedValueField = new TextField();
+        fixedValueField.setPromptText("Enter fixed value");
+        fixedValueField.setDisable(true); // Initially disabled, enabled when checkbox is checked
+
+        HBox fixedHBox = new HBox(10);
+        fixedHBox.getChildren().addAll(fixedCheckBox, fixedValueField);
+        HBox.setHgrow(fixedValueField, Priority.ALWAYS);
+
+        vbox.getChildren().addAll(nillableCheckBox, abstractCheckBox, fixedHBox);
 
         TitledPane titledPane = new TitledPane("Constraints", vbox);
         titledPane.setExpanded(false);
@@ -644,6 +663,8 @@ public class XsdPropertiesPanel extends VBox {
             nillableCheckBox.setDisable(!constraintsEnabled);
             abstractCheckBox.setDisable(!constraintsEnabled);
             fixedCheckBox.setDisable(!constraintsEnabled);
+            // fixedValueField is enabled only when checkbox is checked and in edit mode
+            fixedValueField.setEditable(isEditMode);
 
             // Form ComboBox for both elements and attributes
             formComboBox.setDisable(!isEditMode || (!isElement && !isAttribute));
@@ -705,13 +726,22 @@ public class XsdPropertiesPanel extends VBox {
             if (modelObject instanceof XsdElement xsdElement) {
                 nillableCheckBox.setSelected(xsdElement.isNillable());
                 abstractCheckBox.setSelected(xsdElement.isAbstract());
-                fixedCheckBox.setSelected(xsdElement.getFixed() != null && !xsdElement.getFixed().isEmpty());
+
+                // Load fixed value
+                String fixedValue = xsdElement.getFixed();
+                boolean hasFixed = fixedValue != null && !fixedValue.isEmpty();
+                fixedCheckBox.setSelected(hasFixed);
+                fixedValueField.setText(hasFixed ? fixedValue : "");
+                fixedValueField.setDisable(!hasFixed); // Enable field only if checkbox is checked
+
                 logger.debug("Loaded constraints: nillable={}, abstract={}, fixed={}",
-                        xsdElement.isNillable(), xsdElement.isAbstract(), xsdElement.getFixed());
+                        xsdElement.isNillable(), xsdElement.isAbstract(), fixedValue);
             } else {
                 nillableCheckBox.setSelected(false);
                 abstractCheckBox.setSelected(false);
                 fixedCheckBox.setSelected(false);
+                fixedValueField.setText("");
+                fixedValueField.setDisable(true);
             }
 
             // Update Advanced section
@@ -760,6 +790,8 @@ public class XsdPropertiesPanel extends VBox {
             nillableCheckBox.setSelected(false);
             abstractCheckBox.setSelected(false);
             fixedCheckBox.setSelected(false);
+            fixedValueField.clear();
+            fixedValueField.setDisable(true);
 
             formComboBox.setValue(null);
             useComboBox.setValue(null);
@@ -982,7 +1014,23 @@ public class XsdPropertiesPanel extends VBox {
         XsdElement element = (XsdElement) currentNode.getModelObject();
         boolean newNillable = nillableCheckBox.isSelected();
         boolean newAbstract = abstractCheckBox.isSelected();
-        String newFixed = fixedCheckBox.isSelected() ? "" : null; // TODO: Add TextField for actual value
+
+        // Get fixed value from text field if checkbox is checked
+        String newFixed = null;
+        if (fixedCheckBox.isSelected()) {
+            String fixedValue = fixedValueField.getText();
+            if (fixedValue != null && !fixedValue.trim().isEmpty()) {
+                newFixed = fixedValue.trim();
+            } else {
+                // If checkbox is checked but no value provided, uncheck the checkbox
+                updating = true;
+                fixedCheckBox.setSelected(false);
+                fixedValueField.setDisable(true);
+                updating = false;
+                logger.warn("Fixed checkbox unchecked because no value was provided");
+                return; // Don't create command if no valid fixed value
+            }
+        }
 
         // Only create command if values actually changed
         if (newNillable != element.isNillable()
@@ -991,7 +1039,7 @@ public class XsdPropertiesPanel extends VBox {
             ChangeConstraintsCommand command = new ChangeConstraintsCommand(
                     editorContext, element, newNillable, newAbstract, newFixed);
             editorContext.getCommandManager().executeCommand(command);
-            logger.debug("Executed ChangeConstraintsCommand");
+            logger.debug("Executed ChangeConstraintsCommand with fixed='{}'", newFixed);
         }
     }
 

@@ -69,7 +69,7 @@ public class XsdValidationController {
     private enum ValidationStatus {SUCCESS, ERROR, READY}
 
     @FXML
-    private AnchorPane anchorPane;
+    private VBox rootVBox;
     @FXML
     private Button xmlLoadButton, xsdLoadButton, excelExport, clearResults;
     @FXML
@@ -120,14 +120,15 @@ public class XsdValidationController {
         xsdFileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD File", "*.xsd"));
 
         xmlLoadButton.setOnAction(ae -> loadFile(xmlFileChooser, this::processXmlFile));
-        xmlLoadButton.setOnDragOver(this::handleDragOver);
-        xmlLoadButton.setOnDragDropped(event -> handleDragDropped(event, this::processXmlFile));
 
         xsdLoadButton.setOnAction(ae -> loadFile(xsdFileChooser, file -> {
             xmlService.setCurrentXsdFile(file);
             xsdFileName.setText(file.getName());
             if (xmlService.getCurrentXmlFile() != null) processXmlFile();
         }));
+
+        // Register drag and drop for the entire validation page
+        setupDragAndDrop();
 
         if (System.getenv("debug") != null) {
             logger.debug("Debug mode enabled for XsdValidationController");
@@ -136,6 +137,77 @@ public class XsdValidationController {
 
         // Setze den initialen Status der UI
         resetUI();
+    }
+
+    /**
+     * Sets up drag and drop functionality for the entire validation page.
+     * This prevents the global drag and drop handler from interfering with validation-specific behavior.
+     */
+    private void setupDragAndDrop() {
+        logger.debug("Setting up drag and drop for validation page");
+
+        rootVBox.setOnDragOver(this::handlePageDragOver);
+        rootVBox.setOnDragDropped(this::handlePageDragDropped);
+
+        logger.debug("Drag and drop registered for validation page");
+    }
+
+    /**
+     * Handles drag over event for the entire validation page.
+     *
+     * @param event the drag event
+     */
+    private void handlePageDragOver(javafx.scene.input.DragEvent event) {
+        if (event.getDragboard().hasFiles()) {
+            // Check if at least one XML file is in the drag
+            boolean hasXmlFile = event.getDragboard().getFiles().stream()
+                    .anyMatch(file -> file.getName().toLowerCase().endsWith(".xml"));
+
+            if (hasXmlFile) {
+                event.acceptTransferModes(TransferMode.COPY);
+                logger.debug("Validation page accepting XML file drag");
+            }
+        }
+        event.consume(); // Prevent event from bubbling to global handler
+    }
+
+    /**
+     * Handles drag dropped event for the entire validation page.
+     * Loads the first XML file into the validation view (not the XML editor).
+     *
+     * @param event the drag event
+     */
+    private void handlePageDragDropped(javafx.scene.input.DragEvent event) {
+        Dragboard db = event.getDragboard();
+        boolean success = false;
+
+        if (db.hasFiles()) {
+            logger.info("Files dropped on validation page: processing {} files", db.getFiles().size());
+
+            // Filter for XML files
+            var xmlFiles = db.getFiles().stream()
+                    .filter(file -> file.getName().toLowerCase().endsWith(".xml"))
+                    .toList();
+
+            if (!xmlFiles.isEmpty()) {
+                // Load the first XML file for validation
+                File firstXmlFile = xmlFiles.get(0);
+                processXmlFile(firstXmlFile);
+                success = true;
+
+                logger.info("Loaded XML file for validation via drag and drop: {}", firstXmlFile.getName());
+
+                if (xmlFiles.size() > 1) {
+                    logger.info("Multiple XML files dropped ({}). Only the first file was loaded: {}",
+                            xmlFiles.size(), firstXmlFile.getName());
+                }
+            } else {
+                logger.debug("No XML files found in dropped files on validation page");
+            }
+        }
+
+        event.setDropCompleted(success);
+        event.consume(); // Prevent event from bubbling to global handler
     }
 
     /**
@@ -150,31 +222,6 @@ public class XsdValidationController {
             logger.debug("Loaded File: {}", file.getAbsolutePath());
             fileProcessor.accept(file);
         }
-    }
-
-    /**
-     * Handles the drag over event for file loading.
-     *
-     * @param event the drag event
-     */
-    private void handleDragOver(javafx.scene.input.DragEvent event) {
-        if (event.getDragboard().hasFiles()) event.acceptTransferModes(TransferMode.COPY);
-        else event.consume();
-    }
-
-    /**
-     * Handles the drag dropped event for file loading.
-     *
-     * @param event         the drag event
-     * @param fileProcessor the file processor
-     */
-    private void handleDragDropped(javafx.scene.input.DragEvent event, java.util.function.Consumer<File> fileProcessor) {
-        Dragboard db = event.getDragboard();
-        if (db.hasFiles()) {
-            db.getFiles().forEach(fileProcessor);
-            event.setDropCompleted(true);
-        } else event.setDropCompleted(false);
-        event.consume();
     }
 
     /**
@@ -360,7 +407,7 @@ public class XsdValidationController {
         Button goToError = new Button("Go to error");
         goToError.setOnAction(ae -> {
             try {
-                TabPane tabPane = (TabPane) anchorPane.getParent().getParent();
+                TabPane tabPane = (TabPane) rootVBox.getParent().getParent();
                 tabPane.getTabs().stream()
                         .filter(tab -> "tabPaneXml".equals(tab.getId()))
                         .findFirst()
@@ -420,6 +467,56 @@ public class XsdValidationController {
         alert.setHeaderText(header);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    /**
+     * Shows the help dialog with usage instructions.
+     */
+    @FXML
+    private void showHelp() {
+        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
+        helpDialog.setTitle("XSD Validation - Help");
+        helpDialog.setHeaderText("How to use the XSD Validation Tool");
+
+        String helpText = """
+                1. Load XML File:
+                   - Click the XML file button in the toolbar or use the file selector
+                   - Drag and drop is also supported
+
+                2. Schema Detection:
+                   - Enable "Autodetect Schema" to automatically find the XSD from the XML file
+                   - Or manually select an XSD file using the XSD file button
+
+                3. Start Validation:
+                   - Click the validation button (checkmark icon) to validate the XML
+                   - Results will be displayed in the "Validation Results" section
+
+                4. Review Results:
+                   - Green status = Validation successful
+                   - Red status = Validation failed (errors will be listed)
+                   - Click "Go to error" to jump to the XML editor tab
+
+                5. Export Results:
+                   - Click the Excel export button to save validation errors to an Excel file
+
+                6. Clear Results:
+                   - Click the eraser button to reset the validation interface
+
+                Keyboard Shortcuts:
+                - F1: Show this help dialog
+                """;
+
+        helpDialog.setContentText(helpText);
+        helpDialog.getDialogPane().setMinWidth(600);
+
+        // Add icon to help dialog
+        FontIcon helpIcon = new FontIcon("bi-question-circle");
+        helpIcon.setIconSize(48);
+        helpIcon.setIconColor(Color.web("#17a2b8"));
+        helpDialog.setGraphic(helpIcon);
+
+        helpDialog.showAndWait();
+        logger.debug("Help dialog shown");
     }
 
     /**

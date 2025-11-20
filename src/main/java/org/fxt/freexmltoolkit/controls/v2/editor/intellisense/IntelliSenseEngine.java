@@ -90,7 +90,9 @@ public class IntelliSenseEngine {
         CompletionProvider xslFoProvider = new org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XslFoCompletionProvider();
         providerRegistry.registerProvider(xslFoProvider);
 
-        // TODO: Register PatternCompletionProvider (fallback)
+        // Pattern provider (fallback - lowest priority)
+        CompletionProvider patternProvider = new org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.PatternCompletionProvider(editorContext);
+        providerRegistry.registerProvider(patternProvider);
 
         logger.debug("Registered {} providers", providerRegistry.getProviderCount());
     }
@@ -214,6 +216,10 @@ public class IntelliSenseEngine {
 
     /**
      * Inserts the selected completion item into the editor.
+     * Handles intelligent insertion based on item type:
+     * - Replaces partial text already typed
+     * - Adds quotes for attribute values
+     * - Positions cursor correctly after insertion
      *
      * @param item the completion item to insert
      */
@@ -222,23 +228,152 @@ public class IntelliSenseEngine {
             return;
         }
 
-        logger.info("Inserting completion: {}", item.getLabel());
+        logger.info("Inserting completion: {} (type: {})", item.getLabel(), item.getType());
 
         CodeArea codeArea = editorContext.getCodeArea();
+        String text = editorContext.getText();
         int caretPos = editorContext.getCaretPosition();
 
         // Get the text to insert
         String insertText = item.getInsertText() != null ? item.getInsertText() : item.getLabel();
 
-        // TODO: Handle more intelligent insertion
-        // - Replace partial text already typed
-        // - Handle attribute values (add quotes)
-        // - Position cursor correctly after insertion
+        // Detect and delete partial text already typed
+        int deleteStart = findPartialTextStart(text, caretPos, item.getLabel());
+        int deleteLength = caretPos - deleteStart;
 
-        // For now, simple insertion at caret
-        codeArea.insertText(caretPos, insertText);
+        if (deleteLength > 0) {
+            logger.debug("Deleting partial text from {} to {} (length: {})", deleteStart, caretPos, deleteLength);
+            codeArea.deleteText(deleteStart, caretPos);
+            caretPos = deleteStart;
+        }
 
-        logger.debug("Inserted '{}' at position {}", insertText, caretPos);
+        // Smart insertion based on item type
+        InsertionResult result = performSmartInsertion(item, insertText, currentContext);
+
+        // Insert the text
+        codeArea.insertText(caretPos, result.textToInsert);
+
+        // Position cursor
+        int newCaretPos = caretPos + result.cursorOffset;
+        codeArea.moveTo(newCaretPos);
+
+        logger.debug("Inserted '{}' at position {}, cursor moved to {}",
+                     result.textToInsert, caretPos, newCaretPos);
+    }
+
+    /**
+     * Finds the start position of partial text already typed.
+     * Looks backwards from caret to find matching prefix.
+     *
+     * @param text      the full text
+     * @param caretPos  the caret position
+     * @param label     the completion label to match
+     * @return the start position of partial text
+     */
+    private int findPartialTextStart(String text, int caretPos, String label) {
+        if (caretPos == 0 || label == null || label.isEmpty()) {
+            return caretPos;
+        }
+
+        // Look backwards to find word boundary
+        int start = caretPos;
+        while (start > 0) {
+            char ch = text.charAt(start - 1);
+            if (!Character.isLetterOrDigit(ch) && ch != '-' && ch != '_' && ch != ':') {
+                break;
+            }
+            start--;
+        }
+
+        // Check if the typed text is a prefix of the label
+        String typedText = text.substring(start, caretPos);
+        if (typedText.isEmpty()) {
+            return caretPos;
+        }
+
+        // Case-insensitive prefix match
+        if (label.toLowerCase().startsWith(typedText.toLowerCase())) {
+            logger.debug("Found partial text: '{}' matching label '{}'", typedText, label);
+            return start;
+        }
+
+        return caretPos;
+    }
+
+    /**
+     * Performs smart insertion based on completion item type.
+     *
+     * @param item        the completion item
+     * @param insertText  the base text to insert
+     * @param context     the current XML context
+     * @return insertion result with text and cursor offset
+     */
+    private InsertionResult performSmartInsertion(CompletionItem item, String insertText, XmlContext context) {
+        return switch (item.getType()) {
+            case ELEMENT -> handleElementInsertion(insertText);
+            case ATTRIBUTE -> handleAttributeInsertion(insertText);
+            case VALUE -> handleValueInsertion(insertText, context);
+            case SNIPPET -> new InsertionResult(insertText, insertText.length());
+        };
+    }
+
+    /**
+     * Handles element insertion with closing tag.
+     */
+    private InsertionResult handleElementInsertion(String elementName) {
+        // Check if insertText already contains tags
+        if (elementName.startsWith("<") && elementName.contains(">")) {
+            // Already formatted, find cursor position
+            int cursorPos = elementName.indexOf('>') + 1;
+            return new InsertionResult(elementName, cursorPos);
+        }
+
+        // Simple element name - add tags
+        String text = elementName + "></" + elementName + ">";
+        int cursorPos = elementName.length() + 1; // Position after '>'
+        return new InsertionResult(text, cursorPos);
+    }
+
+    /**
+     * Handles attribute insertion with quotes.
+     */
+    private InsertionResult handleAttributeInsertion(String attributeName) {
+        // Check if already formatted with quotes
+        if (attributeName.contains("=\"\"")) {
+            int cursorPos = attributeName.indexOf("=\"\"") + 2; // Inside quotes
+            return new InsertionResult(attributeName, cursorPos);
+        }
+
+        // Add quotes
+        String text = attributeName + "=\"\"";
+        int cursorPos = attributeName.length() + 2; // Inside quotes
+        return new InsertionResult(text, cursorPos);
+    }
+
+    /**
+     * Handles value insertion for attributes or text content.
+     */
+    private InsertionResult handleValueInsertion(String value, XmlContext context) {
+        if (context != null && context.getType() == org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextType.ATTRIBUTE_VALUE) {
+            // Already inside quotes, just insert value
+            return new InsertionResult(value, value.length());
+        }
+
+        // For text content, just insert
+        return new InsertionResult(value, value.length());
+    }
+
+    /**
+     * Result of smart insertion operation.
+     */
+    private static class InsertionResult {
+        final String textToInsert;
+        final int cursorOffset;
+
+        InsertionResult(String textToInsert, int cursorOffset) {
+            this.textToInsert = textToInsert;
+            this.cursorOffset = cursorOffset;
+        }
     }
 
     /**

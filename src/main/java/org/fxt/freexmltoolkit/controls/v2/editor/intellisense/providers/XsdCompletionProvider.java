@@ -106,10 +106,9 @@ public class XsdCompletionProvider implements CompletionProvider {
                 CompletionItemType.ELEMENT
         );
 
-        // Add documentation if available
-        // TODO: XsdExtendedElement doesn't have getDocumentation() yet - implement later
-        // For now, use element name as description
-        builder.description("Element: " + elementName);
+        // Add documentation from XSD annotations
+        String documentation = buildElementDescription(elementInfo);
+        builder.description(documentation);
 
         // Add type information
         if (elementInfo.getElementType() != null) {
@@ -125,6 +124,72 @@ public class XsdCompletionProvider implements CompletionProvider {
         builder.relevanceScore(baseScore + (1000 - index));
 
         return builder.build();
+    }
+
+    /**
+     * Builds a description for an element completion item.
+     * Includes XSD documentation, type information, and cardinality.
+     *
+     * @param elementInfo the XSD element information
+     * @return formatted description string
+     */
+    private String buildElementDescription(XsdExtendedElement elementInfo) {
+        StringBuilder description = new StringBuilder();
+
+        // Add element name and type
+        description.append("Element: ").append(elementInfo.getElementName());
+        if (elementInfo.getElementType() != null && !elementInfo.getElementType().isEmpty()) {
+            description.append(" (").append(elementInfo.getElementType()).append(")");
+        }
+
+        // Add mandatory indicator
+        if (elementInfo.isMandatory()) {
+            description.append(" [required]");
+        }
+
+        // Add XSD documentation if available
+        String xsdDoc = elementInfo.getDocumentationAsHtml();
+        if (xsdDoc != null && !xsdDoc.trim().isEmpty()) {
+            // Strip HTML tags for plain text display
+            String plainDoc = stripHtmlTags(xsdDoc);
+            if (!plainDoc.trim().isEmpty()) {
+                description.append("\n").append(plainDoc.trim());
+            }
+        }
+
+        return description.toString();
+    }
+
+    /**
+     * Strips HTML tags from a string for plain text display.
+     * Also handles common HTML entities.
+     *
+     * @param html the HTML string
+     * @return plain text without HTML tags
+     */
+    private String stripHtmlTags(String html) {
+        if (html == null) {
+            return "";
+        }
+
+        // Remove HTML tags
+        String text = html.replaceAll("<[^>]+>", "");
+
+        // Replace common HTML entities
+        text = text.replace("&lt;", "<")
+                   .replace("&gt;", ">")
+                   .replace("&amp;", "&")
+                   .replace("&quot;", "\"")
+                   .replace("&apos;", "'")
+                   .replace("&nbsp;", " ")
+                   .replace("<br />", "\n")
+                   .replace("<br/>", "\n")
+                   .replace("<br>", "\n");
+
+        // Normalize whitespace
+        text = text.replaceAll("\\s+", " ");
+
+        return text.trim();
     }
 
     /**

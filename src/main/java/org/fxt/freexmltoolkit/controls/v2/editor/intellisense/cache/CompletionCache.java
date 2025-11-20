@@ -6,20 +6,17 @@ import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextType;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 /**
  * Cache for completion items to improve performance.
- * Thread-safe implementation using ConcurrentHashMap.
+ * Thread-safe LRU cache implementation using LinkedHashMap with access-order.
  */
 public class CompletionCache {
 
     private static final Logger logger = LogManager.getLogger(CompletionCache.class);
 
-    private final Map<CacheKey, List<CompletionItem>> cache = new ConcurrentHashMap<>();
+    private final Map<CacheKey, List<CompletionItem>> cache;
     private final int maxSize;
 
     /**
@@ -31,11 +28,26 @@ public class CompletionCache {
 
     /**
      * Creates a cache with specified maximum size.
+     * Uses LinkedHashMap with access-order for proper LRU eviction.
      *
      * @param maxSize the maximum number of cached entries
      */
     public CompletionCache(int maxSize) {
         this.maxSize = maxSize;
+        // Create LRU cache using LinkedHashMap with access-order
+        // accessOrder=true: ordering mode - true for access-order, false for insertion-order
+        this.cache = Collections.synchronizedMap(
+            new LinkedHashMap<CacheKey, List<CompletionItem>>(maxSize, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<CacheKey, List<CompletionItem>> eldest) {
+                    boolean shouldRemove = size() > maxSize;
+                    if (shouldRemove) {
+                        logger.debug("LRU eviction: removing eldest entry");
+                    }
+                    return shouldRemove;
+                }
+            }
+        );
     }
 
     /**
@@ -57,6 +69,7 @@ public class CompletionCache {
 
     /**
      * Puts completions into cache.
+     * LRU eviction is handled automatically by LinkedHashMap.
      *
      * @param xpath the XPath context
      * @param type  the context type
@@ -64,13 +77,9 @@ public class CompletionCache {
      * @param items the completion items
      */
     public void put(String xpath, ContextType type, EditorMode mode, List<CompletionItem> items) {
-        if (cache.size() >= maxSize) {
-            evictOldest();
-        }
-
         CacheKey key = new CacheKey(xpath, type, mode);
         cache.put(key, items);
-        logger.debug("Cached {} items for xpath: {}, type: {}", items.size(), xpath, type);
+        logger.debug("Cached {} items for xpath: {}, type: {} (cache size: {})", items.size(), xpath, type, cache.size());
     }
 
     /**
@@ -100,16 +109,6 @@ public class CompletionCache {
         return cache.size();
     }
 
-    /**
-     * Evicts oldest entry.
-     * TODO: Implement proper LRU eviction strategy.
-     */
-    private void evictOldest() {
-        if (!cache.isEmpty()) {
-            CacheKey first = cache.keySet().iterator().next();
-            cache.remove(first);
-        }
-    }
 
     /**
      * Cache key combining XPath, context type, and editor mode.

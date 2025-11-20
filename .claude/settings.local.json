@@ -56,7 +56,15 @@
       "Bash(build/dist/windows-x64-app-image/FreeXmlToolkit/FreeXmlToolkit.exe --version)",
       "Bash(./FreeXmlToolkit.exe)",
       "Bash(git push)",
-      "Bash(ssh-add:*)"
+      "Bash(ssh-add:*)",
+      "Bash(git stash:*)",
+      "Bash(ls:*)",
+      "Bash(for file in tab_fop.fxml tab_signature.fxml tab_templates.fxml tab_schema_generator.fxml tab_xslt_developer.fxml tab_help.fxml)",
+      "Bash(do echo '=== $file ===' head -40 /Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/resources/pages/$file)",
+      "WebFetch(domain:kordamp.org)",
+      "Bash(git push:*)",
+      "Bash(/dev/null sleep 2 sed -i.bak s/xml.editor.use.v2=false/xml.editor.use.v2=true/g FreeXmlToolkit.properties echo '✅ Set xml.editor.use.v2=true (V2)' cat FreeXmlToolkit.properties)",
+      "Bash(FreeXmlToolkit.properties)"
     ],
     "deny": []
   }

@@ -723,3 +723,11 @@ tasks.register("createAllRuntimes") {
         "createMacOSRuntimeX64", "createMacOSRuntimeArm64"
     )
 }
+
+// Task to run XmlCodeEditorV2 Demo
+tasks.register<JavaExec>("runEditorV2Demo") {
+    group = "application"
+    description = "Run XmlCodeEditorV2 Demo Application"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("org.fxt.freexmltoolkit.demo.XmlCodeEditorV2Demo")
+}

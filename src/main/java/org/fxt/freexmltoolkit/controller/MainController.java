@@ -792,31 +792,45 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Handle drag over event - determine if files can be accepted
+     * Handle drag over event - determine if files can be accepted.
+     * Only handles events that haven't been consumed by tab-specific handlers.
      */
     private void handleDragOver(DragEvent event) {
+        // Skip if event was already consumed by a tab-specific handler
+        if (event.isConsumed()) {
+            logger.debug("Drag over event already consumed by tab-specific handler");
+            return;
+        }
+
         Dragboard dragboard = event.getDragboard();
 
         // Accept files if they exist and at least one is an XML file
         if (dragboard.hasFiles() && hasXmlFiles(dragboard.getFiles())) {
             event.acceptTransferModes(TransferMode.COPY);
-            logger.debug("Drag over accepted: {} files detected", dragboard.getFiles().size());
+            logger.debug("Global handler: Drag over accepted: {} files detected", dragboard.getFiles().size());
         } else {
-            logger.debug("Drag over rejected: no XML files found");
+            logger.debug("Global handler: Drag over rejected: no XML files found");
         }
 
         event.consume();
     }
 
     /**
-     * Handle drag dropped event - open the dropped XML files in new tabs
+     * Handle drag dropped event - open the dropped XML files in new tabs.
+     * Only handles events that haven't been consumed by tab-specific handlers.
      */
     private void handleDragDropped(DragEvent event) {
+        // Skip if event was already consumed by a tab-specific handler
+        if (event.isConsumed()) {
+            logger.debug("Drag dropped event already consumed by tab-specific handler");
+            return;
+        }
+
         Dragboard dragboard = event.getDragboard();
         boolean success = false;
 
         if (dragboard.hasFiles()) {
-            logger.info("Files dropped on main application: processing {} files", dragboard.getFiles().size());
+            logger.info("Global handler: Files dropped on main application: processing {} files", dragboard.getFiles().size());
 
             var xmlFiles = dragboard.getFiles().stream()
                     .filter(this::isXmlFile)
@@ -830,7 +844,7 @@ public class MainController implements Initializable {
                 var firstFile = xmlFiles.get(0);
                 try {
                     switchToXmlViewAndLoadFile(firstFile);
-                    logger.info("Switched to XML view and opened dropped file: {}", firstFile.getName());
+                    logger.info("Global handler: Switched to XML view and opened dropped file: {}", firstFile.getName());
 
                     if (xmlFiles.size() > 1) {
                         logger.info("Multiple files dropped ({}). Only the first file was opened: {}. " +
@@ -842,9 +856,9 @@ public class MainController implements Initializable {
                     success = false;
                 }
 
-                logger.info("Successfully processed XML file via drag and drop: {}", firstFile.getName());
+                logger.info("Global handler: Successfully processed XML file via drag and drop: {}", firstFile.getName());
             } else {
-                logger.info("No XML files found in dropped files");
+                logger.info("Global handler: No XML files found in dropped files");
             }
         }
 
