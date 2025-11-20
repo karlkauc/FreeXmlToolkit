@@ -13,6 +13,8 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.FacetsPanel;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Main view for editing a SimpleType.
@@ -97,13 +99,20 @@ public class SimpleTypeEditorView extends BorderPane {
     private ToolBar createToolbar() {
         ToolBar toolbar = new ToolBar();
 
-        Button saveBtn = new Button("💾 Save Type");
+        Button saveBtn = new Button("Save Type");
+        saveBtn.setGraphic(new FontIcon(BootstrapIcons.SAVE));
+        saveBtn.setTooltip(new Tooltip("Save changes (Ctrl+S)"));
+        saveBtn.setStyle("-fx-font-weight: bold;");
         saveBtn.setDisable(true); // DUMMY
 
-        Button closeBtn = new Button("✕ Close");
+        Button closeBtn = new Button("Close");
+        closeBtn.setGraphic(new FontIcon(BootstrapIcons.X_CIRCLE));
+        closeBtn.setTooltip(new Tooltip("Close editor (Esc)"));
         closeBtn.setDisable(true); // DUMMY
 
-        Button findUsageBtn = new Button("🔍 Find Usage");
+        Button findUsageBtn = new Button("Find Usage");
+        findUsageBtn.setGraphic(new FontIcon(BootstrapIcons.SEARCH));
+        findUsageBtn.setTooltip(new Tooltip("Find where this type is used (Ctrl+U)"));
         findUsageBtn.setDisable(true); // DUMMY
 
         toolbar.getItems().addAll(
@@ -452,9 +461,14 @@ public class SimpleTypeEditorView extends BorderPane {
         }
 
         Button addBtn = new Button("Add Member Type");
+        addBtn.setGraphic(new FontIcon(BootstrapIcons.PLUS_CIRCLE));
+        addBtn.setTooltip(new Tooltip("Add a type to the union"));
         addBtn.setOnAction(e -> handleAddMemberType(memberTypesList));
 
         Button removeBtn = new Button("Remove");
+        removeBtn.setGraphic(new FontIcon(BootstrapIcons.TRASH));
+        removeBtn.setTooltip(new Tooltip("Remove selected type"));
+        removeBtn.setStyle("-fx-text-fill: red;");
         removeBtn.setOnAction(e -> handleRemoveMemberType(memberTypesList));
         removeBtn.setDisable(true);
 
