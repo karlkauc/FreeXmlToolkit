@@ -569,7 +569,7 @@ public class SimpleTypeEditorView extends BorderPane {
 
     /**
      * Creates the Annotation panel.
-     * DUMMY: Placeholder for documentation and appinfo
+     * Real implementation with documentation and appinfo support.
      */
     private VBox createAnnotationPanel() {
         VBox panel = new VBox(15);
@@ -578,29 +578,83 @@ public class SimpleTypeEditorView extends BorderPane {
         Label title = new Label("Annotation");
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
+        // Documentation section
         Label docLabel = new Label("Documentation:");
+        docLabel.setStyle("-fx-font-weight: bold;");
+
         TextArea docArea = new TextArea();
         docArea.setPrefRowCount(5);
         docArea.setWrapText(true);
-        docArea.setDisable(true); // DUMMY
+        docArea.setPromptText("Enter user-facing documentation for this type...");
 
-        Label appInfoLabel = new Label("AppInfo:");
+        // Load existing documentation
+        if (simpleType.getDocumentation() != null) {
+            docArea.setText(simpleType.getDocumentation());
+        }
+
+        // Listen to changes
+        docArea.textProperty().addListener((obs, oldVal, newVal) -> {
+            logger.debug("Documentation changed");
+            simpleType.setDocumentation(newVal);
+
+            // Trigger change callback
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+        });
+
+        Label docDescription = new Label(
+                "Documentation is user-facing text that describes this type's purpose and usage.\n" +
+                "It will appear in generated documentation and tooltips."
+        );
+        docDescription.setWrapText(true);
+        docDescription.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+
+        VBox.setVgrow(docArea, Priority.ALWAYS);
+
+        // AppInfo section
+        Label appInfoLabel = new Label("Application Info:");
+        appInfoLabel.setStyle("-fx-font-weight: bold;");
+
         TextArea appInfoArea = new TextArea();
         appInfoArea.setPrefRowCount(3);
         appInfoArea.setWrapText(true);
-        appInfoArea.setDisable(true); // DUMMY
+        appInfoArea.setPromptText("Enter application-specific information...");
 
-        Label dummyNote = new Label("(Dummy Panel - Phase 0)");
-        dummyNote.setStyle("-fx-font-size: 10px; -fx-text-fill: #6c757d;");
+        // Load existing appinfo
+        String existingAppInfo = simpleType.getAppinfoAsString();
+        if (existingAppInfo != null && !existingAppInfo.isEmpty()) {
+            appInfoArea.setText(existingAppInfo);
+        }
+
+        // Listen to changes
+        appInfoArea.textProperty().addListener((obs, oldVal, newVal) -> {
+            logger.debug("AppInfo changed");
+            simpleType.setAppinfoFromString(newVal);
+
+            // Trigger change callback
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+        });
+
+        Label appInfoDescription = new Label(
+                "AppInfo contains application-specific metadata.\n" +
+                "This can include validation rules, UI hints, or other custom information."
+        );
+        appInfoDescription.setWrapText(true);
+        appInfoDescription.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
 
         panel.getChildren().addAll(
                 title,
                 new Label(""),
-                docLabel, docArea,
+                docLabel,
+                docArea,
+                docDescription,
                 new Label(""),
-                appInfoLabel, appInfoArea,
-                new Label(""),
-                dummyNote
+                appInfoLabel,
+                appInfoArea,
+                appInfoDescription
         );
 
         return panel;
