@@ -118,6 +118,35 @@ public class TypeEditorTabManager {
             // Create new tab
             SimpleTypesListTab tab = new SimpleTypesListTab(mainSchema);
 
+            // Wire up callbacks for list actions
+            tab.setOnEditType(this::openSimpleTypeTab);
+
+            tab.setOnDuplicateType(simpleType -> {
+                // Duplicate the type with a suffix
+                XsdSimpleType duplicate = (XsdSimpleType) simpleType.deepCopy("_copy");
+                mainSchema.addChild(duplicate);
+                openSimpleTypeTab(duplicate);
+            });
+
+            tab.setOnDeleteType(simpleType -> {
+                // TODO Phase 5: Check usage before deleting
+                mainSchema.removeChild(simpleType);
+                // Refresh the list tab (it will auto-update from schema changes)
+            });
+
+            tab.setOnFindUsage(simpleType -> {
+                // TODO Phase 5: Implement usage finder
+                System.out.println("Find usage for: " + simpleType.getName());
+            });
+
+            tab.setOnAddType(() -> {
+                // Create new SimpleType with default name
+                XsdSimpleType newType = new XsdSimpleType();
+                newType.setName("NewSimpleType");
+                mainSchema.addChild(newType);
+                openSimpleTypeTab(newType);
+            });
+
             // Set close handler (list tab cannot be dirty, so no check needed)
             tab.setOnCloseRequest(e -> removeTab(tabId));
 
