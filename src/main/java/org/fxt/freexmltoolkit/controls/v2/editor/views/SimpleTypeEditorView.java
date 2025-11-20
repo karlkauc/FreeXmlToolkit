@@ -31,10 +31,16 @@ public class SimpleTypeEditorView extends BorderPane {
     private final XsdSimpleType simpleType;
     private final XsdEditorContext editorContext;
     private Runnable onChangeCallback;
+    private Runnable onSaveCallback;
+    private Runnable onCloseCallback;
+    private Runnable onFindUsageCallback;
 
     // UI Components
     private ToolBar toolbar;
     private TabPane tabPane;
+    private Button saveBtn;
+    private Button closeBtn;
+    private Button findUsageBtn;
 
     // Restriction Panel Components
     private ComboBox<String> baseTypeCombo;
@@ -67,6 +73,9 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Setup change tracking
         setupChangeTracking();
+
+        // Setup keyboard shortcuts
+        setupKeyboardShortcuts();
     }
 
     /**
@@ -83,6 +92,49 @@ public class SimpleTypeEditorView extends BorderPane {
     }
 
     /**
+     * Sets up keyboard shortcuts for the editor.
+     * Phase 6: Keyboard shortcuts implementation
+     */
+    private void setupKeyboardShortcuts() {
+        setOnKeyPressed(event -> {
+            // Check for Ctrl key combinations
+            if (event.isControlDown()) {
+                switch (event.getCode()) {
+                    case S:
+                        // Ctrl+S: Save
+                        if (onSaveCallback != null) {
+                            onSaveCallback.run();
+                            event.consume();
+                        }
+                        break;
+
+                    case U:
+                        // Ctrl+U: Find usage
+                        if (onFindUsageCallback != null) {
+                            onFindUsageCallback.run();
+                            event.consume();
+                        }
+                        break;
+                }
+            } else {
+                // Non-Ctrl shortcuts
+                switch (event.getCode()) {
+                    case ESCAPE:
+                        // Esc: Close editor
+                        if (onCloseCallback != null) {
+                            onCloseCallback.run();
+                            event.consume();
+                        }
+                        break;
+                }
+            }
+        });
+
+        // Ensure the BorderPane can receive keyboard events
+        setFocusTraversable(true);
+    }
+
+    /**
      * Sets the callback to be called when changes are detected.
      * Used by the parent tab to set dirty flag.
      *
@@ -93,27 +145,78 @@ public class SimpleTypeEditorView extends BorderPane {
     }
 
     /**
+     * Sets the callback for save action.
+     *
+     * @param callback the callback to run on save
+     */
+    public void setOnSaveCallback(Runnable callback) {
+        this.onSaveCallback = callback;
+        if (saveBtn != null) {
+            saveBtn.setDisable(false);
+        }
+    }
+
+    /**
+     * Sets the callback for close action.
+     *
+     * @param callback the callback to run on close
+     */
+    public void setOnCloseCallback(Runnable callback) {
+        this.onCloseCallback = callback;
+        if (closeBtn != null) {
+            closeBtn.setDisable(false);
+        }
+    }
+
+    /**
+     * Sets the callback for find usage action.
+     *
+     * @param callback the callback to run on find usage
+     */
+    public void setOnFindUsageCallback(Runnable callback) {
+        this.onFindUsageCallback = callback;
+        if (findUsageBtn != null) {
+            findUsageBtn.setDisable(false);
+        }
+    }
+
+    /**
      * Creates the toolbar.
-     * DUMMY: Placeholder buttons
+     * Phase 6: Functional buttons with callbacks
      */
     private ToolBar createToolbar() {
         ToolBar toolbar = new ToolBar();
 
-        Button saveBtn = new Button("Save Type");
+        saveBtn = new Button("Save Type");
         saveBtn.setGraphic(new FontIcon(BootstrapIcons.SAVE));
         saveBtn.setTooltip(new Tooltip("Save changes (Ctrl+S)"));
         saveBtn.setStyle("-fx-font-weight: bold;");
-        saveBtn.setDisable(true); // DUMMY
+        saveBtn.setDisable(true); // Enabled when callback is set
+        saveBtn.setOnAction(e -> {
+            if (onSaveCallback != null) {
+                onSaveCallback.run();
+            }
+        });
 
-        Button closeBtn = new Button("Close");
+        closeBtn = new Button("Close");
         closeBtn.setGraphic(new FontIcon(BootstrapIcons.X_CIRCLE));
         closeBtn.setTooltip(new Tooltip("Close editor (Esc)"));
-        closeBtn.setDisable(true); // DUMMY
+        closeBtn.setDisable(true); // Enabled when callback is set
+        closeBtn.setOnAction(e -> {
+            if (onCloseCallback != null) {
+                onCloseCallback.run();
+            }
+        });
 
-        Button findUsageBtn = new Button("Find Usage");
+        findUsageBtn = new Button("Find Usage");
         findUsageBtn.setGraphic(new FontIcon(BootstrapIcons.SEARCH));
         findUsageBtn.setTooltip(new Tooltip("Find where this type is used (Ctrl+U)"));
-        findUsageBtn.setDisable(true); // DUMMY
+        findUsageBtn.setDisable(true); // Enabled when callback is set
+        findUsageBtn.setOnAction(e -> {
+            if (onFindUsageCallback != null) {
+                onFindUsageCallback.run();
+            }
+        });
 
         toolbar.getItems().addAll(
                 saveBtn,

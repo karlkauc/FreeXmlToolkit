@@ -168,6 +168,8 @@
 
         <Separator orientation="VERTICAL"/>
 
+        <Region HBox.hgrow="ALWAYS"/>
+
         <!-- Help -->
         <Button fx:id="toolbarHelp" onAction="#handleToolbarHelp">
             <graphic>

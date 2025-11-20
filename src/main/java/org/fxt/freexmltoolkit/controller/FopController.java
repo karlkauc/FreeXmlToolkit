@@ -337,4 +337,18 @@ public class FopController {
             }
         }).start();
     }
+
+    /**
+     * Shows help dialog.
+     */
+    @FXML
+    private void showHelp() {
+        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
+        helpDialog.setTitle("FOP - Help");
+        helpDialog.setHeaderText("How to use the PDF Generator (Apache FOP)");
+        helpDialog.setContentText("""
+                Use this tool to work with your documents.\n\n                Press F1 to show this help.
+                """);
+        helpDialog.showAndWait();
+    }
 }

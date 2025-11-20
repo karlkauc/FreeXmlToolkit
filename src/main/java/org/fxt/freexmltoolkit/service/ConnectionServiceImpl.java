@@ -95,7 +95,8 @@ public class ConnectionServiceImpl implements ConnectionService {
     @Override
     public ConnectionResult testHttpRequest(URI uri, Properties testProperties) {
         long start = System.currentTimeMillis();
-        
+        HttpURLConnection connection = null;
+
         try {
             // Configure SSL bypass if enabled
             boolean trustAllCerts = Boolean.parseBoolean(testProperties.getProperty("ssl.trustAllCerts", "false"));
@@ -107,14 +108,13 @@ public class ConnectionServiceImpl implements ConnectionService {
                     logger.error("Failed to configure SSL bypass, proceeding with default SSL settings: {}", sslEx.getMessage());
                 }
             }
-            
+
             // Configure proxy
             Proxy proxy = configureProxy(testProperties);
-            
+
             // Create connection
             URL url = uri.toURL();
-            HttpURLConnection connection;
-            
+
             if (proxy != null) {
                 connection = (HttpURLConnection) url.openConnection(proxy);
                 logger.debug("Using proxy: {}", proxy);
@@ -122,14 +122,14 @@ public class ConnectionServiceImpl implements ConnectionService {
                 connection = (HttpURLConnection) url.openConnection();
                 logger.debug("Using direct connection");
             }
-            
+
             // Configure connection
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(30000);
             connection.setReadTimeout(30000);
             connection.setRequestProperty("User-Agent", "FreeXmlToolkit/2.0");
             connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-            
+
             // Apply SSL settings to this specific connection if it's HTTPS
             if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
                 try {
@@ -138,14 +138,14 @@ public class ConnectionServiceImpl implements ConnectionService {
                     logger.warn("Failed to apply SSL bypass to connection, using default SSL settings: {}", sslEx.getMessage());
                 }
             }
-            
+
             // Execute request
             int responseCode = connection.getResponseCode();
             String responseBody = readResponse(connection);
-            
-            logger.debug("HTTP request completed: {} - Status: {}, Response length: {}", 
+
+            logger.debug("HTTP request completed: {} - Status: {}, Response length: {}",
                     uri, responseCode, responseBody.length());
-            
+
             return new ConnectionResult(
                     uri,
                     responseCode,
@@ -153,7 +153,7 @@ public class ConnectionServiceImpl implements ConnectionService {
                     getHeaders(connection),
                     responseBody
             );
-            
+
         } catch (Exception e) {
             logger.error("HTTP request failed: {}", e.getMessage(), e);
             return new ConnectionResult(
@@ -163,6 +163,12 @@ public class ConnectionServiceImpl implements ConnectionService {
                     new String[0],
                     e.getMessage()
             );
+        } finally {
+            // Always disconnect to release resources immediately
+            if (connection != null) {
+                connection.disconnect();
+                logger.debug("HTTP connection closed for: {}", uri);
+            }
         }
     }
 

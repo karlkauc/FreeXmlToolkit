@@ -552,4 +552,18 @@ public class SchemaGeneratorController {
             logger.info("Schema Generator Controller shutdown completed");
         }
     }
+
+    /**
+     * Shows help dialog.
+     */
+    @FXML
+    private void showHelp() {
+        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
+        helpDialog.setTitle("Schema Generator - Help");
+        helpDialog.setHeaderText("How to use the Intelligent Schema Generator");
+        helpDialog.setContentText("""
+                Use this tool to work with your documents.\n\n                Press F1 to show this help.
+                """);
+        helpDialog.showAndWait();
+    }
 }

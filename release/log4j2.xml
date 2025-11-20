@@ -25,6 +25,7 @@
     </Appenders>
     <Loggers>
         <Root level="ERROR">
+            <appender-ref ref="MyFile" level="ERROR"/>
         </Root>
     </Loggers>
 </Configuration>

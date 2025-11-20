@@ -35,6 +35,7 @@ public class ComplexTypeEditorView extends BorderPane {
     private XsdSchema virtualSchema;
     private XsdGraphView graphView;
     private Runnable onChangeCallback;
+    private Runnable onCloseCallback;
 
     /**
      * Creates a new ComplexType editor view.
@@ -75,6 +76,9 @@ public class ComplexTypeEditorView extends BorderPane {
             setCenter(graphView);
             logger.debug("XsdGraphView set as center content");
 
+            // Setup keyboard shortcuts
+            setupKeyboardShortcuts();
+
             logger.info("ComplexTypeEditorView initialized successfully - ready to display");
 
         } catch (Exception e) {
@@ -99,6 +103,39 @@ public class ComplexTypeEditorView extends BorderPane {
                 }
             });
         }
+    }
+
+    /**
+     * Sets up keyboard shortcuts for the editor.
+     * Phase 6: Keyboard shortcuts implementation
+     */
+    private void setupKeyboardShortcuts() {
+        setOnKeyPressed(event -> {
+            // Check for Ctrl key combinations
+            if (event.isControlDown()) {
+                switch (event.getCode()) {
+                    case S:
+                        // Ctrl+S: Save
+                        save();
+                        event.consume();
+                        break;
+                }
+            } else {
+                // Non-Ctrl shortcuts
+                switch (event.getCode()) {
+                    case ESCAPE:
+                        // Esc: Close editor
+                        if (onCloseCallback != null) {
+                            onCloseCallback.run();
+                            event.consume();
+                        }
+                        break;
+                }
+            }
+        });
+
+        // Ensure the BorderPane can receive keyboard events
+        setFocusTraversable(true);
     }
 
     /**
@@ -170,5 +207,14 @@ public class ComplexTypeEditorView extends BorderPane {
      */
     public void setOnChangeCallback(Runnable callback) {
         this.onChangeCallback = callback;
+    }
+
+    /**
+     * Sets the callback for close action.
+     *
+     * @param callback the callback to run on close
+     */
+    public void setOnCloseCallback(Runnable callback) {
+        this.onCloseCallback = callback;
     }
 }

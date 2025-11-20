@@ -813,4 +813,18 @@ public class XsltDeveloperController {
             logger.info("XSLT Developer Controller shutdown completed");
         }
     }
+
+    /**
+     * Shows help dialog.
+     */
+    @FXML
+    private void showHelp() {
+        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
+        helpDialog.setTitle("XSLT Developer - Help");
+        helpDialog.setHeaderText("How to use the Advanced XSLT Developer");
+        helpDialog.setContentText("""
+                Use this tool to work with your documents.\n\n                Press F1 to show this help.
+                """);
+        helpDialog.showAndWait();
+    }
 }

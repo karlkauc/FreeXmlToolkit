@@ -2122,4 +2122,18 @@ public class XmlUltimateController implements Initializable {
             saveAsFile.setDisable(currentEditor == null);
         }
     }
+
+    /**
+     * Shows help dialog.
+     */
+    @FXML
+    private void showHelp() {
+        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
+        helpDialog.setTitle("XML Editor - Help");
+        helpDialog.setHeaderText("How to use the Ultimate XML Editor");
+        helpDialog.setContentText("""
+                Use this tool to work with your documents.\n\n                Press F1 to show this help.
+                """);
+        helpDialog.showAndWait();
+    }
 }

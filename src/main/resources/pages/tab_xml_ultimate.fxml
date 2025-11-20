@@ -145,6 +145,20 @@
             </tooltip>
         </Button>
 
+        <Separator orientation="VERTICAL"/>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <!-- Help -->
+        <Button onAction="#showHelp">
+            <graphic>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Help (F1)"/>
+            </tooltip>
+        </Button>
+
     </ToolBar>
 
     <!-- NEW: SplitPane to make the editor and development panes resizable -->

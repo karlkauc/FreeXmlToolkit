@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.tabs;
 
 import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
@@ -49,6 +50,12 @@ public class ComplexTypeEditorTab extends AbstractTypeEditorTab {
         // Setup change callback for dirty tracking
         editorView.setOnChangeCallback(() -> setDirty(true));
 
+        // Setup close callback (Phase 6)
+        editorView.setOnCloseCallback(() -> {
+            // Request tab close (will trigger the close handler in TypeEditorTabManager)
+            getTabPane().getTabs().remove(this);
+        });
+
         logger.debug("ComplexTypeEditorTab initialized for type: {}", complexType.getName());
     }
 
@@ -70,16 +77,55 @@ public class ComplexTypeEditorTab extends AbstractTypeEditorTab {
             if (success) {
                 setDirty(false);
                 logger.info("ComplexType saved successfully: {}", complexType.getName());
+
+                // Phase 6: User feedback for successful save
+                showSuccessMessage("Save Successful",
+                    "ComplexType '" + complexType.getName() + "' has been saved successfully.");
             } else {
                 logger.warn("Failed to save ComplexType: {}", complexType.getName());
+
+                // Phase 6: User feedback for save failure
+                showErrorMessage("Save Failed",
+                    "Failed to save ComplexType '" + complexType.getName() + "'",
+                    "The save operation did not complete successfully.");
             }
 
             return success;
 
         } catch (Exception e) {
             logger.error("Error saving ComplexType: {}", complexType.getName(), e);
+
+            // Phase 6: User feedback for save error
+            showErrorMessage("Save Error",
+                "Error saving ComplexType '" + complexType.getName() + "'",
+                "Error: " + e.getMessage());
+
             return false;
         }
+    }
+
+    /**
+     * Shows a success message to the user.
+     * Phase 6: Error Handling & Validation
+     */
+    private void showSuccessMessage(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
+     * Shows an error message to the user.
+     * Phase 6: Error Handling & Validation
+     */
+    private void showErrorMessage(String title, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     @Override

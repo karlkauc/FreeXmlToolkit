@@ -4,6 +4,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextInputDialog;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.AbstractTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.ComplexTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypeEditorTab;
@@ -140,11 +141,25 @@ public class TypeEditorTabManager {
             });
 
             tab.setOnAddType(() -> {
-                // Create new SimpleType with default name
-                XsdSimpleType newType = new XsdSimpleType();
-                newType.setName("NewSimpleType");
-                mainSchema.addChild(newType);
-                openSimpleTypeTab(newType);
+                // Phase 6: Input validation for new SimpleType name
+                String newTypeName = promptForTypeName("NewSimpleType");
+
+                if (newTypeName != null && !newTypeName.trim().isEmpty()) {
+                    // Check if name already exists
+                    if (typeNameExists(newTypeName)) {
+                        showErrorAlert("Duplicate Name",
+                            "A type with the name '" + newTypeName + "' already exists.",
+                            "Please choose a different name.");
+                        return;
+                    }
+
+                    // Create new SimpleType with user-provided name
+                    XsdSimpleType newType = new XsdSimpleType();
+                    newType.setName(newTypeName);
+                    mainSchema.addChild(newType);
+                    openSimpleTypeTab(newType);
+                }
+                // If cancelled or empty, do nothing
             });
 
             // Set close handler (list tab cannot be dirty, so no check needed)
@@ -283,5 +298,50 @@ public class TypeEditorTabManager {
      */
     public boolean isTypeOpen(String typeId) {
         return openTypeTabs.containsKey(typeId);
+    }
+
+    /**
+     * Prompts the user for a type name with an input dialog.
+     * Phase 6: Input Validation
+     *
+     * @param defaultName the default name to suggest
+     * @return the entered name, or null if cancelled
+     */
+    private String promptForTypeName(String defaultName) {
+        TextInputDialog dialog = new TextInputDialog(defaultName);
+        dialog.setTitle("New SimpleType");
+        dialog.setHeaderText("Create New SimpleType");
+        dialog.setContentText("Please enter a name for the new SimpleType:");
+
+        return dialog.showAndWait().orElse(null);
+    }
+
+    /**
+     * Checks if a type with the given name already exists in the schema.
+     * Phase 6: Input Validation
+     *
+     * @param typeName the name to check
+     * @return true if the name exists
+     */
+    private boolean typeNameExists(String typeName) {
+        return mainSchema.getChildren().stream()
+            .filter(node -> node instanceof XsdSimpleType || node instanceof XsdComplexType)
+            .anyMatch(node -> typeName.equals(node.getName()));
+    }
+
+    /**
+     * Shows an error alert to the user.
+     * Phase 6: Error Handling
+     *
+     * @param title the alert title
+     * @param header the alert header
+     * @param content the alert content
+     */
+    private void showErrorAlert(String title, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }

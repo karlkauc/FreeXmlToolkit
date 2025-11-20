@@ -155,6 +155,76 @@ public class SimpleTypesListView extends BorderPane {
         // Bottom: Action toolbar
         actionToolbar = createActionToolbar();
         setBottom(actionToolbar);
+
+        // Setup keyboard shortcuts
+        setupKeyboardShortcuts();
+    }
+
+    /**
+     * Sets up keyboard shortcuts for the list view.
+     * Phase 6: Keyboard shortcuts implementation
+     */
+    private void setupKeyboardShortcuts() {
+        setOnKeyPressed(event -> {
+            // Check for Ctrl key combinations
+            if (event.isControlDown()) {
+                switch (event.getCode()) {
+                    case N:
+                        // Ctrl+N: Add new SimpleType
+                        handleAddType();
+                        event.consume();
+                        break;
+
+                    case F:
+                        // Ctrl+F: Focus filter field
+                        filterField.requestFocus();
+                        event.consume();
+                        break;
+
+                    case D:
+                        // Ctrl+D: Duplicate selected type
+                        SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
+                        if (selected != null) {
+                            handleDuplicateType(selected.getSimpleType());
+                        }
+                        event.consume();
+                        break;
+
+                    case U:
+                        // Ctrl+U: Find usage
+                        SimpleTypeRow selectedForUsage = tableView.getSelectionModel().getSelectedItem();
+                        if (selectedForUsage != null) {
+                            handleFindUsage(selectedForUsage.getSimpleType());
+                        }
+                        event.consume();
+                        break;
+                }
+            } else {
+                // Non-Ctrl shortcuts
+                switch (event.getCode()) {
+                    case ENTER:
+                        // Enter: Edit selected type
+                        SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
+                        if (selected != null) {
+                            handleEditType(selected.getSimpleType());
+                        }
+                        event.consume();
+                        break;
+
+                    case DELETE:
+                        // Delete: Delete selected type
+                        SimpleTypeRow selectedForDelete = tableView.getSelectionModel().getSelectedItem();
+                        if (selectedForDelete != null) {
+                            handleDeleteType(selectedForDelete.getSimpleType());
+                        }
+                        event.consume();
+                        break;
+                }
+            }
+        });
+
+        // Ensure the BorderPane can receive keyboard events
+        setFocusTraversable(true);
     }
 
     /**
@@ -558,11 +628,32 @@ public class SimpleTypesListView extends BorderPane {
         }
     }
 
+    /**
+     * Handles delete type action with confirmation dialog.
+     * Phase 6: Error Handling & Validation
+     */
     private void handleDeleteType(XsdSimpleType simpleType) {
-        logger.info("Delete type: {}", simpleType.getName());
-        if (onDeleteType != null) {
-            onDeleteType.accept(simpleType);
-        }
+        logger.info("Delete type requested: {}", simpleType.getName());
+
+        // Show confirmation dialog
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Confirm Delete");
+        confirmAlert.setHeaderText("Delete SimpleType: " + simpleType.getName());
+        confirmAlert.setContentText("Are you sure you want to delete this SimpleType?\nThis action cannot be undone.");
+
+        confirmAlert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                logger.info("Delete confirmed for type: {}", simpleType.getName());
+                if (onDeleteType != null) {
+                    onDeleteType.accept(simpleType);
+
+                    // Refresh the list after deletion
+                    refresh();
+                }
+            } else {
+                logger.info("Delete cancelled for type: {}", simpleType.getName());
+            }
+        });
     }
 
     private void handleFindUsage(XsdSimpleType simpleType) {
