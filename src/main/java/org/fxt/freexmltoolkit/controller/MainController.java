@@ -112,8 +112,8 @@ public class MainController implements Initializable {
     @FXML
     public void initialize() {
         scheduler.scheduleAtFixedRate(this::updateMemoryUsage, 1, 2, TimeUnit.SECONDS);
-        exit.setOnAction(e -> Platform.exit());
-        menuItemExit.setOnAction(e -> Platform.exit());
+        exit.setOnAction(e -> handleExit());
+        menuItemExit.setOnAction(e -> handleExit());
         loadLastOpenFiles();
         loadXmlEditorSidebarPreference();
         loadXPathQueryPanePreference();
@@ -223,6 +223,17 @@ public class MainController implements Initializable {
         }
 
         logger.info("Cleanup tasks completed. Application will be closed.");
+    }
+
+    /**
+     * Handles application exit by cleaning up resources and shutting down properly.
+     */
+    @FXML
+    private void handleExit() {
+        logger.info("Exit button clicked. Initiating application shutdown...");
+        shutdown();
+        Platform.exit();
+        System.exit(0);
     }
 
     private void loadLastOpenFiles() {
