@@ -84,6 +84,25 @@
             </tooltip>
         </Button>
 
+        <!-- Favorites Group -->
+        <Button fx:id="addToFavoritesBtn" text="Add Fav" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Add to Favorites"/>
+            </tooltip>
+        </Button>
+
+        <ToggleButton fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-heart" iconSize="20" iconColor="#dc3545"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle Favorites Panel"/>
+            </tooltip>
+        </ToggleButton>
+
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
@@ -97,9 +116,10 @@
         </Button>
     </ToolBar>
 
-    <!-- Main Content Area -->
-    <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true">
-        <VBox spacing="20" style="-fx-padding: 20;">
+    <!-- Main Content Area + Favorites -->
+    <HBox VBox.vgrow="ALWAYS" spacing="0">
+        <ScrollPane HBox.hgrow="ALWAYS" fitToWidth="true">
+            <VBox spacing="20" style="-fx-padding: 20;">
 
             <!-- Validation Setup Card -->
             <VBox styleClass="card">
@@ -175,5 +195,44 @@
                 </ScrollPane>
             </VBox>
         </VBox>
-    </ScrollPane>
+        </ScrollPane>
+
+        <!-- Favorites Sidebar -->
+        <VBox fx:id="favoritesPanel" styleClass="favorites-sidebar"
+              visible="false" managed="false" prefWidth="250" spacing="10">
+            <padding>
+                <Insets top="15" bottom="15" left="15" right="15"/>
+            </padding>
+
+            <Label text="Favorites" styleClass="favorites-header"/>
+            <Separator/>
+
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <ComboBox fx:id="favoritesCategoryCombo" promptText="All Categories" HBox.hgrow="ALWAYS"/>
+                <Button styleClass="icon-button">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-gear" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Manage Categories"/>
+                    </tooltip>
+                </Button>
+            </HBox>
+
+            <ListView fx:id="favoritesListView" VBox.vgrow="ALWAYS"/>
+
+            <HBox spacing="5" alignment="CENTER">
+                <Button text="Load" styleClass="btn-primary" HBox.hgrow="ALWAYS">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                    </graphic>
+                </Button>
+                <Button text="Remove" styleClass="btn-secondary" HBox.hgrow="ALWAYS">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                    </graphic>
+                </Button>
+            </HBox>
+        </VBox>
+    </HBox>
 </VBox>
