@@ -43,7 +43,7 @@ import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.xml.sax.SAXParseException;
 
-import java.awt.*;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -88,6 +88,22 @@ public class XsdValidationController {
     private ImageView statusImage;
     @FXML
     private Label statusLabel;
+
+    // UI Components - Favorites
+    @FXML
+    private Button addToFavoritesBtn;
+    @FXML
+    private ToggleButton toggleFavoritesButton;
+    @FXML
+    private VBox favoritesPanel;
+    @FXML
+    private ComboBox<String> favoritesCategoryCombo;
+    @FXML
+    private ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesListView;
+
+    // Favorites Service
+    private final org.fxt.freexmltoolkit.service.FavoritesService favoritesService =
+        org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
 
     /**
      * Sets the parent controller.
@@ -137,6 +153,185 @@ public class XsdValidationController {
 
         // Setze den initialen Status der UI
         resetUI();
+        initializeFavorites();
+    }
+
+    private void initializeFavorites() {
+        if (favoritesCategoryCombo != null) {
+            favoritesCategoryCombo.getItems().addAll("All Categories", "Validation", "XML Files", "XSD Files");
+            favoritesCategoryCombo.setValue("All Categories");
+            favoritesCategoryCombo.setOnAction(e -> loadFavoritesForCategory(favoritesCategoryCombo.getValue()));
+        }
+
+        if (favoritesListView != null) {
+            favoritesListView.setCellFactory(lv -> new ListCell<org.fxt.freexmltoolkit.domain.FileFavorite>() {
+                @Override
+                protected void updateItem(org.fxt.freexmltoolkit.domain.FileFavorite item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setGraphic(null);
+                    } else {
+                        setText(item.getName());
+                        org.kordamp.ikonli.javafx.FontIcon icon = getIconForFile(item.getFilePath());
+                        setGraphic(icon);
+                    }
+                }
+            });
+
+            favoritesListView.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) {
+                    org.fxt.freexmltoolkit.domain.FileFavorite selected = favoritesListView.getSelectionModel().getSelectedItem();
+                    if (selected != null) {
+                        loadFavorite(selected);
+                    }
+                }
+            });
+        }
+
+        if (addToFavoritesBtn != null) {
+            addToFavoritesBtn.setOnAction(e -> addCurrentToFavorites());
+        }
+
+        if (toggleFavoritesButton != null) {
+            toggleFavoritesButton.setOnAction(e -> toggleFavoritesPanel());
+        }
+
+        loadFavoritesForCategory("All Categories");
+    }
+
+    private org.kordamp.ikonli.javafx.FontIcon getIconForFile(String filePath) {
+        org.kordamp.ikonli.javafx.FontIcon icon;
+        if (filePath.endsWith(".xml")) {
+            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file-earmark-code");
+            icon.setIconColor(javafx.scene.paint.Color.web("#007bff"));
+        } else if (filePath.endsWith(".xsd")) {
+            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-diagram-3");
+            icon.setIconColor(javafx.scene.paint.Color.web("#007bff"));
+        } else {
+            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file");
+            icon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
+        }
+        icon.setIconSize(14);
+        return icon;
+    }
+
+    private void loadFavoritesForCategory(String category) {
+        if (favoritesListView == null) return;
+
+        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> allFavorites = favoritesService.getAllFavorites();
+        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> filtered;
+
+        if ("All Categories".equals(category)) {
+            filtered = allFavorites;
+        } else {
+            filtered = allFavorites.stream()
+                    .filter(f -> category.equals(f.getFolderName()))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
+        favoritesListView.setItems(javafx.collections.FXCollections.observableArrayList(filtered));
+    }
+
+    private void addCurrentToFavorites() {
+        File currentXmlFile = xmlService.getCurrentXmlFile();
+        File currentXsdFile = xmlService.getCurrentXsdFile();
+
+        if (currentXmlFile == null && currentXsdFile == null) {
+            showAlert("No Files Loaded", "Please load an XML and/or XSD file before adding to favorites.");
+            return;
+        }
+
+        Dialog<org.fxt.freexmltoolkit.domain.FileFavorite> dialog = new Dialog<>();
+        dialog.setTitle("Add to Favorites");
+        dialog.setHeaderText("Add Current Files to Favorites");
+
+        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+
+        TextField nameField = new TextField();
+        if (currentXmlFile != null) {
+            nameField.setText(currentXmlFile.getName());
+        } else if (currentXsdFile != null) {
+            nameField.setText(currentXsdFile.getName());
+        }
+
+        ComboBox<String> categoryCombo = new ComboBox<>();
+        categoryCombo.getItems().addAll("Validation", "XML Files", "XSD Files");
+        categoryCombo.setValue("Validation");
+
+        TextField descField = new TextField();
+
+        grid.add(new Label("Name:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Category:"), 0, 1);
+        grid.add(categoryCombo, 1, 1);
+        grid.add(new Label("Description:"), 0, 2);
+        grid.add(descField, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                if (currentXmlFile != null) {
+                    org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
+                            nameField.getText() + " (XML)",
+                            currentXmlFile.getAbsolutePath(),
+                            categoryCombo.getValue()
+                    );
+                    fav.setDescription(descField.getText());
+                    favoritesService.addFavorite(fav);
+                }
+                if (currentXsdFile != null) {
+                    org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
+                            nameField.getText() + " (XSD)",
+                            currentXsdFile.getAbsolutePath(),
+                            categoryCombo.getValue()
+                    );
+                    fav.setDescription(descField.getText());
+                    favoritesService.addFavorite(fav);
+                }
+            }
+            return null;
+        });
+
+        dialog.showAndWait();
+        loadFavoritesForCategory(favoritesCategoryCombo.getValue());
+    }
+
+    private void toggleFavoritesPanel() {
+        if (favoritesPanel != null) {
+            boolean isVisible = !favoritesPanel.isVisible();
+            favoritesPanel.setVisible(isVisible);
+            favoritesPanel.setManaged(isVisible);
+        }
+    }
+
+    private void loadFavorite(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
+        File file = new File(favorite.getFilePath());
+        if (!file.exists()) {
+            showAlert("File Not Found", "The file no longer exists: " + favorite.getFilePath());
+            return;
+        }
+
+        if (file.getName().endsWith(".xml")) {
+            processXmlFile(file);
+        } else if (file.getName().endsWith(".xsd")) {
+            xmlService.setCurrentXsdFile(file);
+            xsdFileName.setText(file.getName());
+        }
+
+        // Update access count
+        favorite.setAccessCount(favorite.getAccessCount() + 1);
+        favorite.setLastAccessed(java.time.LocalDateTime.now());
+        favoritesService.updateFavorite(favorite);
+
+        logger.info("Loaded favorite: {}", favorite.getName());
     }
 
     /**

@@ -28,6 +28,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +36,7 @@ import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
 import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
 import org.fxt.freexmltoolkit.service.SchemaGenerationResult;
 
-import java.awt.*;
+import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
@@ -164,8 +165,23 @@ public class SchemaGeneratorController {
     @FXML
     private TableColumn<TypeDefinition, String> typeDescriptionColumn;
 
+    // UI Components - Favorites
+    @FXML
+    private Button addToFavoritesBtn;
+    @FXML
+    private ToggleButton toggleFavoritesButton;
+    @FXML
+    private VBox favoritesPanel;
+    @FXML
+    private ComboBox<String> favoritesCategoryCombo;
+    @FXML
+    private ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesListView;
+
     // State Management
     private SchemaGenerationResult lastResult;
+    private final org.fxt.freexmltoolkit.service.FavoritesService favoritesService =
+        org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
+    private File currentXmlFile;
 
     @FXML
     private void initialize() {
@@ -174,8 +190,161 @@ public class SchemaGeneratorController {
         initializeUI();
         setupEventHandlers();
         setDefaultOptions();
+        initializeFavorites();
 
         logger.info("Schema Generator Controller initialized successfully");
+    }
+
+    private void initializeFavorites() {
+        if (favoritesCategoryCombo != null) {
+            favoritesCategoryCombo.getItems().addAll("All Categories", "Schema Generator", "XML Files");
+            favoritesCategoryCombo.setValue("All Categories");
+            favoritesCategoryCombo.setOnAction(e -> loadFavoritesForCategory(favoritesCategoryCombo.getValue()));
+        }
+
+        if (favoritesListView != null) {
+            favoritesListView.setCellFactory(lv -> new ListCell<org.fxt.freexmltoolkit.domain.FileFavorite>() {
+                @Override
+                protected void updateItem(org.fxt.freexmltoolkit.domain.FileFavorite item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setGraphic(null);
+                    } else {
+                        setText(item.getName());
+                        org.kordamp.ikonli.javafx.FontIcon icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file-earmark-code");
+                        icon.setIconColor(javafx.scene.paint.Color.web("#007bff"));
+                        icon.setIconSize(14);
+                        setGraphic(icon);
+                    }
+                }
+            });
+
+            favoritesListView.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) {
+                    org.fxt.freexmltoolkit.domain.FileFavorite selected = favoritesListView.getSelectionModel().getSelectedItem();
+                    if (selected != null) {
+                        loadFavorite(selected);
+                    }
+                }
+            });
+        }
+
+        if (addToFavoritesBtn != null) {
+            addToFavoritesBtn.setOnAction(e -> addCurrentToFavorites());
+        }
+
+        if (toggleFavoritesButton != null) {
+            toggleFavoritesButton.setOnAction(e -> toggleFavoritesPanel());
+        }
+
+        loadFavoritesForCategory("All Categories");
+    }
+
+    private void loadFavoritesForCategory(String category) {
+        if (favoritesListView == null) return;
+
+        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> allFavorites = favoritesService.getAllFavorites();
+        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> filtered;
+
+        if ("All Categories".equals(category)) {
+            filtered = allFavorites;
+        } else {
+            filtered = allFavorites.stream()
+                    .filter(f -> category.equals(f.getFolderName()))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
+        favoritesListView.setItems(javafx.collections.FXCollections.observableArrayList(filtered));
+    }
+
+    private void addCurrentToFavorites() {
+        if (xmlInputArea == null || xmlInputArea.getText().trim().isEmpty()) {
+            showAlert("No Content", "Please load or paste XML content before adding to favorites.");
+            return;
+        }
+
+        if (currentXmlFile == null) {
+            showAlert("No File Loaded", "Please load an XML file (not pasted content) to add to favorites.");
+            return;
+        }
+
+        Dialog<org.fxt.freexmltoolkit.domain.FileFavorite> dialog = new Dialog<>();
+        dialog.setTitle("Add to Favorites");
+        dialog.setHeaderText("Add Current XML File to Favorites");
+
+        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+
+        TextField nameField = new TextField(currentXmlFile.getName());
+        ComboBox<String> categoryCombo = new ComboBox<>();
+        categoryCombo.getItems().addAll("Schema Generator", "XML Files");
+        categoryCombo.setValue("Schema Generator");
+        TextField descField = new TextField();
+
+        grid.add(new Label("Name:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Category:"), 0, 1);
+        grid.add(categoryCombo, 1, 1);
+        grid.add(new Label("Description:"), 0, 2);
+        grid.add(descField, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
+                        nameField.getText(),
+                        currentXmlFile.getAbsolutePath(),
+                        categoryCombo.getValue()
+                );
+                fav.setDescription(descField.getText());
+                favoritesService.addFavorite(fav);
+            }
+            return null;
+        });
+
+        dialog.showAndWait();
+        loadFavoritesForCategory(favoritesCategoryCombo.getValue());
+    }
+
+    private void toggleFavoritesPanel() {
+        if (favoritesPanel != null) {
+            boolean isVisible = !favoritesPanel.isVisible();
+            favoritesPanel.setVisible(isVisible);
+            favoritesPanel.setManaged(isVisible);
+        }
+    }
+
+    private void loadFavorite(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
+        File file = new File(favorite.getFilePath());
+        if (!file.exists()) {
+            showAlert("File Not Found", "The file no longer exists: " + favorite.getFilePath());
+            return;
+        }
+
+        try {
+            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            if (xmlInputArea != null) {
+                xmlInputArea.setText(content);
+            }
+            currentXmlFile = file;
+
+            // Update access count
+            favorite.setAccessCount(favorite.getAccessCount() + 1);
+            favorite.setLastAccessed(java.time.LocalDateTime.now());
+            favoritesService.updateFavorite(favorite);
+
+            logger.info("Loaded favorite: {}", favorite.getName());
+        } catch (IOException e) {
+            logger.error("Failed to load favorite", e);
+            showAlert("Load Error", "Failed to load file: " + e.getMessage());
+        }
     }
 
     private void initializeUI() {
@@ -425,6 +594,7 @@ public class SchemaGeneratorController {
                 if (xmlInputArea != null) {
                     xmlInputArea.setText(content);
                 }
+                currentXmlFile = file;
                 logger.debug("Loaded XML file: {}", file.getAbsolutePath());
             } catch (IOException e) {
                 logger.error("Failed to load XML file", e);
