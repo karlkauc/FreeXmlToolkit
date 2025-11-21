@@ -35,6 +35,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -144,6 +145,12 @@ public class XmlUltimateController implements Initializable {
     // Main Editor
     @FXML
     TabPane xmlFilesPane; // Package-private for testing
+    @FXML
+    private VBox emptyStatePane;
+    @FXML
+    private Button emptyStateNewButton;
+    @FXML
+    private Button emptyStateOpenButton;
 
     // Sidebar Components
     @FXML
@@ -278,6 +285,7 @@ public class XmlUltimateController implements Initializable {
         loadTemplates();
         createInitialTab();
         initializeFavorites();
+        initializeEmptyState();
         updateButtonStates();
         logger.info("Ultimate XML Controller initialized successfully");
     }
@@ -671,22 +679,9 @@ public class XmlUltimateController implements Initializable {
     }
 
     private void createInitialTab() {
-        if (xmlFilesPane != null) {
-            XmlEditor xmlEditor = new XmlEditor();
-            xmlEditor.setMainController(parentController);
-            xmlEditor.setText("Untitled.xml");
-            xmlEditor.setEditorText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>");
-
-            // Apply current sidebar visibility setting
-            String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
-            if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
-                xmlEditor.setXmlEditorSidebarVisible(false);
-            }
-
-            xmlFilesPane.getTabs().add(xmlEditor);
-            xmlFilesPane.getSelectionModel().select(xmlEditor);
-            updateButtonStates();
-        }
+        // No longer creating an initial tab - show empty state instead
+        // Users can create new files or open existing files via empty state buttons or toolbar
+        logger.debug("Skipping initial tab creation to show empty state");
     }
 
     private void initializeFavorites() {
@@ -711,6 +706,59 @@ public class XmlUltimateController implements Initializable {
         }
         
         logger.debug("Favorites system initialized");
+    }
+
+    private void initializeEmptyState() {
+        // Wire up empty state buttons to trigger main actions
+        if (emptyStateNewButton != null) {
+            emptyStateNewButton.setOnAction(e -> newFilePressed());
+        }
+        if (emptyStateOpenButton != null) {
+            emptyStateOpenButton.setOnAction(e -> openFile());
+        }
+
+        // Add listener to TabPane tabs to automatically show/hide empty state
+        if (xmlFilesPane != null) {
+            xmlFilesPane.getTabs().addListener((javafx.collections.ListChangeListener<Tab>) change -> {
+                Platform.runLater(() -> {
+                    if (xmlFilesPane.getTabs().isEmpty()) {
+                        showEmptyState();
+                    } else {
+                        // Only update visibility if not already showing content
+                        if (emptyStatePane != null && emptyStatePane.isVisible()) {
+                            showContent();
+                        }
+                    }
+                });
+            });
+
+            // Check initial state and show empty state if no tabs
+            if (xmlFilesPane.getTabs().isEmpty()) {
+                showEmptyState();
+            }
+        }
+
+        logger.debug("Empty state initialized");
+    }
+
+    private void showContent() {
+        if (emptyStatePane != null && xmlFilesPane != null) {
+            emptyStatePane.setVisible(false);
+            emptyStatePane.setManaged(false);
+            xmlFilesPane.setVisible(true);
+            xmlFilesPane.setManaged(true);
+            logger.debug("Switched from empty state to content view");
+        }
+    }
+
+    private void showEmptyState() {
+        if (emptyStatePane != null && xmlFilesPane != null) {
+            emptyStatePane.setVisible(true);
+            emptyStatePane.setManaged(true);
+            xmlFilesPane.setVisible(false);
+            xmlFilesPane.setManaged(false);
+            logger.debug("Switched from content to empty state view");
+        }
     }
 
     /**

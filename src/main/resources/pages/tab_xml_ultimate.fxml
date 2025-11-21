@@ -165,9 +165,33 @@
     <SplitPane fx:id="mainSplitPane" orientation="VERTICAL" VBox.vgrow="ALWAYS" dividerPositions="0.75">
         <!-- Main Content Area with Horizontal Split for Favorites Panel -->
         <SplitPane fx:id="horizontalSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
-            <!-- Main Editor Tabs -->
-            <TabPane fx:id="xmlFilesPane" side="TOP"
-                     styleClass="xml-editor-tabs" minHeight="300"/>
+            <!-- Main Editor Tabs wrapped in StackPane for Empty State -->
+            <StackPane>
+                <!-- Empty State -->
+                <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
+                      visible="true" managed="true">
+                    <FontIcon iconLiteral="bi-file-earmark-code" iconSize="64" iconColor="#adb5bd"/>
+                    <Label text="Ready to Edit XML" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
+                    <Label text="Create a new XML file or open an existing document to start editing" wrapText="true" textAlignment="CENTER"
+                           style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
+                    <HBox spacing="10" alignment="CENTER">
+                        <Button fx:id="emptyStateNewButton" text="New XML File" styleClass="btn-primary">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="white"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="emptyStateOpenButton" text="Open XML File" styleClass="btn-secondary">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                </VBox>
+
+                <!-- Main Editor Tabs (initially hidden) -->
+                <TabPane fx:id="xmlFilesPane" side="TOP"
+                         styleClass="xml-editor-tabs" minHeight="300" visible="false" managed="false"/>
+            </StackPane>
 
             <!-- Favorites Panel Sidebar -->
             <fx:include fx:id="favoritesPanel" source="controls/FavoritesPanel.fxml"/>
