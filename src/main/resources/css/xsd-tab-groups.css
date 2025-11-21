@@ -200,3 +200,10 @@
 .xsd-toolbar .menu-button.toolbar-button .arrow {
     -fx-shape: null;
 }
+/* ===================================== */
+/* Empty State Placeholder              */
+/* ===================================== */
+.empty-state {
+    -fx-background-color: #f8f9fa;
+    -fx-padding: 60;
+}
