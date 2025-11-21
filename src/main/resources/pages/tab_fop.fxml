@@ -43,15 +43,17 @@
 
         <Separator orientation="VERTICAL"/>
 
-        <!-- Generate Action -->
-        <Button text="Generate" contentDisplay="TOP" styleClass="toolbar-button">
+        <!-- Primary Action Group -->
+        <Button text="Generate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#buttonConversion">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark" iconSize="20" iconColor="#28a745"/>
+                <FontIcon iconLiteral="bi-play-circle-fill" iconSize="20" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Generate PDF"/>
             </tooltip>
         </Button>
+
+        <Separator orientation="VERTICAL"/>
 
         <!-- Favorites Group -->
         <Button fx:id="addToFavoritesBtn" text="Add Fav" contentDisplay="TOP" styleClass="toolbar-button">
@@ -201,18 +203,9 @@
                         </GridPane>
                     </VBox>
 
-                    <!-- Action Button & Progress -->
-                    <VBox spacing="10" alignment="CENTER">
-                        <Button onAction="#buttonConversion" text="Create PDF"
-                                maxWidth="Infinity"
-                                styleClass="button, :default">
-                            <graphic>
-                                <FontIcon iconLiteral="fth-play" iconSize="16"/>
-                            </graphic>
-                        </Button>
-                        <ProgressIndicator fx:id="progressIndicator" maxWidth="Infinity" progress="0.0"
-                                           visible="false"/>
-                    </VBox>
+                    <!-- Progress Indicator -->
+                    <ProgressIndicator fx:id="progressIndicator" maxWidth="Infinity" progress="0.0"
+                                       visible="false"/>
 
                 </VBox>
             </ScrollPane>

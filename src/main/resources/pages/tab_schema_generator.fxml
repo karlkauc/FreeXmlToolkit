@@ -50,6 +50,19 @@
 
         <Separator orientation="VERTICAL"/>
 
+        <!-- Primary Action Group -->
+        <Button fx:id="generateSchemaBtn" text="Generate" contentDisplay="TOP" styleClass="toolbar-button"
+                onAction="#generateSchema">
+            <graphic>
+                <FontIcon iconLiteral="bi-play-circle-fill" iconSize="20" iconColor="#28a745"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Generate XSD Schema"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
         <!-- Favorites Group -->
         <Button fx:id="addToFavoritesBtn" text="Add Fav" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
@@ -151,16 +164,8 @@
                           promptText="Paste your XML content here or use 'Load XML' to open a file..."/>
             </VBox>
 
-            <!-- Generate Button -->
-            <VBox spacing="10">
-                <Button fx:id="generateSchemaBtn" text="Generate XSD Schema" styleClass="btn-success btn-large"
-                        onAction="#generateSchema" prefWidth="250">
-                    <graphic>
-                        <FontIcon iconLiteral="bi-gear-fill" iconSize="18"/>
-                    </graphic>
-                </Button>
-                <ProgressBar fx:id="generationProgressBar" prefWidth="250" visible="false"/>
-            </VBox>
+            <!-- Progress Indicator -->
+            <ProgressBar fx:id="generationProgressBar" prefWidth="Infinity" visible="false"/>
         </VBox>
 
         <!-- Right Panel: Generated Schema and Analysis + Favorites -->

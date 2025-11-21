@@ -222,9 +222,9 @@
 
                         <!-- Action Button -->
                         <Button onAction="#createNewSignatureFile" text="Create Certificate and Keystore"
-                                maxWidth="Infinity" styleClass="button, :default">
+                                maxWidth="Infinity" styleClass="btn-success">
                             <graphic>
-                                <FontIcon iconLiteral="bi-shield-lock" iconSize="16"/>
+                                <FontIcon iconLiteral="bi-shield-lock" iconSize="16" iconColor="white"/>
                             </graphic>
                         </Button>
                     </VBox>
@@ -313,9 +313,9 @@
 
                         <!-- Action Button -->
                         <Button onAction="#signDocument" text="Sign Document" maxWidth="Infinity"
-                                styleClass="button, :default">
+                                styleClass="btn-primary">
                             <graphic>
-                                <FontIcon iconLiteral="bi-check-circle" iconSize="16"/>
+                                <FontIcon iconLiteral="bi-pencil-square" iconSize="16" iconColor="white"/>
                             </graphic>
                         </Button>
                     </VBox>
@@ -359,9 +359,9 @@
 
                         <!-- Action Button -->
                         <Button onAction="#validateSignedDocument" text="Validate Document" maxWidth="Infinity"
-                                styleClass="button, :default">
+                                styleClass="btn-success">
                             <graphic>
-                                <FontIcon iconLiteral="bi-search" iconSize="16"/>
+                                <FontIcon iconLiteral="bi-patch-check" iconSize="16" iconColor="white"/>
                             </graphic>
                         </Button>
                     </VBox>
@@ -487,9 +487,9 @@
                                 </GridPane>
 
                                 <Button onAction="#expertCreateCertificate" text="Generate Advanced Certificate"
-                                        maxWidth="Infinity">
+                                        maxWidth="Infinity" styleClass="btn-success">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-shield-lock-fill" iconSize="16"/>
+                                        <FontIcon iconLiteral="bi-shield-lock-fill" iconSize="16" iconColor="white"/>
                                     </graphic>
                                 </Button>
                             </VBox>
@@ -576,9 +576,9 @@
                                 </GridPane>
 
                                 <Button onAction="#expertSignDocument" text="Sign with Advanced Options"
-                                        maxWidth="Infinity">
+                                        maxWidth="Infinity" styleClass="btn-primary">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-pen-fill" iconSize="16"/>
+                                        <FontIcon iconLiteral="bi-pen-fill" iconSize="16" iconColor="white"/>
                                     </graphic>
                                 </Button>
                             </VBox>
@@ -622,9 +622,9 @@
                                 </VBox>
 
                                 <Button onAction="#expertValidateDocument" text="Advanced Validation"
-                                        maxWidth="Infinity">
+                                        maxWidth="Infinity" styleClass="btn-success">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-shield-check" iconSize="16"/>
+                                        <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="white"/>
                                     </graphic>
                                 </Button>
                             </VBox>
