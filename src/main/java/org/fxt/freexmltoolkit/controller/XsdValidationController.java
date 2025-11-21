@@ -101,6 +101,16 @@ public class XsdValidationController {
     @FXML
     private ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesListView;
 
+    // UI Components - Empty State
+    @FXML
+    private VBox emptyStatePane;
+    @FXML
+    private ScrollPane contentPane;
+    @FXML
+    private Button emptyStateOpenXmlButton;
+    @FXML
+    private Button emptyStateFavoritesButton;
+
     // Favorites Service
     private final org.fxt.freexmltoolkit.service.FavoritesService favoritesService =
         org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
@@ -154,6 +164,7 @@ public class XsdValidationController {
         // Setze den initialen Status der UI
         resetUI();
         initializeFavorites();
+        initializeEmptyState();
     }
 
     private void initializeFavorites() {
@@ -198,6 +209,39 @@ public class XsdValidationController {
         }
 
         loadFavoritesForCategory("All Categories");
+    }
+
+    /**
+     * Initializes the empty state UI and wires up button actions.
+     */
+    private void initializeEmptyState() {
+        // Wire up empty state buttons to trigger main actions
+        if (emptyStateOpenXmlButton != null) {
+            emptyStateOpenXmlButton.setOnAction(e -> xmlLoadButton.fire());
+        }
+
+        if (emptyStateFavoritesButton != null) {
+            emptyStateFavoritesButton.setOnAction(e -> {
+                if (toggleFavoritesButton != null) {
+                    toggleFavoritesButton.setSelected(true);
+                    toggleFavoritesButton.fire();
+                }
+            });
+        }
+    }
+
+    /**
+     * Shows the main content and hides the empty state placeholder.
+     * Called when files are loaded.
+     */
+    private void showContent() {
+        if (emptyStatePane != null && contentPane != null) {
+            emptyStatePane.setVisible(false);
+            emptyStatePane.setManaged(false);
+            contentPane.setVisible(true);
+            contentPane.setManaged(true);
+            logger.debug("Switched from empty state to content view");
+        }
     }
 
     private org.kordamp.ikonli.javafx.FontIcon getIconForFile(String filePath) {
@@ -320,10 +364,11 @@ public class XsdValidationController {
         }
 
         if (file.getName().endsWith(".xml")) {
-            processXmlFile(file);
+            processXmlFile(file);  // This already calls showContent()
         } else if (file.getName().endsWith(".xsd")) {
             xmlService.setCurrentXsdFile(file);
             xsdFileName.setText(file.getName());
+            showContent();  // Show content when XSD is loaded
         }
 
         // Update access count
@@ -446,6 +491,7 @@ public class XsdValidationController {
             xmlService.setCurrentXmlFile(file);
             xmlService.prettyFormatCurrentFile();
             xmlFileName.setText(file.getName());
+            showContent();  // Show main content, hide empty state
             progressIndicator.setProgress(0.2);
 
             if (autodetect.isSelected()) {
