@@ -95,7 +95,7 @@
             <!-- Empty State -->
             <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
                   visible="true" managed="true">
-                <FontIcon iconLiteral="bi-file-earmark-pdf" iconSize="64" iconColor="#adb5bd"/>
+                <FontIcon iconLiteral="bi-filetype-pdf" iconSize="64" iconColor="#adb5bd"/>
                 <Label text="Ready to Generate PDF" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
                 <Label text="Load XML and XSL-FO files to generate a PDF document" wrapText="true" textAlignment="CENTER"
                        style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
