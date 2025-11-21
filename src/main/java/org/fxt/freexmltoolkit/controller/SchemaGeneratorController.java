@@ -177,6 +177,16 @@ public class SchemaGeneratorController {
     @FXML
     private ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesListView;
 
+    // UI Components - Empty State
+    @FXML
+    private VBox emptyStatePane;
+    @FXML
+    private VBox contentPane;
+    @FXML
+    private Button emptyStateOpenXmlButton;
+    @FXML
+    private Button emptyStatePasteButton;
+
     // State Management
     private SchemaGenerationResult lastResult;
     private final org.fxt.freexmltoolkit.service.FavoritesService favoritesService =
@@ -191,6 +201,7 @@ public class SchemaGeneratorController {
         setupEventHandlers();
         setDefaultOptions();
         initializeFavorites();
+        initializeEmptyState();
 
         logger.info("Schema Generator Controller initialized successfully");
     }
@@ -340,10 +351,39 @@ public class SchemaGeneratorController {
             favorite.setLastAccessed(java.time.LocalDateTime.now());
             favoritesService.updateFavorite(favorite);
 
+            showContent();  // Show content when favorite is loaded
             logger.info("Loaded favorite: {}", favorite.getName());
         } catch (IOException e) {
             logger.error("Failed to load favorite", e);
             showAlert("Load Error", "Failed to load file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Initializes the empty state UI and wires up button actions.
+     */
+    private void initializeEmptyState() {
+        // Wire up empty state buttons to trigger main actions
+        if (emptyStateOpenXmlButton != null) {
+            emptyStateOpenXmlButton.setOnAction(e -> loadXmlBtn.fire());
+        }
+
+        if (emptyStatePasteButton != null) {
+            emptyStatePasteButton.setOnAction(e -> pasteXmlBtn.fire());
+        }
+    }
+
+    /**
+     * Shows the main content and hides the empty state placeholder.
+     * Called when files are loaded or content is pasted.
+     */
+    private void showContent() {
+        if (emptyStatePane != null && contentPane != null) {
+            emptyStatePane.setVisible(false);
+            emptyStatePane.setManaged(false);
+            contentPane.setVisible(true);
+            contentPane.setManaged(true);
+            logger.debug("Switched from empty state to content view");
         }
     }
 
@@ -595,6 +635,7 @@ public class SchemaGeneratorController {
                     xmlInputArea.setText(content);
                 }
                 currentXmlFile = file;
+                showContent();  // Show content when XML file is loaded
                 logger.debug("Loaded XML file: {}", file.getAbsolutePath());
             } catch (IOException e) {
                 logger.error("Failed to load XML file", e);
@@ -610,6 +651,7 @@ public class SchemaGeneratorController {
                     .getSystemClipboard().getData(java.awt.datatransfer.DataFlavor.stringFlavor);
             if (xmlInputArea != null && clipboardContent != null) {
                 xmlInputArea.setText(clipboardContent);
+                showContent();  // Show content when XML is pasted
             }
         } catch (Exception e) {
             showAlert("Paste Error", "Failed to paste from clipboard: " + e.getMessage());

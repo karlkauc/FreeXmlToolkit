@@ -97,8 +97,31 @@
 
     <!-- Main Content Area -->
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.75">
-        <!-- Left Panel: Configuration and XML Input -->
-        <VBox spacing="15" styleClass="schema-config-sidebar">
+        <!-- Left Panel: Configuration and XML Input wrapped in StackPane for Empty State -->
+        <StackPane>
+            <!-- Empty State -->
+            <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
+                  visible="true" managed="true">
+                <FontIcon iconLiteral="bi-diagram-3" iconSize="64" iconColor="#adb5bd"/>
+                <Label text="Ready to Generate Schema" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
+                <Label text="Load an XML file or paste XML content to generate an XSD schema" wrapText="true" textAlignment="CENTER"
+                       style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" styleClass="btn-primary">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
+                        </graphic>
+                    </Button>
+                    <Button fx:id="emptyStatePasteButton" text="Paste XML" styleClass="btn-secondary">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-clipboard" iconSize="16"/>
+                        </graphic>
+                    </Button>
+                </HBox>
+            </VBox>
+
+            <!-- Main Content (initially hidden) -->
+            <VBox fx:id="contentPane" spacing="15" styleClass="schema-config-sidebar" visible="false" managed="false">
             <padding>
                 <Insets top="15" bottom="15" left="15" right="15"/>
             </padding>
@@ -166,7 +189,8 @@
 
             <!-- Progress Indicator -->
             <ProgressBar fx:id="generationProgressBar" prefWidth="Infinity" visible="false"/>
-        </VBox>
+            </VBox>
+        </StackPane>
 
         <!-- Right Panel: Generated Schema and Analysis + Favorites -->
         <HBox spacing="0">
