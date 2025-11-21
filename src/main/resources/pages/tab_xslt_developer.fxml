@@ -95,9 +95,32 @@
         </Button>
     </ToolBar>
 
-    <!-- Main Content Area -->
-    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.75" orientation="HORIZONTAL"
-              >
+    <!-- Main Content Area wrapped in StackPane for Empty State -->
+    <StackPane VBox.vgrow="ALWAYS">
+        <!-- Empty State -->
+        <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
+              visible="true" managed="true">
+            <FontIcon iconLiteral="bi-arrow-repeat" iconSize="64" iconColor="#adb5bd"/>
+            <Label text="Ready to Transform XML" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
+            <Label text="Load XML and XSLT files to transform your documents" wrapText="true" textAlignment="CENTER"
+                   style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
+            <HBox spacing="10" alignment="CENTER">
+                <Button fx:id="emptyStateLoadXmlButton" text="Open XML File" styleClass="btn-primary">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="emptyStateLoadXsltButton" text="Open XSLT File" styleClass="btn-secondary">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-file-earmark-text" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </HBox>
+        </VBox>
+
+        <!-- Main Content (initially hidden) -->
+        <SplitPane fx:id="contentPane" dividerPositions="0.75" orientation="HORIZONTAL"
+                   visible="false" managed="false">
         <!-- Left Panel: Input Section -->
         <VBox spacing="10" styleClass="xslt-input-section">
             <padding>
@@ -379,4 +402,5 @@
             </VBox>
         </HBox>
     </SplitPane>
+    </StackPane>
 </VBox>

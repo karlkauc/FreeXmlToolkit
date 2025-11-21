@@ -172,6 +172,16 @@ public class XsltDeveloperController {
     @FXML
     private ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesListView;
 
+    // Empty State
+    @FXML
+    private VBox emptyStatePane;
+    @FXML
+    private SplitPane contentPane;
+    @FXML
+    private Button emptyStateLoadXmlButton;
+    @FXML
+    private Button emptyStateLoadXsltButton;
+
     // State Management
     private XsltTransformationResult lastResult;
     private final Map<String, String> currentParameters = new HashMap<>();
@@ -188,6 +198,7 @@ public class XsltDeveloperController {
         setupEventHandlers();
         setDefaultValues();
         initializeFavorites();
+        initializeEmptyState();
 
         logger.info("XSLT Developer Controller initialized successfully");
     }
@@ -234,6 +245,38 @@ public class XsltDeveloperController {
         }
 
         loadFavoritesForCategory("All Categories");
+    }
+
+    private void initializeEmptyState() {
+        // Wire up empty state buttons to trigger file loading actions
+        if (emptyStateLoadXmlButton != null) {
+            emptyStateLoadXmlButton.setOnAction(e -> loadXmlFile());
+        }
+        if (emptyStateLoadXsltButton != null) {
+            emptyStateLoadXsltButton.setOnAction(e -> loadXsltFile());
+        }
+
+        logger.debug("Empty state initialized");
+    }
+
+    private void showContent() {
+        if (emptyStatePane != null && contentPane != null) {
+            emptyStatePane.setVisible(false);
+            emptyStatePane.setManaged(false);
+            contentPane.setVisible(true);
+            contentPane.setManaged(true);
+            logger.debug("Switched from empty state to content view");
+        }
+    }
+
+    private void showEmptyState() {
+        if (emptyStatePane != null && contentPane != null) {
+            emptyStatePane.setVisible(true);
+            emptyStatePane.setManaged(true);
+            contentPane.setVisible(false);
+            contentPane.setManaged(false);
+            logger.debug("Switched from content to empty state view");
+        }
     }
 
     private org.kordamp.ikonli.javafx.FontIcon getIconForFile(String filePath) {
@@ -692,6 +735,9 @@ public class XsltDeveloperController {
                 currentXmlFile = file;
                 logger.debug("Loaded XML file: {}", file.getAbsolutePath());
 
+                // Show content when file is loaded
+                showContent();
+
                 if (liveTransformToggle != null && liveTransformToggle.isSelected()) {
                     performTransformation();
                 }
@@ -853,6 +899,9 @@ public class XsltDeveloperController {
                 }
                 currentXsltFile = file;
                 logger.debug("Loaded XSLT file: {}", file.getAbsolutePath());
+
+                // Show content when file is loaded
+                showContent();
             } catch (IOException e) {
                 logger.error("Failed to load XSLT file", e);
                 showAlert("Load Error", "Failed to load XSLT file: " + e.getMessage());
