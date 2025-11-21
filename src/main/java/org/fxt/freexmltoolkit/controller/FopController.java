@@ -80,6 +80,16 @@ public class FopController {
     private final org.fxt.freexmltoolkit.service.FavoritesService favoritesService =
         org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
 
+    // UI Components - Empty State
+    @FXML
+    private VBox emptyStatePane;
+    @FXML
+    private ScrollPane contentPane;
+    @FXML
+    private Button emptyStateOpenXmlButton;
+    @FXML
+    private Button emptyStateFavoritesButton;
+
     /**
      * Sets the parent controller.
      *
@@ -119,6 +129,7 @@ public class FopController {
         }));
 
         initializeFavorites();
+        initializeEmptyState();
     }
 
     private void initializeFavorites() {
@@ -287,9 +298,11 @@ public class FopController {
         if (file.getName().endsWith(".xml")) {
             xmlFile = file;
             xmlFileName.setText(file.getName());
+            showContent();  // Show content when file is loaded
         } else if (file.getName().endsWith(".xsl")) {
             xslFile = file;
             xslFileName.setText(file.getName());
+            showContent();  // Show content when file is loaded
         }
 
         // Update access count
@@ -298,6 +311,39 @@ public class FopController {
         favoritesService.updateFavorite(favorite);
 
         logger.info("Loaded favorite: {}", favorite.getName());
+    }
+
+    /**
+     * Initializes the empty state UI and wires up button actions.
+     */
+    private void initializeEmptyState() {
+        // Find the open XML button in the toolbar (it doesn't have an fx:id)
+        if (emptyStateOpenXmlButton != null) {
+            emptyStateOpenXmlButton.setOnAction(e -> openXmlFile());
+        }
+
+        if (emptyStateFavoritesButton != null) {
+            emptyStateFavoritesButton.setOnAction(e -> {
+                if (toggleFavoritesButton != null) {
+                    toggleFavoritesButton.setSelected(true);
+                    toggleFavoritesButton.fire();
+                }
+            });
+        }
+    }
+
+    /**
+     * Shows the main content and hides the empty state placeholder.
+     * Called when files are loaded.
+     */
+    private void showContent() {
+        if (emptyStatePane != null && contentPane != null) {
+            emptyStatePane.setVisible(false);
+            emptyStatePane.setManaged(false);
+            contentPane.setVisible(true);
+            contentPane.setManaged(true);
+            logger.debug("Switched from empty state to content view");
+        }
     }
 
     private void showAlert(String title, String message) {
@@ -342,6 +388,7 @@ public class FopController {
         openFile("XML files (*.xml)", "*.xml", file -> {
             xmlFile = file;
             xmlFileName.setText(file.getName());
+            showContent();  // Show content when XML file is loaded
         });
     }
 
@@ -353,6 +400,7 @@ public class FopController {
         openFile("XSL files (*.xsl)", "*.xsl", file -> {
             xslFile = file;
             xslFileName.setText(file.getName());
+            showContent();  // Show content when XSL file is loaded
         });
     }
 

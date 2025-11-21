@@ -90,11 +90,32 @@
     <!-- Main Content SplitPane -->
     <SplitPane dividerPositions="0.40" VBox.vgrow="ALWAYS">
 
-        <!-- LINKE SEITE: Alle Ihre bisherigen Steuerelemente -->
-        <AnchorPane>
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;"
-                        AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                        AnchorPane.topAnchor="0.0">
+        <!-- LINKE SEITE: Wrapped in StackPane for Empty State -->
+        <StackPane>
+            <!-- Empty State -->
+            <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
+                  visible="true" managed="true">
+                <FontIcon iconLiteral="bi-file-earmark-pdf" iconSize="64" iconColor="#adb5bd"/>
+                <Label text="Ready to Generate PDF" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
+                <Label text="Load XML and XSL-FO files to generate a PDF document" wrapText="true" textAlignment="CENTER"
+                       style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" styleClass="btn-primary">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
+                        </graphic>
+                    </Button>
+                    <Button fx:id="emptyStateFavoritesButton" text="Browse Favorites" styleClass="btn-secondary">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-heart" iconSize="16"/>
+                        </graphic>
+                    </Button>
+                </HBox>
+            </VBox>
+
+            <!-- Main Content (initially hidden) -->
+            <ScrollPane fx:id="contentPane" fitToWidth="true" style="-fx-background-color: transparent;"
+                        visible="false" managed="false">
                 <VBox spacing="20" style="-fx-padding: 20;">
 
                     <!-- Karte 1: Ein- & Ausgabedateien -->
@@ -209,7 +230,7 @@
 
                 </VBox>
             </ScrollPane>
-        </AnchorPane>
+        </StackPane>
 
         <!-- RECHTE SEITE: Der PDF-Viewer + Favorites -->
         <HBox spacing="0">
