@@ -138,4 +138,60 @@ public class XmlServiceTest {
         assertTrue(schemaName.startsWith("file://") || schemaName.contains("FundsXML_428.xsd"),
                 "Schema name should be a file:// URL or contain the XSD filename");
     }
+
+    @Test
+    @DisplayName("Should correctly format XML with excessive whitespace in text nodes")
+    void testPrettyFormatRemovesExcessiveWhitespace() {
+        // This test case matches the user's reported issue
+        String inputXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n   h\n   </root>";
+
+        String formatted = XmlService.prettyFormat(inputXml, 2);
+
+        assertNotNull(formatted, "Formatted XML should not be null");
+
+        // The formatted output should have the text "h" without excessive surrounding whitespace
+        // It should look like: <root>\n  h\n</root>
+        assertTrue(formatted.contains("<root>"), "Formatted XML should contain root element");
+        assertTrue(formatted.contains("h"), "Formatted XML should contain the text content 'h'");
+
+        // Verify that excessive whitespace is removed - the formatted output should not
+        // have multiple spaces/newlines around the text "h"
+        assertFalse(formatted.contains("   h   "),
+                "Formatted XML should not contain excessive whitespace around text content");
+
+        // Verify the text content is trimmed
+        assertTrue(formatted.contains(">h<"),
+                "Text content should be trimmed (no whitespace between tags and content)");
+    }
+
+    @Test
+    @DisplayName("Should preserve meaningful whitespace in mixed content")
+    void testPrettyFormatPreservesMeaningfulWhitespace() {
+        String inputXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root><text>Hello World</text></root>";
+
+        String formatted = XmlService.prettyFormat(inputXml, 2);
+
+        assertNotNull(formatted, "Formatted XML should not be null");
+        assertTrue(formatted.contains("Hello World"),
+                "Formatted XML should preserve meaningful whitespace in text content");
+    }
+
+    @Test
+    @DisplayName("Should handle nested elements with whitespace correctly")
+    void testPrettyFormatNestedElementsWithWhitespace() {
+        String inputXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>  \n  <child>  value  </child>  \n</root>";
+
+        String formatted = XmlService.prettyFormat(inputXml, 2);
+
+        assertNotNull(formatted, "Formatted XML should not be null");
+        assertTrue(formatted.contains("<root>"), "Formatted XML should contain root element");
+        assertTrue(formatted.contains("<child>"), "Formatted XML should contain child element");
+        assertTrue(formatted.contains("value"), "Formatted XML should contain text value");
+
+        // Verify whitespace-only nodes are removed and text is trimmed
+        assertFalse(formatted.contains("  value  "),
+                "Excessive whitespace around text should be removed");
+        assertTrue(formatted.contains(">value<"),
+                "Text should be trimmed in formatted output");
+    }
 }

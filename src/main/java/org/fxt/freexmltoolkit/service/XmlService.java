@@ -23,10 +23,14 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
@@ -84,6 +88,14 @@ public interface XmlService {
 
     Optional<String> getSchemaNameFromCurrentXMLFile();
 
+    /**
+     * Extracts linked XSLT stylesheet href from xml-stylesheet processing instruction in the current XML file.
+     * Supports local (relative/absolute) paths and remote URLs.
+     *
+     * @return Optional containing resolved stylesheet path/URL, or empty if none found or if user has already loaded a stylesheet
+     */
+    Optional<String> getLinkedStylesheetFromCurrentXMLFile();
+
     boolean loadSchemaFromXMLFile();
 
     Node getNodeFromXpath(String xPath);
@@ -115,17 +127,52 @@ public interface XmlService {
     static String prettyFormat(String input, int indent) {
         Logger logger = LogManager.getLogger(XmlService.class);
         try {
-            Transformer transformer = SAXTransformerFactory.newInstance().newTransformer();
+            // First parse the XML to a DOM to normalize whitespace
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(new InputSource(new StringReader(input)));
+
+            // Remove whitespace-only text nodes to ensure clean formatting
+            normalizeWhitespace(doc.getDocumentElement());
+
+            // Now transform with indentation
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 
-            Source xmlSource = new SAXSource(new InputSource(new ByteArrayInputStream(input.getBytes())));
-            StreamResult res = new StreamResult(new ByteArrayOutputStream());
-            transformer.transform(xmlSource, res);
-            return res.getOutputStream().toString();
+            DOMSource source = new DOMSource(doc);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            StreamResult res = new StreamResult(outputStream);
+            transformer.transform(source, res);
+            return outputStream.toString("UTF-8");
         } catch (Exception e) {
             logger.error("Error formatting XML: {}", e.getMessage());
             return input;
+        }
+    }
+
+    /**
+     * Recursively removes whitespace-only text nodes from the DOM tree.
+     * This ensures clean formatting by removing insignificant whitespace.
+     */
+    private static void normalizeWhitespace(Node node) {
+        NodeList children = node.getChildNodes();
+        for (int i = children.getLength() - 1; i >= 0; i--) {
+            Node child = children.item(i);
+            if (child.getNodeType() == Node.TEXT_NODE) {
+                String text = child.getTextContent();
+                if (text != null && text.trim().isEmpty()) {
+                    // Remove whitespace-only text nodes
+                    node.removeChild(child);
+                } else if (text != null) {
+                    // Trim text nodes that have actual content
+                    child.setTextContent(text.trim());
+                }
+            } else if (child.getNodeType() == Node.ELEMENT_NODE) {
+                normalizeWhitespace(child);
+            }
         }
     }
 

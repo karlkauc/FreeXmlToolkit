@@ -577,7 +577,7 @@ public class XmlUltimateController implements Initializable {
         stackPaneXPath.getChildren().add(virtualizedScrollPaneXpath);
 
         // Add placeholder text
-        codeAreaXpath.replaceText("// Enter your XPath expression here\n// Example: //book[@category='fiction']/title");
+        codeAreaXpath.replaceText("(: Enter your XPath expression here :)\n(: Example: //book[@category='fiction']/title :)");
 
         codeAreaXpath.textProperty().addListener((obs, oldText, newText) -> {
             if (newText != null && !newText.equals(oldText)) {
@@ -1614,21 +1614,28 @@ public class XmlUltimateController implements Initializable {
     }
 
     private String formatXml(String xml, boolean indent) throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document doc = builder.parse(new InputSource(new StringReader(xml)));
+        // Use the improved XmlService.prettyFormat method that handles whitespace properly
+        if (indent) {
+            return XmlService.prettyFormat(xml, 2);
+        } else {
+            // For non-indented, just parse and output without indentation
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new StringReader(xml)));
 
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, indent ? "yes" : "no");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "no");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 
-        DOMSource source = new DOMSource(doc);
-        StringWriter writer = new StringWriter();
-        StreamResult result = new StreamResult(writer);
-        transformer.transform(source, result);
+            DOMSource source = new DOMSource(doc);
+            StringWriter writer = new StringWriter();
+            StreamResult result = new StreamResult(writer);
+            transformer.transform(source, result);
 
-        return writer.toString();
+            return writer.toString();
+        }
     }
 
     // XPath/XQuery Methods
@@ -1672,6 +1679,34 @@ public class XmlUltimateController implements Initializable {
         return null;
     }
 
+    /**
+     * Removes XPath 2.0 style comments (: ... :) and XML comments <!-- ... --> from a query string.
+     * This is necessary because the Java XPath 1.0 parser does not support these comment syntaxes.
+     *
+     * @param query The query string potentially containing comments
+     * @return The query string with all comments removed
+     */
+    private String removeCommentsFromQuery(String query) {
+        if (query == null) {
+            return null;
+        }
+
+        String result = query;
+
+        // Remove XPath 2.0 style comments: (: ... :)
+        // Use non-greedy matching to handle multiple comments
+        result = result.replaceAll("\\(:\\s*.*?\\s*:\\)", "");
+
+        // Remove XML style comments: <!-- ... -->
+        result = result.replaceAll("<!--\\s*.*?\\s*-->", "");
+
+        // Clean up multiple whitespace/newlines left after comment removal
+        result = result.replaceAll("\\n\\s*\\n", "\n");
+        result = result.trim();
+
+        return result;
+    }
+
 
     @FXML
     private void runXpathQueryPressed() {
@@ -1703,7 +1738,10 @@ public class XmlUltimateController implements Initializable {
             return;
         }
 
-        if (query == null || query.trim().isEmpty()) {
+        // Remove comments from query (both XPath 2.0 style (: ... :) and XML style <!-- ... -->)
+        String cleanedQuery = removeCommentsFromQuery(query);
+
+        if (cleanedQuery == null || cleanedQuery.trim().isEmpty()) {
             String errorMsg = "Query is empty. Please enter an XPath or XQuery expression.";
             logger.warn(errorMsg);
             logToConsole(errorMsg);
@@ -1714,13 +1752,13 @@ public class XmlUltimateController implements Initializable {
             return;
         }
 
-        logger.debug("Executing query: {}", query);
+        logger.debug("Executing query: {}", cleanedQuery);
 
         // Validate XPath syntax before executing (for XPath tab only)
         if (selectedItem != null && "xPathTab".equals(selectedItem.getId())) {
             try {
                 // Try to compile the XPath to catch syntax errors early
-                javax.xml.xpath.XPathFactory.newInstance().newXPath().compile(query);
+                javax.xml.xpath.XPathFactory.newInstance().newXPath().compile(cleanedQuery);
             } catch (javax.xml.xpath.XPathExpressionException e) {
                 String errorMsg = "Invalid XPath expression: " + e.getMessage();
                 logger.error(errorMsg, e);
@@ -1743,9 +1781,9 @@ public class XmlUltimateController implements Initializable {
             protected String call() throws Exception {
                 if ("xQueryTab".equals(selectedItem.getId())) {
                     // Execute XQuery with XML content as context
-                    return executeXQuery(xml, query);
+                    return executeXQuery(xml, cleanedQuery);
                 } else if ("xPathTab".equals(selectedItem.getId())) {
-                    return currentEditor.getXmlService().getXmlFromXpath(xml, query);
+                    return currentEditor.getXmlService().getXmlFromXpath(xml, cleanedQuery);
                 } else {
                     return "";
                 }

@@ -36,6 +36,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.FOPService;
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -50,6 +52,7 @@ import java.util.Map;
 public class FopController {
     private static final Logger logger = LogManager.getLogger(FopController.class);
     private final FOPService fopService = new FOPService();
+    private final XmlService xmlService = XmlServiceImpl.getInstance();
     private final FileChooser fileChooser = new FileChooser();
     private String lastOpenDir = ".";
     private File xmlFile, xslFile, pdfFile;
@@ -298,6 +301,15 @@ public class FopController {
         if (file.getName().endsWith(".xml")) {
             xmlFile = file;
             xmlFileName.setText(file.getName());
+
+            // Set the XML file in the service for stylesheet detection
+            xmlService.setCurrentXmlFile(file);
+
+            // Auto-load linked XSLT stylesheet if user hasn't manually loaded one
+            if (xslFile == null) {
+                tryLoadLinkedStylesheet();
+            }
+
             showContent();  // Show content when file is loaded
         } else if (file.getName().endsWith(".xsl")) {
             xslFile = file;
@@ -388,6 +400,15 @@ public class FopController {
         openFile("XML files (*.xml)", "*.xml", file -> {
             xmlFile = file;
             xmlFileName.setText(file.getName());
+
+            // Set the XML file in the service for stylesheet detection
+            xmlService.setCurrentXmlFile(file);
+
+            // Auto-load linked XSLT stylesheet if user hasn't manually loaded one
+            if (xslFile == null) {
+                tryLoadLinkedStylesheet();
+            }
+
             showContent();  // Show content when XML file is loaded
         });
     }
@@ -589,6 +610,59 @@ public class FopController {
                 });
             }
         }).start();
+    }
+
+    /**
+     * Attempts to load a linked XSLT stylesheet from the current XML file's xml-stylesheet processing instruction.
+     * Only loads if user hasn't already manually selected a stylesheet.
+     * Shows a warning if stylesheet is referenced but cannot be loaded.
+     */
+    private void tryLoadLinkedStylesheet() {
+        try {
+            var linkedStylesheet = xmlService.getLinkedStylesheetFromCurrentXMLFile();
+
+            if (linkedStylesheet.isPresent()) {
+                String stylesheetPath = linkedStylesheet.get();
+                logger.debug("Found linked stylesheet: {}", stylesheetPath);
+
+                File stylesheetFile = new File(stylesheetPath);
+
+                // Check if file exists and is valid
+                if (stylesheetFile.exists()) {
+                    // Basic validation - check if it's an XSL file
+                    String fileName = stylesheetFile.getName().toLowerCase();
+                    if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
+                        xslFile = stylesheetFile;
+                        xslFileName.setText(stylesheetFile.getName());
+                        logger.info("Auto-loaded linked XSLT stylesheet: {}", stylesheetPath);
+                    } else {
+                        logger.warn("Linked file is not an XSLT stylesheet (doesn't end with .xsl or .xslt): {}", stylesheetPath);
+                        showStylesheetWarning("Invalid Stylesheet", "The linked file is not an XSLT stylesheet: " + stylesheetPath);
+                    }
+                } else {
+                    logger.warn("Linked stylesheet file not found: {}", stylesheetPath);
+                    showStylesheetWarning("Stylesheet Not Found", "The linked XSLT stylesheet could not be found:\n" + stylesheetPath);
+                }
+            } else {
+                logger.debug("No linked stylesheet found in XML file");
+            }
+        } catch (Exception e) {
+            logger.error("Error while trying to load linked stylesheet: {}", e.getMessage(), e);
+            showStylesheetWarning("Error Loading Stylesheet", "An error occurred while trying to load the linked stylesheet:\n" + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows a warning dialog about stylesheet loading issues.
+     */
+    private void showStylesheetWarning(String title, String message) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle(title);
+            alert.setHeaderText("Linked XSLT Stylesheet Issue");
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
     }
 
     /**

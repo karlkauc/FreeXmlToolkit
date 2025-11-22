@@ -5,6 +5,8 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputDialog;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.AbstractTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.ComplexTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypeEditorTab;
@@ -30,6 +32,8 @@ import java.util.Optional;
  * @since 2.0
  */
 public class TypeEditorTabManager {
+
+    private static final Logger logger = LogManager.getLogger(TypeEditorTabManager.class);
 
     private final TabPane tabPane;
     private final XsdSchema mainSchema;
@@ -59,7 +63,11 @@ public class TypeEditorTabManager {
         if (openTypeTabs.containsKey(typeId)) {
             // Tab already open, just select it
             tabPane.getSelectionModel().select(openTypeTabs.get(typeId));
+            logger.debug("ComplexType tab already open: {}", complexType.getName());
         } else {
+            // Performance tracking
+            long startTime = System.currentTimeMillis();
+
             // Create new tab with main schema
             ComplexTypeEditorTab tab = new ComplexTypeEditorTab(complexType, mainSchema);
 
@@ -73,6 +81,9 @@ public class TypeEditorTabManager {
             tabPane.getTabs().add(tab);
             openTypeTabs.put(typeId, tab);
             tabPane.getSelectionModel().select(tab);
+
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info("Opened ComplexType tab '{}' in {}ms", complexType.getName(), duration);
         }
     }
 
@@ -88,7 +99,11 @@ public class TypeEditorTabManager {
         if (openTypeTabs.containsKey(typeId)) {
             // Tab already open, just select it
             tabPane.getSelectionModel().select(openTypeTabs.get(typeId));
+            logger.debug("SimpleType tab already open: {}", simpleType.getName());
         } else {
+            // Performance tracking
+            long startTime = System.currentTimeMillis();
+
             // Create new tab with main schema
             SimpleTypeEditorTab tab = new SimpleTypeEditorTab(simpleType, mainSchema);
 
@@ -102,6 +117,9 @@ public class TypeEditorTabManager {
             tabPane.getTabs().add(tab);
             openTypeTabs.put(typeId, tab);
             tabPane.getSelectionModel().select(tab);
+
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info("Opened SimpleType tab '{}' in {}ms", simpleType.getName(), duration);
         }
     }
 

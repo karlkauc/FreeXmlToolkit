@@ -864,9 +864,10 @@ public class XsdPropertiesPanel extends VBox {
         assertionsListView.getItems().addAll(xsdElement.getAssertions());
         logger.debug("Loaded {} assertions from element '{}'", xsdElement.getAssertions().size(), xsdElement.getName());
 
-        // TODO: Facets - currently not implemented in model
-        // Facets would need a proper model class (XsdFacet) with type and value
-        // For now, facets tab remains empty
+        // Note: Facets are now implemented in the model via XsdRestriction.getFacets()
+        // However, facets belong to SimpleType restrictions, not directly to elements
+        // Elements can have inherited facets from their type reference, which are displayed via FacetsPanel
+        // Direct facet editing on elements is handled through the referenced SimpleType
 
         logger.debug("Updated constraint tabs for element: {}", xsdElement.getName());
     }

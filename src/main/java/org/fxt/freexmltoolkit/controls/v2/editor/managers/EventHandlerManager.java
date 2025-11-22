@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
+import javafx.scene.control.Alert;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -277,7 +278,6 @@ public class EventHandlerManager {
      */
     private void showElementInfo(XsdExtendedElement elementInfo) {
         StringBuilder info = new StringBuilder();
-        info.append("Element: ").append(elementInfo.getElementName()).append("\n\n");
 
         if (elementInfo.getElementType() != null) {
             info.append("Type: ").append(elementInfo.getElementType()).append("\n");
@@ -292,8 +292,14 @@ public class EventHandlerManager {
             }
         }
 
-        logger.info("Element Info:\n{}", info.toString());
-        // TODO: Show in a proper dialog instead of just logging
+        logger.debug("Element Info displayed for: {}", elementInfo.getElementName());
+
+        // Show in proper dialog
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Element Information");
+        alert.setHeaderText("Element: " + elementInfo.getElementName());
+        alert.setContentText(info.toString());
+        alert.showAndWait();
     }
 
     /**

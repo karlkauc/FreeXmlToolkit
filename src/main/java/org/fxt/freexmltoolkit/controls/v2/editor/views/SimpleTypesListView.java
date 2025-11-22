@@ -15,6 +15,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.Priority;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -579,30 +580,14 @@ public class SimpleTypesListView extends BorderPane {
 
     /**
      * Updates the preview area with XSD for the selected type.
+     * Uses XsdSerializer for accurate XSD output with proper formatting.
      *
      * @param simpleType the simple type
      */
     private void updatePreview(XsdSimpleType simpleType) {
-        // TODO Phase 4: Use XsdSerializer for real XSD output
-        // For now, generate simple XSD preview
-        StringBuilder xsd = new StringBuilder();
-        xsd.append("<xs:simpleType name=\"").append(simpleType.getName()).append("\">\n");
-
-        for (XsdNode child : simpleType.getChildren()) {
-            if (child instanceof XsdRestriction) {
-                XsdRestriction restriction = (XsdRestriction) child;
-                xsd.append("  <xs:restriction base=\"").append(restriction.getBase()).append("\">\n");
-                for (XsdFacet facet : restriction.getFacets()) {
-                    xsd.append("    <xs:").append(facet.getFacetType().toString().toLowerCase())
-                            .append(" value=\"").append(facet.getValue()).append("\"/>\n");
-                }
-                xsd.append("  </xs:restriction>\n");
-            }
-        }
-
-        xsd.append("</xs:simpleType>");
-
-        previewArea.setText(xsd.toString());
+        XsdSerializer serializer = new XsdSerializer();
+        String xsd = serializer.serializeSimpleTypeOnly(simpleType);
+        previewArea.setText(xsd);
     }
 
     // Action handlers

@@ -130,6 +130,64 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Documentation:** See `docs/XSD_EDITOR_V2_README.md` for detailed V2 architecture
 
+### XSD Type Editor: Multi-Tab Type Management
+
+**Special Feature:** Dedicated tab-based editor for XSD ComplexTypes and SimpleTypes.
+
+**Key Components:**
+- **TypeEditorTabManager** - Manages multiple type editor tabs
+- **ComplexTypeEditorTab** - Graphical editor for ComplexTypes using XsdGraphView
+- **SimpleTypeEditorTab** - Form-based editor for SimpleTypes (5 panels)
+- **SimpleTypesListTab** - Overview of all SimpleTypes with filter/search
+
+**Architecture:**
+
+```
+TypeEditorTabManager
+├─ Schema Tab (main schema view)
+├─ ComplexType Tabs (multiple, graphical editing with XsdGraphView)
+├─ SimpleType Tabs (multiple, 5-panel form editor)
+└─ SimpleTypes List Tab (overview with preview)
+```
+
+**ComplexType Editor Features:**
+- Type name appears as root node
+- Full graphical editing (Add/Delete/Modify elements)
+- Reuses XsdGraphView for visualization
+- Sequence/Choice/All support
+- Save/Discard with dirty tracking
+- Isolated XsdEditorContext per tab
+
+**SimpleType Editor Features:**
+- 5 specialized panels:
+  - General (Name, Final attribute)
+  - Restriction (Base type + FacetsPanel)
+  - List (ItemType selection)
+  - Union (MemberTypes management)
+  - Annotation (Documentation/AppInfo)
+- Direct model modification (no virtual schema)
+- PropertyChangeSupport for change tracking
+- Complete XSD 1.0/1.1 support
+
+**SimpleTypes List Features:**
+- TableView with columns: Name, Base Type, Facets, Usage Count
+- Filter/Search functionality
+- Sort by multiple criteria
+- XSD Preview panel (uses XsdSerializer)
+- Actions: Edit, Delete, Duplicate, Find Usage
+
+**Performance:**
+- Tab opening tracked with performance logging
+- Target: < 1s tab opening time
+- Memory-efficient with proper cleanup
+
+**Key Files:**
+- `controls/v2/editor/TypeEditorTabManager.java` - Tab management
+- `controls/v2/editor/tabs/*.java` - Tab implementations
+- `controls/v2/editor/views/*.java` - View implementations
+
+**Documentation:** See `TYPE_EDITOR_STATUS.md` for implementation status
+
 ### Key Controller Responsibilities
 
 **MainController:** Application lifecycle, navigation, memory monitoring, ExecutorService coordination

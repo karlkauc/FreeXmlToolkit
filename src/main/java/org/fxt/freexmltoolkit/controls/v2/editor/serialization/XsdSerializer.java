@@ -103,6 +103,25 @@ public class XsdSerializer {
     }
 
     /**
+     * Serializes a single SimpleType to XSD XML.
+     * Useful for previewing individual SimpleTypes without full schema context.
+     *
+     * @param simpleType the simple type to serialize
+     * @return XSD XML string for the simple type
+     * @since 2.0
+     */
+    public String serializeSimpleTypeOnly(XsdSimpleType simpleType) {
+        if (simpleType == null) {
+            logger.warn("Cannot serialize null SimpleType");
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        serializeSimpleType(simpleType, sb, "", 0);
+        return sb.toString();
+    }
+
+    /**
      * Serializes a single XsdNode (recursive helper method).
      *
      * @param node   the node to serialize

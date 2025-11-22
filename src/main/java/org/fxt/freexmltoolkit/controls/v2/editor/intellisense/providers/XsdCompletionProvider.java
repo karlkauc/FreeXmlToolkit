@@ -194,10 +194,25 @@ public class XsdCompletionProvider implements CompletionProvider {
 
     /**
      * Gets attribute completions.
-     * TODO: Implement XSD attribute completion
+     *
+     * FUTURE ENHANCEMENT: XSD attribute completion
+     * Implementation would require:
+     * 1. Parse XSD schema to extract attribute definitions for current element type
+     * 2. Resolve element's type definition (complexType/simpleType)
+     * 3. Collect attributes from type definition and its base types
+     * 4. Filter out attributes already present in the element
+     * 5. Include global attributes if applicable
+     * 6. Provide completion items with attribute names, types, and documentation
+     *
+     * Complexity: High - requires full XSD type resolution and inheritance chain traversal
+     *
+     * @param context the XML context at cursor position
+     * @param xsdData the XSD documentation data
+     * @return list of attribute completion items (currently empty)
      */
     private List<CompletionItem> getAttributeCompletions(XmlContext context, XsdDocumentationData xsdData) {
-        // TODO: Parse XSD for attribute definitions
+        // Future enhancement: Parse XSD for attribute definitions
+        // See JavaDoc above for implementation requirements
         logger.debug("Attribute completions from XSD not yet implemented");
         return new ArrayList<>();
     }

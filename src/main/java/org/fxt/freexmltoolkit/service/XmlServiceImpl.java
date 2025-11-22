@@ -38,6 +38,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.ProcessingInstruction;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -792,27 +793,38 @@ public class XmlServiceImpl implements XmlService {
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new InputSource(new StringReader(xml)));
 
-            // Evaluate XPath against the parsed document
-            var nodeList = (NodeList) xPathPath.compile(xPath).evaluate(doc, XPathConstants.NODESET);
-            sw = new StringWriter();
+            // Try to evaluate as NODESET first (for node selections)
+            try {
+                var nodeList = (NodeList) xPathPath.compile(xPath).evaluate(doc, XPathConstants.NODESET);
+                sw = new StringWriter();
 
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node n = nodeList.item(i);
+                for (int i = 0; i < nodeList.getLength(); i++) {
+                    Node n = nodeList.item(i);
 
-                // Skip null nodes
-                if (n == null) {
-                    logger.warn("Skipping null node at index {}", i);
-                    continue;
+                    // Skip null nodes
+                    if (n == null) {
+                        logger.warn("Skipping null node at index {}", i);
+                        continue;
+                    }
+
+                    transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                    transform.setOutputProperty(OutputKeys.INDENT, "yes");
+                    var swTemp = new StringWriter();
+                    transform.transform(new DOMSource(n), new StreamResult(swTemp));
+                    sw.append(swTemp.toString()).append(System.lineSeparator());
                 }
 
-                transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-                transform.setOutputProperty(OutputKeys.INDENT, "yes");
-                var swTemp = new StringWriter();
-                transform.transform(new DOMSource(n), new StreamResult(swTemp));
-                sw.append(swTemp.toString()).append(System.lineSeparator());
-            }
+                return sw.toString();
 
-            return sw.toString();
+            } catch (XPathExpressionException nodeSetError) {
+                // If NODESET evaluation fails (e.g., for count(), sum(), string() functions),
+                // fall back to STRING evaluation which works for all XPath result types
+                logger.debug("XPath expression returns scalar value, evaluating as string: {}", xPath);
+
+                String result = (String) xPathPath.compile(xPath).evaluate(doc, XPathConstants.STRING);
+                logger.info("XPath scalar result: {}", result);
+                return result;
+            }
 
         } catch (XPathExpressionException e) {
             logger.error("XPath expression error: {}", e.getMessage(), e);
@@ -1079,6 +1091,128 @@ public class XmlServiceImpl implements XmlService {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<String> getLinkedStylesheetFromCurrentXMLFile() {
+        if (this.currentXmlFile != null && this.currentXmlFile.exists()) {
+            try {
+                FileInputStream fileIS = new FileInputStream(this.currentXmlFile);
+                builder = builderFactory.newDocumentBuilder();
+                xmlDocument = builder.parse(fileIS);
+
+                // Look for <?xml-stylesheet?> processing instructions
+                NodeList nodeList = xmlDocument.getChildNodes();
+                for (int i = 0; i < nodeList.getLength(); i++) {
+                    Node node = nodeList.item(i);
+                    if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
+                        ProcessingInstruction pi = (ProcessingInstruction) node;
+
+                        // Check if this is an xml-stylesheet PI
+                        if ("xml-stylesheet".equals(pi.getTarget())) {
+                            String piData = pi.getData();
+                            logger.debug("Found xml-stylesheet PI: {}", piData);
+
+                            // Extract href and type from PI data
+                            String href = extractHrefFromPIData(piData);
+                            String type = extractAttributeFromPIData(piData, "type");
+
+                            // Only process if type is text/xsl
+                            if (href != null && "text/xsl".equals(type)) {
+                                logger.debug("Found XSLT stylesheet reference: href={}, type={}", href, type);
+
+                                // Resolve the stylesheet path
+                                return resolveStylesheetPath(href);
+                            }
+                        }
+                    }
+                }
+
+                logger.debug("No xml-stylesheet processing instruction found");
+                return Optional.empty();
+
+            } catch (IOException | ParserConfigurationException | SAXException exception) {
+                logger.error("Error parsing XML file for stylesheet: {}", exception.getMessage());
+                return Optional.empty();
+            }
+        } else {
+            logger.debug("No XML file selected!");
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Extracts href attribute value from xml-stylesheet processing instruction data.
+     * Example: href="stylesheet.xsl" type="text/xsl" -> "stylesheet.xsl"
+     */
+    private String extractHrefFromPIData(String piData) {
+        return extractAttributeFromPIData(piData, "href");
+    }
+
+    /**
+     * Extracts an attribute value from processing instruction data.
+     * Handles both single and double quotes.
+     */
+    private String extractAttributeFromPIData(String piData, String attributeName) {
+        if (piData == null || attributeName == null) {
+            return null;
+        }
+
+        // Pattern to match: attributeName="value" or attributeName='value'
+        String pattern = attributeName + "\\s*=\\s*[\"']([^\"']+)[\"']";
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern);
+        java.util.regex.Matcher m = p.matcher(piData);
+
+        if (m.find()) {
+            return m.group(1);
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolves a stylesheet path to an absolute path or URL.
+     * Handles local relative/absolute paths and remote URLs.
+     */
+    private Optional<String> resolveStylesheetPath(String href) {
+        if (href == null || href.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        href = href.trim();
+
+        // Check if it's already a remote URL
+        if (href.startsWith("http://") || href.startsWith("https://")) {
+            logger.debug("Found remote stylesheet URL: {}", href);
+            return Optional.of(href);
+        }
+
+        // Check for file:// URL
+        if (href.startsWith("file://") || href.startsWith("file:")) {
+            logger.debug("Found file URL: {}", href);
+            return Optional.of(href);
+        }
+
+        // Treat as local file path (relative or absolute)
+        File stylesheetFile;
+
+        // Check if it's an absolute path
+        File absoluteFile = new File(href);
+        if (absoluteFile.isAbsolute()) {
+            stylesheetFile = absoluteFile;
+        } else {
+            // Relative path - resolve relative to XML file location
+            stylesheetFile = new File(this.currentXmlFile.getParentFile(), href);
+        }
+
+        if (stylesheetFile.exists()) {
+            logger.debug("Found local stylesheet at: {}", stylesheetFile.getAbsolutePath());
+            return Optional.of(stylesheetFile.getAbsolutePath());
+        } else {
+            logger.warn("Stylesheet file not found at: {}", stylesheetFile.getAbsolutePath());
+            return Optional.empty();
+        }
     }
 
     @Override
