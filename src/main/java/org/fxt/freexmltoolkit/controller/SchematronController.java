@@ -94,16 +94,6 @@ public class SchematronController {
     @FXML
     private MenuButton loadSchematronFavoritesButton;
 
-    // Overview Tab Buttons
-    @FXML
-    private Button overviewCreateNewButton;
-
-    @FXML
-    private Button overviewLoadSchemaButton;
-
-    @FXML
-    private Button overviewShowExamplesButton;
-
     // Containers removed - components are directly in FXML now
 
     @FXML
@@ -2850,107 +2840,35 @@ public class SchematronController {
         return errorBox;
     }
 
-    // Overview Tab Button Actions
-
-    /**
-     * Create new schema from Overview tab
-     */
-    @FXML
-    private void overviewCreateNew() {
-        // Switch to Code tab
-        if (tabPane != null && codeTab != null) {
-            tabPane.getSelectionModel().select(codeTab);
-        }
-        // Create new Schematron
-        createNewSchematron();
-    }
-
-    /**
-     * Load schema from Overview tab
-     */
-    @FXML
-    private void overviewLoadSchema() {
-        // Switch to Code tab
-        if (tabPane != null && codeTab != null) {
-            tabPane.getSelectionModel().select(codeTab);
-        }
-        // Load Schematron file
-        loadSchematronFile();
-    }
-
-    /**
-     * Show examples from Overview tab
-     */
-    @FXML
-    private void overviewShowExamples() {
-        // Switch to Code tab and show a basic example
-        if (tabPane != null && codeTab != null) {
-            tabPane.getSelectionModel().select(codeTab);
-        }
-
-        // Create a more comprehensive example schema
-        String exampleSchema = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <schema xmlns="http://purl.oclc.org/dsdl/schematron" queryBinding="xslt2">
-                    <title>Example Schematron Schema</title>
-                    <ns prefix="xs" uri="http://www.w3.org/2001/XMLSchema"/>
-                
-                    <!-- Example Pattern: Document Structure -->
-                    <pattern id="document-structure">
-                        <title>Document Structure Rules</title>
-                
-                        <rule context="document">
-                            <assert test="@version">Document must have a version attribute</assert>
-                            <assert test="string-length(@version) > 0">Version attribute cannot be empty</assert>
-                        </rule>
-                
-                        <rule context="document/header">
-                            <assert test="title">Document header must contain a title</assert>
-                            <assert test="string-length(title) >= 3">Title must be at least 3 characters long</assert>
-                        </rule>
-                    </pattern>
-                
-                    <!-- Example Pattern: Business Rules -->
-                    <pattern id="business-rules">
-                        <title>Business Logic Validation</title>
-                
-                        <rule context="order">
-                            <assert test="@order-date">Orders must have a date</assert>
-                            <assert test="count(item) >= 1">Order must contain at least one item</assert>
-                            <report test="@total-amount &lt; 0">Negative total amount detected: <value-of select="@total-amount"/></report>
-                        </rule>
-                
-                        <rule context="item">
-                            <assert test="@quantity and @quantity > 0">Item quantity must be positive</assert>
-                            <assert test="price">Each item must have a price</assert>
-                        </rule>
-                    </pattern>
-                </schema>""";
-
-        Platform.runLater(() -> {
-            if (xmlCodeEditor != null) {
-                xmlCodeEditor.setText(exampleSchema);
-                xmlCodeEditor.refreshHighlighting();
-
-                // Clear current file reference since this is an example
-                currentSchematronFile = null;
-                codeTab.setText("Code - Example Schema");
-
-                showInfo("Example Loaded", "Example Schematron schema loaded in Code tab");
-            }
-        });
-    }
-
     /**
      * Shows help dialog.
      */
     @FXML
     private void showHelp() {
         Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
-        helpDialog.setTitle("Schematron - Help");
-        helpDialog.setHeaderText("How to use the Schematron Validator");
+        helpDialog.setTitle("Schematron Validator - Help");
+        helpDialog.setHeaderText("Business Rules and Validation for XML Documents");
         helpDialog.setContentText("""
-                Use this tool to work with your documents.\n\n                Press F1 to show this help.
+                WHAT IS SCHEMATRON?
+
+                Schematron is a rule-based validation system for XML documents. It enables the definition of
+                business rules and integrity constraints that go beyond the capabilities of XML Schema (XSD).
+
+                FEATURES:
+
+                • Code Editor: Create and edit Schematron rules with syntax highlighting and auto-completion
+                • Visual Builder: Create rules visually without XML knowledge using a user-friendly interface
+                • Testing: Validate XML documents against your Schematron rules and see detailed results
+                • Documentation: Automatically generate documentation for your Schematron rules and validation logic
+
+                GETTING STARTED:
+
+                1. Go to the 'Code' tab to create a new Schematron schema or load an existing one
+                2. Use the 'New Rule' and 'New Pattern' buttons to add validation rules
+                3. Test your rules in the 'Test' tab with sample XML documents
+                4. Generate documentation for your schema in the 'Documentation' tab
+
+                Press F1 to show this help.
                 """);
         helpDialog.showAndWait();
     }
