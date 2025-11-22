@@ -1704,11 +1704,34 @@ public class XmlUltimateController implements Initializable {
         }
 
         if (query == null || query.trim().isEmpty()) {
-            logger.warn("Query is empty, nothing to execute");
+            String errorMsg = "Query is empty. Please enter an XPath or XQuery expression.";
+            logger.warn(errorMsg);
+            logToConsole(errorMsg);
+            if (queryResultLabel != null) {
+                Platform.runLater(() -> queryResultLabel.setText("Error: Empty query"));
+            }
+            showError("Invalid Query", errorMsg);
             return;
         }
 
         logger.debug("Executing query: {}", query);
+
+        // Validate XPath syntax before executing (for XPath tab only)
+        if (selectedItem != null && "xPathTab".equals(selectedItem.getId())) {
+            try {
+                // Try to compile the XPath to catch syntax errors early
+                javax.xml.xpath.XPathFactory.newInstance().newXPath().compile(query);
+            } catch (javax.xml.xpath.XPathExpressionException e) {
+                String errorMsg = "Invalid XPath expression: " + e.getMessage();
+                logger.error(errorMsg, e);
+                logToConsole(errorMsg);
+                if (queryResultLabel != null) {
+                    Platform.runLater(() -> queryResultLabel.setText("Error: Invalid XPath syntax"));
+                }
+                showError("XPath Syntax Error", errorMsg);
+                return;
+            }
+        }
 
         // Update status label
         if (queryResultLabel != null) {
@@ -1749,11 +1772,24 @@ public class XmlUltimateController implements Initializable {
         });
 
         queryTask.setOnFailed(event -> {
-            logger.error("Query execution failed", queryTask.getException());
+            Throwable exception = queryTask.getException();
+            String errorMessage = exception != null ? exception.getMessage() : "Unknown error";
+
+            logger.error("Query execution failed: {}", errorMessage, exception);
+            logToConsole("Query execution failed: " + errorMessage);
+
             if (queryResultLabel != null) {
-                queryResultLabel.setText("Error: " + queryTask.getException().getMessage());
+                Platform.runLater(() -> queryResultLabel.setText("Error: " + errorMessage));
             }
-            showError("Query Error", "Failed to execute query: " + queryTask.getException().getMessage());
+
+            // Provide user-friendly error message with helpful tips
+            String userMessage = "Failed to execute query.\n\n" +
+                                "Error: " + errorMessage + "\n\n" +
+                                "Please check:\n" +
+                                "- XPath/XQuery syntax is valid\n" +
+                                "- XML document is well-formed\n" +
+                                "- XPath matches existing nodes in the document";
+            showError("Query Error", userMessage);
         });
 
         executorService.submit(queryTask);

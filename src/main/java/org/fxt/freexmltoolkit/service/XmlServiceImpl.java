@@ -39,6 +39,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -785,11 +786,24 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public String getXmlFromXpath(String xml, String xPath) {
         try {
-            var nodeList = (NodeList) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODESET);
+            // Parse the provided XML content instead of using instance field
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new StringReader(xml)));
+
+            // Evaluate XPath against the parsed document
+            var nodeList = (NodeList) xPathPath.compile(xPath).evaluate(doc, XPathConstants.NODESET);
             sw = new StringWriter();
 
             for (int i = 0; i < nodeList.getLength(); i++) {
                 Node n = nodeList.item(i);
+
+                // Skip null nodes
+                if (n == null) {
+                    logger.warn("Skipping null node at index {}", i);
+                    continue;
+                }
 
                 transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
                 transform.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -800,10 +814,22 @@ public class XmlServiceImpl implements XmlService {
 
             return sw.toString();
 
-        } catch (XPathExpressionException | TransformerException e) {
-            logger.error(e.getMessage());
+        } catch (XPathExpressionException e) {
+            logger.error("XPath expression error: {}", e.getMessage(), e);
+            throw new RuntimeException("Invalid XPath expression: " + e.getMessage(), e);
+        } catch (TransformerException e) {
+            logger.error("Transformation error: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to transform XPath result: " + e.getMessage(), e);
+        } catch (ParserConfigurationException e) {
+            logger.error("Parser configuration error: {}", e.getMessage(), e);
+            throw new RuntimeException("XML parser configuration error: " + e.getMessage(), e);
+        } catch (SAXException e) {
+            logger.error("SAX parsing error: {}", e.getMessage(), e);
+            throw new RuntimeException("Invalid XML: " + e.getMessage(), e);
+        } catch (IOException e) {
+            logger.error("IO error: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to read XML: " + e.getMessage(), e);
         }
-        return null;
     }
 
     @Override
