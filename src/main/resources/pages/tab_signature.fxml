@@ -57,7 +57,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#switchToInstructionsTab">
+        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>
@@ -71,87 +71,7 @@
     <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
 
         <!-- ===================================================================== -->
-        <!-- NEU: TAB 0: ANLEITUNG                                                 -->
-        <!-- ===================================================================== -->
-        <Tab text="Instructions" styleClass="utility-tab" closable="false">
-            <graphic>
-                <FontIcon iconLiteral="bi-info-circle" iconSize="16" iconColor="#17a2b8"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="How to use the Signature Tool"/>
-            </tooltip>
-            <content>
-                <ScrollPane fitToWidth="true">
-                    <VBox spacing="20" style="-fx-padding: 20;">
-                        <Label styleClass="h2" text="How to Use the Signature Tool"/>
-                        <Label wrapText="true"
-                               text="This tool provides a complete workflow for creating digital certificates, signing XML documents, validating signatures, and advanced XML-DSig operations through Expert Mode."/>
-
-                        <!-- Anleitung 1: Zertifikat erstellen -->
-                        <VBox styleClass="card">
-                            <Label styleClass="card-title" text="1. Create a Certificate and Keystore"/>
-                            <Separator/>
-                            <VBox style="-fx-padding: 15 0 0 0;">
-                                <Label wrapText="true"
-                                       text="This tab allows you to generate a new self-signed digital certificate and a secure keystore (.jks file) to hold it. Fill in the 'Distinguished Name (DN)' details to identify the certificate owner. Provide a unique alias and strong passwords for the keystore and the key itself. Upon creation, the tool will generate a .jks file, a _publicKey.pem, an encrypted _privateKey.pem, and a summary.txt in the certs/[alias] directory."/>
-                            </VBox>
-                        </VBox>
-
-                        <!-- Anleitung 2: XML signieren -->
-                        <VBox styleClass="card">
-                            <Label styleClass="card-title" text="2. Sign an XML Document"/>
-                            <Separator/>
-                            <VBox style="-fx-padding: 15 0 0 0;">
-                                <Label wrapText="true"
-                                       text="Use this tab to apply a digital signature to an XML file. First, load the XML document you want to sign and the .jks keystore file you created in the previous step. Then, enter the alias and passwords that match the keystore. The tool will create a new, signed XML file with a _signed postfix, embedding the signature directly into the document."/>
-                            </VBox>
-                        </VBox>
-
-                        <!-- Anleitung 3: Signatur validieren -->
-                        <VBox styleClass="card">
-                            <Label styleClass="card-title" text="3. Validate a Signed Document"/>
-                            <Separator/>
-                            <VBox style="-fx-padding: 15 0 0 0;">
-                                <Label wrapText="true"
-                                       text="This tab verifies the integrity of a signed XML document. Load a signed XML file (e.g., one created in step 2). The application will check if the signature is cryptographically valid and has not been tampered with. You will receive a confirmation message indicating whether the validation was successful or not."/>
-                            </VBox>
-                        </VBox>
-
-                        <!-- Anleitung 4: Expert Mode -->
-                        <VBox styleClass="card">
-                            <Label styleClass="card-title" text="4. Expert Mode - Advanced XML-DSig Operations"/>
-                            <Separator/>
-                            <VBox style="-fx-padding: 15 0 0 0;">
-                                <Label wrapText="true"
-                                       text="The Expert Mode provides comprehensive XML Digital Signature capabilities according to W3C XML-DSig standards. This advanced interface allows you to access all available key algorithms, signature methods, and validation options for professional XML security requirements."/>
-
-                                <!-- Expert Mode Sub-sections -->
-                                <VBox style="-fx-padding: 10 0 0 0; -fx-spacing: 8;">
-                                    <Label styleClass="text-bold" text="Advanced Key Generation:"/>
-                                    <Label wrapText="true" style="-fx-padding: 0 0 0 15;"
-                                           text="• Choose from RSA, DSA, EC (Elliptic Curve), or ECDSA algorithms&#10;• Configure key sizes: RSA/DSA (1024-4096 bits), EC (256-521 bits)&#10;• Select signature algorithms: SHA1/SHA256/SHA384/SHA512 with RSA/DSA/ECDSA&#10;• Set certificate validity period and Subject Alternative Names&#10;• Generate certificates with advanced cryptographic options"/>
-
-                                    <Label styleClass="text-bold" text="Advanced XML Signing:"/>
-                                    <Label wrapText="true" style="-fx-padding: 0 0 0 15;"
-                                           text="• Canonicalization Methods: Standard C14N, Exclusive C14N (with/without comments)&#10;• Transform Methods: Enveloped signature, XPath, XSLT, canonicalization&#10;• Digest Methods: SHA1, SHA256, SHA384, SHA512, MD5&#10;• Signature Types: Enveloped (inside document), Enveloping (document inside signature), Detached (separate signature)&#10;• Configure all XML-DSig parameters according to your security requirements"/>
-
-                                    <Label styleClass="text-bold" text="Advanced Signature Validation:"/>
-                                    <Label wrapText="true" style="-fx-padding: 0 0 0 15;"
-                                           text="• Certificate Chain Validation: Verify complete certificate hierarchy&#10;• Trust Anchor Validation: Check against trusted certificate authorities&#10;• Revocation Checking: OCSP and CRL certificate revocation verification&#10;• Timestamp Validation: Verify time-stamped signatures for long-term validity&#10;• Detailed Reports: Generate comprehensive validation reports with technical details"/>
-
-                                    <Label styleClass="text-bold" text="Professional Features:"/>
-                                    <Label wrapText="true" style="-fx-padding: 0 0 0 15;"
-                                           text="• Real-time logging with timestamps in the results area&#10;• Drag-and-drop file support for all operations&#10;• Comprehensive error reporting and validation feedback&#10;• Full compliance with W3C XML-DSig and related security standards&#10;• Suitable for enterprise and high-security applications"/>
-                                </VBox>
-                            </VBox>
-                        </VBox>
-                    </VBox>
-                </ScrollPane>
-            </content>
-        </Tab>
-
-        <!-- ===================================================================== -->
-        <!-- TAB 1: ZERTIFIKAT ERSTELLEN                                           -->
+        <!-- TAB 0: ZERTIFIKAT ERSTELLEN                                           -->
         <!-- ===================================================================== -->
         <Tab text="Create Certificate" styleClass="primary-tab" closable="false">
             <graphic>

@@ -692,13 +692,77 @@ public class SignatureController {
     // ======================================================================
 
     /**
-     * Switch to the Instructions tab
+     * Show help dialog with instructions
      */
     @FXML
-    private void switchToInstructionsTab() {
-        if (tabPane != null) {
-            tabPane.getSelectionModel().select(0); // Instructions is tab 0
-        }
+    private void showHelp() {
+        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
+        helpDialog.setTitle("XML Signature Tool - Help");
+        helpDialog.setHeaderText("Digital Signatures for XML Documents");
+        helpDialog.setContentText("""
+                HOW TO USE THE SIGNATURE TOOL
+
+                This tool provides a complete workflow for creating digital certificates, signing XML documents,
+                validating signatures, and advanced XML-DSig operations through Expert Mode.
+
+                1. CREATE A CERTIFICATE AND KEYSTORE
+
+                This tab allows you to generate a new self-signed digital certificate and a secure keystore (.jks file)
+                to hold it. Fill in the 'Distinguished Name (DN)' details to identify the certificate owner. Provide a
+                unique alias and strong passwords for the keystore and the key itself. Upon creation, the tool will
+                generate a .jks file, a _publicKey.pem, an encrypted _privateKey.pem, and a summary.txt in the
+                certs/[alias] directory.
+
+                2. SIGN AN XML DOCUMENT
+
+                Use this tab to apply a digital signature to an XML file. First, load the XML document you want to sign
+                and the .jks keystore file you created in the previous step. Then, enter the alias and passwords that
+                match the keystore. The tool will create a new, signed XML file with a _signed postfix, embedding the
+                signature directly into the document.
+
+                3. VALIDATE A SIGNED DOCUMENT
+
+                This tab verifies the integrity of a signed XML document. Load a signed XML file (e.g., one created in
+                step 2). The application will check if the signature is cryptographically valid and has not been tampered
+                with. You will receive a confirmation message indicating whether the validation was successful or not.
+
+                4. EXPERT MODE - ADVANCED XML-DSIG OPERATIONS
+
+                The Expert Mode provides comprehensive XML Digital Signature capabilities according to W3C XML-DSig
+                standards. This advanced interface allows you to access all available key algorithms, signature methods,
+                and validation options for professional XML security requirements.
+
+                Advanced Key Generation:
+                • Choose from RSA, DSA, EC (Elliptic Curve), or ECDSA algorithms
+                • Configure key sizes: RSA/DSA (1024-4096 bits), EC (256-521 bits)
+                • Select signature algorithms: SHA1/SHA256/SHA384/SHA512 with RSA/DSA/ECDSA
+                • Set certificate validity period and Subject Alternative Names
+                • Generate certificates with advanced cryptographic options
+
+                Advanced XML Signing:
+                • Canonicalization Methods: Standard C14N, Exclusive C14N (with/without comments)
+                • Transform Methods: Enveloped signature, XPath, XSLT, canonicalization
+                • Digest Methods: SHA1, SHA256, SHA384, SHA512, MD5
+                • Signature Types: Enveloped (inside document), Enveloping (document inside signature), Detached (separate)
+                • Configure all XML-DSig parameters according to your security requirements
+
+                Advanced Signature Validation:
+                • Certificate Chain Validation: Verify complete certificate hierarchy
+                • Trust Anchor Validation: Check against trusted certificate authorities
+                • Revocation Checking: OCSP and CRL certificate revocation verification
+                • Timestamp Validation: Verify time-stamped signatures for long-term validity
+                • Detailed Reports: Generate comprehensive validation reports with technical details
+
+                Professional Features:
+                • Real-time logging with timestamps in the results area
+                • Drag-and-drop file support for all operations
+                • Comprehensive error reporting and validation feedback
+                • Full compliance with W3C XML-DSig and related security standards
+                • Suitable for enterprise and high-security applications
+
+                Press F1 to show this help.
+                """);
+        helpDialog.showAndWait();
     }
 
     /**
@@ -707,7 +771,7 @@ public class SignatureController {
     @FXML
     private void switchToCreateCertificateTab() {
         if (tabPane != null) {
-            tabPane.getSelectionModel().select(1); // Create Certificate is tab 1
+            tabPane.getSelectionModel().select(0); // Create Certificate is tab 0
         }
     }
 
@@ -717,7 +781,7 @@ public class SignatureController {
     @FXML
     private void switchToSignTab() {
         if (tabPane != null) {
-            tabPane.getSelectionModel().select(2); // Sign XML File is tab 2
+            tabPane.getSelectionModel().select(1); // Sign XML File is tab 1
         }
     }
 
@@ -727,7 +791,7 @@ public class SignatureController {
     @FXML
     private void switchToValidateTab() {
         if (tabPane != null) {
-            tabPane.getSelectionModel().select(3); // Validate is tab 3
+            tabPane.getSelectionModel().select(2); // Validate is tab 2
         }
     }
 
@@ -737,7 +801,7 @@ public class SignatureController {
     @FXML
     private void switchToExpertTab() {
         if (tabPane != null) {
-            tabPane.getSelectionModel().select(4); // Expert Mode is tab 4
+            tabPane.getSelectionModel().select(3); // Expert Mode is tab 3
         }
     }
 }
