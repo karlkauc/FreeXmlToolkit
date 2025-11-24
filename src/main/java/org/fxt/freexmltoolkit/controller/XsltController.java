@@ -45,6 +45,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
@@ -129,7 +131,16 @@ public class XsltController {
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()
                 && xmlService.getCurrentXsltFile() != null && xmlService.getCurrentXsltFile().exists()) {
             try {
+                // Capture performance metrics
+                long startTime = System.currentTimeMillis();
+                long xmlFileSize = xmlFile.length();
+                long xsltFileSize = xsltFile.length();
+
                 String output = xmlService.performXsltTransformation();
+
+                long transformationTime = System.currentTimeMillis() - startTime;
+                int outputSize = output != null ? output.length() : 0;
+
                 progressBar.setProgress(0.1);
                 renderHTML(output);
                 progressBar.setProgress(0.6);
@@ -137,6 +148,9 @@ public class XsltController {
                 progressBar.setProgress(0.8);
                 renderText(output);
                 progressBar.setProgress(1);
+
+                // Update performance statistics
+                updatePerformanceStatistics(xmlFileSize, xsltFileSize, outputSize, transformationTime);
 
                 String outputMethodRaw = xmlService.getXsltOutputMethod();
                 String outputMethod = (outputMethodRaw != null) ? outputMethodRaw.toLowerCase().trim() : "text";
@@ -147,6 +161,9 @@ public class XsltController {
             } catch (Exception exception) {
                 // Log the error for developer analysis (with full stacktrace)
                 logger.error("XSLT Transformation failed: {}", exception.getMessage(), exception);
+
+                // Update performance area with error information
+                updatePerformanceWithError(exception);
 
                 // NEW: Show an alert dialog for the user
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -165,6 +182,141 @@ public class XsltController {
                 alert.showAndWait();
             }
             progressBar.setVisible(false);
+        }
+    }
+
+    /**
+     * Updates the performance statistics display with transformation metrics.
+     */
+    private void updatePerformanceStatistics(long xmlFileSize, long xsltFileSize, int outputSize, long transformationTime) {
+        if (performanceArea == null) {
+            return;
+        }
+
+        StringBuilder stats = new StringBuilder();
+        stats.append("═══════════════════════════════════════════════════════════\n");
+        stats.append("              XSLT TRANSFORMATION STATISTICS\n");
+        stats.append("═══════════════════════════════════════════════════════════\n\n");
+
+        // Timestamp
+        stats.append("Executed at: ").append(LocalDateTime.now().format(
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("\n\n");
+
+        // Status
+        stats.append("┌─────────────────────────────────────────────────────────┐\n");
+        stats.append("│ STATUS: SUCCESS                                          │\n");
+        stats.append("└─────────────────────────────────────────────────────────┘\n\n");
+
+        // Timing
+        stats.append("─── Timing ───────────────────────────────────────────────\n");
+        stats.append(String.format("  Total Transformation Time:  %,d ms\n", transformationTime));
+        if (transformationTime < 100) {
+            stats.append("  Performance Rating:         ★★★★★ Excellent\n");
+        } else if (transformationTime < 500) {
+            stats.append("  Performance Rating:         ★★★★☆ Good\n");
+        } else if (transformationTime < 1000) {
+            stats.append("  Performance Rating:         ★★★☆☆ Average\n");
+        } else if (transformationTime < 3000) {
+            stats.append("  Performance Rating:         ★★☆☆☆ Slow\n");
+        } else {
+            stats.append("  Performance Rating:         ★☆☆☆☆ Very Slow\n");
+        }
+        stats.append("\n");
+
+        // File sizes
+        stats.append("─── Input Files ──────────────────────────────────────────\n");
+        stats.append(String.format("  XML Source:    %s (%s)\n",
+                xmlFile != null ? xmlFile.getName() : "N/A",
+                formatBytes(xmlFileSize)));
+        stats.append(String.format("  XSLT File:     %s (%s)\n",
+                xsltFile != null ? xsltFile.getName() : "N/A",
+                formatBytes(xsltFileSize)));
+        stats.append("\n");
+
+        // Output
+        stats.append("─── Output ───────────────────────────────────────────────\n");
+        stats.append(String.format("  Output Size:   %s\n", formatBytes(outputSize)));
+        stats.append(String.format("  Output Method: %s\n",
+                xmlService.getXsltOutputMethod() != null ? xmlService.getXsltOutputMethod() : "text"));
+
+        // Size ratio
+        if (xmlFileSize > 0) {
+            double ratio = (double) outputSize / xmlFileSize;
+            stats.append(String.format("  Size Ratio:    %.2fx %s\n", ratio,
+                    ratio > 1 ? "(expansion)" : "(compression)"));
+        }
+        stats.append("\n");
+
+        // Throughput
+        stats.append("─── Throughput ───────────────────────────────────────────\n");
+        if (transformationTime > 0) {
+            double throughputKBps = (xmlFileSize / 1024.0) / (transformationTime / 1000.0);
+            stats.append(String.format("  Processing Speed: %.2f KB/s\n", throughputKBps));
+        }
+        stats.append("\n");
+
+        // Summary
+        stats.append("═══════════════════════════════════════════════════════════\n");
+        stats.append(String.format("  Processed %s → %s in %d ms\n",
+                formatBytes(xmlFileSize), formatBytes(outputSize), transformationTime));
+        stats.append("═══════════════════════════════════════════════════════════\n");
+
+        Platform.runLater(() -> performanceArea.setText(stats.toString()));
+    }
+
+    /**
+     * Updates the performance area with error information when transformation fails.
+     */
+    private void updatePerformanceWithError(Exception exception) {
+        if (performanceArea == null) {
+            return;
+        }
+
+        StringBuilder stats = new StringBuilder();
+        stats.append("═══════════════════════════════════════════════════════════\n");
+        stats.append("              XSLT TRANSFORMATION STATISTICS\n");
+        stats.append("═══════════════════════════════════════════════════════════\n\n");
+
+        // Timestamp
+        stats.append("Executed at: ").append(LocalDateTime.now().format(
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("\n\n");
+
+        // Status
+        stats.append("┌─────────────────────────────────────────────────────────┐\n");
+        stats.append("│ STATUS: FAILED                                           │\n");
+        stats.append("└─────────────────────────────────────────────────────────┘\n\n");
+
+        // Error details
+        stats.append("─── Error Details ────────────────────────────────────────\n");
+        stats.append("  Error Type:    ").append(exception.getClass().getSimpleName()).append("\n");
+        stats.append("  Message:       ").append(exception.getMessage()).append("\n\n");
+
+        // Input files info
+        stats.append("─── Input Files ──────────────────────────────────────────\n");
+        if (xmlFile != null) {
+            stats.append(String.format("  XML Source:    %s (%s)\n",
+                    xmlFile.getName(), formatBytes(xmlFile.length())));
+        }
+        if (xsltFile != null) {
+            stats.append(String.format("  XSLT File:     %s (%s)\n",
+                    xsltFile.getName(), formatBytes(xsltFile.length())));
+        }
+
+        stats.append("\n═══════════════════════════════════════════════════════════\n");
+
+        Platform.runLater(() -> performanceArea.setText(stats.toString()));
+    }
+
+    /**
+     * Formats byte size to human-readable format.
+     */
+    private String formatBytes(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        } else if (bytes < 1024 * 1024) {
+            return String.format("%.2f KB", bytes / 1024.0);
+        } else {
+            return String.format("%.2f MB", bytes / (1024.0 * 1024.0));
         }
     }
 

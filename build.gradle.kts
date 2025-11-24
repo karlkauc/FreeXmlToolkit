@@ -734,6 +734,27 @@ tasks.register<JavaExec>("runEditorV2Demo") {
     mainClass.set("org.fxt.freexmltoolkit.demo.XmlCodeEditorV2Demo")
 }
 
+tasks.register<JavaExec>("runXmlViewsDemo") {
+    group = "application"
+    description = "Run XML Editor Views Demo (Tree/Grid/Text Views)"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("org.fxt.freexmltoolkit.demo.XmlEditorViewsDemo")
+}
+
+tasks.register<JavaExec>("runSimpleGridDemo") {
+    group = "application"
+    description = "Run Simple Grid Demo (Tests XmlGridView directly)"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("org.fxt.freexmltoolkit.demo.SimpleXmlGridDemo")
+}
+
+tasks.register<JavaExec>("runCanvasViewDemo") {
+    group = "application"
+    description = "Run XML Canvas View Demo (Canvas-based with embedded tables)"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("org.fxt.freexmltoolkit.demo.XmlCanvasViewDemo")
+}
+
 // ===============================
 // macOS Code Signing Tasks
 // ===============================
