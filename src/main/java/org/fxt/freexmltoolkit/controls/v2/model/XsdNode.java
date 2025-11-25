@@ -110,7 +110,11 @@ public abstract class XsdNode {
         List<XsdNode> oldChildren = new ArrayList<>(children);
         children.add(child);
         child.setParent(this);
+        // Listen to child's changes and bubble them up
+        child.addPropertyChangeListener(this::bubblePropertyChange);
         pcs.firePropertyChange("children", oldChildren, new ArrayList<>(children));
+        // Also notify ancestors about the structural change
+        notifyAncestors("descendantChanged");
     }
 
     /**
@@ -123,7 +127,11 @@ public abstract class XsdNode {
         List<XsdNode> oldChildren = new ArrayList<>(children);
         children.add(index, child);
         child.setParent(this);
+        // Listen to child's changes and bubble them up
+        child.addPropertyChangeListener(this::bubblePropertyChange);
         pcs.firePropertyChange("children", oldChildren, new ArrayList<>(children));
+        // Also notify ancestors about the structural change
+        notifyAncestors("descendantChanged");
     }
 
     /**
@@ -137,9 +145,37 @@ public abstract class XsdNode {
         boolean removed = children.remove(child);
         if (removed) {
             child.setParent(null);
+            // Remove listener from child
+            child.removePropertyChangeListener(this::bubblePropertyChange);
             pcs.firePropertyChange("children", oldChildren, new ArrayList<>(children));
+            // Also notify ancestors about the structural change
+            notifyAncestors("descendantChanged");
         }
         return removed;
+    }
+
+    /**
+     * Bubbles property change events from children to this node.
+     * This allows the root schema to be notified of changes anywhere in the tree.
+     *
+     * @param evt the property change event from a descendant
+     */
+    private void bubblePropertyChange(java.beans.PropertyChangeEvent evt) {
+        // Forward structural changes to this node's listeners
+        if ("children".equals(evt.getPropertyName()) || "descendantChanged".equals(evt.getPropertyName())) {
+            pcs.firePropertyChange("descendantChanged", null, evt.getSource());
+        }
+    }
+
+    /**
+     * Notifies all ancestors about a structural change.
+     *
+     * @param propertyName the property name to use for the notification
+     */
+    private void notifyAncestors(String propertyName) {
+        if (parent != null) {
+            parent.pcs.firePropertyChange(propertyName, null, this);
+        }
     }
 
     /**

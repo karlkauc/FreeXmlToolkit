@@ -23,6 +23,9 @@ import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
@@ -71,6 +74,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private double dragStartX = 0;
     private double dragStartY = 0;
     private static final double DRAG_THRESHOLD = 5.0; // Pixels before drag starts
+
+    // Debounce for model change events (prevents multiple rebuilds from rapid events)
+    private PauseTransition rebuildDebounce;
+    private static final double DEBOUNCE_DELAY_MS = 50.0; // 50ms debounce delay
 
     // Type Editor callbacks (stored to re-apply when contextMenuFactory is recreated)
     private java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType> openComplexTypeEditorCallback;
@@ -312,10 +319,11 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
             logger.debug("Rebuilding visual tree (structural change detected)");
 
-            // 1. Save expansion state
-            Set<String> expandedNodeIds = new HashSet<>();
-            collectExpandedNodes(rootNode, expandedNodeIds);
-            logger.trace("Saved {} expanded nodes", expandedNodeIds.size());
+            // 1. Save collapsed state (inverse logic - track what's collapsed, not expanded)
+            // This ensures new nodes are expanded by default
+            Set<String> collapsedNodeIds = new HashSet<>();
+            collectCollapsedNodes(rootNode, collapsedNodeIds);
+            logger.trace("Saved {} collapsed nodes", collapsedNodeIds.size());
 
             // 2. Save selection state
             Set<String> selectedNodeIds = new HashSet<>();
@@ -336,9 +344,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             logger.debug("Visual tree rebuilt with {} nodes", nodeMap.size());
             logger.debug("Root node has {} children", rootNode.getChildren().size());
 
-            // 4. Restore expansion state
-            restoreExpansionState(rootNode, expandedNodeIds);
-            logger.trace("Restored expansion state");
+            // 4. Expand all nodes first, then collapse only those that were collapsed
+            expandAllNodes(rootNode);
+            applyCollapsedState(rootNode, collapsedNodeIds);
+            logger.trace("Restored expansion state (expand all, then collapse saved)");
 
             // 5. Restore selection
             selectionModel.clearSelection();
@@ -365,38 +374,52 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private boolean isRebuilding = false;
 
     /**
-     * Recursively collects IDs of all expanded nodes.
+     * Recursively collects IDs of all COLLAPSED nodes (nodes that have children but are not expanded).
+     * This inverse logic ensures that new nodes are expanded by default.
      */
-    private void collectExpandedNodes(VisualNode node, Set<String> expandedIds) {
+    private void collectCollapsedNodes(VisualNode node, Set<String> collapsedIds) {
         if (node == null) return;
 
-        if (node.isExpanded()) {
+        // Only track nodes that have children but are collapsed
+        if (node.hasChildren() && !node.isExpanded()) {
             Object modelObj = node.getModelObject();
             if (modelObj instanceof XsdNode xsdNode) {
-                expandedIds.add(xsdNode.getId());
+                collapsedIds.add(xsdNode.getId());
             }
         }
 
         for (VisualNode child : node.getChildren()) {
-            collectExpandedNodes(child, expandedIds);
+            collectCollapsedNodes(child, collapsedIds);
         }
     }
 
     /**
-     * Recursively restores expansion state based on saved node IDs.
+     * Recursively expands all nodes in the tree.
      */
-    private void restoreExpansionState(VisualNode node, Set<String> expandedIds) {
+    private void expandAllNodes(VisualNode node) {
+        if (node == null) return;
+        node.setExpanded(true);
+        for (VisualNode child : node.getChildren()) {
+            expandAllNodes(child);
+        }
+    }
+
+    /**
+     * Recursively applies collapsed state based on saved node IDs.
+     * Only collapses nodes that were previously collapsed.
+     */
+    private void applyCollapsedState(VisualNode node, Set<String> collapsedIds) {
         if (node == null) return;
 
         Object modelObj = node.getModelObject();
         if (modelObj instanceof XsdNode xsdNode) {
-            if (expandedIds.contains(xsdNode.getId())) {
-                node.setExpanded(true);
+            if (collapsedIds.contains(xsdNode.getId())) {
+                node.setExpanded(false);
             }
         }
 
         for (VisualNode child : node.getChildren()) {
-            restoreExpansionState(child, expandedIds);
+            applyCollapsedState(child, collapsedIds);
         }
     }
 
@@ -830,9 +853,20 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         logger.debug("Model change detected: {}", evt.getPropertyName());
+
+        // Use debouncing to batch multiple rapid events into a single rebuild
+        // This prevents multiple rebuilds when commands make multiple addChild calls
         javafx.application.Platform.runLater(() -> {
-            buildVisualTree();
-            redraw();
+            if (rebuildDebounce == null) {
+                rebuildDebounce = new PauseTransition(Duration.millis(DEBOUNCE_DELAY_MS));
+                rebuildDebounce.setOnFinished(e -> {
+                    logger.debug("Debounced rebuild triggered");
+                    rebuildVisualTree();
+                    redraw();
+                });
+            }
+            // Restart the debounce timer - if events keep coming, we keep delaying
+            rebuildDebounce.playFromStart();
         });
     }
 
