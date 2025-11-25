@@ -30,6 +30,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
@@ -49,7 +50,7 @@ import java.util.concurrent.Executors;
  * Controller for the Intelligent Schema Generator - Revolutionary Feature #3
  * Auto-generates XSD schemas with advanced type inference and optimization
  */
-public class SchemaGeneratorController {
+public class SchemaGeneratorController implements FavoritesParentController {
     private static final Logger logger = LogManager.getLogger(SchemaGeneratorController.class);
 
     // Revolutionary Services
@@ -165,17 +166,17 @@ public class SchemaGeneratorController {
     @FXML
     private TableColumn<TypeDefinition, String> typeDescriptionColumn;
 
-    // UI Components - Favorites
+    // UI Components - Favorites (unified FavoritesPanel)
     @FXML
     private Button addToFavoritesBtn;
     @FXML
-    private ToggleButton toggleFavoritesButton;
+    private Button toggleFavoritesButton;
+    @FXML
+    private SplitPane rightSplitPane;
     @FXML
     private VBox favoritesPanel;
     @FXML
-    private ComboBox<String> favoritesCategoryCombo;
-    @FXML
-    private ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesListView;
+    private FavoritesPanelController favoritesPanelController;
 
     // UI Components - Empty State
     @FXML
@@ -189,8 +190,6 @@ public class SchemaGeneratorController {
 
     // State Management
     private SchemaGenerationResult lastResult;
-    private final org.fxt.freexmltoolkit.service.FavoritesService favoritesService =
-        org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
     private File currentXmlFile;
 
     @FXML
@@ -200,142 +199,113 @@ public class SchemaGeneratorController {
         initializeUI();
         setupEventHandlers();
         setDefaultOptions();
-        initializeFavorites();
+        setupFavorites();
         initializeEmptyState();
 
         logger.info("Schema Generator Controller initialized successfully");
     }
 
-    private void initializeFavorites() {
-        if (favoritesCategoryCombo != null) {
-            favoritesCategoryCombo.getItems().addAll("All Categories", "Schema Generator", "XML Files");
-            favoritesCategoryCombo.setValue("All Categories");
-            favoritesCategoryCombo.setOnAction(e -> loadFavoritesForCategory(favoritesCategoryCombo.getValue()));
+    private void setupFavorites() {
+        // Setup unified FavoritesPanel
+        if (favoritesPanelController != null) {
+            favoritesPanelController.setParentController(this);
         }
 
-        if (favoritesListView != null) {
-            favoritesListView.setCellFactory(lv -> new ListCell<org.fxt.freexmltoolkit.domain.FileFavorite>() {
-                @Override
-                protected void updateItem(org.fxt.freexmltoolkit.domain.FileFavorite item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                        setGraphic(null);
-                    } else {
-                        setText(item.getName());
-                        org.kordamp.ikonli.javafx.FontIcon icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file-earmark-code");
-                        icon.setIconColor(javafx.scene.paint.Color.web("#007bff"));
-                        icon.setIconSize(14);
-                        setGraphic(icon);
-                    }
-                }
-            });
-
-            favoritesListView.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2) {
-                    org.fxt.freexmltoolkit.domain.FileFavorite selected = favoritesListView.getSelectionModel().getSelectedItem();
-                    if (selected != null) {
-                        loadFavorite(selected);
-                    }
-                }
-            });
-        }
-
+        // Setup add to favorites button
         if (addToFavoritesBtn != null) {
             addToFavoritesBtn.setOnAction(e -> addCurrentToFavorites());
         }
 
+        // Setup toggle favorites button
         if (toggleFavoritesButton != null) {
             toggleFavoritesButton.setOnAction(e -> toggleFavoritesPanel());
         }
 
-        loadFavoritesForCategory("All Categories");
-    }
-
-    private void loadFavoritesForCategory(String category) {
-        if (favoritesListView == null) return;
-
-        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> allFavorites = favoritesService.getAllFavorites();
-        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> filtered;
-
-        if ("All Categories".equals(category)) {
-            filtered = allFavorites;
-        } else {
-            filtered = allFavorites.stream()
-                    .filter(f -> category.equals(f.getFolderName()))
-                    .collect(java.util.stream.Collectors.toList());
+        // Initially hide favorites panel
+        if (favoritesPanel != null && rightSplitPane != null) {
+            rightSplitPane.getItems().remove(favoritesPanel);
         }
 
-        favoritesListView.setItems(javafx.collections.FXCollections.observableArrayList(filtered));
+        logger.debug("Favorites panel setup completed");
     }
 
+    /**
+     * Adds the current file to favorites using a dialog.
+     */
     private void addCurrentToFavorites() {
-        if (xmlInputArea == null || xmlInputArea.getText().trim().isEmpty()) {
-            showAlert("No Content", "Please load or paste XML content before adding to favorites.");
-            return;
-        }
-
-        if (currentXmlFile == null) {
-            showAlert("No File Loaded", "Please load an XML file (not pasted content) to add to favorites.");
-            return;
-        }
-
-        Dialog<org.fxt.freexmltoolkit.domain.FileFavorite> dialog = new Dialog<>();
-        dialog.setTitle("Add to Favorites");
-        dialog.setHeaderText("Add Current XML File to Favorites");
-
-        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
-
-        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
-
-        TextField nameField = new TextField(currentXmlFile.getName());
-        ComboBox<String> categoryCombo = new ComboBox<>();
-        categoryCombo.getItems().addAll("Schema Generator", "XML Files");
-        categoryCombo.setValue("Schema Generator");
-        TextField descField = new TextField();
-
-        grid.add(new Label("Name:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Category:"), 0, 1);
-        grid.add(categoryCombo, 1, 1);
-        grid.add(new Label("Description:"), 0, 2);
-        grid.add(descField, 1, 2);
-
-        dialog.getDialogPane().setContent(grid);
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == addButtonType) {
-                org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
-                        nameField.getText(),
-                        currentXmlFile.getAbsolutePath(),
-                        categoryCombo.getValue()
-                );
-                fav.setDescription(descField.getText());
-                favoritesService.addFavorite(fav);
+        File currentFile = getCurrentFile();
+        if (currentFile != null) {
+            // Show the favorites panel if hidden
+            if (rightSplitPane != null && !rightSplitPane.getItems().contains(favoritesPanel)) {
+                toggleFavoritesPanel();
             }
-            return null;
-        });
+            // Use a simple dialog approach
+            TextInputDialog dialog = new TextInputDialog(currentFile.getName());
+            dialog.setTitle("Add to Favorites");
+            dialog.setHeaderText("Add " + currentFile.getName() + " to favorites");
+            dialog.setContentText("Enter alias (optional):");
 
-        dialog.showAndWait();
-        loadFavoritesForCategory(favoritesCategoryCombo.getValue());
-    }
-
-    private void toggleFavoritesPanel() {
-        if (favoritesPanel != null) {
-            boolean isVisible = !favoritesPanel.isVisible();
-            favoritesPanel.setVisible(isVisible);
-            favoritesPanel.setManaged(isVisible);
+            dialog.showAndWait().ifPresent(alias -> {
+                org.fxt.freexmltoolkit.domain.FileFavorite favorite =
+                    new org.fxt.freexmltoolkit.domain.FileFavorite(
+                        alias.isEmpty() ? currentFile.getName() : alias,
+                        currentFile.getAbsolutePath(),
+                        "XML Documents"
+                    );
+                org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addFavorite(favorite);
+                showInfo("Added to Favorites", currentFile.getName() + " has been added to favorites.");
+            });
+        } else {
+            showAlert("No File Loaded", "Please load an XML file before adding to favorites.");
         }
     }
 
-    private void loadFavorite(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
-        File file = new File(favorite.getFilePath());
-        if (!file.exists()) {
-            showAlert("File Not Found", "The file no longer exists: " + favorite.getFilePath());
+    /**
+     * Toggles the visibility of the favorites panel using SplitPane.
+     */
+    private void toggleFavoritesPanel() {
+        toggleFavoritesPanelInternal();
+    }
+
+    private void toggleFavoritesPanelInternal() {
+        if (favoritesPanel == null || rightSplitPane == null) {
+            return;
+        }
+
+        boolean isCurrentlyShown = rightSplitPane.getItems().contains(favoritesPanel);
+
+        if (isCurrentlyShown) {
+            rightSplitPane.getItems().remove(favoritesPanel);
+            logger.debug("Favorites panel hidden");
+        } else {
+            rightSplitPane.getItems().add(favoritesPanel);
+            rightSplitPane.setDividerPositions(0.75);
+            logger.debug("Favorites panel shown");
+        }
+    }
+
+    // ==================== PUBLIC KEYBOARD SHORTCUT METHODS ====================
+
+    /**
+     * Public wrapper for keyboard shortcut access to toggle favorites panel.
+     */
+    public void toggleFavoritesPanelPublic() {
+        toggleFavoritesPanelInternal();
+    }
+
+    /**
+     * Public wrapper for keyboard shortcut access to add current file to favorites.
+     */
+    public void addCurrentToFavoritesPublic() {
+        addCurrentToFavorites();
+    }
+
+    // FavoritesParentController interface implementation
+
+    @Override
+    public void loadFileToNewTab(File file) {
+        if (file == null || !file.exists()) {
+            showAlert("File Not Found", "The selected file does not exist.");
             return;
         }
 
@@ -345,18 +315,17 @@ public class SchemaGeneratorController {
                 xmlInputArea.setText(content);
             }
             currentXmlFile = file;
-
-            // Update access count
-            favorite.setAccessCount(favorite.getAccessCount() + 1);
-            favorite.setLastAccessed(java.time.LocalDateTime.now());
-            favoritesService.updateFavorite(favorite);
-
-            showContent();  // Show content when favorite is loaded
-            logger.info("Loaded favorite: {}", favorite.getName());
+            showContent();
+            logger.info("Loaded file from favorites: {}", file.getName());
         } catch (IOException e) {
-            logger.error("Failed to load favorite", e);
+            logger.error("Failed to load file from favorites", e);
             showAlert("Load Error", "Failed to load file: " + e.getMessage());
         }
+    }
+
+    @Override
+    public File getCurrentFile() {
+        return currentXmlFile;
     }
 
     /**
@@ -439,7 +408,7 @@ public class SchemaGeneratorController {
     }
 
     @FXML
-    private void generateSchema() {
+    public void generateSchema() {
         String xmlContent = xmlInputArea != null ? xmlInputArea.getText().trim() : "";
 
         if (xmlContent.isEmpty()) {
@@ -774,7 +743,19 @@ public class SchemaGeneratorController {
         helpDialog.setTitle("Schema Generator - Help");
         helpDialog.setHeaderText("How to use the Intelligent Schema Generator");
         helpDialog.setContentText("""
-                Use this tool to work with your documents.\n\n                Press F1 to show this help.
+                Generate XSD schemas from XML documents automatically.
+
+                FEATURES:
+                - Smart type inference from XML data
+                - Complex type generation
+                - Schema optimization
+                - Detailed analysis reports
+
+                KEYBOARD SHORTCUTS:
+                - F5: Generate schema
+                - Ctrl+D: Add to favorites
+                - Ctrl+Shift+D: Toggle favorites panel
+                - F1: Show this help dialog
                 """);
         helpDialog.showAndWait();
     }

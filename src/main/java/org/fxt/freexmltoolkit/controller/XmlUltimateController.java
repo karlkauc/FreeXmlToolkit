@@ -76,7 +76,7 @@ import java.util.concurrent.Executors;
  * Ultimate XML Controller - The Complete XML Editor with All Features
  * Provides comprehensive XML editing, validation, transformation, and generation capabilities
  */
-public class XmlUltimateController implements Initializable {
+public class XmlUltimateController implements Initializable, FavoritesParentController {
     private static final Logger logger = LogManager.getLogger(XmlUltimateController.class);
 
     // Services
@@ -878,7 +878,7 @@ public class XmlUltimateController implements Initializable {
     }
 
     @FXML
-    private void saveFile() {
+    public void saveFile() {
         logger.info("Saving XML document");
         logToConsole("Saving XML document...");
 
@@ -906,7 +906,7 @@ public class XmlUltimateController implements Initializable {
     }
 
     @FXML
-    private void saveAsFile() {
+    public void saveAsFile() {
         logger.info("Saving XML document as...");
         logToConsole("Saving XML document as...");
 
@@ -1006,7 +1006,7 @@ public class XmlUltimateController implements Initializable {
      * Validation Operations
      */
     @FXML
-    private void validateXml() {
+    public void validateXml() {
         logger.info("Validating XML");
         logToConsole("Validating XML structure and schema...");
         validateCurrentXml();
@@ -1104,7 +1104,7 @@ public class XmlUltimateController implements Initializable {
     }
 
     @FXML
-    private void addCurrentFileToFavorites() {
+    public void addCurrentFileToFavorites() {
         logger.info("Adding current file to favorites");
 
         Tab selectedTab = xmlFilesPane.getSelectionModel().getSelectedItem();
@@ -2254,7 +2254,21 @@ public class XmlUltimateController implements Initializable {
         helpDialog.setTitle("XML Editor - Help");
         helpDialog.setHeaderText("How to use the Ultimate XML Editor");
         helpDialog.setContentText("""
-                Use this tool to work with your documents.\n\n                Press F1 to show this help.
+                Edit and validate XML documents with powerful features.
+
+                FEATURES:
+                - Syntax highlighting and code completion
+                - XPath and XQuery execution
+                - XML validation against XSD
+                - Format and prettify XML
+
+                KEYBOARD SHORTCUTS:
+                - F5: Validate XML
+                - Ctrl+S: Save file
+                - Ctrl+Shift+S: Save As
+                - Ctrl+D: Add to favorites
+                - Ctrl+Shift+D: Toggle favorites panel
+                - F1: Show this help dialog
                 """);
         helpDialog.showAndWait();
     }

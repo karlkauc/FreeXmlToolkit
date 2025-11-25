@@ -14,7 +14,7 @@
         <!-- File Operations Group -->
         <Button fx:id="newSchematronFileButton" text="New" contentDisplay="TOP" styleClass="toolbar-button" onAction="#newSchematronFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745"/>
+                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Create New Schematron File"/>
@@ -23,7 +23,7 @@
 
         <Button fx:id="loadSchematronFileButton" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#loadSchematronFile">
             <graphic>
-                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff"/>
+                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open Schematron File"/>
@@ -32,19 +32,19 @@
 
         <Button fx:id="saveSchematronButton" text="Save" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveSchematron">
             <graphic>
-                <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8"/>
+                <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Save Schematron File"/>
+                <Tooltip text="Save Schematron File (Ctrl+S)"/>
             </tooltip>
         </Button>
 
         <Button fx:id="saveAsSchematronButton" text="Save As" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveAsSchematron">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-arrow-down" iconSize="20" iconColor="#17a2b8"/>
+                <FontIcon iconLiteral="bi-file-earmark-arrow-down" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Save As..."/>
+                <Tooltip text="Save As... (Ctrl+Shift+S)"/>
             </tooltip>
         </Button>
 
@@ -53,7 +53,7 @@
         <!-- Editing Group -->
         <Button fx:id="newRuleButton" text="Add Rule" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#28a745"/>
+                <FontIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add New Rule"/>
@@ -62,12 +62,31 @@
 
         <Separator orientation="VERTICAL"/>
 
+        <!-- Favorites Group -->
+        <Button fx:id="addToFavoritesBtn" text="Favorite" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Add to Favorites (Ctrl+D)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Show/Hide Favorites (Ctrl+Shift+D)"/>
+            </tooltip>
+        </Button>
+
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
         <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
@@ -75,8 +94,10 @@
         </Button>
     </ToolBar>
 
-    <!-- Main Tab Container -->
-    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS">
+    <!-- Main Content Area + Favorites -->
+    <SplitPane fx:id="mainSplitPane" orientation="HORIZONTAL" dividerPositions="0.75" VBox.vgrow="ALWAYS">
+        <!-- Main Tab Container -->
+        <TabPane fx:id="tabPane">
 
         <!-- Code Editor Tab -->
         <Tab fx:id="codeTab" text="Code" closable="false" styleClass="primary-tab">
@@ -171,27 +192,6 @@
                         </tooltip>
                     </Button>
 
-                    <Separator orientation="VERTICAL"/>
-
-                    <!-- Favorites Buttons -->
-                    <Button fx:id="addSchematronToFavoritesButton" text="★ Add"
-                            onAction="#addCurrentSchematronToFavorites">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-star" iconColor="#ffc107" iconSize="14"/>
-                        </graphic>
-                        <tooltip>
-                            <Tooltip text="Add current Schematron file to favorites"/>
-                        </tooltip>
-                    </Button>
-
-                    <MenuButton fx:id="loadSchematronFavoritesButton" text="Favorites">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-star-fill" iconColor="#ffc107" iconSize="14"/>
-                        </graphic>
-                        <tooltip>
-                            <Tooltip text="Load from favorites"/>
-                        </tooltip>
-                    </MenuButton>
                 </ToolBar>
 
                 <!-- Main Content Area with Split Pane -->
@@ -442,7 +442,7 @@
                             <Separator orientation="VERTICAL"/>
 
                             <!-- Test Execution Buttons -->
-                            <Button fx:id="runAllTestsButton" text="Run All Tests" style="-fx-font-weight: bold;"
+                            <Button fx:id="runAllTestsButton" text="Run All Tests (F5)" style="-fx-font-weight: bold;"
                                     onAction="#runAllTests">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-play-fill" iconColor="#28a745" iconSize="14"/>
@@ -541,5 +541,9 @@
                                                                                   VBox.vgrow="ALWAYS"/>
             </VBox>
         </Tab>
-    </TabPane>
+        </TabPane>
+
+        <!-- Favorites Panel (unified component) -->
+        <fx:include fx:id="favoritesPanel" source="controls/FavoritesPanel.fxml"/>
+    </SplitPane>
 </VBox>

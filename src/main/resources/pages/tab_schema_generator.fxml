@@ -32,7 +32,7 @@
         <!-- File Operations Group -->
         <Button fx:id="loadXmlBtn" text="Open XML" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff"/>
+                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open XML File"/>
@@ -41,7 +41,7 @@
 
         <Button fx:id="batchProcessBtn" text="Batch" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-stack" iconSize="20" iconColor="#6f42c1"/>
+                <FontIcon iconLiteral="bi-stack" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Batch Process Multiple Files"/>
@@ -54,10 +54,10 @@
         <Button fx:id="generateSchemaBtn" text="Generate" contentDisplay="TOP" styleClass="toolbar-button"
                 onAction="#generateSchema">
             <graphic>
-                <FontIcon iconLiteral="bi-play-circle-fill" iconSize="20" iconColor="#28a745"/>
+                <FontIcon iconLiteral="bi-play-circle-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Generate XSD Schema"/>
+                <Tooltip text="Generate XSD Schema (F5)"/>
             </tooltip>
         </Button>
 
@@ -66,28 +66,28 @@
         <!-- Favorites Group -->
         <Button fx:id="addToFavoritesBtn" text="Add Fav" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107"/>
+                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Add to Favorites"/>
+                <Tooltip text="Add to Favorites (Ctrl+D)"/>
             </tooltip>
         </Button>
 
-        <ToggleButton fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-heart" iconSize="20" iconColor="#dc3545"/>
+                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Toggle Favorites Panel"/>
+                <Tooltip text="Show/Hide Favorites (Ctrl+Shift+D)"/>
             </tooltip>
-        </ToggleButton>
+        </Button>
 
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
         <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
@@ -193,9 +193,9 @@
         </StackPane>
 
         <!-- Right Panel: Generated Schema and Analysis + Favorites -->
-        <HBox spacing="0">
+        <SplitPane fx:id="rightSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
             <!-- Generated Schema and Analysis Section -->
-            <VBox spacing="10" styleClass="schema-results" HBox.hgrow="ALWAYS">
+            <VBox spacing="10" styleClass="schema-results">
                 <padding>
                     <Insets top="15" bottom="15" left="15" right="15"/>
                 </padding>
@@ -319,43 +319,8 @@
             </TabPane>
             </VBox>
 
-            <!-- Favorites Sidebar -->
-            <VBox fx:id="favoritesPanel" styleClass="favorites-sidebar"
-                  visible="false" managed="false" prefWidth="250" spacing="10">
-                <padding>
-                    <Insets top="15" bottom="15" left="15" right="15"/>
-                </padding>
-
-                <Label text="Favorites" styleClass="favorites-header"/>
-                <Separator/>
-
-                <HBox spacing="5" alignment="CENTER_LEFT">
-                    <ComboBox fx:id="favoritesCategoryCombo" promptText="All Categories" HBox.hgrow="ALWAYS"/>
-                    <Button styleClass="icon-button">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-gear" iconSize="14"/>
-                        </graphic>
-                        <tooltip>
-                            <Tooltip text="Manage Categories"/>
-                        </tooltip>
-                    </Button>
-                </HBox>
-
-                <ListView fx:id="favoritesListView" VBox.vgrow="ALWAYS"/>
-
-                <HBox spacing="5" alignment="CENTER">
-                    <Button text="Load" styleClass="btn-primary" HBox.hgrow="ALWAYS">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
-                        </graphic>
-                    </Button>
-                    <Button text="Remove" styleClass="btn-secondary" HBox.hgrow="ALWAYS">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-trash" iconSize="14"/>
-                        </graphic>
-                    </Button>
-                </HBox>
-            </VBox>
-        </HBox>
+            <!-- Favorites Panel (unified component) -->
+            <fx:include fx:id="favoritesPanel" source="controls/FavoritesPanel.fxml"/>
+        </SplitPane>
     </SplitPane>
 </VBox>

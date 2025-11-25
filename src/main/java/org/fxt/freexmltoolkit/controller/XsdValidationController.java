@@ -28,9 +28,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -55,7 +57,7 @@ import java.util.Objects;
 /**
  * Controller class for handling XSD validation operations.
  */
-public class XsdValidationController {
+public class XsdValidationController implements FavoritesParentController {
 
     private static final Logger logger = LogManager.getLogger(XsdValidationController.class);
     private final XmlService xmlService = XmlServiceImpl.getInstance();
@@ -89,17 +91,17 @@ public class XsdValidationController {
     @FXML
     private Label statusLabel;
 
-    // UI Components - Favorites
+    // UI Components - Favorites (unified FavoritesPanel)
     @FXML
     private Button addToFavoritesBtn;
     @FXML
-    private ToggleButton toggleFavoritesButton;
+    private Button toggleFavoritesButton;
+    @FXML
+    private SplitPane mainSplitPane;
     @FXML
     private VBox favoritesPanel;
     @FXML
-    private ComboBox<String> favoritesCategoryCombo;
-    @FXML
-    private ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesListView;
+    private FavoritesPanelController favoritesPanelController;
 
     // UI Components - Empty State
     @FXML
@@ -110,10 +112,6 @@ public class XsdValidationController {
     private Button emptyStateOpenXmlButton;
     @FXML
     private Button emptyStateFavoritesButton;
-
-    // Favorites Service
-    private final org.fxt.freexmltoolkit.service.FavoritesService favoritesService =
-        org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
 
     /**
      * Sets the parent controller.
@@ -168,38 +166,20 @@ public class XsdValidationController {
     }
 
     private void initializeFavorites() {
-        if (favoritesCategoryCombo != null) {
-            favoritesCategoryCombo.getItems().addAll("All Categories", "Validation", "XML Files", "XSD Files");
-            favoritesCategoryCombo.setValue("All Categories");
-            favoritesCategoryCombo.setOnAction(e -> loadFavoritesForCategory(favoritesCategoryCombo.getValue()));
+        // Initialize the unified FavoritesPanel controller
+        if (favoritesPanelController != null) {
+            favoritesPanelController.setParentController(this);
+            logger.debug("FavoritesPanelController initialized");
         }
 
-        if (favoritesListView != null) {
-            favoritesListView.setCellFactory(lv -> new ListCell<org.fxt.freexmltoolkit.domain.FileFavorite>() {
-                @Override
-                protected void updateItem(org.fxt.freexmltoolkit.domain.FileFavorite item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                        setGraphic(null);
-                    } else {
-                        setText(item.getName());
-                        org.kordamp.ikonli.javafx.FontIcon icon = getIconForFile(item.getFilePath());
-                        setGraphic(icon);
-                    }
-                }
-            });
-
-            favoritesListView.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2) {
-                    org.fxt.freexmltoolkit.domain.FileFavorite selected = favoritesListView.getSelectionModel().getSelectedItem();
-                    if (selected != null) {
-                        loadFavorite(selected);
-                    }
-                }
-            });
+        // Initially hide favorites panel
+        if (favoritesPanel != null && mainSplitPane != null) {
+            mainSplitPane.getItems().remove(favoritesPanel);
+            favoritesPanel.setVisible(false);
+            favoritesPanel.setManaged(false);
         }
 
+        // Wire up toolbar buttons
         if (addToFavoritesBtn != null) {
             addToFavoritesBtn.setOnAction(e -> addCurrentToFavorites());
         }
@@ -207,8 +187,6 @@ public class XsdValidationController {
         if (toggleFavoritesButton != null) {
             toggleFavoritesButton.setOnAction(e -> toggleFavoritesPanel());
         }
-
-        loadFavoritesForCategory("All Categories");
     }
 
     /**
@@ -221,12 +199,7 @@ public class XsdValidationController {
         }
 
         if (emptyStateFavoritesButton != null) {
-            emptyStateFavoritesButton.setOnAction(e -> {
-                if (toggleFavoritesButton != null) {
-                    toggleFavoritesButton.setSelected(true);
-                    toggleFavoritesButton.fire();
-                }
-            });
+            emptyStateFavoritesButton.setOnAction(e -> toggleFavoritesPanel());
         }
     }
 
@@ -244,139 +217,119 @@ public class XsdValidationController {
         }
     }
 
-    private org.kordamp.ikonli.javafx.FontIcon getIconForFile(String filePath) {
-        org.kordamp.ikonli.javafx.FontIcon icon;
-        if (filePath.endsWith(".xml")) {
-            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file-earmark-code");
-            icon.setIconColor(javafx.scene.paint.Color.web("#007bff"));
-        } else if (filePath.endsWith(".xsd")) {
-            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-diagram-3");
-            icon.setIconColor(javafx.scene.paint.Color.web("#007bff"));
-        } else {
-            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file");
-            icon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
-        }
-        icon.setIconSize(14);
-        return icon;
-    }
-
-    private void loadFavoritesForCategory(String category) {
-        if (favoritesListView == null) return;
-
-        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> allFavorites = favoritesService.getAllFavorites();
-        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> filtered;
-
-        if ("All Categories".equals(category)) {
-            filtered = allFavorites;
-        } else {
-            filtered = allFavorites.stream()
-                    .filter(f -> category.equals(f.getFolderName()))
-                    .collect(java.util.stream.Collectors.toList());
-        }
-
-        favoritesListView.setItems(javafx.collections.FXCollections.observableArrayList(filtered));
-    }
-
+    /**
+     * Adds the current XML or XSD file to favorites.
+     */
     private void addCurrentToFavorites() {
-        File currentXmlFile = xmlService.getCurrentXmlFile();
-        File currentXsdFile = xmlService.getCurrentXsdFile();
+        File currentFile = getCurrentFile();
 
-        if (currentXmlFile == null && currentXsdFile == null) {
-            showAlert("No Files Loaded", "Please load an XML and/or XSD file before adding to favorites.");
+        if (currentFile == null) {
+            showAlert("No Files Loaded", "Please load an XML or XSD file before adding to favorites.");
             return;
         }
 
-        Dialog<org.fxt.freexmltoolkit.domain.FileFavorite> dialog = new Dialog<>();
+        TextInputDialog dialog = new TextInputDialog("Validation");
         dialog.setTitle("Add to Favorites");
-        dialog.setHeaderText("Add Current Files to Favorites");
+        dialog.setHeaderText("Add " + currentFile.getName() + " to favorites");
+        dialog.setContentText("Category:");
 
-        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+        dialog.showAndWait().ifPresent(category -> {
+            org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
+                    currentFile.getName(),
+                    currentFile.getAbsolutePath(),
+                    category
+            );
+            org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addFavorite(fav);
 
-        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Favorites");
+            alert.setHeaderText(null);
+            alert.setContentText("File added to favorites");
+            alert.showAndWait();
 
-        TextField nameField = new TextField();
-        if (currentXmlFile != null) {
-            nameField.setText(currentXmlFile.getName());
-        } else if (currentXsdFile != null) {
-            nameField.setText(currentXsdFile.getName());
-        }
-
-        ComboBox<String> categoryCombo = new ComboBox<>();
-        categoryCombo.getItems().addAll("Validation", "XML Files", "XSD Files");
-        categoryCombo.setValue("Validation");
-
-        TextField descField = new TextField();
-
-        grid.add(new Label("Name:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Category:"), 0, 1);
-        grid.add(categoryCombo, 1, 1);
-        grid.add(new Label("Description:"), 0, 2);
-        grid.add(descField, 1, 2);
-
-        dialog.getDialogPane().setContent(grid);
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == addButtonType) {
-                if (currentXmlFile != null) {
-                    org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
-                            nameField.getText() + " (XML)",
-                            currentXmlFile.getAbsolutePath(),
-                            categoryCombo.getValue()
-                    );
-                    fav.setDescription(descField.getText());
-                    favoritesService.addFavorite(fav);
-                }
-                if (currentXsdFile != null) {
-                    org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
-                            nameField.getText() + " (XSD)",
-                            currentXsdFile.getAbsolutePath(),
-                            categoryCombo.getValue()
-                    );
-                    fav.setDescription(descField.getText());
-                    favoritesService.addFavorite(fav);
-                }
-            }
-            return null;
+            logger.info("Added to favorites: {}", currentFile.getName());
         });
+    }
 
-        dialog.showAndWait();
-        loadFavoritesForCategory(favoritesCategoryCombo.getValue());
+    /**
+     * Toggles the favorites panel visibility.
+     * Also callable from MainController for Ctrl+Shift+D shortcut
+     */
+    public void toggleFavoritesPanelPublic() {
+        toggleFavoritesPanelInternal();
     }
 
     private void toggleFavoritesPanel() {
-        if (favoritesPanel != null) {
-            boolean isVisible = !favoritesPanel.isVisible();
-            favoritesPanel.setVisible(isVisible);
-            favoritesPanel.setManaged(isVisible);
-        }
+        toggleFavoritesPanelInternal();
     }
 
-    private void loadFavorite(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
-        File file = new File(favorite.getFilePath());
-        if (!file.exists()) {
-            showAlert("File Not Found", "The file no longer exists: " + favorite.getFilePath());
+    private void toggleFavoritesPanelInternal() {
+        if (favoritesPanel == null || mainSplitPane == null) {
             return;
         }
 
-        if (file.getName().endsWith(".xml")) {
-            processXmlFile(file);  // This already calls showContent()
-        } else if (file.getName().endsWith(".xsd")) {
-            xmlService.setCurrentXsdFile(file);
-            xsdFileName.setText(file.getName());
-            showContent();  // Show content when XSD is loaded
+        boolean isCurrentlyShown = mainSplitPane.getItems().contains(favoritesPanel);
+
+        if (!isCurrentlyShown) {
+            // Show the panel
+            favoritesPanel.setVisible(true);
+            favoritesPanel.setManaged(true);
+            mainSplitPane.getItems().add(favoritesPanel);
+            mainSplitPane.setDividerPositions(0.75);
+        } else {
+            // Hide the panel
+            mainSplitPane.getItems().remove(favoritesPanel);
+            favoritesPanel.setVisible(false);
+            favoritesPanel.setManaged(false);
         }
 
-        // Update access count
-        favorite.setAccessCount(favorite.getAccessCount() + 1);
-        favorite.setLastAccessed(java.time.LocalDateTime.now());
-        favoritesService.updateFavorite(favorite);
+        logger.debug("Favorites panel toggled: {}", !isCurrentlyShown ? "shown" : "hidden");
+    }
 
-        logger.info("Loaded favorite: {}", favorite.getName());
+    // ======================================================================
+    // FavoritesParentController Interface Implementation
+    // ======================================================================
+
+    /**
+     * Load a file from favorites into the validation tab.
+     * Implementation of FavoritesParentController interface.
+     *
+     * @param file the file to load
+     */
+    @Override
+    public void loadFileToNewTab(File file) {
+        if (file == null || !file.exists()) {
+            logger.warn("Cannot load file from favorites - file is null or does not exist: {}", file);
+            return;
+        }
+
+        String fileName = file.getName().toLowerCase();
+        if (fileName.endsWith(".xml")) {
+            processXmlFile(file);
+            logger.info("Loaded XML file from favorites: {}", file.getAbsolutePath());
+        } else if (fileName.endsWith(".xsd")) {
+            xmlService.setCurrentXsdFile(file);
+            xsdFileName.setText(file.getName());
+            showContent();
+            logger.info("Loaded XSD file from favorites: {}", file.getAbsolutePath());
+        } else {
+            showAlert("Unsupported File", "Only XML and XSD files are supported for validation.");
+        }
+    }
+
+    /**
+     * Get the currently loaded file (XML has priority over XSD).
+     * Implementation of FavoritesParentController interface.
+     *
+     * @return the current file, or null if no file is open
+     */
+    @Override
+    public File getCurrentFile() {
+        File currentXmlFile = xmlService.getCurrentXmlFile();
+        if (currentXmlFile != null) {
+            return currentXmlFile;
+        }
+        return xmlService.getCurrentXsdFile();
     }
 
     /**
@@ -466,9 +419,10 @@ public class XsdValidationController {
 
     /**
      * Processes the currently selected XML file.
+     * Also callable from MainController for F5 shortcut
      */
     @FXML
-    private void processXmlFile() {
+    public void processXmlFile() {
         processXmlFile(xmlService.getCurrentXmlFile());
     }
 
@@ -744,6 +698,9 @@ public class XsdValidationController {
                    - Click the eraser button to reset the validation interface
 
                 Keyboard Shortcuts:
+                - F5: Start validation
+                - Ctrl+D: Add to favorites
+                - Ctrl+Shift+D: Toggle favorites panel
                 - F1: Show this help dialog
                 """;
 

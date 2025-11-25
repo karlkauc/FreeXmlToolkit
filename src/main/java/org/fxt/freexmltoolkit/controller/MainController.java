@@ -27,9 +27,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -58,6 +56,13 @@ public class MainController implements Initializable {
     XmlUltimateController xmlUltimateController;
     XsdController xsdController;
     SchematronController schematronController;
+    XsdValidationController xsdValidationController;
+    FopController fopController;
+    XsltDeveloperController xsltDeveloperController;
+    SchemaGeneratorController schemaGeneratorController;
+
+    // Track currently active tab
+    private String activeTabId = "welcome";
 
     // Integration service for cross-controller communication
     private org.fxt.freexmltoolkit.service.SchematronXmlIntegrationService integrationService;
@@ -295,7 +300,8 @@ public class MainController implements Initializable {
     @FXML
     public void loadPage(ActionEvent ae) {
         Button currentButton = (Button) ae.getSource();
-        String pagePath = switch (currentButton.getId()) {
+        String buttonId = currentButton.getId();
+        String pagePath = switch (buttonId) {
             case "xslt" -> "/pages/tab_xslt.fxml";
             case "xml" -> "/pages/tab_xml.fxml";
             case "xmlEnhanced" -> "/pages/tab_xml_enhanced.fxml";
@@ -317,10 +323,20 @@ public class MainController implements Initializable {
 
         if (pagePath != null) {
             loadPageFromPath(pagePath);
+            activeTabId = buttonId; // Track active tab
+            logger.debug("Active tab changed to: {}", activeTabId);
         }
 
         currentButton.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
         currentButton.getStyleClass().add("active");
+    }
+
+    /**
+     * Get the currently active tab ID.
+     * @return the active tab ID (e.g., "xmlUltimate", "xsd", "schematron", etc.)
+     */
+    public String getActiveTabId() {
+        return activeTabId;
     }
 
     private void loadPageFromPath(String pagePath) {
@@ -407,7 +423,11 @@ public class MainController implements Initializable {
                 });
                 initializeIntegrationService();
             }
-            case XsdValidationController xsdValidationController -> xsdValidationController.setParentController(this);
+            case XsdValidationController xsdValidationController1 -> {
+                logger.debug("set XSD Validation Controller");
+                this.xsdValidationController = xsdValidationController1;
+                xsdValidationController1.setParentController(this);
+            }
             case SettingsController settingsController -> settingsController.setParentController(this);
             case WelcomeController welcomeController -> welcomeController.setParentController(this);
             case XsdController xsdController1 -> {
@@ -425,9 +445,10 @@ public class MainController implements Initializable {
                 logger.debug("set XSLT Controller");
                 xsltController.setParentController(this);
             }
-            case FopController fopController -> {
+            case FopController fopController1 -> {
                 logger.debug("set FOP Controller");
-                fopController.setParentController(this);
+                this.fopController = fopController1;
+                fopController1.setParentController(this);
             }
             case SignatureController signatureController -> {
                 logger.debug("set Signature Controller");
@@ -439,11 +460,13 @@ public class MainController implements Initializable {
             // case TemplatesController templatesController -> {
             //     logger.debug("set Smart Templates Controller");
             // }
-            case SchemaGeneratorController schemaGeneratorController -> {
+            case SchemaGeneratorController schemaGeneratorController1 -> {
                 logger.debug("set Intelligent Schema Generator Controller");
+                this.schemaGeneratorController = schemaGeneratorController1;
             }
-            case XsltDeveloperController xsltDeveloperController -> {
+            case XsltDeveloperController xsltDeveloperController1 -> {
                 logger.debug("set Advanced XSLT Developer Controller");
+                this.xsltDeveloperController = xsltDeveloperController1;
             }
             case null, default -> {
                 if (controller != null) {
@@ -803,6 +826,7 @@ public class MainController implements Initializable {
         Platform.runLater(() -> {
             loadWelcomePage();
             applyTheme();
+            setupKeyboardShortcuts();
         });
     }
 
@@ -926,5 +950,277 @@ public class MainController implements Initializable {
         return fileName.endsWith(".xml") || fileName.endsWith(".xsd") || fileName.endsWith(".xsl") ||
                 fileName.endsWith(".xslt") || fileName.endsWith(".wsdl");
     }
-    
+
+    // ==================== KEYBOARD SHORTCUTS ====================
+
+    /**
+     * Setup global keyboard shortcuts for the application.
+     * Called after the scene is available.
+     */
+    private void setupKeyboardShortcuts() {
+        Platform.runLater(() -> {
+            Scene scene = contentPane.getScene();
+            if (scene != null) {
+                scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalKeyPressed);
+                logger.info("Global keyboard shortcuts initialized");
+            } else {
+                logger.warn("Scene not available for keyboard shortcuts setup");
+            }
+        });
+    }
+
+    /**
+     * Handle global keyboard shortcuts.
+     * Shortcuts: Ctrl+N (New), Ctrl+O (Open), Ctrl+S (Save), Ctrl+Shift+S (Save As),
+     * Ctrl+D (Add to Favorites), Ctrl+Shift+D (Toggle Favorites), F5 (Execute main action)
+     */
+    private void handleGlobalKeyPressed(KeyEvent event) {
+        // Skip if event was already consumed
+        if (event.isConsumed()) {
+            return;
+        }
+
+        KeyCode code = event.getCode();
+        boolean isShortcut = event.isShortcutDown(); // Ctrl on Windows/Linux, Cmd on Mac
+        boolean isShift = event.isShiftDown();
+
+        // F5 - Execute main action for current tab
+        if (code == KeyCode.F5) {
+            handleF5Action();
+            event.consume();
+            return;
+        }
+
+        // Ctrl/Cmd shortcuts
+        if (isShortcut) {
+            switch (code) {
+                case N -> {
+                    if (!isShift) {
+                        handleNewFile();
+                        event.consume();
+                    }
+                }
+                case O -> {
+                    if (!isShift) {
+                        handleOpenFile();
+                        event.consume();
+                    }
+                }
+                case S -> {
+                    if (isShift) {
+                        handleSaveAsAction();
+                    } else {
+                        handleSaveAction();
+                    }
+                    event.consume();
+                }
+                case D -> {
+                    if (isShift) {
+                        handleToggleFavoritesAction();
+                    } else {
+                        handleAddToFavoritesAction();
+                    }
+                    event.consume();
+                }
+                default -> {
+                    // Not handled
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle F5 - Execute main action based on active tab.
+     * Each tab has a different main action (Validate, Generate, Transform, etc.)
+     */
+    private void handleF5Action() {
+        logger.debug("F5 pressed - Active tab: {}", activeTabId);
+
+        switch (activeTabId) {
+            case "xmlUltimate" -> {
+                if (xmlUltimateController != null) {
+                    xmlUltimateController.validateXml();
+                    logger.debug("F5: Triggered XML validation");
+                }
+            }
+            case "xsd" -> {
+                if (xsdController != null) {
+                    xsdController.handleToolbarValidate();
+                    logger.debug("F5: Triggered XSD validation");
+                }
+            }
+            case "schematron" -> {
+                if (schematronController != null) {
+                    schematronController.runAllTests();
+                    logger.debug("F5: Triggered Schematron tests");
+                }
+            }
+            case "xsdValidation" -> {
+                if (xsdValidationController != null) {
+                    xsdValidationController.processXmlFile();
+                    logger.debug("F5: Triggered XSD validation");
+                }
+            }
+            case "fop" -> {
+                if (fopController != null) {
+                    fopController.buttonConversion();
+                    logger.debug("F5: Triggered PDF generation");
+                }
+            }
+            case "xsltDeveloper" -> {
+                if (xsltDeveloperController != null) {
+                    xsltDeveloperController.executeTransformation();
+                    logger.debug("F5: Triggered XSLT transformation");
+                }
+            }
+            case "schemaGenerator" -> {
+                if (schemaGeneratorController != null) {
+                    schemaGeneratorController.generateSchema();
+                    logger.debug("F5: Triggered schema generation");
+                }
+            }
+            default -> logger.debug("F5: No action defined for tab '{}'", activeTabId);
+        }
+    }
+
+    /**
+     * Handle Ctrl+S - Save action for current tab
+     */
+    private void handleSaveAction() {
+        logger.debug("Ctrl+S pressed - Active tab: {}", activeTabId);
+
+        switch (activeTabId) {
+            case "xmlUltimate" -> {
+                if (xmlUltimateController != null) {
+                    xmlUltimateController.saveFile();
+                    logger.debug("Ctrl+S: Triggered XML save");
+                }
+            }
+            case "xsd" -> {
+                if (xsdController != null) {
+                    xsdController.handleToolbarSave();
+                    logger.debug("Ctrl+S: Triggered XSD save");
+                }
+            }
+            case "schematron" -> {
+                if (schematronController != null) {
+                    schematronController.saveSchematronPublic();
+                    logger.debug("Ctrl+S: Triggered Schematron save");
+                }
+            }
+            default -> logger.debug("Ctrl+S: No save action defined for tab '{}'", activeTabId);
+        }
+    }
+
+    /**
+     * Handle Ctrl+Shift+S - Save As action for current tab
+     */
+    private void handleSaveAsAction() {
+        logger.debug("Ctrl+Shift+S pressed - Active tab: {}", activeTabId);
+
+        switch (activeTabId) {
+            case "xmlUltimate" -> {
+                if (xmlUltimateController != null) {
+                    xmlUltimateController.saveAsFile();
+                    logger.debug("Ctrl+Shift+S: Triggered XML Save As");
+                }
+            }
+            case "xsd" -> {
+                if (xsdController != null) {
+                    xsdController.handleToolbarSaveAs();
+                    logger.debug("Ctrl+Shift+S: Triggered XSD Save As");
+                }
+            }
+            case "schematron" -> {
+                if (schematronController != null) {
+                    schematronController.saveSchematronAsPublic();
+                    logger.debug("Ctrl+Shift+S: Triggered Schematron Save As");
+                }
+            }
+            default -> logger.debug("Ctrl+Shift+S: No Save As action defined for tab '{}'", activeTabId);
+        }
+    }
+
+    /**
+     * Handle Ctrl+D - Add current file to favorites
+     */
+    private void handleAddToFavoritesAction() {
+        logger.debug("Ctrl+D pressed - Add to Favorites - Active tab: {}", activeTabId);
+
+        switch (activeTabId) {
+            case "xmlUltimate" -> {
+                if (xmlUltimateController != null) {
+                    xmlUltimateController.addCurrentFileToFavorites();
+                    logger.debug("Ctrl+D: Added XML file to favorites");
+                }
+            }
+            case "xsd" -> {
+                if (xsdController != null) {
+                    xsdController.handleToolbarAddFavorite();
+                    logger.debug("Ctrl+D: Added XSD file to favorites");
+                }
+            }
+            case "schematron" -> {
+                if (schematronController != null) {
+                    schematronController.addCurrentToFavoritesPublic();
+                    logger.debug("Ctrl+D: Added Schematron file to favorites");
+                }
+            }
+            default -> logger.debug("Ctrl+D: No add favorites action defined for tab '{}'", activeTabId);
+        }
+    }
+
+    /**
+     * Handle Ctrl+Shift+D - Toggle favorites panel
+     */
+    private void handleToggleFavoritesAction() {
+        logger.debug("Ctrl+Shift+D pressed - Toggle Favorites Panel - Active tab: {}", activeTabId);
+
+        switch (activeTabId) {
+            case "xmlUltimate" -> {
+                if (xmlUltimateController != null) {
+                    xmlUltimateController.toggleFavoritesPanel();
+                    logger.debug("Ctrl+Shift+D: Toggled XML favorites panel");
+                }
+            }
+            case "xsd" -> {
+                if (xsdController != null) {
+                    xsdController.handleToolbarShowFavorites();
+                    logger.debug("Ctrl+Shift+D: Toggled XSD favorites panel");
+                }
+            }
+            case "schematron" -> {
+                if (schematronController != null) {
+                    schematronController.toggleFavoritesPanelPublic();
+                    logger.debug("Ctrl+Shift+D: Toggled Schematron favorites panel");
+                }
+            }
+            case "xsdValidation" -> {
+                if (xsdValidationController != null) {
+                    xsdValidationController.toggleFavoritesPanelPublic();
+                    logger.debug("Ctrl+Shift+D: Toggled Validation favorites panel");
+                }
+            }
+            case "fop" -> {
+                if (fopController != null) {
+                    fopController.toggleFavoritesPanelPublic();
+                    logger.debug("Ctrl+Shift+D: Toggled FOP favorites panel");
+                }
+            }
+            case "xsltDeveloper" -> {
+                if (xsltDeveloperController != null) {
+                    xsltDeveloperController.toggleFavoritesPanelPublic();
+                    logger.debug("Ctrl+Shift+D: Toggled XSLT Developer favorites panel");
+                }
+            }
+            case "schemaGenerator" -> {
+                if (schemaGeneratorController != null) {
+                    schemaGeneratorController.toggleFavoritesPanelPublic();
+                    logger.debug("Ctrl+Shift+D: Toggled Schema Generator favorites panel");
+                }
+            }
+            default -> logger.debug("Ctrl+Shift+D: No toggle favorites action defined for tab '{}'", activeTabId);
+        }
+    }
+
 }

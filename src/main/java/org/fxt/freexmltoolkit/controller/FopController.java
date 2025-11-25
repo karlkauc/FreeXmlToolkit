@@ -27,8 +27,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.pdfbox.Loader;
@@ -49,7 +51,7 @@ import java.util.Map;
 /**
  * Controller class for handling FOP (Formatting Objects Processor) related actions.
  */
-public class FopController {
+public class FopController implements FavoritesParentController {
     private static final Logger logger = LogManager.getLogger(FopController.class);
     private final FOPService fopService = new FOPService();
     private final XmlService xmlService = XmlServiceImpl.getInstance();
@@ -67,21 +69,17 @@ public class FopController {
     @FXML
     private VBox pdfViewContainer;
 
-    // UI Components - Favorites
+    // UI Components - Favorites (unified FavoritesPanel)
     @FXML
     private Button addToFavoritesBtn;
     @FXML
-    private ToggleButton toggleFavoritesButton;
+    private Button toggleFavoritesButton;
+    @FXML
+    private SplitPane rightSplitPane;
     @FXML
     private VBox favoritesPanel;
     @FXML
-    private ComboBox<String> favoritesCategoryCombo;
-    @FXML
-    private ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesListView;
-
-    // Favorites Service
-    private final org.fxt.freexmltoolkit.service.FavoritesService favoritesService =
-        org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
+    private FavoritesPanelController favoritesPanelController;
 
     // UI Components - Empty State
     @FXML
@@ -136,38 +134,20 @@ public class FopController {
     }
 
     private void initializeFavorites() {
-        if (favoritesCategoryCombo != null) {
-            favoritesCategoryCombo.getItems().addAll("All Categories", "FOP", "XML Files", "XSL Files");
-            favoritesCategoryCombo.setValue("All Categories");
-            favoritesCategoryCombo.setOnAction(e -> loadFavoritesForCategory(favoritesCategoryCombo.getValue()));
+        // Initialize the unified FavoritesPanel controller
+        if (favoritesPanelController != null) {
+            favoritesPanelController.setParentController(this);
+            logger.debug("FavoritesPanelController initialized");
         }
 
-        if (favoritesListView != null) {
-            favoritesListView.setCellFactory(lv -> new ListCell<org.fxt.freexmltoolkit.domain.FileFavorite>() {
-                @Override
-                protected void updateItem(org.fxt.freexmltoolkit.domain.FileFavorite item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                        setGraphic(null);
-                    } else {
-                        setText(item.getName());
-                        org.kordamp.ikonli.javafx.FontIcon icon = getIconForFile(item.getFilePath());
-                        setGraphic(icon);
-                    }
-                }
-            });
-
-            favoritesListView.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2) {
-                    org.fxt.freexmltoolkit.domain.FileFavorite selected = favoritesListView.getSelectionModel().getSelectedItem();
-                    if (selected != null) {
-                        loadFavorite(selected);
-                    }
-                }
-            });
+        // Initially hide favorites panel
+        if (favoritesPanel != null && rightSplitPane != null) {
+            rightSplitPane.getItems().remove(favoritesPanel);
+            favoritesPanel.setVisible(false);
+            favoritesPanel.setManaged(false);
         }
 
+        // Wire up toolbar buttons
         if (addToFavoritesBtn != null) {
             addToFavoritesBtn.setOnAction(e -> addCurrentToFavorites());
         }
@@ -175,134 +155,98 @@ public class FopController {
         if (toggleFavoritesButton != null) {
             toggleFavoritesButton.setOnAction(e -> toggleFavoritesPanel());
         }
-
-        loadFavoritesForCategory("All Categories");
     }
 
-    private org.kordamp.ikonli.javafx.FontIcon getIconForFile(String filePath) {
-        org.kordamp.ikonli.javafx.FontIcon icon;
-        if (filePath.endsWith(".xml")) {
-            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file-earmark-code");
-            icon.setIconColor(javafx.scene.paint.Color.web("#007bff"));
-        } else if (filePath.endsWith(".xsl")) {
-            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file-earmark-text");
-            icon.setIconColor(javafx.scene.paint.Color.web("#e27429"));
-        } else if (filePath.endsWith(".pdf")) {
-            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file-earmark-pdf");
-            icon.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
-        } else {
-            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file");
-            icon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
-        }
-        icon.setIconSize(14);
-        return icon;
-    }
-
-    private void loadFavoritesForCategory(String category) {
-        if (favoritesListView == null) return;
-
-        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> allFavorites = favoritesService.getAllFavorites();
-        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> filtered;
-
-        if ("All Categories".equals(category)) {
-            filtered = allFavorites;
-        } else {
-            filtered = allFavorites.stream()
-                    .filter(f -> category.equals(f.getFolderName()))
-                    .collect(java.util.stream.Collectors.toList());
-        }
-
-        favoritesListView.setItems(javafx.collections.FXCollections.observableArrayList(filtered));
-    }
-
+    /**
+     * Adds the current XML or XSL file to favorites.
+     */
     private void addCurrentToFavorites() {
-        if (xmlFile == null && xslFile == null) {
-            showAlert("No Files Loaded", "Please load XML and/or XSL files before adding to favorites.");
+        File currentFile = getCurrentFile();
+
+        if (currentFile == null) {
+            showAlert("No Files Loaded", "Please load an XML or XSL file before adding to favorites.");
             return;
         }
 
-        Dialog<org.fxt.freexmltoolkit.domain.FileFavorite> dialog = new Dialog<>();
+        TextInputDialog dialog = new TextInputDialog("FOP");
         dialog.setTitle("Add to Favorites");
-        dialog.setHeaderText("Add Current Files to Favorites");
+        dialog.setHeaderText("Add " + currentFile.getName() + " to favorites");
+        dialog.setContentText("Category:");
 
-        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+        dialog.showAndWait().ifPresent(category -> {
+            org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
+                    currentFile.getName(),
+                    currentFile.getAbsolutePath(),
+                    category
+            );
+            org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addFavorite(fav);
 
-        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Favorites");
+            alert.setHeaderText(null);
+            alert.setContentText("File added to favorites");
+            alert.showAndWait();
 
-        TextField nameField = new TextField();
-        if (xmlFile != null) {
-            nameField.setText(xmlFile.getName());
-        } else if (xslFile != null) {
-            nameField.setText(xslFile.getName());
-        }
-
-        ComboBox<String> categoryCombo = new ComboBox<>();
-        categoryCombo.getItems().addAll("FOP", "XML Files", "XSL Files");
-        categoryCombo.setValue("FOP");
-
-        TextField descField = new TextField();
-
-        grid.add(new Label("Name:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Category:"), 0, 1);
-        grid.add(categoryCombo, 1, 1);
-        grid.add(new Label("Description:"), 0, 2);
-        grid.add(descField, 1, 2);
-
-        dialog.getDialogPane().setContent(grid);
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == addButtonType) {
-                if (xmlFile != null) {
-                    org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
-                            nameField.getText() + " (XML)",
-                            xmlFile.getAbsolutePath(),
-                            categoryCombo.getValue()
-                    );
-                    fav.setDescription(descField.getText());
-                    favoritesService.addFavorite(fav);
-                }
-                if (xslFile != null) {
-                    org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
-                            nameField.getText() + " (XSL)",
-                            xslFile.getAbsolutePath(),
-                            categoryCombo.getValue()
-                    );
-                    fav.setDescription(descField.getText());
-                    favoritesService.addFavorite(fav);
-                }
-            }
-            return null;
+            logger.info("Added to favorites: {}", currentFile.getName());
         });
+    }
 
-        dialog.showAndWait();
-        loadFavoritesForCategory(favoritesCategoryCombo.getValue());
+    /**
+     * Toggles the favorites panel visibility.
+     * Also callable from MainController for Ctrl+Shift+D shortcut
+     */
+    public void toggleFavoritesPanelPublic() {
+        toggleFavoritesPanelInternal();
     }
 
     private void toggleFavoritesPanel() {
-        if (favoritesPanel != null) {
-            boolean isVisible = !favoritesPanel.isVisible();
-            favoritesPanel.setVisible(isVisible);
-            favoritesPanel.setManaged(isVisible);
-        }
+        toggleFavoritesPanelInternal();
     }
 
-    private void loadFavorite(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
-        File file = new File(favorite.getFilePath());
-        if (!file.exists()) {
-            showAlert("File Not Found", "The file no longer exists: " + favorite.getFilePath());
+    private void toggleFavoritesPanelInternal() {
+        if (favoritesPanel == null || rightSplitPane == null) {
             return;
         }
 
-        if (file.getName().endsWith(".xml")) {
+        boolean isCurrentlyShown = rightSplitPane.getItems().contains(favoritesPanel);
+
+        if (!isCurrentlyShown) {
+            // Show the panel
+            favoritesPanel.setVisible(true);
+            favoritesPanel.setManaged(true);
+            rightSplitPane.getItems().add(favoritesPanel);
+            rightSplitPane.setDividerPositions(0.75);
+        } else {
+            // Hide the panel
+            rightSplitPane.getItems().remove(favoritesPanel);
+            favoritesPanel.setVisible(false);
+            favoritesPanel.setManaged(false);
+        }
+
+        logger.debug("Favorites panel toggled: {}", !isCurrentlyShown ? "shown" : "hidden");
+    }
+
+    // ======================================================================
+    // FavoritesParentController Interface Implementation
+    // ======================================================================
+
+    /**
+     * Load a file from favorites into the FOP tab.
+     * Implementation of FavoritesParentController interface.
+     *
+     * @param file the file to load
+     */
+    @Override
+    public void loadFileToNewTab(File file) {
+        if (file == null || !file.exists()) {
+            logger.warn("Cannot load file from favorites - file is null or does not exist: {}", file);
+            return;
+        }
+
+        String fileName = file.getName().toLowerCase();
+        if (fileName.endsWith(".xml")) {
             xmlFile = file;
             xmlFileName.setText(file.getName());
-
-            // Set the XML file in the service for stylesheet detection
             xmlService.setCurrentXmlFile(file);
 
             // Auto-load linked XSLT stylesheet if user hasn't manually loaded one
@@ -310,37 +254,42 @@ public class FopController {
                 tryLoadLinkedStylesheet();
             }
 
-            showContent();  // Show content when file is loaded
-        } else if (file.getName().endsWith(".xsl")) {
+            showContent();
+            logger.info("Loaded XML file from favorites: {}", file.getAbsolutePath());
+        } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
             xslFile = file;
             xslFileName.setText(file.getName());
-            showContent();  // Show content when file is loaded
+            showContent();
+            logger.info("Loaded XSL file from favorites: {}", file.getAbsolutePath());
+        } else {
+            showAlert("Unsupported File", "Only XML and XSL files are supported for FOP.");
         }
+    }
 
-        // Update access count
-        favorite.setAccessCount(favorite.getAccessCount() + 1);
-        favorite.setLastAccessed(java.time.LocalDateTime.now());
-        favoritesService.updateFavorite(favorite);
-
-        logger.info("Loaded favorite: {}", favorite.getName());
+    /**
+     * Get the currently loaded file (XML has priority over XSL).
+     * Implementation of FavoritesParentController interface.
+     *
+     * @return the current file, or null if no file is open
+     */
+    @Override
+    public File getCurrentFile() {
+        if (xmlFile != null) {
+            return xmlFile;
+        }
+        return xslFile;
     }
 
     /**
      * Initializes the empty state UI and wires up button actions.
      */
     private void initializeEmptyState() {
-        // Find the open XML button in the toolbar (it doesn't have an fx:id)
         if (emptyStateOpenXmlButton != null) {
             emptyStateOpenXmlButton.setOnAction(e -> openXmlFile());
         }
 
         if (emptyStateFavoritesButton != null) {
-            emptyStateFavoritesButton.setOnAction(e -> {
-                if (toggleFavoritesButton != null) {
-                    toggleFavoritesButton.setSelected(true);
-                    toggleFavoritesButton.fire();
-                }
-            });
+            emptyStateFavoritesButton.setOnAction(e -> toggleFavoritesPanel());
         }
     }
 
@@ -479,9 +428,10 @@ public class FopController {
 
     /**
      * Starts the conversion process from XML and XSL to PDF.
+     * Also callable from MainController for F5 shortcut
      */
     @FXML
-    private void buttonConversion() {
+    public void buttonConversion() {
         logger.debug("Start Conversion!");
 
         // =====================================================================
@@ -674,7 +624,19 @@ public class FopController {
         helpDialog.setTitle("FOP - Help");
         helpDialog.setHeaderText("How to use the PDF Generator (Apache FOP)");
         helpDialog.setContentText("""
-                Use this tool to work with your documents.\n\n                Press F1 to show this help.
+                Use this tool to generate PDF documents from XML data using XSL-FO.
+
+                STEPS:
+                1. Load an XML source file
+                2. Load an XSL-FO stylesheet
+                3. Select an output PDF file path
+                4. Click "Generate" to create the PDF
+
+                KEYBOARD SHORTCUTS:
+                - F5: Generate PDF
+                - Ctrl+D: Add to favorites
+                - Ctrl+Shift+D: Toggle favorites panel
+                - F1: Show this help dialog
                 """);
         helpDialog.showAndWait();
     }

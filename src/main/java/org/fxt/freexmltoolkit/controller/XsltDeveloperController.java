@@ -31,6 +31,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,7 +56,7 @@ import java.util.concurrent.Executors;
  * Controller for the Advanced XSLT Developer - Revolutionary Feature #2
  * Professional XSLT 3.0 development with live preview and performance profiling
  */
-public class XsltDeveloperController {
+public class XsltDeveloperController implements FavoritesParentController {
     private static final Logger logger = LogManager.getLogger(XsltDeveloperController.class);
 
     // Revolutionary Services
@@ -163,17 +164,17 @@ public class XsltDeveloperController {
     @FXML
     private TextArea traceArea;
 
-    // UI Components - Favorites
+    // UI Components - Favorites (unified FavoritesPanel)
     @FXML
     private Button addToFavoritesBtn;
     @FXML
-    private ToggleButton toggleFavoritesButton;
+    private Button toggleFavoritesButton;
+    @FXML
+    private SplitPane rightSplitPane;
     @FXML
     private VBox favoritesPanel;
     @FXML
-    private ComboBox<String> favoritesCategoryCombo;
-    @FXML
-    private ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesListView;
+    private FavoritesPanelController favoritesPanelController;
 
     // Empty State
     @FXML
@@ -188,7 +189,6 @@ public class XsltDeveloperController {
     // State Management
     private XsltTransformationResult lastResult;
     private final Map<String, String> currentParameters = new HashMap<>();
-    private final org.fxt.freexmltoolkit.service.FavoritesService favoritesService = org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
     private File currentXmlFile;
     private File currentXsltFile;
 
@@ -200,54 +200,34 @@ public class XsltDeveloperController {
         initializeEditors();
         setupEventHandlers();
         setDefaultValues();
-        initializeFavorites();
+        setupFavorites();
         initializeEmptyState();
 
         logger.info("XSLT Developer Controller initialized successfully");
     }
 
-    private void initializeFavorites() {
-        if (favoritesCategoryCombo != null) {
-            favoritesCategoryCombo.getItems().addAll("All Categories", "XSLT Developer", "XML Files", "XSLT Files");
-            favoritesCategoryCombo.setValue("All Categories");
-            favoritesCategoryCombo.setOnAction(e -> loadFavoritesForCategory(favoritesCategoryCombo.getValue()));
+    private void setupFavorites() {
+        // Setup unified FavoritesPanel
+        if (favoritesPanelController != null) {
+            favoritesPanelController.setParentController(this);
         }
 
-        if (favoritesListView != null) {
-            favoritesListView.setCellFactory(lv -> new javafx.scene.control.ListCell<org.fxt.freexmltoolkit.domain.FileFavorite>() {
-                @Override
-                protected void updateItem(org.fxt.freexmltoolkit.domain.FileFavorite item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                        setGraphic(null);
-                    } else {
-                        setText(item.getName());
-                        org.kordamp.ikonli.javafx.FontIcon icon = getIconForFile(item.getFilePath());
-                        setGraphic(icon);
-                    }
-                }
-            });
-
-            favoritesListView.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2) {
-                    org.fxt.freexmltoolkit.domain.FileFavorite selected = favoritesListView.getSelectionModel().getSelectedItem();
-                    if (selected != null) {
-                        loadFavorite(selected);
-                    }
-                }
-            });
-        }
-
+        // Setup add to favorites button
         if (addToFavoritesBtn != null) {
             addToFavoritesBtn.setOnAction(e -> addCurrentToFavorites());
         }
 
+        // Setup toggle favorites button
         if (toggleFavoritesButton != null) {
             toggleFavoritesButton.setOnAction(e -> toggleFavoritesPanel());
         }
 
-        loadFavoritesForCategory("All Categories");
+        // Initially hide favorites panel
+        if (favoritesPanel != null && rightSplitPane != null) {
+            rightSplitPane.getItems().remove(favoritesPanel);
+        }
+
+        logger.debug("Favorites panel setup completed");
     }
 
     private void initializeEmptyState() {
@@ -282,121 +262,93 @@ public class XsltDeveloperController {
         }
     }
 
-    private org.kordamp.ikonli.javafx.FontIcon getIconForFile(String filePath) {
-        org.kordamp.ikonli.javafx.FontIcon icon;
-        if (filePath.endsWith(".xml")) {
-            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file-earmark-code");
-            icon.setIconColor(javafx.scene.paint.Color.web("#007bff"));
-        } else if (filePath.endsWith(".xsl") || filePath.endsWith(".xslt")) {
-            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file-earmark-text");
-            icon.setIconColor(javafx.scene.paint.Color.web("#fd7e14"));
-        } else {
-            icon = new org.kordamp.ikonli.javafx.FontIcon("bi-file");
-            icon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
-        }
-        icon.setIconSize(14);
-        return icon;
-    }
-
-    private void loadFavoritesForCategory(String category) {
-        if (favoritesListView == null) return;
-
-        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> allFavorites = favoritesService.getAllFavorites();
-        java.util.List<org.fxt.freexmltoolkit.domain.FileFavorite> filtered;
-
-        if ("All Categories".equals(category)) {
-            filtered = allFavorites;
-        } else {
-            filtered = allFavorites.stream()
-                    .filter(f -> category.equals(f.getFolderName()))
-                    .collect(java.util.stream.Collectors.toList());
-        }
-
-        favoritesListView.setItems(javafx.collections.FXCollections.observableArrayList(filtered));
-    }
-
+    /**
+     * Adds the current file(s) to favorites using the unified FavoritesPanel.
+     * The FavoritesPanelController will use getCurrentFile() to get the current file.
+     */
     private void addCurrentToFavorites() {
-        if (currentXmlFile == null && currentXsltFile == null) {
-            showAlert("No Files Loaded", "Please load an XML and/or XSLT file before adding to favorites.");
+        if (favoritesPanelController != null) {
+            File currentFile = getCurrentFile();
+            if (currentFile != null) {
+                // Show the favorites panel if hidden, then trigger add
+                if (!rightSplitPane.getItems().contains(favoritesPanel)) {
+                    toggleFavoritesPanel();
+                }
+                // Use a simple dialog approach - same as FavoritesPanelController
+                TextInputDialog dialog = new TextInputDialog(currentFile.getName());
+                dialog.setTitle("Add to Favorites");
+                dialog.setHeaderText("Add " + currentFile.getName() + " to favorites");
+                dialog.setContentText("Enter alias (optional):");
+
+                dialog.showAndWait().ifPresent(alias -> {
+                    org.fxt.freexmltoolkit.domain.FileFavorite favorite =
+                        new org.fxt.freexmltoolkit.domain.FileFavorite(
+                            alias.isEmpty() ? currentFile.getName() : alias,
+                            currentFile.getAbsolutePath(),
+                            getCategoryForFile(currentFile.getAbsolutePath())
+                        );
+                    org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addFavorite(favorite);
+                    showInfo("Added to Favorites", currentFile.getName() + " has been added to favorites.");
+                });
+            } else {
+                showAlert("No Files Loaded", "Please load an XML or XSLT file before adding to favorites.");
+            }
+        }
+    }
+
+    private String getCategoryForFile(String filePath) {
+        if (filePath.endsWith(".xml")) return "XML Documents";
+        if (filePath.endsWith(".xsd")) return "XSD Schemas";
+        if (filePath.endsWith(".xsl") || filePath.endsWith(".xslt")) return "XSLT Stylesheets";
+        return "Other";
+    }
+
+    /**
+     * Toggles the visibility of the favorites panel using SplitPane.
+     */
+    private void toggleFavoritesPanel() {
+        toggleFavoritesPanelInternal();
+    }
+
+    private void toggleFavoritesPanelInternal() {
+        if (favoritesPanel == null || rightSplitPane == null) {
             return;
         }
 
-        // Create a dialog to add to favorites
-        javafx.scene.control.Dialog<org.fxt.freexmltoolkit.domain.FileFavorite> dialog = new javafx.scene.control.Dialog<>();
-        dialog.setTitle("Add to Favorites");
-        dialog.setHeaderText("Add Current Files to Favorites");
+        boolean isCurrentlyShown = rightSplitPane.getItems().contains(favoritesPanel);
 
-        javafx.scene.control.ButtonType addButtonType = new javafx.scene.control.ButtonType("Add", javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, javafx.scene.control.ButtonType.CANCEL);
-
-        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
-
-        javafx.scene.control.TextField nameField = new javafx.scene.control.TextField();
-        if (currentXmlFile != null) {
-            nameField.setText(currentXmlFile.getName());
-        } else if (currentXsltFile != null) {
-            nameField.setText(currentXsltFile.getName());
-        }
-
-        javafx.scene.control.ComboBox<String> categoryCombo = new javafx.scene.control.ComboBox<>();
-        categoryCombo.getItems().addAll("XSLT Developer", "XML Files", "XSLT Files");
-        categoryCombo.setValue("XSLT Developer");
-
-        javafx.scene.control.TextField descField = new javafx.scene.control.TextField();
-
-        grid.add(new javafx.scene.control.Label("Name:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new javafx.scene.control.Label("Category:"), 0, 1);
-        grid.add(categoryCombo, 1, 1);
-        grid.add(new javafx.scene.control.Label("Description:"), 0, 2);
-        grid.add(descField, 1, 2);
-
-        dialog.getDialogPane().setContent(grid);
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == addButtonType) {
-                // Add both files if available
-                if (currentXmlFile != null) {
-                    org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
-                            nameField.getText() + " (XML)",
-                            currentXmlFile.getAbsolutePath(),
-                            categoryCombo.getValue()
-                    );
-                    fav.setDescription(descField.getText());
-                    favoritesService.addFavorite(fav);
-                }
-                if (currentXsltFile != null) {
-                    org.fxt.freexmltoolkit.domain.FileFavorite fav = new org.fxt.freexmltoolkit.domain.FileFavorite(
-                            nameField.getText() + " (XSLT)",
-                            currentXsltFile.getAbsolutePath(),
-                            categoryCombo.getValue()
-                    );
-                    fav.setDescription(descField.getText());
-                    favoritesService.addFavorite(fav);
-                }
-            }
-            return null;
-        });
-
-        dialog.showAndWait();
-        loadFavoritesForCategory(favoritesCategoryCombo.getValue());
-    }
-
-    private void toggleFavoritesPanel() {
-        if (favoritesPanel != null) {
-            boolean isVisible = !favoritesPanel.isVisible();
-            favoritesPanel.setVisible(isVisible);
-            favoritesPanel.setManaged(isVisible);
+        if (isCurrentlyShown) {
+            rightSplitPane.getItems().remove(favoritesPanel);
+            logger.debug("Favorites panel hidden");
+        } else {
+            rightSplitPane.getItems().add(favoritesPanel);
+            rightSplitPane.setDividerPositions(0.75);
+            logger.debug("Favorites panel shown");
         }
     }
 
-    private void loadFavorite(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
-        File file = new File(favorite.getFilePath());
-        if (!file.exists()) {
-            showAlert("File Not Found", "The file no longer exists: " + favorite.getFilePath());
+    // ==================== PUBLIC KEYBOARD SHORTCUT METHODS ====================
+
+    /**
+     * Public wrapper for keyboard shortcut access to toggle favorites panel.
+     */
+    public void toggleFavoritesPanelPublic() {
+        toggleFavoritesPanelInternal();
+    }
+
+    /**
+     * Public wrapper for keyboard shortcut access to add current file to favorites.
+     */
+    public void addCurrentToFavoritesPublic() {
+        addCurrentToFavorites();
+    }
+
+    // FavoritesParentController interface implementation
+
+    @Override
+    public void loadFileToNewTab(File file) {
+        if (file == null || !file.exists()) {
+            showAlert("File Not Found", "The selected file does not exist.");
             return;
         }
 
@@ -423,16 +375,23 @@ public class XsltDeveloperController {
                 }
             }
 
-            // Update access count
-            favorite.setAccessCount(favorite.getAccessCount() + 1);
-            favorite.setLastAccessed(java.time.LocalDateTime.now());
-            favoritesService.updateFavorite(favorite);
+            // Show content when file is loaded
+            showContent();
 
-            logger.info("Loaded favorite: {}", favorite.getName());
+            logger.info("Loaded file from favorites: {}", file.getName());
         } catch (IOException e) {
-            logger.error("Failed to load favorite", e);
+            logger.error("Failed to load file from favorites", e);
             showAlert("Load Error", "Failed to load file: " + e.getMessage());
         }
+    }
+
+    @Override
+    public File getCurrentFile() {
+        // Return the most recently used file (prefer XML over XSLT)
+        if (currentXmlFile != null) {
+            return currentXmlFile;
+        }
+        return currentXsltFile;
     }
 
     private void initializeUI() {
@@ -587,7 +546,7 @@ public class XsltDeveloperController {
     }
 
     @FXML
-    private void executeTransformation() {
+    public void executeTransformation() {
         performTransformation();
     }
 
@@ -1160,7 +1119,19 @@ public class XsltDeveloperController {
         helpDialog.setTitle("XSLT Developer - Help");
         helpDialog.setHeaderText("How to use the Advanced XSLT Developer");
         helpDialog.setContentText("""
-                Use this tool to work with your documents.\n\n                Press F1 to show this help.
+                Transform XML documents using XSLT stylesheets with powerful features.
+
+                FEATURES:
+                - Load XML and XSLT files for transformation
+                - Live preview mode for real-time results
+                - Multiple output formats (XML, HTML, Text)
+                - Performance metrics and debugging
+
+                KEYBOARD SHORTCUTS:
+                - F5: Execute transformation
+                - Ctrl+D: Add to favorites
+                - Ctrl+Shift+D: Toggle favorites panel
+                - F1: Show this help dialog
                 """);
         helpDialog.showAndWait();
     }

@@ -27,6 +27,7 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.*;
 import org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog;
 import org.fxt.freexmltoolkit.controls.intellisense.XmlCodeFoldingManager;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controller.dialogs.XsdOverviewDialogController;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
@@ -62,7 +63,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class XsdController {
+public class XsdController implements FavoritesParentController {
 
     private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView currentGraphViewV2;
 
@@ -254,12 +255,16 @@ public class XsdController {
     private SplitPane textTabSplitPane;
     @FXML
     private VBox favoritesPanel;
+    @FXML
+    private FavoritesPanelController favoritesPanelController;
 
     // Fields for the graphic tab favorites system
     @FXML
     private SplitPane graphicTabSplitPane;
     @FXML
     private VBox favoritesPanelGraphic;
+    @FXML
+    private FavoritesPanelController favoritesPanelGraphicController;
 
     // Fields for the overview tab favorites system
     @FXML
@@ -348,6 +353,16 @@ public class XsdController {
         if (favoritesPanelGraphic != null) {
             favoritesPanelGraphic.setVisible(false);
             favoritesPanelGraphic.setManaged(false);
+        }
+
+        // Initialize favorites panel controllers with this as parent
+        if (favoritesPanelController != null) {
+            favoritesPanelController.setParentController(this);
+            logger.debug("Favorites panel controller (text tab) initialized");
+        }
+        if (favoritesPanelGraphicController != null) {
+            favoritesPanelGraphicController.setParentController(this);
+            logger.debug("Favorites panel controller (graphic tab) initialized");
         }
 
         // Hide panel initially by removing it from split pane
@@ -805,6 +820,8 @@ public class XsdController {
                 xsdDiagramProgress.setProgress(-1); // Indeterminate progress
             }
             if (statusText != null) {
+                // Unbind first in case a previous task is still bound
+                statusText.textProperty().unbind();
                 statusText.setText("Loading XSD file...");
             }
 
@@ -817,7 +834,7 @@ public class XsdController {
                 }
             };
 
-            // Bind status text to task message
+            // Bind status text to task message (already unbound above before setText)
             if (statusText != null) {
                 statusText.textProperty().bind(loadTask.messageProperty());
             }
@@ -1066,8 +1083,9 @@ public class XsdController {
             }
         };
 
-        // Bind status text to task message
+        // Bind status text to task message (unbind first in case previous task is still bound)
         if (statusText != null) {
+            statusText.textProperty().unbind();
             statusText.textProperty().bind(task.messageProperty());
         }
 
@@ -2814,25 +2832,24 @@ public class XsdController {
             return;
         }
 
-        // Toggle button removed from UI - this method is no longer called
-        boolean isSelected = false;
+        // Toggle: check if panel is currently in the split pane
+        boolean isCurrentlyShown = textTabSplitPane.getItems().contains(favoritesPanel);
+        boolean shouldShow = !isCurrentlyShown;
 
-        // Toggle visibility of the favorites panel
-        favoritesPanel.setVisible(isSelected);
-        favoritesPanel.setManaged(isSelected);
-
-        if (isSelected) {
+        if (shouldShow) {
             // Show the panel with proper divider position
-            if (!textTabSplitPane.getItems().contains(favoritesPanel)) {
-                textTabSplitPane.getItems().add(favoritesPanel);
-            }
+            favoritesPanel.setVisible(true);
+            favoritesPanel.setManaged(true);
+            textTabSplitPane.getItems().add(favoritesPanel);
             textTabSplitPane.setDividerPositions(0.75);
         } else {
             // Hide the panel
             textTabSplitPane.getItems().remove(favoritesPanel);
+            favoritesPanel.setVisible(false);
+            favoritesPanel.setManaged(false);
         }
 
-        logger.info("Favorites panel toggled: {}", isSelected ? "shown" : "hidden");
+        logger.info("Favorites panel toggled: {}", shouldShow ? "shown" : "hidden");
     }
 
     @FXML
@@ -2841,25 +2858,24 @@ public class XsdController {
             return;
         }
 
-        // Toggle button removed from UI - this method is no longer called
-        boolean isSelected = false;
+        // Toggle: check if panel is currently in the split pane
+        boolean isCurrentlyShown = graphicTabSplitPane.getItems().contains(favoritesPanelGraphic);
+        boolean shouldShow = !isCurrentlyShown;
 
-        // Toggle visibility of the favorites panel
-        favoritesPanelGraphic.setVisible(isSelected);
-        favoritesPanelGraphic.setManaged(isSelected);
-
-        if (isSelected) {
+        if (shouldShow) {
             // Show the panel with proper divider position
-            if (!graphicTabSplitPane.getItems().contains(favoritesPanelGraphic)) {
-                graphicTabSplitPane.getItems().add(favoritesPanelGraphic);
-            }
+            favoritesPanelGraphic.setVisible(true);
+            favoritesPanelGraphic.setManaged(true);
+            graphicTabSplitPane.getItems().add(favoritesPanelGraphic);
             graphicTabSplitPane.setDividerPositions(0.75);
         } else {
             // Hide the panel
             graphicTabSplitPane.getItems().remove(favoritesPanelGraphic);
+            favoritesPanelGraphic.setVisible(false);
+            favoritesPanelGraphic.setManaged(false);
         }
 
-        logger.info("Graphic tab favorites panel toggled: {}", isSelected ? "shown" : "hidden");
+        logger.info("Graphic tab favorites panel toggled: {}", shouldShow ? "shown" : "hidden");
     }
 
     // ======================================================================
@@ -3653,17 +3669,16 @@ public class XsdController {
     }
 
     /**
-     * Public API for showing the favorites panel.
-     * Called from XsdOverviewDialog to open favorites.
+     * Public API for toggling the favorites panel.
+     * Called from toolbar and XsdOverviewDialog.
      */
     public void handleShowFavorites() {
-        // Show the favorites panel in the graphic view
-        // Make sure it's visible and switch to the graphic tab
+        // Make sure we're on the graphic tab
         if (tabPane != null && xsdTab != null) {
             tabPane.getSelectionModel().select(xsdTab);
         }
-        // Show favorites panel if it's not already visible
-        if (favoritesPanelGraphic != null && !favoritesPanelGraphic.isVisible()) {
+        // Toggle the favorites panel (show if hidden, hide if shown)
+        if (favoritesPanelGraphic != null && graphicTabSplitPane != null) {
             toggleFavoritesPanelGraphic();
         }
     }
@@ -3810,13 +3825,13 @@ public class XsdController {
     }
 
     @FXML
-    private void handleToolbarSave() {
+    public void handleToolbarSave() {
         logger.info("Toolbar: Save clicked");
         saveXsdFile();
     }
 
     @FXML
-    private void handleToolbarSaveAs() {
+    public void handleToolbarSaveAs() {
         logger.info("Toolbar: Save As clicked");
         saveXsdFileAs();
     }
@@ -3866,7 +3881,7 @@ public class XsdController {
     }
 
     @FXML
-    private void handleToolbarValidate() {
+    public void handleToolbarValidate() {
         logger.info("Toolbar: Validate clicked");
         // Trigger validation in current tab
         if (tabPane.getSelectionModel().getSelectedItem() == textTab) {
@@ -3936,7 +3951,7 @@ public class XsdController {
     }
 
     @FXML
-    private void handleToolbarAddFavorite() {
+    public void handleToolbarAddFavorite() {
         logger.info("Toolbar: Add to Favorites clicked");
         if (currentXsdFile != null) {
             TextInputDialog dialog = new TextInputDialog("XSD Schemas");
@@ -3967,7 +3982,7 @@ public class XsdController {
     }
 
     @FXML
-    private void handleToolbarShowFavorites() {
+    public void handleToolbarShowFavorites() {
         logger.info("Toolbar: Show Favorites clicked");
         handleShowFavorites();
     }
@@ -4039,6 +4054,45 @@ public class XsdController {
             // Clear the graphic view content
             logger.debug("Cleared graphic view content");
         }
+    }
+
+    // ======================================================================
+    // FavoritesParentController Interface Implementation
+    // ======================================================================
+
+    /**
+     * Load a file into the XSD editor.
+     * Implementation of FavoritesParentController interface.
+     *
+     * @param file the file to load
+     */
+    @Override
+    public void loadFileToNewTab(File file) {
+        if (file == null || !file.exists()) {
+            logger.warn("Cannot load file from favorites - file is null or does not exist: {}", file);
+            return;
+        }
+
+        if (!file.getName().toLowerCase().endsWith(".xsd")) {
+            logger.warn("Cannot load file from favorites - not an XSD file: {}", file);
+            DialogHelper.showWarning("Invalid File", "Not an XSD File",
+                    "The selected file is not an XSD schema file.");
+            return;
+        }
+
+        logger.info("Loading XSD file from favorites: {}", file.getAbsolutePath());
+        openXsdFile(file);
+    }
+
+    /**
+     * Get the currently loaded XSD file.
+     * Implementation of FavoritesParentController interface.
+     *
+     * @return the current XSD file, or null if no file is open
+     */
+    @Override
+    public File getCurrentFile() {
+        return currentXsdFile;
     }
 
 }
