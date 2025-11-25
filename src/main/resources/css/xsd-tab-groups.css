@@ -113,6 +113,87 @@
     -fx-icon-color: #4a90e2;
 }
 
+/* Preserve colored icons for semantic actions */
+.xsd-toolbar .button .toolbar-icon-success,
+.xsd-toolbar .toggle-button .toolbar-icon-success {
+    -fx-icon-color: #28a745 !important;
+}
+
+.xsd-toolbar .button:hover .toolbar-icon-success,
+.xsd-toolbar .toggle-button:hover .toolbar-icon-success {
+    -fx-icon-color: #1e7e34 !important;
+}
+
+.xsd-toolbar .button .toolbar-icon-primary,
+.xsd-toolbar .toggle-button .toolbar-icon-primary {
+    -fx-icon-color: #007bff !important;
+}
+
+.xsd-toolbar .button:hover .toolbar-icon-primary,
+.xsd-toolbar .toggle-button:hover .toolbar-icon-primary {
+    -fx-icon-color: #0056b3 !important;
+}
+
+.xsd-toolbar .button .toolbar-icon-info,
+.xsd-toolbar .toggle-button .toolbar-icon-info {
+    -fx-icon-color: #17a2b8 !important;
+}
+
+.xsd-toolbar .button:hover .toolbar-icon-info,
+.xsd-toolbar .toggle-button:hover .toolbar-icon-info {
+    -fx-icon-color: #117a8b !important;
+}
+
+.xsd-toolbar .button .toolbar-icon-warning,
+.xsd-toolbar .toggle-button .toolbar-icon-warning {
+    -fx-icon-color: #ffc107 !important;
+}
+
+.xsd-toolbar .button:hover .toolbar-icon-warning,
+.xsd-toolbar .toggle-button:hover .toolbar-icon-warning {
+    -fx-icon-color: #e6ac00 !important;
+}
+
+.xsd-toolbar .button .toolbar-icon-danger,
+.xsd-toolbar .toggle-button .toolbar-icon-danger {
+    -fx-icon-color: #dc3545 !important;
+}
+
+.xsd-toolbar .button:hover .toolbar-icon-danger,
+.xsd-toolbar .toggle-button:hover .toolbar-icon-danger {
+    -fx-icon-color: #c82333 !important;
+}
+
+.xsd-toolbar .button .toolbar-icon-teal,
+.xsd-toolbar .toggle-button .toolbar-icon-teal {
+    -fx-icon-color: #20c997 !important;
+}
+
+.xsd-toolbar .button:hover .toolbar-icon-teal,
+.xsd-toolbar .toggle-button:hover .toolbar-icon-teal {
+    -fx-icon-color: #17a085 !important;
+}
+
+.xsd-toolbar .button .toolbar-icon-purple,
+.xsd-toolbar .toggle-button .toolbar-icon-purple {
+    -fx-icon-color: #6f42c1 !important;
+}
+
+.xsd-toolbar .button:hover .toolbar-icon-purple,
+.xsd-toolbar .toggle-button:hover .toolbar-icon-purple {
+    -fx-icon-color: #5a32a3 !important;
+}
+
+.xsd-toolbar .button .toolbar-icon-secondary,
+.xsd-toolbar .toggle-button .toolbar-icon-secondary {
+    -fx-icon-color: #6c757d !important;
+}
+
+.xsd-toolbar .button:hover .toolbar-icon-secondary,
+.xsd-toolbar .toggle-button:hover .toolbar-icon-secondary {
+    -fx-icon-color: #545b62 !important;
+}
+
 .xsd-toolbar .separator {
     -fx-padding: 0 6;
 }

@@ -301,7 +301,7 @@
             <!-- Tab 5: Favorites -->
             <Tab text="Favorites" closable="false">
                 <graphic>
-                    <FontIcon iconLiteral="bi-star-fill" iconSize="16" iconColor="#d4a147"/>
+                    <FontIcon iconLiteral="bi-star-fill" iconSize="16" iconColor="#ffc107"/>
                 </graphic>
                 <content>
                     <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">

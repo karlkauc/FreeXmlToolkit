@@ -12,7 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controller.XmlUltimateController;
+import org.fxt.freexmltoolkit.controller.FavoritesParentController;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.util.ContextMenuFactory;
@@ -79,7 +79,7 @@ public class FavoritesPanelController implements Initializable {
     private Label countLabel;
 
     private FavoritesService favoritesService;
-    private XmlUltimateController parentController;
+    private FavoritesParentController parentController;
     private ObservableList<FileFavorite> allFavorites;
     private ObservableList<FileFavorite> filteredFavorites;
 
@@ -569,7 +569,7 @@ public class FavoritesPanelController implements Initializable {
         alert.showAndWait();
     }
 
-    public void setParentController(XmlUltimateController controller) {
+    public void setParentController(FavoritesParentController controller) {
         this.parentController = controller;
     }
 

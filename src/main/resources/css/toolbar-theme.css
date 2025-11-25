@@ -128,6 +128,11 @@
     -fx-icon-color: derive(var(--color-danger), -20%) !important;
 }
 
+.unified-toolbar .button:hover .toolbar-icon-warning,
+.xsd-toolbar .button:hover .toolbar-icon-warning {
+    -fx-icon-color: derive(var(--color-warning), -20%) !important;
+}
+
 /* ============================================
    MENU BUTTONS (Dropdowns)
    ============================================ */
