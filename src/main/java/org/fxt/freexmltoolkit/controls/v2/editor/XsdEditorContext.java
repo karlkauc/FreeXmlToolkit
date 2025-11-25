@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.CommandManager;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
@@ -22,6 +23,7 @@ public class XsdEditorContext {
     private final XsdSchema schema;
     private final CommandManager commandManager;
     private final SelectionModel selectionModel;
+    private final XsdClipboard clipboard;
     private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
     private boolean editMode = true;  // Default to true to enable editing
@@ -50,6 +52,7 @@ public class XsdEditorContext {
         this.schema = schema;
         this.commandManager = new CommandManager();
         this.selectionModel = selectionModel != null ? selectionModel : new SelectionModel();
+        this.clipboard = new XsdClipboard();
 
         // Listen to command manager changes to update dirty flag
         commandManager.addPropertyChangeListener(evt -> {
@@ -86,6 +89,15 @@ public class XsdEditorContext {
      */
     public SelectionModel getSelectionModel() {
         return selectionModel;
+    }
+
+    /**
+     * Gets the clipboard.
+     *
+     * @return the clipboard
+     */
+    public XsdClipboard getClipboard() {
+        return clipboard;
     }
 
     /**

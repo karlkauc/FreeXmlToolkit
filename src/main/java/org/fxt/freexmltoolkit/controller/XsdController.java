@@ -836,6 +836,10 @@ public class XsdController implements FavoritesParentController {
                 return;
             }
 
+            // Store the file reference for save operations
+            this.currentXsdFile = file;
+            logger.debug("Set currentXsdFile to: {}", file.getAbsolutePath());
+
             // Call the central method in the MainController.
             // This not only adds the file to the list, but also updates the menu.
             if (parentController != null) {
@@ -1160,9 +1164,6 @@ public class XsdController implements FavoritesParentController {
                 currentGraphViewV2.setEditorContext(editorContext);
 
                 // IMPORTANT: Set callbacks AFTER setEditorContext (which recreates contextMenuFactory)
-                // Set save callback for Save button in toolbar
-                currentGraphViewV2.setOnSaveCallback(this::handleSaveV2Editor);
-
                 // Set Type Editor callbacks for context menu
                 currentGraphViewV2.setOpenComplexTypeEditorCallback(this::openComplexTypeEditor);
                 currentGraphViewV2.setOpenSimpleTypeEditorCallback(this::openSimpleTypeEditor);
@@ -1194,8 +1195,8 @@ public class XsdController implements FavoritesParentController {
                             schema.getTargetNamespace() : "No target namespace");
                     }
                     if (xsdInfoVersionLabel != null) {
-                        // XSD 1.1 if assertions present, otherwise XSD 1.0
-                        xsdInfoVersionLabel.setText("XSD 1.0/1.1");
+                        // Detect XSD version based on features used (1.0 or 1.1)
+                        xsdInfoVersionLabel.setText("XSD " + schema.detectXsdVersion());
                     }
                 }
 
@@ -1655,12 +1656,19 @@ public class XsdController implements FavoritesParentController {
         // Require V2 editor or text content
         boolean hasEditor = (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null);
 
-        if (!hasEditor || currentXsdFile == null) {
-            logger.debug("Cannot save: hasEditor={}, currentXsdFile={}", hasEditor, currentXsdFile);
+        if (!hasEditor) {
+            logger.debug("Cannot save: no editor available");
             return;
         }
 
-        // Always allow save (don't check for unsaved changes)
+        // If file hasn't been saved yet, redirect to Save As
+        if (currentXsdFile == null) {
+            logger.info("No file path set, redirecting to Save As...");
+            saveXsdFileAs();
+            return;
+        }
+
+        // Save to existing file
         saveXsdToFile(currentXsdFile);
     }
 
@@ -1777,22 +1785,28 @@ public class XsdController implements FavoritesParentController {
                         return;
                     }
                 } else {
-                    logger.warn("V2 editor context has no schema model, falling back to text editor");
+                    logger.warn("V2 editor context has no schema model");
+                    showError("Save Failed", "Cannot save: V2 editor has no schema model. Please reload the file.");
+                    return;
                 }
             }
 
-            // Priority 2: Use text editor if it has content
+            // Priority 2: Use text editor if V2 editor is not available
+            // First sync the graphic model to text to ensure we have the latest content
+            if (currentGraphViewV2 != null) {
+                syncGraphicToText();
+            }
+
             // Create backup if enabled
             createBackupIfEnabled(file);
 
-            // Get the XSD content - prioritize the text editor if it has content
-            // This ensures that what the user sees in the text tab is what gets saved
+            // Get the XSD content from text editor
             String updatedXsd = null;
             if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
                 String textContent = sourceCodeEditor.getCodeArea().getText();
                 if (textContent != null && !textContent.trim().isEmpty()) {
                     updatedXsd = textContent;
-                    logger.debug("Saving XSD from text editor (current view)");
+                    logger.debug("Saving XSD from text editor");
                 }
             }
 

@@ -5,6 +5,7 @@ import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.*;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
@@ -115,6 +116,7 @@ public class XsdContextMenuFactory {
         addMenu.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
         addMenu.getItems().addAll(
                 createMenuItem("Child Element", "bi-plus", "#28a745", () -> handleAddChildElement(node)),
+                createMenuItem("Container Element", "bi-folder-plus", "#17a2b8", () -> handleAddContainerElement(node)),
                 createMenuItem("Attribute", "bi-at", "#ffc107", () -> logger.info("Add attribute to {}", node.getLabel())),
                 new SeparatorMenuItem(),
                 createMenuItem("Sequence", "bi-list-ol", "#6c757d", () -> logger.info("Add sequence to {}", node.getLabel())),
@@ -125,6 +127,14 @@ public class XsdContextMenuFactory {
         // Check if element has a ComplexType or SimpleType reference - if so, add "Edit Type in Editor" option
         boolean hasComplexTypeReference = hasComplexTypeReference(node);
         boolean hasSimpleTypeReference = hasSimpleTypeReference(node);
+
+        // Create Move submenu
+        Menu moveMenu = createMoveMenu(node);
+
+        // Create clipboard menu items
+        MenuItem copyItem = createMenuItem("Copy", "bi-clipboard", "#6c757d", () -> handleCopy(node));
+        MenuItem cutItem = createMenuItem("Cut", "bi-scissors", "#fd7e14", () -> handleCut(node));
+        MenuItem pasteItem = createPasteMenuItem(node);
 
         if (hasComplexTypeReference) {
             menu.getItems().addAll(
@@ -137,6 +147,10 @@ public class XsdContextMenuFactory {
                     createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
                     createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1", () -> handleChangeCardinality(node)),
                     new SeparatorMenuItem(),
+                    moveMenu,
+                    copyItem,
+                    cutItem,
+                    pasteItem,
                     createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
                     createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
             );
@@ -150,6 +164,10 @@ public class XsdContextMenuFactory {
                     createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
                     createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1", () -> handleChangeCardinality(node)),
                     new SeparatorMenuItem(),
+                    moveMenu,
+                    copyItem,
+                    cutItem,
+                    pasteItem,
                     createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
                     createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
             );
@@ -161,6 +179,10 @@ public class XsdContextMenuFactory {
                     createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
                     createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1", () -> handleChangeCardinality(node)),
                     new SeparatorMenuItem(),
+                    moveMenu,
+                    copyItem,
+                    cutItem,
+                    pasteItem,
                     createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
                     createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
             );
@@ -574,6 +596,205 @@ public class XsdContextMenuFactory {
                 }
             }
         });
+    }
+
+    /**
+     * Handles add container element operation for a node.
+     * A container element has no type but an inline complexType with sequence,
+     * allowing it to have child elements.
+     *
+     * @param node the parent node
+     */
+    private void handleAddContainerElement(VisualNode node) {
+        TextInputDialog dialog = new TextInputDialog("newContainer");
+        dialog.setTitle("Add Container Element");
+        dialog.setHeaderText("Add container element to '" + node.getLabel() + "'");
+        dialog.setContentText("Container name:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(elementName -> {
+            if (!elementName.trim().isEmpty()) {
+                // Extract XsdNode from VisualNode for the command
+                Object modelObject = node.getModelObject();
+                if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode parentNode) {
+                    AddContainerElementCommand command = new AddContainerElementCommand(parentNode, elementName.trim());
+                    editorContext.getCommandManager().executeCommand(command);
+                    logger.info("Added container element '{}' to '{}'", elementName, node.getLabel());
+                } else {
+                    logger.warn("Cannot add container element - model object is not an XsdNode: {}",
+                            modelObject != null ? modelObject.getClass() : "null");
+                }
+            }
+        });
+    }
+
+    /**
+     * Creates a Move submenu with Move Up and Move Down options.
+     * Menu items are enabled/disabled based on node position.
+     *
+     * @param node the node to create move menu for
+     * @return the Move menu
+     */
+    private Menu createMoveMenu(VisualNode node) {
+        Menu moveMenu = new Menu("Move");
+        moveMenu.setGraphic(createColoredIcon("bi-arrows-move", "#6c757d"));
+
+        // Determine if Move Up/Down should be enabled
+        Object modelObject = node.getModelObject();
+        boolean canMoveUp = false;
+        boolean canMoveDown = false;
+
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+            org.fxt.freexmltoolkit.controls.v2.model.XsdNode parent = xsdNode.getParent();
+            if (parent != null) {
+                int index = parent.getChildren().indexOf(xsdNode);
+                canMoveUp = index > 0;
+                canMoveDown = index >= 0 && index < parent.getChildren().size() - 1;
+            }
+        }
+
+        MenuItem moveUpItem = createMenuItem("Move Up", "bi-arrow-up", "#28a745", () -> handleMoveUp(node));
+        MenuItem moveDownItem = createMenuItem("Move Down", "bi-arrow-down", "#dc3545", () -> handleMoveDown(node));
+
+        // Override enabled state based on position
+        if (!canMoveUp) {
+            moveUpItem.setDisable(true);
+        }
+        if (!canMoveDown) {
+            moveDownItem.setDisable(true);
+        }
+
+        moveMenu.getItems().addAll(moveUpItem, moveDownItem);
+        return moveMenu;
+    }
+
+    /**
+     * Handles move up operation for a node.
+     * Moves the node one position up among its siblings.
+     *
+     * @param node the node to move up
+     */
+    private void handleMoveUp(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+            org.fxt.freexmltoolkit.controls.v2.model.XsdNode parent = xsdNode.getParent();
+            if (parent != null) {
+                int index = parent.getChildren().indexOf(xsdNode);
+                if (index > 0) {
+                    MoveNodeCommand command = new MoveNodeCommand(xsdNode, parent, index - 1);
+                    editorContext.getCommandManager().executeCommand(command);
+                    logger.info("Moved node '{}' up in '{}'", node.getLabel(), parent.getName());
+                } else {
+                    logger.warn("Cannot move up: node '{}' is already at the top", node.getLabel());
+                }
+            }
+        } else {
+            logger.warn("Cannot move up - model object is not an XsdNode: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles move down operation for a node.
+     * Moves the node one position down among its siblings.
+     *
+     * @param node the node to move down
+     */
+    private void handleMoveDown(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+            org.fxt.freexmltoolkit.controls.v2.model.XsdNode parent = xsdNode.getParent();
+            if (parent != null) {
+                int index = parent.getChildren().indexOf(xsdNode);
+                if (index >= 0 && index < parent.getChildren().size() - 1) {
+                    MoveNodeCommand command = new MoveNodeCommand(xsdNode, parent, index + 1);
+                    editorContext.getCommandManager().executeCommand(command);
+                    logger.info("Moved node '{}' down in '{}'", node.getLabel(), parent.getName());
+                } else {
+                    logger.warn("Cannot move down: node '{}' is already at the bottom", node.getLabel());
+                }
+            }
+        } else {
+            logger.warn("Cannot move down - model object is not an XsdNode: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles copy operation for a node.
+     * Copies the node to the clipboard.
+     *
+     * @param node the node to copy
+     */
+    private void handleCopy(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+            editorContext.getClipboard().copy(xsdNode);
+            logger.info("Copied node '{}' to clipboard", node.getLabel());
+        } else {
+            logger.warn("Cannot copy - model object is not an XsdNode: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles cut operation for a node.
+     * Cuts the node to the clipboard (will be deleted on paste).
+     *
+     * @param node the node to cut
+     */
+    private void handleCut(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+            editorContext.getClipboard().cut(xsdNode);
+            logger.info("Cut node '{}' to clipboard", node.getLabel());
+        } else {
+            logger.warn("Cannot cut - model object is not an XsdNode: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Creates a Paste menu item with proper enabled state.
+     * Paste is enabled only when clipboard has content.
+     *
+     * @param node the target parent node for paste
+     * @return the configured Paste menu item
+     */
+    private MenuItem createPasteMenuItem(VisualNode node) {
+        XsdClipboard clipboard = editorContext.getClipboard();
+        MenuItem pasteItem = createMenuItem("Paste", "bi-clipboard-check", "#28a745", () -> handlePaste(node));
+
+        // Disable paste if clipboard is empty
+        if (!clipboard.hasContent()) {
+            pasteItem.setDisable(true);
+        }
+
+        return pasteItem;
+    }
+
+    /**
+     * Handles paste operation for a node.
+     * Pastes the clipboard content as a child of the target node.
+     *
+     * @param node the target parent node
+     */
+    private void handlePaste(VisualNode node) {
+        XsdClipboard clipboard = editorContext.getClipboard();
+        if (!clipboard.hasContent()) {
+            logger.warn("Cannot paste: clipboard is empty");
+            return;
+        }
+
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode targetParent) {
+            PasteNodeCommand command = new PasteNodeCommand(clipboard, targetParent);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.info("Pasted node to '{}'", node.getLabel());
+        } else {
+            logger.warn("Cannot paste - target is not an XsdNode: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
     }
 
     /**

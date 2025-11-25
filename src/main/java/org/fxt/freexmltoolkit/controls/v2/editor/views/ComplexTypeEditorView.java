@@ -69,8 +69,7 @@ public class ComplexTypeEditorView extends BorderPane {
             // Setup change tracking for dirty flag
             setupChangeTracking();
 
-            // Setup save callback
-            graphView.setOnSaveCallback(this::handleSave);
+            // Note: Save is handled via keyboard shortcuts (Ctrl+S) in parent controller
 
             // Set XsdGraphView as center (it includes toolbar, canvas, properties panel)
             setCenter(graphView);
@@ -187,7 +186,6 @@ public class ComplexTypeEditorView extends BorderPane {
             // Recreate XsdGraphView with new virtual schema
             graphView = new XsdGraphView(virtualSchema);
             setupChangeTracking();
-            graphView.setOnSaveCallback(this::handleSave);
 
             // Replace view
             setCenter(graphView);

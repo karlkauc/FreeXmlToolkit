@@ -119,6 +119,55 @@ public class XsdSchema extends XsdNode {
         return XsdNodeType.SCHEMA;
     }
 
+    /**
+     * Detects the XSD version used in this schema.
+     * Returns "1.1" if any XSD 1.1 features are detected, otherwise "1.0".
+     * <p>
+     * XSD 1.1 features detected:
+     * - xs:assert (assertions in complexType)
+     * - xs:override
+     * - xs:openContent / xs:defaultOpenContent
+     * - xs:alternative (conditional type assignment)
+     * - assertion facet in simpleType restrictions
+     *
+     * @return "1.1" if XSD 1.1 features are present, "1.0" otherwise
+     */
+    public String detectXsdVersion() {
+        return hasXsd11Features(this) ? "1.1" : "1.0";
+    }
+
+    /**
+     * Recursively checks if a node or its children contain XSD 1.1 features.
+     *
+     * @param node the node to check
+     * @return true if XSD 1.1 features are found
+     */
+    private boolean hasXsd11Features(XsdNode node) {
+        // Check if this node is an XSD 1.1 feature
+        if (node instanceof XsdAssert ||
+            node instanceof XsdOverride ||
+            node instanceof XsdOpenContent ||
+            node instanceof XsdAlternative) {
+            return true;
+        }
+
+        // Check for assertion facet in restrictions
+        if (node instanceof XsdFacet facet) {
+            if (facet.getFacetType() == XsdFacetType.ASSERTION) {
+                return true;
+            }
+        }
+
+        // Recursively check children
+        for (XsdNode child : node.getChildren()) {
+            if (hasXsd11Features(child)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public XsdNode deepCopy(String suffix) {
         // Schema name is always "schema", suffix is not applied

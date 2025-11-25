@@ -165,6 +165,21 @@ public class XsdNodeRenderer {
             gc.setLineDashes(null);  // Reset to solid
         }
 
+        // Draw drop target indicator (green highlight)
+        if (node.isDropTarget()) {
+            gc.setStroke(Color.rgb(34, 197, 94));  // Green for drop target
+            gc.setLineWidth(3);
+            gc.strokeRoundRect(x - 4, y - 4, width + 8, height + 8, CORNER_RADIUS + 4, CORNER_RADIUS + 4);
+        }
+
+        // Draw dragging indicator (semi-transparent overlay)
+        if (node.isDragging()) {
+            gc.setGlobalAlpha(0.5);
+            gc.setFill(Color.rgb(147, 197, 253));  // Light blue overlay
+            gc.fillRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
+            gc.setGlobalAlpha(1.0);  // Reset
+        }
+
         // Draw node text with XMLSpy styling
         // Element and attribute names use specific colors
         Color textColor = switch (node.getType()) {
@@ -315,7 +330,7 @@ public class XsdNodeRenderer {
                 gc.setFont(Font.font("Segoe UI", 7));  // Smaller font for cardinality
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setTextBaseline(VPos.CENTER);
-                
+
                 String cardinalityText = getCardinalityString(node);
                 if (!cardinalityText.isEmpty()) {
                     gc.fillText(cardinalityText, x + size / 2, y + size / 2);
@@ -323,6 +338,21 @@ public class XsdNodeRenderer {
                     gc.fillText("*", x + size / 2, y + size / 2);
                 }
             }
+        }
+
+        // Draw drop target indicator (green highlight)
+        if (node.isDropTarget()) {
+            gc.setStroke(Color.rgb(34, 197, 94));  // Green for drop target
+            gc.setLineWidth(3);
+            gc.strokeOval(x - 4, y - 4, size + 8, size + 8);
+        }
+
+        // Draw dragging indicator (semi-transparent overlay)
+        if (node.isDragging()) {
+            gc.setGlobalAlpha(0.5);
+            gc.setFill(Color.rgb(147, 197, 253));  // Light blue overlay
+            gc.fillOval(x, y, size, size);
+            gc.setGlobalAlpha(1.0);  // Reset
         }
 
         // Draw cardinality indicator next to compositor symbol if it's not default (1..1)\n        String cardinality = getCardinalityString(node);\n        if (!cardinality.isEmpty() && cardinality.length() > 3) { // Only show if it doesn't fit in symbol\n            gc.setFont(Font.font(\"Segoe UI\", 8));\n            gc.setFill(Color.rgb(67, 56, 202));  // Indigo color for cardinality\n            gc.setTextAlign(TextAlignment.LEFT);\n            gc.setTextBaseline(VPos.CENTER);\n            \n            // Position to the right of the compositor symbol\n            double cardinalityX = x + size + 4;\n            double cardinalityY = y + size / 2;\n            gc.fillText(cardinality, cardinalityX, cardinalityY);\n        }\n        \n        // Apply selection highlight for compositor nodes\n        if (node.isSelected()) {\n            gc.setStroke(Color.rgb(59, 130, 246));  // Blue highlight\n            gc.setLineWidth(3);\n            switch (node.getType()) {\n                case SEQUENCE -> {\n                    gc.strokeRoundRect(x - 2, y - 2, size + 4, size + 4, 6, 6);\n                }\n                case CHOICE -> {\n                    double centerX = x + size / 2;\n                    double centerY = y + size / 2;\n                    double halfSize = (size + 4) / 2;\n                    gc.strokePolygon(\n                            new double[]{centerX, centerX + halfSize, centerX, centerX - halfSize},\n                            new double[]{centerY - halfSize, centerY, centerY + halfSize, centerY},\n                            4\n                    );\n                }\n                case ALL -> {\n                    gc.strokeOval(x - 2, y - 2, size + 4, size + 4);\n                }\n            }\n        }\n        \n        // Apply focus indicator for compositor nodes\n        if (node.isFocused()) {\n            gc.setStroke(Color.rgb(139, 92, 246));  // Purple for focus\n            gc.setLineWidth(2);\n            gc.setLineDashes(4, 4);\n            switch (node.getType()) {\n                case SEQUENCE -> {\n                    gc.strokeRoundRect(x - 3, y - 3, size + 6, size + 6, 7, 7);\n                }\n                case CHOICE -> {\n                    double centerX = x + size / 2;\n                    double centerY = y + size / 2;\n                    double halfSize = (size + 6) / 2;\n                    gc.strokePolygon(\n                            new double[]{centerX, centerX + halfSize, centerX, centerX - halfSize},\n                            new double[]{centerY - halfSize, centerY, centerY + halfSize, centerY},\n                            4\n                    );\n                }\n                case ALL -> {\n                    gc.strokeOval(x - 3, y - 3, size + 6, size + 6);\n                }\n            }\n            gc.setLineDashes(null);  // Reset to solid\n        }
@@ -614,6 +644,8 @@ public class XsdNodeRenderer {
         private boolean hovered = false;
         private boolean focused = false;
         private boolean inEditMode = false;
+        private boolean dragging = false;
+        private boolean dropTarget = false;
 
         // PropertyChangeListener for model updates
         private final java.beans.PropertyChangeListener modelListener;
@@ -942,6 +974,22 @@ public class XsdNodeRenderer {
 
         public void setInEditMode(boolean inEditMode) {
             this.inEditMode = inEditMode;
+        }
+
+        public boolean isDragging() {
+            return dragging;
+        }
+
+        public void setDragging(boolean dragging) {
+            this.dragging = dragging;
+        }
+
+        public boolean isDropTarget() {
+            return dropTarget;
+        }
+
+        public void setDropTarget(boolean dropTarget) {
+            this.dropTarget = dropTarget;
         }
 
         /**

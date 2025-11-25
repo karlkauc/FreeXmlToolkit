@@ -13,6 +13,9 @@ import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.MoveNodeCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.PasteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.menu.XsdContextMenuFactory;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdPropertiesPanel;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
@@ -61,9 +64,13 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private static final double ZOOM_STEP = 0.1;
     private Label zoomLabel;
 
-    // Save callback
-    private Runnable onSaveCallback;
-    private Button saveButton;
+    // Drag & Drop state
+    private boolean isDragging = false;
+    private VisualNode draggedNode = null;
+    private VisualNode dropTarget = null;
+    private double dragStartX = 0;
+    private double dragStartY = 0;
+    private static final double DRAG_THRESHOLD = 5.0; // Pixels before drag starts
 
     // Type Editor callbacks (stored to re-apply when contextMenuFactory is recreated)
     private java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType> openComplexTypeEditorCallback;
@@ -178,17 +185,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private ToolBar createToolbar() {
         ToolBar toolbar = new ToolBar();
 
-        // Save Button
-        saveButton = new Button("Save");
-        saveButton.setTooltip(new Tooltip("Save XSD file (Ctrl+S)"));
-        saveButton.setStyle("-fx-font-weight: bold;");
-        saveButton.setOnAction(e -> {
-            if (onSaveCallback != null) {
-                onSaveCallback.run();
-            }
-        });
-        // Initially disabled until callback is set and edit mode is active
-        saveButton.setDisable(true);
+        // Note: Save button removed - use the Save button in the XSD tab toolbar instead
 
         Button expandAllBtn = new Button("Expand All");
         expandAllBtn.setOnAction(e -> {
@@ -255,8 +252,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         toolbar.getItems().addAll(
-                saveButton,
-                new Separator(javafx.geometry.Orientation.VERTICAL),
                 expandAllBtn, collapseAllBtn, fitBtn,
                 separator,
                 propertiesToggle,
@@ -591,7 +586,12 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         canvas.setOnMouseClicked(this::handleMouseClick);
         canvas.setOnMouseMoved(this::handleMouseMove);
 
-        // Setup keyboard shortcuts for zoom and properties toggle
+        // Setup drag & drop handlers
+        canvas.setOnMousePressed(this::handleMousePressed);
+        canvas.setOnMouseDragged(this::handleMouseDragged);
+        canvas.setOnMouseReleased(this::handleMouseReleased);
+
+        // Setup keyboard shortcuts for zoom, properties toggle, and node operations
         this.setOnKeyPressed(event -> {
             if (event.isControlDown()) {
                 switch (event.getCode()) {
@@ -610,6 +610,34 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                     case P -> {
                         event.consume();
                         togglePropertiesPanel();
+                    }
+                    case UP -> {
+                        event.consume();
+                        moveSelectedNodeUp();
+                    }
+                    case DOWN -> {
+                        event.consume();
+                        moveSelectedNodeDown();
+                    }
+                    case C -> {
+                        event.consume();
+                        copySelectedNode();
+                    }
+                    case X -> {
+                        event.consume();
+                        cutSelectedNode();
+                    }
+                    case V -> {
+                        event.consume();
+                        pasteToSelectedNode();
+                    }
+                }
+            } else {
+                // Non-Ctrl shortcuts
+                switch (event.getCode()) {
+                    case DELETE -> {
+                        event.consume();
+                        deleteSelectedNode();
                     }
                 }
             }
@@ -840,6 +868,477 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
+     * Moves the selected node up (to a lower index among siblings).
+     * Triggered by Ctrl+Up keyboard shortcut.
+     */
+    private void moveSelectedNodeUp() {
+        if (editorContext == null || !editorContext.isEditMode()) {
+            logger.debug("Cannot move node: not in edit mode");
+            return;
+        }
+
+        VisualNode selected = selectionModel.getPrimarySelection();
+        if (selected == null) {
+            logger.debug("Cannot move node: no node selected");
+            return;
+        }
+
+        Object modelObject = selected.getModelObject();
+        if (modelObject instanceof XsdNode xsdNode) {
+            XsdNode parent = xsdNode.getParent();
+            if (parent != null) {
+                int index = parent.getChildren().indexOf(xsdNode);
+                if (index > 0) {
+                    MoveNodeCommand command = new MoveNodeCommand(xsdNode, parent, index - 1);
+                    editorContext.getCommandManager().executeCommand(command);
+                    logger.info("Moved node '{}' up via Ctrl+Up", xsdNode.getName());
+                } else {
+                    logger.debug("Cannot move up: node is already at the top");
+                }
+            }
+        }
+    }
+
+    /**
+     * Moves the selected node down (to a higher index among siblings).
+     * Triggered by Ctrl+Down keyboard shortcut.
+     */
+    private void moveSelectedNodeDown() {
+        if (editorContext == null || !editorContext.isEditMode()) {
+            logger.debug("Cannot move node: not in edit mode");
+            return;
+        }
+
+        VisualNode selected = selectionModel.getPrimarySelection();
+        if (selected == null) {
+            logger.debug("Cannot move node: no node selected");
+            return;
+        }
+
+        Object modelObject = selected.getModelObject();
+        if (modelObject instanceof XsdNode xsdNode) {
+            XsdNode parent = xsdNode.getParent();
+            if (parent != null) {
+                int index = parent.getChildren().indexOf(xsdNode);
+                if (index >= 0 && index < parent.getChildren().size() - 1) {
+                    MoveNodeCommand command = new MoveNodeCommand(xsdNode, parent, index + 1);
+                    editorContext.getCommandManager().executeCommand(command);
+                    logger.info("Moved node '{}' down via Ctrl+Down", xsdNode.getName());
+                } else {
+                    logger.debug("Cannot move down: node is already at the bottom");
+                }
+            }
+        }
+    }
+
+    /**
+     * Copies the selected node to the clipboard.
+     * Triggered by Ctrl+C keyboard shortcut.
+     */
+    private void copySelectedNode() {
+        VisualNode selected = selectionModel.getPrimarySelection();
+        if (selected == null) {
+            logger.debug("Cannot copy: no node selected");
+            return;
+        }
+
+        Object modelObject = selected.getModelObject();
+        if (modelObject instanceof XsdNode xsdNode) {
+            editorContext.getClipboard().copy(xsdNode);
+            logger.info("Copied node '{}' to clipboard via Ctrl+C", xsdNode.getName());
+        }
+    }
+
+    /**
+     * Cuts the selected node to the clipboard.
+     * Triggered by Ctrl+X keyboard shortcut.
+     */
+    private void cutSelectedNode() {
+        if (editorContext == null || !editorContext.isEditMode()) {
+            logger.debug("Cannot cut node: not in edit mode");
+            return;
+        }
+
+        VisualNode selected = selectionModel.getPrimarySelection();
+        if (selected == null) {
+            logger.debug("Cannot cut: no node selected");
+            return;
+        }
+
+        Object modelObject = selected.getModelObject();
+        if (modelObject instanceof XsdNode xsdNode) {
+            editorContext.getClipboard().cut(xsdNode);
+            logger.info("Cut node '{}' to clipboard via Ctrl+X", xsdNode.getName());
+        }
+    }
+
+    /**
+     * Pastes from clipboard to the selected node.
+     * Triggered by Ctrl+V keyboard shortcut.
+     */
+    private void pasteToSelectedNode() {
+        if (editorContext == null || !editorContext.isEditMode()) {
+            logger.debug("Cannot paste: not in edit mode");
+            return;
+        }
+
+        if (!editorContext.getClipboard().hasContent()) {
+            logger.debug("Cannot paste: clipboard is empty");
+            return;
+        }
+
+        VisualNode selected = selectionModel.getPrimarySelection();
+        if (selected == null) {
+            logger.debug("Cannot paste: no target node selected");
+            return;
+        }
+
+        Object modelObject = selected.getModelObject();
+        if (modelObject instanceof XsdNode targetParent) {
+            PasteNodeCommand command = new PasteNodeCommand(editorContext.getClipboard(), targetParent);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.info("Pasted node to '{}' via Ctrl+V", targetParent.getName());
+        }
+    }
+
+    /**
+     * Deletes the selected node.
+     * Triggered by Delete key.
+     */
+    private void deleteSelectedNode() {
+        if (editorContext == null || !editorContext.isEditMode()) {
+            logger.debug("Cannot delete node: not in edit mode");
+            return;
+        }
+
+        VisualNode selected = selectionModel.getPrimarySelection();
+        if (selected == null) {
+            logger.debug("Cannot delete: no node selected");
+            return;
+        }
+
+        Object modelObject = selected.getModelObject();
+        if (modelObject instanceof XsdNode xsdNode) {
+            DeleteNodeCommand command = new DeleteNodeCommand(xsdNode);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.info("Deleted node '{}' via Delete key", xsdNode.getName());
+        }
+    }
+
+    // ==================== Drag & Drop Implementation ====================
+
+    /**
+     * Handles mouse press for initiating drag operations.
+     * Stores the start position and the node under the mouse.
+     */
+    private void handleMousePressed(MouseEvent event) {
+        if (event.getButton() != MouseButton.PRIMARY) {
+            return;
+        }
+
+        // Adjust coordinates for zoom level
+        double x = event.getX() / zoomLevel;
+        double y = event.getY() / zoomLevel;
+
+        // Store drag start position
+        dragStartX = x;
+        dragStartY = y;
+
+        // Find node at click position
+        VisualNode nodeAtPosition = findNodeAt(rootNode, x, y);
+        if (nodeAtPosition != null) {
+            // Don't allow dragging if clicking on expand button
+            if (!nodeAtPosition.expandButtonContainsPoint(x, y)) {
+                draggedNode = nodeAtPosition;
+            }
+        }
+
+        // Reset drag state
+        isDragging = false;
+        dropTarget = null;
+    }
+
+    /**
+     * Handles mouse drag for drag operations.
+     * Starts dragging when threshold is exceeded and highlights valid drop targets.
+     */
+    private void handleMouseDragged(MouseEvent event) {
+        if (event.getButton() != MouseButton.PRIMARY || draggedNode == null) {
+            return;
+        }
+
+        // Check if we're in edit mode
+        if (editorContext == null || !editorContext.isEditMode()) {
+            return;
+        }
+
+        // Adjust coordinates for zoom level
+        double x = event.getX() / zoomLevel;
+        double y = event.getY() / zoomLevel;
+
+        // Check if drag threshold has been exceeded
+        double deltaX = Math.abs(x - dragStartX);
+        double deltaY = Math.abs(y - dragStartY);
+
+        if (!isDragging && (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD)) {
+            // Start dragging
+            isDragging = true;
+            logger.debug("Started dragging node '{}'", draggedNode.getLabel());
+
+            // Mark the dragged node visually
+            draggedNode.setDragging(true);
+        }
+
+        if (isDragging) {
+            // Find potential drop target
+            VisualNode newDropTarget = findDropTargetAt(rootNode, x, y);
+
+            // Update drop target highlighting
+            if (newDropTarget != dropTarget) {
+                // Clear old drop target highlight
+                if (dropTarget != null) {
+                    dropTarget.setDropTarget(false);
+                }
+
+                // Set new drop target highlight
+                dropTarget = newDropTarget;
+                if (dropTarget != null) {
+                    dropTarget.setDropTarget(true);
+                }
+
+                redraw();
+            }
+        }
+    }
+
+    /**
+     * Handles mouse release for completing drag operations.
+     * Executes MoveNodeCommand if a valid drop target is selected.
+     */
+    private void handleMouseReleased(MouseEvent event) {
+        if (event.getButton() != MouseButton.PRIMARY) {
+            return;
+        }
+
+        try {
+            if (isDragging && draggedNode != null && dropTarget != null) {
+                // Execute move operation
+                Object draggedModelObj = draggedNode.getModelObject();
+                Object dropTargetModelObj = dropTarget.getModelObject();
+
+                if (draggedModelObj instanceof XsdNode draggedXsdNode &&
+                        dropTargetModelObj instanceof XsdNode dropTargetXsdNode) {
+
+                    // Determine the new parent - could be the drop target itself or its parent
+                    XsdNode newParent = determineDropParent(dropTargetXsdNode);
+                    int newIndex = determineDropIndex(draggedXsdNode, dropTargetXsdNode, newParent);
+
+                    if (newParent != null && canDrop(draggedXsdNode, newParent)) {
+                        MoveNodeCommand command = new MoveNodeCommand(draggedXsdNode, newParent, newIndex);
+                        editorContext.getCommandManager().executeCommand(command);
+                        logger.info("Dropped node '{}' onto '{}' at index {}",
+                                draggedXsdNode.getName(), newParent.getName(), newIndex);
+                    } else {
+                        logger.debug("Cannot drop '{}' onto '{}' - invalid target",
+                                draggedXsdNode.getName(), dropTargetXsdNode.getName());
+                    }
+                }
+            }
+        } finally {
+            // Reset drag state
+            if (draggedNode != null) {
+                draggedNode.setDragging(false);
+            }
+            if (dropTarget != null) {
+                dropTarget.setDropTarget(false);
+            }
+
+            isDragging = false;
+            draggedNode = null;
+            dropTarget = null;
+
+            redraw();
+        }
+    }
+
+    /**
+     * Finds a valid drop target at the given coordinates.
+     * A valid drop target is any node except:
+     * - The dragged node itself
+     * - Descendants of the dragged node
+     */
+    private VisualNode findDropTargetAt(VisualNode node, double x, double y) {
+        if (node == null || node == draggedNode) {
+            return null;
+        }
+
+        // Don't allow dropping onto descendants
+        if (isDescendantOf(node, draggedNode)) {
+            return null;
+        }
+
+        // Check if point is within this node
+        if (node.containsPoint(x, y)) {
+            return node;
+        }
+
+        // Search children if expanded
+        if (node.isExpanded()) {
+            for (VisualNode child : node.getChildren()) {
+                VisualNode found = findDropTargetAt(child, x, y);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Checks if potentialDescendant is a descendant of potentialAncestor.
+     */
+    private boolean isDescendantOf(VisualNode potentialDescendant, VisualNode potentialAncestor) {
+        if (potentialAncestor == null || potentialDescendant == null) {
+            return false;
+        }
+
+        for (VisualNode child : potentialAncestor.getChildren()) {
+            if (child == potentialDescendant) {
+                return true;
+            }
+            if (isDescendantOf(potentialDescendant, child)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines the parent node for a drop operation.
+     * If dropping onto a compositor (sequence, choice, all), returns the compositor.
+     * If dropping onto an element with compositor children, returns the compositor.
+     * Otherwise returns the node's parent for sibling insertion.
+     */
+    private XsdNode determineDropParent(XsdNode dropTargetXsdNode) {
+        // If drop target is a compositor, drop into it
+        if (dropTargetXsdNode instanceof XsdSequence ||
+                dropTargetXsdNode instanceof XsdChoice ||
+                dropTargetXsdNode instanceof XsdAll) {
+            return dropTargetXsdNode;
+        }
+
+        // If drop target is a complexType, find its compositor child
+        if (dropTargetXsdNode instanceof XsdComplexType complexType) {
+            for (XsdNode child : complexType.getChildren()) {
+                if (child instanceof XsdSequence || child instanceof XsdChoice || child instanceof XsdAll) {
+                    return child;
+                }
+            }
+            // No compositor found, drop into the complexType itself
+            return dropTargetXsdNode;
+        }
+
+        // If drop target is an element with inline complexType, find its compositor
+        if (dropTargetXsdNode instanceof XsdElement) {
+            for (XsdNode child : dropTargetXsdNode.getChildren()) {
+                if (child instanceof XsdComplexType) {
+                    for (XsdNode complexChild : child.getChildren()) {
+                        if (complexChild instanceof XsdSequence ||
+                                complexChild instanceof XsdChoice ||
+                                complexChild instanceof XsdAll) {
+                            return complexChild;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Default: make sibling by using drop target's parent
+        return dropTargetXsdNode.getParent();
+    }
+
+    /**
+     * Determines the index for inserting the dragged node.
+     */
+    private int determineDropIndex(XsdNode draggedNode, XsdNode dropTargetXsdNode, XsdNode newParent) {
+        if (newParent == null) {
+            return 0;
+        }
+
+        // If dropping into the drop target (not as sibling), append at end
+        if (newParent == dropTargetXsdNode ||
+                (dropTargetXsdNode instanceof XsdComplexType && newParent.getParent() == dropTargetXsdNode)) {
+            return newParent.getChildren().size();
+        }
+
+        // Find index of drop target in its parent
+        int targetIndex = newParent.getChildren().indexOf(dropTargetXsdNode);
+        if (targetIndex < 0) {
+            // Drop target not directly in parent, append at end
+            return newParent.getChildren().size();
+        }
+
+        // Insert after the drop target
+        return targetIndex + 1;
+    }
+
+    /**
+     * Checks if the node can be dropped onto the given parent.
+     */
+    private boolean canDrop(XsdNode draggedXsdNode, XsdNode newParent) {
+        // Cannot drop onto itself
+        if (draggedXsdNode == newParent) {
+            return false;
+        }
+
+        // Cannot drop onto descendants
+        if (isModelDescendant(newParent, draggedXsdNode)) {
+            return false;
+        }
+
+        // Check if parent can accept this type of child
+        // Elements can be dropped into compositors (sequence, choice, all)
+        if (draggedXsdNode instanceof XsdElement) {
+            return newParent instanceof XsdSequence ||
+                    newParent instanceof XsdChoice ||
+                    newParent instanceof XsdAll ||
+                    newParent instanceof XsdGroup;
+        }
+
+        // Attributes can be dropped into element, complexType, or attributeGroup
+        if (draggedXsdNode instanceof XsdAttribute) {
+            return newParent instanceof XsdElement ||
+                    newParent instanceof XsdComplexType ||
+                    newParent instanceof XsdAttributeGroup;
+        }
+
+        // Allow other node types to be moved to their parent type
+        return true;
+    }
+
+    /**
+     * Checks if potentialDescendant is a model descendant of potentialAncestor.
+     */
+    private boolean isModelDescendant(XsdNode potentialDescendant, XsdNode potentialAncestor) {
+        if (potentialAncestor == null || potentialDescendant == null) {
+            return false;
+        }
+
+        for (XsdNode child : potentialAncestor.getChildren()) {
+            if (child == potentialDescendant) {
+                return true;
+            }
+            if (isModelDescendant(potentialDescendant, child)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Sets the zoom level and updates the canvas.
      */
     private void setZoom(double zoom) {
@@ -906,7 +1405,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private void handleEditModeChange(PropertyChangeEvent evt) {
         logger.debug("Edit mode changed: {} -> {}", evt.getOldValue(), evt.getNewValue());
         updateEditModeVisuals();
-        updateSaveButtonState();
     }
 
     /**
@@ -940,16 +1438,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      */
     public XsdEditorContext getEditorContext() {
         return editorContext;
-    }
-
-    /**
-     * Sets the callback to be invoked when the Save button is clicked.
-     *
-     * @param callback the save callback (typically calls XsdController.handleSaveV2Editor())
-     */
-    public void setOnSaveCallback(Runnable callback) {
-        this.onSaveCallback = callback;
-        updateSaveButtonState();
     }
 
     /**
@@ -989,23 +1477,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             contextMenuFactory.setOpenSimpleTypeEditorCallback(callback);
         } else {
             logger.warn("setOpenSimpleTypeEditorCallback: contextMenuFactory is null, callback stored for later");
-        }
-    }
-
-    /**
-     * Updates the enabled/disabled state of the Save button.
-     * Button is enabled only when:
-     * - A save callback is set
-     * - Editor is in edit mode
-     * - There is a schema to save
-     */
-    public void updateSaveButtonState() {
-        if (saveButton != null) {
-            boolean hasCallback = onSaveCallback != null;
-            boolean inEditMode = editorContext != null && editorContext.isEditMode();
-            boolean hasSchema = xsdSchema != null;
-
-            saveButton.setDisable(!hasCallback || !inEditMode || !hasSchema);
         }
     }
 }

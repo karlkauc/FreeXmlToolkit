@@ -297,6 +297,19 @@
                 </StackPane>
             </content>
         </Tab>
+        <Tab fx:id="typeEditorTab" text="Type Editor" styleClass="primary-tab" closable="false">
+            <tooltip>
+                <Tooltip text="Type Editor - Edit ComplexTypes and SimpleTypes"/>
+            </tooltip>
+            <graphic>
+                <FontIcon iconLiteral="bi-pencil-square"/>
+            </graphic>
+            <content>
+                <StackPane fx:id="typeEditorStackPane" style="-fx-background-color: #fafafa;">
+                    <!-- Type editor TabPane will be dynamically added here -->
+                </StackPane>
+            </content>
+        </Tab>
         <Tab fx:id="textTab" text="Text View" styleClass="primary-tab" closable="false">
             <tooltip>
                 <Tooltip text="Source Code View - Raw XSD editing (Ctrl+3)"/>
