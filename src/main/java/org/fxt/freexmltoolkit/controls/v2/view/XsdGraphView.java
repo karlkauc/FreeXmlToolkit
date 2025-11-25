@@ -65,6 +65,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private Runnable onSaveCallback;
     private Button saveButton;
 
+    // Type Editor callbacks (stored to re-apply when contextMenuFactory is recreated)
+    private java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType> openComplexTypeEditorCallback;
+    private java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType> openSimpleTypeEditorCallback;
+
     /**
      * Constructor using the XsdSchema (XsdNode-based tree structure).
      *
@@ -883,6 +887,16 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         // Reinitialize context menu factory with new context
         this.contextMenuFactory = new XsdContextMenuFactory(this.editorContext);
 
+        // Re-apply stored callbacks to the new factory
+        if (openComplexTypeEditorCallback != null) {
+            logger.debug("Re-applying stored openComplexTypeEditorCallback to new contextMenuFactory");
+            contextMenuFactory.setOpenComplexTypeEditorCallback(openComplexTypeEditorCallback);
+        }
+        if (openSimpleTypeEditorCallback != null) {
+            logger.debug("Re-applying stored openSimpleTypeEditorCallback to new contextMenuFactory");
+            contextMenuFactory.setOpenSimpleTypeEditorCallback(openSimpleTypeEditorCallback);
+        }
+
         logger.debug("EditorContext set, editMode: {}", this.editorContext.isEditMode());
     }
 
@@ -945,8 +959,16 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * @param callback the callback to open ComplexType editor
      */
     public void setOpenComplexTypeEditorCallback(java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType> callback) {
+        // Store callback locally so it survives contextMenuFactory recreation
+        this.openComplexTypeEditorCallback = callback;
+        logger.debug("setOpenComplexTypeEditorCallback: callback={}, contextMenuFactory={}",
+                callback != null ? "set" : "null",
+                contextMenuFactory != null ? "exists" : "null");
+
         if (contextMenuFactory != null) {
             contextMenuFactory.setOpenComplexTypeEditorCallback(callback);
+        } else {
+            logger.warn("setOpenComplexTypeEditorCallback: contextMenuFactory is null, callback stored for later");
         }
     }
 
@@ -957,8 +979,16 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * @param callback the callback to open SimpleType editor
      */
     public void setOpenSimpleTypeEditorCallback(java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType> callback) {
+        // Store callback locally so it survives contextMenuFactory recreation
+        this.openSimpleTypeEditorCallback = callback;
+        logger.debug("setOpenSimpleTypeEditorCallback: callback={}, contextMenuFactory={}",
+                callback != null ? "set" : "null",
+                contextMenuFactory != null ? "exists" : "null");
+
         if (contextMenuFactory != null) {
             contextMenuFactory.setOpenSimpleTypeEditorCallback(callback);
+        } else {
+            logger.warn("setOpenSimpleTypeEditorCallback: contextMenuFactory is null, callback stored for later");
         }
     }
 

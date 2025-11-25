@@ -73,19 +73,6 @@ public class XsdContextMenuFactory {
             return createEmptyCanvasMenu();
         }
 
-        // DIAGNOSTIC LOGGING
-        Object modelObj = node.getModelObject();
-        logger.info("═══════════════════════════════════════════════════════════");
-        logger.info("Creating context menu for node: '{}'", node.getLabel());
-        logger.info("  → VisualNode.getType() = {}", node.getType());
-        logger.info("  → ModelObject class = {}", modelObj != null ? modelObj.getClass().getSimpleName() : "null");
-        if (modelObj instanceof XsdComplexType) {
-            logger.info("  → ✅ ModelObject IS XsdComplexType!");
-        } else if (modelObj instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement) {
-            logger.info("  → ⚠️ ModelObject is XsdElement");
-        }
-        logger.info("═══════════════════════════════════════════════════════════");
-
         ContextMenu menu = switch (node.getType()) {
             case ELEMENT -> createElementMenu(node);
             case ATTRIBUTE -> createAttributeMenu(node);
@@ -673,12 +660,16 @@ public class XsdContextMenuFactory {
      * @param node the element node
      */
     private void handleEditReferencedComplexType(VisualNode node) {
+        logger.info("handleEditReferencedComplexType called for node: {}", node.getLabel());
+
         Object modelObject = node.getModelObject();
+        logger.debug("Model object type: {}", modelObject != null ? modelObject.getClass().getSimpleName() : "null");
+
         if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
             String typeName = element.getType();
-            if (typeName != null && !typeName.isEmpty()) {
-                logger.info("Element '{}' references type '{}'", node.getLabel(), typeName);
+            logger.info("Element '{}' has type attribute: '{}'", node.getLabel(), typeName);
 
+            if (typeName != null && !typeName.isEmpty()) {
                 // Find the ComplexType in the schema
                 XsdComplexType complexType = findComplexTypeInSchema(typeName);
 
@@ -687,12 +678,16 @@ public class XsdContextMenuFactory {
                         logger.info("Opening referenced ComplexType '{}' in Type Editor", typeName);
                         openComplexTypeEditorCallback.accept(complexType);
                     } else {
-                        logger.warn("Cannot open Type Editor - callback not set");
+                        logger.error("Cannot open Type Editor - openComplexTypeEditorCallback is NOT SET!");
                     }
                 } else {
                     logger.warn("Referenced type '{}' not found or is not a ComplexType", typeName);
                 }
+            } else {
+                logger.warn("Element '{}' has no type attribute or empty type", node.getLabel());
             }
+        } else {
+            logger.warn("Model object is not an XsdElement: {}", modelObject);
         }
     }
 
@@ -702,12 +697,16 @@ public class XsdContextMenuFactory {
      * @param node the element node
      */
     private void handleEditReferencedSimpleType(VisualNode node) {
+        logger.info("handleEditReferencedSimpleType called for node: {}", node.getLabel());
+
         Object modelObject = node.getModelObject();
+        logger.debug("Model object type: {}", modelObject != null ? modelObject.getClass().getSimpleName() : "null");
+
         if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
             String typeName = element.getType();
-            if (typeName != null && !typeName.isEmpty()) {
-                logger.info("Element '{}' references type '{}'", node.getLabel(), typeName);
+            logger.info("Element '{}' has type attribute: '{}'", node.getLabel(), typeName);
 
+            if (typeName != null && !typeName.isEmpty()) {
                 // Find the SimpleType in the schema
                 XsdSimpleType simpleType = findSimpleTypeInSchema(typeName);
 
@@ -716,62 +715,108 @@ public class XsdContextMenuFactory {
                         logger.info("Opening referenced SimpleType '{}' in Type Editor", typeName);
                         openSimpleTypeEditorCallback.accept(simpleType);
                     } else {
-                        logger.warn("Cannot open Type Editor - callback not set");
+                        logger.error("Cannot open Type Editor - openSimpleTypeEditorCallback is NOT SET!");
                     }
                 } else {
                     logger.warn("Referenced type '{}' not found or is not a SimpleType", typeName);
                 }
+            } else {
+                logger.warn("Element '{}' has no type attribute or empty type", node.getLabel());
             }
+        } else {
+            logger.warn("Model object is not an XsdElement: {}", modelObject);
         }
     }
 
     /**
      * Finds a ComplexType by name in the schema.
+     * Handles namespace prefixes (e.g., "tns:MyType" matches "MyType").
      *
      * @param typeName the name of the type to find
      * @return the ComplexType, or null if not found
      */
     private XsdComplexType findComplexTypeInSchema(String typeName) {
         if (editorContext == null || editorContext.getSchema() == null) {
+            logger.warn("Cannot find ComplexType '{}' - editorContext or schema is null", typeName);
             return null;
         }
+
+        // Remove namespace prefix if present (e.g., "tns:MyType" -> "MyType")
+        String localTypeName = typeName;
+        if (typeName.contains(":")) {
+            localTypeName = typeName.substring(typeName.indexOf(':') + 1);
+            logger.debug("Stripped namespace prefix: '{}' -> '{}'", typeName, localTypeName);
+        }
+
+        logger.debug("Searching for ComplexType '{}' in schema with {} children",
+                localTypeName, editorContext.getSchema().getChildren().size());
 
         // Search for ComplexType in schema's children
         for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : editorContext.getSchema().getChildren()) {
             if (child instanceof XsdComplexType complexType) {
-                if (typeName.equals(complexType.getName())) {
-                    logger.debug("Found ComplexType '{}' in schema", typeName);
+                String complexTypeName = complexType.getName();
+                logger.trace("Checking ComplexType: '{}' against '{}'", complexTypeName, localTypeName);
+
+                // Match exact name or local name after prefix stripping
+                if (localTypeName.equals(complexTypeName)) {
+                    logger.info("Found ComplexType '{}' in schema", localTypeName);
                     return complexType;
                 }
             }
         }
 
-        logger.debug("ComplexType '{}' not found in schema", typeName);
+        logger.warn("ComplexType '{}' not found in schema children. Available types: {}",
+                localTypeName,
+                editorContext.getSchema().getChildren().stream()
+                    .filter(c -> c instanceof XsdComplexType)
+                    .map(c -> ((XsdComplexType) c).getName())
+                    .toList());
         return null;
     }
 
     /**
      * Finds a SimpleType by name in the schema.
+     * Handles namespace prefixes (e.g., "tns:MyType" matches "MyType").
      *
      * @param typeName the name of the type to find
      * @return the SimpleType, or null if not found
      */
     private XsdSimpleType findSimpleTypeInSchema(String typeName) {
         if (editorContext == null || editorContext.getSchema() == null) {
+            logger.warn("Cannot find SimpleType '{}' - editorContext or schema is null", typeName);
             return null;
         }
+
+        // Remove namespace prefix if present (e.g., "tns:MyType" -> "MyType")
+        String localTypeName = typeName;
+        if (typeName.contains(":")) {
+            localTypeName = typeName.substring(typeName.indexOf(':') + 1);
+            logger.debug("Stripped namespace prefix: '{}' -> '{}'", typeName, localTypeName);
+        }
+
+        logger.debug("Searching for SimpleType '{}' in schema with {} children",
+                localTypeName, editorContext.getSchema().getChildren().size());
 
         // Search for SimpleType in schema's children
         for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : editorContext.getSchema().getChildren()) {
             if (child instanceof XsdSimpleType simpleType) {
-                if (typeName.equals(simpleType.getName())) {
-                    logger.debug("Found SimpleType '{}' in schema", typeName);
+                String simpleTypeName = simpleType.getName();
+                logger.trace("Checking SimpleType: '{}' against '{}'", simpleTypeName, localTypeName);
+
+                // Match exact name or local name after prefix stripping
+                if (localTypeName.equals(simpleTypeName)) {
+                    logger.info("Found SimpleType '{}' in schema", localTypeName);
                     return simpleType;
                 }
             }
         }
 
-        logger.debug("SimpleType '{}' not found in schema", typeName);
+        logger.warn("SimpleType '{}' not found in schema children. Available types: {}",
+                localTypeName,
+                editorContext.getSchema().getChildren().stream()
+                    .filter(c -> c instanceof XsdSimpleType)
+                    .map(c -> ((XsdSimpleType) c).getName())
+                    .toList());
         return null;
     }
 

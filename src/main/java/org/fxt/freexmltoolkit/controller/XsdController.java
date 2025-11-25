@@ -69,7 +69,10 @@ public class XsdController implements FavoritesParentController {
 
     // Type Editor integration
     private org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager typeEditorTabManager;
+    @FXML
     private Tab typeEditorTab;
+    @FXML
+    private StackPane typeEditorStackPane;
     private TabPane typeEditorTabPane;
 
     @FXML
@@ -480,9 +483,9 @@ public class XsdController implements FavoritesParentController {
     }
 
     /**
-     * Sets up automatic synchronization from text tab to graphic tab.
-     * When the user switches from text tab to graphic tab, the graphic view
-     * is automatically updated with the current text content.
+     * Sets up automatic bidirectional synchronization between text tab and graphic tab.
+     * - When switching from text tab to graphic tab: graphic view is updated with text content
+     * - When switching from graphic tab to text tab: text view is updated with current model
      */
     private void setupTextToGraphicSync() {
         // Track the last selected tab to detect tab switches
@@ -491,7 +494,10 @@ public class XsdController implements FavoritesParentController {
             if (oldTab == textTab && newTab == xsdTab) {
                 syncTextToGraphic();
             }
-            // V1 syncGraphicToText removed - V2 updates text directly when needed
+            // When switching FROM graphic tab TO text tab - sync model back to text
+            if (oldTab == xsdTab && newTab == textTab) {
+                syncGraphicToText();
+            }
         });
 
         logger.debug("Bidirectional text-graphic synchronization setup completed");
@@ -518,6 +524,44 @@ public class XsdController implements FavoritesParentController {
             logger.debug("Synchronized text content to V2 graphic view");
         } catch (Exception e) {
             logger.error("Failed to synchronize text to graphic view", e);
+        }
+    }
+
+    /**
+     * Synchronizes the V2 graphic editor model to the text view.
+     * This is called when switching from graphic tab to text tab.
+     * Serializes the current XsdSchema model and updates the text editor.
+     */
+    private void syncGraphicToText() {
+        if (currentGraphViewV2 == null) {
+            logger.debug("No V2 graph view to sync - skipping");
+            return;
+        }
+
+        org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = currentGraphViewV2.getXsdSchema();
+        if (schema == null) {
+            logger.debug("No schema in V2 graph view - skipping sync");
+            return;
+        }
+
+        try {
+            // Serialize the current model to XSD XML
+            org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer serializer =
+                    new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer();
+            String xsdContent = serializer.serialize(schema);
+
+            if (xsdContent != null && !xsdContent.isEmpty()) {
+                // Update the text editor with the serialized content
+                if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+                    sourceCodeEditor.getCodeArea().replaceText(xsdContent);
+                    // Apply syntax highlighting
+                    sourceCodeEditor.getCodeArea().setStyleSpans(0,
+                            org.fxt.freexmltoolkit.controls.XmlCodeEditor.computeHighlighting(xsdContent));
+                    logger.info("Synchronized V2 graphic model to text view ({} characters)", xsdContent.length());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to synchronize graphic model to text view", e);
         }
     }
 
@@ -3517,6 +3561,15 @@ public class XsdController implements FavoritesParentController {
             // Initialize TypeEditorTabManager
             typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
 
+            // Add typeEditorTabPane to typeEditorStackPane (from FXML)
+            if (typeEditorStackPane != null) {
+                typeEditorStackPane.getChildren().clear();
+                typeEditorStackPane.getChildren().add(typeEditorTabPane);
+                logger.info("Type Editor TabPane added to StackPane");
+            } else {
+                logger.warn("Type Editor StackPane is not initialized (FXML injection failed?)");
+            }
+
             // Initialize Type Library View (shows all types with usage info)
             if (typeLibraryStackPane != null) {
                 typeLibraryStackPane.getChildren().clear();
@@ -3572,8 +3625,10 @@ public class XsdController implements FavoritesParentController {
      * @param complexType The ComplexType to open
      */
     public void openComplexTypeEditor(org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+        logger.info("openComplexTypeEditor called for: {}", complexType != null ? complexType.getName() : "null");
+
         if (typeEditorTabManager == null) {
-            logger.error("Type Editor not initialized");
+            logger.error("Type Editor not initialized - typeEditorTabManager is null");
             return;
         }
 
@@ -3581,8 +3636,15 @@ public class XsdController implements FavoritesParentController {
             typeEditorTabManager.openComplexTypeTab(complexType);
 
             // Switch to Type Editor tab
+            logger.debug("Switching to Type Editor tab: tabPane={}, typeEditorTab={}",
+                    tabPane != null ? "exists" : "NULL",
+                    typeEditorTab != null ? typeEditorTab.getText() : "NULL");
+
             if (tabPane != null && typeEditorTab != null) {
                 tabPane.getSelectionModel().select(typeEditorTab);
+                logger.info("Switched to Type Editor tab successfully");
+            } else {
+                logger.warn("Cannot switch to Type Editor tab - tabPane or typeEditorTab is null!");
             }
 
             logger.info("Opened ComplexType: {}", complexType.getName());
