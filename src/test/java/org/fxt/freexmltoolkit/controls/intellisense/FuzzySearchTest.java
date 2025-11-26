@@ -31,7 +31,7 @@ class FuzzySearchTest {
     }
 
     private CompletionItem createItem(String label, String description, CompletionItemType type) {
-        CompletionItem item = new CompletionItem(label, type);
+        CompletionItem item = new CompletionItem(label, label, type);
         item.setDescription(description);
         return item;
     }

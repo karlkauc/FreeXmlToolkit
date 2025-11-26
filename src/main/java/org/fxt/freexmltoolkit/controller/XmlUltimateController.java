@@ -49,6 +49,7 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.*;
@@ -104,6 +105,10 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     private final CodeArea codeAreaXQuery = new CodeArea();
     private VirtualizedScrollPane<CodeArea> virtualizedScrollPaneXpath;
     private VirtualizedScrollPane<CodeArea> virtualizedScrollPaneXQuery;
+
+    // XPath/XQuery IntelliSense Engines
+    private XPathIntelliSenseEngine xpathIntelliSenseEngine;
+    private XPathIntelliSenseEngine xqueryIntelliSenseEngine;
 
     // Toolbar Buttons
     @FXML
@@ -615,7 +620,17 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             }
         });
 
-        logger.info("XPath/XQuery code areas initialized successfully");
+        // Initialize XPath IntelliSense engine
+        xpathIntelliSenseEngine = new XPathIntelliSenseEngine(codeAreaXpath, false);
+        xpathIntelliSenseEngine.setXmlContentSupplier(this::getCurrentXmlContent);
+        logger.debug("XPath IntelliSense engine initialized");
+
+        // Initialize XQuery IntelliSense engine
+        xqueryIntelliSenseEngine = new XPathIntelliSenseEngine(codeAreaXQuery, true);
+        xqueryIntelliSenseEngine.setXmlContentSupplier(this::getCurrentXmlContent);
+        logger.debug("XQuery IntelliSense engine initialized");
+
+        logger.info("XPath/XQuery code areas initialized successfully with IntelliSense support");
     }
 
     private void initializeTables() {

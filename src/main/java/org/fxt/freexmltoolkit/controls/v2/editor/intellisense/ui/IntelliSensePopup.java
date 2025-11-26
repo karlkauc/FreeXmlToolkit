@@ -227,6 +227,24 @@ public class IntelliSensePopup {
                         case VALUE:
                             styleClass += " completion-value";
                             break;
+                        case XPATH_FUNCTION:
+                            styleClass += " completion-function";
+                            break;
+                        case XPATH_AXIS:
+                            styleClass += " completion-axis";
+                            break;
+                        case XPATH_OPERATOR:
+                            styleClass += " completion-operator";
+                            break;
+                        case XQUERY_KEYWORD:
+                            styleClass += " completion-keyword";
+                            break;
+                        case XPATH_NODE_TEST:
+                            styleClass += " completion-nodetest";
+                            break;
+                        case XPATH_VARIABLE:
+                            styleClass += " completion-variable";
+                            break;
                         default:
                             break;
                     }
