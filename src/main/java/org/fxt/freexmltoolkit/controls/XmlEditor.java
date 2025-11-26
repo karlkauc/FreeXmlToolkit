@@ -253,6 +253,10 @@ public class XmlEditor extends Tab {
             } else {
                 logger.debug("⚠️ MainController not available during sidebar initialization");
             }
+
+            // Initialize XSD-dependent panes state (disabled by default until XSD is linked)
+            sidebarController.updateXsdDependentPanes(xsdFile != null);
+
             return sidebar;
         } catch (IOException e) {
             logger.error("Failed to load sidebar FXML", e);
@@ -1080,6 +1084,8 @@ public class XmlEditor extends Tab {
         this.xsdFile = xsdFile;
         if (sidebarController != null) {
             sidebarController.setXsdPathField(xsdFile != null ? xsdFile.getAbsolutePath() : "No XSD schema selected");
+            // Update XSD-dependent panes in sidebar based on whether XSD is linked
+            sidebarController.updateXsdDependentPanes(xsdFile != null);
         }
 
         // Clear cached XSD documentation data when XSD changes
@@ -1159,6 +1165,92 @@ public class XmlEditor extends Tab {
             sidebarController.updateValidationStatus("Error during validation", "red", null);
             logger.error("Error during XML validation", e);
         }
+    }
+
+    /**
+     * Validates XML and shows an alert with the result.
+     * If no XSD is linked, only checks well-formedness.
+     * If XSD is linked, checks both well-formedness and schema validity.
+     */
+    public void validateWithAlert() {
+        String xmlContent = codeArea.getText();
+        if (xmlContent == null || xmlContent.trim().isEmpty()) {
+            showValidationAlert(Alert.AlertType.WARNING, "Validation", "No XML content to validate.");
+            return;
+        }
+
+        try {
+            if (xsdFile == null) {
+                // Only check well-formedness
+                List<org.xml.sax.SAXParseException> errors = xmlService.validateText(xmlContent);
+
+                if (errors == null || errors.isEmpty()) {
+                    showValidationAlert(Alert.AlertType.INFORMATION, "Well-formedness Check",
+                        "The XML document is well-formed.");
+                } else {
+                    StringBuilder errorDetails = new StringBuilder();
+                    errorDetails.append("The XML document is not well-formed.\n\n");
+                    errorDetails.append("Errors found: ").append(errors.size()).append("\n\n");
+                    for (int i = 0; i < Math.min(errors.size(), 5); i++) {
+                        org.xml.sax.SAXParseException e = errors.get(i);
+                        errorDetails.append("Line ").append(e.getLineNumber())
+                            .append(", Column ").append(e.getColumnNumber())
+                            .append(": ").append(e.getMessage()).append("\n");
+                    }
+                    if (errors.size() > 5) {
+                        errorDetails.append("\n... and ").append(errors.size() - 5).append(" more errors.");
+                    }
+                    showValidationAlert(Alert.AlertType.ERROR, "Well-formedness Check", errorDetails.toString());
+                }
+            } else {
+                // Check both well-formedness and schema validity
+                List<org.xml.sax.SAXParseException> errors = xmlService.validateText(xmlContent, xsdFile);
+
+                if (errors == null || errors.isEmpty()) {
+                    showValidationAlert(Alert.AlertType.INFORMATION, "Schema Validation",
+                        "The XML document is valid.\n\nXSD: " + xsdFile.getName());
+                } else {
+                    StringBuilder errorDetails = new StringBuilder();
+                    errorDetails.append("The XML document is not valid.\n\n");
+                    errorDetails.append("XSD: ").append(xsdFile.getName()).append("\n");
+                    errorDetails.append("Errors found: ").append(errors.size()).append("\n\n");
+                    for (int i = 0; i < Math.min(errors.size(), 5); i++) {
+                        org.xml.sax.SAXParseException e = errors.get(i);
+                        String msg = e.getMessage();
+                        // Clean up error message
+                        if (msg != null) {
+                            msg = msg.replaceAll("^cvc-[^:]*:\\s*", "");
+                        }
+                        errorDetails.append("Line ").append(e.getLineNumber())
+                            .append(", Column ").append(e.getColumnNumber())
+                            .append(": ").append(msg).append("\n");
+                    }
+                    if (errors.size() > 5) {
+                        errorDetails.append("\n... and ").append(errors.size() - 5).append(" more errors.");
+                    }
+                    showValidationAlert(Alert.AlertType.ERROR, "Schema Validation", errorDetails.toString());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error during validation", e);
+            showValidationAlert(Alert.AlertType.ERROR, "Validation Error",
+                "An error occurred during validation:\n" + e.getMessage());
+        }
+
+        // Also update the sidebar status
+        validateXml();
+    }
+
+    /**
+     * Shows a validation result alert dialog.
+     */
+    private void showValidationAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.getDialogPane().setMinWidth(450);
+        alert.showAndWait();
     }
 
     /**

@@ -3,133 +3,232 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController"
       styleClass="xml-editor-sidebar" prefWidth="300" minWidth="250" maxWidth="400">
 
     <!-- Toggle Button -->
     <Button fx:id="toggleSidebarButton" text="◀" onAction="#toggleSidebar"
-            maxWidth="Infinity" minHeight="30" prefHeight="30"
-            style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-background-color: #e9ecef; -fx-border-color: #ced4da; -fx-border-width: 0 0 1 0;"/>
+            styleClass="sidebar-toggle-button"
+            maxWidth="Infinity" minHeight="30" prefHeight="30"/>
 
-    <!-- Sidebar Content -->
-    <VBox fx:id="sidebarContent" spacing="10" VBox.vgrow="ALWAYS">
-        <padding>
-            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-        </padding>
+    <!-- Sidebar Content with ScrollPane -->
+    <ScrollPane fx:id="sidebarScrollPane" styleClass="sidebar-scroll-pane" fitToWidth="true" VBox.vgrow="ALWAYS">
+        <VBox fx:id="sidebarContent" spacing="0">
 
-        <TitledPane text="XSD Schema" collapsible="true" expanded="true">
-            <VBox spacing="5">
-                <HBox spacing="5" alignment="CENTER_LEFT">
-                    <TextField fx:id="xsdPathField" HBox.hgrow="ALWAYS" promptText="XSD Schema" editable="false"/>
-                    <Button fx:id="changeXsdButton" text="..."/>
-                </HBox>
-                <HBox spacing="3" alignment="CENTER_LEFT">
-                    <Label text="Favorites:" prefWidth="55"/>
-                    <ComboBox fx:id="xsdFavoritesComboBox" HBox.hgrow="ALWAYS" promptText="Select XSD from favorites"/>
-                    <Button fx:id="resetXsdButton" text="↺" prefWidth="25" maxWidth="25" style="-fx-font-size: 10px;">
-                        <tooltip>
-                            <Tooltip text="Reset to original XSD"/>
-                        </tooltip>
-                    </Button>
-                </HBox>
-                <HBox spacing="3" alignment="CENTER_LEFT">
-                    <Label text="Validator:" prefWidth="55"/>
-                    <ComboBox fx:id="validatorTypeComboBox" HBox.hgrow="ALWAYS" promptText="Select validator">
-                        <tooltip>
-                            <Tooltip text="Choose XML validator (Xerces supports XSD 1.1 with assertions)"/>
-                        </tooltip>
-                    </ComboBox>
-                </HBox>
-                <Label fx:id="validationStatusLabel" text="Validation status: Unknown" wrapText="true"/>
-                <HBox spacing="5" alignment="CENTER_LEFT">
-                    <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"/>
-                    <Button fx:id="manualValidateButton" text="Validate" prefWidth="70"/>
-                </HBox>
-                <HBox spacing="5" alignment="CENTER_LEFT">
-                    <ToggleButton fx:id="xsdDocumentationToggleButton" text="📖 XSD Comments" onAction="#toggleXsdDocumentationComments">
-                        <tooltip>
-                            <Tooltip text="Toggle XSD documentation as XML comments"/>
-                        </tooltip>
-                    </ToggleButton>
-                    <Label fx:id="xsdCommentsStatusLabel" text="" style="-fx-font-size: 10px; -fx-text-fill: #666666;"/>
-                </HBox>
+            <!-- ============================================ -->
+            <!-- SECTION 1: Schema Validation                 -->
+            <!-- ============================================ -->
+            <HBox styleClass="sidebar-section-header" spacing="8" alignment="CENTER_LEFT">
+                <padding><Insets top="16" right="10" bottom="8" left="10"/></padding>
+                <FontIcon iconLiteral="bi-file-earmark-check" iconSize="14"/>
+                <Label text="Schema Validation" style="-fx-font-weight: bold;"/>
+            </HBox>
+
+            <VBox styleClass="sidebar-section-container">
+                <!-- XSD Schema TitledPane -->
+                <TitledPane text="XSD Schema" styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
+                    <VBox spacing="8">
+                        <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+
+                        <!-- XSD Path -->
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <TextField fx:id="xsdPathField" HBox.hgrow="ALWAYS"
+                                       promptText="XSD Schema" editable="false" styleClass="cursor-info-field"/>
+                            <Button fx:id="changeXsdButton" text="..." styleClass="sidebar-button"/>
+                        </HBox>
+
+                        <!-- Favorites Dropdown -->
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Label text="Favorites:" styleClass="cursor-info-label" prefWidth="55"/>
+                            <ComboBox fx:id="xsdFavoritesComboBox" HBox.hgrow="ALWAYS"
+                                      promptText="Select XSD from favorites" styleClass="sidebar-combo-box"/>
+                            <Button fx:id="resetXsdButton" text="↺" prefWidth="25" maxWidth="25"
+                                    styleClass="sidebar-button" style="-fx-font-size: 10px;">
+                                <tooltip><Tooltip text="Reset to original XSD"/></tooltip>
+                            </Button>
+                        </HBox>
+
+                        <!-- Validator Type -->
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Label text="Validator:" styleClass="cursor-info-label" prefWidth="55"/>
+                            <ComboBox fx:id="validatorTypeComboBox" HBox.hgrow="ALWAYS"
+                                      promptText="Select validator" styleClass="sidebar-combo-box">
+                                <tooltip><Tooltip text="Choose XML validator (Xerces supports XSD 1.1 with assertions)"/></tooltip>
+                            </ComboBox>
+                        </HBox>
+
+                        <!-- Validation Status -->
+                        <Label fx:id="validationStatusLabel" text="Validation status: Unknown"
+                               wrapText="true" styleClass="cursor-info-label"/>
+
+                        <!-- Validation Controls -->
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"
+                                      styleClass="sidebar-checkbox"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="manualValidateButton" text="Validate"
+                                    prefWidth="70" styleClass="sidebar-button"/>
+                        </HBox>
+
+                        <!-- XSD Documentation Toggle -->
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <ToggleButton fx:id="xsdDocumentationToggleButton" text="XSD Comments"
+                                          onAction="#toggleXsdDocumentationComments" styleClass="sidebar-button">
+                                <graphic><FontIcon iconLiteral="bi-journal-text" iconSize="12"/></graphic>
+                                <tooltip><Tooltip text="Toggle XSD documentation as XML comments"/></tooltip>
+                            </ToggleButton>
+                            <Label fx:id="xsdCommentsStatusLabel" text="" styleClass="cursor-info-label"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Validation Errors TitledPane (hidden when no errors) -->
+                <TitledPane text="Validation Errors" styleClass="xml-sidebar-titled-pane"
+                            collapsible="true" expanded="true" fx:id="validationErrorsPane"
+                            visible="false" managed="false">
+                    <VBox spacing="5">
+                        <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                        <Label fx:id="validationErrorsCountLabel" text="Validation Errors (0)"
+                               style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                        <ListView fx:id="validationErrorsListView" styleClass="sidebar-list-view validation-errors-list"
+                                  prefHeight="120" maxHeight="150">
+                            <placeholder><Label text="No validation errors"/></placeholder>
+                        </ListView>
+                    </VBox>
+                </TitledPane>
             </VBox>
-        </TitledPane>
 
-        <TitledPane text="Validation Errors" collapsible="true" expanded="true" fx:id="validationErrorsPane"
-                    visible="false" managed="false">
-            <VBox spacing="5">
-                <Label fx:id="validationErrorsCountLabel" text="Validation Errors (0)" style="-fx-font-weight: bold;"/>
-                <ListView fx:id="validationErrorsListView" prefHeight="150" maxHeight="200">
-                    <placeholder>
-                        <Label text="No validation errors"/>
-                    </placeholder>
-                </ListView>
+            <!-- ============================================ -->
+            <!-- SECTION 2: Business Rules                    -->
+            <!-- ============================================ -->
+            <HBox styleClass="sidebar-section-header" spacing="8" alignment="CENTER_LEFT">
+                <padding><Insets top="16" right="10" bottom="8" left="10"/></padding>
+                <FontIcon iconLiteral="bi-shield-check" iconSize="14"/>
+                <Label text="Business Rules" style="-fx-font-weight: bold;"/>
+            </HBox>
+
+            <VBox styleClass="sidebar-section-container">
+                <!-- Schematron Rules TitledPane -->
+                <TitledPane text="Schematron Rules" styleClass="xml-sidebar-titled-pane"
+                            collapsible="true" expanded="false">
+                    <VBox spacing="8">
+                        <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+
+                        <!-- Schematron Path -->
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <TextField fx:id="schematronPathField" HBox.hgrow="ALWAYS"
+                                       promptText="Schematron Rules" editable="false" styleClass="cursor-info-field"/>
+                            <Button fx:id="changeSchematronButton" text="..." styleClass="sidebar-button"/>
+                        </HBox>
+
+                        <!-- Schematron Status -->
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Label fx:id="schematronValidationStatusLabel"
+                                   text="Schematron validation status: Unknown"
+                                   wrapText="true" HBox.hgrow="ALWAYS" styleClass="cursor-info-label"/>
+                            <Button fx:id="schematronDetailsButton" text="Details" visible="false"
+                                    onAction="#showSchematronDetails" prefWidth="55"
+                                    styleClass="sidebar-button" style="-fx-font-size: 10px;"/>
+                        </HBox>
+
+                        <!-- Continuous Schematron Validation -->
+                        <CheckBox fx:id="continuousSchematronValidationCheckBox"
+                                  text="Continuous Schematron validation" styleClass="sidebar-checkbox"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Schematron Errors TitledPane (hidden when no errors) -->
+                <TitledPane text="Schematron Errors" styleClass="xml-sidebar-titled-pane"
+                            collapsible="true" expanded="true" fx:id="schematronErrorsPane"
+                            visible="false" managed="false">
+                    <VBox spacing="5">
+                        <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                        <Label fx:id="schematronErrorsCountLabel" text="Schematron Errors (0)"
+                               style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                        <ListView fx:id="schematronErrorsListView" styleClass="sidebar-list-view schematron-errors-list"
+                                  prefHeight="120" maxHeight="150">
+                            <placeholder><Label text="No Schematron errors"/></placeholder>
+                        </ListView>
+                    </VBox>
+                </TitledPane>
             </VBox>
-        </TitledPane>
 
-        <TitledPane text="Schematron Rules" collapsible="true" expanded="false">
-            <VBox spacing="5">
-                <HBox spacing="5" alignment="CENTER_LEFT">
-                    <TextField fx:id="schematronPathField" HBox.hgrow="ALWAYS" promptText="Schematron Rules"
-                               editable="false"/>
-                    <Button fx:id="changeSchematronButton" text="..."/>
-                </HBox>
-                <HBox spacing="5" alignment="CENTER_LEFT">
-                    <Label fx:id="schematronValidationStatusLabel" text="Schematron validation status: Unknown"
-                           wrapText="true" HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="schematronDetailsButton" text="Details" visible="false"
-                            onAction="#showSchematronDetails" prefWidth="60" maxHeight="20" minHeight="20"
-                            style="-fx-font-size: 10px;"/>
-                </HBox>
-                <CheckBox fx:id="continuousSchematronValidationCheckBox" text="Continuous Schematron validation"/>
+            <!-- ============================================ -->
+            <!-- SECTION 3: Code Assistance (XSD-dependent)   -->
+            <!-- ============================================ -->
+            <HBox styleClass="sidebar-section-header" spacing="8" alignment="CENTER_LEFT">
+                <padding><Insets top="16" right="10" bottom="8" left="10"/></padding>
+                <FontIcon iconLiteral="bi-lightbulb" iconSize="14"/>
+                <Label text="Code Assistance" style="-fx-font-weight: bold;"/>
+            </HBox>
+
+            <VBox fx:id="codeAssistanceSection" styleClass="sidebar-section-container">
+
+                <!-- Cursor Information (partially XSD-dependent) -->
+                <StackPane fx:id="cursorInfoStack">
+                    <TitledPane fx:id="cursorInfoPane" text="Cursor Information"
+                                styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
+                        <VBox spacing="6">
+                            <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                            <Label text="XPath:" styleClass="cursor-info-label"/>
+                            <TextField fx:id="xpathField" editable="false" styleClass="cursor-info-field"
+                                       promptText="XPath will appear here..."/>
+                            <Label text="Node Name:" styleClass="cursor-info-label"/>
+                            <TextField fx:id="elementNameField" editable="false" styleClass="cursor-info-field"
+                                       promptText="Node name will appear here..."/>
+                            <Label text="Element Type:" styleClass="cursor-info-label"/>
+                            <TextField fx:id="elementTypeField" editable="false" styleClass="cursor-info-field"
+                                       promptText="Element type will appear here..."/>
+                        </VBox>
+                    </TitledPane>
+                </StackPane>
+
+                <!-- Node Documentation (XSD-dependent - hidden when no XSD) -->
+                <StackPane fx:id="documentationStack">
+                    <TitledPane fx:id="documentationPane" text="Node Documentation"
+                                styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="false">
+                        <VBox spacing="5">
+                            <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                            <TextArea fx:id="documentationTextArea" prefRowCount="3" editable="false"
+                                      wrapText="true" styleClass="documentation-text-area"
+                                      promptText="Node documentation will appear here..."/>
+                        </VBox>
+                    </TitledPane>
+                </StackPane>
+
+                <!-- Example Values (XSD-dependent - hidden when no XSD) -->
+                <StackPane fx:id="exampleValuesStack">
+                    <TitledPane fx:id="exampleValuesPane" text="Example Values"
+                                styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="false">
+                        <VBox spacing="5">
+                            <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                            <ListView fx:id="exampleValuesListView" styleClass="sidebar-list-view"
+                                      prefHeight="80">
+                                <placeholder><Label text="Example values will appear here..."/></placeholder>
+                            </ListView>
+                        </VBox>
+                    </TitledPane>
+                </StackPane>
+
+                <!-- Possible Child Elements (XSD-dependent - hidden when no XSD) -->
+                <StackPane fx:id="childElementsStack" VBox.vgrow="ALWAYS">
+                    <TitledPane fx:id="childElementsPane" text="Possible Child Elements"
+                                styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true"
+                                VBox.vgrow="ALWAYS">
+                        <VBox spacing="5" VBox.vgrow="ALWAYS">
+                            <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                            <ListView fx:id="childElementsListView" styleClass="sidebar-list-view"
+                                      VBox.vgrow="ALWAYS">
+                                <placeholder><Label text="Child elements will appear here..."/></placeholder>
+                            </ListView>
+                        </VBox>
+                    </TitledPane>
+                </StackPane>
             </VBox>
-        </TitledPane>
 
-        <TitledPane text="Schematron Errors" collapsible="true" expanded="true" fx:id="schematronErrorsPane"
-                    visible="false" managed="false">
-            <VBox spacing="5">
-                <Label fx:id="schematronErrorsCountLabel" text="Schematron Errors (0)" style="-fx-font-weight: bold;"/>
-                <ListView fx:id="schematronErrorsListView" prefHeight="150" maxHeight="200">
-                    <placeholder>
-                        <Label text="No Schematron errors"/>
-                    </placeholder>
-                </ListView>
-            </VBox>
-        </TitledPane>
-
-        <TitledPane text="Cursor Information" collapsible="true" expanded="true">
-            <VBox spacing="5">
-                <Label text="XPath:"/>
-                <TextField fx:id="xpathField" editable="false" promptText="XPath will appear here..."/>
-                <Label text="Node Name:"/>
-                <TextField fx:id="elementNameField" editable="false" promptText="Node name will appear here..."/>
-                <Label text="Element Type:"/>
-                <TextField fx:id="elementTypeField" editable="false" promptText="Element type will appear here..."/>
-            </VBox>
-        </TitledPane>
-
-        <TitledPane text="Node Documentation" collapsible="true" expanded="false">
-            <TextArea fx:id="documentationTextArea" prefRowCount="4" editable="false" wrapText="true"
-                      promptText="Node documentation will appear here..."/>
-        </TitledPane>
-
-        <TitledPane text="Example Values" collapsible="true" expanded="false">
-            <ListView fx:id="exampleValuesListView" prefHeight="100">
-                <placeholder>
-                    <Label text="Example values will appear here..."/>
-                </placeholder>
-            </ListView>
-        </TitledPane>
-
-        <TitledPane text="Possible Child Elements" collapsible="true" expanded="true" VBox.vgrow="ALWAYS">
-            <ListView fx:id="childElementsListView">
-                <placeholder>
-                    <Label text="Child elements will appear here..."/>
-                </placeholder>
-            </ListView>
-        </TitledPane>
-    </VBox>
+        </VBox>
+    </ScrollPane>
 
 </VBox>

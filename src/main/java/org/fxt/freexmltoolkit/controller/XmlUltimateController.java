@@ -1003,13 +1003,17 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
 
 
     /**
-     * Validation Operations
+     * Validation Operations - triggers validation with alert dialog
      */
     @FXML
     public void validateXml() {
         logger.info("Validating XML");
-        logToConsole("Validating XML structure and schema...");
-        validateCurrentXml();
+        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
+        if (currentTab != null && currentTab instanceof XmlEditor editor) {
+            editor.validateWithAlert();
+        } else {
+            logToConsole("No XML editor tab selected for validation");
+        }
     }
 
     private void validateCurrentXml() {

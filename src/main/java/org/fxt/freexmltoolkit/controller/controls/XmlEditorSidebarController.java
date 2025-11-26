@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -115,6 +116,32 @@ public class XmlEditorSidebarController {
     @FXML
     private VBox sidebarContent;
 
+    @FXML
+    private ScrollPane sidebarScrollPane;
+
+    // Code Assistance Section (XSD-dependent)
+    @FXML
+    private VBox codeAssistanceSection;
+
+    // XSD-dependent pane stacks and overlays
+    @FXML
+    private StackPane cursorInfoStack;
+    @FXML
+    private StackPane documentationStack;
+    @FXML
+    private StackPane exampleValuesStack;
+    @FXML
+    private StackPane childElementsStack;
+
+    @FXML
+    private TitledPane cursorInfoPane;
+    @FXML
+    private TitledPane documentationPane;
+    @FXML
+    private TitledPane exampleValuesPane;
+    @FXML
+    private TitledPane childElementsPane;
+
     private XmlEditor xmlEditor;
 
     // Services
@@ -138,6 +165,9 @@ public class XmlEditorSidebarController {
     // XSD Documentation Comments tracking
     private boolean xsdCommentsActive = false;
     private static final String XSD_COMMENT_MARKER = " [XSD-DOC] ";
+
+    // Track whether XSD is linked for XSD-dependent panes
+    private boolean xsdLinked = false;
 
     public void setXmlEditor(XmlEditor xmlEditor) {
         this.xmlEditor = xmlEditor;
@@ -171,11 +201,11 @@ public class XmlEditorSidebarController {
         // Initialize child elements list view with double-click handler
         initializeChildElementsList();
 
-        // Setup manual validate button
+        // Setup manual validate button - validates with alert
         if (manualValidateButton != null) {
             manualValidateButton.setOnAction(event -> {
                 if (xmlEditor != null) {
-                    xmlEditor.validateXml();
+                    xmlEditor.validateWithAlert();
                 }
             });
         }
@@ -1354,5 +1384,62 @@ public class XmlEditorSidebarController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    // ========== XSD-Dependent Pane State Management ==========
+
+    /**
+     * Updates the XSD-dependent panes based on whether an XSD is linked.
+     * When no XSD is linked, XSD-dependent panes are completely hidden.
+     *
+     * @param hasXsd true if an XSD schema is linked, false otherwise
+     */
+    public void updateXsdDependentPanes(boolean hasXsd) {
+        this.xsdLinked = hasXsd;
+        logger.debug("Updating XSD-dependent panes: XSD linked = {}", hasXsd);
+
+        // Hide/Show Node Documentation pane
+        setXsdPaneVisibility(documentationStack, hasXsd);
+
+        // Hide/Show Example Values pane
+        setXsdPaneVisibility(exampleValuesStack, hasXsd);
+
+        // Hide/Show Child Elements pane
+        setXsdPaneVisibility(childElementsStack, hasXsd);
+
+        // Update Element Type field in Cursor Information (partially XSD-dependent)
+        if (elementTypeField != null) {
+            if (!hasXsd) {
+                elementTypeField.setPromptText("Link XSD to see element type");
+                elementTypeField.setStyle("-fx-opacity: 0.6;");
+            } else {
+                elementTypeField.setPromptText("Element type will appear here...");
+                elementTypeField.setStyle("");
+            }
+        }
+    }
+
+    /**
+     * Sets the visibility of an XSD-dependent pane.
+     * When hidden, the pane is also unmanaged so it doesn't take up space.
+     *
+     * @param paneStack the StackPane containing the pane to show/hide
+     * @param visible   true to show, false to hide completely
+     */
+    private void setXsdPaneVisibility(StackPane paneStack, boolean visible) {
+        if (paneStack == null) {
+            return;
+        }
+        paneStack.setVisible(visible);
+        paneStack.setManaged(visible);
+    }
+
+    /**
+     * Returns whether an XSD is currently linked.
+     *
+     * @return true if XSD is linked, false otherwise
+     */
+    public boolean isXsdLinked() {
+        return xsdLinked;
     }
 }
