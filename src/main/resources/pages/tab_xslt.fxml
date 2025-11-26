@@ -100,21 +100,6 @@
 
             <bottom>
                 <VBox style="-fx-padding: 10px; -fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0;" spacing="8">
-                    <Label text="File Actions:" style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
-                    <HBox spacing="8" alignment="CENTER_LEFT">
-                        <Button text="Open in Web" fx:id="openInDefaultWebBrowserButton" disable="true"
-                                style="-fx-padding: 6 12;">
-                            <graphic>
-                                <FontIcon iconLiteral="bi-globe" iconSize="14"/>
-                            </graphic>
-                        </Button>
-                        <Button text="Open in Editor" fx:id="openInDefaultTextEditorButton" disable="true"
-                                style="-fx-padding: 6 12;">
-                            <graphic>
-                                <FontIcon iconLiteral="bi-file-earmark-text" iconSize="14"/>
-                            </graphic>
-                        </Button>
-                    </HBox>
                     <ProgressBar fx:id="progressBar" prefHeight="6"/>
                 </VBox>
             </bottom>

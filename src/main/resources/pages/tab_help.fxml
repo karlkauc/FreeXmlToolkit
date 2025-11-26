@@ -11,58 +11,6 @@
       fx:controller="org.fxt.freexmltoolkit.controller.HelpController"
       stylesheets="@../css/xsd-tab-groups.css">
 
-    <!-- Help Toolbar -->
-    <ToolBar styleClass="xsd-toolbar">
-        <Button text="Home" contentDisplay="TOP" styleClass="toolbar-button">
-            <graphic>
-                <FontIcon iconLiteral="bi-house" iconSize="20" iconColor="#007bff"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Home"/>
-            </tooltip>
-        </Button>
-
-        <Button text="Back" contentDisplay="TOP" styleClass="toolbar-button">
-            <graphic>
-                <FontIcon iconLiteral="bi-arrow-left" iconSize="20" iconColor="#6c757d"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Back"/>
-            </tooltip>
-        </Button>
-
-        <Button text="Forward" contentDisplay="TOP" styleClass="toolbar-button">
-            <graphic>
-                <FontIcon iconLiteral="bi-arrow-right" iconSize="20" iconColor="#6c757d"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Forward"/>
-            </tooltip>
-        </Button>
-
-        <Separator orientation="VERTICAL"/>
-
-        <Button text="Refresh" contentDisplay="TOP" styleClass="toolbar-button">
-            <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Refresh"/>
-            </tooltip>
-        </Button>
-
-        <Region HBox.hgrow="ALWAYS"/>
-
-        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button">
-            <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Help"/>
-            </tooltip>
-        </Button>
-    </ToolBar>
-
     <!-- Documentation Tabs -->
     <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
         <Tab text="FreeXmlToolkit Documentation" fx:id="tabFXTDoc" styleClass="primary-tab">

@@ -146,6 +146,10 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     private Button addToFavoritesButton;
     @FXML
     private ToggleButton toggleFavoritesButton;
+    @FXML
+    private Button undoBtn;
+    @FXML
+    private Button redoBtn;
 
     // Main Editor
     @FXML
@@ -292,6 +296,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         initializeFavorites();
         initializeEmptyState();
         updateButtonStates();
+        updateUndoRedoButtons();
         logger.info("Ultimate XML Controller initialized successfully");
     }
 
@@ -317,7 +322,10 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                     Platform.runLater(() -> {
                         xmlEditor.refreshEditorHighlighting();
                         updateButtonStates();
+                        updateUndoRedoButtons();
                     });
+                } else {
+                    Platform.runLater(this::updateUndoRedoButtons);
                 }
             });
         }
@@ -2265,6 +2273,52 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     }
 
     /**
+     * Undo the last action in the current editor.
+     */
+    @FXML
+    private void undo() {
+        XmlEditor currentEditor = getCurrentEditor();
+        if (currentEditor != null && currentEditor.codeArea != null) {
+            currentEditor.codeArea.undo();
+            updateUndoRedoButtons();
+        }
+    }
+
+    /**
+     * Redo the last undone action in the current editor.
+     */
+    @FXML
+    private void redo() {
+        XmlEditor currentEditor = getCurrentEditor();
+        if (currentEditor != null && currentEditor.codeArea != null) {
+            currentEditor.codeArea.redo();
+            updateUndoRedoButtons();
+        }
+    }
+
+    /**
+     * Update the enabled/disabled state of the undo/redo buttons based on the current editor state.
+     */
+    private void updateUndoRedoButtons() {
+        XmlEditor currentEditor = getCurrentEditor();
+        if (currentEditor != null && currentEditor.codeArea != null) {
+            if (undoBtn != null) {
+                undoBtn.setDisable(!currentEditor.codeArea.isUndoAvailable());
+            }
+            if (redoBtn != null) {
+                redoBtn.setDisable(!currentEditor.codeArea.isRedoAvailable());
+            }
+        } else {
+            if (undoBtn != null) {
+                undoBtn.setDisable(true);
+            }
+            if (redoBtn != null) {
+                redoBtn.setDisable(true);
+            }
+        }
+    }
+
+    /**
      * Shows help dialog.
      */
     @FXML
@@ -2280,8 +2334,11 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                 - XPath and XQuery execution
                 - XML validation against XSD
                 - Format and prettify XML
+                - Undo/Redo support
 
                 KEYBOARD SHORTCUTS:
+                - Ctrl+Z: Undo
+                - Ctrl+Y: Redo
                 - F5: Validate XML
                 - Ctrl+S: Save file
                 - Ctrl+Shift+S: Save As

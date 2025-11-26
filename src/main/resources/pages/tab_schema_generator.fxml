@@ -30,21 +30,13 @@
     <!-- Schema Generator Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="loadXmlBtn" text="Open XML" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="loadXmlBtn" text="Open XML" contentDisplay="TOP" styleClass="toolbar-button"
+                onAction="#loadXml">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open XML File"/>
-            </tooltip>
-        </Button>
-
-        <Button fx:id="batchProcessBtn" text="Batch" contentDisplay="TOP" styleClass="toolbar-button">
-            <graphic>
-                <FontIcon iconLiteral="bi-stack" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Batch Process Multiple Files"/>
             </tooltip>
         </Button>
 
@@ -171,12 +163,12 @@
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="XML Input" styleClass="section-header"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="pasteXmlBtn" text="Paste" styleClass="btn-outline">
+                    <Button fx:id="pasteXmlBtn" text="Paste" styleClass="btn-outline" onAction="#pasteXml">
                         <graphic>
                             <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
                         </graphic>
                     </Button>
-                    <Button fx:id="clearXmlBtn" text="Clear" styleClass="btn-outline">
+                    <Button fx:id="clearXmlBtn" text="Clear" styleClass="btn-outline" onAction="#clearXml">
                         <graphic>
                             <FontIcon iconLiteral="bi-trash" iconSize="14"/>
                         </graphic>
@@ -225,7 +217,7 @@
                             <CheckBox fx:id="formatXsdOutput" text="Format Output" selected="true"/>
                             <CheckBox fx:id="addComments" text="Add Comments" selected="true"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Button fx:id="copyXsdBtn" text="Copy" styleClass="btn-outline">
+                            <Button fx:id="copyXsdBtn" text="Copy" styleClass="btn-outline" onAction="#copyXsd">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
                                 </graphic>

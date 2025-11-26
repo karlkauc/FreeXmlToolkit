@@ -51,6 +51,27 @@
 
         <Separator orientation="VERTICAL"/>
 
+        <!-- Edit Operations Group -->
+        <Button fx:id="undoBtn" text="Undo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#undo">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Undo (Ctrl+Z)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="redoBtn" text="Redo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#redo">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Redo (Ctrl+Y)"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
         <!-- Favorites Group -->
         <Button fx:id="addToFavoritesButton" text="Add Fav" contentDisplay="TOP" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
             <graphic>

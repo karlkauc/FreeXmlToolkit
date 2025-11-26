@@ -565,7 +565,7 @@ public class XsltDeveloperController implements FavoritesParentController {
             @Override
             protected XsltTransformationResult call() throws Exception {
                 String outputFormat = outputFormatCombo != null ? outputFormatCombo.getValue() : "XML";
-                XsltTransformationEngine.OutputFormat format = XsltTransformationEngine.OutputFormat.valueOf(outputFormat);
+                XsltTransformationEngine.OutputFormat format = XsltTransformationEngine.OutputFormat.valueOf(outputFormat.toUpperCase());
 
                 Map<String, Object> params = new HashMap<>(currentParameters);
                 return xsltEngine.transform(xmlContent, xsltContent, params, format);

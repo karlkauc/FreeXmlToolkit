@@ -9,64 +9,6 @@
       AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
       stylesheets="@../css/xsd-tab-groups.css">
 
-    <!-- Signature Operations Toolbar -->
-    <ToolBar styleClass="xsd-toolbar">
-        <!-- File Operations Group -->
-        <Button text="Create Cert" contentDisplay="TOP" styleClass="toolbar-button" onAction="#switchToCreateCertificateTab">
-            <graphic>
-                <FontIcon iconLiteral="bi-shield-lock" iconSize="20" iconColor="#28a745"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Create Certificate"/>
-            </tooltip>
-        </Button>
-
-        <Separator orientation="VERTICAL"/>
-
-        <!-- Signature Actions Group -->
-        <Button text="Sign" contentDisplay="TOP" styleClass="toolbar-button" onAction="#switchToSignTab">
-            <graphic>
-                <FontIcon iconLiteral="bi-pencil-square" iconSize="20" iconColor="#007bff"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Sign Document"/>
-            </tooltip>
-        </Button>
-
-        <Button text="Verify" contentDisplay="TOP" styleClass="toolbar-button" onAction="#switchToValidateTab">
-            <graphic>
-                <FontIcon iconLiteral="bi-patch-check" iconSize="20" iconColor="#28a745"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Verify Signature"/>
-            </tooltip>
-        </Button>
-
-        <Separator orientation="VERTICAL"/>
-
-        <!-- Expert Mode -->
-        <Button text="Expert" contentDisplay="TOP" styleClass="toolbar-button" onAction="#switchToExpertTab">
-            <graphic>
-                <FontIcon iconLiteral="bi-gear-fill" iconSize="20" iconColor="#6c757d"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Expert Mode"/>
-            </tooltip>
-        </Button>
-
-        <Region HBox.hgrow="ALWAYS"/>
-
-        <!-- Help -->
-        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
-            <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Help (F1)"/>
-            </tooltip>
-        </Button>
-    </ToolBar>
-
     <!-- TabPane Content -->
     <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
 

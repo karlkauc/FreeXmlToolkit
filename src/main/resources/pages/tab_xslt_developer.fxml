@@ -43,7 +43,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Transform Action -->
-        <Button fx:id="transformBtn" text="Transform" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="transformBtn" text="Transform" contentDisplay="TOP" styleClass="toolbar-button" onAction="#executeTransformation">
             <graphic>
                 <FontIcon iconLiteral="bi-play-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
