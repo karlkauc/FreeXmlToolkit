@@ -398,7 +398,7 @@ fun createJPackageTask(taskName: String, platform: String, arch: String, package
         val iconPath = when (platform) {
             "windows" -> "release/logo.ico"
             "macos" -> "release/logo.icns"
-            else -> "release/logo.ico"  // Use ICO as fallback for Linux
+            else -> "src/main/resources/img/logo.png"  // Linux requires PNG format
         }
         
         // Build platform-specific arguments
