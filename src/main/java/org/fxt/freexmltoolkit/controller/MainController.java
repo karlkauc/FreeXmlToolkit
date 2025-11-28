@@ -334,8 +334,25 @@ public class MainController implements Initializable {
             logger.debug("Active tab changed to: {}", activeTabId);
         }
 
-        currentButton.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        // Remove "active" from ALL menu buttons (they are split across two VBox containers)
+        removeActiveFromAllMenuButtons();
         currentButton.getStyleClass().add("active");
+    }
+
+    /**
+     * Removes the "active" style class from all menu buttons.
+     * This is needed because menu buttons are split across two VBox containers (top and bottom).
+     */
+    private void removeActiveFromAllMenuButtons() {
+        Button[] allMenuButtons = {
+            xmlUltimate, xsd, xsdValidation, schematron, xslt, fop,
+            signature, help, settings, schemaGenerator, xsltDeveloper
+        };
+        for (Button btn : allMenuButtons) {
+            if (btn != null) {
+                btn.getStyleClass().remove("active");
+            }
+        }
     }
 
     /**
@@ -363,7 +380,7 @@ public class MainController implements Initializable {
             logger.error("XML-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
         }
-        xmlUltimate.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        removeActiveFromAllMenuButtons();
         xmlUltimate.getStyleClass().add("active");
 
         loadPageFromPath("/pages/tab_xml_ultimate.fxml");
@@ -384,7 +401,7 @@ public class MainController implements Initializable {
             logger.error("XSD-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
         }
-        xsd.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        removeActiveFromAllMenuButtons();
         xsd.getStyleClass().add("active");
 
         loadPageFromPath("/pages/tab_xsd.fxml");
@@ -404,7 +421,7 @@ public class MainController implements Initializable {
             logger.error("Schematron-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
         }
-        schematron.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        removeActiveFromAllMenuButtons();
         schematron.getStyleClass().add("active");
 
         loadPageFromPath("/pages/tab_schematron.fxml");
@@ -428,7 +445,7 @@ public class MainController implements Initializable {
             logger.error("XSLT Developer Button is not initialized, cannot switch tabs.");
             return;
         }
-        xsltDeveloper.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        removeActiveFromAllMenuButtons();
         xsltDeveloper.getStyleClass().add("active");
 
         loadPageFromPath("/pages/tab_xslt_developer.fxml");

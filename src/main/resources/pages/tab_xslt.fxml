@@ -33,7 +33,7 @@
         <!-- File Operations Group -->
         <Button text="Reload" contentDisplay="TOP" styleClass="toolbar-button" onAction="#checkFiles">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d"/>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Reload/Transform Files (Ctrl+R)"/>
@@ -45,7 +45,7 @@
         <!-- View Operations Group -->
         <Button fx:id="openInDefaultWebBrowser" text="Browser" contentDisplay="TOP" styleClass="toolbar-button" disable="true">
             <graphic>
-                <FontIcon iconLiteral="bi-globe" iconSize="20" iconColor="#007bff"/>
+                <FontIcon iconLiteral="bi-globe" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open in Web Browser (Ctrl+B)"/>
@@ -54,7 +54,7 @@
 
         <Button fx:id="openInDefaultTextEditor" text="Editor" contentDisplay="TOP" styleClass="toolbar-button" disable="true">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#6c757d"/>
+                <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open in Text Editor (Ctrl+Shift+E)"/>
@@ -66,7 +66,7 @@
         <!-- Help -->
         <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
