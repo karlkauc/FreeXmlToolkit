@@ -20,23 +20,27 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
-import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import javafx.stage.FileChooser;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
+import org.kordamp.ikonli.javafx.FontIcon;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
@@ -45,13 +49,14 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 
-import java.awt.*;
+import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -106,19 +111,35 @@ public class XsltDeveloperController implements FavoritesParentController {
     @FXML
     private Button validateXsltBtn;
 
-    // UI Components - Parameters
+    // UI Components - Parameters (Grid Layout)
     @FXML
-    private TableView<XsltParameter> parametersTable;
+    private VBox parametersContainer;
     @FXML
-    private TableColumn<XsltParameter, String> paramNameColumn;
-    @FXML
-    private TableColumn<XsltParameter, String> paramValueColumn;
-    @FXML
-    private TableColumn<XsltParameter, String> paramTypeColumn;
+    private ScrollPane parametersScrollPane;
     @FXML
     private Button addParameterBtn;
-    @FXML
-    private Button removeParameterBtn;
+
+    private final ObservableList<XsltParameter> parameters = FXCollections.observableArrayList();
+
+    // XSD 1.0 and 1.1 built-in types
+    private static final List<String> XSD_TYPES = List.of(
+            // Most commonly used types first
+            "xs:string", "xs:boolean", "xs:integer", "xs:decimal", "xs:double", "xs:float",
+            "xs:date", "xs:dateTime", "xs:time", "xs:duration",
+            // Numeric types
+            "xs:int", "xs:long", "xs:short", "xs:byte",
+            "xs:nonPositiveInteger", "xs:negativeInteger", "xs:nonNegativeInteger", "xs:positiveInteger",
+            "xs:unsignedLong", "xs:unsignedInt", "xs:unsignedShort", "xs:unsignedByte",
+            // String-derived types
+            "xs:normalizedString", "xs:token", "xs:language", "xs:Name", "xs:NCName",
+            "xs:ID", "xs:IDREF", "xs:IDREFS", "xs:ENTITY", "xs:ENTITIES", "xs:NMTOKEN", "xs:NMTOKENS",
+            // Other types
+            "xs:anyURI", "xs:QName", "xs:NOTATION", "xs:hexBinary", "xs:base64Binary",
+            // Date/Time types
+            "xs:gYear", "xs:gYearMonth", "xs:gMonth", "xs:gMonthDay", "xs:gDay",
+            // XSD 1.1 types
+            "xs:dateTimeStamp", "xs:yearMonthDuration", "xs:dayTimeDuration"
+    );
 
     // UI Components - Output Configuration
     @FXML
@@ -357,7 +378,13 @@ public class XsltDeveloperController implements FavoritesParentController {
 
     private void toggleFavoritesPanelInternal() {
         if (favoritesPanel == null || rightSplitPane == null) {
+            logger.warn("Cannot toggle favorites panel - favoritesPanel or rightSplitPane is null");
             return;
+        }
+
+        // Ensure content is visible when showing favorites
+        if (contentPane != null && !contentPane.isVisible()) {
+            showContent();
         }
 
         boolean isCurrentlyShown = rightSplitPane.getItems().contains(favoritesPanel);
@@ -432,7 +459,17 @@ public class XsltDeveloperController implements FavoritesParentController {
 
     @Override
     public File getCurrentFile() {
-        // Return the most recently used file (prefer XML over XSLT)
+        // Return file based on currently selected tab
+        if (inputTabPane != null) {
+            int selectedIndex = inputTabPane.getSelectionModel().getSelectedIndex();
+            // Tab 0 = XML Source, Tab 1 = XSLT Stylesheet, Tab 2 = Parameters
+            if (selectedIndex == 1 && currentXsltFile != null) {
+                return currentXsltFile;
+            } else if (selectedIndex == 0 && currentXmlFile != null) {
+                return currentXmlFile;
+            }
+        }
+        // Fallback: return any available file
         if (currentXmlFile != null) {
             return currentXmlFile;
         }
@@ -464,13 +501,7 @@ public class XsltDeveloperController implements FavoritesParentController {
             encodingCombo.setValue("UTF-8");
         }
 
-        // Initialize parameters table
-        if (parametersTable != null) {
-            paramNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-            paramValueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
-            paramValueColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-            paramTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
-        }
+        // Parameters container is initialized dynamically in setDefaultValues()
 
         // Initialize features list
         if (featuresListView != null) {
@@ -517,19 +548,7 @@ public class XsltDeveloperController implements FavoritesParentController {
             });
         }
 
-        // Parameters table value changes
-        if (parametersTable != null) {
-            paramValueColumn.setOnEditCommit(event -> {
-                XsltParameter parameter = event.getRowValue();
-                String newValue = event.getNewValue();
-                parameter.setValue(newValue);
-                currentParameters.put(parameter.getName(), newValue);
-
-                if (liveTransformToggle != null && liveTransformToggle.isSelected()) {
-                    performTransformation();
-                }
-            });
-        }
+        // Parameter changes are handled directly in createParameterRow()
 
         // Input area changes for live transform
         if (xmlInputEditor != null) {
@@ -565,17 +584,94 @@ public class XsltDeveloperController implements FavoritesParentController {
         }
 
         // Add some sample parameters
-        if (parametersTable != null && parametersTable.getItems().isEmpty()) {
-            parametersTable.getItems().addAll(
-                    new XsltParameter("title", "Advanced Book Catalog", "string"),
-                    new XsltParameter("showGenre", "true", "boolean"),
-                    new XsltParameter("maxPrice", "50.00", "number")
-            );
+        if (parametersContainer != null && parameters.isEmpty()) {
+            addDefaultParameter("title", "Advanced Book Catalog", "xs:string");
+            addDefaultParameter("showGenre", "true", "xs:boolean");
+            addDefaultParameter("maxPrice", "50.00", "xs:decimal");
+        }
+    }
 
-            // Update current parameters map
-            currentParameters.put("title", "Advanced Book Catalog");
-            currentParameters.put("showGenre", "true");
-            currentParameters.put("maxPrice", "50.00");
+    /**
+     * Adds a default parameter to the grid.
+     */
+    private void addDefaultParameter(String name, String value, String type) {
+        XsltParameter param = new XsltParameter(name, value, type);
+        parameters.add(param);
+        currentParameters.put(name, value);
+        if (parametersContainer != null) {
+            parametersContainer.getChildren().add(createParameterRow(param));
+        }
+    }
+
+    /**
+     * Creates a parameter row with editable Name, Value, Type (ComboBox), and Delete button.
+     */
+    private HBox createParameterRow(XsltParameter param) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(2, 0, 2, 0));
+
+        // Name TextField
+        TextField nameField = new TextField(param.getName());
+        nameField.setMinWidth(150);
+        nameField.setPrefWidth(150);
+        nameField.setPromptText("Parameter name");
+        nameField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                currentParameters.remove(param.getName());
+                param.setName(newVal);
+                currentParameters.put(newVal, param.getValue());
+            }
+        });
+
+        // Value TextField
+        TextField valueField = new TextField(param.getValue());
+        valueField.setMinWidth(200);
+        valueField.setPromptText("Value");
+        HBox.setHgrow(valueField, Priority.ALWAYS);
+        valueField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                param.setValue(newVal);
+                currentParameters.put(param.getName(), newVal);
+                if (liveTransformToggle != null && liveTransformToggle.isSelected()) {
+                    performTransformation();
+                }
+            }
+        });
+
+        // Type ComboBox with all XSD types
+        ComboBox<String> typeCombo = new ComboBox<>();
+        typeCombo.getItems().addAll(XSD_TYPES);
+        typeCombo.setValue(param.getType() != null ? param.getType() : "xs:string");
+        typeCombo.setMinWidth(180);
+        typeCombo.setPrefWidth(180);
+        typeCombo.setEditable(true); // Allow custom types
+        typeCombo.setPromptText("Select type");
+        typeCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                param.setType(newVal);
+            }
+        });
+
+        // Delete Button
+        Button deleteBtn = new Button();
+        deleteBtn.setGraphic(new FontIcon("bi-trash"));
+        deleteBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+        deleteBtn.setTooltip(new Tooltip("Remove parameter"));
+        deleteBtn.setOnAction(e -> removeParameter(param, row));
+
+        row.getChildren().addAll(nameField, valueField, typeCombo, deleteBtn);
+        return row;
+    }
+
+    /**
+     * Removes a parameter from the grid.
+     */
+    private void removeParameter(XsltParameter param, HBox row) {
+        parameters.remove(param);
+        currentParameters.remove(param.getName());
+        if (parametersContainer != null) {
+            parametersContainer.getChildren().remove(row);
         }
     }
 
@@ -717,18 +813,15 @@ public class XsltDeveloperController implements FavoritesParentController {
 
     @FXML
     private void addParameter() {
-        if (parametersTable != null) {
-            XsltParameter newParam = new XsltParameter("param" + (parametersTable.getItems().size() + 1), "", "string");
-            parametersTable.getItems().add(newParam);
-        }
-    }
-
-    @FXML
-    private void removeParameter() {
-        if (parametersTable != null && parametersTable.getSelectionModel().getSelectedItem() != null) {
-            XsltParameter selected = parametersTable.getSelectionModel().getSelectedItem();
-            parametersTable.getItems().remove(selected);
-            currentParameters.remove(selected.getName());
+        if (parametersContainer != null) {
+            XsltParameter param = new XsltParameter(
+                    "param" + (parameters.size() + 1),
+                    "",
+                    "xs:string"
+            );
+            parameters.add(param);
+            HBox row = createParameterRow(param);
+            parametersContainer.getChildren().add(row);
         }
     }
 
@@ -1058,7 +1151,7 @@ public class XsltDeveloperController implements FavoritesParentController {
         public XsltParameter(String name, String value, String type) {
             this.name = name;
             this.value = value;
-            this.type = type;
+            this.type = type != null ? type : "xs:string";
         }
 
         // Getters and setters

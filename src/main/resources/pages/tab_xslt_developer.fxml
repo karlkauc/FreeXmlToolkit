@@ -57,7 +57,7 @@
                 <FontIcon iconLiteral="bi-lightning" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Toggle Live Transform"/>
+                <Tooltip text="Toggle Live Transform (Ctrl+L)"/>
             </tooltip>
         </ToggleButton>
 
@@ -192,6 +192,9 @@
                         <FontIcon iconLiteral="bi-gear" iconSize="16" iconColor="#6c757d"/>
                     </graphic>
                     <VBox spacing="10">
+                        <padding>
+                            <Insets top="10" bottom="10" left="10" right="10"/>
+                        </padding>
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <Label text="XSLT Parameters" styleClass="section-header"/>
                             <Region HBox.hgrow="ALWAYS"/>
@@ -201,21 +204,21 @@
                                     <FontIcon iconLiteral="bi-plus-circle" iconSize="14"/>
                                 </graphic>
                             </Button>
-                            <Button fx:id="removeParameterBtn" text="Remove" styleClass="btn-secondary"
-                                    onAction="#removeParameter">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-dash-circle" iconSize="14"/>
-                                </graphic>
-                            </Button>
                         </HBox>
 
-                        <TableView fx:id="parametersTable" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <TableColumn fx:id="paramNameColumn" text="Parameter Name" prefWidth="150"/>
-                                <TableColumn fx:id="paramValueColumn" text="Value" prefWidth="200"/>
-                                <TableColumn fx:id="paramTypeColumn" text="Type" prefWidth="80"/>
-                            </columns>
-                        </TableView>
+                        <!-- Header Row -->
+                        <HBox spacing="10" styleClass="parameter-header">
+                            <Label text="Name" minWidth="150" prefWidth="150" style="-fx-font-weight: bold;"/>
+                            <Label text="Value" minWidth="200" style="-fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
+                            <Label text="Type" minWidth="180" prefWidth="180" style="-fx-font-weight: bold;"/>
+                            <Label text="" minWidth="32" prefWidth="32"/>
+                        </HBox>
+
+                        <!-- Scrollable Parameter Rows -->
+                        <ScrollPane fx:id="parametersScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS"
+                                    style="-fx-background-color: transparent;">
+                            <VBox fx:id="parametersContainer" spacing="5"/>
+                        </ScrollPane>
                     </VBox>
                 </Tab>
             </TabPane>
@@ -255,11 +258,17 @@
                                 <graphic>
                                     <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
                                 </graphic>
+                                <tooltip>
+                                    <Tooltip text="Copy Result (Ctrl+Shift+C)"/>
+                                </tooltip>
                             </Button>
                             <Button fx:id="saveResultBtn" text="Save" styleClass="btn-outline" onAction="#saveResult">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-save" iconSize="14"/>
                                 </graphic>
+                                <tooltip>
+                                    <Tooltip text="Save Result (Ctrl+Alt+S)"/>
+                                </tooltip>
                             </Button>
                         </HBox>
 
