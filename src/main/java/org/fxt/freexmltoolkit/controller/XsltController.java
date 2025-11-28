@@ -48,21 +48,33 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class XsltController {
 
     private static final Logger logger = LogManager.getLogger(XsltController.class);
     private static final int PANE_SIZE = 500;
+    private static final int FILE_WATCH_INTERVAL_SECONDS = 3;
+    private static final int FILE_EXPLORER_REFRESH_INTERVAL_SECONDS = 5;
+
     private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
     private MainController parentController;
     private File xmlFile, xsltFile;
     private WebEngine webEngine;
     private final CodeArea codeArea = new CodeArea();
     private VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
+
+    // File change monitoring
+    private ScheduledExecutorService fileWatchExecutor;
+    private FileTime lastXmlModified;
+    private FileTime lastXsltModified;
 
     @FXML
     private FileExplorer xmlFileExplorer, xsltFileExplorer;
@@ -115,6 +127,8 @@ public class XsltController {
 
         setupKeyboardShortcuts();
         setupDragAndDrop();
+        setupAutoRefresh();
+        setupFileWatching();
     }
 
     /**
@@ -218,6 +232,9 @@ public class XsltController {
                 tryLoadLinkedStylesheet();
             }
         }
+
+        // Update modification times to track changes
+        updateFileModificationTimes();
 
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()
                 && xmlService.getCurrentXsltFile() != null && xmlService.getCurrentXsltFile().exists()) {
@@ -515,6 +532,151 @@ public class XsltController {
     }
 
 
+    // ==================== AUTO-REFRESH AND FILE WATCHING ====================
+
+    /**
+     * Sets up automatic refresh for both file explorers.
+     * This ensures that new or modified files appear automatically.
+     */
+    private void setupAutoRefresh() {
+        if (xmlFileExplorer != null) {
+            xmlFileExplorer.enableAutoRefresh(FILE_EXPLORER_REFRESH_INTERVAL_SECONDS);
+            logger.debug("Auto-refresh enabled for XML file explorer");
+        }
+        if (xsltFileExplorer != null) {
+            xsltFileExplorer.enableAutoRefresh(FILE_EXPLORER_REFRESH_INTERVAL_SECONDS);
+            logger.debug("Auto-refresh enabled for XSLT file explorer");
+        }
+    }
+
+    /**
+     * Sets up file watching to detect changes in the currently loaded XML and XSLT files.
+     * When a file changes, the transformation is automatically re-executed.
+     */
+    private void setupFileWatching() {
+        fileWatchExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread t = new Thread(runnable);
+            t.setDaemon(true);
+            t.setName("XsltController-FileWatch");
+            return t;
+        });
+
+        fileWatchExecutor.scheduleAtFixedRate(
+                this::checkForFileChanges,
+                FILE_WATCH_INTERVAL_SECONDS,
+                FILE_WATCH_INTERVAL_SECONDS,
+                TimeUnit.SECONDS
+        );
+
+        logger.info("File watching enabled with interval: {} seconds", FILE_WATCH_INTERVAL_SECONDS);
+    }
+
+    /**
+     * Checks if the currently loaded XML or XSLT files have been modified.
+     * If changes are detected, the transformation is automatically re-executed.
+     */
+    private void checkForFileChanges() {
+        try {
+            boolean xmlChanged = checkFileChanged(xmlFile, lastXmlModified);
+            boolean xsltChanged = checkFileChanged(xsltFile, lastXsltModified);
+
+            if (xmlChanged || xsltChanged) {
+                // Update last modified times
+                if (xmlFile != null && xmlFile.exists()) {
+                    lastXmlModified = Files.getLastModifiedTime(xmlFile.toPath());
+                }
+                if (xsltFile != null && xsltFile.exists()) {
+                    lastXsltModified = Files.getLastModifiedTime(xsltFile.toPath());
+                }
+
+                // Log what changed
+                if (xmlChanged && xsltChanged) {
+                    logger.info("Both XML and XSLT files changed, re-executing transformation");
+                } else if (xmlChanged) {
+                    logger.info("XML file changed, re-executing transformation");
+                } else {
+                    logger.info("XSLT stylesheet changed, re-compiling and re-executing transformation");
+                }
+
+                // Re-execute transformation on JavaFX thread
+                Platform.runLater(this::checkFiles);
+            }
+        } catch (Exception e) {
+            logger.warn("Error checking for file changes: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Checks if a file has been modified since the last known modification time.
+     *
+     * @param file the file to check
+     * @param lastModified the last known modification time
+     * @return true if the file has been modified, false otherwise
+     */
+    private boolean checkFileChanged(File file, FileTime lastModified) {
+        if (file == null || !file.exists()) {
+            return false;
+        }
+
+        try {
+            FileTime currentModified = Files.getLastModifiedTime(file.toPath());
+            if (lastModified == null) {
+                return false; // First time checking, don't consider it a change
+            }
+            return currentModified.compareTo(lastModified) > 0;
+        } catch (IOException e) {
+            logger.warn("Could not check file modification time: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Updates the stored file modification times.
+     * Should be called after files are loaded or transformation is executed.
+     */
+    private void updateFileModificationTimes() {
+        try {
+            if (xmlFile != null && xmlFile.exists()) {
+                lastXmlModified = Files.getLastModifiedTime(xmlFile.toPath());
+            }
+            if (xsltFile != null && xsltFile.exists()) {
+                lastXsltModified = Files.getLastModifiedTime(xsltFile.toPath());
+            }
+        } catch (IOException e) {
+            logger.warn("Could not update file modification times: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Cleans up resources when the controller is no longer needed.
+     * This should be called when the view is being destroyed.
+     */
+    public void shutdown() {
+        // Shutdown file watch executor
+        if (fileWatchExecutor != null && !fileWatchExecutor.isShutdown()) {
+            fileWatchExecutor.shutdown();
+            try {
+                if (!fileWatchExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+                    fileWatchExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                fileWatchExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+            fileWatchExecutor = null;
+        }
+
+        // Dispose file explorers
+        if (xmlFileExplorer != null) {
+            xmlFileExplorer.dispose();
+        }
+        if (xsltFileExplorer != null) {
+            xsltFileExplorer.dispose();
+        }
+
+        logger.info("XSLT Controller shutdown completed");
+    }
+
     /**
      * Shows help dialog.
      */
@@ -525,8 +687,13 @@ public class XsltController {
         helpDialog.setHeaderText("How to use the XSLT Transformation Tool");
         helpDialog.setContentText("""
                 Use this tool to work with your documents.
-                
-                                Press F1 to show this help.
+
+                FEATURES:
+                - Auto-refresh: File lists update automatically every 5 seconds
+                - Auto-recompile: Stylesheets are recompiled when changed
+                - Drag & Drop: Drop XML/XSLT files to load them
+
+                Press F1 to show this help.
                 """);
         helpDialog.showAndWait();
     }

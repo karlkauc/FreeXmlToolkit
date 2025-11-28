@@ -110,6 +110,78 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
         return this.subdirectoryCount;
     }
 
+    /**
+     * Refreshes the children of this tree item by reloading the directory contents.
+     * This is useful when files have been added, removed, or modified in the directory.
+     * Only expanded nodes are refreshed to avoid unnecessary file system access.
+     */
+    public void refresh() {
+        Path path = getValue();
+        if (path == null || !Files.isDirectory(path)) {
+            return;
+        }
+
+        // Only refresh if children have been loaded before
+        if (!isFirstTimeChildren) {
+            // Reset the subdirectory count cache
+            this.subdirectoryCount = -1;
+
+            // Get the current set of child paths for comparison
+            var currentChildPaths = new java.util.HashSet<Path>();
+            for (TreeItem<Path> child : super.getChildren()) {
+                currentChildPaths.add(child.getValue());
+            }
+
+            // Build new children list
+            var newChildren = buildChildren(this);
+            var newChildPaths = new java.util.HashSet<Path>();
+            for (TreeItem<Path> child : newChildren) {
+                newChildPaths.add(child.getValue());
+            }
+
+            // Only update if there are actual changes
+            if (!currentChildPaths.equals(newChildPaths)) {
+                logger.debug("Directory contents changed, refreshing: {}", path);
+                super.getChildren().setAll(newChildren);
+            }
+
+            // Recursively refresh expanded children
+            for (TreeItem<Path> child : super.getChildren()) {
+                if (child instanceof FileExplorerTreeItem fileExplorerChild && child.isExpanded()) {
+                    fileExplorerChild.refresh();
+                }
+            }
+        }
+    }
+
+    /**
+     * Forces a full refresh of this tree item and all its children,
+     * regardless of their expanded state. Use with caution as this can be slow.
+     */
+    public void forceRefresh() {
+        Path path = getValue();
+        if (path == null || !Files.isDirectory(path)) {
+            return;
+        }
+
+        // Reset state flags
+        this.isFirstTimeChildren = false;
+        this.subdirectoryCount = -1;
+        this.isFirstTimeLeaf = true;
+
+        // Rebuild children
+        super.getChildren().setAll(buildChildren(this));
+
+        // Recursively force refresh all children
+        for (TreeItem<Path> child : super.getChildren()) {
+            if (child instanceof FileExplorerTreeItem fileExplorerChild) {
+                if (Files.isDirectory(child.getValue())) {
+                    fileExplorerChild.forceRefresh();
+                }
+            }
+        }
+    }
+
     @Override
     public ObservableList<TreeItem<Path>> getChildren() {
         if (isFirstTimeChildren) {

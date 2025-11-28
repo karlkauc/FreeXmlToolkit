@@ -41,6 +41,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +52,8 @@ import java.util.stream.Collectors;
 public class FileExplorer extends VBox {
 
     private static final Logger logger = LogManager.getLogger(FileExplorer.class);
+    private static final int DEFAULT_AUTO_REFRESH_INTERVAL_SECONDS = 5;
+
     private final TreeTableView<Path> fileTreeView = new TreeTableView<>();
     private final Label fileNameLabel = new Label();
     private final TextField pathTextField = new TextField();
@@ -57,6 +62,11 @@ public class FileExplorer extends VBox {
     private Path selectedFile;
     private List<String> allowedFileExtensions;
     private FileExplorerTreeItem root;
+
+    // Auto-refresh functionality
+    private ScheduledExecutorService autoRefreshExecutor;
+    private boolean autoRefreshEnabled = false;
+    private int autoRefreshIntervalSeconds = DEFAULT_AUTO_REFRESH_INTERVAL_SECONDS;
 
     /**
      * Constructs a FileExplorer instance and initializes the UI components.
@@ -346,5 +356,140 @@ public class FileExplorer extends VBox {
 
     public StringProperty displayTextProperty() {
         return displayText;
+    }
+
+    // ==================== AUTO-REFRESH FUNCTIONALITY ====================
+
+    /**
+     * Enables automatic refresh of the file explorer at regular intervals.
+     * Only expanded directories will be refreshed to minimize file system access.
+     */
+    public void enableAutoRefresh() {
+        enableAutoRefresh(DEFAULT_AUTO_REFRESH_INTERVAL_SECONDS);
+    }
+
+    /**
+     * Enables automatic refresh of the file explorer at the specified interval.
+     * Only expanded directories will be refreshed to minimize file system access.
+     *
+     * @param intervalSeconds the interval in seconds between refreshes
+     */
+    public void enableAutoRefresh(int intervalSeconds) {
+        if (autoRefreshEnabled) {
+            // Already enabled, just update interval
+            disableAutoRefresh();
+        }
+
+        this.autoRefreshIntervalSeconds = intervalSeconds;
+        this.autoRefreshEnabled = true;
+
+        autoRefreshExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread t = new Thread(runnable);
+            t.setDaemon(true);
+            t.setName("FileExplorer-AutoRefresh");
+            return t;
+        });
+
+        autoRefreshExecutor.scheduleAtFixedRate(
+                this::performAutoRefresh,
+                intervalSeconds,
+                intervalSeconds,
+                TimeUnit.SECONDS
+        );
+
+        logger.info("Auto-refresh enabled with interval: {} seconds", intervalSeconds);
+    }
+
+    /**
+     * Disables automatic refresh of the file explorer.
+     */
+    public void disableAutoRefresh() {
+        if (autoRefreshExecutor != null && !autoRefreshExecutor.isShutdown()) {
+            autoRefreshExecutor.shutdown();
+            try {
+                if (!autoRefreshExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+                    autoRefreshExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                autoRefreshExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+            autoRefreshExecutor = null;
+        }
+        autoRefreshEnabled = false;
+        logger.info("Auto-refresh disabled");
+    }
+
+    /**
+     * Checks if auto-refresh is currently enabled.
+     *
+     * @return true if auto-refresh is enabled, false otherwise
+     */
+    public boolean isAutoRefreshEnabled() {
+        return autoRefreshEnabled;
+    }
+
+    /**
+     * Gets the current auto-refresh interval in seconds.
+     *
+     * @return the auto-refresh interval in seconds
+     */
+    public int getAutoRefreshIntervalSeconds() {
+        return autoRefreshIntervalSeconds;
+    }
+
+    /**
+     * Performs the auto-refresh operation.
+     * This method is called periodically by the scheduled executor.
+     */
+    private void performAutoRefresh() {
+        if (root == null) {
+            return;
+        }
+
+        // Refresh on JavaFX Application Thread
+        Platform.runLater(() -> {
+            try {
+                // Remember the currently selected path
+                Path currentSelection = selectedFile;
+
+                // Refresh all expanded drive roots
+                for (javafx.scene.control.TreeItem<Path> driveRoot : root.getChildren()) {
+                    if (driveRoot instanceof FileExplorerTreeItem fileExplorerItem) {
+                        if (driveRoot.isExpanded()) {
+                            fileExplorerItem.refresh();
+                        }
+                    }
+                }
+
+                // Restore selection if it still exists
+                if (currentSelection != null && Files.exists(currentSelection)) {
+                    // No need to re-select, just verify it's still valid
+                    stringProperty.set(currentSelection.getFileName() != null
+                            ? currentSelection.getFileName().toString()
+                            : currentSelection.toString());
+                }
+
+                logger.trace("Auto-refresh completed");
+            } catch (Exception e) {
+                logger.warn("Error during auto-refresh: {}", e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Manually refreshes the file explorer.
+     * This will refresh all expanded directories immediately.
+     */
+    public void refresh() {
+        performAutoRefresh();
+    }
+
+    /**
+     * Cleans up resources when the FileExplorer is no longer needed.
+     * This should be called when the parent controller is being destroyed.
+     */
+    public void dispose() {
+        disableAutoRefresh();
     }
 }
