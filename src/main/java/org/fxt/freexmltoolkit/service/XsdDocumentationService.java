@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.*;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
@@ -78,7 +79,7 @@ public class XsdDocumentationService {
 
     private TaskProgressListener progressListener;
     private final XsdSampleDataGenerator xsdSampleDataGenerator = new XsdSampleDataGenerator();
-    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
     private final RandomGenerator random = RandomGenerator.getDefault();
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
     XsdDocumentationSvgService xsdDocumentationSvgService = new XsdDocumentationSvgService();
@@ -105,7 +106,7 @@ public class XsdDocumentationService {
             Transformer transformer = factory.newTransformer();
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(PropertiesServiceImpl.getInstance().getXmlIndentSpaces()));
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(ServiceRegistry.get(PropertiesService.class).getXmlIndentSpaces()));
             return transformer;
         } catch (Exception e) {
             // If initialization fails, a RuntimeException is thrown.
@@ -915,7 +916,7 @@ public class XsdDocumentationService {
                     factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
                     Transformer transformer = factory.newTransformer();
                     transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(PropertiesServiceImpl.getInstance().getXmlIndentSpaces()));
+                    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(ServiceRegistry.get(PropertiesService.class).getXmlIndentSpaces()));
                     transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
                     transformer.transform(new DOMSource(document), new StreamResult(writer));
                 }

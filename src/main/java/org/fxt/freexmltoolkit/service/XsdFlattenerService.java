@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.service;
 
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -26,7 +27,7 @@ public class XsdFlattenerService {
 
     private static final String XML_SCHEMA_NS = "http://www.w3.org/2001/XMLSchema";
     private static final String FXT_INTERNAL_NS = "http://www.freexmltoolkit.org/ns/internal";
-    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
 
     /**
      * Flattens an XSD file by resolving all its <xs:include> directives.

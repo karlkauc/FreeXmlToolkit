@@ -1,13 +1,12 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.scene.control.*;
-import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.XmlService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -235,14 +234,14 @@ class XmlUltimateControllerTest {
     @Test
     @DisplayName("Should validate template parameter structure")
     void testTemplateParameterStructure() {
-        TemplateParameter param = new TemplateParameter(
-            "elementName", "myElement", "string", true, "Name of the element"
-        );
+        TemplateParameter param = new TemplateParameter("elementName", TemplateParameter.ParameterType.STRING, "myElement")
+                .required(true)
+                .description("Name of the element");
 
         assertNotNull(param);
         assertEquals("elementName", param.getName());
         assertEquals("myElement", param.getDefaultValue());
-        assertEquals("string", param.getType());
+        assertEquals(TemplateParameter.ParameterType.STRING, param.getType());
         assertTrue(param.isRequired());
         assertEquals("Name of the element", param.getDescription());
     }
@@ -421,7 +420,7 @@ class XmlUltimateControllerTest {
         int firstLine = 1;
         int lastLine = 100;
 
-        assertTrue(firstLine == 1);
+        assertEquals(1, firstLine);
         assertTrue(lastLine > firstLine);
     }
 
@@ -527,9 +526,9 @@ class XmlUltimateControllerTest {
     @Test
     @DisplayName("Should validate parameter validation rules")
     void testParameterValidationRules() {
-        TemplateParameter requiredParam = new TemplateParameter(
-            "name", "", "string", true, "Required parameter"
-        );
+        TemplateParameter requiredParam = new TemplateParameter("name", TemplateParameter.ParameterType.STRING, "")
+                .required(true)
+                .description("Required parameter");
 
         assertTrue(requiredParam.isRequired());
         assertEquals("", requiredParam.getDefaultValue());

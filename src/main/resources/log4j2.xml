@@ -57,5 +57,9 @@
         <Logger name="org.fxt.freexmltoolkit.controls.intellisense.XmlIntelliSenseEngine" level="WARN" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
+        <Logger name="org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdPropertiesPanel" level="INFO"
+                additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
     </Loggers>
 </Configuration>

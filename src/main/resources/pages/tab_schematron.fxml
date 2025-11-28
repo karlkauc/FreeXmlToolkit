@@ -56,7 +56,7 @@
                 <FontIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Add New Rule"/>
+                <Tooltip text="Add New Rule (Ctrl+R)"/>
             </tooltip>
         </Button>
 
@@ -452,6 +452,9 @@
                                 <graphic>
                                     <FontIcon iconLiteral="bi-play" iconSize="14"/>
                                 </graphic>
+                                <tooltip>
+                                    <Tooltip text="Test Selected File (Ctrl+T)"/>
+                                </tooltip>
                             </Button>
                         </HBox>
                     </VBox>
@@ -464,6 +467,9 @@
                                 <graphic>
                                     <FontIcon iconLiteral="bi-download" iconSize="14"/>
                                 </graphic>
+                                <tooltip>
+                                    <Tooltip text="Export Results (Ctrl+E)"/>
+                                </tooltip>
                             </Button>
                         </HBox>
 

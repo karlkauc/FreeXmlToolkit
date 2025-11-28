@@ -208,9 +208,10 @@ public class SchemaGenerationEngine {
 
     private ElementInfo analyzeElement(Element element, SchemaAnalysisResult analysis, SchemaGenerationOptions options) {
         ElementInfo info = new ElementInfo();
-        info.setName(element.getNodeName());
+        // Use localName if available, otherwise fall back to nodeName
+        String localName = element.getLocalName();
+        info.setName(localName != null ? localName : element.getNodeName());
         info.setNamespace(element.getNamespaceURI());
-        info.setName(element.getLocalName());
 
         // Analyze text content
         String textContent = getElementTextContent(element);

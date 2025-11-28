@@ -36,13 +36,19 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
+import org.fxt.freexmltoolkit.controls.dialogs.UpdateNotificationDialog;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 import java.io.File;
 import java.net.URL;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -52,7 +58,7 @@ public class MainController implements Initializable {
 
     private final static Logger logger = LogManager.getLogger(MainController.class);
 
-    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
     XmlUltimateController xmlUltimateController;
     XsdController xsdController;
     SchematronController schematronController;
@@ -827,7 +833,55 @@ public class MainController implements Initializable {
             loadWelcomePage();
             applyTheme();
             setupKeyboardShortcuts();
+
+            // Check for updates asynchronously after startup (with small delay)
+            scheduler.schedule(this::checkForUpdates, 2, TimeUnit.SECONDS);
         });
+    }
+
+    /**
+     * Checks for available updates asynchronously.
+     * Shows the update notification dialog if a new version is available.
+     */
+    private void checkForUpdates() {
+        UpdateCheckService updateService = ServiceRegistry.get(UpdateCheckService.class);
+
+        if (!updateService.isUpdateCheckEnabled()) {
+            logger.debug("Update check is disabled in settings");
+            return;
+        }
+
+        logger.info("Checking for updates...");
+
+        updateService.checkForUpdates()
+                .thenAccept(updateInfo -> {
+                    if (updateInfo.updateAvailable()) {
+                        logger.info("Update available: {} -> {}",
+                                updateInfo.currentVersion(), updateInfo.latestVersion());
+                        Platform.runLater(() -> showUpdateDialog(updateInfo));
+                    } else {
+                        logger.debug("No update available. Current version: {}",
+                                updateInfo.currentVersion());
+                    }
+                })
+                .exceptionally(ex -> {
+                    logger.warn("Failed to check for updates: {}", ex.getMessage());
+                    return null;
+                });
+    }
+
+    /**
+     * Shows the update notification dialog.
+     *
+     * @param updateInfo the update information to display
+     */
+    private void showUpdateDialog(UpdateInfo updateInfo) {
+        try {
+            UpdateNotificationDialog dialog = new UpdateNotificationDialog(updateInfo);
+            dialog.showAndWait();
+        } catch (Exception e) {
+            logger.error("Failed to show update dialog", e);
+        }
     }
 
     /**

@@ -32,6 +32,20 @@ public class XsdFacet extends XsdNode {
     }
 
     /**
+     * Creates a new XSD facet with a specific type, value, and fixed flag.
+     *
+     * @param facetType the facet type
+     * @param value     the facet value
+     * @param fixed     whether the facet is fixed
+     */
+    public XsdFacet(XsdFacetType facetType, String value, boolean fixed) {
+        super(facetType.getXmlName());
+        this.facetType = facetType;
+        this.value = value;
+        this.fixed = fixed;
+    }
+
+    /**
      * Gets the facet type.
      *
      * @return the facet type

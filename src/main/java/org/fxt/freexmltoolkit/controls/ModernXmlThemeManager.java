@@ -4,6 +4,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 
 import java.util.*;
 import java.util.prefs.Preferences;
@@ -749,8 +751,7 @@ public class ModernXmlThemeManager {
     private void loadCurrentTheme() {
         // First try to load from properties service for consistency
         try {
-            org.fxt.freexmltoolkit.service.PropertiesService propertiesService =
-                    org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance();
+            PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
             String themeDisplayName = propertiesService.get("xml.editor.theme");
 
             if (themeDisplayName != null && !themeDisplayName.isEmpty()) {

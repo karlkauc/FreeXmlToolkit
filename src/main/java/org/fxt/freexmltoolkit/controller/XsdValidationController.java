@@ -23,16 +23,14 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.control.SplitPane;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -40,12 +38,14 @@ import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.xml.sax.SAXParseException;
 
-import java.awt.Desktop;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -60,7 +60,7 @@ import java.util.Objects;
 public class XsdValidationController implements FavoritesParentController {
 
     private static final Logger logger = LogManager.getLogger(XsdValidationController.class);
-    private final XmlService xmlService = XmlServiceImpl.getInstance();
+    private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
     private final FileChooser xmlFileChooser = new FileChooser();
     private final FileChooser xsdFileChooser = new FileChooser();
     private final FileChooser excelFileChooser = new FileChooser();
@@ -239,7 +239,7 @@ public class XsdValidationController implements FavoritesParentController {
                     currentFile.getAbsolutePath(),
                     category
             );
-            org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addFavorite(fav);
+            ServiceRegistry.get(FavoritesService.class).addFavorite(fav);
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Favorites");

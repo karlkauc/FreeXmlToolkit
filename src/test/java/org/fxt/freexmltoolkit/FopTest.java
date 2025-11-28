@@ -18,8 +18,11 @@
 
 package org.fxt.freexmltoolkit;
 
+import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.FOPService;
+import org.fxt.freexmltoolkit.service.FOPServiceException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIf;
 
 import java.io.File;
 import java.util.HashMap;
@@ -27,15 +30,36 @@ import java.util.HashMap;
 public class FopTest {
 
     @Test
-    void createPdfTest() {
+    @DisabledIf("testResourcesNotAvailable")
+    void createPdfTest() throws FOPServiceException {
         File xmlfile = new File("src/test/resources/projectteam.xml");
         File xsltfile = new File("src/test/resources/projectteam2fo.xsl");
         File pdffile = new File("output/ResultXML2PDF.pdf");
 
-        HashMap<String, String> parameter = new HashMap<>();
-        parameter.put("versionParam", "3");
+        // Skip test if required files are not available
+        if (!xmlfile.exists() || !xsltfile.exists()) {
+            return;
+        }
+
+        HashMap<String, String> customParams = new HashMap<>();
+        customParams.put("versionParam", "3");
+
+        PDFSettings pdfSettings = new PDFSettings(
+                customParams,
+                "FreeXmlToolkit",  // producer
+                "",                 // author
+                "",                 // creator
+                "",                 // creationDate
+                "",                 // title
+                ""                  // keywords
+        );
 
         FOPService fopService = new FOPService();
-        fopService.createPdfFile(xmlfile, xsltfile, pdffile, null);
+        fopService.createPdfFile(xmlfile, xsltfile, pdffile, pdfSettings);
+    }
+
+    static boolean testResourcesNotAvailable() {
+        return !new File("src/test/resources/projectteam.xml").exists() ||
+                !new File("src/test/resources/projectteam2fo.xsl").exists();
     }
 }

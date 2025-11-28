@@ -24,11 +24,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxt.freexmltoolkit.controls.*;
-import org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog;
-import org.fxt.freexmltoolkit.controls.intellisense.XmlCodeFoldingManager;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controller.dialogs.XsdOverviewDialogController;
+import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
+import org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog;
+import org.fxt.freexmltoolkit.controls.intellisense.XmlCodeFoldingManager;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
@@ -36,7 +37,6 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -107,10 +107,10 @@ public class XsdController implements FavoritesParentController {
         return t;
     });
 
-    // Service classes
-    private final XmlService xmlService = new XmlServiceImpl();
-    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
-    private final FavoritesService favoritesService = FavoritesService.getInstance();
+    // Service classes - injected via ServiceRegistry
+    private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+    private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);
 
     private MainController parentController;
     private boolean hasUnsavedChanges = false;
@@ -1678,13 +1678,10 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private void saveXsdFileAs() {
         // Check if we have any XSD content to save
-        boolean hasContent = false;
+        boolean hasContent = currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null &&
+                currentGraphViewV2.getEditorContext().getSchema() != null;
 
         // Check V2 editor
-        if (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null &&
-            currentGraphViewV2.getEditorContext().getSchema() != null) {
-            hasContent = true;
-        }
 
         // Check text editor
         if (!hasContent && sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
@@ -3832,6 +3829,36 @@ public class XsdController implements FavoritesParentController {
                             event.consume();
                             logger.debug("Showing overview dialog via Ctrl+H");
                         }
+                        case R -> {
+                            // Ctrl+R: Reload file
+                            handleToolbarReload();
+                            event.consume();
+                            logger.debug("Reload triggered via Ctrl+R");
+                        }
+                        case W -> {
+                            // Ctrl+W: Close file
+                            handleToolbarClose();
+                            event.consume();
+                            logger.debug("Close triggered via Ctrl+W");
+                        }
+                    }
+                } else if (event.isControlDown() && event.isShiftDown() && !event.isAltDown()) {
+                    // Ctrl+Shift shortcuts
+                    if (event.getCode() == javafx.scene.input.KeyCode.R) {
+                        // Ctrl+Shift+R: Show recent files menu
+                        if (toolbarRecentFiles != null) {
+                            toolbarRecentFiles.show();
+                            event.consume();
+                            logger.debug("Recent files menu shown via Ctrl+Shift+R");
+                        }
+                    }
+                } else if (event.isControlDown() && event.isAltDown() && !event.isShiftDown()) {
+                    // Ctrl+Alt shortcuts
+                    if (event.getCode() == javafx.scene.input.KeyCode.F) {
+                        // Ctrl+Alt+F: Format/Pretty Print
+                        handleToolbarFormat();
+                        event.consume();
+                        logger.debug("Format triggered via Ctrl+Alt+F");
                     }
                 } else if (event.getCode() == javafx.scene.input.KeyCode.F1) {
                     // F1: Show overview/help dialog
@@ -3841,7 +3868,7 @@ public class XsdController implements FavoritesParentController {
                 }
             });
 
-            logger.info("Tab navigation shortcuts initialized (Ctrl+1-7, Ctrl+H, F1)");
+            logger.info("Tab navigation shortcuts initialized (Ctrl+1-7, Ctrl+H, Ctrl+R, Ctrl+W, Ctrl+Alt+F, Ctrl+Shift+R, F1)");
         });
     }
 

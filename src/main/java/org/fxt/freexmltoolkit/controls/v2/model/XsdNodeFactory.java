@@ -2,11 +2,9 @@ package org.fxt.freexmltoolkit.controls.v2.model;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.ConnectionService;
+import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -1362,8 +1360,7 @@ public class XsdNodeFactory {
 
         try {
             // Use ConnectionService for HTTP downloads (respects proxy settings)
-            org.fxt.freexmltoolkit.service.ConnectionService connectionService =
-                    org.fxt.freexmltoolkit.service.ConnectionServiceImpl.getInstance();
+            ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
 
             java.net.URI uri = java.net.URI.create(url);
             String content = connectionService.getTextContentFromURL(uri);

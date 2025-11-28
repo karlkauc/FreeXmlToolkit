@@ -5,8 +5,8 @@ import javafx.scene.web.WebView;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -89,7 +89,7 @@ class TemplatesControllerTest {
     }
 
     @Test
-    @displayName("Should validate template parameter placeholders for artifactId")
+    @DisplayName("Should validate template parameter placeholders for artifactId")
     void testPlaceholderForArtifactId() throws Exception {
         Method getPlaceholderMethod = controller.getClass().getDeclaredMethod("getPlaceholderForParameter", String.class);
         getPlaceholderMethod.setAccessible(true);
@@ -242,14 +242,14 @@ class TemplatesControllerTest {
     @Test
     @DisplayName("Should handle template parameters correctly")
     void testTemplateParameter() {
-        TemplateParameter param = new TemplateParameter(
-            "groupId", "com.example", "string", true, "Maven group ID"
-        );
+        TemplateParameter param = new TemplateParameter("groupId", TemplateParameter.ParameterType.STRING, "com.example")
+                .required(true)
+                .description("Maven group ID");
 
         assertNotNull(param);
         assertEquals("groupId", param.getName());
         assertEquals("com.example", param.getDefaultValue());
-        assertEquals("string", param.getType());
+        assertEquals(TemplateParameter.ParameterType.STRING, param.getType());
         assertTrue(param.isRequired());
         assertEquals("Maven group ID", param.getDescription());
     }
@@ -257,9 +257,9 @@ class TemplatesControllerTest {
     @Test
     @DisplayName("Should handle optional template parameters")
     void testOptionalTemplateParameter() {
-        TemplateParameter param = new TemplateParameter(
-            "comment", "", "string", false, "Optional comment"
-        );
+        TemplateParameter param = new TemplateParameter("comment", TemplateParameter.ParameterType.STRING, "")
+                .required(false)
+                .description("Optional comment");
 
         assertNotNull(param);
         assertFalse(param.isRequired());

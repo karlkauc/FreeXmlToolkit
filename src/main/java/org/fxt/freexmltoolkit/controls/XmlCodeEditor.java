@@ -23,8 +23,8 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.editor.*;
 import org.fxt.freexmltoolkit.controls.intellisense.*;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 import org.fxt.freexmltoolkit.service.XmlService;
 
@@ -49,7 +49,7 @@ public class XmlCodeEditor extends VBox {
     private static final int DEFAULT_FONT_SIZE = 11;
 
     // Core services
-    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
     private final ThreadPoolManager threadPoolManager = ThreadPoolManager.getInstance();
 
     // Core UI components
@@ -319,18 +319,19 @@ public class XmlCodeEditor extends VBox {
     /**
      * Sets the text content and immediately applies syntax highlighting.
      *
-     * @param text The text to set
+     * @param text The text to set (null is treated as empty string)
      */
     public void setText(String text) {
-        withCaretPreserved(() -> codeArea.replaceText(text));
+        String safeText = text != null ? text : "";
+        withCaretPreserved(() -> codeArea.replaceText(safeText));
 
         // Auto-detect editor mode based on content
-        autoDetectEditorMode(text);
+        autoDetectEditorMode(safeText);
 
         Platform.runLater(() -> {
-            if (text != null && !text.isEmpty()) {
-                syntaxHighlightManager.applySyntaxHighlighting(text);
-                updateFoldingRegions(text);
+            if (!safeText.isEmpty()) {
+                syntaxHighlightManager.applySyntaxHighlighting(safeText);
+                updateFoldingRegions(safeText);
             }
         });
     }

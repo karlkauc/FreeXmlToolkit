@@ -3,8 +3,8 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.scene.control.*;
 import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -199,10 +199,17 @@ class SchemaGeneratorControllerTest {
         Method formatBytesMethod = controller.getClass().getDeclaredMethod("formatBytes", long.class);
         formatBytesMethod.setAccessible(true);
 
-        // Test byte formatting
+        // Test byte formatting - use locale-independent assertions
         assertEquals("500B", formatBytesMethod.invoke(controller, 500L));
-        assertEquals("1.5KB", formatBytesMethod.invoke(controller, 1536L));
-        assertEquals("1.0MB", formatBytesMethod.invoke(controller, 1048576L));
+
+        // Accept both "1.5KB" (English locale) and "1,5KB" (German locale)
+        String result1536 = (String) formatBytesMethod.invoke(controller, 1536L);
+        assertTrue(result1536.equals("1.5KB") || result1536.equals("1,5KB"),
+                "Expected '1.5KB' or '1,5KB' but got: " + result1536);
+
+        String result1MB = (String) formatBytesMethod.invoke(controller, 1048576L);
+        assertTrue(result1MB.equals("1.0MB") || result1MB.equals("1,0MB"),
+                "Expected '1.0MB' or '1,0MB' but got: " + result1MB);
     }
 
     @Test

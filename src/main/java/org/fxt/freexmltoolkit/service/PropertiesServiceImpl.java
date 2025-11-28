@@ -332,4 +332,38 @@ public class PropertiesServiceImpl implements PropertiesService {
             logger.debug("Set XML parser type to: {}", parserType);
         }
     }
+
+    // Update check settings implementation
+
+    @Override
+    public boolean isUpdateCheckEnabled() {
+        return Boolean.parseBoolean(properties.getProperty("update.check.enabled", "true"));
+    }
+
+    @Override
+    public void setUpdateCheckEnabled(boolean enabled) {
+        properties.setProperty("update.check.enabled", String.valueOf(enabled));
+        saveProperties(properties);
+        logger.debug("Set update check enabled to: {}", enabled);
+    }
+
+    @Override
+    public String getSkippedVersion() {
+        String version = properties.getProperty("update.skipped.version", null);
+        if (version != null && version.isBlank()) {
+            return null;
+        }
+        return version;
+    }
+
+    @Override
+    public void setSkippedVersion(String version) {
+        if (version == null || version.isBlank()) {
+            properties.remove("update.skipped.version");
+        } else {
+            properties.setProperty("update.skipped.version", version);
+        }
+        saveProperties(properties);
+        logger.debug("Set skipped version to: {}", version);
+    }
 }

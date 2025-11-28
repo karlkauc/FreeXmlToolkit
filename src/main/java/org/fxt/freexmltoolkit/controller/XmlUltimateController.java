@@ -30,9 +30,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -50,6 +48,7 @@ import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.*;
@@ -80,14 +79,15 @@ import java.util.concurrent.Executors;
 public class XmlUltimateController implements Initializable, FavoritesParentController {
     private static final Logger logger = LogManager.getLogger(XmlUltimateController.class);
 
-    // Services
-    private final XmlService xmlService = XmlServiceImpl.getInstance();
+    // Services - injected via ServiceRegistry
+    private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+    private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);
+    // Engines and Repositories (singleton pattern retained for specialized use)
     private final TemplateEngine templateEngine = TemplateEngine.getInstance();
     private final TemplateRepository templateRepository = TemplateRepository.getInstance();
     private final XsltTransformationEngine xsltEngine = XsltTransformationEngine.getInstance();
     private final SchemaGenerationEngine schemaEngine = SchemaGenerationEngine.getInstance();
-    PropertiesService propertiesService = PropertiesServiceImpl.getInstance(); // Package-private for testing
-    private final FavoritesService favoritesService = FavoritesService.getInstance();
 
     // Parent controller reference
     private MainController parentController;
@@ -297,6 +297,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         initializeEmptyState();
         updateButtonStates();
         updateUndoRedoButtons();
+        setupKeyboardShortcuts();
         logger.info("Ultimate XML Controller initialized successfully");
     }
 
@@ -762,6 +763,54 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         }
 
         logger.debug("Empty state initialized");
+    }
+
+    /**
+     * Sets up keyboard shortcuts for XML Ultimate Controller actions.
+     * Shortcuts are registered when the scene becomes available.
+     */
+    private void setupKeyboardShortcuts() {
+        Platform.runLater(() -> {
+            if (xmlFilesPane == null || xmlFilesPane.getScene() == null) {
+                // Scene not ready yet, try again later
+                Platform.runLater(this::setupKeyboardShortcuts);
+                return;
+            }
+
+            Scene scene = xmlFilesPane.getScene();
+
+            // Ctrl+E - Convert to Excel/CSV
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.E, KeyCombination.CONTROL_DOWN),
+                    this::showXmlExcelCsvConverter
+            );
+
+            // Ctrl+Q - Run XPath/XQuery
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN),
+                    this::runXpathQueryPressed
+            );
+
+            // Ctrl+T - Template Manager
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN),
+                    this::showTemplateManager
+            );
+
+            // Ctrl+G - Schema Generator
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.G, KeyCombination.CONTROL_DOWN),
+                    this::showSchemaGenerator
+            );
+
+            // Ctrl+Shift+T - XSLT Developer
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN),
+                    this::showXsltDeveloper
+            );
+
+            logger.debug("XML Ultimate Controller keyboard shortcuts registered");
+        });
     }
 
     private void showContent() {

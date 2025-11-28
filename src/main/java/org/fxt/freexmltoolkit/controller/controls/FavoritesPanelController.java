@@ -13,6 +13,7 @@ import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.FavoritesParentController;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.util.ContextMenuFactory;
@@ -88,7 +89,7 @@ public class FavoritesPanelController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        favoritesService = FavoritesService.getInstance();
+        favoritesService = ServiceRegistry.get(FavoritesService.class);
         allFavorites = FXCollections.observableArrayList();
         filteredFavorites = FXCollections.observableArrayList();
 

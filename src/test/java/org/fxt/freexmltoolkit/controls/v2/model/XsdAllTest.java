@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -108,7 +108,7 @@ class XsdAllTest {
         assertEquals(0, all.getMinOccurs());
         assertEquals(1, all.getMaxOccurs());
         assertEquals("Documentation text", all.getDocumentation());
-        assertEquals("Appinfo text", all.getAppinfo());
+        assertEquals("Appinfo text", all.getAppinfoAsString());
     }
 
     @Test
@@ -268,11 +268,11 @@ class XsdAllTest {
         all.setAppinfo("This is appinfo");
 
         assertEquals("This is an all compositor documentation", all.getDocumentation());
-        assertEquals("This is appinfo", all.getAppinfo());
+        assertEquals("This is appinfo", all.getAppinfoAsString());
 
         XsdAll copy = (XsdAll) all.deepCopy(null);
         assertEquals("This is an all compositor documentation", copy.getDocumentation());
-        assertEquals("This is appinfo", copy.getAppinfo());
+        assertEquals("This is appinfo", copy.getAppinfoAsString());
     }
 
     @Test
@@ -308,8 +308,8 @@ class XsdAllTest {
         all.addChild(element2);
 
         assertEquals(2, all.getChildren().size());
-        assertEquals(1, ((XsdElement) all.getChildren().get(0)).getMaxOccurs());
-        assertEquals(1, ((XsdElement) all.getChildren().get(1)).getMaxOccurs());
+        assertEquals(1, all.getChildren().get(0).getMaxOccurs());
+        assertEquals(1, all.getChildren().get(1).getMaxOccurs());
     }
 
     @Test
@@ -360,7 +360,7 @@ class XsdAllTest {
         all.addChild(sequence);
 
         assertEquals(1, all.getChildren().size());
-        assertTrue(all.getChildren().get(0) instanceof XsdSequence);
+        assertInstanceOf(XsdSequence.class, all.getChildren().get(0));
     }
 
     @Test
@@ -378,7 +378,7 @@ class XsdAllTest {
         all.addChild(optional);
 
         assertEquals(2, all.getChildren().size());
-        assertEquals(1, ((XsdElement) all.getChildren().get(0)).getMinOccurs());
-        assertEquals(0, ((XsdElement) all.getChildren().get(1)).getMinOccurs());
+        assertEquals(1, all.getChildren().get(0).getMinOccurs());
+        assertEquals(0, all.getChildren().get(1).getMinOccurs());
     }
 }

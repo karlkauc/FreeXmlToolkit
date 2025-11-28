@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.junit.jupiter.api.BeforeEach;
@@ -149,7 +150,7 @@ class ChangeAppinfoCommandTest {
     @DisplayName("undo() should restore null appinfo")
     void testUndoRestoresNullAppinfo() {
         // Arrange
-        element.setAppinfo(null);
+        element.setAppinfo((XsdAppInfo) null);
         ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, "<new>data</new>");
         command.execute();
 
@@ -177,7 +178,7 @@ class ChangeAppinfoCommandTest {
     @DisplayName("getDescription() should describe adding appinfo")
     void testGetDescriptionForAddingAppinfo() {
         // Arrange
-        element.setAppinfo(null);
+        element.setAppinfo((XsdAppInfo) null);
         ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, "<new>data</new>");
 
         // Act

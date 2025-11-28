@@ -21,25 +21,24 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
-import javafx.scene.control.SplitPane;
+import javafx.scene.input.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.FOPService;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -54,7 +53,7 @@ import java.util.Map;
 public class FopController implements FavoritesParentController {
     private static final Logger logger = LogManager.getLogger(FopController.class);
     private final FOPService fopService = new FOPService();
-    private final XmlService xmlService = XmlServiceImpl.getInstance();
+    private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
     private final FileChooser fileChooser = new FileChooser();
     private String lastOpenDir = ".";
     private File xmlFile, xslFile, pdfFile;
@@ -131,6 +130,42 @@ public class FopController implements FavoritesParentController {
 
         initializeFavorites();
         initializeEmptyState();
+        setupKeyboardShortcuts();
+    }
+
+    /**
+     * Sets up keyboard shortcuts for FOP Controller actions.
+     */
+    private void setupKeyboardShortcuts() {
+        Platform.runLater(() -> {
+            if (pdfViewContainer == null || pdfViewContainer.getScene() == null) {
+                // Scene not ready yet, try again later
+                Platform.runLater(this::setupKeyboardShortcuts);
+                return;
+            }
+
+            Scene scene = pdfViewContainer.getScene();
+
+            // Ctrl+1 - Open XML File
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.CONTROL_DOWN),
+                    this::openXmlFile
+            );
+
+            // Ctrl+2 - Open XSL File
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.DIGIT2, KeyCombination.CONTROL_DOWN),
+                    this::openXslFile
+            );
+
+            // Ctrl+3 - Select PDF Output File
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.DIGIT3, KeyCombination.CONTROL_DOWN),
+                    this::openPdfFile
+            );
+
+            logger.debug("FOP Controller keyboard shortcuts registered");
+        });
     }
 
     private void initializeFavorites() {
@@ -179,7 +214,7 @@ public class FopController implements FavoritesParentController {
                     currentFile.getAbsolutePath(),
                     category
             );
-            org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addFavorite(fav);
+            ServiceRegistry.get(FavoritesService.class).addFavorite(fav);
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Favorites");

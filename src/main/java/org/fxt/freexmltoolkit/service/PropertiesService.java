@@ -170,4 +170,34 @@ public interface PropertiesService {
      * @param parserType the XML parser type
      */
     void setXmlParserType(XmlParserType parserType);
+
+    // Update check settings
+
+    /**
+     * Gets whether automatic update checking is enabled.
+     *
+     * @return true if update checking is enabled, false otherwise (default: true)
+     */
+    boolean isUpdateCheckEnabled();
+
+    /**
+     * Sets whether automatic update checking is enabled.
+     *
+     * @param enabled true to enable update checking, false to disable
+     */
+    void setUpdateCheckEnabled(boolean enabled);
+
+    /**
+     * Gets the version that the user has chosen to skip for update notifications.
+     *
+     * @return the skipped version string, or null if no version is skipped
+     */
+    String getSkippedVersion();
+
+    /**
+     * Sets the version to skip for update notifications.
+     *
+     * @param version the version to skip, or null to clear
+     */
+    void setSkippedVersion(String version);
 }

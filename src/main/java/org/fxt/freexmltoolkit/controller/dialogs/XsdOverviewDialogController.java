@@ -5,8 +5,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.stage.Stage;
 import org.fxt.freexmltoolkit.controller.XsdController;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,7 +116,7 @@ public class XsdOverviewDialogController {
     private void closeDialog() {
         // Save "don't show again" preference
         if (dontShowAgainCheckbox.isSelected()) {
-            PropertiesServiceImpl.getInstance().set(PREF_SHOW_XSD_OVERVIEW, "false");
+            ServiceRegistry.get(PropertiesService.class).set(PREF_SHOW_XSD_OVERVIEW, "false");
             logger.info("XSD Overview dialog will not show on startup anymore");
         }
 
@@ -129,7 +129,7 @@ public class XsdOverviewDialogController {
      * Check if the overview dialog should be shown on startup
      */
     public static boolean shouldShowOnStartup() {
-        String showOnStartup = PropertiesServiceImpl.getInstance().get(PREF_SHOW_XSD_OVERVIEW);
+        String showOnStartup = ServiceRegistry.get(PropertiesService.class).get(PREF_SHOW_XSD_OVERVIEW);
         return showOnStartup == null || "true".equalsIgnoreCase(showOnStartup);
     }
 
@@ -137,7 +137,7 @@ public class XsdOverviewDialogController {
      * Reset the "don't show again" preference (for testing or user request)
      */
     public static void resetShowOnStartup() {
-        PropertiesServiceImpl.getInstance().set(PREF_SHOW_XSD_OVERVIEW, "true");
+        ServiceRegistry.get(PropertiesService.class).set(PREF_SHOW_XSD_OVERVIEW, "true");
         logger.info("XSD Overview dialog preference reset - will show on startup");
     }
 }

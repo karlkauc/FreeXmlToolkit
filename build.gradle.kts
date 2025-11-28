@@ -107,6 +107,9 @@ dependencies {
     implementation("com.github.mifmif:generex:1.0.2")
     implementation("com.github.curious-odd-man:rgxgen:3.1")
 
+    // Note: Guice 7.0.0 doesn't support Java 25 (class file version 69)
+    // Using manual DI pattern instead - see org.fxt.freexmltoolkit.di package
+
     testImplementation(platform("org.junit:junit-bom:6.0.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -528,7 +531,7 @@ $platformArgs""".trimIndent())
                         
                         // Copy log4j2.xml
                         val log4jSource = File("release/log4j2.xml")
-                        val log4jTarget = File(appRootDir, "log4j2.xml")
+                        File(appRootDir, "log4j2.xml")
                         if (log4jSource.exists()) {
                             copy {
                                 from(log4jSource)

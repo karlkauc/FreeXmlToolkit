@@ -1,14 +1,8 @@
 package org.fxt.freexmltoolkit.controller;
 
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import org.fxt.freexmltoolkit.service.FOPService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
@@ -16,26 +10,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for FopController.
+ * Note: Tests that require JavaFX mocking have been refactored to avoid
+ * Mockito issues with JavaFX classes on module-restricted environments.
  */
-@ExtendWith(MockitoExtension.class)
 class FopControllerTest {
 
     private FopController controller;
-
-    @Mock
-    private FOPService mockFopService;
-
-    @Mock
-    private Button mockGeneratePdfButton;
-
-    @Mock
-    private TextField mockXmlFileField;
-
-    @Mock
-    private TextField mockXslFileField;
-
-    @Mock
-    private TextField mockPdfOutputField;
 
     @BeforeEach
     void setUp() {

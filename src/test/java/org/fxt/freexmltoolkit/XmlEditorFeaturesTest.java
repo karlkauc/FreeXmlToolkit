@@ -8,6 +8,7 @@ import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -22,9 +23,25 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Comprehensive test for XML Editor features including Schematron validation and IntelliSense.
+ * These tests require JavaFX to be properly initialized and may be skipped in headless environments.
  */
 @ExtendWith(ApplicationExtension.class)
+@DisabledIf("isJavaFxUnavailable")
 class XmlEditorFeaturesTest {
+
+    /**
+     * Check if JavaFX is available for testing.
+     */
+    static boolean isJavaFxUnavailable() {
+        try {
+            Class.forName("javafx.application.Platform");
+            // Try to check if we can access native graphics
+            Class.forName("com.sun.glass.ui.Application");
+            return false;
+        } catch (Exception | Error e) {
+            return true;
+        }
+    }
 
     private XmlEditor xmlEditor;
     private File testXmlFile;

@@ -496,7 +496,8 @@ public class SchemaGenerationResult {
     }
 
     public String getFormattedXsdContent() {
-        return formattedXsdContent;
+        // Fall back to xsdContent if formattedXsdContent is not set
+        return formattedXsdContent != null ? formattedXsdContent : xsdContent;
     }
 
     public void setFormattedXsdContent(String formattedXsdContent) {

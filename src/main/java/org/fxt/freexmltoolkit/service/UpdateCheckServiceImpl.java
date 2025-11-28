@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 
 import java.net.URI;
@@ -92,8 +93,8 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
      * Private constructor for singleton pattern.
      */
     private UpdateCheckServiceImpl() {
-        this.propertiesService = PropertiesServiceImpl.getInstance();
-        this.connectionService = ConnectionServiceImpl.getInstance();
+        this.propertiesService = ServiceRegistry.get(PropertiesService.class);
+        this.connectionService = ServiceRegistry.get(ConnectionService.class);
     }
 
     /**

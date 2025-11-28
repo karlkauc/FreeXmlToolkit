@@ -19,7 +19,7 @@
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Open XML File"/>
+                <Tooltip text="Open XML File (Ctrl+1)"/>
             </tooltip>
         </Button>
 
@@ -28,7 +28,7 @@
                 <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Open XSL-FO Stylesheet"/>
+                <Tooltip text="Open XSL-FO Stylesheet (Ctrl+2)"/>
             </tooltip>
         </Button>
 
@@ -37,7 +37,7 @@
                 <FontIcon iconLiteral="bi-file-earmark" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Select Output PDF File"/>
+                <Tooltip text="Select Output PDF File (Ctrl+3)"/>
             </tooltip>
         </Button>
 

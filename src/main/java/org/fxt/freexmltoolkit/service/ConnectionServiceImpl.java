@@ -18,6 +18,11 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.ConnectionResult;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -31,9 +36,6 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Properties;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.ConnectionResult;
 
 /**
  * Implementation of the ConnectionService interface.
@@ -44,7 +46,7 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     private final static Logger logger = LogManager.getLogger(ConnectionServiceImpl.class);
     private static final ConnectionServiceImpl instance = new ConnectionServiceImpl();
-    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
 
     private ConnectionServiceImpl() {
     }

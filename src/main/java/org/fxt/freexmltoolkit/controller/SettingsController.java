@@ -18,6 +18,7 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -28,10 +29,15 @@ import javafx.stage.DirectoryChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
+import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.ConnectionService;
+import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -43,9 +49,10 @@ public class SettingsController {
 
     Properties props;
     private final static Logger logger = LogManager.getLogger(SettingsController.class);
-    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
-    ConnectionService connectionService = ConnectionServiceImpl.getInstance();
-    FavoritesService favoritesService = FavoritesService.getInstance();
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+    private final ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
+    private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);
+    private final UpdateCheckService updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
 
     @FXML
     RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder, lightTheme, darkTheme;
@@ -71,6 +78,10 @@ public class SettingsController {
     @FXML
     CheckBox trustAllCerts;
 
+    // Update Settings
+    @FXML
+    CheckBox checkForUpdatesOnStartup;
+
     @FXML
     Spinner<Integer> xsdAutoSaveInterval, xsdBackupVersions;
 
@@ -84,7 +95,7 @@ public class SettingsController {
     Spinner<Integer> portSpinner, xmlIndentSpaces, xmlFontSize;
 
     @FXML
-    Button checkConnection;
+    Button checkConnection, checkForUpdatesButton;
 
     @FXML
     ToggleGroup proxy, tempFolder, theme;
@@ -238,6 +249,83 @@ public class SettingsController {
         }
     }
 
+    @FXML
+    private void checkForUpdatesNow() {
+        logger.debug("Manual update check triggered");
+        checkForUpdatesButton.setDisable(true);
+        checkForUpdatesButton.setText("Checking...");
+
+        updateCheckService.checkForUpdates()
+                .thenAccept(updateInfo -> Platform.runLater(() -> {
+                    checkForUpdatesButton.setDisable(false);
+                    checkForUpdatesButton.setText("Check for Updates Now");
+
+                    if (updateInfo == null || updateInfo.latestVersion() == null) {
+                        showAlert(Alert.AlertType.ERROR, "Update Check Failed",
+                                "Could not check for updates. Please verify your network connection and try again.");
+                        return;
+                    }
+
+                    if (updateInfo.updateAvailable()) {
+                        showUpdateAvailableAlert(updateInfo);
+                    } else {
+                        showAlert(Alert.AlertType.INFORMATION, "No Updates Available",
+                                "You are running the latest version.\n\n" +
+                                        "Current version: " + updateInfo.currentVersion());
+                    }
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        checkForUpdatesButton.setDisable(false);
+                        checkForUpdatesButton.setText("Check for Updates Now");
+                        logger.error("Update check failed", ex);
+                        showAlert(Alert.AlertType.ERROR, "Update Check Failed",
+                                "An error occurred while checking for updates: " + ex.getMessage());
+                    });
+                    return null;
+                });
+    }
+
+    /**
+     * Shows an alert with update information and option to download.
+     *
+     * @param updateInfo The update information to display
+     */
+    private void showUpdateAvailableAlert(UpdateInfo updateInfo) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Update Available");
+        alert.setHeaderText("A new version is available!");
+
+        StringBuilder content = new StringBuilder();
+        content.append("Current version: ").append(updateInfo.currentVersion()).append("\n");
+        content.append("Latest version: ").append(updateInfo.latestVersion()).append("\n");
+
+        if (updateInfo.publishedDate() != null) {
+            content.append("Released: ").append(updateInfo.publishedDate()).append("\n");
+        }
+
+        if (updateInfo.releaseName() != null) {
+            content.append("\nRelease: ").append(updateInfo.releaseName()).append("\n");
+        }
+
+        if (updateInfo.releaseNotes() != null && !updateInfo.releaseNotes().isBlank()) {
+            String notes = updateInfo.releaseNotes();
+            if (notes.length() > 300) {
+                notes = notes.substring(0, 300) + "...";
+            }
+            content.append("\nRelease Notes:\n").append(notes);
+        }
+
+        if (updateInfo.downloadUrl() != null) {
+            content.append("\n\nDownload at:\n").append(updateInfo.downloadUrl());
+        }
+
+        alert.setContentText(content.toString());
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefWidth(500);
+        alert.showAndWait();
+    }
+
     private static @NotNull String getString(StringBuilder headerString, ConnectionResult connectionResult) {
         final String temp = headerString.toString().trim();
         final String body = connectionResult.resultBody() != null ? connectionResult.resultBody().trim() : "";
@@ -266,6 +354,10 @@ public class SettingsController {
             
             // Save SSL settings
             props.setProperty("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
+
+            // Save Update settings
+            propertiesService.setUpdateCheckEnabled(checkForUpdatesOnStartup.isSelected());
+
             props.setProperty("xml.indent.spaces", xmlIndentSpaces.getValue().toString());
             props.setProperty("xml.autoformat.after.loading", String.valueOf(autoFormatXmlAfterLoading.isSelected()));
 
@@ -357,6 +449,9 @@ public class SettingsController {
         // Load SSL settings
         boolean trustAllCertificates = Boolean.parseBoolean(props.getProperty("ssl.trustAllCerts", "false"));
         trustAllCerts.setSelected(trustAllCertificates);
+
+        // Load Update settings
+        checkForUpdatesOnStartup.setSelected(propertiesService.isUpdateCheckEnabled());
 
         // Load temp folder settings
         if (props.get("customTempFolder") != null && !props.getProperty("customTempFolder").isBlank()) {

@@ -18,12 +18,11 @@
   ~
   -->
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
 <?import org.fxt.freexmltoolkit.controls.FileExplorer?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import org.kordamp.ikonli.javafx.*?>
 <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
       AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XsltController"
@@ -37,7 +36,7 @@
                 <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Reload Files"/>
+                <Tooltip text="Reload/Transform Files (Ctrl+R)"/>
             </tooltip>
         </Button>
 
@@ -49,7 +48,7 @@
                 <FontIcon iconLiteral="bi-globe" iconSize="20" iconColor="#007bff"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Open in Web Browser"/>
+                <Tooltip text="Open in Web Browser (Ctrl+B)"/>
             </tooltip>
         </Button>
 
@@ -58,7 +57,7 @@
                 <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Open in Text Editor"/>
+                <Tooltip text="Open in Text Editor (Ctrl+Shift+E)"/>
             </tooltip>
         </Button>
 

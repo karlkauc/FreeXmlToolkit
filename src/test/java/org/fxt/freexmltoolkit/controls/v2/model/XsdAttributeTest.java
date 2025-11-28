@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -180,7 +180,7 @@ class XsdAttributeTest {
         assertEquals(1, copy.getMinOccurs());
         assertEquals(1, copy.getMaxOccurs());
         assertEquals("Test documentation", copy.getDocumentation());
-        assertEquals("Test appinfo", copy.getAppinfo());
+        assertEquals("Test appinfo", copy.getAppinfoAsString());
 
         // Should have different ID
         assertNotEquals(attribute.getId(), copy.getId());
@@ -221,7 +221,7 @@ class XsdAttributeTest {
         assertEquals(0, attribute.getMinOccurs());
         assertEquals(1, attribute.getMaxOccurs());
         assertEquals("Documentation text", attribute.getDocumentation());
-        assertEquals("Appinfo text", attribute.getAppinfo());
+        assertEquals("Appinfo text", attribute.getAppinfoAsString());
     }
 
     @Test

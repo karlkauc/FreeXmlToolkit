@@ -56,20 +56,21 @@ class XmlCodeEditorSchemaBasedIntelliSenseTest {
 
     @Test
     void testRequestCompletionsWithoutSchema() throws Exception {
-        // Test that requestCompletions handles missing schema correctly
-        Method requestCompletionsMethod = XmlCodeEditor.class.getDeclaredMethod("requestCompletions");
-        requestCompletionsMethod.setAccessible(true);
+        // Test that showIntelliSenseCompletion handles missing schema correctly
+        // Note: requestCompletions was renamed to showIntelliSenseCompletion
+        Method showCompletionMethod = XmlCodeEditor.class.getDeclaredMethod("showIntelliSenseCompletion");
+        showCompletionMethod.setAccessible(true);
 
         Platform.runLater(() -> {
             try {
                 // This should not throw an exception and should not show popup when no schema
                 assertDoesNotThrow(() -> {
-                    requestCompletionsMethod.invoke(xmlCodeEditor);
+                    showCompletionMethod.invoke(xmlCodeEditor);
                 });
 
-                System.out.println("Test passed: requestCompletionsFromLSP handles missing schema gracefully");
+                System.out.println("Test passed: showIntelliSenseCompletion handles missing schema gracefully");
             } catch (Exception e) {
-                fail("Error testing request completions without schema: " + e.getMessage());
+                fail("Error testing show completion without schema: " + e.getMessage());
             }
         });
     }

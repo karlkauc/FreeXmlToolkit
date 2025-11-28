@@ -26,6 +26,13 @@ public class XsdElement extends XsdNode {
     private final List<String> assertions = new ArrayList<>();
 
     /**
+     * Creates a new XSD element with default name.
+     */
+    public XsdElement() {
+        super("element");
+    }
+
+    /**
      * Creates a new XSD element.
      *
      * @param name the element name

@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -107,7 +107,7 @@ class XsdChoiceTest {
         assertEquals(2, choice.getMinOccurs());
         assertEquals(XsdNode.UNBOUNDED, choice.getMaxOccurs());
         assertEquals("Documentation text", choice.getDocumentation());
-        assertEquals("Appinfo text", choice.getAppinfo());
+        assertEquals("Appinfo text", choice.getAppinfoAsString());
     }
 
     @Test
@@ -299,11 +299,11 @@ class XsdChoiceTest {
         choice.setAppinfo("This is appinfo");
 
         assertEquals("This is a choice documentation", choice.getDocumentation());
-        assertEquals("This is appinfo", choice.getAppinfo());
+        assertEquals("This is appinfo", choice.getAppinfoAsString());
 
         XsdChoice copy = (XsdChoice) choice.deepCopy(null);
         assertEquals("This is a choice documentation", copy.getDocumentation());
-        assertEquals("This is appinfo", copy.getAppinfo());
+        assertEquals("This is appinfo", copy.getAppinfoAsString());
     }
 
     @Test
@@ -337,8 +337,8 @@ class XsdChoiceTest {
         choice.addChild(sequence);
 
         assertEquals(2, choice.getChildren().size());
-        assertTrue(choice.getChildren().get(0) instanceof XsdElement);
-        assertTrue(choice.getChildren().get(1) instanceof XsdSequence);
+        assertInstanceOf(XsdElement.class, choice.getChildren().get(0));
+        assertInstanceOf(XsdSequence.class, choice.getChildren().get(1));
     }
 
     @Test
@@ -357,8 +357,8 @@ class XsdChoiceTest {
         XsdChoice copy = (XsdChoice) choice.deepCopy("_copy");
 
         assertEquals(2, copy.getChildren().size());
-        assertTrue(copy.getChildren().get(0) instanceof XsdElement);
-        assertTrue(copy.getChildren().get(1) instanceof XsdSequence);
+        assertInstanceOf(XsdElement.class, copy.getChildren().get(0));
+        assertInstanceOf(XsdSequence.class, copy.getChildren().get(1));
 
         XsdElement copiedElement = (XsdElement) copy.getChildren().get(0);
         assertEquals("stringElement_copy", copiedElement.getName());

@@ -31,14 +31,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.ProcessingInstruction;
+import org.w3c.dom.*;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -76,8 +73,8 @@ public class XmlServiceImpl implements XmlService {
     private final static Logger logger = LogManager.getLogger(XmlService.class);
 
     private static final XmlServiceImpl instance = new XmlServiceImpl();
-    private static final ConnectionService connectionService = ConnectionServiceImpl.getInstance();
-    private static final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    private static final ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
+    private static final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
 
     // Validation services for different parsers
     private final XmlValidationService saxonValidationService = new SaxonXmlValidationService();

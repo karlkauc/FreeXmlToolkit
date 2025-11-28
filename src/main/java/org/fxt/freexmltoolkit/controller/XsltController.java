@@ -21,11 +21,13 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -36,8 +38,8 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.FileExplorer;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
 import java.awt.*;
 import java.io.File;
@@ -54,7 +56,7 @@ public class XsltController {
 
     private static final Logger logger = LogManager.getLogger(XsltController.class);
     private static final int PANE_SIZE = 500;
-    private final XmlService xmlService = XmlServiceImpl.getInstance();
+    private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
     private MainController parentController;
     private File xmlFile, xsltFile;
     private WebEngine webEngine;
@@ -108,6 +110,51 @@ public class XsltController {
             if (newState == Worker.State.SUCCEEDED) {
                 logger.debug("Loading Web Content successfully: {}", webEngine.getLocation());
             }
+        });
+
+        setupKeyboardShortcuts();
+    }
+
+    /**
+     * Sets up keyboard shortcuts for XSLT Controller actions.
+     */
+    private void setupKeyboardShortcuts() {
+        Platform.runLater(() -> {
+            if (webView == null || webView.getScene() == null) {
+                // Scene not ready yet, try again later
+                Platform.runLater(this::setupKeyboardShortcuts);
+                return;
+            }
+
+            Scene scene = webView.getScene();
+
+            // Ctrl+R - Reload/Transform
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN),
+                    this::checkFiles
+            );
+
+            // Ctrl+B - Open in Browser
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.B, KeyCombination.CONTROL_DOWN),
+                    () -> {
+                        if (openInDefaultWebBrowser != null && !openInDefaultWebBrowser.isDisable()) {
+                            openInDefaultWebBrowser.fire();
+                        }
+                    }
+            );
+
+            // Ctrl+Shift+E - Open in Text Editor
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.E, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN),
+                    () -> {
+                        if (openInDefaultTextEditor != null && !openInDefaultTextEditor.isDisable()) {
+                            openInDefaultTextEditor.fire();
+                        }
+                    }
+            );
+
+            logger.debug("XSLT Controller keyboard shortcuts registered");
         });
     }
 
@@ -433,7 +480,9 @@ public class XsltController {
         helpDialog.setTitle("XSLT - Help");
         helpDialog.setHeaderText("How to use the XSLT Transformation Tool");
         helpDialog.setContentText("""
-                Use this tool to work with your documents.\n\n                Press F1 to show this help.
+                Use this tool to work with your documents.
+                
+                                Press F1 to show this help.
                 """);
         helpDialog.showAndWait();
     }

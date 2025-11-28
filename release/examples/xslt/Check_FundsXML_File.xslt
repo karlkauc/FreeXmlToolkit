@@ -16,8 +16,8 @@
   ~  limitations under the License.
   ~
   -->
-<xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xslt="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" exclude-result-prefixes="#all">
-	<xsl:output method="html" version="5.0" encoding="UTF-8" indent="yes" omit-xml-declaration="yes"/>
+<xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" exclude-result-prefixes="#all">
+    <xsl:output method="html" html-version="5.0" encoding="UTF-8" indent="yes" omit-xml-declaration="yes"/>
 	<xsl:preserve-space elements="*"/>
 	<xsl:variable name="renderXMLContent" select="true()"/>
 	<xsl:key name="asset-by-id" match="//AssetMasterData/Asset" use="UniqueID"/>

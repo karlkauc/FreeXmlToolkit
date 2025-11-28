@@ -75,7 +75,7 @@
                 <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Reload from Disk"/>
+                <Tooltip text="Reload from Disk (Ctrl+R)"/>
             </tooltip>
         </Button>
 
@@ -84,7 +84,7 @@
                 <FontIcon iconLiteral="bi-x-circle" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Close File"/>
+                <Tooltip text="Close File (Ctrl+W)"/>
             </tooltip>
         </Button>
 
@@ -132,7 +132,7 @@
                 <FontIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#20c997" styleClass="toolbar-icon-teal"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Format/Pretty Print"/>
+                <Tooltip text="Format/Pretty Print (Ctrl+Alt+F)"/>
             </tooltip>
         </Button>
 
@@ -162,7 +162,7 @@
                 <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Recent Files"/>
+                <Tooltip text="Recent Files (Ctrl+Shift+R)"/>
             </tooltip>
         </MenuButton>
 

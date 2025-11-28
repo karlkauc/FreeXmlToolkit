@@ -103,7 +103,25 @@
                                 <Label text="Note: Only enable this for testing or corporate environments with self-signed certificates"
                                        style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
                             </VBox>
-                            
+
+                            <!-- Software Updates -->
+                            <VBox spacing="8"
+                                  style="-fx-background-color: #f0fff0; -fx-background-radius: 4px; -fx-padding: 16px;">
+                                <Label text="Software Updates"
+                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                <CheckBox fx:id="checkForUpdatesOnStartup" text="Check for updates on startup"/>
+                                <Label text="Checks GitHub for new releases when the application starts"
+                                       style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
+                                <Button fx:id="checkForUpdatesButton" mnemonicParsing="false"
+                                        onAction="#checkForUpdatesNow"
+                                        text="Check for Updates Now"
+                                        style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-arrow-repeat" iconSize="14"/>
+                                    </graphic>
+                                </Button>
+                            </VBox>
+
                             <Button fx:id="checkConnection" mnemonicParsing="false" onAction="#performCheck"
                                     text="Test Connection"
                                     style="-fx-background-color: #4a90e2; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">

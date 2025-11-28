@@ -120,7 +120,7 @@
                 <FontIcon iconLiteral="bi-table" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
-                <Tooltip text="XML ↔ Excel/CSV Converter"/>
+                <Tooltip text="XML ↔ Excel/CSV Converter (Ctrl+E)"/>
             </tooltip>
         </Button>
 
@@ -132,7 +132,7 @@
                 <FontIcon iconLiteral="bi-code-slash" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Run XPath/XQuery"/>
+                <Tooltip text="Run XPath/XQuery (Ctrl+Q)"/>
             </tooltip>
         </Button>
 
@@ -144,7 +144,7 @@
                 <FontIcon iconLiteral="bi-file-text" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Smart Templates System"/>
+                <Tooltip text="Smart Templates System (Ctrl+T)"/>
             </tooltip>
         </Button>
 
@@ -153,7 +153,7 @@
                 <FontIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Intelligent Schema Generator"/>
+                <Tooltip text="Intelligent Schema Generator (Ctrl+G)"/>
             </tooltip>
         </Button>
 
@@ -162,7 +162,7 @@
                 <FontIcon iconLiteral="bi-arrow-repeat" iconSize="20" iconColor="#20c997" styleClass="toolbar-icon-teal"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Advanced XSLT Developer"/>
+                <Tooltip text="Advanced XSLT Developer (Ctrl+Shift+T)"/>
             </tooltip>
         </Button>
 

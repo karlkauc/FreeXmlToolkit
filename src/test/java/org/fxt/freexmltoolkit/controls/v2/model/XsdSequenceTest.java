@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -107,7 +107,7 @@ class XsdSequenceTest {
         assertEquals(2, sequence.getMinOccurs());
         assertEquals(XsdNode.UNBOUNDED, sequence.getMaxOccurs());
         assertEquals("Documentation text", sequence.getDocumentation());
-        assertEquals("Appinfo text", sequence.getAppinfo());
+        assertEquals("Appinfo text", sequence.getAppinfoAsString());
     }
 
     @Test
@@ -299,11 +299,11 @@ class XsdSequenceTest {
         sequence.setAppinfo("This is appinfo");
 
         assertEquals("This is a sequence documentation", sequence.getDocumentation());
-        assertEquals("This is appinfo", sequence.getAppinfo());
+        assertEquals("This is appinfo", sequence.getAppinfoAsString());
 
         XsdSequence copy = (XsdSequence) sequence.deepCopy(null);
         assertEquals("This is a sequence documentation", copy.getDocumentation());
-        assertEquals("This is appinfo", copy.getAppinfo());
+        assertEquals("This is appinfo", copy.getAppinfoAsString());
     }
 
     @Test

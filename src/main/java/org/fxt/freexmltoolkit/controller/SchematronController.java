@@ -5,23 +5,27 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.*;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TestFile;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
 import java.io.IOException;
@@ -245,7 +249,7 @@ public class SchematronController implements FavoritesParentController {
 
         // Initialize services
         schematronService = new SchematronServiceImpl();
-        propertiesService = PropertiesServiceImpl.getInstance();
+        propertiesService = ServiceRegistry.get(PropertiesService.class);
         progressManager = ProgressManager.getInstance();
         errorDetector = new SchematronErrorDetector();
 
@@ -288,7 +292,44 @@ public class SchematronController implements FavoritesParentController {
             });
         }
 
+        setupKeyboardShortcuts();
+
         logger.info("SchematronController initialization completed");
+    }
+
+    /**
+     * Sets up keyboard shortcuts for Schematron Controller actions.
+     */
+    private void setupKeyboardShortcuts() {
+        Platform.runLater(() -> {
+            if (tabPane == null || tabPane.getScene() == null) {
+                // Scene not ready yet, try again later
+                Platform.runLater(this::setupKeyboardShortcuts);
+                return;
+            }
+
+            Scene scene = tabPane.getScene();
+
+            // Ctrl+R - Add New Rule
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN),
+                    this::insertNewRule
+            );
+
+            // Ctrl+T - Test Selected File
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN),
+                    this::testSingleFile
+            );
+
+            // Ctrl+E - Export Results
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.E, KeyCombination.CONTROL_DOWN),
+                    this::exportResults
+            );
+
+            logger.debug("Schematron Controller keyboard shortcuts registered");
+        });
     }
 
     /**
@@ -1240,7 +1281,7 @@ public class SchematronController implements FavoritesParentController {
                         currentFile.getAbsolutePath(),
                         "Schematron Rules"
                     );
-                FavoritesService.getInstance().addFavorite(favorite);
+                ServiceRegistry.get(FavoritesService.class).addFavorite(favorite);
                 showAlert(Alert.AlertType.INFORMATION, "Success", currentFile.getName() + " has been added to favorites.");
             });
         } else {

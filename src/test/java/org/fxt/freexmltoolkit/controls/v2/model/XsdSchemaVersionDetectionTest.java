@@ -97,7 +97,7 @@ class XsdSchemaVersionDetectionTest {
         // Add xs:alternative (XSD 1.1 feature)
         XsdAlternative alternative = new XsdAlternative();
         alternative.setTest("@type = 'string'");
-        alternative.setTypeAttribute("xs:string");
+        alternative.setType("xs:string");
         element.addChild(alternative);
 
         schema.addChild(element);

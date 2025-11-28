@@ -130,7 +130,10 @@ public class XmlCodeEditorV2Demo extends Application {
 
         // Validate button
         Button validateBtn = new Button("Validate XML");
-        validateBtn.setOnAction(e -> editor.validate());
+        validateBtn.setOnAction(e -> {
+            // TODO: Implement validation
+            System.out.println("Validation not yet implemented");
+        });
 
         // Clear button
         Button clearBtn = new Button("Clear");
@@ -144,7 +147,8 @@ public class XmlCodeEditorV2Demo extends Application {
         Button loadInvalidBtn = new Button("Load Invalid XML");
         loadInvalidBtn.setOnAction(e -> {
             editor.setText(INVALID_XML);
-            editor.validate();
+            // TODO: Implement validation
+            System.out.println("Validation not yet implemented");
         });
         loadInvalidBtn.setStyle("-fx-background-color: #ffcccc;");
 
@@ -161,7 +165,7 @@ public class XmlCodeEditorV2Demo extends Application {
         return toolbar;
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         launch(args);
     }
 }

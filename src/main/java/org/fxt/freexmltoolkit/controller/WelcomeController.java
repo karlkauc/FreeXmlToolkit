@@ -26,11 +26,10 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
-import org.fxt.freexmltoolkit.service.UpdateCheckServiceImpl;
 
 import java.awt.*;
 import java.io.IOException;
@@ -41,8 +40,8 @@ import java.util.Properties;
 public class WelcomeController {
 
     private static final Logger logger = LogManager.getLogger(WelcomeController.class);
-    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
-    private final UpdateCheckService updateCheckService = UpdateCheckServiceImpl.getInstance();
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+    private final UpdateCheckService updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
     private Properties properties;
     private MainController parentController;
     private String latestVersionUrl = "https://github.com/karlkauc/FreeXmlToolkit/releases/latest";

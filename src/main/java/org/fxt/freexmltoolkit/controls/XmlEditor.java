@@ -17,6 +17,7 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
@@ -113,9 +114,9 @@ public class XmlEditor extends Tab {
 
     public XmlEditor() {
         // Check feature flag for V2 editor
-        PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+        PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
         String v2Flag = propertiesService.get("xml.editor.use.v2");
-        this.useV2Editor = v2Flag != null && Boolean.parseBoolean(v2Flag);
+        this.useV2Editor = Boolean.parseBoolean(v2Flag);
 
         // Create V1 or V2 editor based on flag
         if (useV2Editor) {
@@ -2173,7 +2174,7 @@ public class XmlEditor extends Tab {
      * Auto-formats the XML content if the setting is enabled.
      */
     private void autoFormatIfEnabled() {
-        PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+        PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
         if (propertiesService.isXmlAutoFormatAfterLoading()) {
             logger.debug("Auto-formatting XML content after loading file");
             Platform.runLater(() -> {

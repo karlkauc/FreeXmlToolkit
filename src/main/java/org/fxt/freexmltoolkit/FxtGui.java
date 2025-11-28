@@ -31,6 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.fxt.freexmltoolkit.controller.MainController;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
@@ -81,6 +82,22 @@ public class FxtGui extends Application {
     MainController mainController;
 
     StopWatch startWatch = new StopWatch();
+
+    /**
+     * Initializes the service registry for dependency injection.
+     *
+     * <p>This method is called by JavaFX before {@link #start(Stage)}
+     * and sets up the application-wide service registry.
+     *
+     * @throws Exception if initialization fails
+     */
+    @Override
+    public void init() throws Exception {
+        super.init();
+        logger.info("Initializing service registry...");
+        ServiceRegistry.initialize();
+        logger.info("Service registry initialization complete");
+    }
 
     /**
      * Configures Log4j2 to use external log4j2.xml file if available in app directory.

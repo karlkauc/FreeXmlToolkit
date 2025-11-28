@@ -30,14 +30,14 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
 import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
 import org.fxt.freexmltoolkit.service.SchemaGenerationResult;
 
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
@@ -252,7 +252,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
                         currentFile.getAbsolutePath(),
                         "XML Documents"
                     );
-                org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addFavorite(favorite);
+                org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.FavoritesService.class).addFavorite(favorite);
                 showInfo("Added to Favorites", currentFile.getName() + " has been added to favorites.");
             });
         } else {

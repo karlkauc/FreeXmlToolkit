@@ -12,12 +12,12 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.SchematronService;
 
 import java.io.File;
@@ -144,9 +144,9 @@ public class XmlEditorSidebarController {
 
     private XmlEditor xmlEditor;
 
-    // Services
-    private final FavoritesService favoritesService = FavoritesService.getInstance();
-    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    // Services - injected via ServiceRegistry
+    private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
 
     // XSD management
     private File originalXsdFile; // Store the original linked XSD

@@ -268,6 +268,16 @@ public abstract class XsdNode {
     }
 
     /**
+     * Sets the appinfo annotation from a string for backward compatibility.
+     * This is a convenience method that wraps the string in an XsdAppInfo object.
+     *
+     * @param appinfoString the appinfo text (can be null to clear)
+     */
+    public void setAppinfo(String appinfoString) {
+        setAppinfoFromString(appinfoString);
+    }
+
+    /**
      * Gets the appinfo as display string for backward compatibility.
      *
      * @return the appinfo as string, or empty string if not set
