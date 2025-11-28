@@ -22,12 +22,16 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
@@ -36,8 +40,8 @@ import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 
@@ -59,9 +63,9 @@ import java.util.concurrent.Executors;
 public class XsltDeveloperController implements FavoritesParentController {
     private static final Logger logger = LogManager.getLogger(XsltDeveloperController.class);
 
-    // Revolutionary Services
+    // Revolutionary Services - injected via ServiceRegistry
     private final XsltTransformationEngine xsltEngine = XsltTransformationEngine.getInstance();
-    private final XmlService xmlService = XmlServiceImpl.getInstance();
+    private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
 
     // Background processing
     private final ExecutorService executorService = Executors.newCachedThreadPool(runnable -> {
@@ -202,8 +206,49 @@ public class XsltDeveloperController implements FavoritesParentController {
         setDefaultValues();
         setupFavorites();
         initializeEmptyState();
+        setupKeyboardShortcuts();
 
         logger.info("XSLT Developer Controller initialized successfully");
+    }
+
+    /**
+     * Sets up keyboard shortcuts for XSLT Developer Controller actions.
+     */
+    private void setupKeyboardShortcuts() {
+        Platform.runLater(() -> {
+            if (transformBtn == null || transformBtn.getScene() == null) {
+                // Scene not ready yet, try again later
+                Platform.runLater(this::setupKeyboardShortcuts);
+                return;
+            }
+
+            Scene scene = transformBtn.getScene();
+
+            // Ctrl+L - Toggle Live Transform
+            scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN),
+                () -> {
+                    if (liveTransformToggle != null) {
+                        liveTransformToggle.setSelected(!liveTransformToggle.isSelected());
+                        liveTransformToggle.fire();
+                    }
+                }
+            );
+
+            // Ctrl+Shift+C - Copy Result
+            scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN),
+                this::copyResult
+            );
+
+            // Ctrl+Alt+S - Save Result
+            scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN),
+                this::saveResult
+            );
+
+            logger.debug("XSLT Developer Controller keyboard shortcuts registered");
+        });
     }
 
     private void setupFavorites() {
@@ -287,7 +332,7 @@ public class XsltDeveloperController implements FavoritesParentController {
                             currentFile.getAbsolutePath(),
                             getCategoryForFile(currentFile.getAbsolutePath())
                         );
-                    org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addFavorite(favorite);
+                    ServiceRegistry.get(org.fxt.freexmltoolkit.service.FavoritesService.class).addFavorite(favorite);
                     showInfo("Added to Favorites", currentFile.getName() + " has been added to favorites.");
                 });
             } else {
@@ -645,12 +690,13 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         // Performance report
         if (performanceReportArea != null) {
+            String xsltVersion = xsltVersionCombo != null ? xsltVersionCombo.getValue() : "XSLT 3.0";
             String report = "XSLT Transformation Performance Report\n" +
                     "=====================================\n\n" +
                     "Execution Time: " + result.getTransformationTime() + "ms\n" +
                     "Output Format: " + result.getOutputFormat() + "\n" +
                     "Output Size: " + result.getOutputSize() + " characters\n" +
-                    "XSLT Version: " + xsltVersionCombo.getValue() + "\n";
+                    "XSLT Version: " + xsltVersion + "\n";
 
             performanceReportArea.setText(report);
         }
