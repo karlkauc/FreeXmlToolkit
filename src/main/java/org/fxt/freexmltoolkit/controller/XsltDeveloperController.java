@@ -45,6 +45,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
@@ -228,8 +229,76 @@ public class XsltDeveloperController implements FavoritesParentController {
         setupFavorites();
         initializeEmptyState();
         setupKeyboardShortcuts();
+        setupDragAndDrop();
 
         logger.info("XSLT Developer Controller initialized successfully");
+    }
+
+    /**
+     * Set up drag and drop functionality for the XSLT Developer controller.
+     * Accepts XML files for input and XSLT files for stylesheet.
+     */
+    private void setupDragAndDrop() {
+        if (contentPane == null && emptyStatePane == null) {
+            logger.warn("Cannot setup drag and drop: no valid container available");
+            return;
+        }
+
+        // Set up drag and drop on both the empty state pane and content pane
+        if (emptyStatePane != null) {
+            DragDropService.setupDragDrop(emptyStatePane, DragDropService.XML_AND_XSLT, this::handleDroppedFiles);
+        }
+        if (contentPane != null) {
+            DragDropService.setupDragDrop(contentPane, DragDropService.XML_AND_XSLT, this::handleDroppedFiles);
+        }
+        logger.debug("Drag and drop initialized for XSLT Developer controller");
+    }
+
+    /**
+     * Handle files dropped on the XSLT Developer controller.
+     * Routes XML files to the XML input and XSLT files to the stylesheet input.
+     *
+     * @param files the dropped files
+     */
+    private void handleDroppedFiles(java.util.List<File> files) {
+        logger.info("Files dropped on XSLT Developer: {} file(s)", files.size());
+
+        for (File file : files) {
+            DragDropService.FileType fileType = DragDropService.getFileType(file);
+            if (fileType == DragDropService.FileType.XSLT) {
+                // Load as XSLT stylesheet
+                loadXsltFileInternal(file);
+                if (inputTabPane != null) {
+                    inputTabPane.getSelectionModel().select(1); // Switch to XSLT tab
+                }
+            } else if (fileType == DragDropService.FileType.XML) {
+                // Load as XML input
+                loadXmlFileInternal(file);
+                if (inputTabPane != null) {
+                    inputTabPane.getSelectionModel().select(0); // Switch to XML tab
+                }
+            }
+        }
+
+        // Show content pane after loading
+        showContent();
+    }
+
+    /**
+     * Internal method to load an XML file.
+     */
+    private void loadXmlFileInternal(File file) {
+        try {
+            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            if (xmlInputEditor != null) {
+                xmlInputEditor.getCodeArea().replaceText(content);
+            }
+            currentXmlFile = file;
+            logger.debug("Loaded XML file: {}", file.getAbsolutePath());
+        } catch (IOException e) {
+            logger.error("Failed to load XML file", e);
+            showAlert("Load Error", "Failed to load XML file: " + e.getMessage());
+        }
     }
 
     /**
@@ -1009,20 +1078,43 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         File file = fileChooser.showOpenDialog(loadXsltBtn.getScene().getWindow());
         if (file != null) {
-            try {
-                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-                if (xsltInputEditor != null) {
-                    xsltInputEditor.getCodeArea().replaceText(content);
-                }
-                currentXsltFile = file;
-                logger.debug("Loaded XSLT file: {}", file.getAbsolutePath());
+            loadXsltFileInternal(file);
+        }
+    }
 
-                // Show content when file is loaded
-                showContent();
-            } catch (IOException e) {
-                logger.error("Failed to load XSLT file", e);
-                showAlert("Load Error", "Failed to load XSLT file: " + e.getMessage());
+    /**
+     * Load an XSLT file from an external source (e.g., drag and drop, MainController routing).
+     * This method is public to allow external callers to load files programmatically.
+     *
+     * @param file the XSLT file to load
+     */
+    public void loadXsltFileExternal(File file) {
+        if (file != null && file.exists()) {
+            loadXsltFileInternal(file);
+            // Switch to XSLT tab after loading
+            if (inputTabPane != null) {
+                inputTabPane.getSelectionModel().select(1); // XSLT tab is index 1
             }
+        }
+    }
+
+    /**
+     * Internal method to load an XSLT file.
+     */
+    private void loadXsltFileInternal(File file) {
+        try {
+            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            if (xsltInputEditor != null) {
+                xsltInputEditor.getCodeArea().replaceText(content);
+            }
+            currentXsltFile = file;
+            logger.debug("Loaded XSLT file: {}", file.getAbsolutePath());
+
+            // Show content when file is loaded
+            showContent();
+        } catch (IOException e) {
+            logger.error("Failed to load XSLT file", e);
+            showAlert("Load Error", "Failed to load XSLT file: " + e.getMessage());
         }
     }
 

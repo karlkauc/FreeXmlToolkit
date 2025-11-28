@@ -22,7 +22,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
-<AnchorPane xmlns="http://javafx.com/javafx/11.0.14-internal"
+<AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/11.0.14-internal"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.WelcomeController"
             AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"

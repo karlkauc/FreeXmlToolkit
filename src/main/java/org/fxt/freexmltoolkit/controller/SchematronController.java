@@ -24,6 +24,7 @@ import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.*;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TestFile;
+import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
@@ -294,7 +295,56 @@ public class SchematronController implements FavoritesParentController {
 
         setupKeyboardShortcuts();
 
+        // Set up drag and drop for Schematron and XML files
+        setupDragAndDrop();
+
         logger.info("SchematronController initialization completed");
+    }
+
+    /**
+     * Set up drag and drop functionality for the Schematron controller.
+     * Accepts Schematron (.sch, .schematron) files as schema and XML files for validation.
+     */
+    private void setupDragAndDrop() {
+        if (tabPane == null) {
+            logger.warn("Cannot setup drag and drop: tabPane is null");
+            return;
+        }
+
+        DragDropService.setupDragDrop(tabPane, DragDropService.XML_AND_SCHEMATRON, files -> {
+            logger.info("Files dropped on Schematron controller: {} file(s)", files.size());
+
+            for (File file : files) {
+                DragDropService.FileType fileType = DragDropService.getFileType(file);
+                if (fileType == DragDropService.FileType.SCHEMATRON) {
+                    // Load as Schematron schema
+                    loadSchematronFile(file);
+                } else if (fileType == DragDropService.FileType.XML) {
+                    // Add to test files table for validation
+                    addTestFile(file);
+                }
+            }
+        });
+        logger.debug("Drag and drop initialized for Schematron controller");
+    }
+
+    /**
+     * Add a test file to the test files table.
+     *
+     * @param file the XML file to add for testing
+     */
+    private void addTestFile(File file) {
+        if (file != null && file.exists() && testFilesTable != null) {
+            // Check if file already exists in the list
+            boolean exists = testFiles.stream()
+                    .anyMatch(tf -> tf.getFile().getAbsolutePath().equals(file.getAbsolutePath()));
+            if (!exists) {
+                testFiles.add(new TestFile(file));
+                logger.debug("Added test file: {}", file.getName());
+            } else {
+                logger.debug("Test file already exists: {}", file.getName());
+            }
+        }
     }
 
     /**

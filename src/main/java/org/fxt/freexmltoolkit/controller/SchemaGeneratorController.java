@@ -33,6 +33,7 @@ import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
+import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
 import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
 import org.fxt.freexmltoolkit.service.SchemaGenerationResult;
@@ -201,8 +202,56 @@ public class SchemaGeneratorController implements FavoritesParentController {
         setDefaultOptions();
         setupFavorites();
         initializeEmptyState();
+        setupDragAndDrop();
 
         logger.info("Schema Generator Controller initialized successfully");
+    }
+
+    /**
+     * Set up drag and drop functionality for the Schema Generator controller.
+     * Accepts XML files only (used as input for schema generation).
+     */
+    private void setupDragAndDrop() {
+        if (contentPane == null && emptyStatePane == null) {
+            logger.warn("Cannot setup drag and drop: no valid container available");
+            return;
+        }
+
+        // Set up drag and drop on both the empty state pane and content pane
+        if (emptyStatePane != null) {
+            DragDropService.setupDragDrop(emptyStatePane, DragDropService.XML_EXTENSIONS, this::handleDroppedFiles);
+        }
+        if (contentPane != null) {
+            DragDropService.setupDragDrop(contentPane, DragDropService.XML_EXTENSIONS, this::handleDroppedFiles);
+        }
+        logger.debug("Drag and drop initialized for Schema Generator controller");
+    }
+
+    /**
+     * Handle files dropped on the Schema Generator controller.
+     * Loads XML files as input for schema generation.
+     *
+     * @param files the dropped files
+     */
+    private void handleDroppedFiles(java.util.List<File> files) {
+        logger.info("XML files dropped on Schema Generator: {} file(s)", files.size());
+
+        // Load the first XML file
+        if (!files.isEmpty()) {
+            File file = files.get(0);
+            try {
+                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+                if (xmlInputArea != null) {
+                    xmlInputArea.setText(content);
+                }
+                currentXmlFile = file;
+                showContent();
+                logger.debug("Loaded dropped XML file: {}", file.getName());
+            } catch (IOException e) {
+                logger.error("Failed to load dropped XML file", e);
+                showAlert("Load Error", "Failed to load XML file: " + e.getMessage());
+            }
+        }
     }
 
     private void setupFavorites() {

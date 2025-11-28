@@ -23,18 +23,22 @@ import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
+import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 
-import java.awt.*;
+import java.awt.Desktop;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Properties;
 
 public class WelcomeController {
@@ -46,6 +50,8 @@ public class WelcomeController {
     private MainController parentController;
     private String latestVersionUrl = "https://github.com/karlkauc/FreeXmlToolkit/releases/latest";
 
+    @FXML
+    private AnchorPane rootPane;
     @FXML
     private HBox versionUpdate;
     @FXML
@@ -78,6 +84,57 @@ public class WelcomeController {
         // Set usage duration
         int oldSeconds = Integer.parseInt(properties.getProperty("usageDuration", "0"));
         durationLabel.setText(oldSeconds > 0 ? formatSecondsHumanReadable(oldSeconds) : "You are here the first time!");
+
+        // Set up drag and drop for the welcome page
+        setupDragAndDrop();
+    }
+
+    /**
+     * Set up drag and drop functionality for the welcome page.
+     * Files are routed to the appropriate editor based on file type.
+     */
+    private void setupDragAndDrop() {
+        if (rootPane == null) {
+            logger.warn("Cannot setup drag and drop: rootPane is null");
+            return;
+        }
+
+        DragDropService.setupDragDrop(rootPane, DragDropService.ALL_XML_RELATED, this::handleDroppedFiles);
+        logger.debug("Drag and drop initialized for Welcome page");
+    }
+
+    /**
+     * Handle files dropped on the welcome page.
+     * Routes files to the appropriate editor based on file type.
+     *
+     * @param files the dropped files
+     */
+    private void handleDroppedFiles(List<File> files) {
+        if (parentController == null) {
+            logger.warn("Cannot route files: parentController is null");
+            return;
+        }
+
+        logger.info("Files dropped on Welcome page: {} file(s)", files.size());
+
+        for (File file : files) {
+            DragDropService.FileType fileType = DragDropService.getFileType(file);
+            logger.debug("Routing file '{}' with type: {}", file.getName(), fileType);
+
+            switch (fileType) {
+                case XSD -> parentController.switchToXsdViewAndLoadFile(file);
+                case SCHEMATRON -> parentController.switchToSchematronViewAndLoadFile(file);
+                case XSLT -> parentController.switchToXsltDeveloperAndLoadFile(file);
+                case WSDL, XML -> parentController.switchToXmlViewAndLoadFile(file);
+                default -> {
+                    logger.warn("Unknown file type for '{}', opening in XML editor", file.getName());
+                    parentController.switchToXmlViewAndLoadFile(file);
+                }
+            }
+
+            // Add to recent files
+            parentController.addFileToRecentFiles(file);
+        }
     }
 
     /**

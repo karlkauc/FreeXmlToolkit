@@ -36,6 +36,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
+import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.FOPService;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XmlService;
@@ -131,6 +132,55 @@ public class FopController implements FavoritesParentController {
         initializeFavorites();
         initializeEmptyState();
         setupKeyboardShortcuts();
+        setupGlobalDragAndDrop();
+    }
+
+    /**
+     * Set up global drag and drop functionality for the FOP controller.
+     * Accepts XML files for input and XSL/XSLT files for stylesheet.
+     * This supplements the field-specific drag and drop already in place.
+     */
+    private void setupGlobalDragAndDrop() {
+        // Set up drag and drop on both the empty state pane and content pane
+        if (emptyStatePane != null) {
+            DragDropService.setupDragDrop(emptyStatePane, DragDropService.XML_AND_XSLT, this::handleGlobalDroppedFiles);
+        }
+        if (contentPane != null) {
+            DragDropService.setupDragDrop(contentPane, DragDropService.XML_AND_XSLT, this::handleGlobalDroppedFiles);
+        }
+        logger.debug("Global drag and drop initialized for FOP controller");
+    }
+
+    /**
+     * Handle files dropped on the FOP controller globally.
+     * Routes XML files to XML input and XSL/XSLT files to stylesheet input.
+     *
+     * @param files the dropped files
+     */
+    private void handleGlobalDroppedFiles(java.util.List<File> files) {
+        logger.info("Files dropped on FOP controller: {} file(s)", files.size());
+
+        for (File file : files) {
+            DragDropService.FileType fileType = DragDropService.getFileType(file);
+            if (fileType == DragDropService.FileType.XSLT) {
+                // Set as XSL file
+                xslFile = file;
+                if (xslFileName != null) {
+                    xslFileName.setText(file.getName());
+                }
+                logger.debug("Dropped XSL file set: {}", file.getName());
+            } else if (fileType == DragDropService.FileType.XML) {
+                // Set as XML file
+                xmlFile = file;
+                if (xmlFileName != null) {
+                    xmlFileName.setText(file.getName());
+                }
+                logger.debug("Dropped XML file set: {}", file.getName());
+            }
+        }
+
+        // Show content pane after loading
+        showContent();
     }
 
     /**

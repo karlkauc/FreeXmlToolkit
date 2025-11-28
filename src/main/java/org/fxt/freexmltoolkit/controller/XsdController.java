@@ -32,6 +32,7 @@ import org.fxt.freexmltoolkit.controls.intellisense.XmlCodeFoldingManager;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
+import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.jetbrains.annotations.NotNull;
@@ -450,6 +451,29 @@ public class XsdController implements FavoritesParentController {
                 Platform.runLater(this::showOverviewDialog);
             }
         });
+
+        // Set up drag and drop for XSD files
+        setupDragAndDrop();
+    }
+
+    /**
+     * Set up drag and drop functionality for the XSD controller.
+     * Accepts .xsd files only on this tab.
+     */
+    private void setupDragAndDrop() {
+        if (tabPane == null) {
+            logger.warn("Cannot setup drag and drop: tabPane is null");
+            return;
+        }
+
+        DragDropService.setupDragDrop(tabPane, DragDropService.XSD_EXTENSIONS, files -> {
+            logger.info("XSD files dropped on XSD controller: {} file(s)", files.size());
+            // Load the first XSD file
+            if (!files.isEmpty()) {
+                openXsdFile(files.get(0));
+            }
+        });
+        logger.debug("Drag and drop initialized for XSD controller");
     }
 
     private void applyEditorSettings() {

@@ -38,6 +38,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
 import org.fxt.freexmltoolkit.controls.dialogs.UpdateNotificationDialog;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
@@ -414,6 +415,31 @@ public class MainController implements Initializable {
             });
         } else {
             logger.warn("SchematronController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
+        }
+    }
+
+    /**
+     * Switch to XSLT Developer view and load the specified XSLT file.
+     *
+     * @param fileToLoad the XSLT file to load
+     */
+    public void switchToXsltDeveloperAndLoadFile(File fileToLoad) {
+        if (xsltDeveloper == null) {
+            logger.error("XSLT Developer Button is not initialized, cannot switch tabs.");
+            return;
+        }
+        xsltDeveloper.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        xsltDeveloper.getStyleClass().add("active");
+
+        loadPageFromPath("/pages/tab_xslt_developer.fxml");
+        activeTabId = "xsltDeveloper";
+
+        if (this.xsltDeveloperController != null && fileToLoad != null && fileToLoad.exists()) {
+            Platform.runLater(() -> {
+                xsltDeveloperController.loadXsltFileExternal(fileToLoad);
+            });
+        } else {
+            logger.warn("XsltDeveloperController is not available or file does not exist. Cannot load file: {}", fileToLoad);
         }
     }
 
@@ -917,6 +943,7 @@ public class MainController implements Initializable {
     /**
      * Handle drag over event - determine if files can be accepted.
      * Only handles events that haven't been consumed by tab-specific handlers.
+     * Uses DragDropService for consistent file type detection.
      */
     private void handleDragOver(DragEvent event) {
         // Skip if event was already consumed by a tab-specific handler
@@ -927,20 +954,21 @@ public class MainController implements Initializable {
 
         Dragboard dragboard = event.getDragboard();
 
-        // Accept files if they exist and at least one is an XML file
-        if (dragboard.hasFiles() && hasXmlFiles(dragboard.getFiles())) {
+        // Accept all supported file types (XML, XSD, XSLT, Schematron, WSDL, Keystore)
+        if (dragboard.hasFiles() && DragDropService.hasFilesWithExtensions(dragboard.getFiles(), DragDropService.ALL_XML_RELATED)) {
             event.acceptTransferModes(TransferMode.COPY);
             logger.debug("Global handler: Drag over accepted: {} files detected", dragboard.getFiles().size());
         } else {
-            logger.debug("Global handler: Drag over rejected: no XML files found");
+            logger.debug("Global handler: Drag over rejected: no supported files found");
         }
 
         event.consume();
     }
 
     /**
-     * Handle drag dropped event - open the dropped XML files in new tabs.
+     * Handle drag dropped event - route dropped files to appropriate editors based on file type.
      * Only handles events that haven't been consumed by tab-specific handlers.
+     * Uses DragDropService for file type detection and routing.
      */
     private void handleDragDropped(DragEvent event) {
         // Skip if event was already consumed by a tab-specific handler
@@ -955,38 +983,49 @@ public class MainController implements Initializable {
         if (dragboard.hasFiles()) {
             logger.info("Global handler: Files dropped on main application: processing {} files", dragboard.getFiles().size());
 
-            var xmlFiles = dragboard.getFiles().stream()
-                    .filter(this::isXmlFile)
-                    .toList();
+            var supportedFiles = DragDropService.filterByExtensions(dragboard.getFiles(), DragDropService.ALL_XML_RELATED);
 
-            if (!xmlFiles.isEmpty()) {
+            if (!supportedFiles.isEmpty()) {
                 success = true;
 
-                // For now, open the first XML file. Multiple files can be opened by repeated drag & drop.
-                // This ensures reliable functionality while keeping the implementation simple.
-                var firstFile = xmlFiles.get(0);
-                try {
-                    switchToXmlViewAndLoadFile(firstFile);
-                    logger.info("Global handler: Switched to XML view and opened dropped file: {}", firstFile.getName());
-
-                    if (xmlFiles.size() > 1) {
-                        logger.info("Multiple files dropped ({}). Only the first file was opened: {}. " +
-                                        "Please drop additional files one by one to open them in separate tabs.",
-                                xmlFiles.size(), firstFile.getName());
+                // Route each file to the appropriate editor based on its type
+                for (File file : supportedFiles) {
+                    try {
+                        routeFileByType(file);
+                        logger.info("Global handler: Routed dropped file to appropriate editor: {}", file.getName());
+                    } catch (Exception e) {
+                        logger.error("Failed to route dropped file: {}", file.getName(), e);
                     }
-                } catch (Exception e) {
-                    logger.error("Failed to open dropped file: {}", firstFile.getName(), e);
-                    success = false;
                 }
-
-                logger.info("Global handler: Successfully processed XML file via drag and drop: {}", firstFile.getName());
             } else {
-                logger.info("Global handler: No XML files found in dropped files");
+                logger.info("Global handler: No supported files found in dropped files");
             }
         }
 
         event.setDropCompleted(success);
         event.consume();
+    }
+
+    /**
+     * Route a file to the appropriate editor based on its file type.
+     * Uses DragDropService.FileType for consistent file type detection.
+     *
+     * @param file the file to route
+     */
+    private void routeFileByType(File file) {
+        DragDropService.FileType fileType = DragDropService.getFileType(file);
+        logger.debug("Routing file '{}' with type: {}", file.getName(), fileType);
+
+        switch (fileType) {
+            case XSD -> switchToXsdViewAndLoadFile(file);
+            case SCHEMATRON -> switchToSchematronViewAndLoadFile(file);
+            case XSLT -> switchToXsltDeveloperAndLoadFile(file);
+            case WSDL, XML -> switchToXmlViewAndLoadFile(file);
+            default -> {
+                logger.warn("Unknown file type for '{}', opening in XML editor", file.getName());
+                switchToXmlViewAndLoadFile(file);
+            }
+        }
     }
 
     /**

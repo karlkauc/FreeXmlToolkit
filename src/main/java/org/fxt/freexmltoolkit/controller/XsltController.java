@@ -39,6 +39,7 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.FileExplorer;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.XmlService;
 
 import java.awt.*;
@@ -113,6 +114,49 @@ public class XsltController {
         });
 
         setupKeyboardShortcuts();
+        setupDragAndDrop();
+    }
+
+    /**
+     * Set up drag and drop functionality for the XSLT Viewer controller.
+     * Accepts XML files for input and XSLT files for stylesheet.
+     */
+    private void setupDragAndDrop() {
+        if (outputMethodSwitch == null) {
+            logger.warn("Cannot setup drag and drop: outputMethodSwitch is null");
+            return;
+        }
+
+        DragDropService.setupDragDrop(outputMethodSwitch, DragDropService.XML_AND_XSLT, files -> {
+            logger.info("Files dropped on XSLT Viewer: {} file(s)", files.size());
+
+            for (File file : files) {
+                DragDropService.FileType fileType = DragDropService.getFileType(file);
+                if (fileType == DragDropService.FileType.XSLT) {
+                    // Set as XSLT file
+                    xsltFile = file;
+                    if (xsltFileExplorer != null) {
+                        xsltFileExplorer.setSelectedFile(file.toPath());
+                    }
+                    xmlService.setCurrentXsltFile(file);
+                    logger.debug("Dropped XSLT file set: {}", file.getName());
+                } else if (fileType == DragDropService.FileType.XML) {
+                    // Set as XML file
+                    xmlFile = file;
+                    if (xmlFileExplorer != null) {
+                        xmlFileExplorer.setSelectedFile(file.toPath());
+                    }
+                    xmlService.setCurrentXmlFile(file);
+                    logger.debug("Dropped XML file set: {}", file.getName());
+                }
+            }
+
+            // Auto-transform if both files are now set
+            if (xmlFile != null && xsltFile != null) {
+                checkFiles();
+            }
+        });
+        logger.debug("Drag and drop initialized for XSLT Viewer controller");
     }
 
     /**
