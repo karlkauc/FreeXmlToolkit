@@ -440,17 +440,24 @@ Development
             val projectIconPath = File(project.rootDir, iconPath).absolutePath
             val iconArg = if (File(project.rootDir, iconPath).exists()) "--icon\n$projectIconPath" else ""
             
-            // Use custom runtime if it exists
+            // Use custom runtime - REQUIRED for all packages
             val runtimePath = project.layout.buildDirectory.dir("runtime/$platform-$arch").get().asFile
             val runtimeFile = runtimePath
-            val runtimeArg = if (runtimeFile.exists() && runtimeFile.isDirectory()) {
-                println("✅ Using custom runtime: ${runtimeFile.absolutePath}")
-                println("📁 Runtime path: ${runtimeFile.absolutePath}")
-                "--runtime-image\n${runtimeFile.absolutePath}"
-            } else {
-                println("⚠️ Runtime not found at: ${runtimeFile.absolutePath}")
-                ""
+            if (!runtimeFile.exists() || !runtimeFile.isDirectory()) {
+                throw GradleException("""
+                    ❌ Runtime not found at: ${runtimeFile.absolutePath}
+
+                    The jlink runtime is required for creating packages with embedded JVM.
+                    Please run the corresponding runtime task first:
+                    ./gradlew create${platformName}Runtime${archName}
+
+                    Or ensure the runtime task dependency is correctly set up.
+                """.trimIndent())
             }
+            println("✅ Using custom runtime: ${runtimeFile.absolutePath}")
+            println("📁 Runtime contents:")
+            runtimeFile.listFiles()?.take(10)?.forEach { println("   - ${it.name}") }
+            val runtimeArg = "--runtime-image\n${runtimeFile.absolutePath}"
             
             // Use absolute paths for better compatibility
             val inputDir = project.layout.buildDirectory.dir("libs").get().asFile.absolutePath
