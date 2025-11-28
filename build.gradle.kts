@@ -111,6 +111,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.mockito:mockito-core:5.20.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.20.0")
     testImplementation("org.testfx:testfx-core:4.0.18")
     testImplementation("org.testfx:testfx-junit5:4.0.18")
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
@@ -153,7 +154,7 @@ tasks {
     }
 
     withType<Test> {
-        jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED", "--enable-native-access=javafx.graphics")
+        jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED", "--enable-native-access=javafx.graphics", "--enable-native-access=javafx.web")
     }
 
     withType<JavaExec> {
@@ -198,6 +199,60 @@ tasks.test {
     testLogging {
         events("passed", "skipped", "failed")
     }
+    // JVM arguments required for Mockito/Objenesis with Java 21+ and JavaFX
+    jvmArgs(
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "--add-opens", "java.base/java.io=ALL-UNNAMED",
+        "--add-opens", "java.base/java.nio=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+        // Required for Mockito/Objenesis on Java 25+
+        "--add-opens", "java.base/sun.reflect.generics.reflectiveObjects=ALL-UNNAMED",
+        "--add-opens", "java.base/jdk.internal.misc=ALL-UNNAMED",
+        "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+        "--add-opens", "java.base/jdk.internal.vm.annotation=ALL-UNNAMED",
+        "--add-opens", "java.base/sun.security.ssl=ALL-UNNAMED",
+        // JavaFX module opens for testing (TestFX + Monocle headless)
+        "--add-opens", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.glass.utils=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/javafx.stage=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/javafx.scene=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.javafx.util=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.javafx.sg.prism=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.prism.impl=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.javafx.geom=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED",
+        "--add-opens", "javafx.base/com.sun.javafx.runtime=ALL-UNNAMED",
+        "--add-opens", "javafx.base/com.sun.javafx.logging=ALL-UNNAMED",
+        "--add-opens", "javafx.base/com.sun.javafx.reflect=ALL-UNNAMED",
+        "--add-opens", "javafx.controls/javafx.scene.control=ALL-UNNAMED",
+        "--add-opens", "javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED",
+        "--add-opens", "javafx.controls/com.sun.javafx.scene.control.behavior=ALL-UNNAMED",
+        // Additional exports for native access (Monocle headless platform)
+        "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.javafx.util=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.glass.ui.monocle=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.javafx.sg.prism=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.javafx.geom=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED",
+        "--add-exports", "javafx.base/com.sun.javafx.logging=ALL-UNNAMED",
+        // Headless mode for JavaFX tests
+        "-Djava.awt.headless=true",
+        "-Dtestfx.robot=glass",
+        "-Dtestfx.headless=true",
+        "-Dprism.order=sw",
+        "-Dprism.text=t2k",
+        "-Dglass.platform=Monocle",
+        "-Dmonocle.platform=Headless"
+    )
 }
 
 idea {

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.testfx.framework.junit5.ApplicationExtension;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -18,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for SchemaGeneratorController.
  * Tests the Intelligent Schema Generator - Revolutionary Feature #3.
  */
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({ApplicationExtension.class, MockitoExtension.class})
 class SchemaGeneratorControllerTest {
 
     private SchemaGeneratorController controller;

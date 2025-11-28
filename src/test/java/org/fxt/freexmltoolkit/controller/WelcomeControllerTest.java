@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.testfx.framework.junit5.ApplicationExtension;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for WelcomeController.
  * Tests the welcome screen functionality and user onboarding.
  */
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({ApplicationExtension.class, MockitoExtension.class})
 class WelcomeControllerTest {
 
     private WelcomeController controller;
