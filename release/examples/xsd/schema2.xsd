@@ -12,7 +12,7 @@
         <xs:sequence>
             <xs:element name="title" type="xs:string"/>
             <xs:element name="navigation" type="NavigationType"/>
-            <xs:element name="newElement2" type="xs:string"/>
+            <xs:element name="newElement" type="xs:string"/>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="NavigationType">
@@ -36,7 +36,7 @@
         <xs:sequence>
             <xs:element name="section" type="SectionType" maxOccurs="unbounded"/>
             <xs:element name="article" type="ArticleType" maxOccurs="unbounded"/>
-            <xs:element name="aside" type="AsideType" maxOccurs="10"/>
+            <xs:element name="aside" type="AsideType" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="SectionType">

@@ -1,0 +1,29 @@
+Keystore Alias: karl_test_1
+Keystore Password: 1234
+Alias Password: 1234
+
+Certificate Details:
+  [0]         Version: 3
+         SerialNumber: 1764060099517
+             IssuerDN: CN=cn kk,OU=ou,O=O,L=local
+           Start Date: Tue Nov 25 09:41:39 CET 2025
+           Final Date: Wed Nov 25 09:41:39 CET 2026
+            SubjectDN: CN=cn kk,OU=ou,O=O,L=local
+           Public Key: RSA Public Key [83:37:4f:be:66:61:bf:74:24:b5:00:da:f8:6f:28:23:f3:f4:b8:d1],[56:66:d1:a4]
+        modulus: aac61048212e571dbb9b5bec8a50e4369f969fa8dc569fa1d635f42a1727da38b12166d31b17fbe259a46ebb5b063fb8380f07c96b818ee09c013db3a23025f5e88654abe04254078f460397a0fc4c600e4d8ab45c5d05fb4088fe3e229335fe898eab6c1625dd9ac76b4e475e05c3eb42e47fecd52a3fac3305fc9bca32854d092d898fd824fd24eece190ac2f436e856dd238add77ae8460ee35ef75c3f10f907743dab2aff83faa0af761ee87535250f09e2422eb29de6a6a2c8755e0f2dfc76f193ed21d4bb11f8f8d5197217319bd4e42a7716bd69686ac119e414de323d53a48aa086938d6f5e4d1bdb6f101f81e31eeba914776ee15e3c00fc68afec5
+public exponent: 10001
+
+  Signature Algorithm: SHA256WITHRSA
+            Signature: 3434d6366aba2e9cdae9653492d4c4a3c5235b72
+                       f7b30198826de403e8f533e5724d5535322cd3cc
+                       8237beb25fdc8b46bbacdd6026be2f98c93c97ba
+                       70a20011e993321158b8454a562beb957667fcb4
+                       f82c98c792c02d0a43f6b50b34ac8a0758f40389
+                       561af3ed4afc36e2544739fc00f37ad4795a7d12
+                       5e0a9e838bf0a5b875a567a082d32c62811c3ced
+                       d23a79dde3fba45a39d07b720eb250310edbc220
+                       0c043b703810d52b50524298a299c376a2a24c16
+                       3f7b0878a37479cc3576d68282633e114ac94705
+                       5adacb0a3cd53026bb906f1ca89b1fa901489897
+                       c9cf121673b36e970c136d7fc360f6b45eb0a698
+                       90b28adb18999f07095ca8efb5b2a2f2
