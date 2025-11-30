@@ -389,11 +389,12 @@ public class FindReplaceDialog extends Dialog<Void> {
      * Selects the matched text and scrolls to make it visible
      */
     private void selectAndScrollToMatch(int start, int end) {
-        // Select the found text
+        // Select the found text - this sets anchor at start and caret at end
         codeArea.selectRange(start, end);
 
-        // Move the caret to the start of the selection
-        codeArea.moveTo(start);
+        // NOTE: Do NOT call moveTo() here! It would clear the selection.
+        // selectRange already positions the caret at 'end', which is what we want
+        // for "Find Next" to continue from the end of the current match.
 
         // Scroll to make the selection visible
         codeArea.requestFollowCaret();
