@@ -1,73 +1,189 @@
 # XML Editor
 
-The XML Editor is the core feature of the Free XML Toolkit. It provides a powerful and user-friendly interface for working with XML files.
+> **Last Updated:** November 2025 | **Version:** 1.0.0
 
-## Key Features
+The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and easy-to-use interface for working with XML files.
 
-![Screenshot of XML Controller](img/xml-editor-text.png)
+## Overview
 
-![Screenshot of XML Controller](img/xml-editor-graphic.png)
+![XML Editor - Text Mode](img/xml-editor-text.png)
+*The XML Editor in text mode with syntax highlighting*
 
-### File Management
-- **Open & Save:** Easily open existing XML files from your computer or save your work. The application remembers the last directory you used, making it convenient to access your files.
-- **New Files:** Create new, empty XML documents from scratch.
-- **Drag & Drop:** Simply drag and drop XML files from your file explorer directly into the editor to open them.
-- **Favorites System:** Save frequently used files as favorites with custom categories and descriptions for quick
-  access. See the [Favorites System](favorites-system.md) documentation for detailed information.
-
-### Editing Experience
-
-- **Dual-Mode Editing:** Switch between text editor and grid editor modes for different editing styles
-    - **Text Mode:** Traditional code editor with advanced syntax highlighting and IntelliSense
-    - **Grid Mode:** Table-like interface for structured data editing with direct cell manipulation
-- **Graphical Tree View:** Interactive visual representation of XML structure with drag-and-drop editing capabilities
-- **Advanced Syntax Highlighting:** Enhanced syntax highlighting with RichTextFX integration, supporting XML namespaces, attributes, and nested structures
-- **Code Folding:** Intelligent collapse and expand functionality for XML sections to navigate large documents efficiently
-- **Context-Sensitive IntelliSense:** Smart auto-completion that shows only relevant child elements based on your current XML context and loaded XSD schema, with ENTER key selection support
-- **XSD Auto-Completion:** Automatic schema detection and element suggestions with full namespace support
-- **Line Numbers:** Each line is numbered with advanced navigation support for large files
-- **Font Size Control:** Dynamic font scaling with zoom controls for better readability
-- **Search and Replace:** Powerful find-and-replace functionality with regex support and multi-file operations
-- **Template Integration:** Access to XML templates, snippets, and XPath expressions with parameter substitution
-
-### Formatting Tools
-- **Pretty Print:** With a single click, you can format your XML into a clean, indented structure. This is useful for making messy or unformatted XML readable.
-- **Minify:** This tool compresses your XML into a single line by removing all whitespace. This is useful for reducing file size for transmission or storage.
-
-### Validation
-- **Well-Formedness Check:** Automatic real-time validation ensuring your XML follows basic syntax rules with immediate error highlighting
-- **Schema Validation:** Support for multiple validation methods:
-    - **XSD (XML Schema Definition):** Advanced validation against W3C XML Schema files with detailed error reporting and line-by-line feedback
-    - **Schematron:** Business rule validation with custom constraints and advanced pattern matching
-- **Schema Features:**
-    - **Automatic Schema Detection:** Intelligent detection of schema references within XML files (xsi:schemaLocation, xsi:noNamespaceSchemaLocation)
-    - **Manual Schema Selection:** Browse and select schema files with support for multiple schemas and namespaces
-    - **Continuous Validation:** Real-time validation feedback as you type with error markers and status indicators
-    - **Validation Panel:** Dedicated validation results panel with clickable error navigation
-- **Advanced Validation Features:**
-    - **Multi-Schema Support:** Validate against multiple XSD files simultaneously
-    - **Namespace-Aware Validation:** Full XML namespace support with prefix resolution
-    - **Schematron Integration:** Visual Schematron rule builder with template library and testing capabilities
-- **Supported Schema Formats:**
-    - ✅ XSD (XML Schema Definition) - Full W3C compliance
-    - ✅ Schematron - Complete implementation with visual rule builder
-    - ❌ DTD (Document Type Definition) - not supported
-    - ❌ RelaxNG - not supported
-
-### Querying and Analysis
-- **XPath & XQuery:** Advanced query capabilities with dedicated tabs for running XPath and XQuery expressions using Saxon HE 12.8 engine
-- **XPath Execution Engine:** Powerful XPath processing with result highlighting and multi-format output support
-- **Query Results:** Interactive result panels with syntax highlighting and export capabilities
-- **XPath Snippets:** Pre-built XPath expressions library with parameter substitution and validation
-- **Performance Profiling:** Built-in performance analysis for complex queries with execution time metrics
-
-### Advanced Features
-- **Memory Management:** Built-in memory monitoring with configurable thresholds and automatic cleanup
-- **File Encoding Detection:** Comprehensive BOM and encoding detection with automatic handling of different character sets
-- **Multi-Tab Support:** Work with multiple XML files simultaneously with session persistence
-- **Background Processing:** Heavy operations run on separate threads to prevent UI blocking
-- **Error Recovery:** Advanced error recovery mechanisms with intelligent suggestions for common XML mistakes
+![XML Editor - Grid Mode](img/xml-editor-graphic.png)
+*The XML Editor in grid mode for structured editing*
 
 ---
 
-[Home](index.md) | [Next: XSD Tools](xsd-controller.md)
+## Working with Files
+
+### Opening and Saving Files
+
+![File Operations](img/xml-editor-file-operations.png)
+*Screenshot placeholder: File toolbar with Open, Save, and New buttons*
+
+- **Open Files**: Click the "Open" button or use `Ctrl+O` to browse for XML files
+- **Save Files**: Click "Save" or use `Ctrl+S` to save your changes
+- **Create New Files**: Click "New" to start with an empty XML document
+- **Drag & Drop**: Simply drag files from your file explorer into the editor window
+
+### Favorites
+
+Save your frequently used files for quick access:
+- Click the star icon to add a file to favorites
+- Organize favorites into custom categories
+- Access favorites from the sidebar panel
+
+Learn more: [Favorites System](favorites-system.md)
+
+---
+
+## Editing Modes
+
+### Text Mode
+
+![Text Mode Editing](img/xml-editor-text-mode.png)
+*Screenshot placeholder: Text editor with syntax highlighting*
+
+The text editor provides:
+- **Syntax Highlighting**: XML elements, attributes, and values are color-coded for easy reading
+- **Line Numbers**: Every line is numbered for easy reference
+- **Code Folding**: Click the arrows next to elements to collapse or expand sections
+- **Auto-Completion**: Type `<` to see suggestions for valid elements
+
+### Grid Mode
+
+![Grid Mode Editing](img/xml-editor-grid-mode.png)
+*Screenshot placeholder: Grid editor showing table-like XML editing*
+
+The grid editor provides:
+- **Table View**: Edit XML data in a spreadsheet-like interface
+- **Direct Cell Editing**: Click cells to edit values directly
+- **Easy Navigation**: Move through the document using arrow keys
+
+### Tree View
+
+![Tree View](img/xml-editor-tree-view.png)
+*Screenshot placeholder: Tree view showing XML structure*
+
+- See your XML document as a hierarchical tree
+- Drag and drop elements to reorganize the structure
+- Right-click for context menu options
+
+---
+
+## Auto-Completion (IntelliSense)
+
+![Auto-Completion](img/xml-editor-intellisense.png)
+*Screenshot placeholder: Auto-completion popup showing element suggestions*
+
+The editor automatically suggests valid elements and attributes based on your XSD schema:
+
+1. **Type `<`** to see a list of valid child elements
+2. **Navigate** through suggestions with arrow keys
+3. **Press Enter** to insert the selected element
+4. **Press Escape** to close the suggestions
+
+The suggestions are context-sensitive - only elements that are valid at your current position will be shown.
+
+Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
+
+---
+
+## Formatting Tools
+
+### Pretty Print
+
+![Pretty Print](img/xml-editor-pretty-print.png)
+*Screenshot placeholder: Before and after pretty print*
+
+Click "Pretty Print" to format your XML with proper indentation. This makes messy or compressed XML easy to read.
+
+### Minify
+
+Click "Minify" to compress your XML into a single line by removing whitespace. This is useful for reducing file size.
+
+---
+
+## Validation
+
+![Validation Results](img/xml-editor-validation.png)
+*Screenshot placeholder: Validation panel showing errors and warnings*
+
+### How to Validate
+
+1. **Load a Schema**: Click the folder icon in the XSD Schema section to select your schema file
+2. **Automatic Detection**: If your XML references a schema, it will be loaded automatically
+3. **View Results**: Errors and warnings appear in the validation panel
+4. **Navigate to Errors**: Click on an error to jump to the problem location
+
+### Supported Validation Methods
+
+| Method | Description |
+|--------|-------------|
+| **Well-Formed Check** | Ensures basic XML syntax is correct |
+| **XSD Validation** | Validates against XML Schema files |
+| **Schematron** | Validates against business rules |
+
+### Supported Schema Formats
+
+| Format | Support |
+|--------|---------|
+| XSD (XML Schema) | Full support |
+| Schematron | Full support |
+| DTD | Not supported |
+| RelaxNG | Not supported |
+
+---
+
+## XPath and XQuery
+
+![XPath Query](img/xml-editor-xpath.png)
+*Screenshot placeholder: XPath tab with query input and results*
+
+Use XPath and XQuery to find and extract data from your XML documents:
+
+1. **Switch to the XPath/XQuery tab** at the bottom of the editor
+2. **Enter your query** in the input field
+3. **Click Execute** to run the query
+4. **View Results** in the results panel
+
+### Example Queries
+
+- `//element` - Find all elements named "element"
+- `//element/@attribute` - Find all attributes named "attribute" on "element"
+- `/root/child[1]` - Find the first child of root
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+O` | Open file |
+| `Ctrl+S` | Save file |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Ctrl+F` | Find |
+| `Ctrl+H` | Replace |
+| `Ctrl++` | Zoom in |
+| `Ctrl+-` | Zoom out |
+| `<` | Open auto-completion |
+
+---
+
+## Tips
+
+- **Multiple Files**: You can open multiple XML files in different tabs
+- **Remember Location**: The editor remembers the last folder you used
+- **Font Size**: Use `Ctrl++` and `Ctrl+-` to adjust the font size
+- **Quick Validation**: Errors are highlighted as you type
+
+---
+
+## Navigation
+
+| Previous | Home | Next |
+|----------|------|------|
+| [Home](index.md) | [Home](index.md) | [XML Editor Features](xml-editor-features.md) |
+
+**All Pages:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [FOP/PDF](fop-controller.md) | [Signatures](signature-controller.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

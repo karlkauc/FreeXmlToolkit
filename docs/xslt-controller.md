@@ -1,35 +1,89 @@
 # XSLT Transformation
 
-This section of the application allows you to perform XSLT (Extensible Stylesheet Language Transformations) to convert your XML documents into other formats, such as HTML, plain text, or another XML structure.
+> **Last Updated:** November 2025 | **Version:** 1.0.0
 
-## How it Works
-
-The transformation process uses two key files:
-
-1.  **XML File:** The source document containing the data you want to transform.
-2.  **XSLT File:** A stylesheet containing the rules that define how the XML data should be converted. It acts as a template for the transformation.
-
-The tool applies the rules from the XSLT file to the XML file and generates an output based on the instructions in the stylesheet.
-
-## Key Features
-
-![Screenshot of XSLT Controller](img/xslt-factsheet.png)
-
-### File Selection
--   **File Explorers:** Two dedicated file explorer panes are provided, one for selecting your XML source file and another for selecting your XSLT stylesheet.
--   **Automatic Transformation:** The transformation is automatically triggered whenever you select a valid XML and XSLT file.
-
-### Output Viewing
--   **Multiple Output Formats:** The tool can handle different types of output as specified in your XSLT file (e.g., HTML, XHTML, XML, or text).
--   **Automatic Tab Switching:** Based on the output method defined in your stylesheet, the application will automatically switch to the most appropriate view:
-    -   **Web View:** For HTML or XHTML output, the result is rendered as a webpage directly within the application.
-    -   **Text View:** For XML or plain text output, the result is displayed in a code editor with syntax highlighting for readability.
-
-### User Interface
--   **Collapsible File Panel:** You can collapse the file selection panel to the side to maximize the viewing area for the transformation output.
--   **Open in Browser:** For HTML output, a button is available to open the generated result directly in your computer's default web browser.
--   **Error Handling:** If the transformation fails, a detailed error message is displayed to help you diagnose and fix issues in your XML or XSLT files.
+This tool lets you transform XML documents into other formats like HTML, text, or different XML structures using XSLT stylesheets.
 
 ---
 
-[Previous: XSD Validation](xsd-validation-controller.md) | [Home](index.md) | [Next: PDF Generator (FOP)](fop-controller.md)
+## What is XSLT?
+
+XSLT (Extensible Stylesheet Language Transformations) is a language for transforming XML documents. Think of it like a recipe that tells the computer how to convert your XML data into a different format.
+
+![XSLT Transformation Overview](img/xslt-factsheet.png)
+*XSLT transformation showing XML input and HTML output*
+
+---
+
+## How It Works
+
+You need two files:
+1. **XML File** - Your source document with the data
+2. **XSLT File** - The stylesheet with transformation rules
+
+The tool applies the rules from the XSLT file to your XML and generates the output.
+
+![XSLT File Selection](img/xslt-file-selection.png)
+*Screenshot placeholder: File selection panel with XML and XSLT inputs*
+
+---
+
+## Using the XSLT Tool
+
+### Step 1: Select Your Files
+
+1. In the left panel, select your XML source file
+2. In the right panel, select your XSLT stylesheet
+3. The transformation runs automatically
+
+### Step 2: View the Results
+
+![XSLT Results](img/xslt-results.png)
+*Screenshot placeholder: Transformation results panel*
+
+The output appears in the appropriate viewer:
+- **HTML output** → Displayed as a rendered web page
+- **XML output** → Displayed in a code editor with highlighting
+- **Text output** → Displayed as plain text
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Automatic Transformation** | Results update when you select files |
+| **Multiple Output Formats** | HTML, XML, Text, and more |
+| **Live Preview** | See results immediately |
+| **Open in Browser** | View HTML output in your web browser |
+| **Error Messages** | Clear feedback when something goes wrong |
+
+---
+
+## Interface Options
+
+### Collapsible File Panel
+
+Click the arrow to collapse the file selection panel and maximize your view of the results.
+
+### Open in Browser
+
+For HTML output, click "Open in Browser" to view the result in your default web browser.
+
+---
+
+## Tips
+
+- Make sure your XML and XSLT files are valid before transformation
+- Check the error messages if the transformation fails
+- Use the preview to verify your output before saving
+
+---
+
+## Navigation
+
+| Previous | Home | Next |
+|----------|------|------|
+| [XSD Validation](xsd-validation-controller.md) | [Home](index.md) | [PDF Generator (FOP)](fop-controller.md) |
+
+**All Pages:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [FOP/PDF](fop-controller.md) | [Signatures](signature-controller.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

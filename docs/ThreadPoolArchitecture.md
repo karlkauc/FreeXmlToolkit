@@ -1,11 +1,12 @@
 # Thread Pool Management Architecture
 
-## Übersicht
+> **Last Updated:** November 2025 | **Version:** 1.0.0
 
-Das neue `ThreadPoolManager` System ersetzt die individuellen Thread-Erstellungen durch ein zentralisiertes, optimiertes
-Thread Pool Management System.
+## Overview
 
-## Architektur-Diagramm
+The `ThreadPoolManager` system replaces individual thread creation with a centralized, optimized thread pool management system.
+
+## Architecture Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -33,7 +34,7 @@ Thread Pool Management System.
                                         │
                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                            Anwendungskomponenten                               │
+│                            Application Components                               │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                 │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
@@ -50,47 +51,47 @@ Thread Pool Management System.
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Thread Pool Typen
+## Thread Pool Types
 
 ### 1. UI Executor
 
-- **Zweck**: Schnelle UI-bezogene Operationen
-- **Threads**: 2-4 Threads (abhängig von CPU-Kernen)
-- **Priorität**: Hoch
-- **Verwendung**: Button-Clicks, UI-Updates, kurze Berechnungen
+- **Purpose**: Fast UI-related operations
+- **Threads**: 2-4 threads (depending on CPU cores)
+- **Priority**: High
+- **Usage**: Button clicks, UI updates, short calculations
 
 ### 2. CPU Intensive Executor
 
-- **Zweck**: Rechenintensive Operationen
+- **Purpose**: Compute-intensive operations
 - **Implementation**: ForkJoinPool (Work-Stealing)
-- **Threads**: Anzahl CPU-Kerne
-- **Verwendung**: Syntax Highlighting, XML-Validierung, Parsing
+- **Threads**: Number of CPU cores
+- **Usage**: Syntax highlighting, XML validation, parsing
 
 ### 3. I/O Executor
 
-- **Zweck**: I/O-gebundene Operationen
-- **Threads**: CPU-Kerne * 2
-- **Verwendung**: Dateizugriff, Netzwerkanfragen, Schema-Loading
+- **Purpose**: I/O-bound operations
+- **Threads**: CPU cores * 2
+- **Usage**: File access, network requests, schema loading
 
 ### 4. Scheduled Executor
 
-- **Zweck**: Zeitgesteuerte und verzögerte Operationen
-- **Threads**: 2 dedizierte Threads
-- **Verwendung**: Debouncing, periodische Updates, Cache-Cleanup
+- **Purpose**: Timed and delayed operations
+- **Threads**: 2 dedicated threads
+- **Usage**: Debouncing, periodic updates, cache cleanup
 
 ### 5. Background Executor
 
-- **Zweck**: Niedrigprioritäre Hintergrundaufgaben
-- **Threads**: 2 Threads
-- **Priorität**: Niedrig
-- **Verwendung**: Cache-Updates, Garbage Collection, Wartungsaufgaben
+- **Purpose**: Low-priority background tasks
+- **Threads**: 2 threads
+- **Priority**: Low
+- **Usage**: Cache updates, garbage collection, maintenance tasks
 
-## Performance-Verbesserungen
+## Performance Improvements
 
-### Vorher (Individual Threads)
+### Before (Individual Threads)
 
 ```java
-// Alt: Individuelle Thread-Erstellung
+// Old: Individual thread creation
 new Thread(() -> {
     // Syntax Highlighting
 }).start();
@@ -99,78 +100,78 @@ new Thread(() -> {
     // Validation
 }).start();
 
-// Verschiedene ExecutorServices in verschiedenen Klassen
+// Various ExecutorServices in different classes
 ExecutorService executor1 = Executors.newCachedThreadPool();
 ExecutorService executor2 = Executors.newFixedThreadPool(4);
 ```
 
-### Nachher (Zentralisiert)
+### After (Centralized)
 
 ```java
-// Neu: Zentralisiertes Management
+// New: Centralized management
 threadPoolManager.executeCPUIntensive("syntax-highlighting", () -> {
-    // Syntax Highlighting mit automatischem Thread-Reuse
+    // Syntax Highlighting with automatic thread reuse
 });
 
 threadPoolManager.executeCPUIntensive("validation", () -> {
-    // Validation mit optimaler Thread-Verteilung
+    // Validation with optimal thread distribution
 });
 ```
 
-## Vorteile
+## Benefits
 
-### 1. **Ressourcen-Effizienz**
+### 1. Resource Efficiency
 
-- Thread-Wiederverwendung reduziert Overhead
-- Optimale Thread-Anzahl basierend auf Hardware
-- Weniger Memory-Fragmentation
+- Thread reuse reduces overhead
+- Optimal thread count based on hardware
+- Less memory fragmentation
 
-### 2. **Performance-Monitoring**
+### 2. Performance Monitoring
 
-- Zentrale Statistiken für alle Operationen
-- Automatische Performance-Metriken
-- Proaktive Bottleneck-Erkennung
+- Central statistics for all operations
+- Automatic performance metrics
+- Proactive bottleneck detection
 
-### 3. **Wartbarkeit**
+### 3. Maintainability
 
-- Einheitliche Thread-Namenskonventionen
-- Zentralisierte Konfiguration
-- Einfachere Debugging-Möglichkeiten
+- Uniform thread naming conventions
+- Centralized configuration
+- Easier debugging capabilities
 
-### 4. **Skalierbarkeit**
+### 4. Scalability
 
-- Automatische Anpassung an Hardware
-- Work-Stealing für optimale CPU-Nutzung
-- Adaptive Pool-Größen
+- Automatic adaptation to hardware
+- Work-stealing for optimal CPU usage
+- Adaptive pool sizes
 
-## Implementierungsdetails
+## Implementation Details
 
-### Thread-Benennung
+### Thread Naming
 
 ```
-FXT-UI-1, FXT-UI-2, ...           // UI-Threads
-FXT-CPU-1, FXT-CPU-2, ...         // CPU-intensive Threads  
-FXT-IO-1, FXT-IO-2, ...           // I/O-Threads
-FXT-Scheduled-1, FXT-Scheduled-2  // Scheduled Threads
-FXT-Background-1, FXT-Background-2 // Background Threads
+FXT-UI-1, FXT-UI-2, ...           // UI threads
+FXT-CPU-1, FXT-CPU-2, ...         // CPU-intensive threads
+FXT-IO-1, FXT-IO-2, ...           // I/O threads
+FXT-Scheduled-1, FXT-Scheduled-2  // Scheduled threads
+FXT-Background-1, FXT-Background-2 // Background threads
 ```
 
-### Statistiken
+### Statistics
 
 ```java
 ThreadPoolStats {
-    1247,
-            tasksCompleted: 1245,
+    tasksSubmitted: 1247,
+    tasksCompleted: 1245,
     tasksFailed: 2,
     runningTasks: 3,
     averageExecutionTimeMs: 45
 }
 ```
 
-### Task-Verwaltung
+### Task Management
 
 ```java
-// Task mit ID für Cancellation
+// Task with ID for cancellation
 CompletableFuture<String> future = threadPoolManager
     .executeCPUIntensive("xml-parse-" + documentId, () -> {
         return parseXml(document);
@@ -180,38 +181,91 @@ CompletableFuture<String> future = threadPoolManager
 threadPoolManager.cancelTask("xml-parse-" + documentId);
 ```
 
-## Migration
+## Migration Status
 
-Die Migration erfolgte schrittweise:
+The migration was performed step by step:
 
-1. ✅ ThreadPoolManager implementiert
-2. ✅ XmlCodeEditor migriert
-3. ✅ XmlIntelliSenseEngine migriert
-4. ✅ Tests erstellt
-5. ✅ Integration in FxtGui
-6. 🔄 Weitere Komponenten (optional)
+1. ThreadPoolManager implemented
+2. XmlCodeEditor migrated
+3. XmlIntelliSenseEngine migrated
+4. Tests created
+5. Integration in FxtGui
+6. Further components (optional)
 
 ## Testing
 
-Umfassende Tests decken ab:
+Comprehensive tests cover:
 
-- ✅ Singleton-Verhalten
-- ✅ Alle Thread Pool-Typen
-- ✅ Task-Cancellation
-- ✅ Performance-Monitoring
-- ✅ Error-Handling
-- ✅ Concurrent Execution
-- ✅ Resource Cleanup
-- ✅ Load Testing (100+ Tasks)
+- Singleton behavior
+- All thread pool types
+- Task cancellation
+- Performance monitoring
+- Error handling
+- Concurrent execution
+- Resource cleanup
+- Load testing (100+ tasks)
 
-## Konfiguration
+## Configuration
 
-Das System konfiguriert sich automatisch basierend auf:
+The system configures itself automatically based on:
 
-- **CPU-Kerne**: `Runtime.getRuntime().availableProcessors()`
+- **CPU Cores**: `Runtime.getRuntime().availableProcessors()`
 - **UI Pool**: `max(2, cores/2)`
 - **CPU Pool**: `cores`
 - **I/O Pool**: `max(4, cores*2)`
 - **Background**: `2`
 
-Diese Konfiguration kann bei Bedarf angepasst werden.
+This configuration can be adjusted if needed.
+
+## Usage Examples
+
+### Submit CPU-Intensive Task
+
+```java
+ThreadPoolManager.getInstance().executeCPUIntensive("task-name", () -> {
+    // CPU-intensive work
+    return result;
+});
+```
+
+### Submit I/O Task
+
+```java
+ThreadPoolManager.getInstance().executeIO("file-read", () -> {
+    return Files.readString(path);
+});
+```
+
+### Schedule Delayed Task
+
+```java
+ThreadPoolManager.getInstance().schedule("cleanup", () -> {
+    // Cleanup logic
+}, 5, TimeUnit.MINUTES);
+```
+
+### Execute on UI Thread
+
+```java
+ThreadPoolManager.getInstance().executeUI("ui-update", () -> {
+    // Update UI component
+});
+```
+
+## Key Classes
+
+| Class | Location | Purpose |
+|-------|----------|---------|
+| `ThreadPoolManager` | `service/ThreadPoolManager.java` | Central thread pool management |
+| `ThreadPoolStats` | `service/ThreadPoolManager.java` | Statistics data class |
+| `FxtGui` | `FxtGui.java` | Application entry, initializes ThreadPoolManager |
+
+---
+
+## Navigation
+
+| Previous | Home | Next |
+|----------|------|------|
+| [Templates](template-management.md) | [Home](index.md) | [Technology Stack](technology-stack.md) |
+
+**All Pages:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [FOP/PDF](fop-controller.md) | [Signatures](signature-controller.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

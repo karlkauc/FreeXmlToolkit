@@ -1,36 +1,105 @@
 # XSD Validation
 
-This tool is dedicated to validating your XML files against an XSD (XML Schema Definition). It helps you ensure that your XML documents are not only well-formed but also conform to a specific, predefined structure and set of rules.
+> **Last Updated:** November 2025 | **Version:** 1.0.0
 
-## How it Works
-
-You provide an XML file and its corresponding XSD schema. The tool then compares the XML against the rules defined in the XSD and reports whether it is valid or not.
-
-## Key Features
-
-![Screenshot of XSD Validation Controller](img/xsd-validation.png)
-
-### File Input
--   **Load XML and XSD Files:** You can load your files by clicking buttons to open a file dialog or by simply dragging and dropping them from your computer onto the designated areas.
--   **Automatic Schema Detection:** If your XML file contains a reference to its schema, you can use the "Autodetect" feature. The tool will automatically find, load, and use the correct schema for validation, saving you the step of selecting it manually.
-
-### Validation and Results
--   **Instant Validation:** The validation process runs as soon as both an XML and an XSD file are provided.
--   **Clear Status Updates:** A prominent status bar at the top provides immediate feedback:
-    -   **Success:** A green bar with a checkmark appears if the XML is valid.
-    -   **Error:** A red bar with an error icon appears if any validation errors are found.
-    -   **Ready:** A neutral message is shown when the tool is ready for a new validation.
--   **Detailed Error Reporting:** If the validation fails, a detailed list of all errors is displayed. For each error, you get:
-    -   The error message describing the problem.
-    -   The exact line and column number where the error occurred.
-    -   A snippet of the XML code around the error, making it easy to locate and fix.
-
-### Reporting
--   **Export to Excel:** You can export the complete list of validation errors to an Excel spreadsheet. This is useful for sharing reports, tracking issues, or performing further analysis.
-
-### User Interface
--   **Clear Results:** A dedicated button allows you to clear all current results, file selections, and error messages, giving you a clean slate to start a new validation.
+This tool validates your XML files against an XSD schema to check if the document follows the rules defined in the schema.
 
 ---
 
-[Previous: XSD Tools](xsd-controller.md) | [Home](index.md) | [Next: XSLT Transformation](xslt-controller.md)
+## Overview
+
+![XSD Validation Overview](img/xsd-validation.png)
+*The XSD Validation interface*
+
+### What Does It Check?
+
+| Check | Description |
+|-------|-------------|
+| **Structure** | Are elements in the right order? |
+| **Required Fields** | Are all mandatory elements present? |
+| **Data Types** | Are values the correct type (text, number, date)? |
+| **Constraints** | Do values meet length, range, or pattern requirements? |
+
+---
+
+## How to Use
+
+### Step 1: Load Your Files
+
+![File Selection](img/xsd-validation-files.png)
+*Screenshot placeholder: File selection area*
+
+1. **Load XML File**: Click the button or drag-and-drop your XML file
+2. **Load XSD Schema**: Click the button or drag-and-drop your schema file
+3. Or use **"Autodetect"** if your XML references its schema
+
+### Step 2: View Results
+
+![Validation Results](img/xsd-validation-results.png)
+*Screenshot placeholder: Validation results panel*
+
+Results appear immediately:
+
+| Status | Meaning |
+|--------|---------|
+| **Green checkmark** | Your XML is valid! |
+| **Red X** | Errors were found |
+
+### Step 3: Fix Errors
+
+If validation fails, you'll see a list of errors:
+- **Error message** - What's wrong
+- **Line number** - Where the problem is
+- **Code snippet** - The XML around the error
+
+Click an error to see more details.
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Instant Validation** | Results appear as soon as files are loaded |
+| **Auto-Detection** | Automatically finds schema references in XML |
+| **Detailed Errors** | Line numbers and code snippets for each error |
+| **Export to Excel** | Save error reports for sharing |
+
+---
+
+## Exporting Results
+
+![Export Options](img/xsd-validation-export.png)
+*Screenshot placeholder: Export button*
+
+Click **"Export to Excel"** to save all validation errors to a spreadsheet. This is useful for:
+- Sharing with team members
+- Tracking issues over time
+- Documentation
+
+---
+
+## Supported Standards
+
+| Standard | Support |
+|----------|---------|
+| XSD 1.0 | Full support |
+| XSD 1.1 (with assertions) | Full support |
+
+---
+
+## Tips
+
+- Use Auto-Detection when your XML already references its schema
+- Export errors to Excel when working with large documents
+- Click "Clear Results" to start fresh with new files
+
+---
+
+## Navigation
+
+| Previous | Home | Next |
+|----------|------|------|
+| [XSD Tools](xsd-controller.md) | [Home](index.md) | [XSLT Transformation](xslt-controller.md) |
+
+**All Pages:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [FOP/PDF](fop-controller.md) | [Signatures](signature-controller.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

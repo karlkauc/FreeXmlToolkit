@@ -1,55 +1,205 @@
 # FreeXmlToolkit Documentation
 
-## Introduction
+> **Last Updated:** November 2025 | **Version:** 1.0.0
 
-Welcome to the official documentation for the Free XML Toolkit (Version 1.0.0).
+## Welcome
 
-FreeXmlToolkit is a powerful, cross-platform desktop application built with JavaFX 21, designed to streamline common XML-related tasks. It provides an integrated environment for editing, validating, transforming, and securing XML documents with advanced features like IntelliSense, template management, and Schematron validation. Whether you are a developer working with complex schemas, a data analyst querying XML sources, or a document specialist generating PDFs, this toolkit offers a comprehensive set of features to boost your productivity.
+FreeXmlToolkit is a free desktop application for working with XML files. It helps you edit, validate, transform, and secure your XML documents - all in one place.
 
-This guide provides a comprehensive overview of the application's features to help you get the most out of them.
+![FreeXmlToolkit Main Window](img/main-window.png)
+*Screenshot placeholder: Main application window*
 
-![Screenshot of the main application window](img/app.png)
+### What Can You Do With FreeXmlToolkit?
 
-## Installation
+- **Edit XML files** with smart auto-completion and syntax highlighting
+- **Validate XML** against XSD schemas to check for errors
+- **Transform XML** into other formats (HTML, PDF, Text)
+- **Sign XML documents** with digital certificates
+- **Create business rules** with Schematron validation
+- **Generate documentation** from your XSD schemas
 
-FreeXmlToolkit is designed to be easy to install and use:
+### Works On All Platforms
 
-- **Windows**: No administrator rights required for installation - standard installation process
-- **macOS**: Standard installation process, no special permissions needed
-- **Linux**: Standard installation process, no system-level privileges required
-
-The application can be installed in any directory on your system.
-
-## Features
-
-Click on any feature below to learn more about it:
-
--   **[XML Editor](xml-controller.md)**: A powerful editor for viewing, editing, and formatting XML files with advanced syntax highlighting, real-time validation, IntelliSense auto-completion, and dual-mode editing (text/grid).
-
--   **[XSD Tools](xsd-controller.md)**: A comprehensive suite of tools for working with XML Schemas (XSD), including a graphical viewer, documentation generator with technical annotations support, sample XML generator, and schema flattening capabilities.
-
--   **[XSD Validation](xsd-validation-controller.md)**: A dedicated tool for validating XML files against XSD schemas with detailed error reporting and continuous validation feedback.
-
--   **[XSLT Transformation](xslt-controller.md)**: Perform XSLT 3.0 transformations using Saxon HE 12.8 to convert your XML documents into multiple output formats with advanced template support.
-
--   **[PDF Generator (FOP)](fop-controller.md)**: Create professional-quality PDF documents from your XML data using XSL-FO stylesheets with Apache FOP 2.11.
-
-- **[XML Digital Signature](signature-controller.md)**: A complete workflow for creating and validating XML digital signatures with BouncyCastle cryptographic support, featuring both Basic Mode for common use cases and Expert Mode for advanced XML-DSig operations with full W3C compliance.
-
-- **[Context-Sensitive IntelliSense](context-sensitive-intellisense.md)**: Advanced auto-completion that shows only relevant child elements based on your current XML context and loaded XSD schema.
-
-- **[Schematron Support](schematron-support.md)**: Comprehensive Schematron validation with visual rule builder, testing capabilities, and integration with XML editor for business rule validation.
-
-- **[Schema Support](schema-support.md)**: Comprehensive support for XSD schema analysis, validation, and documentation generation with advanced features like namespace handling and type resolution.
-
-- **[Favorites System](favorites-system.md)**: Save and organize frequently used files across all editors with smart categorization, custom descriptions, and quick access features.
-
-- **[Template Management](template-management.md)**: Advanced template system for XML snippets, XPath expressions, and reusable code patterns with parameter substitution and validation rules.
-
-## Technical Documentation
-
-- **[Technology Stack](technology-stack.md)**: Comprehensive overview of Java 24, JavaFX 21, Saxon HE 12.8, and all libraries used in the application architecture.
+| Platform | Download Format | Notes |
+|----------|-----------------|-------|
+| Windows | `.exe` installer | No admin rights needed |
+| macOS | `.dmg` disk image | Standard installation |
+| Linux | AppImage | Runs without installation |
 
 ---
 
-[Next: XML Editor](xml-controller.md) | [Favorites System](favorites-system.md) | [Technology Stack](technology-stack.md) | [Licenses](licenses.md)
+## Feature Overview
+
+### XML Editor
+
+Edit your XML files with professional tools:
+
+| Feature | What It Does |
+|---------|--------------|
+| **Auto-Completion** | Suggests valid elements and attributes as you type |
+| **Syntax Highlighting** | Colors your XML for easier reading |
+| **Instant Validation** | Shows errors immediately as you edit |
+| **Find & Replace** | Search and replace text in your documents |
+| **Code Folding** | Collapse sections to focus on what matters |
+
+Learn more: [XML Editor Guide](xml-controller.md) | [Editor Features](xml-editor-features.md)
+
+### XSD Schema Tools
+
+Work with XML Schema files:
+
+| Feature | What It Does |
+|---------|--------------|
+| **Visual Schema Viewer** | See your schema as an interactive diagram |
+| **Documentation Generator** | Create HTML documentation from schemas |
+| **Sample XML Generator** | Generate valid sample XML files |
+| **Schema Flattening** | Combine multiple schema files into one |
+
+Learn more: [XSD Tools Guide](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md)
+
+### XSLT Transformation
+
+Convert XML into other formats:
+
+| Feature | What It Does |
+|---------|--------------|
+| **Multi-Format Output** | Generate XML, HTML, Text, or JSON |
+| **Live Preview** | See results as you work |
+| **Modern XSLT Support** | Uses the latest XSLT 3.0 standard |
+
+Learn more: [XSLT Guide](xslt-controller.md)
+
+### PDF Generation
+
+Create professional PDF documents:
+
+| Feature | What It Does |
+|---------|--------------|
+| **XSL-FO Support** | Use XSL-FO stylesheets for formatting |
+| **High-Quality Output** | Professional PDF generation |
+
+Learn more: [PDF Generation Guide](fop-controller.md)
+
+### Digital Signatures
+
+Sign and verify XML documents:
+
+| Feature | What It Does |
+|---------|--------------|
+| **Create Certificates** | Generate your own signing certificates |
+| **Sign Documents** | Add digital signatures to XML files |
+| **Verify Signatures** | Check if signed documents are valid |
+
+Learn more: [Digital Signatures Guide](signature-controller.md)
+
+### Schematron Validation
+
+Define custom business rules:
+
+| Feature | What It Does |
+|---------|--------------|
+| **Business Rules** | Validate beyond basic XML structure |
+| **Visual Rule Builder** | Create rules without writing code |
+| **Detailed Reports** | Get clear validation results |
+
+Learn more: [Schematron Guide](schematron-support.md)
+
+---
+
+## Getting Started
+
+### Installation
+
+1. **Download** the installer for your operating system from the releases page
+2. **Run** the installer (no administrator rights required on Windows)
+3. **Launch** FreeXmlToolkit from your applications menu
+
+### Your First Steps
+
+1. **Open an XML file**: Use File → Open or drag a file into the window
+2. **Load a schema** (optional): Click the folder icon in the XSD Schema section
+3. **Start editing**: Type `<` to see auto-completion suggestions
+4. **Validate**: Click "Validate" to check your document for errors
+
+### Sample Files
+
+The application includes example files in the `examples/` folder to help you get started:
+
+- **xml/** - Sample XML documents
+- **xsd/** - Sample XSD schemas
+- **xslt/** - Sample transformation stylesheets
+- **schematron/** - Sample business rules
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+S` | Save file |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Ctrl+F` | Find text |
+| `Ctrl+H` | Find and replace |
+| `<` | Open auto-completion |
+| `Enter` | Accept suggestion |
+| `Escape` | Close popup |
+
+---
+
+## Documentation Pages
+
+### Feature Guides
+
+| Page | Description |
+|------|-------------|
+| [XML Editor](xml-controller.md) | How to edit XML files |
+| [XML Editor Features](xml-editor-features.md) | Detailed editor features |
+| [XSD Tools](xsd-controller.md) | Working with XML schemas |
+| [XSD Validation](xsd-validation-controller.md) | Validating XML against schemas |
+| [XSLT Transformation](xslt-controller.md) | Converting XML to other formats |
+| [PDF Generator](fop-controller.md) | Creating PDF documents |
+| [Digital Signatures](signature-controller.md) | Signing XML documents |
+| [Schematron Support](schematron-support.md) | Business rule validation |
+
+### Productivity Tools
+
+| Page | Description |
+|------|-------------|
+| [Auto-Completion (IntelliSense)](context-sensitive-intellisense.md) | Smart suggestions while typing |
+| [Favorites System](favorites-system.md) | Quick access to your files |
+| [Template Management](template-management.md) | Reusable code snippets |
+| [Schema Support](schema-support.md) | Supported schema formats |
+
+### Advanced Topics
+
+| Page | Description |
+|------|-------------|
+| [XSD Editor V2](XSD_EDITOR_V2_README.md) | Advanced graphical schema editor |
+| [XSD Editor Roadmap](XSD_EDITOR_V2_ROADMAP.md) | Planned features |
+
+### Reference
+
+| Page | Description |
+|------|-------------|
+| [Technology Stack](technology-stack.md) | Libraries and versions used |
+| [Thread Pool Architecture](ThreadPoolArchitecture.md) | Technical background |
+| [Third-Party Licenses](licenses.md) | License information |
+
+---
+
+## Need Help?
+
+- Browse the documentation pages listed above
+- Check the example files included with the application
+- Report issues on the project's GitHub page
+
+---
+
+## Quick Links
+
+**Editors:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [PDF/FOP](fop-controller.md) | [Signatures](signature-controller.md)
+
+**Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
+
+**Reference:** [XSD Editor V2](XSD_EDITOR_V2_README.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

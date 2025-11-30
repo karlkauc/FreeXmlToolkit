@@ -1,37 +1,51 @@
-# Template Management System
+# Template Management
 
-The Template Management System in FreeXmlToolkit provides advanced capabilities for creating, managing, and using XML templates, XPath snippets, and reusable code patterns.
+> **Last Updated:** November 2025 | **Version:** 1.0.0
+
+Create and manage reusable XML templates, XPath snippets, and code patterns to speed up your work.
+
+---
+
+## Overview
+
+![Template Manager Overview](img/templates-overview.png)
+*Screenshot placeholder: Template manager interface*
+
+Templates let you create reusable document structures with placeholders for content that changes. Instead of typing the same XML structure repeatedly, save it as a template and fill in the blanks each time.
+
+---
 
 ## Key Features
 
-### 1. XML Template Engine
+### Template Creation
 
-- **Template Creation:** Create reusable XML document templates with parameter substitution
-- **Parameter System:** Define template parameters with validation rules and default values
-- **Template Library:** Organize templates in categories with descriptions and metadata
-- **Smart Substitution:** Intelligent parameter replacement with type validation and error handling
+![Template Editor](img/templates-editor.png)
+*Screenshot placeholder: Visual template editor*
 
-### 2. XPath Snippet Repository
+| Feature | Description |
+|---------|-------------|
+| **Visual Editor** | Create templates without writing code |
+| **Parameters** | Define placeholders that get filled in later |
+| **Preview** | See what your template will produce |
+| **Categories** | Organize templates into groups |
 
-- **Pre-built Snippets:** Extensive library of common XPath expressions for frequent operations
-- **Custom Snippets:** Create and save your own XPath expressions with parameter support
-- **Parameter Validation:** Built-in validation rules for XPath parameters to prevent syntax errors
-- **Context-Aware Suggestions:** Snippets are suggested based on your current XML document structure
+### XPath Snippets
 
-### 3. Template Manager Interface
+![XPath Snippets](img/templates-xpath.png)
+*Screenshot placeholder: XPath snippet library*
 
-![Template Manager Interface](img/templates-manager.png)
+Pre-built XPath expressions for common tasks:
+- Find elements with specific attributes
+- Search for text content
+- Select elements by position
 
-- **Visual Template Editor:** WYSIWYG editor for creating and modifying templates
-- **Parameter Configuration:** Configure template parameters with type constraints and validation rules
-- **Preview Mode:** Real-time preview of template output with sample data
-- **Import/Export:** Share templates across different installations and teams
+---
 
 ## Template Types
 
 ### XML Document Templates
 
-Create complete XML document structures with placeholders for dynamic content:
+Create complete document structures with placeholders:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -47,18 +61,11 @@ Create complete XML document structures with placeholders for dynamic content:
 </${rootElement}>
 ```
 
-### XPath Expression Snippets
-
-Pre-configured XPath expressions for common operations:
-
-- **Element Selection:** `//element[@attribute='${value}']`
-- **Text Content:** `//element/text()[contains(.,'${searchTerm}')]`
-- **Attribute Queries:** `//@${attributeName}[.='${attributeValue}']`
-- **Positional Selection:** `//element[position()=${position}]`
+The parts in `${}` are parameters you fill in when using the template.
 
 ### Schematron Rule Templates
 
-Ready-to-use Schematron validation patterns:
+Ready-to-use validation patterns:
 
 ```xml
 <rule context="${contextPath}">
@@ -68,124 +75,60 @@ Ready-to-use Schematron validation patterns:
 </rule>
 ```
 
-## Template Parameters
+---
 
-### Parameter Types
+## How to Use
 
-- **String:** Text values with optional length constraints
-- **Number:** Numeric values with min/max validation
-- **Date:** Date values with format validation
-- **Boolean:** True/false values with default states
-- **Choice:** Predefined list of allowed values
-- **XPath:** XPath expressions with syntax validation
+### Creating a New Template
 
-### Validation Rules
+![Creating Template](img/templates-create.png)
+*Screenshot placeholder: New template dialog*
 
-```java
-public class TemplateParameter {
-    private String name;
-    private ParameterType type;
-    private String defaultValue;
-    private List<ValidationRule> validationRules;
-    private boolean required;
-}
-```
+1. Open **Template Manager** from the toolbar
+2. Click **"New Template"**
+3. Choose template type
+4. Write your template with `${parameter}` placeholders
+5. Define what each parameter means
+6. Test with sample values
+7. Save with a descriptive name
 
-### Example Parameter Configuration
+### Using a Template
 
-```xml
-<parameter name="rootElement" type="string" required="true">
-    <validation>
-        <rule type="pattern" value="[a-zA-Z][a-zA-Z0-9_]*" />
-        <rule type="length" min="1" max="50" />
-    </validation>
-    <defaultValue>document</defaultValue>
-    <description>The root element name for the XML document</description>
-</parameter>
-```
+![Using Template](img/templates-use.png)
+*Screenshot placeholder: Template insertion dialog*
 
-## Usage Workflows
+1. Open the template library in any editor
+2. Browse or search for the template you need
+3. Select the template
+4. Fill in the parameter values
+5. Insert the generated content
 
-### 1. Creating a New Template
+### Managing Templates
 
-1. Open Template Manager from the main toolbar
-2. Click "New Template" and select template type
-3. Define template structure in the editor
-4. Configure parameters with validation rules
-5. Test template with sample values
-6. Save template with descriptive metadata
+![Managing Templates](img/templates-manage.png)
+*Screenshot placeholder: Template library management*
 
-### 2. Using Existing Templates
+| Action | Description |
+|--------|-------------|
+| **Edit** | Modify existing templates |
+| **Duplicate** | Copy a template to create a variation |
+| **Delete** | Remove templates you no longer need |
+| **Export** | Share templates with others |
+| **Import** | Add templates from others |
 
-1. Access template library from XML Editor
-2. Browse templates by category or search
-3. Select desired template
-4. Fill in parameter values in the dialog
-5. Insert generated content into your document
+---
 
-### 3. Managing Template Library
+## Parameter Types
 
-- **Categorization:** Organize templates in logical categories
-- **Search and Filter:** Find templates quickly by name, category, or description
-- **Version Control:** Track template modifications with changelog
-- **Sharing:** Export/import templates for team collaboration
+| Type | Description | Example |
+|------|-------------|---------|
+| **Text** | Any text value | Document title |
+| **Number** | Numeric values | Version number |
+| **Date** | Date values | Creation date |
+| **Yes/No** | True or false | Include header? |
+| **Choice** | Pick from a list | Document type |
 
-## Advanced Features
-
-### Template Validation Engine
-
-- **Syntax Validation:** Automatic validation of template syntax and structure
-- **Parameter Validation:** Real-time validation of parameter values
-- **Preview Generation:** Live preview with error highlighting
-- **Dependency Checking:** Validate template dependencies and references
-
-### Integration with XSD Schemas
-
-- **Schema-Aware Templates:** Templates that adapt to loaded XSD schemas
-- **Element Completion:** Auto-complete template parameters based on schema definitions
-- **Validation Integration:** Validate generated content against XSD schemas
-
-### Performance Optimization
-
-- **Lazy Loading:** Templates loaded on-demand for better performance
-- **Caching System:** Compiled templates cached for repeated use
-- **Background Processing:** Template operations run in background threads
-
-## Template File Format
-
-Templates are stored in a structured XML format:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<template>
-    <metadata>
-        <name>Sample Document Template</name>
-        <category>General</category>
-        <version>1.0</version>
-        <author>Template Author</author>
-        <description>A sample XML document template</description>
-        <created>2024-01-01T00:00:00Z</created>
-    </metadata>
-    
-    <parameters>
-        <parameter name="rootElement" type="string" required="true">
-            <defaultValue>document</defaultValue>
-            <validation>
-                <rule type="pattern" value="[a-zA-Z][a-zA-Z0-9_]*" />
-            </validation>
-        </parameter>
-    </parameters>
-    
-    <content><![CDATA[
-        <?xml version="1.0" encoding="UTF-8"?>
-        <${rootElement}>
-            <header>
-                <title>${documentTitle}</title>
-            </header>
-        </${rootElement}>
-    ]]></content>
-</template>
-```
+---
 
 ## Keyboard Shortcuts
 
@@ -193,25 +136,35 @@ Templates are stored in a structured XML format:
 |----------|--------|
 | `Ctrl+T` | Open Template Manager |
 | `Ctrl+Shift+T` | Insert Template |
-| `Ctrl+Alt+T` | Create New Template |
 | `F5` | Refresh Template Library |
-
-## Best Practices
-
-### Template Design
-
-1. **Keep templates modular** - Create smaller, focused templates that can be combined
-2. **Use descriptive parameters** - Clear parameter names improve usability
-3. **Provide default values** - Sensible defaults speed up template usage
-4. **Add comprehensive validation** - Prevent common errors with proper validation rules
-
-### Organization
-
-1. **Use consistent naming** - Follow naming conventions for templates and parameters
-2. **Categorize logically** - Group related templates in meaningful categories
-3. **Document thoroughly** - Add descriptions and usage examples to templates
-4. **Version control** - Track changes and maintain backward compatibility
 
 ---
 
-[Previous: Favorites System](favorites-system.md) | [Home](index.md) | [Next: Context-Sensitive IntelliSense](context-sensitive-intellisense.md)
+## Tips
+
+### Template Design
+
+| Tip | Description |
+|-----|-------------|
+| **Keep it simple** | Smaller templates are more reusable |
+| **Clear names** | Use descriptive parameter names |
+| **Default values** | Provide sensible defaults to speed up usage |
+| **Add descriptions** | Help yourself remember what each template does |
+
+### Organization
+
+| Tip | Description |
+|-----|-------------|
+| **Use categories** | Group related templates together |
+| **Consistent naming** | Follow a naming pattern |
+| **Document templates** | Add notes about when to use each one |
+
+---
+
+## Navigation
+
+| Previous | Home | Next |
+|----------|------|------|
+| [Favorites](favorites-system.md) | [Home](index.md) | [Tech Stack](technology-stack.md) |
+
+**All Pages:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [FOP/PDF](fop-controller.md) | [Signatures](signature-controller.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

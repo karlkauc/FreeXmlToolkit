@@ -1,171 +1,137 @@
-# Schema Support in FreeXmlToolkit
+# Schema Support
 
-FreeXmlToolkit provides comprehensive XML schema validation and editing support through multiple schema technologies.
+> **Last Updated:** November 2025 | **Version:** 1.0.0
 
-## Supported Schema Formats
-
-### ✅ XSD (XML Schema Definition)
-
-**Full Support** - Complete W3C XML Schema implementation with advanced features:
-
-- **Validation**: Real-time validation against XSD schemas
-- **IntelliSense**: Schema-aware code completion in the XML editor
-- **Auto-Detection**: Automatic schema detection from XML files via `xsi:schemaLocation` and
-  `xsi:noNamespaceSchemaLocation`
-- **Documentation Generation**: Generate beautiful HTML documentation from XSD files
-- **Sample Data Generation**: Create realistic test XML data based on XSD constraints
-- **Visual Representation**: Interactive diagrams and tree views of schema structure
-
-**Features Include:**
-
-- Complex types and simple types
-- Element and attribute declarations
-- Namespaces and namespace prefixes
-- Restrictions, extensions, and substitution groups
-- Documentation annotations
-- Import and include directives
-
-### ✅ Schematron
-
-**Business Rules Validation** - Support for constraint validation beyond structural validation:
-
-- **Rule-Based Validation**: Validate XML against custom business rules
-- **XPath Expressions**: Use powerful XPath expressions for complex validation logic
-- **Real-time Checking**: Continuous validation as you edit XML files
-- **Custom Error Messages**: Define meaningful error messages for validation failures
-- **Context-Sensitive Rules**: Apply different rules based on document context
-
-**Supported Schematron Features:**
-
-- Pure Schematron (.sch files)
-- XSLT-based Schematron transformations
-- Pattern and rule definitions
-- Assert and report statements
-- Phase-based validation
-
-## ❌ Unsupported Schema Formats
-
-### DTD (Document Type Definition)
-
-**Not Supported** - While DTD is a classic XML schema format, it is not currently supported in FreeXmlToolkit.
-
-**Reasons for Non-Support:**
-
-- Limited expressiveness compared to XSD
-- Legacy technology with declining usage
-- No namespace support
-- Focus on modern schema technologies
-
-**Alternative:** Convert DTD to XSD format for use in FreeXmlToolkit
-
-### RelaxNG
-
-**Not Supported** - RelaxNG is an alternative schema language that is not currently supported.
-
-**Reasons for Non-Support:**
-
-- Limited market adoption compared to XSD
-- Focus on W3C standards (XSD)
-- Resource allocation priorities
-
-**Alternative:** Use XSD for structural validation or Schematron for business rules
-
-## Schema Integration Features
-
-### IntelliSense and Auto-Completion
-
-When working with XML files that have associated XSD schemas:
-
-1. **Context-Aware Suggestions**: Type `<` to see only valid child elements for the current position
-2. **Schema-Driven Completion**: Suggestions are filtered based on XSD schema rules
-3. **Real-time Validation**: Immediate feedback when elements don't conform to schema
-4. **Automatic Schema Loading**: Schemas referenced in XML files are automatically loaded
-
-### Validation Workflow
-
-1. **Open XML File**: Load an XML document in the editor
-2. **Associate Schema**: Either automatically detected or manually selected
-3. **Real-time Feedback**: See validation results as you type
-4. **Error Reporting**: Detailed error messages with line and column information
-5. **Continuous Validation**: Optional always-on validation mode
-
-### Documentation Generation
-
-For XSD schemas specifically:
-
-- **HTML Documentation**: Professional-looking web documentation
-- **Interactive Diagrams**: Clickable SVG diagrams showing schema structure
-- **Search Functionality**: Built-in search within generated documentation
-- **Cross-References**: Linked references between schema components
-- **Export Options**: Save documentation for sharing or publication
-
-## Best Practices
-
-### Choosing a Schema Format
-
-- **Use XSD for**: Structural validation, data type constraints, namespace management
-- **Use Schematron for**: Business rules, cross-field validation, conditional constraints
-- **Combine Both**: Use XSD for structure and Schematron for business logic
-
-### Schema Organization
-
-- **Modular Design**: Split large schemas into smaller, focused modules
-- **Clear Documentation**: Use annotations within schemas to document constraints
-- **Version Management**: Maintain schema versions for backward compatibility
-- **Namespace Planning**: Design namespace strategy early in development
-
-## Migration Strategies
-
-### From DTD to XSD
-
-1. Use automated DTD-to-XSD conversion tools
-2. Manual refinement of converted schema
-3. Add data type constraints not possible in DTD
-4. Implement namespace support
-5. Test thoroughly with existing XML documents
-
-### From RelaxNG to XSD
-
-1. Analyze RelaxNG patterns and constraints
-2. Map patterns to equivalent XSD constructs
-3. Handle any RelaxNG features not available in XSD
-4. Add Schematron rules for complex constraints
-5. Validate conversion with test documents
-
-## Technical Implementation
-
-### XSD Support
-
-- **Parser**: Using standard Java XML Schema validation
-- **Cache System**: Efficient caching of parsed schemas
-- **Error Handling**: Comprehensive error reporting and recovery
-- **Performance**: Optimized for large schema files
-
-### Schematron Support
-
-- **Processing**: XSLT-based Schematron rule processing
-- **Integration**: Seamless integration with XSD validation
-- **Custom Rules**: Support for user-defined validation patterns
-- **Reporting**: Detailed validation reports with context
-
-## Future Roadmap
-
-### Planned Enhancements
-
-- **Enhanced XSD Features**: Additional XSD 1.1 features
-- **Improved Performance**: Faster validation for large documents
-- **Better Error Messages**: More helpful and specific error reporting
-- **Schema Debugging**: Tools for debugging complex schema rules
-
-### Under Consideration
-
-- **NVDL Support**: Namespace-based validation dispatch language
-- **Additional Schema Formats**: Based on user demand
-- **Cloud Schema Storage**: Integration with schema repositories
-- **Collaborative Editing**: Multi-user schema development
+FreeXmlToolkit supports different schema formats for validating your XML files. This page explains what's supported and what isn't.
 
 ---
 
-*For more information about specific schema features, see the individual controller documentation.*
+## Overview
 
-[Home](index.md) | [XML Editor Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md)
+![Schema Support Overview](img/schema-support-overview.png)
+*Screenshot placeholder: Schema support interface*
+
+Schemas define rules for your XML documents - what elements are allowed, what order they should be in, and what values they can contain.
+
+---
+
+## Supported Schema Formats
+
+### XSD (XML Schema Definition)
+
+![XSD Support](img/schema-xsd-support.png)
+*Screenshot placeholder: XSD validation in action*
+
+**Full Support** - The main schema format used for XML validation.
+
+| Feature | Description |
+|---------|-------------|
+| **Validation** | Check if XML files follow schema rules |
+| **Auto-Completion** | Get suggestions while typing based on schema |
+| **Auto-Detection** | Schema is found automatically from XML files |
+| **Documentation** | Generate readable documentation from schemas |
+| **Sample Data** | Create test XML files from schema definitions |
+| **Visual Display** | See schema structure as diagrams |
+
+**What You Can Define:**
+- Elements and their order
+- Required and optional fields
+- Data types (text, numbers, dates)
+- Allowed values
+- Documentation
+
+### Schematron
+
+![Schematron Support](img/schema-schematron-support.png)
+*Screenshot placeholder: Schematron validation*
+
+**Business Rules** - For validation rules that go beyond structure.
+
+| Feature | Description |
+|---------|-------------|
+| **Custom Rules** | Write your own validation logic |
+| **Real-time Checking** | See errors as you edit |
+| **Clear Messages** | Define helpful error messages |
+| **Flexible Rules** | Apply different rules in different situations |
+
+**Best For:**
+- "If field A is filled, then field B must also be filled"
+- "The total must equal the sum of all items"
+- "Each ID must be unique in the document"
+
+---
+
+## Not Supported
+
+### DTD (Document Type Definition)
+
+**Not Supported** - This older format is not available in FreeXmlToolkit.
+
+| Reason | Alternative |
+|--------|-------------|
+| Less flexible than XSD | Convert your DTD to XSD |
+| Limited features | Use XSD for the same rules |
+| No namespace support | XSD handles namespaces |
+
+### RelaxNG
+
+**Not Supported** - This alternative schema format is not available.
+
+| Reason | Alternative |
+|--------|-------------|
+| Less widely used | Use XSD instead |
+| Focus on standards | Schematron for business rules |
+
+---
+
+## How to Use Schemas
+
+### Loading a Schema
+
+![Loading Schema](img/schema-loading.png)
+*Screenshot placeholder: Schema loading dialog*
+
+1. **Automatic:** Open an XML file that references a schema - it loads automatically
+2. **Manual:** Click "Load Schema" and select your XSD file
+3. **Drag & Drop:** Drag a schema file into the application
+
+### Validation Workflow
+
+![Validation Workflow](img/schema-validation-workflow.png)
+*Screenshot placeholder: Validation process*
+
+1. Open your XML file
+2. Load (or auto-detect) the schema
+3. See validation results immediately
+4. Click on errors to jump to the problem location
+5. Fix issues and re-validate
+
+### Using Both XSD and Schematron
+
+![Combined Validation](img/schema-combined.png)
+*Screenshot placeholder: Combined XSD and Schematron validation*
+
+For the best validation coverage:
+- Use **XSD** for structure (elements, order, types)
+- Use **Schematron** for business rules (relationships, conditions)
+
+---
+
+## Tips
+
+| Tip | Description |
+|-----|-------------|
+| **Start with XSD** | XSD handles most validation needs |
+| **Add Schematron later** | For business rules XSD can't express |
+| **Use auto-detection** | Let the app find your schema automatically |
+| **Check error messages** | They tell you exactly what's wrong |
+
+---
+
+## Navigation
+
+| Previous | Home | Next |
+|----------|------|------|
+| [Schematron](schematron-support.md) | [Home](index.md) | [Favorites](favorites-system.md) |
+
+**All Pages:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [FOP/PDF](fop-controller.md) | [Signatures](signature-controller.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

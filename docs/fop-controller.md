@@ -1,37 +1,85 @@
 # PDF Generator (FOP)
 
-This section of the application allows you to create PDF documents from your XML files. It uses the Apache FOP (Formatting Objects Processor) engine to transform XML data into a professional-looking PDF.
+> **Last Updated:** November 2025 | **Version:** 1.0.0
 
-## How it Works
-
-The process requires two main files:
-
-1.  **XML File:** This is your data file. It contains the information you want to present in the PDF (e.g., a report, an invoice, or a list of items).
-2.  **XSL-FO Stylesheet:** This is a special stylesheet that acts as a template. It defines how the data from your XML file should be formatted in the PDF—specifying layouts, fonts, colors, and more.
-
-The tool takes your XML data, applies the rules from the XSL-FO stylesheet, and generates a PDF document as the output.
-
-## Key Features
-
-![Screenshot of FOP Controller](img/fop-pdf.png)
-
-### File Input
-- **Select XML and XSL Files:** You can click buttons to open a file dialog and choose your XML data file and your XSL-FO stylesheet.
-- **Drag and Drop:** For convenience, you can also drag and drop your XML and XSL files directly from your computer onto the designated fields.
-
-### PDF Output
-- **Choose Output Location:** You can specify exactly where you want to save the generated PDF file and what to name it.
-- **Set PDF Properties:** Before creating the PDF, you can add important metadata, including:
-    - **Author:** The name of the person creating the document.
-    - **Title:** The title of the document.
-    - **Subject:** A short description of the document's content.
-    - **Keywords:** Words that can help in searching for the document.
-
-### Conversion and Preview
-- **Start Conversion:** A dedicated button kicks off the process to generate the PDF. A progress indicator will show you that the tool is working.
-- **Built-in PDF Viewer:** Once the PDF is created, it is automatically displayed within the application. You can scroll through the pages to review the final document without needing to open an external PDF reader.
-- **Error Handling:** The tool checks to make sure you have selected all the necessary files before it starts. If anything is missing, it will notify you so you can fix it.
+This tool lets you create professional PDF documents from your XML files.
 
 ---
 
-[Previous: XSLT Transformation](xslt-controller.md) | [Home](index.md) | [Next: XML Signature](signature-controller.md)
+## How It Works
+
+You need two files:
+1. **XML File** - Your data (the content you want in the PDF)
+2. **XSL-FO Stylesheet** - A template that defines the layout and formatting
+
+The tool combines your data with the template to generate a PDF.
+
+![PDF Generator Overview](img/fop-pdf.png)
+*The PDF Generator interface*
+
+---
+
+## Step-by-Step Guide
+
+### Step 1: Select Your Files
+
+![File Selection](img/fop-file-selection.png)
+*Screenshot placeholder: File selection area*
+
+1. Click the "..." button or drag-and-drop to select your **XML file**
+2. Click the "..." button or drag-and-drop to select your **XSL-FO stylesheet**
+
+### Step 2: Set PDF Properties (Optional)
+
+![PDF Properties](img/fop-properties.png)
+*Screenshot placeholder: PDF properties panel*
+
+Add metadata to your PDF:
+- **Author** - Your name
+- **Title** - Document title
+- **Subject** - Brief description
+- **Keywords** - Search terms
+
+### Step 3: Choose Output Location
+
+Select where to save your PDF and what to name it.
+
+### Step 4: Generate the PDF
+
+Click **"Create PDF"** and wait for the process to complete.
+
+### Step 5: Preview
+
+![PDF Preview](img/fop-preview.png)
+*Screenshot placeholder: Built-in PDF viewer*
+
+The generated PDF opens automatically in the built-in viewer. You can scroll through pages to review the result.
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Drag & Drop** | Simply drag files into the application |
+| **Built-in Viewer** | Preview PDFs without leaving the app |
+| **PDF Metadata** | Add author, title, and keywords |
+| **Progress Indicator** | See when generation is in progress |
+
+---
+
+## Tips
+
+- Make sure your XML and XSL-FO files are valid before generating
+- If something goes wrong, check the error message for details
+- You can create complex layouts with headers, footers, and tables
+
+---
+
+## Navigation
+
+| Previous | Home | Next |
+|----------|------|------|
+| [XSLT Transformation](xslt-controller.md) | [Home](index.md) | [Digital Signatures](signature-controller.md) |
+
+**All Pages:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [FOP/PDF](fop-controller.md) | [Signatures](signature-controller.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
