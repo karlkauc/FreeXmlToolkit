@@ -20,11 +20,35 @@ FreeXmlToolkit is a free desktop application for working with XML files. It help
 
 ### Works On All Platforms
 
-| Platform | Download Format | Notes |
-|----------|-----------------|-------|
-| Windows | `.exe` installer | No admin rights needed |
-| macOS | `.dmg` disk image | Standard installation |
-| Linux | AppImage | Runs without installation |
+FreeXmlToolkit is available for Windows, macOS, and Linux in multiple formats. Choose the one that works best for you.
+
+#### Windows
+
+| Format | Architecture | Description |
+|--------|--------------|-------------|
+| `.exe` | x64, ARM64 | **Installer** - Standard setup wizard. No admin rights required. Recommended for most users. |
+| `.msi` | x64, ARM64 | **MSI Package** - For enterprise deployment and silent installation via Group Policy. |
+| `.zip` | x64, ARM64 | **Portable** - No installation needed. Extract and run. Good for USB drives or restricted systems. |
+
+#### macOS
+
+| Format | Architecture | Description |
+|--------|--------------|-------------|
+| `.dmg` | Intel (x64), Apple Silicon (ARM64) | **Disk Image** - Standard macOS installation. Drag to Applications folder. |
+| `.pkg` | Intel (x64), Apple Silicon (ARM64) | **Package Installer** - Guided installation wizard. Useful for managed deployments. |
+| `.zip` | Intel (x64), Apple Silicon (ARM64) | **Portable** - No installation needed. Extract and run the app directly. |
+
+#### Linux
+
+| Format | Architecture | Description |
+|--------|--------------|-------------|
+| `.deb` | x64, ARM64 | **Debian Package** - For Ubuntu, Debian, Linux Mint. Install with `sudo dpkg -i` or double-click. |
+| `.rpm` | x64, ARM64 | **RPM Package** - For Fedora, Red Hat, openSUSE. Install with `sudo rpm -i` or `dnf install`. |
+| `.zip` | x64, ARM64 | **Portable** - No installation needed. Extract and run. Works on any Linux distribution. |
+
+> **Note:** Choose the architecture that matches your computer:
+> - **x64** - Most computers (Intel/AMD processors)
+> - **ARM64** - Newer ARM-based computers (Apple Silicon Macs, Windows on ARM, Raspberry Pi 4/5)
 
 ---
 
