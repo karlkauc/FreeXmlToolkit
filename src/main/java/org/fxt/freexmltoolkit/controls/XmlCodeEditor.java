@@ -1466,22 +1466,34 @@ public class XmlCodeEditor extends VBox {
             logger.debug("Attribute context for element '{}': found {} completions", currentElement, completions.size());
         } else {
             // Check if cursor is inside element content with enumeration constraints
+            // Use full XPath to correctly identify the element (e.g., /FundsXML4/ControlData/Version)
+            String currentXPath = getCurrentXPath(textBeforeCaret);
             String currentElement = getCurrentElementForTextContent(textBeforeCaret, caretPos);
+            logger.debug("🔍 Current XPath for text content: '{}'", currentXPath);
             logger.debug("🔍 Current element for text content: '{}'", currentElement);
             logger.debug("🔍 XSD integration available: {}", xsdIntegration != null);
 
             if (currentElement != null && xsdIntegration != null) {
-                List<String> enumValues = xsdIntegration.getElementEnumerationValues(currentElement);
-                logger.debug("🎯 Enumeration values found: {}", enumValues);
+                // Normalize XPath: remove trailing slash if present
+                String normalizedXPath = currentXPath;
+                if (normalizedXPath != null && normalizedXPath.endsWith("/")) {
+                    normalizedXPath = normalizedXPath.substring(0, normalizedXPath.length() - 1);
+                }
+
+                // Use XPath-based lookup for accurate enumeration values
+                // This ensures we get enumerations for the exact element at this path,
+                // not from other elements with the same name elsewhere in the schema
+                List<String> enumValues = xsdIntegration.getElementEnumerationValuesByXPath(normalizedXPath);
+                logger.debug("🎯 Enumeration values found for XPath '{}': {}", normalizedXPath, enumValues);
 
                 if (!enumValues.isEmpty()) {
                     // Show enumeration values as completion items
                     isElementCompletionContext = false;
                     popupStartPosition = getElementContentStartPosition(textBeforeCaret, caretPos);
                     completions.addAll(getEnumerationCompletions(enumValues, currentElement));
-                    logger.info("🎯 INTELLISENSE: Enumeration context for element '{}' - found {} values", currentElement, enumValues.size());
+                    logger.info("🎯 INTELLISENSE: Enumeration context for XPath '{}' - found {} values", normalizedXPath, enumValues.size());
                 } else {
-                    logger.debug("❌ No enumeration values found for element '{}'", currentElement);
+                    logger.debug("❌ No enumeration values found for XPath '{}'", normalizedXPath);
                 }
             } else {
                 if (currentElement == null) {
