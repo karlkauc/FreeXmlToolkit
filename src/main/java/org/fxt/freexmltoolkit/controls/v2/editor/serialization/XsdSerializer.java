@@ -506,9 +506,17 @@ public class XsdSerializer {
             sb.append(" final=\"").append(escapeXml(complexType.getFinal())).append("\"");
         }
 
-        // Check if complexType has children
-        if (complexType.hasChildren()) {
+        // Check if complexType has content (children or annotation)
+        boolean hasAnnotation = complexType.getDocumentation() != null || complexType.getAppinfo() != null
+                || !complexType.getDocumentations().isEmpty();
+
+        if (complexType.hasChildren() || hasAnnotation) {
             sb.append(">\n");
+
+            // Serialize annotation FIRST (before children) - this is XSD standard order
+            if (hasAnnotation) {
+                serializeAnnotation(complexType, sb, indentation + indentString, indent + 1);
+            }
 
             // Serialize children (sequence, choice, all, attributes)
             for (XsdNode child : complexType.getChildren()) {
@@ -651,6 +659,15 @@ public class XsdSerializer {
         }
 
         sb.append(">\n");
+
+        // Check if simpleType has annotation
+        boolean hasAnnotation = simpleType.getDocumentation() != null || simpleType.getAppinfo() != null
+                || !simpleType.getDocumentations().isEmpty();
+
+        // Serialize annotation FIRST (before children) - this is XSD standard order
+        if (hasAnnotation) {
+            serializeAnnotation(simpleType, sb, indentation + indentString, indent + 1);
+        }
 
         // Serialize children (restrictions, list, union, etc.)
         for (XsdNode child : simpleType.getChildren()) {
