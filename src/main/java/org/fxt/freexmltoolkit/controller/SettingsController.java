@@ -119,6 +119,16 @@ public class SettingsController {
     @FXML
     TextField newCategoryField;
 
+    // Usage Statistics & Cache FXML components
+    @FXML
+    CheckBox sendUsageStatistics;
+
+    @FXML
+    Button clearCacheButton;
+
+    @FXML
+    Label cacheSizeLabel;
+
     // Data for favorites table
     private final ObservableList<FileFavorite> favoritesData = FXCollections.observableArrayList();
 
@@ -169,6 +179,9 @@ public class SettingsController {
 
         // Initialize favorites table
         initializeFavoritesTable();
+
+        // Initialize cache size label
+        updateCacheSizeLabel();
 
         loadCurrentSettings();
 
@@ -393,6 +406,9 @@ public class SettingsController {
                 propertiesService.setXmlParserType(selectedParser);
             }
 
+            // Save usage statistics setting
+            props.setProperty("sendUsageStatistics", String.valueOf(sendUsageStatistics.isSelected()));
+
             propertiesService.saveProperties(props);
 
             // Show success message
@@ -522,6 +538,10 @@ public class SettingsController {
         // Load XML parser type
         XmlParserType parserType = propertiesService.getXmlParserType();
         xmlParserComboBox.getSelectionModel().select(parserType);
+
+        // Load usage statistics setting
+        boolean sendStats = Boolean.parseBoolean(props.getProperty("sendUsageStatistics", "false"));
+        sendUsageStatistics.setSelected(sendStats);
     }
 
     // Favorites Management Methods
@@ -753,5 +773,137 @@ public class SettingsController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    // Cache Management Methods
+
+    /**
+     * Updates the cache size label with the current cache folder size.
+     */
+    private void updateCacheSizeLabel() {
+        try {
+            File cacheDir = getCacheFolder();
+            if (cacheDir != null && cacheDir.exists()) {
+                long size = calculateFolderSize(cacheDir);
+                cacheSizeLabel.setText("Cache size: " + formatFileSize(size));
+            } else {
+                cacheSizeLabel.setText("Cache size: 0 B");
+            }
+        } catch (Exception e) {
+            logger.warn("Could not calculate cache size: {}", e.getMessage());
+            cacheSizeLabel.setText("Cache size: unknown");
+        }
+    }
+
+    /**
+     * Gets the cache folder based on current settings.
+     *
+     * @return The cache folder
+     */
+    private File getCacheFolder() {
+        Properties properties = propertiesService.loadProperties();
+        boolean useSystem = Boolean.parseBoolean(properties.getProperty("useSystemTempFolder", "true"));
+        if (useSystem) {
+            return new File(System.getProperty("java.io.tmpdir"), "FreeXmlToolkit");
+        } else {
+            String customFolder = properties.getProperty("customTempFolder", System.getProperty("java.io.tmpdir"));
+            return new File(customFolder);
+        }
+    }
+
+    /**
+     * Clears the local cache folder.
+     */
+    @FXML
+    private void clearCache() {
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Clear Cache");
+        confirmDialog.setHeaderText("Clear Local Cache?");
+        confirmDialog.setContentText("This will delete all temporary files created by the application.\n\nAre you sure you want to continue?");
+
+        confirmDialog.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    File cacheDir = getCacheFolder();
+                    if (cacheDir != null && cacheDir.exists()) {
+                        int deletedFiles = deleteDirectoryContents(cacheDir);
+                        updateCacheSizeLabel();
+                        showAlert(Alert.AlertType.INFORMATION, "Cache Cleared",
+                                "Successfully deleted " + deletedFiles + " cached file(s).");
+                        logger.info("Cache cleared: {} files deleted from {}", deletedFiles, cacheDir.getAbsolutePath());
+                    } else {
+                        showAlert(Alert.AlertType.INFORMATION, "Cache Empty",
+                                "The cache folder is empty or does not exist.");
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to clear cache", e);
+                    showAlert(Alert.AlertType.ERROR, "Error Clearing Cache",
+                            "Could not clear the cache: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    /**
+     * Recursively calculates the total size of a folder.
+     *
+     * @param folder The folder to calculate
+     * @return The total size in bytes
+     */
+    private long calculateFolderSize(File folder) {
+        long size = 0;
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    size += file.length();
+                } else if (file.isDirectory()) {
+                    size += calculateFolderSize(file);
+                }
+            }
+        }
+        return size;
+    }
+
+    /**
+     * Deletes the contents of a directory (but not the directory itself).
+     *
+     * @param directory The directory to clear
+     * @return The number of files deleted
+     */
+    private int deleteDirectoryContents(File directory) {
+        int deletedCount = 0;
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deletedCount += deleteDirectoryContents(file);
+                    file.delete();
+                } else {
+                    if (file.delete()) {
+                        deletedCount++;
+                    }
+                }
+            }
+        }
+        return deletedCount;
+    }
+
+    /**
+     * Formats a file size in bytes to a human-readable string.
+     *
+     * @param size Size in bytes
+     * @return Human-readable string (e.g., "1.5 MB")
+     */
+    private String formatFileSize(long size) {
+        if (size < 1024) {
+            return size + " B";
+        } else if (size < 1024 * 1024) {
+            return String.format("%.1f KB", size / 1024.0);
+        } else if (size < 1024 * 1024 * 1024) {
+            return String.format("%.1f MB", size / (1024.0 * 1024));
+        } else {
+            return String.format("%.1f GB", size / (1024.0 * 1024 * 1024));
+        }
     }
 }

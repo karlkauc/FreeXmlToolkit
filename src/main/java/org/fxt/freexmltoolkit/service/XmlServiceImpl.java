@@ -804,11 +804,51 @@ public class XmlServiceImpl implements XmlService {
                         continue;
                     }
 
-                    transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-                    transform.setOutputProperty(OutputKeys.INDENT, "yes");
-                    var swTemp = new StringWriter();
-                    transform.transform(new DOMSource(n), new StreamResult(swTemp));
-                    sw.append(swTemp.toString()).append(System.lineSeparator());
+                    // Handle different node types appropriately
+                    switch (n.getNodeType()) {
+                        case Node.ELEMENT_NODE:
+                            // Element nodes can be transformed to XML
+                            transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                            transform.setOutputProperty(OutputKeys.INDENT, "yes");
+                            var swTemp = new StringWriter();
+                            transform.transform(new DOMSource(n), new StreamResult(swTemp));
+                            sw.append(swTemp.toString());
+                            break;
+
+                        case Node.TEXT_NODE:
+                        case Node.CDATA_SECTION_NODE:
+                            // Text nodes - output the text content directly
+                            String textContent = n.getTextContent();
+                            if (textContent != null && !textContent.trim().isEmpty()) {
+                                sw.append(textContent.trim());
+                            }
+                            break;
+
+                        case Node.ATTRIBUTE_NODE:
+                            // Attribute nodes - output only the value
+                            sw.append(n.getNodeValue());
+                            break;
+
+                        case Node.COMMENT_NODE:
+                            // Comment nodes - output in XML comment format
+                            sw.append("<!--").append(n.getNodeValue()).append("-->");
+                            break;
+
+                        case Node.PROCESSING_INSTRUCTION_NODE:
+                            // Processing instruction nodes
+                            sw.append("<?").append(n.getNodeName())
+                                    .append(" ").append(n.getNodeValue()).append("?>");
+                            break;
+
+                        default:
+                            // Other node types - try to get text content
+                            String content = n.getTextContent();
+                            if (content != null) {
+                                sw.append(content);
+                            }
+                            break;
+                    }
+                    sw.append(System.lineSeparator());
                 }
 
                 return sw.toString();

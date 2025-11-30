@@ -1797,7 +1797,9 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             return;
         }
 
-        String xml = currentCodeArea.getText();
+        // Use the original XML for XPath queries, not the current editor content
+        // (which may have been replaced by previous query results)
+        String xml = currentEditor.getOriginalXmlForXPath();
         Tab selectedItem = xPathQueryPane.getSelectionModel().getSelectedItem();
 
         final String query;

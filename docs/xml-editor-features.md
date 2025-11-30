@@ -9,7 +9,7 @@ This page describes the advanced features available in the XML Editor.
 ## Schematron Integration
 
 ![Schematron Validation](img/xml-editor-schematron.png)
-*Screenshot placeholder: Schematron validation panel*
+*Schematron validation panel*
 
 ### What is Schematron?
 
@@ -37,7 +37,7 @@ Learn more: [Schematron Support](schematron-support.md) | [Favorites System](fav
 ## Auto-Completion (IntelliSense)
 
 ![IntelliSense Popup](img/xml-editor-intellisense-popup.png)
-*Screenshot placeholder: Auto-completion suggestions popup*
+*Auto-completion suggestions popup*
 
 ### Smart Element Suggestions
 
@@ -61,7 +61,7 @@ Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 ## Grid Editor Mode
 
 ![Grid Editor](img/xml-editor-grid-detail.png)
-*Screenshot placeholder: Grid editor with data cells*
+*Grid editor with data cells*
 
 ### Edit XML Like a Spreadsheet
 
@@ -96,7 +96,7 @@ For large XML files, you can collapse sections to focus on what you're working o
 ## Tree View
 
 ![Tree View Panel](img/xml-editor-tree.png)
-*Screenshot placeholder: Tree view sidebar*
+*Tree view sidebar*
 
 ### Visual Document Structure
 

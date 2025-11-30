@@ -38,8 +38,8 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
 import org.fxt.freexmltoolkit.controls.dialogs.UpdateNotificationDialog;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
+import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.fxt.freexmltoolkit.util.DialogHelper;
@@ -361,6 +361,66 @@ public class MainController implements Initializable {
      */
     public String getActiveTabId() {
         return activeTabId;
+    }
+
+    /**
+     * Navigates to a page by its ID.
+     * This method can be called from other controllers (like WelcomeController) to switch pages.
+     *
+     * @param pageId the page ID (e.g., "xmlUltimate", "xsd", "schematron", "fop", "signature", etc.)
+     */
+    public void navigateToPage(String pageId) {
+        String pagePath = switch (pageId) {
+            case "xslt" -> "/pages/tab_xslt.fxml";
+            case "xml" -> "/pages/tab_xml.fxml";
+            case "xmlEnhanced" -> "/pages/tab_xml_enhanced.fxml";
+            case "xmlNew" -> "/pages/tab_xml_new.fxml";
+            case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
+            case "xsd" -> "/pages/tab_xsd.fxml";
+            case "xsdValidation" -> "/pages/tab_validation.fxml";
+            case "schematron" -> "/pages/tab_schematron.fxml";
+            case "fop" -> "/pages/tab_fop.fxml";
+            case "signature" -> "/pages/tab_signature.fxml";
+            case "help" -> "/pages/tab_help.fxml";
+            case "settings" -> "/pages/settings.fxml";
+            case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
+            case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
+            default -> null;
+        };
+
+        if (pagePath != null) {
+            loadPageFromPath(pagePath);
+            activeTabId = pageId;
+            logger.debug("Navigated to page: {}", pageId);
+
+            // Update menu button active state
+            removeActiveFromAllMenuButtons();
+            Button targetButton = getButtonForPageId(pageId);
+            if (targetButton != null) {
+                targetButton.getStyleClass().add("active");
+            }
+        } else {
+            logger.warn("Unknown page ID: {}", pageId);
+        }
+    }
+
+    /**
+     * Returns the menu button associated with a page ID.
+     */
+    private Button getButtonForPageId(String pageId) {
+        return switch (pageId) {
+            case "xmlUltimate" -> xmlUltimate;
+            case "xsd" -> xsd;
+            case "xsdValidation" -> xsdValidation;
+            case "schematron" -> schematron;
+            case "xslt", "xsltDeveloper" -> xsltDeveloper;
+            case "fop" -> fop;
+            case "signature" -> signature;
+            case "help" -> help;
+            case "settings" -> settings;
+            case "schemaGenerator" -> schemaGenerator;
+            default -> null;
+        };
     }
 
     private void loadPageFromPath(String pagePath) {

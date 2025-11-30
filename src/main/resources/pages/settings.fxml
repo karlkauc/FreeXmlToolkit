@@ -311,6 +311,29 @@
                                     </HBox>
                                 </VBox>
                             </VBox>
+
+                            <!-- Usage Statistics & Cache Settings -->
+                            <VBox spacing="12"
+                                  style="-fx-background-color: #f0fff0; -fx-background-radius: 4px; -fx-padding: 16px;">
+                                <Label text="Usage Statistics &amp; Cache"
+                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                <VBox spacing="8">
+                                    <CheckBox fx:id="sendUsageStatistics" text="Send anonymous usage statistics"/>
+                                    <Label text="Help improve the application by sharing anonymous usage data"
+                                           style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
+                                </VBox>
+                                <HBox spacing="12" alignment="CENTER_LEFT">
+                                    <Button fx:id="clearCacheButton" mnemonicParsing="false" onAction="#clearCache"
+                                            text="Clear Local Cache"
+                                            style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                                        </graphic>
+                                    </Button>
+                                    <Label fx:id="cacheSizeLabel" text="Cache size: calculating..."
+                                           style="-fx-font-size: 11px; -fx-text-fill: #6c757d;"/>
+                                </HBox>
+                            </VBox>
                         </VBox>
                     </ScrollPane>
                 </content>

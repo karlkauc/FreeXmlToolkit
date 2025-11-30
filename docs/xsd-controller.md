@@ -23,7 +23,7 @@ The XSD Viewer lets you explore and edit your schemas. It has two main views:
 ### Text View
 
 ![XSD Text View](img/xsd-editor-text.png)
-***Screenshot: XSD code editor with syntax highlighting***
+***XSD code editor with syntax highlighting***
 
 - **Full Code Editor**: View and edit the raw XSD source code
 - **Syntax Highlighting**: Color-coded code for easy reading
@@ -35,7 +35,7 @@ The XSD Viewer lets you explore and edit your schemas. It has two main views:
 ## 2. Visual Schema Editor
 
 ![XSD Editor V2](img/xsd-editor-v2-overview.png)
-***Screenshot: XSD Editor V2 graphical interface***
+***XSD Editor V2 graphical interface***
 
 The Visual Schema Editor is an advanced graphical editor for working with XSD files. It provides a complete visual editing experience.
 
@@ -52,7 +52,7 @@ The Visual Schema Editor is an advanced graphical editor for working with XSD fi
 ### Edit Schema Structure
 
 ![Schema Tree](img/xsd-editor-v2-tree.png)
-***Screenshot: Schema tree with elements and types***
+***Schema tree with elements and types***
 
 - Add, remove, and move elements
 - Edit element names, types, and properties
@@ -62,7 +62,7 @@ The Visual Schema Editor is an advanced graphical editor for working with XSD fi
 ### Edit Types
 
 ![Type Editor](img/xsd-editor-v2-types.png)
-***Screenshot: Type editor panel***
+***Type editor panel***
 
 - Create and edit SimpleTypes with facets (patterns, enumerations, etc.)
 - Create and edit ComplexTypes with sequences, choices, and attributes
@@ -71,7 +71,7 @@ The Visual Schema Editor is an advanced graphical editor for working with XSD fi
 ### Work with Properties
 
 ![Properties Panel](img/xsd-editor-v2-properties.png)
-***Screenshot: Properties panel***
+***Properties panel***
 
 - View and edit all properties of selected elements
 - Edit facets like patterns, lengths, and enumerations

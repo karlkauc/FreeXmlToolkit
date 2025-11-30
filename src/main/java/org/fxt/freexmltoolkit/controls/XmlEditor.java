@@ -86,6 +86,9 @@ public class XmlEditor extends Tab {
     // Cache for XSD documentation data to avoid reparsing
     private XsdDocumentationData xsdDocumentationData;
 
+    // Store original XML content for XPath queries (not modified by query results)
+    private String originalXmlForXPath;
+
     private MainController mainController;
 
     private PopOver hoverPopOver;
@@ -2198,6 +2201,29 @@ public class XmlEditor extends Tab {
         return xmlFile;
     }
 
+    /**
+     * Returns the original XML content for XPath queries.
+     * This is the content as loaded from the file, not modified by XPath query results.
+     * Falls back to current editor content if no original is stored.
+     *
+     * @return the original XML content, or current editor content as fallback
+     */
+    public String getOriginalXmlForXPath() {
+        if (originalXmlForXPath != null && !originalXmlForXPath.isEmpty()) {
+            return originalXmlForXPath;
+        }
+        // Fallback to current editor content (for new unsaved files)
+        return codeArea.getText();
+    }
+
+    /**
+     * Stores the current editor content as the original XML for XPath queries.
+     * Call this after user edits to update what XPath queries will run against.
+     */
+    public void updateOriginalXmlForXPath() {
+        originalXmlForXPath = codeArea.getText();
+    }
+
     public void setXmlFile(File xmlFile) {
         this.xmlFile = xmlFile;
         this.setText(xmlFile.getName());
@@ -2249,11 +2275,14 @@ public class XmlEditor extends Tab {
         if (xmlFile == null || !xmlFile.exists()) {
             codeArea.clear();
             document = null;
+            originalXmlForXPath = null;
             return;
         }
         try {
             final String content = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
             setEditorText(content);
+            // Store original XML for XPath queries
+            originalXmlForXPath = content;
 
             // Also initialize the DOM when loading a file
             if (!content.isEmpty()) {

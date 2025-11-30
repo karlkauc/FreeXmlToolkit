@@ -36,12 +36,6 @@
                 <HBox VBox.vgrow="NEVER" alignment="CENTER">
                     <Label styleClass="h1" text="Welcome to FreeXmlToolkit!"/>
                 </HBox>
-                <VBox spacing="5.0">
-                    <children>
-                        <Label fx:id="versionLabel" text="Version: loading..."/>
-                        <Label fx:id="durationLabel" text="Total usage time: loading..."/>
-                    </children>
-                </VBox>
                 <HBox fx:id="versionUpdate" managed="false" spacing="5.0" visible="false">
                     <children>
                         <Label text="An update is available! Please check here:"/>
@@ -60,67 +54,60 @@
 
                     <children>
                         <!-- Feature: Advanced XML Editor -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                              onMouseClicked="#openXmlEditor" style="-fx-cursor: hand;">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <FontIcon iconColor="#4f46e5" iconLiteral="bi-file-earmark-code" iconSize="24"/>
-                                    <Label styleClass="h3" text="Advanced XML Editor"/>
+                                    <Label styleClass="h3" text="XML Editor"/>
                                 </HBox>
-                                <Label text="Professional XML editing with IntelliSense auto-completion, XSD-aware suggestions, syntax highlighting, instant validation, and smart formatting."
+                                <Label text="Professional XML editing with IntelliSense auto-completion, XSD-aware suggestions, syntax highlighting, XPath/XQuery execution, and smart formatting."
                                        wrapText="true"/>
                             </children>
                         </VBox>
 
-                        <!-- Feature: XSD Documentation -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <!-- Feature: XSD Tools -->
+                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                              onMouseClicked="#openXsdTools" style="-fx-cursor: hand;">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#16a34a" iconLiteral="bi-book" iconSize="24"/>
-                                    <Label styleClass="h3" text="XSD Documentation Generator"/>
+                                    <FontIcon iconColor="#16a34a" iconLiteral="bi-diagram-3" iconSize="24"/>
+                                    <Label styleClass="h3" text="XSD Tools"/>
                                 </HBox>
-                                <Label text="Generate comprehensive HTML documentation from XSD schemas with interactive diagrams, element relationships, and detailed type information."
+                                <Label text="Visual XSD editor with drag-and-drop, HTML documentation generator, schema flattening, sample data generation, and interactive diagrams."
                                        wrapText="true"/>
                             </children>
                         </VBox>
 
-                        <!-- Feature: XPath & XQuery -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#ca8a04" iconLiteral="bi-search" iconSize="24"/>
-                                    <Label styleClass="h3" text="XPath &amp; XQuery Engine"/>
-                                </HBox>
-                                <Label text="Execute XPath expressions and XQuery statements with Saxon HE support, real-time results preview, and advanced query debugging capabilities."
-                                       wrapText="true"/>
-                            </children>
-                        </VBox>
-
-                        <!-- Schema Validation -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <!-- Feature: Schematron Validation -->
+                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                              onMouseClicked="#openSchematron" style="-fx-cursor: hand;">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <FontIcon iconColor="#be185d" iconLiteral="bi-shield-check" iconSize="24"/>
-                                    <Label styleClass="h3" text="Multi-Schema Validation"/>
+                                    <Label styleClass="h3" text="Schematron Validation"/>
                                 </HBox>
-                                <Label text="Validate XML against XSD schemas and Schematron rules with detailed error reporting, line-by-line feedback, and validation rule customization."
+                                <Label text="Validate XML using Schematron business rules with detailed error reporting, custom assertions, and advanced constraint validation beyond XSD."
                                        wrapText="true"/>
                             </children>
                         </VBox>
 
-                        <!-- XSLT Transformation -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                        <!-- XSLT Developer -->
+                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                              onMouseClicked="#openXsltDeveloper" style="-fx-cursor: hand;">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <FontIcon iconColor="#0284c7" iconLiteral="bi-arrow-repeat" iconSize="24"/>
-                                    <Label styleClass="h3" text="XSLT 3.0 Transformation"/>
+                                    <Label styleClass="h3" text="XSLT 3.0 Developer"/>
                                 </HBox>
-                                <Label text="Transform XML documents with XSLT 3.0 support, live preview, multiple output formats, and integrated development environment for stylesheets."
+                                <Label text="Transform XML documents with XSLT 3.0 support powered by Saxon HE, live preview, multiple output formats (HTML, XML, Text), and integrated debugging."
                                        wrapText="true"/>
                             </children>
                         </VBox>
 
                         <!-- FOP Processing -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                              onMouseClicked="#openFop" style="-fx-cursor: hand;">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <FontIcon iconColor="#ea580c" iconLiteral="bi-file-earmark-text" iconSize="24"/>
@@ -132,7 +119,8 @@
                         </VBox>
 
                         <!-- XML Digital Signature -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                              onMouseClicked="#openSignature" style="-fx-cursor: hand;">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <FontIcon iconColor="#7e22ce" iconLiteral="bi-patch-check-fill" iconSize="24"/>
@@ -143,39 +131,56 @@
                             </children>
                         </VBox>
 
-                        <!-- Template System -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                        <!-- Schema Generator -->
+                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                              onMouseClicked="#openSchemaGenerator" style="-fx-cursor: hand;">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#059669" iconLiteral="bi-files" iconSize="24"/>
-                                    <Label styleClass="h3" text="Smart Template System"/>
+                                    <FontIcon iconColor="#059669" iconLiteral="bi-stars" iconSize="24"/>
+                                    <Label styleClass="h3" text="Schema Generator"/>
                                 </HBox>
-                                <Label text="Create and manage reusable XML templates with parameter substitution, validation rules, and quick generation of structured documents."
+                                <Label text="Automatically generate XSD schemas from XML sample files with intelligent type detection, structure analysis, and customizable output options."
+                                       wrapText="true"/>
+                            </children>
+                        </VBox>
+
+                        <!-- Help & Documentation -->
+                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                              onMouseClicked="#openHelp" style="-fx-cursor: hand;">
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                    <FontIcon iconColor="#6366f1" iconLiteral="bi-question-circle" iconSize="24"/>
+                                    <Label styleClass="h3" text="Help &amp; Documentation"/>
+                                </HBox>
+                                <Label text="Comprehensive user guide, keyboard shortcuts reference, tips and tricks, and links to online resources for learning XML technologies."
                                        wrapText="true"/>
                             </children>
                         </VBox>
                     </children>
                 </GridPane>
-                <Separator/>
+                <!-- Spacer to push footer to bottom -->
+                <Region VBox.vgrow="ALWAYS"/>
 
-                <!-- Settings Area -->
-                <VBox spacing="10.0">
+                <!-- Footer with version and usage time -->
+                <Separator/>
+                <HBox alignment="CENTER" spacing="30.0" style="-fx-padding: 10 0 0 0;">
                     <children>
-                        <Label styleClass="h3" text="Settings"/>
                         <HBox alignment="CENTER_LEFT" spacing="5.0">
                             <children>
-                                <Label text="Send usage statistics:"/>
-                                <CheckBox fx:id="sendUsageStatistics" mnemonicParsing="false"/>
+                                <FontIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
+                                <Label fx:id="versionLabel" text="Version: loading..."
+                                       style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
                             </children>
                         </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                        <HBox alignment="CENTER_LEFT" spacing="5.0">
                             <children>
-                                <Label text="Local Cache:"/>
-                                <Button mnemonicParsing="false" text="Clear Cache"/>
+                                <FontIcon iconLiteral="bi-clock" iconSize="14" iconColor="#6c757d"/>
+                                <Label fx:id="durationLabel" text="Total usage time: loading..."
+                                       style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
                             </children>
                         </HBox>
                     </children>
-                </VBox>
+                </HBox>
             </children>
             <padding>
                 <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>

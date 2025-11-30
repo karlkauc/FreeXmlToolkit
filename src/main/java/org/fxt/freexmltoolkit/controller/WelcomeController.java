@@ -20,7 +20,6 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
@@ -33,7 +32,7 @@ import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 
-import java.awt.Desktop;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -54,8 +53,6 @@ public class WelcomeController {
     private AnchorPane rootPane;
     @FXML
     private HBox versionUpdate;
-    @FXML
-    private CheckBox sendUsageStatistics;
     @FXML
     private Label durationLabel, versionLabel;
     @FXML
@@ -187,6 +184,61 @@ public class WelcomeController {
             Desktop.getDesktop().browse(URI.create(latestVersionUrl));
         } catch (IOException e) {
             logger.error("Failed to open update page: {}", e.getMessage());
+        }
+    }
+
+    // Feature navigation methods - called from FXML
+
+    @FXML
+    private void openXmlEditor() {
+        navigateTo("xmlUltimate");
+    }
+
+    @FXML
+    private void openXsdTools() {
+        navigateTo("xsd");
+    }
+
+    @FXML
+    private void openSchematron() {
+        navigateTo("schematron");
+    }
+
+    @FXML
+    private void openXsltDeveloper() {
+        navigateTo("xsltDeveloper");
+    }
+
+    @FXML
+    private void openFop() {
+        navigateTo("fop");
+    }
+
+    @FXML
+    private void openSignature() {
+        navigateTo("signature");
+    }
+
+    @FXML
+    private void openSchemaGenerator() {
+        navigateTo("schemaGenerator");
+    }
+
+    @FXML
+    private void openHelp() {
+        navigateTo("help");
+    }
+
+    /**
+     * Navigates to a page using the parent controller.
+     *
+     * @param pageId the page ID to navigate to
+     */
+    private void navigateTo(String pageId) {
+        if (parentController != null) {
+            parentController.navigateToPage(pageId);
+        } else {
+            logger.warn("Cannot navigate: parentController is null");
         }
     }
 
