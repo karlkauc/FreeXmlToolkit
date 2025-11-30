@@ -189,52 +189,49 @@ public class FindReplaceDialog extends Dialog<Void> {
 
         getDialogPane().getButtonTypes().addAll(findPrevButtonType, findButtonType, replaceButtonType, replaceAllButtonType, closeButtonType);
 
-        // Configure Find Previous button
+        // Configure Find Previous button - use addEventFilter to prevent dialog from closing
         final Button findPrevButton = (Button) getDialogPane().lookupButton(findPrevButtonType);
-        findPrevButton.setOnAction(e -> {
+        findPrevButton.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
             findPrevious();
-            e.consume(); // Prevent dialog from closing
+            e.consume(); // Consume event BEFORE dialog processes it
         });
         findPrevButton.setDisable(true);
         findPrevButton.getStyleClass().addAll("btn-primary");
         addButtonIcon(findPrevButton, "/img/previous.png");
         findField.textProperty().addListener((obs, old, text) -> findPrevButton.setDisable(text.isEmpty()));
 
-        // Configure Find Next button
+        // Configure Find Next button - use addEventFilter to prevent dialog from closing
         final Button findButton = (Button) getDialogPane().lookupButton(findButtonType);
-        findButton.setOnAction(e -> {
+        findButton.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
             findNext();
-            e.consume(); // Prevent dialog from closing
+            e.consume(); // Consume event BEFORE dialog processes it
         });
         findButton.setDisable(true);
         findButton.getStyleClass().addAll("btn-primary");
         addButtonIcon(findButton, "/img/next.png");
         findField.textProperty().addListener((obs, old, text) -> findButton.setDisable(text.isEmpty()));
 
-        // Configure Replace button
+        // Configure Replace button - use addEventFilter to prevent dialog from closing
         final Button replaceButton = (Button) getDialogPane().lookupButton(replaceButtonType);
-        replaceButton.setOnAction(e -> {
+        replaceButton.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
             replace();
-            e.consume(); // Prevent dialog from closing
+            e.consume(); // Consume event BEFORE dialog processes it
         });
         replaceButton.getStyleClass().addAll("btn-info");
         addButtonIcon(replaceButton, "/img/icons8-aktualisieren-48.png");
 
-        // Configure Replace All button
+        // Configure Replace All button - use addEventFilter to prevent dialog from closing
         final Button replaceAllButton = (Button) getDialogPane().lookupButton(replaceAllButtonType);
-        replaceAllButton.setOnAction(e -> {
+        replaceAllButton.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
             replaceAll();
-            e.consume(); // Prevent dialog from closing
+            e.consume(); // Consume event BEFORE dialog processes it
         });
         replaceAllButton.getStyleClass().addAll("btn-warning");
         addButtonIcon(replaceAllButton, "/img/icons8-aktualisieren-48.png");
-        
-        // Configure Close button
+
+        // Configure Close button - this one SHOULD close the dialog
         final Button closeButton = (Button) getDialogPane().lookupButton(closeButtonType);
-        closeButton.setOnAction(e -> {
-            close(); // Explicitly close the dialog
-            e.consume();
-        });
+        // Don't add event filter here - let the default close behavior work
         closeButton.getStyleClass().addAll("btn-secondary");
         addButtonIcon(closeButton, "/img/icons8-stornieren-48.png");
     }
