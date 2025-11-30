@@ -4064,10 +4064,12 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private void handleToolbarFind() {
         logger.info("Toolbar: Find clicked");
-        // Show find/replace dialog for current tab
-        if (tabPane.getSelectionModel().getSelectedItem() == textTab) {
-            showFindReplaceDialog();
+        // Show find/replace dialog - always works on text editor
+        // If not on text tab, switch to it first
+        if (tabPane.getSelectionModel().getSelectedItem() != textTab) {
+            tabPane.getSelectionModel().select(textTab);
         }
+        showFindReplaceDialog();
     }
 
     @FXML

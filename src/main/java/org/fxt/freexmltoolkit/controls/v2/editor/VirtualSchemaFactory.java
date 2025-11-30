@@ -68,6 +68,25 @@ public class VirtualSchemaFactory {
         rootElement.setMinOccurs(1);
         rootElement.setMaxOccurs(1);
 
+        // Copy documentation from ComplexType to root element so it displays in properties panel
+        if (complexType.getDocumentation() != null) {
+            rootElement.setDocumentation(complexType.getDocumentation());
+            logger.debug("Copied documentation from ComplexType to root element: '{}'",
+                    complexType.getDocumentation().substring(0, Math.min(50, complexType.getDocumentation().length())));
+        }
+        // Copy all documentations list if present
+        if (complexType.hasDocumentations()) {
+            for (var doc : complexType.getDocumentations()) {
+                rootElement.addDocumentation(doc);
+            }
+            logger.debug("Copied {} documentations from ComplexType to root element", complexType.getDocumentations().size());
+        }
+        // Copy appinfo if present
+        if (complexType.getAppinfo() != null) {
+            rootElement.setAppinfo(complexType.getAppinfo());
+            logger.debug("Copied appinfo from ComplexType to root element");
+        }
+
         // 3. Add root element to schema
         virtualSchema.addChild(rootElement);
         logger.debug("Added root element '{}' to virtual schema", typeName);
@@ -137,6 +156,38 @@ public class VirtualSchemaFactory {
             // Note: Attributes are stored as XsdAttribute children in the structure
             // They are already included in the children merge above
 
+            // 4. Merge documentation from root element back to ComplexType
+            // The root element holds the editable documentation in the type editor
+            XsdElement rootElement = extractRootElementFromVirtualSchema(virtualSchema, typeName);
+            if (rootElement != null) {
+                // Sync documentation from root element to ComplexType
+                String rootDoc = rootElement.getDocumentation();
+                if (rootDoc != null && !rootDoc.isEmpty()) {
+                    originalType.setDocumentation(rootDoc);
+                    logger.debug("Synced documentation from root element to ComplexType: '{}'",
+                            rootDoc.substring(0, Math.min(50, rootDoc.length())));
+                } else if (rootDoc == null || rootDoc.isEmpty()) {
+                    // If documentation was cleared, clear it on the type too
+                    originalType.setDocumentation(null);
+                }
+
+                // Sync documentations list
+                originalType.getDocumentations().clear();
+                if (rootElement.hasDocumentations()) {
+                    for (var doc : rootElement.getDocumentations()) {
+                        originalType.addDocumentation(doc);
+                    }
+                    logger.debug("Synced {} documentations from root element to ComplexType",
+                            rootElement.getDocumentations().size());
+                }
+
+                // Sync appinfo
+                if (rootElement.getAppinfo() != null) {
+                    originalType.setAppinfo(rootElement.getAppinfo());
+                    logger.debug("Synced appinfo from root element to ComplexType");
+                }
+            }
+
             // 5. Note: Property change events are automatically fired by the individual setters
             // No need to manually fire a schema-level event here
 
@@ -146,6 +197,34 @@ public class VirtualSchemaFactory {
             logger.error("Error merging changes for ComplexType: {}", typeName, e);
             throw new RuntimeException("Failed to merge changes: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Extracts the root element from a virtual schema.
+     * <p>
+     * The root element is the first XsdElement child of the virtual schema.
+     *
+     * @param virtualSchema the virtual schema
+     * @param typeName      the expected name of the root element (for validation)
+     * @return the root element, or null if not found
+     */
+    private static XsdElement extractRootElementFromVirtualSchema(XsdSchema virtualSchema, String typeName) {
+        if (virtualSchema == null) {
+            return null;
+        }
+
+        // The root element is typically the first element in the virtual schema
+        for (XsdNode child : virtualSchema.getChildren()) {
+            if (child instanceof XsdElement element) {
+                if (typeName.equals(element.getName())) {
+                    logger.debug("Found root element '{}' in virtual schema", typeName);
+                    return element;
+                }
+            }
+        }
+
+        logger.warn("Root element '{}' not found in virtual schema", typeName);
+        return null;
     }
 
     /**
