@@ -19,7 +19,7 @@ The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and
 ### Opening and Saving Files
 
 ![File Operations](img/xml-editor-file-operations.png)
-*Screenshot placeholder: File toolbar with Open, Save, and New buttons*
+* File toolbar with Open, Save, and New buttons*
 
 - **Open Files**: Click the "Open" button or use `Ctrl+O` to browse for XML files
 - **Save Files**: Click "Save" or use `Ctrl+S` to save your changes
@@ -50,31 +50,31 @@ The text editor provides:
 - **Code Folding**: Click the arrows next to elements to collapse or expand sections
 - **Auto-Completion**: Type `<` to see suggestions for valid elements
 
+### Tree View
+
+![Tree View](img/xml-editor-tree-view.png)
+*Tree view showing XML structure*
+
+- See your XML document as a hierarchical tree
+- Drag and drop elements to reorganize the structure
+- Right-click for context menu options
+
 ### Grid Mode
 
 ![Grid Mode Editing](img/xml-editor-grid-mode.png)
-*Screenshot placeholder: Grid editor showing table-like XML editing*
+*Grid editor showing table-like XML editing*
 
 The grid editor provides:
 - **Table View**: Edit XML data in a spreadsheet-like interface
 - **Direct Cell Editing**: Click cells to edit values directly
 - **Easy Navigation**: Move through the document using arrow keys
 
-### Tree View
-
-![Tree View](img/xml-editor-tree-view.png)
-*Screenshot placeholder: Tree view showing XML structure*
-
-- See your XML document as a hierarchical tree
-- Drag and drop elements to reorganize the structure
-- Right-click for context menu options
-
 ---
 
 ## Auto-Completion (IntelliSense)
 
 ![Auto-Completion](img/xml-editor-intellisense.png)
-*Screenshot placeholder: Auto-completion popup showing element suggestions*
+*Auto-completion popup showing element suggestions*
 
 The editor automatically suggests valid elements and attributes based on your XSD schema:
 
@@ -93,21 +93,19 @@ Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 
 ### Pretty Print
 
-![Pretty Print](img/xml-editor-pretty-print.png)
-*Screenshot placeholder: Before and after pretty print*
+![Pretty Print](img/xml-editor-pretty-print-before.png)
+*Before pretty print*
 
 Click "Pretty Print" to format your XML with proper indentation. This makes messy or compressed XML easy to read.
-
-### Minify
-
-Click "Minify" to compress your XML into a single line by removing whitespace. This is useful for reducing file size.
+![Pretty Print](img/xml-editor-pretty-print-after.png)
+*After pretty print*
 
 ---
 
 ## Validation
 
 ![Validation Results](img/xml-editor-validation.png)
-*Screenshot placeholder: Validation panel showing errors and warnings*
+*Validation panel showing errors and warnings*
 
 ### How to Validate
 

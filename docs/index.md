@@ -7,7 +7,7 @@
 FreeXmlToolkit is a free desktop application for working with XML files. It helps you edit, validate, transform, and secure your XML documents - all in one place.
 
 ![FreeXmlToolkit Main Window](img/main-window.png)
-*Screenshot placeholder: Main application window*
+***Screenshot: Main application window***
 
 ### What Can You Do With FreeXmlToolkit?
 
@@ -195,19 +195,11 @@ The application includes example files in the `examples/` folder to help you get
 | [Template Management](template-management.md) | Reusable code snippets |
 | [Schema Support](schema-support.md) | Supported schema formats |
 
-### Advanced Topics
-
-| Page | Description |
-|------|-------------|
-| [XSD Editor V2](XSD_EDITOR_V2_README.md) | Advanced graphical schema editor |
-| [XSD Editor Roadmap](XSD_EDITOR_V2_ROADMAP.md) | Planned features |
-
 ### Reference
 
 | Page | Description |
 |------|-------------|
 | [Technology Stack](technology-stack.md) | Libraries and versions used |
-| [Thread Pool Architecture](ThreadPoolArchitecture.md) | Technical background |
 | [Third-Party Licenses](licenses.md) | License information |
 
 ---
@@ -226,4 +218,4 @@ The application includes example files in the `examples/` folder to help you get
 
 **Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
 
-**Reference:** [XSD Editor V2](XSD_EDITOR_V2_README.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**Reference:** [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

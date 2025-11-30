@@ -135,6 +135,6 @@ All licenses are compatible with the Apache License 2.0 under which FreeXmlToolk
 
 | Previous | Home | Next |
 |----------|------|------|
-| [Technology Stack](technology-stack.md) | [Home](index.md) | [XSD Editor V2](XSD_EDITOR_V2_README.md) |
+| [Technology Stack](technology-stack.md) | [Home](index.md) | [Home](index.md) |
 
 **All Pages:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [FOP/PDF](fop-controller.md) | [Signatures](signature-controller.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

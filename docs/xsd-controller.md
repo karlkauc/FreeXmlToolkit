@@ -6,7 +6,7 @@ This part of the application provides tools for working with XML Schemas (XSD). 
 
 ---
 
-## 1. XSD Viewer
+## 1. XSD Viewer & Editor
 
 The XSD Viewer lets you explore and edit your schemas. It has two main views:
 
@@ -23,7 +23,7 @@ The XSD Viewer lets you explore and edit your schemas. It has two main views:
 ### Text View
 
 ![XSD Text View](img/xsd-editor-text.png)
-*Screenshot placeholder: XSD code editor with syntax highlighting*
+***Screenshot: XSD code editor with syntax highlighting***
 
 - **Full Code Editor**: View and edit the raw XSD source code
 - **Syntax Highlighting**: Color-coded code for easy reading
@@ -32,7 +32,82 @@ The XSD Viewer lets you explore and edit your schemas. It has two main views:
 
 ---
 
-## 2. Documentation Generator
+## 2. Visual Schema Editor
+
+![XSD Editor V2](img/xsd-editor-v2-overview.png)
+***Screenshot: XSD Editor V2 graphical interface***
+
+The Visual Schema Editor is an advanced graphical editor for working with XSD files. It provides a complete visual editing experience.
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Visual Editing** | See your schema as an interactive tree |
+| **Full Undo/Redo** | Go back and forward through your changes |
+| **Type Editing** | Edit SimpleTypes and ComplexTypes graphically |
+| **Drag & Drop** | Reorganize elements by dragging them |
+| **XSD 1.0 and 1.1** | All XSD features are supported |
+
+### Edit Schema Structure
+
+![Schema Tree](img/xsd-editor-v2-tree.png)
+***Screenshot: Schema tree with elements and types***
+
+- Add, remove, and move elements
+- Edit element names, types, and properties
+- Set cardinality (minOccurs, maxOccurs)
+- Drag and drop to reorganize
+
+### Edit Types
+
+![Type Editor](img/xsd-editor-v2-types.png)
+***Screenshot: Type editor panel***
+
+- Create and edit SimpleTypes with facets (patterns, enumerations, etc.)
+- Create and edit ComplexTypes with sequences, choices, and attributes
+- See the type hierarchy
+
+### Work with Properties
+
+![Properties Panel](img/xsd-editor-v2-properties.png)
+***Screenshot: Properties panel***
+
+- View and edit all properties of selected elements
+- Edit facets like patterns, lengths, and enumerations
+- Add documentation to your schema
+
+### How to Use the Visual Editor
+
+1. Go to the **XSD** tab
+2. Open your XSD file
+3. The schema appears as an interactive tree
+4. **Select** an element by clicking on it
+5. **Edit properties** in the panel on the right
+6. **Add children** using the context menu (right-click)
+7. **Drag** elements to move them
+
+### Supported XSD Features
+
+| Category | Features |
+|----------|----------|
+| **Elements** | Elements, Attributes, Groups |
+| **Types** | ComplexTypes, SimpleTypes |
+| **Compositors** | Sequence, Choice, All |
+| **Constraints** | Patterns, Enumerations, Length limits |
+| **References** | Import, Include |
+| **XSD 1.1** | Assertions, Alternatives |
+
+### Tips
+
+- **Double-click** an element to edit its name
+- **Right-click** for a context menu with common actions
+- **Ctrl+Z** to undo, **Ctrl+Y** to redo
+- **Ctrl+S** to save (a backup is created automatically)
+
+---
+
+## 3. Documentation Generator
 
 ![Documentation Generator](img/xsd-documentation.png)
 *Generated HTML documentation from an XSD schema*
@@ -86,10 +161,10 @@ You can add structured technical information directly in your XSD files. This in
 
 ---
 
-## 3. Sample XML Generator
+## 4. Sample XML Generator
 
 ![Sample XML Generator](img/xsd-sample-generator.png)
-*Screenshot placeholder: Sample XML generator panel*
+***Screenshot: Sample XML generator panel***
 
 Create sample XML files based on your XSD schema. This is useful for testing or as a template.
 
@@ -105,10 +180,10 @@ Create sample XML files based on your XSD schema. This is useful for testing or 
 
 ---
 
-## 4. XSD Flattener
+## 5. XSD Flattener
 
 ![XSD Flattener](img/xsd-flattener.png)
-*Screenshot placeholder: Flattener tool with before/after view*
+***Screenshot: Flattener tool with before/after view***
 
 Combine multiple XSD files into a single file. Useful when your schema imports other schemas.
 
@@ -118,6 +193,18 @@ Combine multiple XSD files into a single file. Useful when your schema imports o
 2. Choose where to save the new file
 3. Click "Flatten"
 4. The tool merges all imported schemas into one file
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+S` | Save file |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Delete` | Delete selected element |
+| `F2` | Rename element |
 
 ---
 
