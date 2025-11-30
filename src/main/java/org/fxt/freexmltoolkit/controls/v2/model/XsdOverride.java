@@ -137,8 +137,8 @@ public class XsdOverride extends XsdNode {
             copy.setName(getName() + suffix);
         }
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

@@ -19,6 +19,7 @@ public class XsdElement extends XsdNode {
     private String defaultValue;
     private String substitutionGroup;
     private String form; // qualified, unqualified
+    private String block; // extension, restriction, substitution, #all
 
     // XSD constraints
     private final List<String> patterns = new ArrayList<>();
@@ -204,6 +205,27 @@ public class XsdElement extends XsdNode {
     }
 
     /**
+     * Gets the block attribute.
+     * Controls substitution group blocking.
+     *
+     * @return the block value (extension, restriction, substitution, #all), or null
+     */
+    public String getBlock() {
+        return block;
+    }
+
+    /**
+     * Sets the block attribute.
+     *
+     * @param block the block value (extension, restriction, substitution, #all)
+     */
+    public void setBlock(String block) {
+        String oldValue = this.block;
+        this.block = block;
+        pcs.firePropertyChange("block", oldValue, block);
+    }
+
+    /**
      * Gets an unmodifiable list of regex patterns.
      *
      * @return the patterns list
@@ -363,12 +385,14 @@ public class XsdElement extends XsdNode {
 
         // Copy XsdElement-specific properties
         copy.setType(this.type);
+        copy.setRef(this.ref);
         copy.setNillable(this.nillable);
         copy.setAbstract(this.abstractElement);
         copy.setFixed(this.fixed);
         copy.setDefaultValue(this.defaultValue);
         copy.setSubstitutionGroup(this.substitutionGroup);
         copy.setForm(this.form);
+        copy.setBlock(this.block);
 
         // Copy constraint lists
         for (String pattern : this.patterns) {
@@ -381,8 +405,8 @@ public class XsdElement extends XsdNode {
             copy.addAssertion(assertion);
         }
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

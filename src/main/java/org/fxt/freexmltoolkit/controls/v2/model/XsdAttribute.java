@@ -12,6 +12,7 @@ public class XsdAttribute extends XsdNode {
     private String fixed;
     private String defaultValue;
     private String form; // qualified, unqualified
+    private String ref; // reference to a global attribute
 
     /**
      * Creates a new XSD attribute.
@@ -123,6 +124,28 @@ public class XsdAttribute extends XsdNode {
         pcs.firePropertyChange("form", oldValue, form);
     }
 
+    /**
+     * Gets the attribute reference (ref attribute).
+     * When set, this attribute references a global attribute definition.
+     *
+     * @return the attribute reference, or null
+     */
+    public String getRef() {
+        return ref;
+    }
+
+    /**
+     * Sets the attribute reference (ref attribute).
+     * When set, this attribute references a global attribute definition.
+     *
+     * @param ref the attribute reference
+     */
+    public void setRef(String ref) {
+        String oldValue = this.ref;
+        this.ref = ref;
+        pcs.firePropertyChange("ref", oldValue, ref);
+    }
+
     @Override
     public XsdNodeType getNodeType() {
         return XsdNodeType.ATTRIBUTE;
@@ -139,9 +162,10 @@ public class XsdAttribute extends XsdNode {
         copy.setFixed(this.fixed);
         copy.setDefaultValue(this.defaultValue);
         copy.setForm(this.form);
+        copy.setRef(this.ref);
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

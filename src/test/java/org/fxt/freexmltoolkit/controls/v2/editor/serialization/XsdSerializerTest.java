@@ -192,7 +192,8 @@ class XsdSerializerTest {
         assertNotNull(xml);
         assertTrue(xml.contains("<xs:attributeGroup name=\"CommonAttributes\">"), "Should contain attributeGroup start tag");
         assertTrue(xml.contains("<xs:attribute name=\"id\" type=\"xs:string\" use=\"required\"/>"), "Should contain id attribute");
-        assertTrue(xml.contains("<xs:attribute name=\"version\" type=\"xs:string\" use=\"optional\"/>"), "Should contain version attribute");
+        // Note: use="optional" is the default and should NOT be serialized
+        assertTrue(xml.contains("<xs:attribute name=\"version\" type=\"xs:string\"/>"), "Should contain version attribute without use=optional");
         assertTrue(xml.contains("</xs:attributeGroup>"), "Should contain attributeGroup end tag");
     }
 
@@ -217,8 +218,9 @@ class XsdSerializerTest {
 
         assertNotNull(xml);
         assertTrue(xml.contains("<xs:attributeGroup name=\"MetadataAttributes\">"));
-        assertTrue(xml.contains("<xs:attribute name=\"created\" type=\"xs:dateTime\" use=\"optional\"/>"));
-        assertTrue(xml.contains("<xs:attribute name=\"createdBy\" type=\"xs:string\" use=\"optional\"/>"));
+        // Note: use="optional" is the default and should NOT be serialized
+        assertTrue(xml.contains("<xs:attribute name=\"created\" type=\"xs:dateTime\"/>"));
+        assertTrue(xml.contains("<xs:attribute name=\"createdBy\" type=\"xs:string\"/>"));
         assertTrue(xml.contains("</xs:attributeGroup>"));
     }
 
@@ -1274,8 +1276,11 @@ class XsdSerializerTest {
 
         assertNotNull(xml);
         assertTrue(xml.contains("<xs:redefine schemaLocation=\"base.xsd\">"));
-        assertTrue(xml.contains("<xs:complexType name=\"Type1\">"));
-        assertTrue(xml.contains("<xs:simpleType name=\"Type2\">"));
+        // Accept both self-closing (empty) and opening tag formats
+        assertTrue(xml.contains("<xs:complexType name=\"Type1\""),
+                "Should contain complexType Type1 (either self-closing or opening tag)");
+        assertTrue(xml.contains("<xs:simpleType name=\"Type2\""),
+                "Should contain simpleType Type2 (either self-closing or opening tag)");
         assertTrue(xml.contains("</xs:redefine>"));
     }
 
@@ -1919,10 +1924,13 @@ class XsdSerializerTest {
         String xml = serializer.serialize(schema);
 
         assertNotNull(xml);
-        // TODO: Serializer doesn't support mixed attribute yet
-        assertTrue(xml.contains("<xs:complexType name=\"MixedType\">"));
+        // Serializer now supports mixed attribute - verify mixed="true" is present
+        assertTrue(xml.contains("<xs:complexType name=\"MixedType\" mixed=\"true\">"),
+                "ComplexType should include mixed=\"true\" attribute");
         assertTrue(xml.contains("<xs:attribute name=\"lang\" type=\"xs:string\" use=\"required\"/>"));
-        assertTrue(xml.contains("<xs:attribute name=\"style\" type=\"xs:string\" use=\"optional\"/>"));
+        // use="optional" is the default value and should not be serialized
+        assertTrue(xml.contains("<xs:attribute name=\"style\" type=\"xs:string\"/>"),
+                "Attribute with default use=optional should not include use attribute");
     }
 
     @Test

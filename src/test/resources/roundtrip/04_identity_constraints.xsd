@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Test Schema 4: Identity Constraints
+    Tests: xs:key, xs:keyref, xs:unique, xs:selector, xs:field
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://test.example.com/identity"
+           targetNamespace="http://test.example.com/identity"
+           elementFormDefault="qualified"
+           version="4.0">
+
+    <xs:annotation>
+        <xs:documentation>Test schema for identity constraints (key, keyref, unique)</xs:documentation>
+    </xs:annotation>
+
+    <!-- Simple key constraint -->
+    <xs:element name="Catalog">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Product" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="name" type="xs:string"/>
+                            <xs:element name="price" type="xs:decimal"/>
+                            <xs:element name="category" type="xs:string"/>
+                        </xs:sequence>
+                        <xs:attribute name="id" type="xs:string" use="required"/>
+                        <xs:attribute name="sku" type="xs:string" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+
+        <!-- Simple key on attribute -->
+        <xs:key name="productIdKey">
+            <xs:selector xpath="tns:Product"/>
+            <xs:field xpath="@id"/>
+        </xs:key>
+
+        <!-- Key on another attribute -->
+        <xs:key name="skuKey">
+            <xs:selector xpath="tns:Product"/>
+            <xs:field xpath="@sku"/>
+        </xs:key>
+
+        <!-- Unique on element content -->
+        <xs:unique name="uniqueProductName">
+            <xs:selector xpath="tns:Product"/>
+            <xs:field xpath="tns:name"/>
+        </xs:unique>
+    </xs:element>
+
+    <!-- Composite key constraint -->
+    <xs:element name="OrderDatabase">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Customer" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="name" type="xs:string"/>
+                            <xs:element name="email" type="xs:string"/>
+                        </xs:sequence>
+                        <xs:attribute name="customerId" type="xs:string" use="required"/>
+                        <xs:attribute name="region" type="xs:string" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="Order" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="date" type="xs:date"/>
+                            <xs:element name="total" type="xs:decimal"/>
+                            <xs:element name="customerRef" type="xs:string"/>
+                            <xs:element name="regionRef" type="xs:string"/>
+                        </xs:sequence>
+                        <xs:attribute name="orderId" type="xs:string" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+
+        <!-- Composite key (multiple fields) -->
+        <xs:key name="customerCompositeKey">
+            <xs:annotation>
+                <xs:documentation>Composite key using customerId and region</xs:documentation>
+            </xs:annotation>
+            <xs:selector xpath="tns:Customer"/>
+            <xs:field xpath="@customerId"/>
+            <xs:field xpath="@region"/>
+        </xs:key>
+
+        <!-- Keyref to composite key -->
+        <xs:keyref name="orderCustomerRef" refer="tns:customerCompositeKey">
+            <xs:selector xpath="tns:Order"/>
+            <xs:field xpath="tns:customerRef"/>
+            <xs:field xpath="tns:regionRef"/>
+        </xs:keyref>
+
+        <!-- Simple key on order -->
+        <xs:key name="orderKey">
+            <xs:selector xpath="tns:Order"/>
+            <xs:field xpath="@orderId"/>
+        </xs:key>
+    </xs:element>
+
+    <!-- Nested keys and unique constraints -->
+    <xs:element name="Department">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="deptCode" type="xs:string"/>
+                <xs:element name="deptName" type="xs:string"/>
+                <xs:element name="Employee" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="empId" type="xs:string"/>
+                            <xs:element name="firstName" type="xs:string"/>
+                            <xs:element name="lastName" type="xs:string"/>
+                            <xs:element name="Project" minOccurs="0" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="projectCode" type="xs:string"/>
+                                        <xs:element name="role" type="xs:string"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+
+                    <!-- Key at nested level -->
+                    <xs:key name="projectKey">
+                        <xs:selector xpath="tns:Project"/>
+                        <xs:field xpath="tns:projectCode"/>
+                    </xs:key>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+
+        <!-- Key at parent level -->
+        <xs:key name="employeeKey">
+            <xs:selector xpath="tns:Employee"/>
+            <xs:field xpath="tns:empId"/>
+        </xs:key>
+
+        <!-- Unique constraint with complex XPath -->
+        <xs:unique name="uniqueFullName">
+            <xs:selector xpath="tns:Employee"/>
+            <xs:field xpath="tns:firstName"/>
+            <xs:field xpath="tns:lastName"/>
+        </xs:unique>
+    </xs:element>
+
+    <!-- KeyRef example with nested elements -->
+    <xs:element name="Library">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Books">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Book" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="title" type="xs:string"/>
+                                        <xs:element name="isbn" type="xs:string"/>
+                                        <xs:element name="authorId" type="xs:string"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="Authors">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Author" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="id" type="xs:string"/>
+                                        <xs:element name="name" type="xs:string"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="Loans">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Loan" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="bookIsbn" type="xs:string"/>
+                                        <xs:element name="borrowerName" type="xs:string"/>
+                                        <xs:element name="loanDate" type="xs:date"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+
+        <!-- Key on ISBN -->
+        <xs:key name="bookIsbnKey">
+            <xs:selector xpath="tns:Books/tns:Book"/>
+            <xs:field xpath="tns:isbn"/>
+        </xs:key>
+
+        <!-- Key on author ID -->
+        <xs:key name="authorIdKey">
+            <xs:selector xpath="tns:Authors/tns:Author"/>
+            <xs:field xpath="tns:id"/>
+        </xs:key>
+
+        <!-- Keyref from book to author -->
+        <xs:keyref name="bookAuthorRef" refer="tns:authorIdKey">
+            <xs:selector xpath="tns:Books/tns:Book"/>
+            <xs:field xpath="tns:authorId"/>
+        </xs:keyref>
+
+        <!-- Keyref from loan to book -->
+        <xs:keyref name="loanBookRef" refer="tns:bookIsbnKey">
+            <xs:selector xpath="tns:Loans/tns:Loan"/>
+            <xs:field xpath="tns:bookIsbn"/>
+        </xs:keyref>
+
+        <!-- Unique title per author -->
+        <xs:unique name="uniqueTitlePerAuthor">
+            <xs:selector xpath="tns:Books/tns:Book"/>
+            <xs:field xpath="tns:title"/>
+            <xs:field xpath="tns:authorId"/>
+        </xs:unique>
+    </xs:element>
+
+    <!-- Multiple constraints on same element -->
+    <xs:element name="MultiConstraintElement">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Item" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="code" type="xs:string"/>
+                            <xs:element name="name" type="xs:string"/>
+                            <xs:element name="altCode" type="xs:string"/>
+                        </xs:sequence>
+                        <xs:attribute name="id" type="xs:ID"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+
+        <xs:key name="itemCodeKey">
+            <xs:selector xpath="tns:Item"/>
+            <xs:field xpath="tns:code"/>
+        </xs:key>
+
+        <xs:unique name="itemNameUnique">
+            <xs:selector xpath="tns:Item"/>
+            <xs:field xpath="tns:name"/>
+        </xs:unique>
+
+        <xs:unique name="itemAltCodeUnique">
+            <xs:selector xpath="tns:Item"/>
+            <xs:field xpath="tns:altCode"/>
+        </xs:unique>
+    </xs:element>
+
+</xs:schema>

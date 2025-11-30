@@ -9,6 +9,8 @@ public class XsdComplexType extends XsdNode {
 
     private boolean mixed;
     private boolean abstractType;
+    private String block; // extension, restriction, #all
+    private String finalValue; // extension, restriction, #all (cannot use 'final' as field name)
 
     /**
      * Creates a new XSD complex type.
@@ -57,6 +59,48 @@ public class XsdComplexType extends XsdNode {
         boolean oldValue = this.abstractType;
         this.abstractType = abstractType;
         pcs.firePropertyChange("abstract", oldValue, abstractType);
+    }
+
+    /**
+     * Gets the block attribute.
+     * Controls derivation blocking.
+     *
+     * @return the block value (extension, restriction, #all), or null
+     */
+    public String getBlock() {
+        return block;
+    }
+
+    /**
+     * Sets the block attribute.
+     *
+     * @param block the block value (extension, restriction, #all)
+     */
+    public void setBlock(String block) {
+        String oldValue = this.block;
+        this.block = block;
+        pcs.firePropertyChange("block", oldValue, block);
+    }
+
+    /**
+     * Gets the final attribute.
+     * Controls whether type can be further derived.
+     *
+     * @return the final value (extension, restriction, #all), or null
+     */
+    public String getFinal() {
+        return finalValue;
+    }
+
+    /**
+     * Sets the final attribute.
+     *
+     * @param finalValue the final value (extension, restriction, #all)
+     */
+    public void setFinal(String finalValue) {
+        String oldValue = this.finalValue;
+        this.finalValue = finalValue;
+        pcs.firePropertyChange("final", oldValue, finalValue);
     }
 
     /**
@@ -145,9 +189,11 @@ public class XsdComplexType extends XsdNode {
         // Copy XsdComplexType-specific properties
         copy.setMixed(this.mixed);
         copy.setAbstract(this.abstractType);
+        copy.setBlock(this.block);
+        copy.setFinal(this.finalValue);
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

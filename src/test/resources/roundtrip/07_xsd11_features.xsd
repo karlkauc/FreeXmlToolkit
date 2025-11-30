@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Test Schema 7: XSD 1.1 Features
+    Tests: xs:assert, xs:alternative, xs:openContent, xs:override, xs:defaultOpenContent
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://test.example.com/xsd11"
+           targetNamespace="http://test.example.com/xsd11"
+           elementFormDefault="qualified"
+           version="7.0"
+           xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+           vc:minVersion="1.1">
+
+    <xs:annotation>
+        <xs:documentation>Test schema for XSD 1.1 specific features</xs:documentation>
+    </xs:annotation>
+
+    <!-- Default open content for entire schema -->
+    <xs:defaultOpenContent mode="interleave">
+        <xs:any namespace="##other" processContents="lax"/>
+    </xs:defaultOpenContent>
+
+    <!-- Simple type with assertion (XSD 1.1) -->
+    <xs:simpleType name="PositiveEvenType">
+        <xs:restriction base="xs:integer">
+            <xs:minInclusive value="0"/>
+            <xs:assertion test="$value mod 2 = 0">
+                <xs:annotation>
+                    <xs:documentation>Value must be even</xs:documentation>
+                </xs:annotation>
+            </xs:assertion>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ValidEmailType">
+        <xs:restriction base="xs:string">
+            <xs:assertion test="contains($value, '@') and contains($value, '.')"/>
+            <xs:maxLength value="254"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- ComplexType with assertions -->
+    <xs:complexType name="DateRangeType">
+        <xs:sequence>
+            <xs:element name="startDate" type="xs:date"/>
+            <xs:element name="endDate" type="xs:date"/>
+        </xs:sequence>
+        <xs:assert test="xs:date(tns:endDate) >= xs:date(tns:startDate)">
+            <xs:annotation>
+                <xs:documentation>End date must be on or after start date</xs:documentation>
+            </xs:annotation>
+        </xs:assert>
+    </xs:complexType>
+
+    <xs:complexType name="PriceRangeType">
+        <xs:sequence>
+            <xs:element name="minPrice" type="xs:decimal"/>
+            <xs:element name="maxPrice" type="xs:decimal"/>
+            <xs:element name="currentPrice" type="xs:decimal"/>
+        </xs:sequence>
+        <xs:assert test="tns:minPrice &lt;= tns:currentPrice"/>
+        <xs:assert test="tns:currentPrice &lt;= tns:maxPrice"/>
+        <xs:assert test="tns:minPrice &lt;= tns:maxPrice"/>
+    </xs:complexType>
+
+    <!-- Multiple assertions on complex type -->
+    <xs:complexType name="OrderType">
+        <xs:sequence>
+            <xs:element name="quantity" type="xs:positiveInteger"/>
+            <xs:element name="unitPrice" type="xs:decimal"/>
+            <xs:element name="discount" type="xs:decimal" minOccurs="0"/>
+            <xs:element name="totalPrice" type="xs:decimal"/>
+        </xs:sequence>
+        <xs:assert test="if (tns:discount) then tns:totalPrice = tns:quantity * tns:unitPrice - tns:discount else tns:totalPrice = tns:quantity * tns:unitPrice">
+            <xs:annotation>
+                <xs:documentation>Total price must equal quantity * unitPrice - discount</xs:documentation>
+            </xs:annotation>
+        </xs:assert>
+        <xs:assert test="if (tns:discount) then tns:discount >= 0 and tns:discount &lt;= tns:quantity * tns:unitPrice else true()">
+            <xs:annotation>
+                <xs:documentation>Discount cannot exceed subtotal</xs:documentation>
+            </xs:annotation>
+        </xs:assert>
+    </xs:complexType>
+
+    <!-- Type alternatives (conditional type assignment) -->
+    <xs:element name="Payment">
+        <xs:alternative test="@type = 'credit'" type="tns:CreditCardPaymentType"/>
+        <xs:alternative test="@type = 'debit'" type="tns:DebitCardPaymentType"/>
+        <xs:alternative test="@type = 'bank'" type="tns:BankTransferPaymentType"/>
+        <xs:alternative type="tns:GenericPaymentType"/>
+    </xs:element>
+
+    <xs:complexType name="GenericPaymentType">
+        <xs:sequence>
+            <xs:element name="amount" type="xs:decimal"/>
+            <xs:element name="currency" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute name="type" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="CreditCardPaymentType">
+        <xs:complexContent>
+            <xs:extension base="tns:GenericPaymentType">
+                <xs:sequence>
+                    <xs:element name="cardNumber" type="xs:string"/>
+                    <xs:element name="expiryDate" type="xs:gYearMonth"/>
+                    <xs:element name="cvv" type="xs:string"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="DebitCardPaymentType">
+        <xs:complexContent>
+            <xs:extension base="tns:GenericPaymentType">
+                <xs:sequence>
+                    <xs:element name="cardNumber" type="xs:string"/>
+                    <xs:element name="pin" type="xs:string"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="BankTransferPaymentType">
+        <xs:complexContent>
+            <xs:extension base="tns:GenericPaymentType">
+                <xs:sequence>
+                    <xs:element name="accountNumber" type="xs:string"/>
+                    <xs:element name="routingNumber" type="xs:string"/>
+                    <xs:element name="bankName" type="xs:string"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Alternative with XPath test -->
+    <xs:element name="Vehicle">
+        <xs:alternative test="@wheels = 2" type="tns:MotorcycleType"/>
+        <xs:alternative test="@wheels = 4" type="tns:CarType"/>
+        <xs:alternative test="@wheels > 4" type="tns:TruckType"/>
+        <xs:alternative type="tns:GenericVehicleType"/>
+    </xs:element>
+
+    <xs:complexType name="GenericVehicleType">
+        <xs:sequence>
+            <xs:element name="make" type="xs:string"/>
+            <xs:element name="model" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute name="wheels" type="xs:integer"/>
+    </xs:complexType>
+
+    <xs:complexType name="MotorcycleType">
+        <xs:complexContent>
+            <xs:extension base="tns:GenericVehicleType">
+                <xs:sequence>
+                    <xs:element name="engineCC" type="xs:positiveInteger"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="CarType">
+        <xs:complexContent>
+            <xs:extension base="tns:GenericVehicleType">
+                <xs:sequence>
+                    <xs:element name="doors" type="xs:positiveInteger"/>
+                    <xs:element name="fuelType" type="xs:string"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="TruckType">
+        <xs:complexContent>
+            <xs:extension base="tns:GenericVehicleType">
+                <xs:sequence>
+                    <xs:element name="payloadCapacity" type="xs:decimal"/>
+                    <xs:element name="axles" type="xs:positiveInteger"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Open content on specific type -->
+    <xs:complexType name="ExtensibleRecordType">
+        <xs:openContent mode="interleave">
+            <xs:any namespace="##other" processContents="lax"/>
+        </xs:openContent>
+        <xs:sequence>
+            <xs:element name="id" type="xs:string"/>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="SuffixOpenType">
+        <xs:openContent mode="suffix">
+            <xs:any namespace="##targetNamespace ##local" processContents="skip"/>
+        </xs:openContent>
+        <xs:sequence>
+            <xs:element name="knownElement" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="NoneOpenType">
+        <xs:openContent mode="none"/>
+        <xs:sequence>
+            <xs:element name="strictElement" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Override (XSD 1.1) -->
+    <xs:override schemaLocation="base-types.xsd">
+        <xs:simpleType name="OverriddenStringType">
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="100"/>
+            </xs:restriction>
+        </xs:simpleType>
+
+        <xs:complexType name="OverriddenRecordType">
+            <xs:sequence>
+                <xs:element name="overriddenField" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+
+        <xs:element name="OverriddenElement" type="tns:OverriddenRecordType"/>
+    </xs:override>
+
+    <!-- ExplicitTimezone facet (XSD 1.1) -->
+    <xs:simpleType name="RequiredTimezoneDateTime">
+        <xs:restriction base="xs:dateTime">
+            <xs:explicitTimezone value="required"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ProhibitedTimezoneDate">
+        <xs:restriction base="xs:date">
+            <xs:explicitTimezone value="prohibited"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="OptionalTimezoneTime">
+        <xs:restriction base="xs:time">
+            <xs:explicitTimezone value="optional"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Root element -->
+    <xs:element name="TestRoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="dateRange" type="tns:DateRangeType"/>
+                <xs:element name="priceRange" type="tns:PriceRangeType"/>
+                <xs:element name="order" type="tns:OrderType"/>
+                <xs:element ref="tns:Payment"/>
+                <xs:element ref="tns:Vehicle"/>
+                <xs:element name="extensible" type="tns:ExtensibleRecordType"/>
+                <xs:element name="evenNumber" type="tns:PositiveEvenType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

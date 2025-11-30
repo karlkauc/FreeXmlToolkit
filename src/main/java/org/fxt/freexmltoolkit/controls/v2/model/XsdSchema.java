@@ -1,6 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,7 +15,10 @@ public class XsdSchema extends XsdNode {
     private String targetNamespace;
     private String elementFormDefault = "qualified";
     private String attributeFormDefault = "unqualified";
+    private String version;
     private final Map<String, String> namespaces = new HashMap<>();
+    private final Map<String, String> additionalAttributes = new HashMap<>();
+    private final List<String> leadingComments = new ArrayList<>();
 
     /**
      * Creates a new XSD schema.
@@ -82,6 +87,81 @@ public class XsdSchema extends XsdNode {
         String oldValue = this.attributeFormDefault;
         this.attributeFormDefault = attributeFormDefault;
         pcs.firePropertyChange("attributeFormDefault", oldValue, attributeFormDefault);
+    }
+
+    /**
+     * Gets the schema version.
+     *
+     * @return the version, or null
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Sets the schema version.
+     *
+     * @param version the version (e.g., "4.2.10")
+     */
+    public void setVersion(String version) {
+        String oldValue = this.version;
+        this.version = version;
+        pcs.firePropertyChange("version", oldValue, version);
+    }
+
+    /**
+     * Gets all additional attributes (e.g., vc:minVersion).
+     *
+     * @return the additional attributes map (name -> value)
+     */
+    public Map<String, String> getAdditionalAttributes() {
+        return new HashMap<>(additionalAttributes);
+    }
+
+    /**
+     * Sets an additional attribute.
+     *
+     * @param name  the attribute name (may include prefix like "vc:minVersion")
+     * @param value the attribute value
+     */
+    public void setAdditionalAttribute(String name, String value) {
+        additionalAttributes.put(name, value);
+        pcs.firePropertyChange("additionalAttributes", null, new HashMap<>(additionalAttributes));
+    }
+
+    /**
+     * Removes an additional attribute.
+     *
+     * @param name the attribute name to remove
+     */
+    public void removeAdditionalAttribute(String name) {
+        additionalAttributes.remove(name);
+        pcs.firePropertyChange("additionalAttributes", null, new HashMap<>(additionalAttributes));
+    }
+
+    /**
+     * Gets all leading comments (comments before the schema element).
+     *
+     * @return list of comment texts
+     */
+    public List<String> getLeadingComments() {
+        return new ArrayList<>(leadingComments);
+    }
+
+    /**
+     * Adds a leading comment.
+     *
+     * @param comment the comment text (without &lt;!-- and --&gt;)
+     */
+    public void addLeadingComment(String comment) {
+        leadingComments.add(comment);
+    }
+
+    /**
+     * Clears all leading comments.
+     */
+    public void clearLeadingComments() {
+        leadingComments.clear();
     }
 
     /**
@@ -177,14 +257,25 @@ public class XsdSchema extends XsdNode {
         copy.setTargetNamespace(this.targetNamespace);
         copy.setElementFormDefault(this.elementFormDefault);
         copy.setAttributeFormDefault(this.attributeFormDefault);
+        copy.setVersion(this.version);
 
         // Copy namespaces
         for (var entry : this.namespaces.entrySet()) {
             copy.addNamespace(entry.getKey(), entry.getValue());
         }
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy additional attributes
+        for (var entry : this.additionalAttributes.entrySet()) {
+            copy.setAdditionalAttribute(entry.getKey(), entry.getValue());
+        }
+
+        // Copy leading comments
+        for (String comment : this.leadingComments) {
+            copy.addLeadingComment(comment);
+        }
+
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

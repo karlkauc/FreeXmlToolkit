@@ -12,7 +12,8 @@ public class XsdSimpleType extends XsdNode {
     private boolean isFinal; // final attribute
 
     /**
-     * Creates a new XSD simple type (inline, without name).
+     * Creates a new XSD simple type (anonymous, without name).
+     * Used for inline simpleType definitions that don't have a name attribute.
      */
     public XsdSimpleType() {
         super(null);
@@ -81,8 +82,8 @@ public class XsdSimpleType extends XsdNode {
         copy.setBase(this.base);
         copy.setFinal(this.isFinal);
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

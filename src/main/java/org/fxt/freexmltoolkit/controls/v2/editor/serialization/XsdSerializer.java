@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Serializer for converting XSD model to XML representation.
@@ -32,6 +34,8 @@ public class XsdSerializer {
             DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private static final String DEFAULT_INDENT = "    "; // 4 spaces
+    private static final int MAX_SERIALIZATION_DEPTH = 100; // Prevent infinite recursion
+
     private String indentString = DEFAULT_INDENT;
 
     /**
@@ -78,16 +82,51 @@ public class XsdSerializer {
         // XML declaration
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 
-        // Schema element with namespace
-        sb.append("<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"");
+        // Output leading comments (comments before the schema element)
+        for (String comment : schema.getLeadingComments()) {
+            sb.append("<!--").append(comment).append("-->\n");
+        }
+
+        // Schema element with all namespace declarations
+        sb.append("<xs:schema");
+
+        // Output all namespace declarations
+        Map<String, String> namespaces = schema.getNamespaces();
+        for (Map.Entry<String, String> ns : namespaces.entrySet()) {
+            String prefix = ns.getKey();
+            String uri = ns.getValue();
+            if (prefix.isEmpty()) {
+                sb.append(" xmlns=\"").append(escapeXml(uri)).append("\"");
+            } else {
+                sb.append(" xmlns:").append(prefix).append("=\"").append(escapeXml(uri)).append("\"");
+            }
+        }
+
+        // Add attributeFormDefault if not default (unqualified)
+        if (schema.getAttributeFormDefault() != null && !schema.getAttributeFormDefault().isEmpty()) {
+            sb.append(" attributeFormDefault=\"").append(escapeXml(schema.getAttributeFormDefault())).append("\"");
+        }
+
+        // Add elementFormDefault
+        if (schema.getElementFormDefault() != null && !schema.getElementFormDefault().isEmpty()) {
+            sb.append(" elementFormDefault=\"").append(escapeXml(schema.getElementFormDefault())).append("\"");
+        }
 
         // Add target namespace if present
         if (schema.getTargetNamespace() != null && !schema.getTargetNamespace().isEmpty()) {
             sb.append(" targetNamespace=\"").append(escapeXml(schema.getTargetNamespace())).append("\"");
         }
 
-        // Add elementFormDefault
-        sb.append(" elementFormDefault=\"qualified\"");
+        // Add version if present
+        if (schema.getVersion() != null && !schema.getVersion().isEmpty()) {
+            sb.append(" version=\"").append(escapeXml(schema.getVersion())).append("\"");
+        }
+
+        // Add additional attributes (like vc:minVersion)
+        Map<String, String> additionalAttributes = schema.getAdditionalAttributes();
+        for (Map.Entry<String, String> attr : additionalAttributes.entrySet()) {
+            sb.append(" ").append(attr.getKey()).append("=\"").append(escapeXml(attr.getValue())).append("\"");
+        }
 
         sb.append(">\n");
 
@@ -129,6 +168,13 @@ public class XsdSerializer {
      * @param indent the indentation level
      */
     private void serializeXsdNode(XsdNode node, StringBuilder sb, int indent) {
+        // Prevent infinite recursion
+        if (indent > MAX_SERIALIZATION_DEPTH) {
+            logger.warn("Maximum serialization depth ({}) exceeded. Truncating at node: {}",
+                    MAX_SERIALIZATION_DEPTH, node.getName());
+            return;
+        }
+
         String indentation = indentString.repeat(indent);
 
         if (node instanceof XsdElement element) {
@@ -181,20 +227,101 @@ public class XsdSerializer {
             serializeOpenContent(openContent, sb, indentation, indent);
         } else if (node instanceof XsdOverride override) {
             serializeOverride(override, sb, indentation, indent);
+        } else if (node instanceof XsdSimpleContent simpleContent) {
+            serializeSimpleContent(simpleContent, sb, indentation, indent);
+        } else if (node instanceof XsdComplexContent complexContent) {
+            serializeComplexContent(complexContent, sb, indentation, indent);
+        } else if (node instanceof XsdExtension extension) {
+            serializeExtension(extension, sb, indentation, indent);
+        } else if (node instanceof XsdComment comment) {
+            serializeComment(comment, sb, indentation);
+        } else if (node instanceof XsdAny any) {
+            serializeAny(any, sb, indentation);
+        } else if (node instanceof XsdAnyAttribute anyAttr) {
+            serializeAnyAttribute(anyAttr, sb, indentation);
         } else {
             logger.warn("Unknown node type: {}", node.getClass().getSimpleName());
         }
     }
 
     private void serializeElement(XsdElement element, StringBuilder sb, String indentation, int indent) {
-        // Synchronize constraint lists to facets before serialization
-        synchronizeConstraintsToFacets(element);
+        // NOTE: We do NOT modify the model during serialization to prevent PropertyChangeEvents
+        // that could cause infinite loops. Instead, we serialize constraints directly if needed.
 
-        sb.append(indentation).append("<xs:element name=\"").append(escapeXml(element.getName())).append("\"");
+        sb.append(indentation).append("<xs:element");
 
-        // Add type if specified (for simple content elements)
-        if (element.getType() != null && !element.getType().isEmpty() && !element.hasChildren()) {
+        // Check if this is a reference element (ref attribute)
+        if (element.getRef() != null && !element.getRef().isEmpty()) {
+            // Reference element: only ref, minOccurs, maxOccurs allowed
+            sb.append(" ref=\"").append(escapeXml(element.getRef())).append("\"");
+
+            // Add cardinality
+            if (element.getMinOccurs() != 1) {
+                sb.append(" minOccurs=\"").append(element.getMinOccurs()).append("\"");
+            }
+            if (element.getMaxOccurs() == XsdNode.UNBOUNDED) {
+                sb.append(" maxOccurs=\"unbounded\"");
+            } else if (element.getMaxOccurs() != 1) {
+                sb.append(" maxOccurs=\"").append(element.getMaxOccurs()).append("\"");
+            }
+
+            sb.append("/>\n");
+            return;
+        }
+
+        // Regular element declaration: name is required
+        sb.append(" name=\"").append(escapeXml(element.getName())).append("\"");
+
+        // Check if element has an inline type definition (complexType or simpleType child)
+        boolean hasSimpleTypeChild = element.getChildren().stream()
+                .anyMatch(c -> c instanceof XsdSimpleType);
+        boolean hasInlineTypeDefinition = element.getChildren().stream()
+                .anyMatch(c -> c instanceof XsdComplexType || c instanceof XsdSimpleType);
+
+        // Check if element has constraints (for inline constraint handling later)
+        boolean hasConstraints = !element.getEnumerations().isEmpty() ||
+                                 !element.getPatterns().isEmpty() ||
+                                 !element.getAssertions().isEmpty();
+
+        // Add type attribute if specified and no inline type definition exists
+        // Note: Elements can have type attribute AND still have children like xs:key, xs:keyref, xs:annotation
+        if (element.getType() != null && !element.getType().isEmpty() && !hasInlineTypeDefinition) {
             sb.append(" type=\"").append(escapeXml(element.getType())).append("\"");
+        }
+
+        // Add default value (mutually exclusive with fixed)
+        if (element.getDefaultValue() != null && !element.getDefaultValue().isEmpty()) {
+            sb.append(" default=\"").append(escapeXml(element.getDefaultValue())).append("\"");
+        }
+
+        // Add fixed value (mutually exclusive with default)
+        if (element.getFixed() != null && !element.getFixed().isEmpty()) {
+            sb.append(" fixed=\"").append(escapeXml(element.getFixed())).append("\"");
+        }
+
+        // Add form attribute (qualified/unqualified)
+        if (element.getForm() != null && !element.getForm().isEmpty()) {
+            sb.append(" form=\"").append(escapeXml(element.getForm())).append("\"");
+        }
+
+        // Add substitutionGroup
+        if (element.getSubstitutionGroup() != null && !element.getSubstitutionGroup().isEmpty()) {
+            sb.append(" substitutionGroup=\"").append(escapeXml(element.getSubstitutionGroup())).append("\"");
+        }
+
+        // Add abstract flag
+        if (element.isAbstract()) {
+            sb.append(" abstract=\"true\"");
+        }
+
+        // Add nillable flag
+        if (element.isNillable()) {
+            sb.append(" nillable=\"true\"");
+        }
+
+        // Add block attribute (if available in model)
+        if (element.getBlock() != null && !element.getBlock().isEmpty()) {
+            sb.append(" block=\"").append(escapeXml(element.getBlock())).append("\"");
         }
 
         // Add cardinality
@@ -207,9 +334,11 @@ public class XsdSerializer {
             sb.append(" maxOccurs=\"").append(element.getMaxOccurs()).append("\"");
         }
 
-        // Check if element has annotation or children
+        // Check if element has annotation, children, or inline constraints to serialize
         boolean hasAnnotation = element.getDocumentation() != null || element.getAppinfo() != null;
-        if (element.hasChildren() || hasAnnotation) {
+        boolean needsInlineConstraints = hasConstraints && !hasSimpleTypeChild;
+
+        if (element.hasChildren() || hasAnnotation || needsInlineConstraints) {
             sb.append(">\n");
 
             // Serialize annotation first (documentation/appinfo)
@@ -222,6 +351,11 @@ public class XsdSerializer {
                 serializeXsdNode(child, sb, indent + 1);
             }
 
+            // Serialize inline constraints if element has constraints but no simpleType child
+            if (needsInlineConstraints) {
+                serializeInlineConstraints(element, sb, indentation + indentString, indent + 1);
+            }
+
             sb.append(indentation).append("</xs:element>\n");
         } else {
             // Self-closing tag for simple elements without annotation
@@ -230,12 +364,56 @@ public class XsdSerializer {
     }
 
     /**
+     * Serializes element constraints (enumerations, patterns, assertions) as inline simpleType/restriction
+     * WITHOUT modifying the model. This is a read-only serialization.
+     *
+     * @param element     the element with constraints
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeInlineConstraints(XsdElement element, StringBuilder sb, String indentation, int indent) {
+        String innerIndent = indentation + indentString;
+        String facetIndent = innerIndent + indentString;
+
+        // Determine base type
+        String baseType = element.getType() != null && !element.getType().isEmpty()
+                ? element.getType()
+                : "xs:string";
+
+        sb.append(indentation).append("<xs:simpleType>\n");
+        sb.append(innerIndent).append("<xs:restriction base=\"").append(escapeXml(baseType)).append("\">\n");
+
+        // Serialize enumerations
+        for (String enumValue : element.getEnumerations()) {
+            sb.append(facetIndent).append("<xs:enumeration value=\"").append(escapeXml(enumValue)).append("\"/>\n");
+        }
+
+        // Serialize patterns
+        for (String pattern : element.getPatterns()) {
+            sb.append(facetIndent).append("<xs:pattern value=\"").append(escapeXml(pattern)).append("\"/>\n");
+        }
+
+        // Serialize assertions (XSD 1.1)
+        for (String assertion : element.getAssertions()) {
+            sb.append(facetIndent).append("<xs:assertion test=\"").append(escapeXml(assertion)).append("\"/>\n");
+        }
+
+        sb.append(innerIndent).append("</xs:restriction>\n");
+        sb.append(indentation).append("</xs:simpleType>\n");
+    }
+
+    /**
      * Synchronizes constraint lists (enumerations, patterns, assertions) from the element
      * back to the XsdRestriction facets in the tree structure before serialization.
      * This ensures that changes made via commands are reflected in the serialized XSD.
      *
      * @param element the element to synchronize
+     * @deprecated This method modifies the model during serialization, which can cause
+     *             infinite loops due to PropertyChangeEvents. Use serializeInlineConstraints() instead.
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     private void synchronizeConstraintsToFacets(XsdElement element) {
         // Check if element has any constraints to synchronize
         if (element.getEnumerations().isEmpty() &&
@@ -308,14 +486,40 @@ public class XsdSerializer {
             sb.append(" name=\"").append(escapeXml(complexType.getName())).append("\"");
         }
 
-        sb.append(">\n");
-
-        // Serialize children (sequence, choice, all, attributes)
-        for (XsdNode child : complexType.getChildren()) {
-            serializeXsdNode(child, sb, indent + 1);
+        // Add mixed attribute
+        if (complexType.isMixed()) {
+            sb.append(" mixed=\"true\"");
         }
 
-        sb.append(indentation).append("</xs:complexType>\n");
+        // Add abstract attribute
+        if (complexType.isAbstract()) {
+            sb.append(" abstract=\"true\"");
+        }
+
+        // Add block attribute (if available in model)
+        if (complexType.getBlock() != null && !complexType.getBlock().isEmpty()) {
+            sb.append(" block=\"").append(escapeXml(complexType.getBlock())).append("\"");
+        }
+
+        // Add final attribute (if available in model)
+        if (complexType.getFinal() != null && !complexType.getFinal().isEmpty()) {
+            sb.append(" final=\"").append(escapeXml(complexType.getFinal())).append("\"");
+        }
+
+        // Check if complexType has children
+        if (complexType.hasChildren()) {
+            sb.append(">\n");
+
+            // Serialize children (sequence, choice, all, attributes)
+            for (XsdNode child : complexType.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+
+            sb.append(indentation).append("</xs:complexType>\n");
+        } else {
+            // Empty complexType (no content model)
+            sb.append("/>\n");
+        }
     }
 
     private void serializeSequence(XsdSequence sequence, StringBuilder sb, String indentation, int indent) {
@@ -386,16 +590,48 @@ public class XsdSerializer {
     }
 
     private void serializeAttribute(XsdAttribute attribute, StringBuilder sb, String indentation) {
-        sb.append(indentation).append("<xs:attribute name=\"").append(escapeXml(attribute.getName())).append("\"");
+        sb.append(indentation).append("<xs:attribute");
+
+        // Check if this is a reference attribute (ref attribute)
+        if (attribute.getRef() != null && !attribute.getRef().isEmpty()) {
+            // Reference attribute: only ref and use allowed
+            sb.append(" ref=\"").append(escapeXml(attribute.getRef())).append("\"");
+
+            // Add use (required/optional/prohibited)
+            if (attribute.getUse() != null && !attribute.getUse().isEmpty() && !"optional".equals(attribute.getUse())) {
+                sb.append(" use=\"").append(escapeXml(attribute.getUse())).append("\"");
+            }
+
+            sb.append("/>\n");
+            return;
+        }
+
+        // Regular attribute declaration: name is required
+        sb.append(" name=\"").append(escapeXml(attribute.getName())).append("\"");
 
         // Add type
         if (attribute.getType() != null && !attribute.getType().isEmpty()) {
             sb.append(" type=\"").append(escapeXml(attribute.getType())).append("\"");
         }
 
-        // Add use (required/optional)
-        if (attribute.getUse() != null && !attribute.getUse().isEmpty()) {
+        // Add use (required/optional/prohibited) - only if not default "optional"
+        if (attribute.getUse() != null && !attribute.getUse().isEmpty() && !"optional".equals(attribute.getUse())) {
             sb.append(" use=\"").append(escapeXml(attribute.getUse())).append("\"");
+        }
+
+        // Add default value (mutually exclusive with fixed)
+        if (attribute.getDefaultValue() != null && !attribute.getDefaultValue().isEmpty()) {
+            sb.append(" default=\"").append(escapeXml(attribute.getDefaultValue())).append("\"");
+        }
+
+        // Add fixed value (mutually exclusive with default)
+        if (attribute.getFixed() != null && !attribute.getFixed().isEmpty()) {
+            sb.append(" fixed=\"").append(escapeXml(attribute.getFixed())).append("\"");
+        }
+
+        // Add form attribute (qualified/unqualified)
+        if (attribute.getForm() != null && !attribute.getForm().isEmpty()) {
+            sb.append(" form=\"").append(escapeXml(attribute.getForm())).append("\"");
         }
 
         sb.append("/>\n");
@@ -407,6 +643,11 @@ public class XsdSerializer {
         // Named simple types have a name attribute
         if (simpleType.getName() != null && !simpleType.getName().isEmpty()) {
             sb.append(" name=\"").append(escapeXml(simpleType.getName())).append("\"");
+        }
+
+        // Add final attribute
+        if (simpleType.isFinal()) {
+            sb.append(" final=\"#all\"");
         }
 
         sb.append(">\n");
@@ -526,8 +767,8 @@ public class XsdSerializer {
         String facetName = facet.getFacetType().getXmlName();
         sb.append(indentation).append("<xs:").append(facetName);
 
-        // Add value attribute
-        if (facet.getValue() != null && !facet.getValue().isEmpty()) {
+        // Add value attribute - always output, even for empty values (valid XSD)
+        if (facet.getValue() != null) {
             sb.append(" value=\"").append(escapeXml(facet.getValue())).append("\"");
         }
 
@@ -607,6 +848,7 @@ public class XsdSerializer {
 
     /**
      * Serializes xs:annotation with xs:documentation and xs:appinfo.
+     * Outputs multiple documentation elements with xml:lang if present.
      *
      * @param node        the node containing documentation/appinfo
      * @param sb          the string builder
@@ -614,24 +856,43 @@ public class XsdSerializer {
      * @param indent      the indentation level
      */
     private void serializeAnnotation(XsdNode node, StringBuilder sb, String indentation, int indent) {
-        String documentation = node.getDocumentation();
+        List<XsdDocumentation> documentations = node.getDocumentations();
         XsdAppInfo appinfo = node.getAppinfo();
 
-        if (documentation == null && (appinfo == null || !appinfo.hasEntries())) {
+        // Check if there's anything to serialize
+        boolean hasDocumentations = !documentations.isEmpty();
+        boolean hasLegacyDoc = !hasDocumentations && node.getDocumentation() != null;
+        boolean hasAppinfo = appinfo != null && appinfo.hasEntries();
+
+        if (!hasDocumentations && !hasLegacyDoc && !hasAppinfo) {
             return; // Nothing to serialize
         }
 
         sb.append(indentation).append("<xs:annotation>\n");
 
-        // Serialize documentation
-        if (documentation != null) {
+        // Serialize documentation entries (new multi-language approach)
+        if (hasDocumentations) {
+            for (XsdDocumentation doc : documentations) {
+                sb.append(indentation).append(indentString).append("<xs:documentation");
+                if (doc.hasLang()) {
+                    sb.append(" xml:lang=\"").append(escapeXml(doc.getLang())).append("\"");
+                }
+                if (doc.getSource() != null && !doc.getSource().isEmpty()) {
+                    sb.append(" source=\"").append(escapeXml(doc.getSource())).append("\"");
+                }
+                sb.append(">");
+                sb.append(escapeXml(doc.getText()));
+                sb.append("</xs:documentation>\n");
+            }
+        } else if (hasLegacyDoc) {
+            // Fallback to legacy single documentation string
             sb.append(indentation).append(indentString).append("<xs:documentation>");
-            sb.append(escapeXml(documentation));
+            sb.append(escapeXml(node.getDocumentation()));
             sb.append("</xs:documentation>\n");
         }
 
         // Serialize structured appinfo entries
-        if (appinfo != null && appinfo.hasEntries()) {
+        if (hasAppinfo) {
             for (String xmlString : appinfo.toXmlStrings()) {
                 sb.append(indentation).append(indentString).append(xmlString).append("\n");
             }
@@ -954,6 +1215,152 @@ public class XsdSerializer {
             // Self-closing tag if no overrides
             sb.append("/>\n");
         }
+    }
+
+    /**
+     * Serializes xs:simpleContent element.
+     *
+     * @param simpleContent the XSD simpleContent
+     * @param sb            the string builder
+     * @param indentation   the indentation string
+     * @param indent        the indentation level
+     */
+    private void serializeSimpleContent(XsdSimpleContent simpleContent, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:simpleContent>\n");
+
+        // Serialize children (extension or restriction)
+        for (XsdNode child : simpleContent.getChildren()) {
+            serializeXsdNode(child, sb, indent + 1);
+        }
+
+        sb.append(indentation).append("</xs:simpleContent>\n");
+    }
+
+    /**
+     * Serializes xs:complexContent element.
+     *
+     * @param complexContent the XSD complexContent
+     * @param sb             the string builder
+     * @param indentation    the indentation string
+     * @param indent         the indentation level
+     */
+    private void serializeComplexContent(XsdComplexContent complexContent, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:complexContent");
+
+        // Add mixed attribute if present
+        if (complexContent.isMixed()) {
+            sb.append(" mixed=\"true\"");
+        }
+
+        sb.append(">\n");
+
+        // Serialize children (extension or restriction)
+        for (XsdNode child : complexContent.getChildren()) {
+            serializeXsdNode(child, sb, indent + 1);
+        }
+
+        sb.append(indentation).append("</xs:complexContent>\n");
+    }
+
+    /**
+     * Serializes xs:extension element.
+     *
+     * @param extension   the XSD extension
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeExtension(XsdExtension extension, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:extension");
+
+        // Add base attribute (required)
+        if (extension.getBase() != null && !extension.getBase().isEmpty()) {
+            sb.append(" base=\"").append(escapeXml(extension.getBase())).append("\"");
+        }
+
+        // Check if extension has children
+        if (extension.hasChildren()) {
+            sb.append(">\n");
+
+            // Serialize children (sequence, choice, all, attributes, etc.)
+            for (XsdNode child : extension.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+
+            sb.append(indentation).append("</xs:extension>\n");
+        } else {
+            // Self-closing tag if no additional content
+            sb.append("/>\n");
+        }
+    }
+
+    /**
+     * Serializes an XML comment.
+     *
+     * @param comment     the XSD comment
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     */
+    private void serializeComment(XsdComment comment, StringBuilder sb, String indentation) {
+        if (comment.getContent() != null) {
+            sb.append(indentation).append("<!--").append(comment.getContent()).append("-->\n");
+        }
+    }
+
+    /**
+     * Serializes xs:any wildcard.
+     *
+     * @param any         the XSD any
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     */
+    private void serializeAny(XsdAny any, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:any");
+
+        // Add namespace attribute if not default (##any)
+        if (any.getNamespace() != null && !"##any".equals(any.getNamespace())) {
+            sb.append(" namespace=\"").append(escapeXml(any.getNamespace())).append("\"");
+        }
+
+        // Add processContents attribute if not default (strict)
+        if (any.getProcessContents() != null && any.getProcessContents() != XsdAny.ProcessContents.STRICT) {
+            sb.append(" processContents=\"").append(any.getProcessContents().getValue()).append("\"");
+        }
+
+        // Add cardinality
+        if (any.getMinOccurs() != 1) {
+            sb.append(" minOccurs=\"").append(any.getMinOccurs()).append("\"");
+        }
+        if (any.getMaxOccurs() == XsdNode.UNBOUNDED) {
+            sb.append(" maxOccurs=\"unbounded\"");
+        } else if (any.getMaxOccurs() != 1) {
+            sb.append(" maxOccurs=\"").append(any.getMaxOccurs()).append("\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    /**
+     * Serializes xs:anyAttribute wildcard.
+     *
+     * @param anyAttr     the XSD anyAttribute
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     */
+    private void serializeAnyAttribute(XsdAnyAttribute anyAttr, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:anyAttribute");
+
+        // Add namespace attribute if not default (##any)
+        if (anyAttr.getNamespace() != null && !"##any".equals(anyAttr.getNamespace())) {
+            sb.append(" namespace=\"").append(escapeXml(anyAttr.getNamespace())).append("\"");
+        }
+
+        // Add processContents attribute if not default (strict)
+        if (anyAttr.getProcessContents() != null && anyAttr.getProcessContents() != XsdAny.ProcessContents.STRICT) {
+            sb.append(" processContents=\"").append(anyAttr.getProcessContents().getValue()).append("\"");
+        }
+
+        sb.append("/>\n");
     }
 
     /**

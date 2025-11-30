@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Test Schema 6: Import, Include, Redefine
+    Tests: xs:import, xs:include, xs:redefine with various schema locations
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://test.example.com/main"
+           xmlns:types="http://test.example.com/types"
+           xmlns:common="http://test.example.com/common"
+           targetNamespace="http://test.example.com/main"
+           elementFormDefault="qualified"
+           version="6.0">
+
+    <xs:annotation>
+        <xs:documentation>Test schema for import, include, and redefine constructs</xs:documentation>
+        <xs:appinfo>
+            <meta:schemaInfo xmlns:meta="http://meta.example.com">
+                <meta:author>Test Author</meta:author>
+                <meta:version>6.0</meta:version>
+            </meta:schemaInfo>
+        </xs:appinfo>
+    </xs:annotation>
+
+    <!-- Import with namespace and schemaLocation -->
+    <xs:import namespace="http://test.example.com/types"
+               schemaLocation="types.xsd">
+        <xs:annotation>
+            <xs:documentation>Import type definitions</xs:documentation>
+        </xs:annotation>
+    </xs:import>
+
+    <!-- Import with namespace only (no schemaLocation) -->
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace"/>
+
+    <!-- Import with special characters in namespace -->
+    <xs:import namespace="http://test.example.com/special?param=value&amp;other=123"
+               schemaLocation="special-types.xsd"/>
+
+    <!-- Include (same namespace) -->
+    <xs:include schemaLocation="common-elements.xsd">
+        <xs:annotation>
+            <xs:documentation>Include common element definitions</xs:documentation>
+        </xs:annotation>
+    </xs:include>
+
+    <!-- Include with relative path -->
+    <xs:include schemaLocation="../shared/shared-types.xsd"/>
+
+    <!-- Include with absolute URL -->
+    <xs:include schemaLocation="https://schemas.example.com/v1/base-types.xsd"/>
+
+    <!-- Redefine with simpleType modification -->
+    <xs:redefine schemaLocation="base-schema.xsd">
+        <xs:annotation>
+            <xs:documentation>Redefine base schema types</xs:documentation>
+        </xs:annotation>
+
+        <!-- Redefine simpleType by restriction -->
+        <xs:simpleType name="StringType">
+            <xs:restriction base="tns:StringType">
+                <xs:maxLength value="200"/>
+                <xs:pattern value="[A-Za-z0-9\s]+"/>
+            </xs:restriction>
+        </xs:simpleType>
+
+        <!-- Redefine simpleType with different facets -->
+        <xs:simpleType name="CodeType">
+            <xs:restriction base="tns:CodeType">
+                <xs:length value="10"/>
+                <xs:pattern value="[A-Z]{2}[0-9]{8}"/>
+            </xs:restriction>
+        </xs:simpleType>
+
+        <!-- Redefine complexType by extension -->
+        <xs:complexType name="BaseRecordType">
+            <xs:complexContent>
+                <xs:extension base="tns:BaseRecordType">
+                    <xs:sequence>
+                        <xs:element name="extendedField" type="xs:string"/>
+                        <xs:element name="additionalData" type="xs:anyType" minOccurs="0"/>
+                    </xs:sequence>
+                    <xs:attribute name="extendedAttr" type="xs:string"/>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+
+        <!-- Redefine complexType by restriction -->
+        <xs:complexType name="DetailedRecordType">
+            <xs:complexContent>
+                <xs:restriction base="tns:DetailedRecordType">
+                    <xs:sequence>
+                        <xs:element name="id" type="xs:string"/>
+                        <xs:element name="name" type="xs:string"/>
+                        <!-- Removed optional elements -->
+                    </xs:sequence>
+                </xs:restriction>
+            </xs:complexContent>
+        </xs:complexType>
+
+        <!-- Redefine group -->
+        <xs:group name="CommonFieldsGroup">
+            <xs:sequence>
+                <xs:group ref="tns:CommonFieldsGroup"/>
+                <xs:element name="additionalCommonField" type="xs:string"/>
+            </xs:sequence>
+        </xs:group>
+
+        <!-- Redefine attributeGroup -->
+        <xs:attributeGroup name="CommonAttributeGroup">
+            <xs:attributeGroup ref="tns:CommonAttributeGroup"/>
+            <xs:attribute name="additionalAttr" type="xs:string"/>
+        </xs:attributeGroup>
+    </xs:redefine>
+
+    <!-- Another redefine from different source -->
+    <xs:redefine schemaLocation="auxiliary-schema.xsd">
+        <xs:simpleType name="AuxiliaryCodeType">
+            <xs:restriction base="tns:AuxiliaryCodeType">
+                <xs:enumeration value="AUX001"/>
+                <xs:enumeration value="AUX002"/>
+                <xs:enumeration value="AUX003"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:redefine>
+
+    <!-- Local type definitions -->
+    <xs:simpleType name="LocalIdType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="ID[0-9]{10}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="DocumentType">
+        <xs:sequence>
+            <xs:element name="id" type="tns:LocalIdType"/>
+            <xs:element name="title" type="xs:string"/>
+            <xs:element name="content" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute name="version" type="xs:integer" default="1"/>
+    </xs:complexType>
+
+    <!-- Type referencing imported types -->
+    <xs:complexType name="CompositeType">
+        <xs:sequence>
+            <xs:element name="localPart" type="tns:DocumentType"/>
+            <xs:element name="importedPart" type="types:ImportedType" minOccurs="0"/>
+            <xs:element name="commonPart" type="tns:BaseRecordType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Root elements -->
+    <xs:element name="Document" type="tns:DocumentType"/>
+    <xs:element name="Composite" type="tns:CompositeType"/>
+
+    <xs:element name="TestRoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:Document" maxOccurs="unbounded"/>
+                <xs:element ref="tns:Composite" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

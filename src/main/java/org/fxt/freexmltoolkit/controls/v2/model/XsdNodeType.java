@@ -47,5 +47,12 @@ public enum XsdNodeType {
     // Import/Include
     IMPORT,
     INCLUDE,
-    REDEFINE
+    REDEFINE,
+
+    // Wildcards
+    ANY,
+    ANY_ATTRIBUTE,
+
+    // Other
+    COMMENT
 }

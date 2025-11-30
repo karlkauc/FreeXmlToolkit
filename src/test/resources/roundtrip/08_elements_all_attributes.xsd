@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Test Schema 8: Elements with ALL Attributes
+    Tests: xs:element with all possible attributes (abstract, substitutionGroup, nillable, default, fixed, form, block, final, type, ref)
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://test.example.com/elements"
+           targetNamespace="http://test.example.com/elements"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified"
+           blockDefault="extension"
+           finalDefault="restriction"
+           version="8.0">
+
+    <xs:annotation>
+        <xs:documentation>Test schema for element declarations with all attributes</xs:documentation>
+    </xs:annotation>
+
+    <!-- Types for element declarations -->
+    <xs:simpleType name="CodeType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z]{3}[0-9]{3}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="PersonType">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="EmployeeType">
+        <xs:complexContent>
+            <xs:extension base="tns:PersonType">
+                <xs:sequence>
+                    <xs:element name="employeeId" type="xs:string"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Basic element declarations -->
+    <xs:element name="SimpleElement" type="xs:string"/>
+    <xs:element name="TypedElement" type="tns:CodeType"/>
+    <xs:element name="ComplexElement" type="tns:PersonType"/>
+
+    <!-- Element with default value -->
+    <xs:element name="ElementWithDefault" type="xs:string" default="defaultValue"/>
+    <xs:element name="IntWithDefault" type="xs:integer" default="42"/>
+    <xs:element name="BoolWithDefault" type="xs:boolean" default="true"/>
+
+    <!-- Element with fixed value -->
+    <xs:element name="ElementWithFixed" type="xs:string" fixed="fixedValue"/>
+    <xs:element name="IntWithFixed" type="xs:integer" fixed="100"/>
+
+    <!-- Nillable elements -->
+    <xs:element name="NillableString" type="xs:string" nillable="true"/>
+    <xs:element name="NillableComplex" type="tns:PersonType" nillable="true"/>
+    <xs:element name="NotNillable" type="xs:string" nillable="false"/>
+
+    <!-- Abstract elements (for substitution groups) -->
+    <xs:element name="AbstractPerson" type="tns:PersonType" abstract="true">
+        <xs:annotation>
+            <xs:documentation>Abstract base for person types</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- Substitution group members -->
+    <xs:element name="Employee" type="tns:EmployeeType" substitutionGroup="tns:AbstractPerson"/>
+
+    <xs:element name="Manager" substitutionGroup="tns:AbstractPerson">
+        <xs:complexType>
+            <xs:complexContent>
+                <xs:extension base="tns:PersonType">
+                    <xs:sequence>
+                        <xs:element name="department" type="xs:string"/>
+                        <xs:element name="teamSize" type="xs:positiveInteger"/>
+                    </xs:sequence>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Contractor" substitutionGroup="tns:AbstractPerson">
+        <xs:complexType>
+            <xs:complexContent>
+                <xs:extension base="tns:PersonType">
+                    <xs:sequence>
+                        <xs:element name="contractEnd" type="xs:date"/>
+                        <xs:element name="agency" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Block attribute -->
+    <xs:element name="BlockExtension" type="tns:PersonType" block="extension"/>
+    <xs:element name="BlockRestriction" type="tns:PersonType" block="restriction"/>
+    <xs:element name="BlockSubstitution" type="tns:PersonType" block="substitution"/>
+    <xs:element name="BlockAll" type="tns:PersonType" block="#all"/>
+    <xs:element name="BlockMultiple" type="tns:PersonType" block="extension restriction"/>
+
+    <!-- Final attribute -->
+    <xs:element name="FinalExtension" type="tns:PersonType" final="extension"/>
+    <xs:element name="FinalRestriction" type="tns:PersonType" final="restriction"/>
+    <xs:element name="FinalAll" type="tns:PersonType" final="#all"/>
+
+    <!-- Form attribute -->
+    <xs:element name="QualifiedElement" type="xs:string" form="qualified"/>
+    <xs:element name="UnqualifiedElement" type="xs:string" form="unqualified"/>
+
+    <!-- Elements with ID/IDREF -->
+    <xs:element name="IdentifiedElement">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="id" type="xs:ID" use="required"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ReferenceElement">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="ref" type="xs:IDREF" use="required"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Element with inline type definition -->
+    <xs:element name="InlineSimpleType">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:minLength value="1"/>
+                <xs:maxLength value="50"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="InlineComplexType">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="field1" type="xs:string"/>
+                <xs:element name="field2" type="xs:integer"/>
+            </xs:sequence>
+            <xs:attribute name="attr1" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Element with all occurrence attributes -->
+    <xs:complexType name="ContainerType">
+        <xs:sequence>
+            <xs:element name="required" type="xs:string"/>
+            <xs:element name="optional" type="xs:string" minOccurs="0"/>
+            <xs:element name="multiple" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="bounded" type="xs:string" minOccurs="2" maxOccurs="10"/>
+            <xs:element name="exactlyThree" type="xs:string" minOccurs="3" maxOccurs="3"/>
+            <xs:element name="zeroOrOne" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Element references -->
+    <xs:complexType name="ReferenceContainerType">
+        <xs:sequence>
+            <xs:element ref="tns:SimpleElement"/>
+            <xs:element ref="tns:TypedElement" minOccurs="0"/>
+            <xs:element ref="tns:ComplexElement" maxOccurs="unbounded"/>
+            <xs:element ref="tns:AbstractPerson" minOccurs="0" maxOccurs="5"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Deeply annotated element -->
+    <xs:element name="AnnotatedElement">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">English documentation for the element</xs:documentation>
+            <xs:documentation xml:lang="de">Deutsche Dokumentation für das Element</xs:documentation>
+            <xs:appinfo source="http://appinfo.example.com">
+                <meta:elementInfo xmlns:meta="http://meta.example.com">
+                    <meta:importance>high</meta:importance>
+                    <meta:category>data</meta:category>
+                </meta:elementInfo>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="data" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>The data content</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Combined attributes -->
+    <xs:element name="CombinedAttributes" type="tns:PersonType"
+                nillable="true"
+                block="extension restriction"
+                final="extension">
+        <xs:annotation>
+            <xs:documentation>Element with multiple attributes combined</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- Root element -->
+    <xs:element name="TestRoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:SimpleElement"/>
+                <xs:element ref="tns:ElementWithDefault"/>
+                <xs:element ref="tns:ElementWithFixed"/>
+                <xs:element ref="tns:NillableString"/>
+                <xs:element ref="tns:AbstractPerson"/>
+                <xs:element ref="tns:InlineComplexType"/>
+                <xs:element ref="tns:AnnotatedElement"/>
+                <xs:element name="container" type="tns:ContainerType"/>
+                <xs:element name="refContainer" type="tns:ReferenceContainerType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

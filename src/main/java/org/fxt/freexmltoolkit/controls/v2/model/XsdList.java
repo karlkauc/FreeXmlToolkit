@@ -60,8 +60,8 @@ public class XsdList extends XsdNode {
         // Copy XsdList-specific properties
         copy.setItemType(this.itemType);
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

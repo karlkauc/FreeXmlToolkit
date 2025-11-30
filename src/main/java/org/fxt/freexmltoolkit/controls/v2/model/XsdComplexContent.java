@@ -76,8 +76,8 @@ public class XsdComplexContent extends XsdNode {
         // Copy XsdComplexContent-specific properties
         copy.setMixed(this.mixed);
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

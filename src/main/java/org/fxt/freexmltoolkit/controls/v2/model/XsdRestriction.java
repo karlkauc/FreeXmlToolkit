@@ -120,8 +120,8 @@ public class XsdRestriction extends XsdNode {
         // Copy XsdRestriction-specific properties
         copy.setBase(this.base);
 
-        // Copy base properties and children (includes facets)
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (includes facets, propagate suffix)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

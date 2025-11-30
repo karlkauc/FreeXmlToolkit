@@ -276,14 +276,23 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * Types are resolved when elements reference them.
      */
     private void buildVisualTree() {
-        nodeMap.clear();
+        // Set flag to prevent PropertyChangeEvents from triggering rebuilds during initial build
+        isRebuilding = true;
+        try {
+            nodeMap.clear();
 
-        XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
-        // Provide rebuild callback for Model → View synchronization
-        // For structural changes (add/delete child), we need to rebuild the tree
-        rootNode = builder.buildFromSchema(xsdSchema, this::rebuildVisualTree, importedSchemas);
-        nodeMap.putAll(builder.getNodeMap());
-        logger.debug("Visual tree built from XsdSchema with {} nodes (with auto-rebuild on model changes)", nodeMap.size());
+            XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
+            // Provide redraw callback for Model → View synchronization
+            // IMPORTANT: Use this::redraw instead of this::rebuildVisualTree for performance!
+            // VisualNode.updateFromModel() already updates the visual properties in-place.
+            // We only need to redraw to show the changes.
+            // Structural changes (add/delete) are handled separately by XsdGraphView.propertyChange()
+            rootNode = builder.buildFromSchema(xsdSchema, this::redraw, importedSchemas);
+            nodeMap.putAll(builder.getNodeMap());
+            logger.debug("Visual tree built from XsdSchema with {} nodes (with redraw callback for property changes)", nodeMap.size());
+        } finally {
+            isRebuilding = false;
+        }
     }
 
     /**
@@ -336,7 +345,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             logger.trace("Saved {} selected nodes", selectedNodeIds.size());
 
             // 3. Rebuild tree from schema
-            // Temporarily use this::redraw to avoid recursion during rebuild
+            // Use this::redraw as callback - structural changes are handled by XsdGraphView.propertyChange()
             XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
             rootNode = builder.buildFromSchema(xsdSchema, this::redraw, importedSchemas);
             nodeMap.clear();
@@ -344,23 +353,23 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             logger.debug("Visual tree rebuilt with {} nodes", nodeMap.size());
             logger.debug("Root node has {} children", rootNode.getChildren().size());
 
-            // 4. Expand all nodes first, then collapse only those that were collapsed
-            expandAllNodes(rootNode);
-            applyCollapsedState(rootNode, collapsedNodeIds);
-            logger.trace("Restored expansion state (expand all, then collapse saved)");
+            // 4. Restore expansion state in single pass (optimized from double traversal)
+            restoreExpansionState(rootNode, collapsedNodeIds);
+            logger.trace("Restored expansion state (single pass O(n))");
 
-            // 5. Restore selection
+            // 5. Restore selection using nodeMap for O(1) lookup instead of O(n) findNodeById
             selectionModel.clearSelection();
             for (String selectedId : selectedNodeIds) {
-                VisualNode nodeToSelect = findNodeById(rootNode, selectedId);
+                // Use nodeMap for O(1) lookup instead of recursive findNodeById O(n)
+                VisualNode nodeToSelect = nodeMap.get(selectedId);
                 if (nodeToSelect != null) {
                     selectionModel.addToSelection(nodeToSelect);
                 }
             }
-            logger.trace("Restored selection state");
+            logger.trace("Restored selection state (using HashMap O(1) lookup)");
 
-            // 6. Now update all VisualNodes to use this::rebuildVisualTree as callback again
-            updateCallbacks(rootNode, this::rebuildVisualTree);
+            // Note: Callback update removed - we now consistently use this::redraw
+            // Structural changes are handled by XsdGraphView.propertyChange() which calls scheduleFullRebuild()
 
         } finally {
             isRebuilding = false;
@@ -394,8 +403,38 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
-     * Recursively expands all nodes in the tree.
+     * Recursively restores expansion state in a single pass.
+     * Expands nodes that were NOT in the collapsed set, collapses those that were.
+     * This is an optimization over the previous two-pass approach (expandAll + applyCollapsed).
+     *
+     * @param node         the node to process
+     * @param collapsedIds set of node IDs that should be collapsed
      */
+    private void restoreExpansionState(VisualNode node, Set<String> collapsedIds) {
+        if (node == null) return;
+
+        // Determine expansion state: expand unless it was in the collapsed set
+        Object modelObj = node.getModelObject();
+        if (modelObj instanceof XsdNode xsdNode) {
+            boolean shouldBeCollapsed = collapsedIds.contains(xsdNode.getId());
+            node.setExpanded(!shouldBeCollapsed);
+        } else {
+            // Non-model nodes default to expanded
+            node.setExpanded(true);
+        }
+
+        // Recursively process children
+        for (VisualNode child : node.getChildren()) {
+            restoreExpansionState(child, collapsedIds);
+        }
+    }
+
+    /**
+     * Recursively expands all nodes in the tree.
+     * @deprecated Use restoreExpansionState() for better performance
+     */
+    @Deprecated
+    @SuppressWarnings("unused")
     private void expandAllNodes(VisualNode node) {
         if (node == null) return;
         node.setExpanded(true);
@@ -407,7 +446,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     /**
      * Recursively applies collapsed state based on saved node IDs.
      * Only collapses nodes that were previously collapsed.
+     * @deprecated Use restoreExpansionState() for better performance
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     private void applyCollapsedState(VisualNode node, Set<String> collapsedIds) {
         if (node == null) return;
 
@@ -483,6 +525,15 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         // Ensure minimum size
         double canvasWidth = Math.max(requiredWidth, 800);
         double canvasHeight = Math.max(requiredHeight, 600);
+
+        // Limit maximum canvas size to prevent JavaFX texture errors (max 16384 pixels)
+        final double MAX_CANVAS_SIZE = 15000;
+        if (canvasWidth > MAX_CANVAS_SIZE || canvasHeight > MAX_CANVAS_SIZE) {
+            logger.warn("Canvas size {}x{} exceeds maximum. Limiting to {}x{}",
+                    canvasWidth, canvasHeight, MAX_CANVAS_SIZE, MAX_CANVAS_SIZE);
+            canvasWidth = Math.min(canvasWidth, MAX_CANVAS_SIZE);
+            canvasHeight = Math.min(canvasHeight, MAX_CANVAS_SIZE);
+        }
 
         // Resize canvas if needed
         if (canvas.getWidth() != canvasWidth || canvas.getHeight() != canvasHeight) {
@@ -852,23 +903,83 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        logger.debug("Model change detected: {}", evt.getPropertyName());
+        // Skip events during rebuild to prevent infinite loops
+        if (isRebuilding) {
+            logger.trace("Ignoring property change during rebuild: {}", evt.getPropertyName());
+            return;
+        }
 
-        // Use debouncing to batch multiple rapid events into a single rebuild
-        // This prevents multiple rebuilds when commands make multiple addChild calls
+        String propertyName = evt.getPropertyName();
+        logger.debug("Model change detected: {} (source: {})", propertyName,
+                evt.getSource() instanceof XsdNode xsdNode ? xsdNode.getName() : evt.getSource().getClass().getSimpleName());
+
+        // Distinguish between structural and property changes for performance optimization
+        if (isStructuralChange(propertyName)) {
+            // Structural changes (children, descendantChanged) require full tree rebuild
+            scheduleFullRebuild();
+        } else {
+            // Property changes (name, type, documentation, appinfo, etc.) only need node update
+            scheduleIncrementalUpdate(evt);
+        }
+    }
+
+    /**
+     * Checks if the property change is a structural change requiring full rebuild.
+     * Structural changes: children added/removed, descendant structure changed
+     * Non-structural: name, type, documentation, appinfo, minOccurs, maxOccurs, etc.
+     */
+    private boolean isStructuralChange(String propertyName) {
+        return "children".equals(propertyName) || "descendantChanged".equals(propertyName);
+    }
+
+    /**
+     * Schedules a full tree rebuild with debouncing.
+     * Used for structural changes (add/delete children).
+     */
+    private void scheduleFullRebuild() {
         javafx.application.Platform.runLater(() -> {
+            if (isRebuilding) {
+                return;
+            }
             if (rebuildDebounce == null) {
                 rebuildDebounce = new PauseTransition(Duration.millis(DEBOUNCE_DELAY_MS));
                 rebuildDebounce.setOnFinished(e -> {
-                    logger.debug("Debounced rebuild triggered");
+                    logger.debug("Debounced full rebuild triggered");
+                    // Invalidate cache for this schema since structure changed
+                    XsdVisualTreeBuilder.invalidateCacheFor(xsdSchema);
                     rebuildVisualTree();
                     redraw();
                 });
             }
-            // Restart the debounce timer - if events keep coming, we keep delaying
             rebuildDebounce.playFromStart();
         });
     }
+
+    /**
+     * Schedules an incremental update for property changes.
+     * Since VisualNode already updates itself via its PropertyChangeListener,
+     * we just need to trigger a redraw to show the changes.
+     * This is a significant performance optimization - no full tree rebuild needed!
+     */
+    private void scheduleIncrementalUpdate(PropertyChangeEvent evt) {
+        javafx.application.Platform.runLater(() -> {
+            if (isRebuilding) {
+                return;
+            }
+
+            // VisualNode.updateFromModel() is already called by VisualNode's own listener
+            // We just need to redraw to show the changes
+            logger.debug("Incremental update (redraw only) for property '{}' on '{}'",
+                    evt.getPropertyName(),
+                    evt.getSource() instanceof XsdNode xsdNode ? xsdNode.getName() : "unknown");
+            redraw();
+        });
+    }
+
+    // Note: updateVisualNodeFromModel, buildNodeLabel, buildCardinalityString removed
+    // VisualNode already has updateFromModel() which is called automatically
+    // when the model fires PropertyChangeEvents. This is handled via the
+    // PropertyChangeListener registered in VisualNode constructor.
 
     /**
      * Zooms in by one step.

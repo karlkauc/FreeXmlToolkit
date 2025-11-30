@@ -33,6 +33,7 @@ public abstract class XsdNode {
 
     // Documentation
     private String documentation;
+    private final List<XsdDocumentation> documentations = new ArrayList<>();
     private XsdAppInfo appinfo;
 
     /**
@@ -248,6 +249,60 @@ public abstract class XsdNode {
     }
 
     /**
+     * Gets the list of documentation entries with language support.
+     *
+     * @return the list of documentation entries (never null, may be empty)
+     */
+    public List<XsdDocumentation> getDocumentations() {
+        return new ArrayList<>(documentations);
+    }
+
+    /**
+     * Adds a documentation entry.
+     *
+     * @param doc the documentation to add
+     */
+    public void addDocumentation(XsdDocumentation doc) {
+        if (doc != null) {
+            List<XsdDocumentation> oldValue = new ArrayList<>(documentations);
+            documentations.add(doc);
+            pcs.firePropertyChange("documentations", oldValue, new ArrayList<>(documentations));
+        }
+    }
+
+    /**
+     * Sets the list of documentation entries.
+     *
+     * @param docs the documentation entries
+     */
+    public void setDocumentations(List<XsdDocumentation> docs) {
+        List<XsdDocumentation> oldValue = new ArrayList<>(documentations);
+        documentations.clear();
+        if (docs != null) {
+            documentations.addAll(docs);
+        }
+        pcs.firePropertyChange("documentations", oldValue, new ArrayList<>(documentations));
+    }
+
+    /**
+     * Clears all documentation entries.
+     */
+    public void clearDocumentations() {
+        List<XsdDocumentation> oldValue = new ArrayList<>(documentations);
+        documentations.clear();
+        pcs.firePropertyChange("documentations", oldValue, documentations);
+    }
+
+    /**
+     * Checks if this node has any documentation entries.
+     *
+     * @return true if at least one documentation entry exists
+     */
+    public boolean hasDocumentations() {
+        return !documentations.isEmpty();
+    }
+
+    /**
      * Gets the appinfo annotation (structured).
      *
      * @return the appinfo, or null if not set
@@ -355,14 +410,30 @@ public abstract class XsdNode {
      * @param target the target node to copy properties to
      */
     protected void copyBasicPropertiesTo(XsdNode target) {
+        copyBasicPropertiesTo(target, null);
+    }
+
+    /**
+     * Helper method to copy base properties from this node to a target node.
+     * Used by subclasses in their deepCopy() implementations.
+     *
+     * @param target the target node to copy properties to
+     * @param suffix the suffix to propagate to children (can be null)
+     */
+    protected void copyBasicPropertiesTo(XsdNode target, String suffix) {
         target.setMinOccurs(this.minOccurs);
         target.setMaxOccurs(this.maxOccurs);
         target.setDocumentation(this.documentation);
         target.setAppinfo(this.appinfo);
 
-        // Recursively copy children
+        // Copy documentation entries (deep copy)
+        for (XsdDocumentation doc : this.documentations) {
+            target.addDocumentation(doc.deepCopy());
+        }
+
+        // Recursively copy children with suffix propagation
         for (XsdNode child : this.children) {
-            XsdNode copiedChild = child.deepCopy(null);  // No suffix for children
+            XsdNode copiedChild = child.deepCopy(suffix);
             target.addChild(copiedChild);
         }
     }

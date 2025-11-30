@@ -9,8 +9,14 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -109,6 +115,18 @@ public class XsdNodeFactory {
 
         XsdSchema schema = parseSchema(schemaElement, baseDirectory, factory);
 
+        // Capture leading comments (comments before the schema element)
+        NodeList documentChildren = document.getChildNodes();
+        for (int i = 0; i < documentChildren.getLength(); i++) {
+            Node node = documentChildren.item(i);
+            if (node.getNodeType() == Node.COMMENT_NODE) {
+                schema.addLeadingComment(node.getNodeValue());
+            } else if (node == schemaElement) {
+                // Stop when we reach the schema element
+                break;
+            }
+        }
+
         // Process imports after the schema is fully parsed
         processImports(schema);
 
@@ -138,7 +156,11 @@ public class XsdNodeFactory {
             schema.setAttributeFormDefault(schemaElement.getAttribute("attributeFormDefault"));
         }
 
-        // Parse namespace declarations
+        if (schemaElement.hasAttribute("version")) {
+            schema.setVersion(schemaElement.getAttribute("version"));
+        }
+
+        // Parse namespace declarations and additional attributes
         NamedNodeMap attributes = schemaElement.getAttributes();
         for (int i = 0; i < attributes.getLength(); i++) {
             Node attr = attributes.item(i);
@@ -148,6 +170,9 @@ public class XsdNodeFactory {
                 schema.addNamespace(prefix, attr.getNodeValue());
             } else if (attrName.equals("xmlns")) {
                 schema.addNamespace("", attr.getNodeValue());
+            } else if (!isStandardSchemaAttribute(attrName)) {
+                // Store additional attributes like vc:minVersion, finalDefault, blockDefault, etc.
+                schema.setAdditionalAttribute(attrName, attr.getNodeValue());
             }
         }
 
@@ -163,6 +188,14 @@ public class XsdNodeFactory {
         NodeList children = schemaElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
+
+            // Handle comment nodes
+            if (child.getNodeType() == Node.COMMENT_NODE) {
+                XsdComment comment = new XsdComment(child.getNodeValue());
+                schema.addChild(comment);
+                continue;
+            }
+
             if (child.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
@@ -335,6 +368,14 @@ public class XsdNodeFactory {
             element.setSubstitutionGroup(elementNode.getAttribute("substitutionGroup"));
         }
 
+        if (elementNode.hasAttribute("form")) {
+            element.setForm(elementNode.getAttribute("form"));
+        }
+
+        if (elementNode.hasAttribute("block")) {
+            element.setBlock(elementNode.getAttribute("block"));
+        }
+
         // Parse child elements
         NodeList children = elementNode.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
@@ -442,6 +483,9 @@ public class XsdNodeFactory {
             } else if (isXsdElement(childElement, "group")) {
                 XsdGroup group = parseGroupRef(childElement);
                 sequence.addChild(group);
+            } else if (isXsdElement(childElement, "any")) {
+                XsdAny any = parseAny(childElement);
+                sequence.addChild(any);
             }
         }
 
@@ -479,6 +523,9 @@ public class XsdNodeFactory {
             } else if (isXsdElement(childElement, "group")) {
                 XsdGroup group = parseGroupRef(childElement);
                 choice.addChild(group);
+            } else if (isXsdElement(childElement, "any")) {
+                XsdAny any = parseAny(childElement);
+                choice.addChild(any);
             }
         }
 
@@ -507,8 +554,11 @@ public class XsdNodeFactory {
             if (isXsdElement(childElement, "element")) {
                 XsdElement element = parseElement(childElement);
                 all.addChild(element);
+            } else if (isXsdElement(childElement, "any")) {
+                // XSD 1.1 allows xs:any in xs:all
+                XsdAny any = parseAny(childElement);
+                all.addChild(any);
             }
-            // xs:all cannot contain other compositors
         }
 
         return all;
@@ -519,11 +569,22 @@ public class XsdNodeFactory {
      */
     private XsdAttribute parseAttribute(Element attributeElement) {
         String name = attributeElement.getAttribute("name");
-        if (name == null || name.isEmpty()) {
+        String ref = attributeElement.getAttribute("ref");
+
+        // Attribute can have either 'name' or 'ref', not both
+        if (ref != null && !ref.isEmpty()) {
+            // Attribute reference - use ref as the name for now
+            name = ref;
+        } else if (name == null || name.isEmpty()) {
             name = "attribute";
         }
 
         XsdAttribute attribute = new XsdAttribute(name);
+
+        // Store the ref attribute if present
+        if (ref != null && !ref.isEmpty()) {
+            attribute.setRef(ref);
+        }
 
         if (attributeElement.hasAttribute("type")) {
             attribute.setType(attributeElement.getAttribute("type"));
@@ -561,9 +622,10 @@ public class XsdNodeFactory {
      * Parses xs:complexType.
      */
     private XsdComplexType parseComplexType(Element complexTypeElement) {
+        // Get name attribute - null/empty for anonymous types
         String name = complexTypeElement.getAttribute("name");
-        if (name == null || name.isEmpty()) {
-            name = "complexType";
+        if (name != null && name.isEmpty()) {
+            name = null; // Anonymous complexType - no name attribute in output
         }
 
         XsdComplexType complexType = new XsdComplexType(name);
@@ -574,6 +636,14 @@ public class XsdNodeFactory {
 
         if (complexTypeElement.hasAttribute("abstract")) {
             complexType.setAbstract(Boolean.parseBoolean(complexTypeElement.getAttribute("abstract")));
+        }
+
+        if (complexTypeElement.hasAttribute("block")) {
+            complexType.setBlock(complexTypeElement.getAttribute("block"));
+        }
+
+        if (complexTypeElement.hasAttribute("final")) {
+            complexType.setFinal(complexTypeElement.getAttribute("final"));
         }
 
         // Parse child elements
@@ -606,6 +676,12 @@ public class XsdNodeFactory {
             } else if (isXsdElement(childElement, "complexContent")) {
                 XsdComplexContent complexContent = parseComplexContent(childElement);
                 complexType.addChild(complexContent);
+            } else if (isXsdElement(childElement, "anyAttribute")) {
+                XsdAnyAttribute anyAttr = parseAnyAttribute(childElement);
+                complexType.addChild(anyAttr);
+            } else if (isXsdElement(childElement, "attributeGroup")) {
+                XsdAttributeGroup attributeGroup = parseAttributeGroupRef(childElement);
+                complexType.addChild(attributeGroup);
             }
         }
 
@@ -616,9 +692,10 @@ public class XsdNodeFactory {
      * Parses xs:simpleType.
      */
     private XsdSimpleType parseSimpleType(Element simpleTypeElement) {
+        // Get name attribute - null/empty for anonymous types
         String name = simpleTypeElement.getAttribute("name");
-        if (name == null || name.isEmpty()) {
-            name = "simpleType";
+        if (name != null && name.isEmpty()) {
+            name = null; // Anonymous simpleType - no name attribute in output
         }
 
         XsdSimpleType simpleType = new XsdSimpleType(name);
@@ -862,6 +939,9 @@ public class XsdNodeFactory {
                 } else if (isXsdElement(childElement, "attributeGroup")) {
                     XsdAttributeGroup attributeGroup = parseAttributeGroupRef(childElement);
                     extension.addChild(attributeGroup);
+                } else if (isXsdElement(childElement, "anyAttribute")) {
+                    XsdAnyAttribute anyAttr = parseAnyAttribute(childElement);
+                    extension.addChild(anyAttr);
                 }
             }
         }
@@ -1034,10 +1114,9 @@ public class XsdNodeFactory {
 
     /**
      * Parses xs:annotation and extracts documentation and appinfo.
-     * If multiple documentation/appinfo elements exist, they are concatenated with newlines.
+     * Each documentation element is preserved separately with its xml:lang attribute.
      */
     private void parseAnnotation(Element annotationElement, XsdNode target) {
-        StringBuilder documentationBuilder = new StringBuilder();
         XsdAppInfo appInfo = new XsdAppInfo();
 
         NodeList children = annotationElement.getChildNodes();
@@ -1050,33 +1129,63 @@ public class XsdNodeFactory {
             Element childElement = (Element) child;
 
             if (isXsdElement(childElement, "documentation")) {
-                String documentation = childElement.getTextContent();
-                if (documentation != null && !documentation.trim().isEmpty()) {
-                    if (documentationBuilder.length() > 0) {
-                        documentationBuilder.append("\n\n"); // Separate multiple documentation elements
-                    }
-                    // Include language attribute if present
+                String text = childElement.getTextContent();
+                if (text != null && !text.trim().isEmpty()) {
                     String lang = childElement.getAttribute("xml:lang");
-                    if (lang != null && !lang.isEmpty()) {
-                        documentationBuilder.append("[").append(lang).append("] ");
-                    }
-                    documentationBuilder.append(documentation.trim());
+                    String source = childElement.getAttribute("source");
+
+                    // Create XsdDocumentation entry
+                    XsdDocumentation doc = new XsdDocumentation(
+                            text.trim(),
+                            (lang != null && !lang.isEmpty()) ? lang : null,
+                            (source != null && !source.isEmpty()) ? source : null
+                    );
+                    target.addDocumentation(doc);
                 }
             } else if (isXsdElement(childElement, "appinfo")) {
-                String appinfoContent = childElement.getTextContent();
-                if (appinfoContent != null && !appinfoContent.trim().isEmpty()) {
-                    // Get the "source" attribute
-                    String source = childElement.getAttribute("source");
-                    // Parse and add entry (will automatically detect JavaDoc-style tags like @since, @see, etc.)
-                    appInfo.addEntry(source, appinfoContent.trim());
+                // Get the "source" attribute
+                String source = childElement.getAttribute("source");
+
+                // Check if appinfo has child elements (complex XML content)
+                boolean hasChildElements = false;
+                NodeList appinfoChildren = childElement.getChildNodes();
+                for (int j = 0; j < appinfoChildren.getLength(); j++) {
+                    if (appinfoChildren.item(j).getNodeType() == Node.ELEMENT_NODE) {
+                        hasChildElements = true;
+                        break;
+                    }
+                }
+
+                if (hasChildElements) {
+                    // Serialize inner XML content
+                    String rawXml = serializeInnerXml(childElement);
+                    String textContent = childElement.getTextContent();
+                    appInfo.addEntry(source, textContent != null ? textContent.trim() : "", rawXml);
+                } else {
+                    // Simple text content
+                    String appinfoContent = childElement.getTextContent();
+                    if (appinfoContent != null && !appinfoContent.trim().isEmpty()) {
+                        appInfo.addEntry(source, appinfoContent.trim());
+                    }
                 }
             }
         }
 
-        // Set the combined documentation and structured appinfo
-        if (documentationBuilder.length() > 0) {
-            target.setDocumentation(documentationBuilder.toString());
+        // Also set the legacy documentation string for backwards compatibility
+        if (target.hasDocumentations()) {
+            StringBuilder legacyDoc = new StringBuilder();
+            for (XsdDocumentation doc : target.getDocumentations()) {
+                if (legacyDoc.length() > 0) {
+                    legacyDoc.append("\n\n");
+                }
+                if (doc.getLang() != null) {
+                    legacyDoc.append("[").append(doc.getLang()).append("] ");
+                }
+                legacyDoc.append(doc.getText());
+            }
+            target.setDocumentation(legacyDoc.toString());
         }
+
         if (appInfo.hasEntries()) {
             target.setAppinfo(appInfo);
         }
@@ -1249,11 +1358,106 @@ public class XsdNodeFactory {
     }
 
     /**
+     * Parses xs:any wildcard.
+     */
+    private XsdAny parseAny(Element anyElement) {
+        XsdAny any = new XsdAny();
+
+        // Parse namespace attribute
+        if (anyElement.hasAttribute("namespace")) {
+            any.setNamespace(anyElement.getAttribute("namespace"));
+        }
+
+        // Parse processContents attribute
+        if (anyElement.hasAttribute("processContents")) {
+            any.setProcessContents(XsdAny.ProcessContents.fromString(anyElement.getAttribute("processContents")));
+        }
+
+        // Parse occurrence attributes
+        parseOccurrenceAttributes(anyElement, any);
+
+        return any;
+    }
+
+    /**
+     * Parses xs:anyAttribute wildcard.
+     */
+    private XsdAnyAttribute parseAnyAttribute(Element anyAttrElement) {
+        XsdAnyAttribute anyAttr = new XsdAnyAttribute();
+
+        // Parse namespace attribute
+        if (anyAttrElement.hasAttribute("namespace")) {
+            anyAttr.setNamespace(anyAttrElement.getAttribute("namespace"));
+        }
+
+        // Parse processContents attribute
+        if (anyAttrElement.hasAttribute("processContents")) {
+            anyAttr.setProcessContents(XsdAny.ProcessContents.fromString(anyAttrElement.getAttribute("processContents")));
+        }
+
+        return anyAttr;
+    }
+
+    /**
+     * Serializes the inner XML content of an element (all child nodes) to a string.
+     * Used for preserving complex XML content inside xs:appinfo elements.
+     *
+     * @param element the element whose inner content should be serialized
+     * @return the serialized inner XML, or empty string if serialization fails
+     */
+    private String serializeInnerXml(Element element) {
+        try {
+            StringBuilder result = new StringBuilder();
+            NodeList children = element.getChildNodes();
+
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.setOutputProperty(OutputKeys.INDENT, "no");
+
+            for (int i = 0; i < children.getLength(); i++) {
+                Node child = children.item(i);
+                if (child.getNodeType() == Node.ELEMENT_NODE) {
+                    StringWriter writer = new StringWriter();
+                    transformer.transform(new DOMSource(child), new StreamResult(writer));
+                    result.append(writer.toString());
+                } else if (child.getNodeType() == Node.TEXT_NODE) {
+                    String text = child.getTextContent();
+                    if (text != null && !text.trim().isEmpty()) {
+                        result.append(text);
+                    }
+                }
+            }
+
+            return result.toString().trim();
+        } catch (Exception e) {
+            logger.warn("Failed to serialize inner XML: {}", e.getMessage());
+            return "";
+        }
+    }
+
+    /**
      * Checks if an element is an XSD element with given local name.
      */
     private boolean isXsdElement(Element element, String localName) {
         return XSD_NAMESPACE.equals(element.getNamespaceURI())
                 && localName.equals(element.getLocalName());
+    }
+
+    /**
+     * Checks if an attribute name is a standard xs:schema attribute that is handled separately.
+     * Additional attributes (like vc:minVersion) should be stored in additionalAttributes.
+     */
+    private boolean isStandardSchemaAttribute(String attrName) {
+        return switch (attrName) {
+            case "targetNamespace",
+                 "elementFormDefault",
+                 "attributeFormDefault",
+                 "version",
+                 "id",
+                 "xmlns" -> true;
+            default -> attrName.startsWith("xmlns:");
+        };
     }
 
     /**

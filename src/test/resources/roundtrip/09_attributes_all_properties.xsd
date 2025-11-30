@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Test Schema 9: Attributes with ALL Properties
+    Tests: xs:attribute with all properties (use, default, fixed, form, type, ref)
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://test.example.com/attributes"
+           targetNamespace="http://test.example.com/attributes"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified"
+           version="9.0">
+
+    <xs:annotation>
+        <xs:documentation>Test schema for attribute declarations with all properties</xs:documentation>
+    </xs:annotation>
+
+    <!-- Simple types for attributes -->
+    <xs:simpleType name="StatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ACTIVE"/>
+            <xs:enumeration value="INACTIVE"/>
+            <xs:enumeration value="PENDING"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PercentType">
+        <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="0"/>
+            <xs:maxInclusive value="100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CodeType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z]{3}-[0-9]{4}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Global attribute declarations -->
+    <xs:attribute name="globalRequired" type="xs:string"/>
+    <xs:attribute name="globalWithDefault" type="xs:string" default="defaultGlobal"/>
+    <xs:attribute name="globalWithFixed" type="xs:string" fixed="fixedGlobal"/>
+    <xs:attribute name="globalTyped" type="tns:StatusType"/>
+
+    <!-- Attribute with inline type -->
+    <xs:attribute name="globalInlineType">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="20"/>
+                <xs:pattern value="[A-Za-z]+"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+
+    <!-- Annotated global attribute -->
+    <xs:attribute name="annotatedAttr" type="xs:string">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">A documented global attribute</xs:documentation>
+            <xs:documentation xml:lang="de">Ein dokumentiertes globales Attribut</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+
+    <!-- ComplexType with various attribute configurations -->
+    <xs:complexType name="AllAttributeUsesType">
+        <xs:sequence>
+            <xs:element name="content" type="xs:string"/>
+        </xs:sequence>
+
+        <!-- Required attribute -->
+        <xs:attribute name="requiredAttr" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>This attribute is required</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <!-- Optional attribute (explicit) -->
+        <xs:attribute name="optionalAttr" type="xs:string" use="optional"/>
+
+        <!-- Prohibited attribute -->
+        <xs:attribute name="prohibitedAttr" type="xs:string" use="prohibited"/>
+
+        <!-- Attribute with default value -->
+        <xs:attribute name="defaultAttr" type="xs:string" default="myDefault"/>
+        <xs:attribute name="defaultInt" type="xs:integer" default="0"/>
+        <xs:attribute name="defaultBool" type="xs:boolean" default="false"/>
+        <xs:attribute name="defaultDecimal" type="xs:decimal" default="0.0"/>
+
+        <!-- Attribute with fixed value -->
+        <xs:attribute name="fixedAttr" type="xs:string" fixed="immutableValue"/>
+        <xs:attribute name="fixedInt" type="xs:integer" fixed="42"/>
+
+        <!-- Typed attributes -->
+        <xs:attribute name="statusAttr" type="tns:StatusType"/>
+        <xs:attribute name="percentAttr" type="tns:PercentType"/>
+        <xs:attribute name="codeAttr" type="tns:CodeType"/>
+
+        <!-- Form attribute -->
+        <xs:attribute name="qualifiedAttr" type="xs:string" form="qualified"/>
+        <xs:attribute name="unqualifiedAttr" type="xs:string" form="unqualified"/>
+
+        <!-- Built-in types -->
+        <xs:attribute name="idAttr" type="xs:ID"/>
+        <xs:attribute name="idrefAttr" type="xs:IDREF"/>
+        <xs:attribute name="nmtokenAttr" type="xs:NMTOKEN"/>
+        <xs:attribute name="nameAttr" type="xs:Name"/>
+        <xs:attribute name="ncnameAttr" type="xs:NCName"/>
+        <xs:attribute name="languageAttr" type="xs:language"/>
+        <xs:attribute name="anyuriAttr" type="xs:anyURI"/>
+        <xs:attribute name="qnameAttr" type="xs:QName"/>
+
+        <!-- Numeric types -->
+        <xs:attribute name="integerAttr" type="xs:integer"/>
+        <xs:attribute name="positiveIntAttr" type="xs:positiveInteger"/>
+        <xs:attribute name="negativeIntAttr" type="xs:negativeInteger"/>
+        <xs:attribute name="nonNegativeIntAttr" type="xs:nonNegativeInteger"/>
+        <xs:attribute name="nonPositiveIntAttr" type="xs:nonPositiveInteger"/>
+        <xs:attribute name="longAttr" type="xs:long"/>
+        <xs:attribute name="shortAttr" type="xs:short"/>
+        <xs:attribute name="byteAttr" type="xs:byte"/>
+        <xs:attribute name="unsignedLongAttr" type="xs:unsignedLong"/>
+        <xs:attribute name="floatAttr" type="xs:float"/>
+        <xs:attribute name="doubleAttr" type="xs:double"/>
+
+        <!-- Date/Time types -->
+        <xs:attribute name="dateAttr" type="xs:date"/>
+        <xs:attribute name="timeAttr" type="xs:time"/>
+        <xs:attribute name="dateTimeAttr" type="xs:dateTime"/>
+        <xs:attribute name="durationAttr" type="xs:duration"/>
+        <xs:attribute name="gYearAttr" type="xs:gYear"/>
+        <xs:attribute name="gMonthAttr" type="xs:gMonth"/>
+        <xs:attribute name="gDayAttr" type="xs:gDay"/>
+        <xs:attribute name="gYearMonthAttr" type="xs:gYearMonth"/>
+        <xs:attribute name="gMonthDayAttr" type="xs:gMonthDay"/>
+
+        <!-- Binary types -->
+        <xs:attribute name="base64Attr" type="xs:base64Binary"/>
+        <xs:attribute name="hexAttr" type="xs:hexBinary"/>
+
+        <!-- Inline type in attribute -->
+        <xs:attribute name="inlineTypeAttr">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value=""/>
+                    <xs:enumeration value="VALUE1"/>
+                    <xs:enumeration value="VALUE2"/>
+                    <xs:enumeration value="Special &amp; Characters"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- Type using attribute references -->
+    <xs:complexType name="AttributeRefType">
+        <xs:sequence>
+            <xs:element name="data" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute ref="tns:globalRequired" use="required"/>
+        <xs:attribute ref="tns:globalWithDefault"/>
+        <xs:attribute ref="tns:globalWithFixed"/>
+        <xs:attribute ref="tns:globalTyped"/>
+        <xs:attribute ref="tns:globalInlineType"/>
+        <xs:attribute ref="tns:annotatedAttr"/>
+    </xs:complexType>
+
+    <!-- Attribute groups -->
+    <xs:attributeGroup name="IdentityAttributeGroup">
+        <xs:attribute name="id" type="xs:ID"/>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="code" type="tns:CodeType"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="AuditAttributeGroup">
+        <xs:attribute name="createdBy" type="xs:string"/>
+        <xs:attribute name="createdAt" type="xs:dateTime"/>
+        <xs:attribute name="modifiedBy" type="xs:string"/>
+        <xs:attribute name="modifiedAt" type="xs:dateTime"/>
+        <xs:attribute name="version" type="xs:positiveInteger" default="1"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="CombinedAttributeGroup">
+        <xs:attributeGroup ref="tns:IdentityAttributeGroup"/>
+        <xs:attributeGroup ref="tns:AuditAttributeGroup"/>
+        <xs:attribute name="status" type="tns:StatusType" default="ACTIVE"/>
+    </xs:attributeGroup>
+
+    <!-- Type using attribute groups -->
+    <xs:complexType name="RecordType">
+        <xs:sequence>
+            <xs:element name="content" type="xs:string"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="tns:CombinedAttributeGroup"/>
+    </xs:complexType>
+
+    <!-- Type with anyAttribute -->
+    <xs:complexType name="ExtensibleType">
+        <xs:sequence>
+            <xs:element name="value" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute name="knownAttr" type="xs:string"/>
+        <xs:anyAttribute namespace="##other" processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="StrictExtensibleType">
+        <xs:sequence>
+            <xs:element name="value" type="xs:string"/>
+        </xs:sequence>
+        <xs:anyAttribute namespace="http://specific.namespace.com" processContents="strict"/>
+    </xs:complexType>
+
+    <xs:complexType name="SkipExtensibleType">
+        <xs:sequence>
+            <xs:element name="value" type="xs:string"/>
+        </xs:sequence>
+        <xs:anyAttribute namespace="##any" processContents="skip"/>
+    </xs:complexType>
+
+    <!-- Elements using these types -->
+    <xs:element name="AllAttributes" type="tns:AllAttributeUsesType"/>
+    <xs:element name="AttrRef" type="tns:AttributeRefType"/>
+    <xs:element name="Record" type="tns:RecordType"/>
+    <xs:element name="Extensible" type="tns:ExtensibleType"/>
+
+    <!-- Root element -->
+    <xs:element name="TestRoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:AllAttributes"/>
+                <xs:element ref="tns:AttrRef"/>
+                <xs:element ref="tns:Record"/>
+                <xs:element ref="tns:Extensible"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

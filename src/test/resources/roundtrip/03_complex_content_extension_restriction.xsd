@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Test Schema 3: ComplexContent and SimpleContent
+    Tests: xs:complexContent, xs:simpleContent, xs:extension, xs:restriction
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://test.example.com/content"
+           targetNamespace="http://test.example.com/content"
+           elementFormDefault="qualified"
+           version="3.0">
+
+    <xs:annotation>
+        <xs:documentation>Test schema for complex/simple content derivation</xs:documentation>
+    </xs:annotation>
+
+    <!-- Base types for derivation -->
+    <xs:complexType name="PersonType">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="birthDate" type="xs:date" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:ID"/>
+    </xs:complexType>
+
+    <xs:complexType name="AddressType">
+        <xs:sequence>
+            <xs:element name="street" type="xs:string"/>
+            <xs:element name="city" type="xs:string"/>
+            <xs:element name="country" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ComplexContent Extension -->
+    <xs:complexType name="EmployeeType">
+        <xs:complexContent>
+            <xs:extension base="tns:PersonType">
+                <xs:sequence>
+                    <xs:element name="employeeId" type="xs:string"/>
+                    <xs:element name="department" type="xs:string"/>
+                    <xs:element name="hireDate" type="xs:date"/>
+                </xs:sequence>
+                <xs:attribute name="level" type="xs:integer"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="ManagerType">
+        <xs:complexContent>
+            <xs:extension base="tns:EmployeeType">
+                <xs:sequence>
+                    <xs:element name="teamSize" type="xs:positiveInteger"/>
+                    <xs:element name="directReports" type="tns:EmployeeType" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+                <xs:attribute name="executiveLevel" type="xs:boolean"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- ComplexContent Restriction -->
+    <xs:complexType name="RestrictedPersonType">
+        <xs:complexContent>
+            <xs:restriction base="tns:PersonType">
+                <xs:sequence>
+                    <xs:element name="name" type="xs:string"/>
+                    <!-- birthDate is removed by not including it -->
+                </xs:sequence>
+                <xs:attribute name="id" type="xs:ID" use="required"/>
+            </xs:restriction>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="StrictAddressType">
+        <xs:complexContent>
+            <xs:restriction base="tns:AddressType">
+                <xs:sequence>
+                    <xs:element name="street">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:maxLength value="100"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="city">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:maxLength value="50"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="country">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:length value="2"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:restriction>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- SimpleContent Extension -->
+    <xs:complexType name="QuantityType">
+        <xs:simpleContent>
+            <xs:extension base="xs:decimal">
+                <xs:attribute name="unit" type="xs:string" use="required"/>
+                <xs:attribute name="precision" type="xs:integer"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="MoneyType">
+        <xs:simpleContent>
+            <xs:extension base="xs:decimal">
+                <xs:attribute name="currency" type="xs:string" use="required"/>
+                <xs:attribute name="exchangeRate" type="xs:decimal"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="ExtendedQuantityType">
+        <xs:simpleContent>
+            <xs:extension base="tns:QuantityType">
+                <xs:attribute name="tolerance" type="xs:decimal"/>
+                <xs:attribute name="measured" type="xs:boolean" default="true"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- SimpleContent Restriction -->
+    <xs:simpleType name="PercentType">
+        <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="0"/>
+            <xs:maxInclusive value="100"/>
+            <xs:fractionDigits value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="PercentWithUnitType">
+        <xs:simpleContent>
+            <xs:extension base="tns:PercentType">
+                <xs:attribute name="unit" type="xs:string" fixed="%"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="RestrictedMoneyType">
+        <xs:simpleContent>
+            <xs:restriction base="tns:MoneyType">
+                <xs:minInclusive value="0"/>
+                <xs:maxInclusive value="1000000"/>
+                <xs:attribute name="currency" type="xs:string" use="required"/>
+            </xs:restriction>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- Mixed extension/restriction chain -->
+    <xs:complexType name="CodedValueType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="code" type="xs:string"/>
+                <xs:attribute name="codeSystem" type="xs:anyURI"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="RestrictedCodedValueType">
+        <xs:simpleContent>
+            <xs:restriction base="tns:CodedValueType">
+                <xs:maxLength value="50"/>
+                <xs:attribute name="code" type="xs:string" use="required"/>
+                <xs:attribute name="codeSystem" type="xs:anyURI" use="required"/>
+            </xs:restriction>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- ComplexContent with annotation -->
+    <xs:complexType name="DocumentedDerivedType">
+        <xs:annotation>
+            <xs:documentation>A documented derived type</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:annotation>
+                <xs:documentation>Extension documentation</xs:documentation>
+            </xs:annotation>
+            <xs:extension base="tns:PersonType">
+                <xs:annotation>
+                    <xs:documentation>Inner extension documentation</xs:documentation>
+                </xs:annotation>
+                <xs:sequence>
+                    <xs:element name="additionalInfo" type="xs:string"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Mixed content extension -->
+    <xs:complexType name="TextBaseType" mixed="true">
+        <xs:sequence>
+            <xs:element name="highlight" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ExtendedTextType" mixed="true">
+        <xs:complexContent>
+            <xs:extension base="tns:TextBaseType">
+                <xs:sequence>
+                    <xs:element name="footnote" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+                <xs:attribute name="lang" type="xs:language"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Root element -->
+    <xs:element name="TestRoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="person" type="tns:PersonType"/>
+                <xs:element name="employee" type="tns:EmployeeType"/>
+                <xs:element name="manager" type="tns:ManagerType"/>
+                <xs:element name="restrictedPerson" type="tns:RestrictedPersonType"/>
+                <xs:element name="quantity" type="tns:QuantityType"/>
+                <xs:element name="money" type="tns:MoneyType"/>
+                <xs:element name="percent" type="tns:PercentWithUnitType"/>
+                <xs:element name="codedValue" type="tns:CodedValueType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

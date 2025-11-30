@@ -86,8 +86,8 @@ public class XsdAssert extends XsdNode {
         // Copy XsdAssert-specific properties
         copy.setXpathDefaultNamespace(this.xpathDefaultNamespace);
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

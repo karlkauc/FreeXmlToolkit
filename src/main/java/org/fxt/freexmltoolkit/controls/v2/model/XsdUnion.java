@@ -87,8 +87,8 @@ public class XsdUnion extends XsdNode {
         // Copy XsdUnion-specific properties
         copy.setMemberTypes(new ArrayList<>(this.memberTypes));
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

@@ -68,8 +68,8 @@ public class XsdAttributeGroup extends XsdNode {
         // Copy XsdAttributeGroup-specific properties
         copy.setRef(this.ref);
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

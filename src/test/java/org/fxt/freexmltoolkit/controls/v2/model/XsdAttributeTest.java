@@ -312,12 +312,11 @@ class XsdAttributeTest {
         List<PropertyChangeEvent> events = new ArrayList<>();
         attribute.addPropertyChangeListener(events::add);
 
-        // Setting the same value should still fire event (JavaBeans pattern)
+        // Setting the same value should NOT fire event (JavaBeans pattern)
+        // PropertyChangeSupport.firePropertyChange() does not fire if old == new
         attribute.setType("xs:string");
 
-        assertEquals(1, events.size());
-        assertEquals("xs:string", events.get(0).getOldValue());
-        assertEquals("xs:string", events.get(0).getNewValue());
+        assertEquals(0, events.size());
     }
 
     @Test

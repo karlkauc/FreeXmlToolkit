@@ -60,8 +60,8 @@ public class XsdKeyRef extends XsdIdentityConstraint {
         // Copy XsdKeyRef-specific properties
         copy.setRefer(this.refer);
 
-        // Copy base properties and children
-        copyBasicPropertiesTo(copy);
+        // Copy base properties and children (propagate suffix to children)
+        copyBasicPropertiesTo(copy, suffix);
 
         return copy;
     }

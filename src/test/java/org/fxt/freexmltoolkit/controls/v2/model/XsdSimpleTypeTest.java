@@ -27,10 +27,11 @@ class XsdSimpleTypeTest {
     // ========== Constructor Tests ==========
 
     @Test
-    @DisplayName("default constructor should set default name")
+    @DisplayName("default constructor should create anonymous type with null name")
     void testDefaultConstructor() {
         XsdSimpleType type = new XsdSimpleType();
-        assertEquals("simpleType", type.getName());
+        // Anonymous simpleTypes don't have a name attribute
+        assertNull(type.getName());
     }
 
     @Test

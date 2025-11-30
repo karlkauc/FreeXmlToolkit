@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Test Schema 10: Deep Nesting and Recursive Types
+    Tests: Deeply nested structures, recursive type references, self-referencing elements, special characters
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://test.example.com/nesting"
+           targetNamespace="http://test.example.com/nesting"
+           elementFormDefault="qualified"
+           version="10.0">
+
+    <xs:annotation>
+        <xs:documentation xml:lang="en">Test schema for deep nesting and recursive structures.
+This includes:
+- Deeply nested type definitions
+- Self-referencing (recursive) types
+- Special characters in various places
+- Edge cases for serialization</xs:documentation>
+        <xs:appinfo>
+            <meta:info xmlns:meta="http://meta.example.com">
+                <meta:special>Value with &lt;special&gt; &amp; "characters"</meta:special>
+            </meta:info>
+        </xs:appinfo>
+    </xs:annotation>
+
+    <!-- Self-referencing tree structure -->
+    <xs:complexType name="TreeNodeType">
+        <xs:sequence>
+            <xs:element name="value" type="xs:string"/>
+            <xs:element name="children" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="child" type="tns:TreeNodeType" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:ID"/>
+        <xs:attribute name="parentRef" type="xs:IDREF"/>
+    </xs:complexType>
+
+    <!-- Linked list structure -->
+    <xs:complexType name="LinkedListNodeType">
+        <xs:sequence>
+            <xs:element name="data" type="xs:string"/>
+            <xs:element name="next" type="tns:LinkedListNodeType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Binary tree -->
+    <xs:complexType name="BinaryTreeNodeType">
+        <xs:sequence>
+            <xs:element name="value" type="xs:integer"/>
+            <xs:element name="left" type="tns:BinaryTreeNodeType" minOccurs="0"/>
+            <xs:element name="right" type="tns:BinaryTreeNodeType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Recursive with choice -->
+    <xs:complexType name="ExpressionType">
+        <xs:choice>
+            <xs:element name="literal" type="xs:string"/>
+            <xs:element name="variable" type="xs:NCName"/>
+            <xs:element name="binary">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="operator">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="+"/>
+                                    <xs:enumeration value="-"/>
+                                    <xs:enumeration value="*"/>
+                                    <xs:enumeration value="/"/>
+                                    <xs:enumeration value="&amp;&amp;"/>
+                                    <xs:enumeration value="||"/>
+                                    <xs:enumeration value="&lt;"/>
+                                    <xs:enumeration value="&gt;"/>
+                                    <xs:enumeration value="&lt;="/>
+                                    <xs:enumeration value="&gt;="/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:element>
+                        <xs:element name="left" type="tns:ExpressionType"/>
+                        <xs:element name="right" type="tns:ExpressionType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="unary">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="operator" type="xs:string"/>
+                        <xs:element name="operand" type="tns:ExpressionType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="function">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="name" type="xs:NCName"/>
+                        <xs:element name="arguments">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="arg" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+
+    <!-- Deeply nested inline types (10 levels) -->
+    <xs:complexType name="Level1Type">
+        <xs:sequence>
+            <xs:element name="level1Data" type="xs:string"/>
+            <xs:element name="level2">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="level2Data" type="xs:string"/>
+                        <xs:element name="level3">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="level3Data" type="xs:string"/>
+                                    <xs:element name="level4">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="level4Data" type="xs:string"/>
+                                                <xs:element name="level5">
+                                                    <xs:complexType>
+                                                        <xs:sequence>
+                                                            <xs:element name="level5Data" type="xs:string"/>
+                                                            <xs:element name="level6">
+                                                                <xs:complexType>
+                                                                    <xs:sequence>
+                                                                        <xs:element name="level6Data" type="xs:string"/>
+                                                                        <xs:element name="level7">
+                                                                            <xs:complexType>
+                                                                                <xs:sequence>
+                                                                                    <xs:element name="level7Data" type="xs:string"/>
+                                                                                    <xs:element name="level8">
+                                                                                        <xs:complexType>
+                                                                                            <xs:sequence>
+                                                                                                <xs:element name="level8Data" type="xs:string"/>
+                                                                                                <xs:element name="level9">
+                                                                                                    <xs:complexType>
+                                                                                                        <xs:sequence>
+                                                                                                            <xs:element name="level9Data" type="xs:string"/>
+                                                                                                            <xs:element name="level10">
+                                                                                                                <xs:complexType>
+                                                                                                                    <xs:sequence>
+                                                                                                                        <xs:element name="deepestData" type="xs:string"/>
+                                                                                                                    </xs:sequence>
+                                                                                                                    <xs:attribute name="deepAttr" type="xs:string"/>
+                                                                                                                </xs:complexType>
+                                                                                                            </xs:element>
+                                                                                                        </xs:sequence>
+                                                                                                    </xs:complexType>
+                                                                                                </xs:element>
+                                                                                            </xs:sequence>
+                                                                                        </xs:complexType>
+                                                                                    </xs:element>
+                                                                                </xs:sequence>
+                                                                            </xs:complexType>
+                                                                        </xs:element>
+                                                                    </xs:sequence>
+                                                                </xs:complexType>
+                                                            </xs:element>
+                                                        </xs:sequence>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Special characters in names and values -->
+    <xs:simpleType name="SpecialCharsType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value=""/>
+            <xs:enumeration value="   "/>
+            <xs:enumeration value="Tab&#9;Here"/>
+            <xs:enumeration value="Line&#10;Break"/>
+            <xs:enumeration value="Carriage&#13;Return"/>
+            <xs:enumeration value="&lt;tag&gt;"/>
+            <xs:enumeration value="a &amp; b"/>
+            <xs:enumeration value="&quot;quoted&quot;"/>
+            <xs:enumeration value="'apostrophe'"/>
+            <xs:enumeration value="Mixed &lt;tag&gt; &amp; &quot;text&quot;"/>
+            <xs:enumeration value="Unicode: äöü ß € © ® ™ ñ"/>
+            <xs:enumeration value="Chinese: 中文"/>
+            <xs:enumeration value="Japanese: 日本語"/>
+            <xs:enumeration value="Arabic: العربية"/>
+            <xs:enumeration value="Hebrew: עברית"/>
+            <xs:enumeration value="Emoji: 😀🎉"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Organization hierarchy (mutual recursion) -->
+    <xs:complexType name="OrganizationType">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="departments" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="department" type="tns:DepartmentType" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="DepartmentType">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="head" type="tns:EmployeeType" minOccurs="0"/>
+            <xs:element name="subDepartments" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="subDepartment" type="tns:DepartmentType" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="employees" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="employee" type="tns:EmployeeType" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="EmployeeType">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="title" type="xs:string"/>
+            <xs:element name="manages" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="employee" type="tns:EmployeeType" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="employeeId" type="xs:ID"/>
+        <xs:attribute name="reportsTo" type="xs:IDREF"/>
+    </xs:complexType>
+
+    <!-- File system structure (classic recursive) -->
+    <xs:complexType name="FileSystemNodeType">
+        <xs:choice>
+            <xs:element name="file">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="name" type="xs:string"/>
+                        <xs:element name="size" type="xs:nonNegativeInteger"/>
+                        <xs:element name="mimeType" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                    <xs:attribute name="permissions" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="directory">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="name" type="xs:string"/>
+                        <xs:element name="contents" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="item" type="tns:FileSystemNodeType" maxOccurs="unbounded"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="permissions" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="symlink">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="name" type="xs:string"/>
+                        <xs:element name="target" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+
+    <!-- JSON-like structure -->
+    <xs:complexType name="JsonValueType">
+        <xs:choice>
+            <xs:element name="null">
+                <xs:complexType/>
+            </xs:element>
+            <xs:element name="boolean" type="xs:boolean"/>
+            <xs:element name="number" type="xs:double"/>
+            <xs:element name="string" type="xs:string"/>
+            <xs:element name="array">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="item" type="tns:JsonValueType" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="object">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="property" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="key" type="xs:string"/>
+                                    <xs:element name="value" type="tns:JsonValueType"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+
+    <!-- Annotations at every level -->
+    <xs:complexType name="FullyAnnotatedType">
+        <xs:annotation>
+            <xs:documentation>Type-level documentation</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:annotation>
+                <xs:documentation>Sequence-level documentation</xs:documentation>
+            </xs:annotation>
+            <xs:element name="annotatedElement">
+                <xs:annotation>
+                    <xs:documentation>Element-level documentation</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:annotation>
+                        <xs:documentation>Inline type documentation</xs:documentation>
+                    </xs:annotation>
+                    <xs:sequence>
+                        <xs:element name="innerElement" type="xs:string">
+                            <xs:annotation>
+                                <xs:documentation>Inner element documentation</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="annotatedAttr" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>Attribute documentation</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Root elements -->
+    <xs:element name="TreeRoot" type="tns:TreeNodeType"/>
+    <xs:element name="LinkedList" type="tns:LinkedListNodeType"/>
+    <xs:element name="BinaryTree" type="tns:BinaryTreeNodeType"/>
+    <xs:element name="Expression" type="tns:ExpressionType"/>
+    <xs:element name="DeepStructure" type="tns:Level1Type"/>
+    <xs:element name="SpecialChars" type="tns:SpecialCharsType"/>
+    <xs:element name="Organization" type="tns:OrganizationType"/>
+    <xs:element name="FileSystem" type="tns:FileSystemNodeType"/>
+    <xs:element name="JsonValue" type="tns:JsonValueType"/>
+    <xs:element name="FullyAnnotated" type="tns:FullyAnnotatedType"/>
+
+    <xs:element name="TestRoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:TreeRoot"/>
+                <xs:element ref="tns:LinkedList"/>
+                <xs:element ref="tns:BinaryTree"/>
+                <xs:element ref="tns:Expression"/>
+                <xs:element ref="tns:DeepStructure"/>
+                <xs:element ref="tns:SpecialChars"/>
+                <xs:element ref="tns:Organization"/>
+                <xs:element ref="tns:FileSystem"/>
+                <xs:element ref="tns:JsonValue"/>
+                <xs:element ref="tns:FullyAnnotated"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

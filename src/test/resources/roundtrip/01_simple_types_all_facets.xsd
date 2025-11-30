@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Test Schema 1: SimpleTypes with ALL Facets
+    Tests: xs:simpleType, xs:restriction, all 14 facet types, xs:list, xs:union
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://test.example.com/simpletypes"
+           targetNamespace="http://test.example.com/simpletypes"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified"
+           version="1.0">
+
+    <xs:annotation>
+        <xs:documentation xml:lang="en">Test schema for all SimpleType facet combinations</xs:documentation>
+        <xs:appinfo>
+            <meta:info xmlns:meta="http://meta.example.com">Version 1.0</meta:info>
+        </xs:appinfo>
+    </xs:annotation>
+
+    <!-- Length facets -->
+    <xs:simpleType name="ExactLength5Type">
+        <xs:annotation>
+            <xs:documentation>String with exact length of 5</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:length value="5"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="MinMaxLengthType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="2"/>
+            <xs:maxLength value="100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Pattern facets - multiple patterns -->
+    <xs:simpleType name="EmailType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"/>
+            <xs:pattern value=".+@.+\..+"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PhoneType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\+?[0-9]{1,3}[-.\s]?[0-9]{3,14}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Enumeration facets - including empty value and special characters -->
+    <xs:simpleType name="StatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value=""/>
+            <xs:enumeration value="ACTIVE"/>
+            <xs:enumeration value="INACTIVE"/>
+            <xs:enumeration value="PENDING"/>
+            <xs:enumeration value="DELETED"/>
+            <xs:enumeration value="Small &amp; Medium"/>
+            <xs:enumeration value="Less &lt; Greater &gt;"/>
+            <xs:enumeration value="Quote &quot;Test&quot;"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ColorType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="RED">
+                <xs:annotation>
+                    <xs:documentation>The color red (RGB: 255,0,0)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="GREEN">
+                <xs:annotation>
+                    <xs:documentation>The color green (RGB: 0,255,0)</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="BLUE"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- WhiteSpace facet -->
+    <xs:simpleType name="PreserveWhitespaceType">
+        <xs:restriction base="xs:string">
+            <xs:whiteSpace value="preserve"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CollapseWhitespaceType">
+        <xs:restriction base="xs:string">
+            <xs:whiteSpace value="collapse"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ReplaceWhitespaceType">
+        <xs:restriction base="xs:string">
+            <xs:whiteSpace value="replace"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Numeric range facets -->
+    <xs:simpleType name="PercentageType">
+        <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="0"/>
+            <xs:maxInclusive value="100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PositiveExclusiveType">
+        <xs:restriction base="xs:decimal">
+            <xs:minExclusive value="0"/>
+            <xs:maxExclusive value="1000000"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="MixedBoundsType">
+        <xs:restriction base="xs:integer">
+            <xs:minInclusive value="-100"/>
+            <xs:maxExclusive value="100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Digit facets -->
+    <xs:simpleType name="CurrencyType">
+        <xs:restriction base="xs:decimal">
+            <xs:totalDigits value="15"/>
+            <xs:fractionDigits value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PreciseDecimalType">
+        <xs:restriction base="xs:decimal">
+            <xs:totalDigits value="20"/>
+            <xs:fractionDigits value="10"/>
+            <xs:minInclusive value="0"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Fixed facets -->
+    <xs:simpleType name="FixedPatternType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z]{3}" fixed="true"/>
+            <xs:length value="3" fixed="true"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Combined facets -->
+    <xs:simpleType name="CombinedFacetsType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="5"/>
+            <xs:maxLength value="50"/>
+            <xs:pattern value="[A-Za-z0-9_-]+"/>
+            <xs:whiteSpace value="collapse"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- xs:list types -->
+    <xs:simpleType name="IntegerListType">
+        <xs:list itemType="xs:integer"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="ColorListType">
+        <xs:list itemType="tns:ColorType"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="InlineListType">
+        <xs:list>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="A"/>
+                    <xs:enumeration value="B"/>
+                    <xs:enumeration value="C"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:list>
+    </xs:simpleType>
+
+    <xs:simpleType name="RestrictedListType">
+        <xs:restriction base="tns:IntegerListType">
+            <xs:minLength value="1"/>
+            <xs:maxLength value="10"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- xs:union types -->
+    <xs:simpleType name="StringOrIntType">
+        <xs:union memberTypes="xs:string xs:integer"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="MultiUnionType">
+        <xs:union memberTypes="xs:date xs:dateTime xs:time xs:gYear xs:gYearMonth"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="InlineUnionType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                    <xs:minInclusive value="0"/>
+                    <xs:maxInclusive value="100"/>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="N/A"/>
+                    <xs:enumeration value="UNKNOWN"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+
+    <xs:simpleType name="MixedUnionType">
+        <xs:union memberTypes="xs:boolean">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="YES"/>
+                    <xs:enumeration value="NO"/>
+                    <xs:enumeration value="MAYBE"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+
+    <!-- Derived types -->
+    <xs:simpleType name="ExtendedStatusType">
+        <xs:restriction base="tns:StatusType">
+            <xs:enumeration value="ACTIVE"/>
+            <xs:enumeration value="INACTIVE"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- All built-in derived types with facets -->
+    <xs:simpleType name="TokenWithPattern">
+        <xs:restriction base="xs:token">
+            <xs:pattern value="[A-Z]+"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="LanguageRestricted">
+        <xs:restriction base="xs:language">
+            <xs:enumeration value="en"/>
+            <xs:enumeration value="de"/>
+            <xs:enumeration value="fr"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="NMTOKENSRestricted">
+        <xs:restriction base="xs:NMTOKENS">
+            <xs:minLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Elements using these types -->
+    <xs:element name="TestRoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="status" type="tns:StatusType"/>
+                <xs:element name="color" type="tns:ColorType"/>
+                <xs:element name="percentage" type="tns:PercentageType"/>
+                <xs:element name="currency" type="tns:CurrencyType"/>
+                <xs:element name="integerList" type="tns:IntegerListType"/>
+                <xs:element name="mixedValue" type="tns:InlineUnionType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

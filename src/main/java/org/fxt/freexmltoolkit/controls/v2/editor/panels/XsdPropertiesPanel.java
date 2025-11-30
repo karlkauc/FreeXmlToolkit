@@ -52,7 +52,8 @@ public class XsdPropertiesPanel extends VBox {
 
     // Documentation section controls
     private TextArea documentationArea;
-    private TextArea appinfoArea;
+    private TextArea appinfoArea; // Kept for backward compatibility
+    private AppInfoEditorPanel appInfoEditorPanel; // New structured editor
 
     // Constraints section controls
     private CheckBox nillableCheckBox;
@@ -426,12 +427,8 @@ public class XsdPropertiesPanel extends VBox {
             }
         });
 
-        // AppInfo - fire command when focus lost
-        appinfoArea.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
-                handleAppinfoChange();
-            }
-        });
+        // AppInfo handling is now done by AppInfoEditorPanel internally
+        // It creates commands directly when fields change
 
         // Constraints - nillable checkbox
         nillableCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
@@ -549,13 +546,23 @@ public class XsdPropertiesPanel extends VBox {
         documentationArea.setWrapText(true);
         vbox.getChildren().add(documentationArea);
 
-        // AppInfo
-        vbox.getChildren().add(new Label("AppInfo:"));
+        // Separator
+        Separator separator = new Separator();
+        separator.setPadding(new Insets(5, 0, 5, 0));
+        vbox.getChildren().add(separator);
+
+        // AppInfo - Structured Editor (XsdDoc)
+        Label appInfoLabel = new Label("AppInfo (XsdDoc):");
+        appInfoLabel.setStyle("-fx-font-weight: bold;");
+        vbox.getChildren().add(appInfoLabel);
+
+        appInfoEditorPanel = new AppInfoEditorPanel(editorContext);
+        vbox.getChildren().add(appInfoEditorPanel);
+
+        // Hidden legacy appinfo area for backward compatibility (not shown in UI)
         appinfoArea = new TextArea();
-        appinfoArea.setPromptText("xs:appinfo content");
-        appinfoArea.setPrefRowCount(3);
-        appinfoArea.setWrapText(true);
-        vbox.getChildren().add(appinfoArea);
+        appinfoArea.setManaged(false);
+        appinfoArea.setVisible(false);
 
         TitledPane titledPane = new TitledPane("Documentation", vbox);
         titledPane.setExpanded(false);
@@ -711,15 +718,16 @@ public class XsdPropertiesPanel extends VBox {
             logger.debug("ModelObject type: {}", modelObject != null ? modelObject.getClass().getName() : "null");
             if (modelObject instanceof XsdNode xsdNode) {
                 String documentation = xsdNode.getDocumentation();
-                String appinfo = xsdNode.getAppinfoAsString();
-                logger.debug("Loading documentation: '{}', appinfo: '{}'", documentation, appinfo);
+                logger.debug("Loading documentation: '{}'", documentation);
                 documentationArea.setText(documentation != null ? documentation : "");
-                appinfoArea.setText(appinfo != null ? appinfo : "");
-                logger.debug("Documentation panel updated with values");
+
+                // Update the structured AppInfo editor panel
+                appInfoEditorPanel.setNode(xsdNode);
+                logger.debug("Documentation panel and AppInfo editor updated with values");
             } else {
                 logger.warn("ModelObject is not an XsdNode, cannot load documentation/appinfo");
                 documentationArea.setText("");
-                appinfoArea.setText("");
+                appInfoEditorPanel.setNode(null);
             }
 
             // Update Constraints section
@@ -785,7 +793,7 @@ public class XsdPropertiesPanel extends VBox {
             maxOccursSpinner.setDisable(false);
 
             documentationArea.clear();
-            appinfoArea.clear();
+            appInfoEditorPanel.setNode(null); // Clear the structured AppInfo editor
 
             nillableCheckBox.setSelected(false);
             abstractCheckBox.setSelected(false);

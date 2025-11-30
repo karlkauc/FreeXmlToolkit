@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Test Schema 5: Groups and Attribute Groups
+    Tests: xs:group, xs:attributeGroup (definitions and references)
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://test.example.com/groups"
+           targetNamespace="http://test.example.com/groups"
+           elementFormDefault="qualified"
+           version="5.0">
+
+    <xs:annotation>
+        <xs:documentation>Test schema for element groups and attribute groups</xs:documentation>
+    </xs:annotation>
+
+    <!-- Simple group with sequence -->
+    <xs:group name="PersonNameGroup">
+        <xs:sequence>
+            <xs:element name="firstName" type="xs:string"/>
+            <xs:element name="middleName" type="xs:string" minOccurs="0"/>
+            <xs:element name="lastName" type="xs:string"/>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Group with choice -->
+    <xs:group name="ContactGroup">
+        <xs:choice>
+            <xs:element name="email" type="xs:string"/>
+            <xs:element name="phone" type="xs:string"/>
+            <xs:element name="fax" type="xs:string"/>
+        </xs:choice>
+    </xs:group>
+
+    <!-- Group with all -->
+    <xs:group name="AddressFieldsGroup">
+        <xs:all>
+            <xs:element name="street" type="xs:string"/>
+            <xs:element name="city" type="xs:string"/>
+            <xs:element name="postalCode" type="xs:string"/>
+            <xs:element name="country" type="xs:string"/>
+        </xs:all>
+    </xs:group>
+
+    <!-- Nested group reference -->
+    <xs:group name="FullContactInfoGroup">
+        <xs:sequence>
+            <xs:group ref="tns:PersonNameGroup"/>
+            <xs:group ref="tns:ContactGroup" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="notes" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Group with annotations -->
+    <xs:group name="DocumentMetaGroup">
+        <xs:annotation>
+            <xs:documentation>Common document metadata elements</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="title" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Document title</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="author" type="xs:string"/>
+            <xs:element name="createdDate" type="xs:dateTime"/>
+            <xs:element name="modifiedDate" type="xs:dateTime" minOccurs="0"/>
+            <xs:element name="version" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Simple attribute group -->
+    <xs:attributeGroup name="IdAttributes">
+        <xs:attribute name="id" type="xs:ID"/>
+        <xs:attribute name="ref" type="xs:IDREF"/>
+    </xs:attributeGroup>
+
+    <!-- Attribute group with various use values -->
+    <xs:attributeGroup name="CommonAttributes">
+        <xs:attribute name="required" type="xs:string" use="required"/>
+        <xs:attribute name="optional" type="xs:string" use="optional"/>
+        <xs:attribute name="prohibited" type="xs:string" use="prohibited"/>
+        <xs:attribute name="withDefault" type="xs:string" default="defaultValue"/>
+        <xs:attribute name="withFixed" type="xs:string" fixed="fixedValue"/>
+    </xs:attributeGroup>
+
+    <!-- Attribute group with annotations -->
+    <xs:attributeGroup name="AuditAttributes">
+        <xs:annotation>
+            <xs:documentation>Attributes for audit tracking</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="createdBy" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>User who created this record</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="createdAt" type="xs:dateTime"/>
+        <xs:attribute name="modifiedBy" type="xs:string"/>
+        <xs:attribute name="modifiedAt" type="xs:dateTime"/>
+    </xs:attributeGroup>
+
+    <!-- Attribute group referencing another -->
+    <xs:attributeGroup name="FullAttributes">
+        <xs:attributeGroup ref="tns:IdAttributes"/>
+        <xs:attributeGroup ref="tns:AuditAttributes"/>
+        <xs:attribute name="status" type="xs:string"/>
+    </xs:attributeGroup>
+
+    <!-- Attribute group with anyAttribute -->
+    <xs:attributeGroup name="ExtensibleAttributes">
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:anyAttribute namespace="##other" processContents="lax"/>
+    </xs:attributeGroup>
+
+    <!-- Types using groups -->
+    <xs:complexType name="PersonType">
+        <xs:sequence>
+            <xs:group ref="tns:PersonNameGroup"/>
+            <xs:element name="birthDate" type="xs:date" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="tns:IdAttributes"/>
+    </xs:complexType>
+
+    <xs:complexType name="ContactPersonType">
+        <xs:sequence>
+            <xs:group ref="tns:FullContactInfoGroup"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="tns:CommonAttributes"/>
+    </xs:complexType>
+
+    <xs:complexType name="DocumentType">
+        <xs:sequence>
+            <xs:group ref="tns:DocumentMetaGroup"/>
+            <xs:element name="content" type="xs:string"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="tns:FullAttributes"/>
+    </xs:complexType>
+
+    <!-- Complex type using multiple groups -->
+    <xs:complexType name="CompleteRecordType">
+        <xs:sequence>
+            <xs:group ref="tns:PersonNameGroup"/>
+            <xs:group ref="tns:ContactGroup" minOccurs="0" maxOccurs="3"/>
+            <xs:element name="address">
+                <xs:complexType>
+                    <xs:group ref="tns:AddressFieldsGroup"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="tns:IdAttributes"/>
+        <xs:attributeGroup ref="tns:AuditAttributes"/>
+        <xs:attributeGroup ref="tns:ExtensibleAttributes"/>
+    </xs:complexType>
+
+    <!-- Group with occurrence constraints on reference -->
+    <xs:complexType name="MultiContactType">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:group ref="tns:ContactGroup" minOccurs="1" maxOccurs="5"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Recursive group (limited by maxOccurs) -->
+    <xs:group name="NestedItemGroup">
+        <xs:sequence>
+            <xs:element name="itemName" type="xs:string"/>
+            <xs:element name="subItems" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:group ref="tns:NestedItemGroup" minOccurs="0" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <xs:complexType name="TreeNodeType">
+        <xs:group ref="tns:NestedItemGroup"/>
+        <xs:attribute name="level" type="xs:integer"/>
+    </xs:complexType>
+
+    <!-- Root elements -->
+    <xs:element name="Person" type="tns:PersonType"/>
+    <xs:element name="ContactPerson" type="tns:ContactPersonType"/>
+    <xs:element name="Document" type="tns:DocumentType"/>
+    <xs:element name="CompleteRecord" type="tns:CompleteRecordType"/>
+    <xs:element name="TreeNode" type="tns:TreeNodeType"/>
+
+    <xs:element name="TestRoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="tns:Person"/>
+                <xs:element ref="tns:ContactPerson"/>
+                <xs:element ref="tns:Document"/>
+                <xs:element ref="tns:CompleteRecord"/>
+                <xs:element ref="tns:TreeNode"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
