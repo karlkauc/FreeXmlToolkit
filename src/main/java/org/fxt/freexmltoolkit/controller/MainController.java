@@ -261,6 +261,14 @@ public class MainController implements Initializable {
             logger.warn("Failed to shutdown XPathExecutionEngine: {}", e.getMessage());
         }
 
+        // Shutdown ThreadPoolManager
+        try {
+            org.fxt.freexmltoolkit.service.ThreadPoolManager.getInstance().shutdown();
+            logger.debug("ThreadPoolManager shut down");
+        } catch (Exception e) {
+            logger.warn("Failed to shutdown ThreadPoolManager: {}", e.getMessage());
+        }
+
         logger.info("Shutting down ExecutorServices...");
         scheduler.shutdownNow();
         service.shutdownNow();

@@ -73,7 +73,17 @@ public class FxtGui extends Application {
 
     private final static Logger logger = LogManager.getLogger(FxtGui.class);
 
-    public static ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private static final java.util.concurrent.atomic.AtomicInteger threadCounter = new java.util.concurrent.atomic.AtomicInteger(1);
+
+    public static ExecutorService executorService = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors(),
+            runnable -> {
+                Thread t = new Thread(runnable);
+                t.setDaemon(true);
+                t.setName("FxtGui-Worker-" + threadCounter.getAndIncrement());
+                return t;
+            }
+    );
 
     final static String APP_ICON_PATH = "img/logo.png";
 
@@ -190,7 +200,6 @@ public class FxtGui extends Application {
 
             primaryStage.setOnCloseRequest(t -> {
                 Platform.exit();
-                System.exit(0);
             });
 
             primaryStage.show();
@@ -282,6 +291,11 @@ public class FxtGui extends Application {
         propertiesService.saveProperties(prop);
         logger.debug("Duration: {}", currentDuration);
         logger.debug("Duration overall: {}", newSeconds);
+
+        // Force exit to ensure JVM terminates even if non-daemon threads remain
+        // (e.g., from JavaFX WebView/WebKit or other third-party libraries)
+        logger.info("Forcing JVM exit after successful cleanup");
+        System.exit(0);
     }
 
     /**
