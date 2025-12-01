@@ -48,7 +48,7 @@
                 <FontIcon iconLiteral="bi-play-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Execute Transformation (F5)"/>
+                <Tooltip text="Execute Transformation (F5 or Ctrl+R)"/>
             </tooltip>
         </Button>
 

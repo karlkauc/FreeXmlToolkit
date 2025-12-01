@@ -343,6 +343,12 @@ public class XsltDeveloperController implements FavoritesParentController {
                 this::saveResult
             );
 
+            // Ctrl+R - Reload/Transform (same as F5)
+            scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN),
+                this::performTransformation
+            );
+
             logger.debug("XSLT Developer Controller keyboard shortcuts registered");
         });
     }

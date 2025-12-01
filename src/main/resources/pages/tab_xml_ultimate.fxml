@@ -49,6 +49,15 @@
             </tooltip>
         </Button>
 
+        <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Recent Files (Ctrl+Shift+R)"/>
+            </tooltip>
+        </MenuButton>
+
         <Separator orientation="VERTICAL"/>
 
         <!-- Edit Operations Group -->

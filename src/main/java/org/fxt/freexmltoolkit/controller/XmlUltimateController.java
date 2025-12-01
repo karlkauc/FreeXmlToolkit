@@ -121,6 +121,8 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     @FXML
     private Button saveAsFile;
     @FXML
+    private MenuButton toolbarRecentFiles;
+    @FXML
     private Button prettyPrint;
     // Removed from UI
     // @FXML
@@ -302,6 +304,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         createInitialTab();
         initializeFavorites();
         initializeEmptyState();
+        initializeRecentFilesMenu();
         updateButtonStates();
         updateUndoRedoButtons();
         setupKeyboardShortcuts();
@@ -784,6 +787,64 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     }
 
     /**
+     * Initialize the Recent Files menu in the toolbar.
+     */
+    private void initializeRecentFilesMenu() {
+        if (toolbarRecentFiles != null) {
+            refreshRecentFilesMenu();
+            logger.debug("Recent files menu initialized");
+        }
+    }
+
+    /**
+     * Refresh the Recent Files menu with current recent files list.
+     * Only shows XML files that exist.
+     */
+    private void refreshRecentFilesMenu() {
+        if (toolbarRecentFiles == null) {
+            return;
+        }
+
+        toolbarRecentFiles.getItems().clear();
+
+        List<File> recentFiles = propertiesService.getLastOpenFiles();
+        if (recentFiles == null || recentFiles.isEmpty()) {
+            MenuItem noFiles = new MenuItem("No recent files");
+            noFiles.setDisable(true);
+            toolbarRecentFiles.getItems().add(noFiles);
+            return;
+        }
+
+        for (File file : recentFiles) {
+            if (file.exists() && file.getName().toLowerCase().endsWith(".xml")) {
+                MenuItem item = new MenuItem(file.getName());
+                item.setOnAction(e -> {
+                    loadXmlFile(file);
+                    logger.info("Opened recent file from toolbar: {}", file.getAbsolutePath());
+                });
+                toolbarRecentFiles.getItems().add(item);
+            }
+        }
+
+        // If no XML files in recent list
+        if (toolbarRecentFiles.getItems().isEmpty()) {
+            MenuItem noFiles = new MenuItem("No recent XML files");
+            noFiles.setDisable(true);
+            toolbarRecentFiles.getItems().add(noFiles);
+        }
+    }
+
+    /**
+     * Show the Recent Files menu when keyboard shortcut is pressed.
+     */
+    private void showRecentFilesMenu() {
+        if (toolbarRecentFiles != null) {
+            refreshRecentFilesMenu();
+            toolbarRecentFiles.show();
+        }
+    }
+
+    /**
      * Sets up keyboard shortcuts for XML Ultimate Controller actions.
      * Shortcuts are registered when the scene becomes available.
      */
@@ -825,6 +886,12 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             scene.getAccelerators().put(
                     new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN),
                     this::showXsltDeveloper
+            );
+
+            // Ctrl+Shift+R - Show Recent Files menu
+            scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN),
+                    this::showRecentFilesMenu
             );
 
             logger.debug("XML Ultimate Controller keyboard shortcuts registered");
