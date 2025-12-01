@@ -84,4 +84,12 @@ public interface UpdateCheckService {
      * @return the current version string
      */
     String getCurrentVersion();
+
+    /**
+     * Shuts down the update check service and releases all resources.
+     *
+     * <p>This method should be called when the application is closing to ensure
+     * that all background threads are properly terminated.
+     */
+    void shutdown();
 }

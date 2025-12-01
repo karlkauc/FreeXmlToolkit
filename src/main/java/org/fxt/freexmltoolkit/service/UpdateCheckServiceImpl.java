@@ -28,6 +28,9 @@ import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import java.net.URI;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation of UpdateCheckService that checks for updates via GitHub Releases API.
@@ -68,6 +71,11 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
     // Lazy-initialized services to avoid circular dependency
     private PropertiesService propertiesService;
     private ConnectionService connectionService;
+
+    /**
+     * ExecutorService for background update checks
+     */
+    private ExecutorService executorService;
 
     /**
      * Cached update info for the current session
@@ -138,6 +146,22 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
             connectionService = ServiceRegistry.get(ConnectionService.class);
         }
         return connectionService;
+    }
+
+    /**
+     * Lazy getter for ExecutorService to avoid initialization issues.
+     *
+     * @return the ExecutorService instance for background update checks
+     */
+    private ExecutorService getExecutorService() {
+        if (executorService == null) {
+            executorService = Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "UpdateCheckService-Thread");
+                t.setDaemon(true);
+                return t;
+            });
+        }
+        return executorService;
     }
 
     @Override
@@ -221,7 +245,7 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
                 updateCheckPerformed = true;
                 return cachedUpdateInfo;
             }
-        });
+        }, getExecutorService());
     }
 
     @Override
@@ -371,5 +395,23 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
     void resetCache() {
         cachedUpdateInfo = null;
         updateCheckPerformed = false;
+    }
+
+    @Override
+    public void shutdown() {
+        logger.info("Shutting down UpdateCheckService...");
+        if (executorService != null && !executorService.isShutdown()) {
+            logger.debug("Shutting down update check executor service...");
+            executorService.shutdownNow();
+            try {
+                if (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {
+                    logger.warn("UpdateCheck ExecutorService did not terminate within 2 seconds");
+                }
+            } catch (InterruptedException e) {
+                logger.error("Interrupted while waiting for update check executor shutdown", e);
+                Thread.currentThread().interrupt();
+            }
+        }
+        logger.info("UpdateCheckService shutdown completed");
     }
 }

@@ -219,6 +219,16 @@ public class MainController implements Initializable {
             xsdController.shutdown();
         }
 
+        // Shutdown UpdateCheckService
+        try {
+            UpdateCheckService updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
+            if (updateCheckService != null) {
+                updateCheckService.shutdown();
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to shutdown UpdateCheckService: {}", e.getMessage());
+        }
+
         logger.info("Shutting down ExecutorServices...");
         scheduler.shutdownNow();
         service.shutdownNow();
