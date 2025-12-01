@@ -284,6 +284,13 @@
                                     <ComboBox fx:id="xmlThemeComboBox" prefWidth="200" GridPane.columnIndex="1"
                                               GridPane.rowIndex="2"/>
 
+                                    <Label text="Toolbar Icons:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                    <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                        <CheckBox fx:id="useSmallIcons" text="Use small icons (more screen space)"/>
+                                        <Label text="Toolbar buttons will show icons only without text labels"
+                                               style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
+                                    </VBox>
+
                                     <columnConstraints>
                                         <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
                                         <ColumnConstraints hgrow="ALWAYS"/>

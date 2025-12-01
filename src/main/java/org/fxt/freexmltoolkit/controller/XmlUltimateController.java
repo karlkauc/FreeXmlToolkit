@@ -148,9 +148,15 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     @FXML
     private ToggleButton toggleFavoritesButton;
     @FXML
+    private ToggleButton togglePropertiesPaneButton;
+    @FXML
+    private Button helpButton;
+    @FXML
     private Button undoBtn;
     @FXML
     private Button redoBtn;
+    @FXML
+    private javafx.scene.control.ToolBar mainToolbar;
 
     // Main Editor
     @FXML
@@ -299,6 +305,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         updateButtonStates();
         updateUndoRedoButtons();
         setupKeyboardShortcuts();
+        applySmallIconsSetting();
         logger.info("Ultimate XML Controller initialized successfully");
     }
 
@@ -732,7 +739,14 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             toggleFavoritesButton.setSelected(false);
             setFavoritesPanelVisible(false);
         }
-        
+
+        // Initialize properties pane toggle button state - get state from parent controller
+        if (togglePropertiesPaneButton != null && parentController != null) {
+            boolean sidebarVisible = parentController.isXmlEditorSidebarVisible();
+            togglePropertiesPaneButton.setSelected(sidebarVisible);
+            logger.debug("Properties pane toggle button initialized with state: {}", sidebarVisible);
+        }
+
         logger.debug("Favorites system initialized");
     }
 
@@ -835,6 +849,88 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             xmlFilesPane.setManaged(false);
             logger.debug("Switched from content to empty state view");
         }
+    }
+
+    /**
+     * Applies the small icons setting to all toolbar buttons.
+     * When small icons are enabled, buttons show only the graphic (icon) without text,
+     * with smaller icon sizes and reduced spacing to save space.
+     * When disabled, buttons show both icon and text (TOP display) with normal sizes.
+     */
+    private void applySmallIconsSetting() {
+        boolean useSmallIcons = propertiesService.isUseSmallIcons();
+        logger.debug("Applying small icons setting: {}", useSmallIcons);
+
+        // Determine the content display mode
+        javafx.scene.control.ContentDisplay displayMode = useSmallIcons
+            ? javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
+            : javafx.scene.control.ContentDisplay.TOP;
+
+        // Icon sizes: small = 14px, normal = 20px
+        int iconSize = useSmallIcons ? 14 : 20;
+
+        // Button style for compact mode
+        String buttonStyle = useSmallIcons
+            ? "-fx-padding: 3 6 3 6; -fx-min-width: 28px; -fx-pref-width: 28px;"
+            : "";
+
+        // Apply to all toolbar buttons
+        applyButtonSettings(newFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(openFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(saveFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(saveAsFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(undoBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(redoBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(addToFavoritesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(togglePropertiesPaneButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(prettyPrint, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(validateButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(xmlExcelCsvConverterButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(runXpathQuery, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(templateManagerButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(schemaGeneratorButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(xsltDeveloperButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(helpButton, displayMode, iconSize, buttonStyle);
+
+        // Apply compact styling to toolbar itself
+        if (mainToolbar != null) {
+            String toolbarStyle = useSmallIcons
+                ? "-fx-padding: 2 4 2 4; -fx-spacing: 2; -fx-pref-height: 36px; -fx-min-height: 36px; -fx-max-height: 36px;"
+                : "";
+            mainToolbar.setStyle(toolbarStyle);
+        }
+
+        logger.info("Small icons setting applied successfully to all toolbar buttons (size: {}px)", iconSize);
+    }
+
+    /**
+     * Helper method to apply display mode, icon size, and style to a button.
+     */
+    private void applyButtonSettings(javafx.scene.control.ButtonBase button,
+                                     javafx.scene.control.ContentDisplay displayMode,
+                                     int iconSize,
+                                     String style) {
+        if (button == null) return;
+
+        // Set content display mode
+        button.setContentDisplay(displayMode);
+
+        // Apply compact style
+        button.setStyle(style);
+
+        // Update icon size if the button has a FontIcon graphic
+        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+            fontIcon.setIconSize(iconSize);
+        }
+    }
+
+    /**
+     * Public method to apply small icons setting that can be called from Settings or Menu.
+     * This allows the setting to be applied dynamically without restart.
+     */
+    public void refreshToolbarIcons() {
+        applySmallIconsSetting();
     }
 
     /**
@@ -1294,7 +1390,33 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         logger.debug("Favorites panel toggled to: {}", shouldBeVisible ? "visible" : "hidden");
     }
 
+    /**
+     * Toggles the visibility of the XML Editor properties/sidebar pane.
+     * This method is called when the user clicks the toggle button in the toolbar.
+     */
+    @FXML
+    public void togglePropertiesPane() {
+        logger.info("Toggling Properties Pane from toolbar");
 
+        if (togglePropertiesPaneButton == null) {
+            logger.warn("Cannot toggle properties pane: toggle button is null");
+            return;
+        }
+
+        if (parentController == null) {
+            logger.warn("Cannot toggle properties pane: parent controller is null");
+            return;
+        }
+
+        // Use the toggle button's selected state to determine what to do
+        boolean shouldBeVisible = togglePropertiesPaneButton.isSelected();
+
+        // Delegate to MainController to handle the toggle
+        parentController.toggleXmlEditorSidebarFromSidebar(shouldBeVisible);
+
+        logToConsole("Properties pane " + (shouldBeVisible ? "shown" : "hidden"));
+        logger.debug("Properties pane toggled to: {}", shouldBeVisible ? "visible" : "hidden");
+    }
 
     @FXML
     private void showSchemaGenerator() {

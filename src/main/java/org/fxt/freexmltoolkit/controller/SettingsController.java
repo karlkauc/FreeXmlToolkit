@@ -123,6 +123,10 @@ public class SettingsController {
     @FXML
     CheckBox sendUsageStatistics;
 
+    // Toolbar Icon Settings
+    @FXML
+    CheckBox useSmallIcons;
+
     @FXML
     Button clearCacheButton;
 
@@ -409,7 +413,16 @@ public class SettingsController {
             // Save usage statistics setting
             props.setProperty("sendUsageStatistics", String.valueOf(sendUsageStatistics.isSelected()));
 
+            // Save toolbar icon size setting
+            propertiesService.setUseSmallIcons(useSmallIcons.isSelected());
+
             propertiesService.saveProperties(props);
+
+            // Apply toolbar icon size changes immediately
+            if (parentController != null) {
+                parentController.refreshToolbarIcons();
+                logger.debug("Applied toolbar icon size changes immediately");
+            }
 
             // Show success message
             showAlert(Alert.AlertType.INFORMATION, "Settings Saved", "Your settings have been saved successfully.");
@@ -542,6 +555,10 @@ public class SettingsController {
         // Load usage statistics setting
         boolean sendStats = Boolean.parseBoolean(props.getProperty("sendUsageStatistics", "false"));
         sendUsageStatistics.setSelected(sendStats);
+
+        // Load toolbar icon size setting
+        boolean smallIcons = propertiesService.isUseSmallIcons();
+        useSmallIcons.setSelected(smallIcons);
     }
 
     // Favorites Management Methods

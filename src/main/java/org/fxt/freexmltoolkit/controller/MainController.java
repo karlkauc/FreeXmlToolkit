@@ -312,6 +312,25 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Refreshes toolbar icons across all controllers based on the current small icons setting.
+     * This method should be called when the user changes the icon size preference in settings.
+     */
+    public void refreshToolbarIcons() {
+        logger.debug("Refreshing toolbar icons across all controllers");
+
+        // Refresh XML Ultimate Controller toolbar
+        if (xmlUltimateController != null) {
+            xmlUltimateController.refreshToolbarIcons();
+            logger.debug("Refreshed XML Ultimate Controller toolbar icons");
+        }
+
+        // Add other controllers here as they are updated to support small icons
+        // TODO: Add XSD, Schematron, XSLT, etc. controllers when they support small icons
+
+        logger.info("Toolbar icon refresh completed");
+    }
+
     private void loadLastOpenFiles() {
         lastOpenFilesMenu.getItems().clear();
         lastOpenFiles.clear();
