@@ -65,8 +65,9 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
      */
     private static final String DEFAULT_VERSION = "1.0.0";
 
-    private final PropertiesService propertiesService;
-    private final ConnectionService connectionService;
+    // Lazy-initialized services to avoid circular dependency
+    private PropertiesService propertiesService;
+    private ConnectionService connectionService;
 
     /**
      * Cached update info for the current session
@@ -98,10 +99,10 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
 
     /**
      * Private constructor for singleton pattern.
+     * Services are initialized lazily to avoid circular dependencies.
      */
     private UpdateCheckServiceImpl() {
-        this.propertiesService = ServiceRegistry.get(PropertiesService.class);
-        this.connectionService = ServiceRegistry.get(ConnectionService.class);
+        // Services will be initialized on first use
     }
 
     /**
@@ -113,6 +114,30 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
     UpdateCheckServiceImpl(PropertiesService propertiesService, ConnectionService connectionService) {
         this.propertiesService = propertiesService;
         this.connectionService = connectionService;
+    }
+
+    /**
+     * Lazy getter for PropertiesService to avoid circular dependency during initialization.
+     *
+     * @return the PropertiesService instance
+     */
+    private PropertiesService getPropertiesService() {
+        if (propertiesService == null) {
+            propertiesService = ServiceRegistry.get(PropertiesService.class);
+        }
+        return propertiesService;
+    }
+
+    /**
+     * Lazy getter for ConnectionService to avoid circular dependency during initialization.
+     *
+     * @return the ConnectionService instance
+     */
+    private ConnectionService getConnectionService() {
+        if (connectionService == null) {
+            connectionService = ServiceRegistry.get(ConnectionService.class);
+        }
+        return connectionService;
     }
 
     @Override
@@ -129,7 +154,7 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
 
             try {
                 // Fetch latest release from GitHub API
-                var connectionResult = connectionService.executeHttpRequest(new URI(GITHUB_RELEASES_API_URL));
+                var connectionResult = getConnectionService().executeHttpRequest(new URI(GITHUB_RELEASES_API_URL));
 
                 if (connectionResult == null || connectionResult.httpStatus() != 200) {
                     logger.warn("Failed to fetch update info. HTTP Status: {}",
@@ -201,33 +226,33 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
 
     @Override
     public boolean isUpdateCheckEnabled() {
-        Properties props = propertiesService.loadProperties();
+        Properties props = getPropertiesService().loadProperties();
         return Boolean.parseBoolean(props.getProperty(PROP_UPDATE_CHECK_ENABLED, "true"));
     }
 
     @Override
     public void setUpdateCheckEnabled(boolean enabled) {
-        Properties props = propertiesService.loadProperties();
+        Properties props = getPropertiesService().loadProperties();
         props.setProperty(PROP_UPDATE_CHECK_ENABLED, String.valueOf(enabled));
-        propertiesService.saveProperties(props);
+        getPropertiesService().saveProperties(props);
         logger.debug("Update check enabled set to: {}", enabled);
     }
 
     @Override
     public String getSkippedVersion() {
-        Properties props = propertiesService.loadProperties();
+        Properties props = getPropertiesService().loadProperties();
         return props.getProperty(PROP_SKIPPED_VERSION, null);
     }
 
     @Override
     public void setSkippedVersion(String version) {
-        Properties props = propertiesService.loadProperties();
+        Properties props = getPropertiesService().loadProperties();
         if (version == null || version.isBlank()) {
             props.remove(PROP_SKIPPED_VERSION);
         } else {
             props.setProperty(PROP_SKIPPED_VERSION, version);
         }
-        propertiesService.saveProperties(props);
+        getPropertiesService().saveProperties(props);
         logger.debug("Skipped version set to: {}", version);
     }
 
