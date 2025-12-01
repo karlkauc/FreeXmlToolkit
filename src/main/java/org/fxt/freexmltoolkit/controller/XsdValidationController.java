@@ -19,12 +19,17 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
@@ -35,11 +40,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.BatchValidationFile;
+import org.fxt.freexmltoolkit.domain.ValidationStatus;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
@@ -52,6 +60,7 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -68,8 +77,8 @@ public class XsdValidationController implements FavoritesParentController {
     private List<SAXParseException> validationErrors;
     private MainController parentController;
 
-    // KORREKTUR: Enum für einen sauberen Status-Wechsel
-    private enum ValidationStatus {SUCCESS, ERROR, READY}
+    // Enum for single file validation status display
+    private enum SingleFileValidationStatus {SUCCESS, ERROR, READY}
 
     @FXML
     private VBox rootVBox;
@@ -115,6 +124,67 @@ public class XsdValidationController implements FavoritesParentController {
     private Button emptyStateOpenXmlButton;
     @FXML
     private Button emptyStateFavoritesButton;
+
+    // UI Components - Batch Validation Mode
+    @FXML
+    private TabPane validationModeTabPane;
+    @FXML
+    private RadioButton sameXsdRadio;
+    @FXML
+    private RadioButton autoDetectXsdRadio;
+    @FXML
+    private TextField batchXsdFileName;
+    @FXML
+    private Button selectBatchXsdBtn;
+    @FXML
+    private Button addBatchFilesBtn;
+    @FXML
+    private Button addBatchFolderBtn;
+    @FXML
+    private Button removeBatchSelectedBtn;
+    @FXML
+    private Button clearBatchBtn;
+    @FXML
+    private Button runBatchBtn;
+    @FXML
+    private Button cancelBatchBtn;
+    @FXML
+    private Button exportBatchAllBtn;
+    @FXML
+    private Button exportBatchSelectedBtn;
+    @FXML
+    private HBox batchProgressPane;
+    @FXML
+    private ProgressBar batchProgressBar;
+    @FXML
+    private Label batchStatusLabel;
+    @FXML
+    private Label batchSummaryLabel;
+    @FXML
+    private TableView<BatchValidationFile> batchFilesTable;
+    @FXML
+    private TableColumn<BatchValidationFile, String> batchFileNameColumn;
+    @FXML
+    private TableColumn<BatchValidationFile, String> batchFilePathColumn;
+    @FXML
+    private TableColumn<BatchValidationFile, ValidationStatus> batchStatusColumn;
+    @FXML
+    private TableColumn<BatchValidationFile, Integer> batchErrorsColumn;
+    @FXML
+    private TableColumn<BatchValidationFile, String> batchXsdColumn;
+    @FXML
+    private TableColumn<BatchValidationFile, String> batchDurationColumn;
+    @FXML
+    private ComboBox<String> batchFilterCombo;
+    @FXML
+    private VBox batchErrorDetailsBox;
+
+    // Batch validation state
+    private final ObservableList<BatchValidationFile> batchFiles = FXCollections.observableArrayList();
+    private FilteredList<BatchValidationFile> filteredBatchFiles;
+    private File batchXsdFile;
+    private volatile boolean batchCancelled = false;
+    private final DirectoryChooser directoryChooser = new DirectoryChooser();
 
     /**
      * Sets the parent controller.
@@ -162,10 +232,11 @@ public class XsdValidationController implements FavoritesParentController {
             // Debug mode - test functionality can be added here if needed
         }
 
-        // Setze den initialen Status der UI
+        // Set initial UI state
         resetUI();
         initializeFavorites();
         initializeEmptyState();
+        initializeBatchValidation();
         applySmallIconsSetting();
     }
 
@@ -437,7 +508,7 @@ public class XsdValidationController implements FavoritesParentController {
      */
     private void processXmlFile(File file) {
         if (file == null) {
-            updateStatus(ValidationStatus.ERROR, "No XML file selected.");
+            updateStatus(SingleFileValidationStatus.ERROR, "No XML file selected.");
             return;
         }
 
@@ -480,7 +551,7 @@ public class XsdValidationController implements FavoritesParentController {
                 displayValidationResults();
             } else {
                 logger.debug("Schema not found!");
-                updateStatus(ValidationStatus.ERROR, "Schema not found. Please select a schema manually or ensure autodetect can find it.");
+                updateStatus(SingleFileValidationStatus.ERROR, "Schema not found. Please select a schema manually or ensure autodetect can find it.");
             }
 
             progressIndicator.setProgress(1.0);
@@ -494,7 +565,7 @@ public class XsdValidationController implements FavoritesParentController {
     private void resetUI() {
         remoteXsdLocation.setText("");
         errorListBox.getChildren().clear();
-        updateStatus(ValidationStatus.READY, "Ready for validation.");
+        updateStatus(SingleFileValidationStatus.READY, "Ready for validation.");
     }
 
     /**
@@ -503,16 +574,16 @@ public class XsdValidationController implements FavoritesParentController {
     private void displayValidationResults() {
         if (validationErrors != null && !validationErrors.isEmpty()) {
             logger.warn(validationErrors.toString());
-            updateStatus(ValidationStatus.ERROR, "Validation failed. " + validationErrors.size() + " error(s) found.");
+            updateStatus(SingleFileValidationStatus.ERROR, "Validation failed. " + validationErrors.size() + " error(s) found.");
             for (int i = 0; i < validationErrors.size(); i++) {
                 SAXParseException ex = validationErrors.get(i);
                 TextFlow textFlow = createTextFlow(i, ex);
                 errorListBox.getChildren().addAll(textFlow, createGoToErrorButton(), new Separator());
             }
         } else {
-            // KORREKTUR: Deutliche Erfolgsmeldung anzeigen
+            // Show clear success message
             logger.debug("No errors in validation");
-            updateStatus(ValidationStatus.SUCCESS, "Validation successful. No errors found.");
+            updateStatus(SingleFileValidationStatus.SUCCESS, "Validation successful. No errors found.");
 
             Label successLabel = new Label("The XML file is valid according to the provided schema.");
             successLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: green; -fx-font-size: 14px;");
@@ -532,7 +603,7 @@ public class XsdValidationController implements FavoritesParentController {
      * @param status  Der Validierungsstatus (SUCCESS, ERROR, READY).
      * @param message Die anzuzeigende Nachricht.
      */
-    private void updateStatus(ValidationStatus status, String message) {
+    private void updateStatus(SingleFileValidationStatus status, String message) {
         if (statusPane == null || statusLabel == null || statusImage == null) return;
 
         statusLabel.setText(message);
@@ -541,15 +612,15 @@ public class XsdValidationController implements FavoritesParentController {
 
         switch (status) {
             case SUCCESS -> {
-                style += "-fx-background-color: #e0f8e0;"; // Hellgrün
+                style += "-fx-background-color: #e0f8e0;"; // Light green
                 imagePath = "/img/icons8-ok-48.png";
             }
             case ERROR -> {
-                style += "-fx-background-color: #f8e0e0;"; // Hellrot
+                style += "-fx-background-color: #f8e0e0;"; // Light red
                 imagePath = "/img/icons8-stornieren-48.png";
             }
             case READY -> {
-                style += "-fx-background-color: -fx-background-color-subtle;"; // Standard-Hintergrund
+                style += "-fx-background-color: -fx-background-color-subtle;"; // Default background
                 imagePath = null;
             }
         }
@@ -781,5 +852,519 @@ public class XsdValidationController implements FavoritesParentController {
      */
     public void refreshToolbarIcons() {
         applySmallIconsSetting();
+    }
+
+    // ======================================================================
+    // Batch Validation Methods
+    // ======================================================================
+
+    /**
+     * Initializes the batch validation tab components.
+     */
+    private void initializeBatchValidation() {
+        if (batchFilesTable == null) {
+            logger.debug("Batch validation components not available");
+            return;
+        }
+
+        // Setup filtered list
+        filteredBatchFiles = new FilteredList<>(batchFiles, p -> true);
+        batchFilesTable.setItems(filteredBatchFiles);
+
+        // Setup table columns
+        setupBatchTableColumns();
+
+        // Setup selection listener for error details
+        batchFilesTable.getSelectionModel().selectedItemProperty().addListener(
+                (obs, oldSel, newSel) -> showFileErrors(newSel));
+
+        // Setup XSD mode radio button listeners
+        if (sameXsdRadio != null) {
+            sameXsdRadio.selectedProperty().addListener((obs, oldVal, newVal) -> {
+                if (batchXsdFileName != null) batchXsdFileName.setDisable(!newVal);
+                if (selectBatchXsdBtn != null) selectBatchXsdBtn.setDisable(!newVal);
+            });
+        }
+
+        // Set filter options and default value
+        if (batchFilterCombo != null) {
+            batchFilterCombo.getItems().addAll("All", "Passed", "Failed", "Pending");
+            batchFilterCombo.setValue("All");
+        }
+
+        // Initialize directory chooser
+        directoryChooser.setTitle("Select Folder with XML Files");
+        directoryChooser.setInitialDirectory(FileSystems.getDefault().getPath(".").toFile());
+
+        // Setup multi-select file chooser for batch files
+        xmlFileChooser.setTitle("Select XML Files");
+
+        logger.debug("Batch validation initialized");
+    }
+
+    /**
+     * Sets up the table columns for the batch files table.
+     */
+    private void setupBatchTableColumns() {
+        if (batchFileNameColumn != null) {
+            batchFileNameColumn.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().getFileName()));
+        }
+
+        if (batchFilePathColumn != null) {
+            batchFilePathColumn.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().getFilePath()));
+        }
+
+        if (batchStatusColumn != null) {
+            batchStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+            batchStatusColumn.setCellFactory(column -> new TableCell<>() {
+                @Override
+                protected void updateItem(ValidationStatus status, boolean empty) {
+                    super.updateItem(status, empty);
+                    if (empty || status == null) {
+                        setText(null);
+                        setGraphic(null);
+                        setStyle("");
+                    } else {
+                        setText(status.getDisplayText());
+                        FontIcon icon = new FontIcon(status.getIconLiteral());
+                        icon.setIconColor(Color.web(status.getColor()));
+                        icon.setIconSize(14);
+                        setGraphic(icon);
+                        setStyle("-fx-text-fill: " + status.getColor() + ";");
+                    }
+                }
+            });
+        }
+
+        if (batchErrorsColumn != null) {
+            batchErrorsColumn.setCellValueFactory(new PropertyValueFactory<>("errorCount"));
+            batchErrorsColumn.setCellFactory(column -> new TableCell<>() {
+                @Override
+                protected void updateItem(Integer count, boolean empty) {
+                    super.updateItem(count, empty);
+                    if (empty || count == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(String.valueOf(count));
+                        if (count > 0) {
+                            setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                        } else {
+                            setStyle("-fx-text-fill: #28a745;");
+                        }
+                    }
+                }
+            });
+        }
+
+        if (batchXsdColumn != null) {
+            batchXsdColumn.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().getXsdFileName()));
+        }
+
+        if (batchDurationColumn != null) {
+            batchDurationColumn.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().getDurationText()));
+        }
+    }
+
+    /**
+     * Opens file chooser to select XSD schema for batch validation.
+     */
+    @FXML
+    private void selectBatchXsd() {
+        File file = xsdFileChooser.showOpenDialog(null);
+        if (file != null) {
+            batchXsdFile = file;
+            if (batchXsdFileName != null) {
+                batchXsdFileName.setText(file.getName());
+            }
+            logger.debug("Selected batch XSD: {}", file.getAbsolutePath());
+        }
+    }
+
+    /**
+     * Opens file chooser to add multiple XML files to batch.
+     */
+    @FXML
+    private void addFilesToBatch() {
+        List<File> files = xmlFileChooser.showOpenMultipleDialog(null);
+        if (files != null && !files.isEmpty()) {
+            for (File file : files) {
+                // Avoid duplicates
+                boolean alreadyExists = batchFiles.stream()
+                        .anyMatch(bf -> bf.getXmlFile().getAbsolutePath().equals(file.getAbsolutePath()));
+                if (!alreadyExists) {
+                    batchFiles.add(new BatchValidationFile(file));
+                }
+            }
+            updateBatchSummary();
+            logger.info("Added {} files to batch", files.size());
+        }
+    }
+
+    /**
+     * Opens directory chooser to add all XML files from a folder (recursively).
+     */
+    @FXML
+    private void addFolderToBatch() {
+        File folder = directoryChooser.showDialog(null);
+        if (folder != null && folder.isDirectory()) {
+            try {
+                List<File> xmlFiles = Files.walk(folder.toPath())
+                        .filter(Files::isRegularFile)
+                        .filter(p -> p.toString().toLowerCase().endsWith(".xml"))
+                        .map(Path::toFile)
+                        .toList();
+
+                int addedCount = 0;
+                for (File file : xmlFiles) {
+                    boolean alreadyExists = batchFiles.stream()
+                            .anyMatch(bf -> bf.getXmlFile().getAbsolutePath().equals(file.getAbsolutePath()));
+                    if (!alreadyExists) {
+                        batchFiles.add(new BatchValidationFile(file));
+                        addedCount++;
+                    }
+                }
+
+                updateBatchSummary();
+                logger.info("Added {} XML files from folder: {}", addedCount, folder.getAbsolutePath());
+
+            } catch (IOException e) {
+                logger.error("Error scanning folder: {}", e.getMessage());
+                showAlert("Error", "Could not scan folder: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Removes selected files from the batch list.
+     */
+    @FXML
+    private void removeBatchSelected() {
+        List<BatchValidationFile> selected = new ArrayList<>(batchFilesTable.getSelectionModel().getSelectedItems());
+        if (!selected.isEmpty()) {
+            batchFiles.removeAll(selected);
+            updateBatchSummary();
+            logger.debug("Removed {} files from batch", selected.size());
+        }
+    }
+
+    /**
+     * Clears all files from the batch list.
+     */
+    @FXML
+    private void clearBatch() {
+        batchFiles.clear();
+        batchErrorDetailsBox.getChildren().clear();
+        updateBatchSummary();
+        logger.debug("Batch cleared");
+    }
+
+    /**
+     * Runs batch validation on all files in the background.
+     */
+    @FXML
+    private void runBatchValidation() {
+        if (batchFiles.isEmpty()) {
+            showAlert("No Files", "Please add XML files to validate.");
+            return;
+        }
+
+        // Check XSD configuration
+        if (sameXsdRadio != null && sameXsdRadio.isSelected() && batchXsdFile == null) {
+            showAlert("No XSD Selected", "Please select an XSD schema file for batch validation.");
+            return;
+        }
+
+        // Reset all files to pending
+        for (BatchValidationFile file : batchFiles) {
+            file.reset();
+        }
+
+        // Setup UI for running state
+        batchCancelled = false;
+        if (batchProgressPane != null) {
+            batchProgressPane.setVisible(true);
+            batchProgressPane.setManaged(true);
+        }
+        if (runBatchBtn != null) runBatchBtn.setDisable(true);
+        if (cancelBatchBtn != null) cancelBatchBtn.setDisable(false);
+        if (batchProgressBar != null) batchProgressBar.setProgress(0);
+
+        int total = batchFiles.size();
+
+        Thread validationThread = new Thread(() -> {
+            for (int i = 0; i < batchFiles.size() && !batchCancelled; i++) {
+                BatchValidationFile batchFile = batchFiles.get(i);
+                int current = i + 1;
+
+                // Update UI: mark as running
+                Platform.runLater(() -> {
+                    batchFile.setStatus(ValidationStatus.RUNNING);
+                    if (batchStatusLabel != null) {
+                        batchStatusLabel.setText("Validating " + current + "/" + total + ": " + batchFile.getFileName());
+                    }
+                    if (batchProgressBar != null) {
+                        batchProgressBar.setProgress((double) current / total);
+                    }
+                    batchFilesTable.refresh();
+                });
+
+                // Determine XSD to use
+                File xsdToUse = null;
+                if (sameXsdRadio != null && sameXsdRadio.isSelected()) {
+                    xsdToUse = batchXsdFile;
+                } else {
+                    // Auto-detect XSD from XML file
+                    xsdToUse = detectXsdFromXmlFile(batchFile.getXmlFile());
+                }
+
+                // Perform validation
+                long startTime = System.currentTimeMillis();
+                List<SAXParseException> errors = new ArrayList<>();
+                ValidationStatus finalStatus;
+
+                try {
+                    if (xsdToUse != null) {
+                        errors = xmlService.validateFile(batchFile.getXmlFile(), xsdToUse);
+                        finalStatus = errors.isEmpty() ? ValidationStatus.PASSED : ValidationStatus.FAILED;
+                        batchFile.setXsdFile(xsdToUse);
+                    } else {
+                        finalStatus = ValidationStatus.ERROR;
+                        batchFile.setErrorMessage("Could not find or detect XSD schema");
+                    }
+                } catch (Exception e) {
+                    finalStatus = ValidationStatus.ERROR;
+                    batchFile.setErrorMessage(e.getMessage());
+                    logger.error("Validation error for {}: {}", batchFile.getFileName(), e.getMessage());
+                }
+
+                long duration = System.currentTimeMillis() - startTime;
+
+                // Final status update
+                final ValidationStatus status = finalStatus;
+                final List<SAXParseException> finalErrors = errors;
+                Platform.runLater(() -> {
+                    batchFile.setStatus(status);
+                    batchFile.setErrors(finalErrors);
+                    batchFile.setValidationTimeMs(duration);
+                    batchFilesTable.refresh();
+                    updateBatchSummary();
+                });
+            }
+
+            // Validation complete
+            Platform.runLater(() -> {
+                if (batchStatusLabel != null) {
+                    batchStatusLabel.setText(batchCancelled ? "Cancelled" : "Complete");
+                }
+                if (batchProgressPane != null) {
+                    batchProgressPane.setVisible(false);
+                    batchProgressPane.setManaged(false);
+                }
+                if (runBatchBtn != null) runBatchBtn.setDisable(false);
+                if (cancelBatchBtn != null) cancelBatchBtn.setDisable(true);
+                logger.info("Batch validation {} - processed {} files",
+                        batchCancelled ? "cancelled" : "complete", total);
+            });
+        });
+
+        validationThread.setDaemon(true);
+        validationThread.setName("BatchValidation-Thread");
+        validationThread.start();
+    }
+
+    /**
+     * Cancels the running batch validation.
+     */
+    @FXML
+    private void cancelBatchValidation() {
+        batchCancelled = true;
+        logger.debug("Batch validation cancellation requested");
+    }
+
+    /**
+     * Filters the batch results based on the selected filter.
+     */
+    @FXML
+    private void filterBatchResults() {
+        if (batchFilterCombo == null || filteredBatchFiles == null) return;
+
+        String filter = batchFilterCombo.getValue();
+        filteredBatchFiles.setPredicate(file -> {
+            if (filter == null || "All".equals(filter)) {
+                return true;
+            }
+            return switch (filter) {
+                case "Passed" -> file.getStatus() == ValidationStatus.PASSED;
+                case "Failed" -> file.getStatus() == ValidationStatus.FAILED;
+                case "Pending" -> file.getStatus() == ValidationStatus.PENDING;
+                default -> true;
+            };
+        });
+    }
+
+    /**
+     * Updates the batch summary label with current statistics.
+     */
+    private void updateBatchSummary() {
+        if (batchSummaryLabel == null) return;
+
+        long total = batchFiles.size();
+        long passed = batchFiles.stream().filter(f -> f.getStatus() == ValidationStatus.PASSED).count();
+        long failed = batchFiles.stream().filter(f -> f.getStatus() == ValidationStatus.FAILED).count();
+        long errors = batchFiles.stream().filter(f -> f.getStatus() == ValidationStatus.ERROR).count();
+
+        batchSummaryLabel.setText(String.format("Total: %d | Passed: %d | Failed: %d | Errors: %d",
+                total, passed, failed, errors));
+    }
+
+    /**
+     * Shows error details for the selected file in the error details pane.
+     */
+    private void showFileErrors(BatchValidationFile file) {
+        if (batchErrorDetailsBox == null) return;
+
+        batchErrorDetailsBox.getChildren().clear();
+
+        if (file == null) {
+            Label placeholder = new Label("Select a file to view error details");
+            placeholder.setStyle("-fx-text-fill: #6c757d;");
+            batchErrorDetailsBox.getChildren().add(placeholder);
+            return;
+        }
+
+        // Show file info header
+        Label fileHeader = new Label("File: " + file.getFileName());
+        fileHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        batchErrorDetailsBox.getChildren().add(fileHeader);
+
+        // Show status
+        HBox statusBox = new HBox(5);
+        statusBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        Label statusLabel = new Label("Status: " + file.getStatus().getDisplayText());
+        FontIcon statusIcon = new FontIcon(file.getStatus().getIconLiteral());
+        statusIcon.setIconColor(Color.web(file.getStatus().getColor()));
+        statusIcon.setIconSize(16);
+        statusBox.getChildren().addAll(statusIcon, statusLabel);
+        batchErrorDetailsBox.getChildren().add(statusBox);
+
+        // Show error message if present
+        if (file.getErrorMessage() != null && !file.getErrorMessage().isEmpty()) {
+            Label errorMsg = new Label("Error: " + file.getErrorMessage());
+            errorMsg.setStyle("-fx-text-fill: #dc3545;");
+            errorMsg.setWrapText(true);
+            batchErrorDetailsBox.getChildren().add(errorMsg);
+        }
+
+        // Show validation errors
+        List<SAXParseException> errors = file.getErrors();
+        if (errors != null && !errors.isEmpty()) {
+            batchErrorDetailsBox.getChildren().add(new Separator());
+            Label errorsHeader = new Label("Validation Errors (" + errors.size() + "):");
+            errorsHeader.setStyle("-fx-font-weight: bold;");
+            batchErrorDetailsBox.getChildren().add(errorsHeader);
+
+            for (int i = 0; i < errors.size(); i++) {
+                SAXParseException ex = errors.get(i);
+                VBox errorBox = new VBox(3);
+                errorBox.setStyle("-fx-padding: 5; -fx-background-color: #fff3cd; -fx-background-radius: 3;");
+
+                Label errorLabel = new Label("#" + (i + 1) + ": " + ex.getLocalizedMessage());
+                errorLabel.setWrapText(true);
+                errorLabel.setStyle("-fx-font-size: 12px;");
+
+                Label locationLabel = new Label("Line: " + ex.getLineNumber() + ", Column: " + ex.getColumnNumber());
+                locationLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+
+                errorBox.getChildren().addAll(errorLabel, locationLabel);
+                batchErrorDetailsBox.getChildren().add(errorBox);
+            }
+        } else if (file.getStatus() == ValidationStatus.PASSED) {
+            Label successLabel = new Label("No validation errors found.");
+            successLabel.setStyle("-fx-text-fill: #28a745;");
+            batchErrorDetailsBox.getChildren().add(successLabel);
+        }
+    }
+
+    /**
+     * Exports all batch results to Excel.
+     */
+    @FXML
+    private void exportBatchAll() {
+        if (batchFiles.isEmpty()) {
+            showAlert("No Files", "No files to export.");
+            return;
+        }
+
+        excelFileChooser.setInitialFileName("BatchValidationResults.xlsx");
+        File exportFile = excelFileChooser.showSaveDialog(null);
+        if (exportFile != null) {
+            File result = xmlService.createBatchExcelReport(batchFiles, exportFile);
+            if (result != null && result.exists()) {
+                logger.info("Batch validation results exported to: {}", result.getAbsolutePath());
+                openFile(result);
+            }
+        }
+    }
+
+    /**
+     * Exports errors for the selected file to Excel.
+     */
+    @FXML
+    private void exportBatchSelected() {
+        BatchValidationFile selected = batchFilesTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert("No Selection", "Please select a file to export its errors.");
+            return;
+        }
+
+        if (selected.getErrors() == null || selected.getErrors().isEmpty()) {
+            showAlert("No Errors", "The selected file has no validation errors to export.");
+            return;
+        }
+
+        excelFileChooser.setInitialFileName(selected.getFileName().replace(".xml", "_errors.xlsx"));
+        File exportFile = excelFileChooser.showSaveDialog(null);
+        if (exportFile != null) {
+            var result = xmlService.createExcelValidationReport(exportFile, selected.getErrors());
+            if (result != null && result.exists()) {
+                logger.info("Validation errors exported for {}", selected.getFileName());
+                openFile(result);
+            }
+        }
+    }
+
+    /**
+     * Attempts to detect the XSD schema from the XML file's schemaLocation attribute.
+     */
+    private File detectXsdFromXmlFile(File xmlFile) {
+        try {
+            // Temporarily set the XML file in the service
+            File originalXml = xmlService.getCurrentXmlFile();
+            xmlService.setCurrentXmlFile(xmlFile);
+
+            // Try to get schema location and load it
+            var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
+            if (schemaName.isPresent()) {
+                if (xmlService.loadSchemaFromXMLFile()) {
+                    File xsd = xmlService.getCurrentXsdFile();
+                    // Restore original
+                    xmlService.setCurrentXmlFile(originalXml);
+                    return xsd;
+                }
+            }
+
+            // Restore original
+            xmlService.setCurrentXmlFile(originalXml);
+            return null;
+
+        } catch (Exception e) {
+            logger.warn("Could not detect XSD for file {}: {}", xmlFile.getName(), e.getMessage());
+            return null;
+        }
     }
 }

@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.BatchValidationFile;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -85,6 +86,17 @@ public interface XmlService {
     File createExcelValidationReport(File fileName);
 
     File createExcelValidationReport(File fileName, List<SAXParseException> errorList);
+
+    /**
+     * Creates an Excel report for batch validation results.
+     * Sheet 1 contains a summary of all files with their validation status.
+     * Additional sheets contain detailed errors for each failed file.
+     *
+     * @param files      the list of batch validation files
+     * @param outputFile the output file path
+     * @return the created Excel file
+     */
+    File createBatchExcelReport(List<BatchValidationFile> files, File outputFile);
 
     Optional<String> getSchemaNameFromCurrentXMLFile();
 

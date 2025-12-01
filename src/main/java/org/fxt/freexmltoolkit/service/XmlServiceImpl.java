@@ -32,6 +32,8 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.BatchValidationFile;
+import org.fxt.freexmltoolkit.domain.ValidationStatus;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.jetbrains.annotations.NotNull;
@@ -697,6 +699,120 @@ public class XmlServiceImpl implements XmlService {
         }
 
         return null;
+    }
+
+    @Override
+    public File createBatchExcelReport(List<BatchValidationFile> files, File outputFile) {
+        logger.debug("Writing batch Excel report: {} - {} files.", outputFile.getName(), files.size());
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            // Create header styles
+            CellStyle headerStyle = workbook.createCellStyle();
+            XSSFFont headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            CellStyle wrapStyle = workbook.createCellStyle();
+            wrapStyle.setWrapText(true);
+
+            // Sheet 1: Summary
+            XSSFSheet summarySheet = workbook.createSheet("Summary");
+
+            Row summaryHeader = summarySheet.createRow(0);
+            summaryHeader.createCell(0).setCellValue("#");
+            summaryHeader.createCell(1).setCellValue("File Name");
+            summaryHeader.createCell(2).setCellValue("Path");
+            summaryHeader.createCell(3).setCellValue("Status");
+            summaryHeader.createCell(4).setCellValue("Errors");
+            summaryHeader.createCell(5).setCellValue("XSD Used");
+            summaryHeader.createCell(6).setCellValue("Duration");
+            summaryHeader.setRowStyle(headerStyle);
+            summarySheet.createFreezePane(0, 1);
+
+            // Set column widths
+            summarySheet.setColumnWidth(1, 10_000);  // File Name
+            summarySheet.setColumnWidth(2, 15_000);  // Path
+            summarySheet.setColumnWidth(5, 10_000);  // XSD Used
+
+            int summaryRowNum = 1;
+            int detailSheetNum = 1;
+
+            for (BatchValidationFile batchFile : files) {
+                // Add to summary sheet
+                Row row = summarySheet.createRow(summaryRowNum);
+                row.createCell(0).setCellValue(summaryRowNum);
+                row.createCell(1).setCellValue(batchFile.getFileName());
+                row.createCell(2).setCellValue(batchFile.getFilePath());
+                row.createCell(3).setCellValue(batchFile.getStatus().getDisplayText());
+                row.createCell(4).setCellValue(batchFile.getErrorCount());
+                row.createCell(5).setCellValue(batchFile.getXsdFileName());
+                row.createCell(6).setCellValue(batchFile.getDurationText());
+                summaryRowNum++;
+
+                // Create detail sheet for files with errors
+                if (batchFile.getErrors() != null && !batchFile.getErrors().isEmpty()) {
+                    String sheetName = sanitizeSheetName(detailSheetNum + "_" + batchFile.getFileName());
+                    XSSFSheet detailSheet = workbook.createSheet(sheetName);
+
+                    // Detail header
+                    Row detailHeader = detailSheet.createRow(0);
+                    detailHeader.createCell(0).setCellValue("#");
+                    detailHeader.createCell(1).setCellValue("Error Message");
+                    detailHeader.createCell(2).setCellValue("Line");
+                    detailHeader.createCell(3).setCellValue("Column");
+                    detailHeader.setRowStyle(headerStyle);
+                    detailSheet.createFreezePane(0, 1);
+
+                    detailSheet.setColumnWidth(1, 25_000);  // Error Message
+
+                    int detailRowNum = 1;
+                    for (SAXParseException error : batchFile.getErrors()) {
+                        Row detailRow = detailSheet.createRow(detailRowNum);
+                        detailRow.createCell(0).setCellValue(detailRowNum);
+                        var msgCell = detailRow.createCell(1);
+                        msgCell.setCellValue(error.getLocalizedMessage());
+                        msgCell.setCellStyle(wrapStyle);
+                        detailRow.createCell(2).setCellValue(error.getLineNumber());
+                        detailRow.createCell(3).setCellValue(error.getColumnNumber());
+                        detailRow.setHeight((short) -1);
+                        detailRowNum++;
+                    }
+
+                    detailSheetNum++;
+                }
+            }
+
+            // Write workbook
+            try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
+                workbook.write(outputStream);
+            }
+
+            logger.info("Batch Excel report created: {}", outputFile.getAbsolutePath());
+            return outputFile;
+
+        } catch (Exception e) {
+            logger.error("Error creating batch Excel report: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Sanitizes a string for use as an Excel sheet name.
+     * Excel sheet names have these restrictions:
+     * - Max 31 characters
+     * - Cannot contain: / \ ? * : [ ]
+     */
+    private String sanitizeSheetName(String name) {
+        if (name == null || name.isEmpty()) {
+            return "Sheet";
+        }
+        // Remove illegal characters
+        String sanitized = name.replaceAll("[/\\\\?*:\\[\\]]", "_");
+        // Truncate to 31 characters
+        if (sanitized.length() > 31) {
+            sanitized = sanitized.substring(0, 31);
+        }
+        return sanitized;
     }
 
     @Override
