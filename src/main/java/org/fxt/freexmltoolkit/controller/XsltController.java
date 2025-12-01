@@ -81,7 +81,7 @@ public class XsltController {
     @FXML
     private FileExplorer xmlFileExplorer, xsltFileExplorer;
     @FXML
-    private Button openInDefaultWebBrowser, openInDefaultTextEditor;
+    private Button openInDefaultWebBrowser, openInDefaultTextEditor, reloadBtn, helpBtn;
     @FXML
     private ProgressBar progressBar;
     @FXML
@@ -726,6 +726,8 @@ public class XsltController {
         // Apply to all toolbar buttons
         applyButtonSettings(openInDefaultWebBrowser, displayMode, iconSize, buttonStyle);
         applyButtonSettings(openInDefaultTextEditor, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(reloadBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(helpBtn, displayMode, iconSize, buttonStyle);
 
         logger.info("Small icons setting applied to XSLT toolbar (size: {}px)", iconSize);
     }

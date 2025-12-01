@@ -54,7 +54,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpBtn" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
             </graphic>

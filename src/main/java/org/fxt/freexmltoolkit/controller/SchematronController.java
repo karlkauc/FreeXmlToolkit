@@ -93,6 +93,8 @@ public class SchematronController implements FavoritesParentController {
 
     @FXML
     private Button testRulesButton;
+    @FXML
+    private Button helpBtn;
 
     // Favorites (unified FavoritesPanel)
     @FXML
@@ -2924,18 +2926,15 @@ public class SchematronController implements FavoritesParentController {
                 ? "-fx-padding: 4px;"
                 : "";
 
-        // Apply to all toolbar buttons
-        applyButtonSettings(loadSchematronFileButton, displayMode, iconSize, buttonStyle);
+        // Apply to main toolbar buttons only (not inner Code tab toolbar buttons)
         applyButtonSettings(newSchematronFileButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(loadSchematronFileButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(saveSchematronButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(saveAsSchematronButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(newRuleButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(newPatternButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(formatButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(validateButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(testRulesButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(helpBtn, displayMode, iconSize, buttonStyle);
 
         logger.info("Small icons setting applied to Schematron toolbar (size: {}px)", iconSize);
     }

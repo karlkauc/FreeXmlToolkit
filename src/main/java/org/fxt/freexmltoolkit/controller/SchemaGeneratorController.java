@@ -191,6 +191,8 @@ public class SchemaGeneratorController implements FavoritesParentController {
     private Button emptyStateOpenXmlButton;
     @FXML
     private Button emptyStatePasteButton;
+    @FXML
+    private Button helpBtn;
 
     // State Management
     private SchemaGenerationResult lastResult;
@@ -845,6 +847,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
         applyButtonSettings(exportSchemaBtn, displayMode, iconSize, buttonStyle);
         applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(helpBtn, displayMode, iconSize, buttonStyle);
 
         logger.info("Small icons setting applied to Schema Generator toolbar (size: {}px)", iconSize);
     }

@@ -14,7 +14,7 @@
     <!-- FOP Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button text="Open XML" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openXmlFile">
+        <Button fx:id="openXmlBtn" text="Open XML" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openXmlFile">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -23,7 +23,7 @@
             </tooltip>
         </Button>
 
-        <Button text="Open XSL" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openXslFile">
+        <Button fx:id="openXslBtn" text="Open XSL" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openXslFile">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -32,7 +32,7 @@
             </tooltip>
         </Button>
 
-        <Button text="PDF Out" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openPdfFile">
+        <Button fx:id="pdfOutBtn" text="PDF Out" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openPdfFile">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
             </graphic>
@@ -44,7 +44,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Primary Action Group -->
-        <Button text="Generate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#buttonConversion">
+        <Button fx:id="generateBtn" text="Generate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#buttonConversion">
             <graphic>
                 <FontIcon iconLiteral="bi-play-circle-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -77,7 +77,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpBtn" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>

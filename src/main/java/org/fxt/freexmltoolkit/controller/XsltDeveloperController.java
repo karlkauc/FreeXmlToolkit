@@ -212,6 +212,8 @@ public class XsltDeveloperController implements FavoritesParentController {
     private Button emptyStateLoadXmlButton;
     @FXML
     private Button emptyStateLoadXsltButton;
+    @FXML
+    private Button helpBtn;
 
     // State Management
     private XsltTransformationResult lastResult;
@@ -1389,19 +1391,13 @@ public class XsltDeveloperController implements FavoritesParentController {
                 ? "-fx-padding: 4px;"
                 : "";
 
-        // Apply to all toolbar buttons
-        applyButtonSettings(transformBtn, displayMode, iconSize, buttonStyle);
+        // Apply to main toolbar buttons only (not inner tab buttons)
         applyButtonSettings(loadXmlBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(validateXmlBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(loadXsltBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(saveXsltBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(validateXsltBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(addParameterBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(copyResultBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(saveResultBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(refreshPreviewBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(transformBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(liveTransformToggle, displayMode, iconSize, buttonStyle);
         applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(helpBtn, displayMode, iconSize, buttonStyle);
 
         logger.info("Small icons setting applied to XSLT Developer toolbar (size: {}px)", iconSize);
     }

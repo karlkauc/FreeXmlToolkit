@@ -41,6 +41,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.xml.sax.SAXParseException;
@@ -96,6 +97,8 @@ public class XsdValidationController implements FavoritesParentController {
     private Button addToFavoritesBtn;
     @FXML
     private Button toggleFavoritesButton;
+    @FXML
+    private Button validateBtn, helpBtn;
     @FXML
     private SplitPane mainSplitPane;
     @FXML
@@ -163,6 +166,7 @@ public class XsdValidationController implements FavoritesParentController {
         resetUI();
         initializeFavorites();
         initializeEmptyState();
+        applySmallIconsSetting();
     }
 
     private void initializeFavorites() {
@@ -718,6 +722,64 @@ public class XsdValidationController implements FavoritesParentController {
     }
 
     /**
-     * Test method for processing a sample XML file.
+     * Applies the small icons setting from user preferences.
+     * When enabled, toolbar buttons display in compact mode with smaller icons (14px) and no text labels.
+     * When disabled, buttons show both icon and text (TOP display) with normal icon size (20px).
      */
+    private void applySmallIconsSetting() {
+        PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+        boolean useSmallIcons = propertiesService.isUseSmallIcons();
+        logger.debug("Applying small icons setting to XSD Validation toolbar: {}", useSmallIcons);
+
+        // Determine display mode and icon size
+        ContentDisplay displayMode = useSmallIcons
+                ? ContentDisplay.GRAPHIC_ONLY
+                : ContentDisplay.TOP;
+
+        // Icon sizes: small = 14px, normal = 20px
+        int iconSize = useSmallIcons ? 14 : 20;
+
+        // Button style: compact padding for small icons
+        String buttonStyle = useSmallIcons
+                ? "-fx-padding: 4px;"
+                : "";
+
+        // Apply to all toolbar buttons
+        applyButtonSettings(xmlLoadButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(xsdLoadButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(validateBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(excelExport, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(clearResults, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(helpBtn, displayMode, iconSize, buttonStyle);
+
+        logger.info("Small icons setting applied to XSD Validation toolbar (size: {}px)", iconSize);
+    }
+
+    /**
+     * Helper method to apply display mode, icon size, and style to a button.
+     */
+    private void applyButtonSettings(ButtonBase button, ContentDisplay displayMode, int iconSize, String style) {
+        if (button == null) return;
+
+        // Set content display mode
+        button.setContentDisplay(displayMode);
+
+        // Apply compact style
+        button.setStyle(style);
+
+        // Update icon size if the button has a FontIcon graphic
+        if (button.getGraphic() instanceof FontIcon fontIcon) {
+            fontIcon.setIconSize(iconSize);
+        }
+    }
+
+    /**
+     * Public method to refresh toolbar icons.
+     * Can be called from Settings or MainController when icon size preference changes.
+     */
+    public void refreshToolbarIcons() {
+        applySmallIconsSetting();
+    }
 }

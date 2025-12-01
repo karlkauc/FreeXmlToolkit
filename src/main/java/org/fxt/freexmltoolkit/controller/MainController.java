@@ -68,6 +68,7 @@ public class MainController implements Initializable {
     XsltController xsltController;
     XsltDeveloperController xsltDeveloperController;
     SchemaGeneratorController schemaGeneratorController;
+    TemplatesController templatesController;
 
     // Track currently active tab
     private String activeTabId = "welcome";
@@ -359,6 +360,18 @@ public class MainController implements Initializable {
         if (schemaGeneratorController != null) {
             schemaGeneratorController.refreshToolbarIcons();
             logger.debug("Refreshed Schema Generator Controller toolbar icons");
+        }
+
+        // Refresh XSD Validation Controller toolbar
+        if (xsdValidationController != null) {
+            xsdValidationController.refreshToolbarIcons();
+            logger.debug("Refreshed XSD Validation Controller toolbar icons");
+        }
+
+        // Refresh Templates Controller toolbar
+        if (templatesController != null) {
+            templatesController.refreshToolbarIcons();
+            logger.debug("Refreshed Templates Controller toolbar icons");
         }
 
         logger.info("Toolbar icon refresh completed for all controllers");
@@ -668,9 +681,10 @@ public class MainController implements Initializable {
             case HelpController helpController -> {
                 logger.debug("set Help Controller");
             }
-            // case TemplatesController templatesController -> {
-            //     logger.debug("set Smart Templates Controller");
-            // }
+            case TemplatesController templatesController1 -> {
+                logger.debug("set Smart Templates Controller");
+                this.templatesController = templatesController1;
+            }
             case SchemaGeneratorController schemaGeneratorController1 -> {
                 logger.debug("set Intelligent Schema Generator Controller");
                 this.schemaGeneratorController = schemaGeneratorController1;

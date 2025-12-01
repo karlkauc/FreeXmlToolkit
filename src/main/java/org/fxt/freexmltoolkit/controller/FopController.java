@@ -92,6 +92,8 @@ public class FopController implements FavoritesParentController {
     private Button emptyStateOpenXmlButton;
     @FXML
     private Button emptyStateFavoritesButton;
+    @FXML
+    private Button openXmlBtn, openXslBtn, pdfOutBtn, generateBtn, helpBtn;
 
     /**
      * Sets the parent controller.
@@ -755,6 +757,11 @@ public class FopController implements FavoritesParentController {
         applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(emptyStateOpenXmlButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(emptyStateFavoritesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(openXmlBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(openXslBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(pdfOutBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(generateBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(helpBtn, displayMode, iconSize, buttonStyle);
 
         logger.info("Small icons setting applied to FOP toolbar (size: {}px)", iconSize);
     }

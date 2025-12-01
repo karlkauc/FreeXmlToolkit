@@ -34,8 +34,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.web.WebView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.TemplateEngine;
 import org.fxt.freexmltoolkit.service.TemplateRepository;
 
@@ -115,6 +117,10 @@ public class TemplatesController {
     @FXML
     private TableColumn<TemplateParameter, String> paramDescriptionColumn;
 
+    // UI Components - Toolbar
+    @FXML
+    private Button helpBtn;
+
     // UI Components - Preview
     @FXML
     private TabPane previewTabPane;
@@ -136,6 +142,7 @@ public class TemplatesController {
         initializeUI();
         loadTemplates();
         setupEventHandlers();
+        applySmallIconsSetting();
 
         logger.info("Smart Templates Controller initialized successfully");
     }
@@ -678,5 +685,62 @@ public class TemplatesController {
                 Use this tool to work with your documents.\n\n                Press F1 to show this help.
                 """);
         helpDialog.showAndWait();
+    }
+
+    /**
+     * Applies the small icons setting from user preferences.
+     * When enabled, toolbar buttons display in compact mode with smaller icons (14px) and no text labels.
+     * When disabled, buttons show both icon and text (TOP display) with normal icon size (20px).
+     */
+    private void applySmallIconsSetting() {
+        PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+        boolean useSmallIcons = propertiesService.isUseSmallIcons();
+        logger.debug("Applying small icons setting to Templates toolbar: {}", useSmallIcons);
+
+        // Determine display mode and icon size
+        ContentDisplay displayMode = useSmallIcons
+                ? ContentDisplay.GRAPHIC_ONLY
+                : ContentDisplay.TOP;
+
+        // Icon sizes: small = 14px, normal = 20px
+        int iconSize = useSmallIcons ? 14 : 20;
+
+        // Button style: compact padding for small icons
+        String buttonStyle = useSmallIcons
+                ? "-fx-padding: 4px;"
+                : "";
+
+        // Apply to all toolbar buttons
+        applyButtonSettings(createTemplateBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(refreshTemplatesBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(helpBtn, displayMode, iconSize, buttonStyle);
+
+        logger.info("Small icons setting applied to Templates toolbar (size: {}px)", iconSize);
+    }
+
+    /**
+     * Helper method to apply display mode, icon size, and style to a button.
+     */
+    private void applyButtonSettings(ButtonBase button, ContentDisplay displayMode, int iconSize, String style) {
+        if (button == null) return;
+
+        // Set content display mode
+        button.setContentDisplay(displayMode);
+
+        // Apply compact style
+        button.setStyle(style);
+
+        // Update icon size if the button has a FontIcon graphic
+        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+            fontIcon.setIconSize(iconSize);
+        }
+    }
+
+    /**
+     * Public method to refresh toolbar icons.
+     * Can be called from Settings or MainController when icon size preference changes.
+     */
+    public void refreshToolbarIcons() {
+        applySmallIconsSetting();
     }
 }

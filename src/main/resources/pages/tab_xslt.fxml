@@ -31,7 +31,7 @@
     <!-- XSLT Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button text="Reload" contentDisplay="TOP" styleClass="toolbar-button" onAction="#checkFiles">
+        <Button fx:id="reloadBtn" text="Reload" contentDisplay="TOP" styleClass="toolbar-button" onAction="#checkFiles">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -64,7 +64,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpBtn" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>

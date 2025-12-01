@@ -4263,6 +4263,7 @@ public class XsdController implements FavoritesParentController {
         applyButtonSettings(toolbarFormat, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toolbarAddFavorite, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toolbarShowFavorites, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarRecentFiles, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toolbarHelp, displayMode, iconSize, buttonStyle);
 
         logger.info("Small icons setting applied to XSD toolbar (size: {}px)", iconSize);

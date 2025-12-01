@@ -84,7 +84,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpBtn" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -107,7 +107,7 @@
             <VBox spacing="0">
                 <!-- Toolbar -->
                 <ToolBar fx:id="toolbar">
-                    <Button fx:id="loadSchematronFileButton" text="Load Schematron" onAction="#loadSchematronFile">
+                    <Button fx:id="innerLoadSchematronFileButton" text="Load Schematron" onAction="#loadSchematronFile">
                         <graphic>
                             <FontIcon iconLiteral="bi-folder2-open" iconColor="#007bff" iconSize="14"/>
                         </graphic>
@@ -116,7 +116,7 @@
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="newSchematronFileButton" text="New File" onAction="#newSchematronFile">
+                    <Button fx:id="innerNewSchematronFileButton" text="New File" onAction="#newSchematronFile">
                         <graphic>
                             <FontIcon iconLiteral="bi-file-earmark-plus" iconColor="#28a745" iconSize="14"/>
                         </graphic>
@@ -125,7 +125,7 @@
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="saveSchematronButton" text="Save" onAction="#saveSchematron">
+                    <Button fx:id="innerSaveSchematronButton" text="Save" onAction="#saveSchematron">
                         <graphic>
                             <FontIcon iconLiteral="bi-save" iconColor="#6c757d" iconSize="14"/>
                         </graphic>
@@ -134,7 +134,7 @@
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="saveAsSchematronButton" text="Save As" onAction="#saveAsSchematron">
+                    <Button fx:id="innerSaveAsSchematronButton" text="Save As" onAction="#saveAsSchematron">
                         <graphic>
                             <FontIcon iconLiteral="bi-hdd-fill" iconColor="#17a2b8" iconSize="14"/>
                         </graphic>
@@ -145,7 +145,7 @@
 
                     <Separator orientation="VERTICAL"/>
 
-                    <Button fx:id="newRuleButton" text="New Rule">
+                    <Button fx:id="innerNewRuleButton" text="New Rule">
                         <graphic>
                             <FontIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
                         </graphic>
@@ -154,7 +154,7 @@
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="newPatternButton" text="New Pattern">
+                    <Button fx:id="innerNewPatternButton" text="New Pattern">
                         <graphic>
                             <FontIcon iconLiteral="bi-collection" iconColor="#007bff" iconSize="14"/>
                         </graphic>
@@ -165,7 +165,7 @@
 
                     <Separator orientation="VERTICAL"/>
 
-                    <Button fx:id="formatButton" text="Format" onAction="#formatSchematron">
+                    <Button fx:id="innerFormatButton" text="Format" onAction="#formatSchematron">
                         <graphic>
                             <FontIcon iconLiteral="bi-code" iconColor="#6f42c1" iconSize="14"/>
                         </graphic>
@@ -174,7 +174,7 @@
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="validateButton" text="Validate">
+                    <Button fx:id="innerValidateButton" text="Validate">
                         <graphic>
                             <FontIcon iconLiteral="bi-check-circle" iconColor="#17a2b8" iconSize="14"/>
                         </graphic>
@@ -183,7 +183,7 @@
                         </tooltip>
                     </Button>
 
-                    <Button fx:id="testRulesButton" text="Test Rules">
+                    <Button fx:id="innerTestRulesButton" text="Test Rules">
                         <graphic>
                             <FontIcon iconLiteral="bi-play-circle" iconColor="#ff6b6b" iconSize="14"/>
                         </graphic>
