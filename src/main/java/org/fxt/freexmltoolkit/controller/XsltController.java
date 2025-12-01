@@ -40,6 +40,7 @@ import org.fxt.freexmltoolkit.controls.FileExplorer;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 
 import java.awt.*;
@@ -65,6 +66,7 @@ public class XsltController {
     private static final int FILE_EXPLORER_REFRESH_INTERVAL_SECONDS = 5;
 
     private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
     private MainController parentController;
     private File xmlFile, xsltFile;
     private WebEngine webEngine;
@@ -129,6 +131,7 @@ public class XsltController {
         setupDragAndDrop();
         setupAutoRefresh();
         setupFileWatching();
+        applySmallIconsSetting();
     }
 
     /**
@@ -697,4 +700,63 @@ public class XsltController {
                 """);
         helpDialog.showAndWait();
     }
+
+    /**
+     * Applies the small icons setting to XSLT toolbar buttons.
+     * Small icons = 14px with GRAPHIC_ONLY display mode
+     * Normal icons = 20px with TOP display mode
+     */
+    private void applySmallIconsSetting() {
+        boolean useSmallIcons = propertiesService.isUseSmallIcons();
+        logger.debug("Applying small icons setting to XSLT toolbar: {}", useSmallIcons);
+
+        // Determine display mode and icon size
+        javafx.scene.control.ContentDisplay displayMode = useSmallIcons
+                ? javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
+                : javafx.scene.control.ContentDisplay.TOP;
+
+        // Icon sizes: small = 14px, normal = 20px
+        int iconSize = useSmallIcons ? 14 : 20;
+
+        // Button style: compact padding for small icons
+        String buttonStyle = useSmallIcons
+                ? "-fx-padding: 4px;"
+                : "";
+
+        // Apply to all toolbar buttons
+        applyButtonSettings(openInDefaultWebBrowser, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(openInDefaultTextEditor, displayMode, iconSize, buttonStyle);
+
+        logger.info("Small icons setting applied to XSLT toolbar (size: {}px)", iconSize);
+    }
+
+    /**
+     * Helper method to apply display mode, icon size, and style to a button.
+     */
+    private void applyButtonSettings(javafx.scene.control.ButtonBase button,
+                                     javafx.scene.control.ContentDisplay displayMode,
+                                     int iconSize,
+                                     String style) {
+        if (button == null) return;
+
+        // Set content display mode
+        button.setContentDisplay(displayMode);
+
+        // Apply compact style
+        button.setStyle(style);
+
+        // Update icon size if the button has a FontIcon graphic
+        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+            fontIcon.setIconSize(iconSize);
+        }
+    }
+
+    /**
+     * Public method to refresh toolbar icons.
+     * Can be called from Settings or MainController when icon size preference changes.
+     */
+    public void refreshToolbarIcons() {
+        applySmallIconsSetting();
+    }
+
 }

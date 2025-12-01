@@ -277,7 +277,7 @@ public class SchematronController implements FavoritesParentController {
 
         // Initialize test tab components
         initializeTestTab();
-        
+
         // Initialize the loaded schema label
         if (loadedSchemaLabel != null) {
             loadedSchemaLabel.setText("None");
@@ -297,6 +297,9 @@ public class SchematronController implements FavoritesParentController {
 
         // Set up drag and drop for Schematron and XML files
         setupDragAndDrop();
+
+        // Apply small icons setting from user preferences
+        applySmallIconsSetting();
 
         logger.info("SchematronController initialization completed");
     }
@@ -2897,5 +2900,72 @@ public class SchematronController implements FavoritesParentController {
      */
     public void toggleFavoritesPanelPublic() {
         toggleFavoritesPanel();
+    }
+
+    /**
+     * Applies the small icons setting from user preferences.
+     * When enabled, toolbar buttons display in compact mode with smaller icons (14px) and no text labels.
+     * When disabled, buttons show both icon and text (TOP display) with normal icon size (20px).
+     */
+    private void applySmallIconsSetting() {
+        boolean useSmallIcons = propertiesService.isUseSmallIcons();
+        logger.debug("Applying small icons setting to Schematron toolbar: {}", useSmallIcons);
+
+        // Determine display mode and icon size
+        javafx.scene.control.ContentDisplay displayMode = useSmallIcons
+                ? javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
+                : javafx.scene.control.ContentDisplay.TOP;
+
+        // Icon sizes: small = 14px, normal = 20px
+        int iconSize = useSmallIcons ? 14 : 20;
+
+        // Button style: compact padding for small icons
+        String buttonStyle = useSmallIcons
+                ? "-fx-padding: 4px;"
+                : "";
+
+        // Apply to all toolbar buttons
+        applyButtonSettings(loadSchematronFileButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(newSchematronFileButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(saveSchematronButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(saveAsSchematronButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(newRuleButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(newPatternButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(formatButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(validateButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(testRulesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
+
+        logger.info("Small icons setting applied to Schematron toolbar (size: {}px)", iconSize);
+    }
+
+    /**
+     * Helper method to apply display mode, icon size, and style to a button.
+     */
+    private void applyButtonSettings(javafx.scene.control.ButtonBase button,
+                                     javafx.scene.control.ContentDisplay displayMode,
+                                     int iconSize,
+                                     String style) {
+        if (button == null) return;
+
+        // Set content display mode
+        button.setContentDisplay(displayMode);
+
+        // Apply compact style
+        button.setStyle(style);
+
+        // Update icon size if the button has a FontIcon graphic
+        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+            fontIcon.setIconSize(iconSize);
+        }
+    }
+
+    /**
+     * Public method to refresh toolbar icons.
+     * Can be called from Settings or MainController when icon size preference changes.
+     */
+    public void refreshToolbarIcons() {
+        applySmallIconsSetting();
     }
 }

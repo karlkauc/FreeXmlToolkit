@@ -39,6 +39,7 @@ import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.FOPService;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 
 import java.awt.image.BufferedImage;
@@ -55,6 +56,7 @@ public class FopController implements FavoritesParentController {
     private static final Logger logger = LogManager.getLogger(FopController.class);
     private final FOPService fopService = new FOPService();
     private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
     private final FileChooser fileChooser = new FileChooser();
     private String lastOpenDir = ".";
     private File xmlFile, xslFile, pdfFile;
@@ -131,6 +133,7 @@ public class FopController implements FavoritesParentController {
 
         initializeFavorites();
         initializeEmptyState();
+        applySmallIconsSetting();
         setupKeyboardShortcuts();
         setupGlobalDragAndDrop();
     }
@@ -724,5 +727,64 @@ public class FopController implements FavoritesParentController {
                 - F1: Show this help dialog
                 """);
         helpDialog.showAndWait();
+    }
+
+    /**
+     * Apply small icons setting to toolbar buttons.
+     * Follows the pattern from XsdController for consistent UI behavior.
+     */
+    private void applySmallIconsSetting() {
+        boolean useSmallIcons = propertiesService.isUseSmallIcons();
+        logger.debug("Applying small icons setting to FOP toolbar: {}", useSmallIcons);
+
+        // Determine display mode and icon size
+        javafx.scene.control.ContentDisplay displayMode = useSmallIcons
+                ? javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
+                : javafx.scene.control.ContentDisplay.TOP;
+
+        // Icon sizes: small = 14px, normal = 20px
+        int iconSize = useSmallIcons ? 14 : 20;
+
+        // Button style: compact padding for small icons
+        String buttonStyle = useSmallIcons
+                ? "-fx-padding: 4px;"
+                : "";
+
+        // Apply to all FOP toolbar buttons
+        applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(emptyStateOpenXmlButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(emptyStateFavoritesButton, displayMode, iconSize, buttonStyle);
+
+        logger.info("Small icons setting applied to FOP toolbar (size: {}px)", iconSize);
+    }
+
+    /**
+     * Helper method to apply display mode, icon size, and style to a button.
+     */
+    private void applyButtonSettings(javafx.scene.control.ButtonBase button,
+                                     javafx.scene.control.ContentDisplay displayMode,
+                                     int iconSize,
+                                     String style) {
+        if (button == null) return;
+
+        // Set content display mode
+        button.setContentDisplay(displayMode);
+
+        // Apply compact style
+        button.setStyle(style);
+
+        // Update icon size if the button has a FontIcon graphic
+        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+            fontIcon.setIconSize(iconSize);
+        }
+    }
+
+    /**
+     * Public method to refresh toolbar icons.
+     * Can be called from Settings or MainController when icon size preference changes.
+     */
+    public void refreshToolbarIcons() {
+        applySmallIconsSetting();
     }
 }

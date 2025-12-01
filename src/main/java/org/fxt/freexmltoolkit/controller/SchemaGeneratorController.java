@@ -33,7 +33,9 @@ import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
 import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
 import org.fxt.freexmltoolkit.service.SchemaGenerationResult;
@@ -56,6 +58,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
 
     // Revolutionary Services
     private final SchemaGenerationEngine schemaEngine = SchemaGenerationEngine.getInstance();
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
 
     // Background processing
     private final ExecutorService executorService = Executors.newCachedThreadPool(runnable -> {
@@ -203,6 +206,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
         setupFavorites();
         initializeEmptyState();
         setupDragAndDrop();
+        applySmallIconsSetting();
 
         logger.info("Schema Generator Controller initialized successfully");
     }
@@ -808,4 +812,70 @@ public class SchemaGeneratorController implements FavoritesParentController {
                 """);
         helpDialog.showAndWait();
     }
+
+    /**
+     * Applies the small icons setting from user preferences.
+     * When enabled, toolbar buttons display in compact mode with smaller icons (14px) and no text labels.
+     * When disabled, buttons show both icon and text (TOP display) with normal icon size (20px).
+     */
+    private void applySmallIconsSetting() {
+        boolean useSmallIcons = propertiesService.isUseSmallIcons();
+        logger.debug("Applying small icons setting to Schema Generator toolbar: {}", useSmallIcons);
+
+        // Determine display mode and icon size
+        javafx.scene.control.ContentDisplay displayMode = useSmallIcons
+                ? javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
+                : javafx.scene.control.ContentDisplay.TOP;
+
+        // Icon sizes: small = 14px, normal = 20px
+        int iconSize = useSmallIcons ? 14 : 20;
+
+        // Button style: compact padding for small icons
+        String buttonStyle = useSmallIcons
+                ? "-fx-padding: 4px;"
+                : "";
+
+        // Apply to all toolbar buttons
+        applyButtonSettings(loadXmlBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(pasteXmlBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(clearXmlBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(batchProcessBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(generateSchemaBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(copyXsdBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(exportSchemaBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
+
+        logger.info("Small icons setting applied to Schema Generator toolbar (size: {}px)", iconSize);
+    }
+
+    /**
+     * Helper method to apply display mode, icon size, and style to a button.
+     */
+    private void applyButtonSettings(javafx.scene.control.ButtonBase button,
+                                     javafx.scene.control.ContentDisplay displayMode,
+                                     int iconSize,
+                                     String style) {
+        if (button == null) return;
+
+        // Set content display mode
+        button.setContentDisplay(displayMode);
+
+        // Apply compact style
+        button.setStyle(style);
+
+        // Update icon size if the button has a FontIcon graphic
+        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+            fontIcon.setIconSize(iconSize);
+        }
+    }
+
+    /**
+     * Public method to refresh toolbar icons.
+     * Can be called from Settings or MainController when icon size preference changes.
+     */
+    public void refreshToolbarIcons() {
+        applySmallIconsSetting();
+    }
+
 }

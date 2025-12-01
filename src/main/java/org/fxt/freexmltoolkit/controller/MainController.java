@@ -325,10 +325,43 @@ public class MainController implements Initializable {
             logger.debug("Refreshed XML Ultimate Controller toolbar icons");
         }
 
-        // Add other controllers here as they are updated to support small icons
-        // TODO: Add XSD, Schematron, XSLT, etc. controllers when they support small icons
+        // Refresh XSD Controller toolbar
+        if (xsdController != null) {
+            xsdController.refreshToolbarIcons();
+            logger.debug("Refreshed XSD Controller toolbar icons");
+        }
 
-        logger.info("Toolbar icon refresh completed");
+        // Refresh Schematron Controller toolbar
+        if (schematronController != null) {
+            schematronController.refreshToolbarIcons();
+            logger.debug("Refreshed Schematron Controller toolbar icons");
+        }
+
+        // Refresh XSLT Controller toolbar
+        if (xsltController != null) {
+            xsltController.refreshToolbarIcons();
+            logger.debug("Refreshed XSLT Controller toolbar icons");
+        }
+
+        // Refresh XSLT Developer Controller toolbar
+        if (xsltDeveloperController != null) {
+            xsltDeveloperController.refreshToolbarIcons();
+            logger.debug("Refreshed XSLT Developer Controller toolbar icons");
+        }
+
+        // Refresh FOP Controller toolbar
+        if (fopController != null) {
+            fopController.refreshToolbarIcons();
+            logger.debug("Refreshed FOP Controller toolbar icons");
+        }
+
+        // Refresh Schema Generator Controller toolbar
+        if (schemaGeneratorController != null) {
+            schemaGeneratorController.refreshToolbarIcons();
+            logger.debug("Refreshed Schema Generator Controller toolbar icons");
+        }
+
+        logger.info("Toolbar icon refresh completed for all controllers");
     }
 
     private void loadLastOpenFiles() {
