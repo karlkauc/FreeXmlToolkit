@@ -185,4 +185,79 @@ public class XmlGraphicEditorContextMenuTest {
         // Wait for Platform.runLater to complete
         Thread.sleep(100);
     }
+
+    @Test
+    void testHasTextContentWithWhitespace() throws Exception {
+        // Create element with only whitespace (like default XML template)
+        Element elementWithWhitespace = testDocument.createElement("rootWithWhitespace");
+        elementWithWhitespace.appendChild(testDocument.createTextNode("\n   \n"));
+
+        // Use reflection to access private method
+        var method = XmlGraphicEditor.class.getDeclaredMethod("hasTextContent", Node.class);
+        method.setAccessible(true);
+
+        boolean hasText = (boolean) method.invoke(xmlGraphicEditor, elementWithWhitespace);
+
+        // Should return false because whitespace-only content should not count as text content
+        assertFalse(hasText, "Element with only whitespace should not be considered as having text content");
+    }
+
+    @Test
+    void testHasTextContentWithActualText() throws Exception {
+        Element childElement = (Element) testDocument.getElementsByTagName("child").item(0);
+
+        // Use reflection to access private method
+        var method = XmlGraphicEditor.class.getDeclaredMethod("hasTextContent", Node.class);
+        method.setAccessible(true);
+
+        boolean hasText = (boolean) method.invoke(xmlGraphicEditor, childElement);
+
+        // Should return true because it has actual text content
+        assertTrue(hasText, "Element with actual text should be considered as having text content");
+    }
+
+    @Test
+    void testCanHaveChildrenWithWhitespace() throws Exception {
+        // Create element with only whitespace
+        Element elementWithWhitespace = testDocument.createElement("rootWithWhitespace");
+        elementWithWhitespace.appendChild(testDocument.createTextNode("\n   \n"));
+
+        // Use reflection to access private method
+        var method = XmlGraphicEditor.class.getDeclaredMethod("canHaveChildren", Node.class);
+        method.setAccessible(true);
+
+        boolean canHaveChildren = (boolean) method.invoke(xmlGraphicEditor, elementWithWhitespace);
+
+        // Should return true because whitespace-only elements can have child elements
+        assertTrue(canHaveChildren, "Element with only whitespace should be able to have children");
+    }
+
+    @Test
+    void testCanHaveChildrenWithActualText() throws Exception {
+        Element childElement = (Element) testDocument.getElementsByTagName("child").item(0);
+
+        // Use reflection to access private method
+        var method = XmlGraphicEditor.class.getDeclaredMethod("canHaveChildren", Node.class);
+        method.setAccessible(true);
+
+        boolean canHaveChildren = (boolean) method.invoke(xmlGraphicEditor, childElement);
+
+        // Should return false because it has text content (mixed content not supported)
+        assertFalse(canHaveChildren, "Element with text content should not be able to have children");
+    }
+
+    @Test
+    void testCanHaveChildrenWithEmptyElement() throws Exception {
+        // Create completely empty element
+        Element emptyElement = testDocument.createElement("emptyElement");
+
+        // Use reflection to access private method
+        var method = XmlGraphicEditor.class.getDeclaredMethod("canHaveChildren", Node.class);
+        method.setAccessible(true);
+
+        boolean canHaveChildren = (boolean) method.invoke(xmlGraphicEditor, emptyElement);
+
+        // Should return true because empty elements can have children
+        assertTrue(canHaveChildren, "Empty element should be able to have children");
+    }
 }

@@ -43,8 +43,8 @@ import java.util.Properties;
 public class WelcomeController {
 
     private static final Logger logger = LogManager.getLogger(WelcomeController.class);
-    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
-    private final UpdateCheckService updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
+    private PropertiesService propertiesService;
+    private UpdateCheckService updateCheckService;
     private Properties properties;
     private MainController parentController;
     private String latestVersionUrl = "https://github.com/karlkauc/FreeXmlToolkit/releases/latest";
@@ -64,6 +64,10 @@ public class WelcomeController {
 
     @FXML
     private void initialize() {
+        // Initialize services (lazy initialization to avoid circular dependency during constructor)
+        propertiesService = ServiceRegistry.get(PropertiesService.class);
+        updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
+
         properties = propertiesService.loadProperties();
         logger.debug("Properties: {}", properties);
 

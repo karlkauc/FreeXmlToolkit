@@ -65,11 +65,11 @@ public class HelpController {
 
         WebEngine engineFundsXMLSite = viewFundsXMLSite.getEngine();
         configureWebEngineForSSL(engineFundsXMLSite);
-        loadUrlWithRetry(engineFundsXMLSite, "http://www.fundsxml.org", "Official FundsXML Site");
+        loadUrlWithRetry(engineFundsXMLSite, "http://www.fundsxml.org", "FundsXML Webseite");
 
         WebEngine engineMigrationGuide = viewMigrationGuide.getEngine();
         configureWebEngineForSSL(engineMigrationGuide);
-        loadUrlWithRetry(engineMigrationGuide, "https://fundsxml.github.io/", "FundsXML Documentation");
+        loadUrlWithRetry(engineMigrationGuide, "https://fundsxml.github.io/", "FundsXML4 Schema Documentation");
     }
 
     /**

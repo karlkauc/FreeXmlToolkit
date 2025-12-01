@@ -200,4 +200,20 @@ public interface PropertiesService {
      * @param version the version to skip, or null to clear
      */
     void setSkippedVersion(String version);
+
+    /**
+     * Gets whether small icons should be used in toolbars (icons without text labels).
+     * When enabled, toolbar buttons show only icons to save space.
+     *
+     * @return true if small icons are enabled, false otherwise (default: false)
+     */
+    boolean isUseSmallIcons();
+
+    /**
+     * Sets whether small icons should be used in toolbars (icons without text labels).
+     * When enabled, toolbar buttons show only icons to save space.
+     *
+     * @param useSmallIcons true to use small icons, false to use icons with text
+     */
+    void setUseSmallIcons(boolean useSmallIcons);
 }

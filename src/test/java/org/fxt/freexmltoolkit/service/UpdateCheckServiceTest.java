@@ -734,6 +734,16 @@ class UpdateCheckServiceTest {
                 properties.setProperty("update.skipped.version", version);
             }
         }
+
+        @Override
+        public boolean isUseSmallIcons() {
+            return Boolean.parseBoolean(properties.getProperty("ui.use.small.icons", "false"));
+        }
+
+        @Override
+        public void setUseSmallIcons(boolean useSmallIcons) {
+            properties.setProperty("ui.use.small.icons", String.valueOf(useSmallIcons));
+        }
     }
 
     /**

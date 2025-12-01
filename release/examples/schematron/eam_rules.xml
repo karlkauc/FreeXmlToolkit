@@ -1,0 +1,1501 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mit XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) von XMLSpy2013 (s IT Solutions AT Spardat GmbH z.B. Buchhaltung) bearbeitet -->
+<FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://github.com/fundsxml/schema/releases/download/4.2.6/FundsXML.xsd">
+	<ControlData>
+		<UniqueDocumentID>c43f6ac9-a3c2-4aa3-9eb8-17c2b3ae1880</UniqueDocumentID>
+		<DocumentGenerated>2025-08-27T10:14:27</DocumentGenerated>
+		<ContentDate>2025-08-26</ContentDate>
+		<DataSupplier>
+			<SystemCountry>HU</SystemCountry>
+			<Short>EAMHU</Short>
+			<Name>Erste Asset Management Hungary</Name>
+			<Type>IC</Type>
+			<Contact>
+				<Email>risk@erstealapkezelo.hu</Email>
+			</Contact>
+		</DataSupplier>
+		<DataOperation>INITIAL</DataOperation>
+	</ControlData>
+	<Funds>
+		<Fund>
+			<Identifiers>
+				<ISIN>HU0000704200</ISIN>
+				<LEI2>529900TQDPMSEVGAGY74</LEI2>
+			</Identifiers>
+			<Names>
+				<OfficialName>Erste Stock Hungary Indexkövető Befektetési Alap</OfficialName>
+				<ShortName>ALPDINAMIK</ShortName>
+			</Names>
+			<Currency>HUF</Currency>
+			<SingleFundFlag>true</SingleFundFlag>
+			<FundStaticData>
+				<ListedLegalStructure>AIF</ListedLegalStructure>
+				<InceptionDate>2006-04-26</InceptionDate>
+				<Benchmarks>
+					<Benchmark>
+						<BenchmarkID>ID_15494</BenchmarkID>
+						<Name>ALPDINAMIK BM</Name>
+						<Currency>HUF</Currency>
+						<BenchmarkUsage ListedType="OFFICIAL"/>
+						<BenchmarkComponents>
+							<BenchmarkComponent>
+								<ValidFrom>2010-09-30</ValidFrom>
+								<Name>ALPDINAMIK BM</Name>
+								<Identifier>
+									<OtherID FreeType="Name">ALPDINAMIK BM</OtherID>
+								</Identifier>
+								<Weight>100</Weight>
+							</BenchmarkComponent>
+						</BenchmarkComponents>
+					</Benchmark>
+				</Benchmarks>
+			</FundStaticData>
+			<FundDynamicData>
+				<TotalAssetValues>
+					<TotalAssetValue>
+						<NavDate>2025-08-25</NavDate>
+						<TotalAssetNature>OFFICIAL</TotalAssetNature>
+						<TotalNetAssetValue>
+							<Amount ccy="HUF">29411334597</Amount>
+						</TotalNetAssetValue>
+					</TotalAssetValue>
+				</TotalAssetValues>
+				<Portfolios>
+					<Portfolio>
+						<NavDate>2025-08-25</NavDate>
+						<Positions>
+							<Position>
+								<UniqueID>TRADE_SELL_FXFORWARD_1473954</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">EURHUF-1473954</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">21910396</Amount>
+								</TotalValue>
+								<TotalPercentage>0.0745</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>derivate meldeverordnung cesr</Type>
+										<Value>
+											<Amount ccy="HUF">-464607000</Amount>
+											<Amount ccy="EUR">-1170000</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<FXForward/>
+							</Position>
+							<Position>
+								<UniqueID>HU0009398277</UniqueID>
+								<Identifiers>
+									<ISIN>HU0009398277</ISIN>
+									<OtherID FreeType="Name">BUX Index Future Dec25</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">-6355100</Amount>
+								</TotalValue>
+								<TotalPercentage>-0.0216</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Future>
+									<Contracts>617</Contracts>
+									<Price>
+										<Amount ccy="HUF">107300.0000</Amount>
+									</Price>
+								</Future>
+							</Position>
+							<Position>
+								<UniqueID>HU0000180112</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000180112</ISIN>
+									<OtherID FreeType="Name">CIG Pannonia részvény</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">96706044</Amount>
+								</TotalValue>
+								<TotalPercentage>0.3288</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>262076</Units>
+									<Price>
+										<Amount ccy="HUF">369</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="HUF">96706044</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>ID_11613008-01394700-13000000_2104061-HUF-LIABILITY</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">11613008-01394700-13000000_2104061-HUF-LIABILITY</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">-186173184</Amount>
+								</TotalValue>
+								<TotalPercentage>-0.6330</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Account>
+									<MarketValue>
+										<Amount ccy="HUF">-186173184</Amount>
+									</MarketValue>
+								</Account>
+							</Position>
+							<Position>
+								<UniqueID>ID_11613008-01394700-13000000_2104061-HUF-RECEIVABLE</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">11613008-01394700-13000000_2104061-HUF-RECEIVABLE</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">80909962</Amount>
+								</TotalValue>
+								<TotalPercentage>0.2751</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Account>
+									<MarketValue>
+										<Amount ccy="HUF">80909962</Amount>
+									</MarketValue>
+								</Account>
+							</Position>
+							<Position>
+								<UniqueID>HU0000706007</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000706007</ISIN>
+									<OtherID FreeType="Name">Erste Nyíltvégű Euro Bázis Befektetési Alap</OtherID>
+								</Identifiers>
+								<Currency>EUR</Currency>
+								<TotalValue>
+									<Amount ccy="EUR">164404.39</Amount>
+									<Amount ccy="HUF">65284983</Amount>
+								</TotalValue>
+								<TotalPercentage>0.2220</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="EUR" mulDiv="M" toCcy="HUF">397.1</FXRate>
+								</FXRates>
+								<ShareClass>
+									<Shares>139764</Shares>
+									<Price>
+										<Amount ccy="EUR">1.1763</Amount>
+									</Price>
+								</ShareClass>
+							</Position>
+							<Position>
+								<UniqueID>ID_11613008-01394700-13000000_2104061-HUF-REAL</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">11613008-01394700-13000000_2104061-HUF-REAL</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">200000</Amount>
+								</TotalValue>
+								<TotalPercentage>0.0007</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Account>
+									<MarketValue>
+										<Amount ccy="HUF">200000</Amount>
+									</MarketValue>
+								</Account>
+							</Position>
+							<Position>
+								<UniqueID>ID_11600006-00000000-18703241-HUF-LIABILITY</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">11600006-00000000-18703241-HUF-LIABILITY</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">-166647376</Amount>
+								</TotalValue>
+								<TotalPercentage>-0.5666</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Account>
+									<MarketValue>
+										<Amount ccy="HUF">-166647376</Amount>
+									</MarketValue>
+								</Account>
+							</Position>
+							<Position>
+								<UniqueID>ID_11600006-00000000-18703241-HUF-REAL</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">11600006-00000000-18703241-HUF-REAL</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">942765202</Amount>
+								</TotalValue>
+								<TotalPercentage>3.2054</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Account>
+									<MarketValue>
+										<Amount ccy="HUF">942765202</Amount>
+									</MarketValue>
+								</Account>
+							</Position>
+							<Position>
+								<UniqueID>ID_11600006-00000000-98648999-EUR-REAL</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">11600006-00000000-98648999-EUR-REAL</OtherID>
+								</Identifiers>
+								<Currency>EUR</Currency>
+								<TotalValue>
+									<Amount ccy="EUR">22.65</Amount>
+									<Amount ccy="HUF">8994</Amount>
+								</TotalValue>
+								<TotalPercentage>0.0000</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="EUR" mulDiv="M" toCcy="HUF">397.1</FXRate>
+								</FXRates>
+								<Account>
+									<MarketValue>
+										<Amount ccy="EUR">22.65</Amount>
+										<Amount ccy="HUF">8994</Amount>
+									</MarketValue>
+								</Account>
+							</Position>
+							<Position>
+								<UniqueID>HU0000153937</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000153937</ISIN>
+									<OtherID FreeType="Name">MOL részvény</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">4153797016</Amount>
+								</TotalValue>
+								<TotalPercentage>14.1231</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>1414781</Units>
+									<Price>
+										<Amount ccy="HUF">2936</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="HUF">4153797016</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>HU0000061726</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000061726</ISIN>
+									<OtherID FreeType="Name">OTP részvény</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">13113796370</Amount>
+								</TotalValue>
+								<TotalPercentage>44.5876</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>431801</Units>
+									<Price>
+										<Amount ccy="HUF">30370</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="HUF">13113796370</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>HU0000123096</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000123096</ISIN>
+									<OtherID FreeType="Name">Richter Gedeon részvény</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">6026991390</Amount>
+								</TotalValue>
+								<TotalPercentage>20.4921</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>569121</Units>
+									<Price>
+										<Amount ccy="HUF">10590</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="HUF">6026991390</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>HU0000164504</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000164504</ISIN>
+									<OtherID FreeType="Name">AutoWallis Nyrt</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">396163443</Amount>
+								</TotalValue>
+								<TotalPercentage>1.3470</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>2423018</Units>
+									<Price>
+										<Amount ccy="HUF">163.5</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="HUF">396163443</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>HU0000073507</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000073507</ISIN>
+									<OtherID FreeType="Name">Magyar Telekom részvény</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">1288784744</Amount>
+								</TotalValue>
+								<TotalPercentage>4.3819</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>652219</Units>
+									<Price>
+										<Amount ccy="HUF">1976</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="HUF">1288784744</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>ALAPKEZ_ALAPKEZE_ALPDINAMIK</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">Alapkezelési díj - ALAPKEZE-ALAPKEZE-ALPDINAMIK</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">-4213744</Amount>
+								</TotalValue>
+								<TotalPercentage>-0.0143</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Fee/>
+							</Position>
+							<Position>
+								<UniqueID>FORGALM_ERSTE_ALPDINAMIK</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">Forgalmazási díj - ERSTE-ERSTE-ALPDINAMIK</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">-11392714</Amount>
+								</TotalValue>
+								<TotalPercentage>-0.0387</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Fee/>
+							</Position>
+							<Position>
+								<UniqueID>HU0000102132</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000102132</ISIN>
+									<OtherID FreeType="Name">Appeninn részvény</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">16608885</Amount>
+								</TotalValue>
+								<TotalPercentage>0.0565</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>20379</Units>
+									<Price>
+										<Amount ccy="HUF">815</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="HUF">16608885</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>HU0000120720</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000120720</ISIN>
+									<OtherID FreeType="Name">Waberer's részvény</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">449766820</Amount>
+								</TotalValue>
+								<TotalPercentage>1.5292</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>85507</Units>
+									<Price>
+										<Amount ccy="HUF">5260</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="HUF">449766820</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>KONYVELES_KÖNYVELŐ_ALPDINAMIK</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">Könyvelési díj - KÖNYVELŐ-KÖNYVELŐ-ALPDINAMIK</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">-285968</Amount>
+								</TotalValue>
+								<TotalPercentage>-0.0010</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Fee/>
+							</Position>
+							<Position>
+								<UniqueID>AUDITOR_KÖNYVVIZSG_ALPDINAMIK</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">Könyvizsgálói díj - KÖNYVVIZSG-KÖNYVVIZSG-ALPDINAMIK</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">-1004330</Amount>
+								</TotalValue>
+								<TotalPercentage>-0.0034</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Fee/>
+							</Position>
+							<Position>
+								<UniqueID>APTF_MNB_ALPDINAMIK</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">Felügyeleti díj - MNB-MNB-ALPDINAMIK</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">-1457288</Amount>
+								</TotalValue>
+								<TotalPercentage>-0.0050</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Fee/>
+							</Position>
+							<Position>
+								<UniqueID>HU0000093943</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000093943</ISIN>
+									<OtherID FreeType="Name">MASTERPLAST Nyrt.</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">166404000</Amount>
+								</TotalValue>
+								<TotalPercentage>0.5658</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>59430</Units>
+									<Price>
+										<Amount ccy="HUF">2800</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="HUF">166404000</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>HU0000626742</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000626742</ISIN>
+									<OtherID FreeType="Name">MNB25/08/28</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">2498657500</Amount>
+								</TotalValue>
+								<TotalPercentage>8.4956</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Bond>
+									<Nominal>2500000000</Nominal>
+									<Price>
+										<Amount ccy="HUF">99.9463</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="HUF">2498657500</Amount>
+									</MarketValue>
+								</Bond>
+							</Position>
+							<Position>
+								<UniqueID>LETKEZDIJ_ERSTEH_ALPDINAMIK</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">Letétkezelési díj - ERSTEH-ERSTEH-ALPDINAMIK</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">-1561768</Amount>
+								</TotalValue>
+								<TotalPercentage>-0.0053</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Fee/>
+							</Position>
+							<Position>
+								<UniqueID>KULONADO_MNB_ALPDINAMIK</UniqueID>
+								<Identifiers>
+									<OtherID FreeType="Name">Különadó - MNB-MNB-ALPDINAMIK</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TotalValue>
+									<Amount ccy="HUF">-2031700</Amount>
+								</TotalValue>
+								<TotalPercentage>-0.0069</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Fee/>
+							</Position>
+							<Position>
+								<UniqueID>HU0000083696</UniqueID>
+								<Identifiers>
+									<ISIN>HU0000083696</ISIN>
+									<OtherID FreeType="Name">Graphisoft Park SE részvény</OtherID>
+								</Identifiers>
+								<Currency>EUR</Currency>
+								<TotalValue>
+									<Amount ccy="EUR">1192903.6</Amount>
+									<Amount ccy="HUF">473702020</Amount>
+								</TotalValue>
+								<TotalPercentage>1.6106</TotalPercentage>
+								<FXRates>
+									<FXRate fromCcy="EUR" mulDiv="M" toCcy="HUF">397.1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>89692</Units>
+									<Price>
+										<Amount ccy="EUR">13.3</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="EUR">1192903.6</Amount>
+										<Amount ccy="HUF">473702020</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+						</Positions>
+						<Transactions>
+							<Transaction>
+								<TransactionID>1596359</TransactionID>
+								<AssetUniqueID>HU0000073507</AssetUniqueID>
+								<Identifiers>
+									<ISIN>HU0000073507</ISIN>
+									<OtherID FreeType="Name">Magyar Telekom részvény</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TransactionKind>BUY</TransactionKind>
+								<SettlementCurrency>HUF</SettlementCurrency>
+								<EntryDate>2025-08-25</EntryDate>
+								<ValutaDate>2025-08-27</ValutaDate>
+								<ExecutionTimestamp>2025-08-25T16:34:39</ExecutionTimestamp>
+								<NominalOrUnitsOrContracts>14633</NominalOrUnitsOrContracts>
+								<CleanPrice>
+									<Amount ccy="HUF">1951.86250256</Amount>
+								</CleanPrice>
+								<DirtyPrice>
+									<Amount ccy="HUF">1951.86250256</Amount>
+								</DirtyPrice>
+								<MarketValue>
+									<Amount ccy="HUF">28561604</Amount>
+								</MarketValue>
+								<DirtyValue>
+									<Amount ccy="HUF">28561604</Amount>
+								</DirtyValue>
+								<SettlementAmount>
+									<Amount ccy="HUF">28584453</Amount>
+								</SettlementAmount>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Expenses>
+									<Amount ccy="HUF">22849</Amount>
+								</Expenses>
+								<Exchange>XBUD</Exchange>
+							</Transaction>
+							<Transaction>
+								<TransactionID>1596361</TransactionID>
+								<AssetUniqueID>HU0000061726</AssetUniqueID>
+								<Identifiers>
+									<ISIN>HU0000061726</ISIN>
+									<OtherID FreeType="Name">OTP részvény</OtherID>
+								</Identifiers>
+								<Currency>HUF</Currency>
+								<TransactionKind>BUY</TransactionKind>
+								<SettlementCurrency>HUF</SettlementCurrency>
+								<EntryDate>2025-08-25</EntryDate>
+								<ValutaDate>2025-08-27</ValutaDate>
+								<ExecutionTimestamp>2025-08-25T16:35:32</ExecutionTimestamp>
+								<NominalOrUnitsOrContracts>4000</NominalOrUnitsOrContracts>
+								<CleanPrice>
+									<Amount ccy="HUF">30293.1625</Amount>
+								</CleanPrice>
+								<DirtyPrice>
+									<Amount ccy="HUF">30293.1625</Amount>
+								</DirtyPrice>
+								<MarketValue>
+									<Amount ccy="HUF">121172650</Amount>
+								</MarketValue>
+								<DirtyValue>
+									<Amount ccy="HUF">121172650</Amount>
+								</DirtyValue>
+								<SettlementAmount>
+									<Amount ccy="HUF">121269588</Amount>
+								</SettlementAmount>
+								<FXRates>
+									<FXRate fromCcy="HUF" mulDiv="M" toCcy="HUF">1</FXRate>
+								</FXRates>
+								<Expenses>
+									<Amount ccy="HUF">96938</Amount>
+								</Expenses>
+								<Exchange>XBUD</Exchange>
+							</Transaction>
+						</Transactions>
+						<RiskCodes>
+							<RiskCode>
+								<ListedCode>LEVERAGE GROSS</ListedCode>
+								<Value>101.52</Value>
+								<Annualization>false</Annualization>
+							</RiskCode>
+							<RiskCode>
+								<ListedCode>LEVERAGE LIMIT</ListedCode>
+								<Value>100.02</Value>
+								<Annualization>false</Annualization>
+							</RiskCode>
+						</RiskCodes>
+					</Portfolio>
+				</Portfolios>
+				<Benchmarks>
+					<Benchmark>
+						<BenchmarkID>ID_15494</BenchmarkID>
+						<Values>
+							<Value>
+								<Date>2025-08-25</Date>
+								<ValueType>Total Return</ValueType>
+								<Value>
+									<Amount ccy="HUF">104831.4</Amount>
+								</Value>
+							</Value>
+						</Values>
+					</Benchmark>
+				</Benchmarks>
+			</FundDynamicData>
+			<SingleFund>
+				<ShareClasses>
+					<ShareClass>
+						<Identifiers>
+							<ISIN>HU0000704200</ISIN>
+						</Identifiers>
+						<Names>
+							<OfficialName>Erste Stock Hungary Indexkövető Befektetési Alap A sorozat</OfficialName>
+						</Names>
+						<Currency>HUF</Currency>
+						<ShareClassType>
+							<Code>R</Code>
+							<EarningUse>R</EarningUse>
+						</ShareClassType>
+						<Prices>
+							<Price>
+								<ActionCode>C</ActionCode>
+								<NavDate>2025-08-25</NavDate>
+								<PriceCurrency>HUF</PriceCurrency>
+								<PriceNature>OFFICIAL</PriceNature>
+								<NavPrice>6.0428</NavPrice>
+							</Price>
+						</Prices>
+						<TotalAssetValues>
+							<TotalAssetValue>
+								<NavDate>2025-08-25</NavDate>
+								<TotalAssetNature>OFFICIAL</TotalAssetNature>
+								<TotalNetAssetValue>
+									<Amount ccy="HUF">29362683698.97162468</Amount>
+								</TotalNetAssetValue>
+								<SharesOutstanding>4859137350</SharesOutstanding>
+							</TotalAssetValue>
+						</TotalAssetValues>
+					</ShareClass>
+					<ShareClass>
+						<Identifiers>
+							<ISIN>HU0000723457</ISIN>
+						</Identifiers>
+						<Names>
+							<OfficialName>Erste Stock Hungary Indexkövető Befektetési Alap D sorozat</OfficialName>
+						</Names>
+						<Currency>HUF</Currency>
+						<ShareClassType>
+							<Code>R</Code>
+							<EarningUse>R</EarningUse>
+						</ShareClassType>
+						<Prices>
+							<Price>
+								<ActionCode>C</ActionCode>
+								<NavDate>2025-08-25</NavDate>
+								<PriceCurrency>HUF</PriceCurrency>
+								<PriceNature>OFFICIAL</PriceNature>
+								<NavPrice>2.9979</NavPrice>
+							</Price>
+						</Prices>
+						<TotalAssetValues>
+							<TotalAssetValue>
+								<NavDate>2025-08-25</NavDate>
+								<TotalAssetNature>OFFICIAL</TotalAssetNature>
+								<TotalNetAssetValue>
+									<Amount ccy="HUF">48650898.295319005</Amount>
+								</TotalNetAssetValue>
+								<SharesOutstanding>16228596</SharesOutstanding>
+							</TotalAssetValue>
+						</TotalAssetValues>
+					</ShareClass>
+				</ShareClasses>
+			</SingleFund>
+		</Fund>
+	</Funds>
+	<AssetMasterData>
+		<Asset>
+			<UniqueID>HU0000073507</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000073507</ISIN>
+				<OtherID FreeType="Name">MATÁV</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>MATÁV</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<Issuer>
+						<Identifiers>
+							<LEI>529900CA1YDA41X76751</LEI>
+							<OtherID FreeType="Name">Magyar Telekom Nyrt</OtherID>
+						</Identifiers>
+						<Name>Magyar Telekom Nyrt</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000120720</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000120720</ISIN>
+				<OtherID FreeType="Name">WABERERS HB</OtherID>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>HU</Country>
+			<Name>WABERERS HB</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<Issuer>
+						<Identifiers>
+							<LEI>5493006YOYPOSXPIQG40</LEI>
+							<OtherID FreeType="Name">Waberer's International Nyrt.</OtherID>
+						</Identifiers>
+						<Name>Waberer's International Nyrt.</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000102132</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000102132</ISIN>
+				<OtherID FreeType="Name">APPENINN</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>APPENINN</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<Issuer>
+						<Identifiers>
+							<LEI>52990047YWS5LT39HV26</LEI>
+							<OtherID FreeType="Name">Appennin Holding</OtherID>
+						</Identifiers>
+						<Name>Appennin Holding</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000164504</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000164504</ISIN>
+				<OtherID FreeType="Name">AUTOWALL HB</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>AUTOWALL HB</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<Issuer>
+						<Identifiers>
+							<LEI>529900QO6EHRM3EZL070</LEI>
+							<OtherID FreeType="Name">AutoWallis Nyrt.</OtherID>
+						</Identifiers>
+						<Name>AutoWallis Nyrt.</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000626742</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000626742</ISIN>
+				<OtherID FreeType="Name">MNB250828</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>MNB250828</Name>
+			<AssetType>BO</AssetType>
+			<AssetDetails>
+				<Bond>
+					<ConvertibleFlag>false</ConvertibleFlag>
+					<Issuer>
+						<Identifiers>
+							<LEI>SS58IXU92ZSUMORZFG95</LEI>
+							<OtherID FreeType="Name">Magyar Nemzeti Bank</OtherID>
+						</Identifiers>
+						<Name>Magyar Nemzeti Bank</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+					<IssueDate>2025-08-21</IssueDate>
+					<MaturityDate>2025-08-28</MaturityDate>
+					<Coupon>
+						<Type>zero</Type>
+					</Coupon>
+				</Bond>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000123096</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000123096</ISIN>
+				<OtherID FreeType="Name">RICHTER</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>RICHTER</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300J6ZJW5IH4WEE46</LEI>
+							<OtherID FreeType="Name">Richter Gedeon Nyrt.</OtherID>
+						</Identifiers>
+						<Name>Richter Gedeon Nyrt.</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000061726</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000061726</ISIN>
+				<OtherID FreeType="Name">OTP</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>OTP</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<Issuer>
+						<Identifiers>
+							<LEI>529900W3MOO00A18X956</LEI>
+							<OtherID FreeType="Name">OTP Bank Nyrt.</OtherID>
+						</Identifiers>
+						<Name>OTP Bank Nyrt.</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000093943</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000093943</ISIN>
+				<OtherID FreeType="Name">MASTERPL HB</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>MASTERPL HB</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<Issuer>
+						<Identifiers>
+							<LEI>529900T52BKQIM96BG24</LEI>
+							<OtherID FreeType="Name">MASTERPLAST Nyrt.</OtherID>
+						</Identifiers>
+						<Name>MASTERPLAST Nyrt.</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000083696</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000083696</ISIN>
+				<OtherID FreeType="Name">GSPARK</OtherID>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>HU</Country>
+			<Name>GSPARK</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<Issuer>
+						<Identifiers>
+							<LEI>5299006ETW1JYNUWJC79</LEI>
+							<OtherID FreeType="Name">Graphisoft Park SE Európai Rt.</OtherID>
+						</Identifiers>
+						<Name>Graphisoft Park SE Európai Rt.</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000153937</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000153937</ISIN>
+				<OtherID FreeType="Name">MOL</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>MOL</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<Issuer>
+						<Identifiers>
+							<LEI>213800R83KX5FQFGXS67</LEI>
+							<OtherID FreeType="Name">MOL Nyrt.</OtherID>
+						</Identifiers>
+						<Name>MOL Nyrt.</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000180112</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000180112</ISIN>
+				<OtherID FreeType="Name">PANNONIA HB</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>PANNONIA HB</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<Issuer>
+						<Identifiers>
+							<LEI>529900QYECVOWB4EMB78</LEI>
+							<OtherID FreeType="Name">CIG Pannónia Biztosító</OtherID>
+						</Identifiers>
+						<Name>CIG Pannónia Biztosító</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0000706007</UniqueID>
+			<Identifiers>
+				<ISIN>HU0000706007</ISIN>
+				<OtherID FreeType="Name">ALPOKEURO</OtherID>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>HU</Country>
+			<Name>ALPOKEURO</Name>
+			<AssetType>SC</AssetType>
+			<AssetDetails>
+				<ShareClass>
+					<Issuer>
+						<Identifiers>
+							<LEI>529900S4G4W2K5EO0X04</LEI>
+							<OtherID FreeType="Name">Erste Alapkezelő Zrt.</OtherID>
+						</Identifiers>
+						<Name>Erste Alapkezelő Zrt.</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Issuer>
+					<ExchangeTradedFundFlag>false</ExchangeTradedFundFlag>
+				</ShareClass>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>HU0009398277</UniqueID>
+			<Identifiers>
+				<ISIN>HU0009398277</ISIN>
+				<OtherID FreeType="Name">UOZ5 INDEX</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>UOZ5 INDEX</Name>
+			<AssetType>FU</AssetType>
+			<AssetDetails>
+				<Future>
+					<Type>IF</Type>
+					<ContractSize>10</ContractSize>
+					<MaturityDate>2025-12-19</MaturityDate>
+					<Counterparty>
+						<Identifiers>
+							<OtherID FreeType="Name">Budapesti Értéktőzsde</OtherID>
+						</Identifiers>
+						<Name>Budapesti Értéktőzsde</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+					<Underlyings>
+						<Underlying>
+							<Type>Index</Type>
+							<Identifiers>
+								<ISIN>HU0005060210</ISIN>
+								<OtherID FreeType="Name">BUX</OtherID>
+							</Identifiers>
+						</Underlying>
+					</Underlyings>
+				</Future>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>TRADE_SELL_FXFORWARD_1473954</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">EURHUF-1473954</OtherID>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>HU</Country>
+			<Name>FX forward eladási pozíció nyitása - ALPDINAMIK - ERSTEH - 2025-01-31 - 2026-02-03 - 1,170,000 - EURHUF [txId=1473954]</Name>
+			<AssetType>FX</AssetType>
+			<AssetDetails>
+				<FXForward>
+					<CurrencyBuy>HUF</CurrencyBuy>
+					<AmountBuy>496641600</AmountBuy>
+					<CurrencySell>EUR</CurrencySell>
+					<AmountSell>1170000</AmountSell>
+					<AgreedFxRate>424.48</AgreedFxRate>
+					<MaturityDate>2026-02-03</MaturityDate>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300XWJHRKLHU2PS28</LEI>
+							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
+							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+						</Identifiers>
+						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</FXForward>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>ID_11600006-00000000-98648999-EUR-REAL</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">11600006-00000000-98648999</OtherID>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>HU</Country>
+			<Name>11600006-00000000-98648999-EUR-REAL</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300XWJHRKLHU2PS28</LEI>
+							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
+							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+						</Identifiers>
+						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>ID_11613008-01394700-13000000_2104061-HUF-RECEIVABLE</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">11613008-01394700-13000000/2104061</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>11613008-01394700-13000000_2104061-HUF-RECEIVABLE</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S5161J3XIURT65</LEI>
+							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
+							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+						</Identifiers>
+						<Name>Erste Befektetési Zrt</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>ID_11600006-00000000-18703241-HUF-REAL</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">11600006-00000000-18703241</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>11600006-00000000-18703241-HUF-REAL</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300XWJHRKLHU2PS28</LEI>
+							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
+							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+						</Identifiers>
+						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>ID_11613008-01394700-13000000_2104061-HUF-LIABILITY</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">11613008-01394700-13000000/2104061</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>11613008-01394700-13000000_2104061-HUF-LIABILITY</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S5161J3XIURT65</LEI>
+							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
+							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+						</Identifiers>
+						<Name>Erste Befektetési Zrt</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>ID_11613008-01394700-13000000_2104061-HUF-REAL</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">11613008-01394700-13000000/2104061</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>11613008-01394700-13000000_2104061-HUF-REAL</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S5161J3XIURT65</LEI>
+							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
+							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+						</Identifiers>
+						<Name>Erste Befektetési Zrt</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>ID_11600006-00000000-18703241-HUF-LIABILITY</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">11600006-00000000-18703241</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>11600006-00000000-18703241-HUF-LIABILITY</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300XWJHRKLHU2PS28</LEI>
+							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
+							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+						</Identifiers>
+						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>APTF_MNB_ALPDINAMIK</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">APTF_MNB_ALPDINAMIK</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>APTF_MNB_ALPDINAMIK</Name>
+			<AssetType>FE</AssetType>
+			<AssetDetails>
+				<Fee>
+					<Type>Felügyeleti díj - MNB</Type>
+					<Counterparty>
+						<Identifiers>
+							<LEI>SS58IXU92ZSUMORZFG95</LEI>
+							<SwiftBIC>MANEHUHBXXX</SwiftBIC>
+							<OtherID FreeType="Name">Magyar Nemzeti Bank</OtherID>
+						</Identifiers>
+						<Name>Magyar Nemzeti Bank</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Fee>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>FORGALM_ERSTE_ALPDINAMIK</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">FORGALM_ERSTE_ALPDINAMIK</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>FORGALM_ERSTE_ALPDINAMIK</Name>
+			<AssetType>FE</AssetType>
+			<AssetDetails>
+				<Fee>
+					<Type>Forgalmazási díj - ERSTE</Type>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S5161J3XIURT65</LEI>
+							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
+							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+						</Identifiers>
+						<Name>Erste Befektetési Zrt</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Fee>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>ALAPKEZ_ALAPKEZE_ALPDINAMIK</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">ALAPKEZ_ALAPKEZE_ALPDINAMIK</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>ALAPKEZ_ALAPKEZE_ALPDINAMIK</Name>
+			<AssetType>FE</AssetType>
+			<AssetDetails>
+				<Fee>
+					<Type>Alapkezelési díj - ALAPKEZE</Type>
+					<Counterparty>
+						<Identifiers>
+							<LEI>529900S4G4W2K5EO0X04</LEI>
+							<OtherID FreeType="Name">Erste Alapkezelő Zrt.</OtherID>
+						</Identifiers>
+						<Name>Erste Alapkezelő Zrt.</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Fee>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>KULONADO_MNB_ALPDINAMIK</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">KULONADO_MNB_ALPDINAMIK</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>KULONADO_MNB_ALPDINAMIK</Name>
+			<AssetType>FE</AssetType>
+			<AssetDetails>
+				<Fee>
+					<Type>Különadó - MNB</Type>
+					<Counterparty>
+						<Identifiers>
+							<LEI>SS58IXU92ZSUMORZFG95</LEI>
+							<SwiftBIC>MANEHUHBXXX</SwiftBIC>
+							<OtherID FreeType="Name">Magyar Nemzeti Bank</OtherID>
+						</Identifiers>
+						<Name>Magyar Nemzeti Bank</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Fee>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>KONYVELES_KÖNYVELŐ_ALPDINAMIK</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">KONYVELES_KÖNYVELŐ_ALPDINAMIK</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>KONYVELES_KÖNYVELŐ_ALPDINAMIK</Name>
+			<AssetType>FE</AssetType>
+			<AssetDetails>
+				<Fee>
+					<Type>Könyvelési díj - KÖNYVELŐ</Type>
+					<Counterparty>
+						<Identifiers>
+							<OtherID FreeType="Name">Könyvelő</OtherID>
+						</Identifiers>
+						<Name>Könyvelő</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Fee>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>AUDITOR_KÖNYVVIZSG_ALPDINAMIK</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">AUDITOR_KÖNYVVIZSG_ALPDINAMIK</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>AUDITOR_KÖNYVVIZSG_ALPDINAMIK</Name>
+			<AssetType>FE</AssetType>
+			<AssetDetails>
+				<Fee>
+					<Type>Könyvizsgálói díj - KÖNYVVIZSG</Type>
+					<Counterparty>
+						<Identifiers>
+							<LEI>213800IETA61XI2MDW71</LEI>
+							<OtherID FreeType="Name">Könyvvizsgáló</OtherID>
+						</Identifiers>
+						<Name>Könyvvizsgáló</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Fee>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>LETKEZDIJ_ERSTEH_ALPDINAMIK</UniqueID>
+			<Identifiers>
+				<OtherID FreeType="Name">LETKEZDIJ_ERSTEH_ALPDINAMIK</OtherID>
+			</Identifiers>
+			<Currency>HUF</Currency>
+			<Country>HU</Country>
+			<Name>LETKEZDIJ_ERSTEH_ALPDINAMIK</Name>
+			<AssetType>FE</AssetType>
+			<AssetDetails>
+				<Fee>
+					<Type>Letétkezelési díj - ERSTEH</Type>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300XWJHRKLHU2PS28</LEI>
+							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
+							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+						</Identifiers>
+						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Address>
+							<Country>HU</Country>
+						</Address>
+					</Counterparty>
+				</Fee>
+			</AssetDetails>
+		</Asset>
+	</AssetMasterData>
+</FundsXML4>

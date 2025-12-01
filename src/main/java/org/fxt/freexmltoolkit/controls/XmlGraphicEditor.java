@@ -1119,7 +1119,7 @@ public class XmlGraphicEditor extends VBox {
 
     /**
      * Checks if a DOM node has text content.
-     * A node has text content if it has exactly one text child.
+     * A node has text content if it has exactly one text child with non-whitespace content.
      */
     private boolean hasTextContent(Node node) {
         if (node.getNodeType() != Node.ELEMENT_NODE) {
@@ -1127,8 +1127,14 @@ public class XmlGraphicEditor extends VBox {
         }
 
         // Check if the node has exactly one text child
-        return node.getChildNodes().getLength() == 1 &&
-                node.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE;
+        if (node.getChildNodes().getLength() == 1 &&
+                node.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
+            // Get the text content and check if it's not just whitespace
+            String textContent = node.getChildNodes().item(0).getNodeValue();
+            return textContent != null && !textContent.trim().isEmpty();
+        }
+
+        return false;
     }
 
     /**

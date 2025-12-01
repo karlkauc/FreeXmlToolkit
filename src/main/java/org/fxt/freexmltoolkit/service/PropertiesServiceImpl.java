@@ -99,6 +99,7 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("usageDuration", "0");
         properties.setProperty("useSystemTempFolder", "true");
         properties.setProperty("xml.editor.use.v2", "false"); // Feature flag for XmlCodeEditorV2
+        properties.setProperty("ui.use.small.icons", "false"); // Feature flag for small toolbar icons
         properties.setProperty("version", "20241209");
         properties.setProperty("manualProxy", "false");
         properties.setProperty("useSystemProxy", "true");
@@ -365,5 +366,19 @@ public class PropertiesServiceImpl implements PropertiesService {
         }
         saveProperties(properties);
         logger.debug("Set skipped version to: {}", version);
+    }
+
+    // UI settings implementation
+
+    @Override
+    public boolean isUseSmallIcons() {
+        return Boolean.parseBoolean(properties.getProperty("ui.use.small.icons", "false"));
+    }
+
+    @Override
+    public void setUseSmallIcons(boolean useSmallIcons) {
+        properties.setProperty("ui.use.small.icons", String.valueOf(useSmallIcons));
+        saveProperties(properties);
+        logger.debug("Set use small icons to: {}", useSmallIcons);
     }
 }

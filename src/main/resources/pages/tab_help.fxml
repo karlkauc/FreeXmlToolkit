@@ -19,13 +19,13 @@
             </graphic>
             <WebView fx:id="viewFXTDoc"/>
         </Tab>
-        <Tab text="FundsXML Documentation" fx:id="tabFundsXMlSite" styleClass="primary-tab">
+        <Tab text="FundsXML Webseite" fx:id="tabFundsXMlSite" styleClass="primary-tab">
             <graphic>
                 <FontIcon iconLiteral="bi-file-text" iconSize="16"/>
             </graphic>
             <WebView fx:id="viewFundsXMLSite"/>
         </Tab>
-        <Tab text="Migration Guide" fx:id="tabMigrationGuide" styleClass="utility-tab">
+        <Tab text="FundsXML4 Schema Documentation" fx:id="tabMigrationGuide" styleClass="utility-tab">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16"/>
             </graphic>

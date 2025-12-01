@@ -11,7 +11,7 @@
       stylesheets="@../css/xsd-tab-groups.css">
 
     <!-- Ultimate XML Editor Toolbar - Modernized with unified theme -->
-    <ToolBar styleClass="xsd-toolbar">
+    <ToolBar fx:id="mainToolbar" styleClass="xsd-toolbar">
         <!-- File Operations Group -->
         <Button fx:id="newFile" text="New" contentDisplay="TOP" styleClass="toolbar-button" onAction="#newFilePressed">
             <graphic>
@@ -168,10 +168,22 @@
 
         <Separator orientation="VERTICAL"/>
 
+        <!-- Properties Panel Toggle -->
+        <ToggleButton fx:id="togglePropertiesPaneButton" text="Properties" contentDisplay="TOP" styleClass="toolbar-button" onAction="#togglePropertiesPane">
+            <graphic>
+                <FontIcon iconLiteral="bi-layout-sidebar-inset-reverse" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle Properties Panel (Ctrl+P)"/>
+            </tooltip>
+        </ToggleButton>
+
+        <Separator orientation="VERTICAL"/>
+
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpButton" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
