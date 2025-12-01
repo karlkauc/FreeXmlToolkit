@@ -65,8 +65,6 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
      */
     private static final String DEFAULT_VERSION = "1.0.0";
 
-    private static final UpdateCheckService instance = new UpdateCheckServiceImpl();
-
     private final PropertiesService propertiesService;
     private final ConnectionService connectionService;
 
@@ -81,12 +79,21 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
     private boolean updateCheckPerformed = false;
 
     /**
+     * Holder class for lazy singleton initialization.
+     * The instance is created only when getInstance() is first called.
+     */
+    private static class InstanceHolder {
+        private static final UpdateCheckService INSTANCE = new UpdateCheckServiceImpl();
+    }
+
+    /**
      * Returns the singleton instance of UpdateCheckServiceImpl.
+     * Uses lazy initialization to avoid circular dependencies during class loading.
      *
      * @return the singleton instance
      */
     public static UpdateCheckService getInstance() {
-        return instance;
+        return InstanceHolder.INSTANCE;
     }
 
     /**

@@ -71,6 +71,7 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Ultimate XML Controller - The Complete XML Editor with All Features
@@ -703,9 +704,12 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     }
 
     private void createInitialTab() {
-        // No longer creating an initial tab - show empty state instead
-        // Users can create new files or open existing files via empty state buttons or toolbar
-        logger.debug("Skipping initial tab creation to show empty state");
+        // Defer tab creation until after the controller is fully initialized
+        // This ensures parentController is set and all UI components are ready
+        Platform.runLater(() -> {
+            logger.debug("Creating initial tab with empty XML template");
+            newFilePressed();
+        });
     }
 
     private void initializeFavorites() {
@@ -2034,6 +2038,31 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
         logger.debug("Parent controller set for Ultimate XML Controller");
+    }
+
+    /**
+     * Shutdown the Ultimate XML Controller and release all resources.
+     * This method should be called when the application is closing to ensure
+     * all background threads and resources are properly cleaned up.
+     */
+    public void shutdown() {
+        logger.info("Shutting down Ultimate XML Controller...");
+
+        // Shutdown the ExecutorService
+        if (executorService != null && !executorService.isShutdown()) {
+            logger.debug("Shutting down executorService...");
+            executorService.shutdownNow();
+            try {
+                if (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {
+                    logger.warn("ExecutorService did not terminate within 2 seconds");
+                }
+            } catch (InterruptedException e) {
+                logger.error("Interrupted while waiting for executorService shutdown", e);
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        logger.info("Ultimate XML Controller shutdown completed");
     }
 
     /**

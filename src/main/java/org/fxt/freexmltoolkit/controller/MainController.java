@@ -209,9 +209,12 @@ public class MainController implements Initializable {
 
         logger.info("Application is shutting down. Starting cleanup tasks...");
 
+        // Shutdown XmlUltimateController and its ExecutorService
         if (xmlUltimateController != null) {
-            // Ultimate XML Controller handles its own shutdown
+            xmlUltimateController.shutdown();
         }
+
+        // Shutdown XsdController
         if (xsdController != null) {
             xsdController.shutdown();
         }
@@ -247,19 +250,15 @@ public class MainController implements Initializable {
             logger.info("Step 1: Calling shutdown() for cleanup");
             shutdown();
 
-            logger.info("Step 2: Calling Platform.exit()");
+            logger.info("Step 2: Calling Platform.exit() to trigger normal JavaFX shutdown");
             Platform.exit();
 
-            // Give Platform.exit() a moment to trigger stop()
-            logger.info("Step 3: Waiting 500ms for JavaFX shutdown");
-            Thread.sleep(500);
-
-            logger.info("Step 4: Force exit with System.exit(0)");
-            System.exit(0);
+            // Platform.exit() will trigger the stop() method in FxtGui, which will save usageDuration
+            // No need to call System.exit(0) - let JavaFX handle the shutdown lifecycle
         } catch (Exception e) {
             logger.error("Error during exit sequence", e);
-            // Force exit even on error
-            System.exit(1);
+            // On error, still try to exit gracefully
+            Platform.exit();
         }
     }
 
