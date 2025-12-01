@@ -65,6 +65,7 @@ public class MainController implements Initializable {
     SchematronController schematronController;
     XsdValidationController xsdValidationController;
     FopController fopController;
+    XsltController xsltController;
     XsltDeveloperController xsltDeveloperController;
     SchemaGeneratorController schemaGeneratorController;
 
@@ -219,6 +220,21 @@ public class MainController implements Initializable {
             xsdController.shutdown();
         }
 
+        // Shutdown XsltController
+        if (xsltController != null) {
+            xsltController.shutdown();
+        }
+
+        // Shutdown XsltDeveloperController
+        if (xsltDeveloperController != null) {
+            xsltDeveloperController.shutdown();
+        }
+
+        // Shutdown SchemaGeneratorController
+        if (schemaGeneratorController != null) {
+            schemaGeneratorController.shutdown();
+        }
+
         // Shutdown UpdateCheckService
         try {
             UpdateCheckService updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
@@ -227,6 +243,22 @@ public class MainController implements Initializable {
             }
         } catch (Exception e) {
             logger.warn("Failed to shutdown UpdateCheckService: {}", e.getMessage());
+        }
+
+        // Shutdown XsltTransformationEngine
+        try {
+            org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance().shutdown();
+            logger.debug("XsltTransformationEngine shut down");
+        } catch (Exception e) {
+            logger.warn("Failed to shutdown XsltTransformationEngine: {}", e.getMessage());
+        }
+
+        // Shutdown XPathExecutionEngine
+        try {
+            org.fxt.freexmltoolkit.service.XPathExecutionEngine.getInstance().shutdown();
+            logger.debug("XPathExecutionEngine shut down");
+        } catch (Exception e) {
+            logger.warn("Failed to shutdown XPathExecutionEngine: {}", e.getMessage());
         }
 
         logger.info("Shutting down ExecutorServices...");
@@ -559,9 +591,10 @@ public class MainController implements Initializable {
                 schematronController1.setParentController(this);
                 initializeIntegrationService();
             }
-            case XsltController xsltController -> {
+            case XsltController xsltController1 -> {
                 logger.debug("set XSLT Controller");
-                xsltController.setParentController(this);
+                this.xsltController = xsltController1;
+                xsltController1.setParentController(this);
             }
             case FopController fopController1 -> {
                 logger.debug("set FOP Controller");
