@@ -1604,26 +1604,6 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         }
     }
 
-    /**
-     * View Operations
-     */
-    // Removed from UI - method no longer used
-    // @FXML
-    private void toggleTreeView() {
-        logger.info("Toggling Tree View");
-        // treeViewToggle removed from UI
-        // boolean selected = treeViewToggle.isSelected();
-        boolean selected = false; // Default to false since button is removed
-        logToConsole("Tree view " + (selected ? "enabled" : "disabled"));
-
-        if (selected && documentTreeView != null) {
-            Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
-            if (currentTab != null && currentTab instanceof XmlEditor editor) {
-                updateDocumentTree(editor.getEditorText());
-            }
-        }
-    }
-
     // Template operations moved to popup controller
 
     // Schema generation operations moved to popup controller
