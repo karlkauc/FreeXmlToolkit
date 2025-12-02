@@ -923,6 +923,14 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     public void setImportedSchemas(Map<String, org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> importedSchemas) {
         this.importedSchemas = importedSchemas != null ? importedSchemas : new HashMap<>();
         logger.info("Set {} imported schemas", this.importedSchemas.size());
+
+        // Invalidate the main schema's cache to ensure imported elements are included in re-indexing
+        // This is necessary because the first build (without imports) may have cached only the main schema elements
+        if (!this.importedSchemas.isEmpty()) {
+            XsdVisualTreeBuilder.invalidateCacheFor(xsdSchema);
+            logger.debug("Invalidated cache for main schema to include imported schema elements");
+        }
+
         // Rebuild visual tree to include imported elements
         rebuildVisualTree();
     }
