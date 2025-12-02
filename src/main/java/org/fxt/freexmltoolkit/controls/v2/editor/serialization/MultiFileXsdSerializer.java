@@ -387,6 +387,22 @@ public class MultiFileXsdSerializer {
             serializeComplexType(complexType, sb, indentation, indent);
         } else if (node instanceof XsdSimpleType simpleType) {
             serializeSimpleType(simpleType, sb, indentation, indent);
+        } else if (node instanceof XsdSequence sequence) {
+            serializeSequence(sequence, sb, indentation, indent);
+        } else if (node instanceof XsdChoice choice) {
+            serializeChoice(choice, sb, indentation, indent);
+        } else if (node instanceof XsdAll all) {
+            serializeAll(all, sb, indentation, indent);
+        } else if (node instanceof XsdAttribute attribute) {
+            serializeAttribute(attribute, sb, indentation);
+        } else if (node instanceof XsdRestriction restriction) {
+            serializeRestriction(restriction, sb, indentation, indent);
+        } else if (node instanceof XsdExtension extension) {
+            serializeExtension(extension, sb, indentation, indent);
+        } else if (node instanceof XsdSimpleContent simpleContent) {
+            serializeSimpleContent(simpleContent, sb, indentation, indent);
+        } else if (node instanceof XsdComplexContent complexContent) {
+            serializeComplexContent(complexContent, sb, indentation, indent);
         } else if (node instanceof XsdInclude include) {
             serializeInclude(include, sb, indentation);
         } else if (node instanceof XsdImport xsdImport) {
@@ -395,12 +411,42 @@ public class MultiFileXsdSerializer {
             serializeGroup(group, sb, indentation, indent);
         } else if (node instanceof XsdAttributeGroup attributeGroup) {
             serializeAttributeGroup(attributeGroup, sb, indentation, indent);
+        } else if (node instanceof XsdKey key) {
+            serializeKey(key, sb, indentation, indent);
+        } else if (node instanceof XsdKeyRef keyRef) {
+            serializeKeyRef(keyRef, sb, indentation, indent);
+        } else if (node instanceof XsdUnique unique) {
+            serializeUnique(unique, sb, indentation, indent);
+        } else if (node instanceof XsdSelector selector) {
+            serializeSelector(selector, sb, indentation);
+        } else if (node instanceof XsdField field) {
+            serializeField(field, sb, indentation);
+        } else if (node instanceof XsdAny any) {
+            serializeAny(any, sb, indentation);
+        } else if (node instanceof XsdAnyAttribute anyAttr) {
+            serializeAnyAttribute(anyAttr, sb, indentation);
+        } else if (node instanceof XsdList list) {
+            serializeList(list, sb, indentation, indent);
+        } else if (node instanceof XsdUnion union) {
+            serializeUnion(union, sb, indentation, indent);
+        } else if (node instanceof XsdFacet facet) {
+            serializeFacet(facet, sb, indentation);
+        } else if (node instanceof XsdAssert xsdAssert) {
+            serializeAssert(xsdAssert, sb, indentation);
+        } else if (node instanceof XsdAlternative alternative) {
+            serializeAlternative(alternative, sb, indentation, indent);
+        } else if (node instanceof XsdOpenContent openContent) {
+            serializeOpenContent(openContent, sb, indentation, indent);
+        } else if (node instanceof XsdRedefine redefine) {
+            serializeRedefine(redefine, sb, indentation, indent);
+        } else if (node instanceof XsdOverride override) {
+            serializeOverride(override, sb, indentation, indent);
         } else if (node instanceof XsdComment comment) {
             serializeComment(comment, sb, indentation);
         } else {
-            // For other node types, use a simple representation
-            logger.warn("Simplified serialization for node type: {}", node.getClass().getSimpleName());
-            sb.append(indentation).append("<!-- Unsupported node type: ")
+            // For truly unknown node types, log warning and output as comment
+            logger.warn("Unknown node type in multi-file serialization: {}", node.getClass().getSimpleName());
+            sb.append(indentation).append("<!-- Unknown node type: ")
                     .append(node.getClass().getSimpleName()).append(" -->\n");
         }
 
@@ -556,6 +602,384 @@ public class MultiFileXsdSerializer {
     private void serializeComment(XsdComment comment, StringBuilder sb, String indentation) {
         if (comment.getContent() != null) {
             sb.append(indentation).append("<!--").append(comment.getContent()).append("-->\n");
+        }
+    }
+
+    // ========== Additional serialization methods for all XSD node types ==========
+
+    private void serializeSequence(XsdSequence sequence, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:sequence");
+        appendCardinality(sequence, sb);
+        sb.append(">\n");
+
+        for (XsdNode child : sequence.getChildren()) {
+            sb.append(serializeSingleNode(child, indent + 1));
+        }
+
+        sb.append(indentation).append("</xs:sequence>\n");
+    }
+
+    private void serializeChoice(XsdChoice choice, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:choice");
+        appendCardinality(choice, sb);
+        sb.append(">\n");
+
+        for (XsdNode child : choice.getChildren()) {
+            sb.append(serializeSingleNode(child, indent + 1));
+        }
+
+        sb.append(indentation).append("</xs:choice>\n");
+    }
+
+    private void serializeAll(XsdAll all, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:all");
+        appendCardinality(all, sb);
+        sb.append(">\n");
+
+        for (XsdNode child : all.getChildren()) {
+            sb.append(serializeSingleNode(child, indent + 1));
+        }
+
+        sb.append(indentation).append("</xs:all>\n");
+    }
+
+    private void serializeAttribute(XsdAttribute attribute, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:attribute");
+
+        if (attribute.getRef() != null && !attribute.getRef().isEmpty()) {
+            sb.append(" ref=\"").append(escapeXml(attribute.getRef())).append("\"");
+            if (attribute.getUse() != null && !attribute.getUse().isEmpty() && !"optional".equals(attribute.getUse())) {
+                sb.append(" use=\"").append(escapeXml(attribute.getUse())).append("\"");
+            }
+            sb.append("/>\n");
+            return;
+        }
+
+        sb.append(" name=\"").append(escapeXml(attribute.getName())).append("\"");
+
+        if (attribute.getType() != null && !attribute.getType().isEmpty()) {
+            sb.append(" type=\"").append(escapeXml(attribute.getType())).append("\"");
+        }
+
+        if (attribute.getUse() != null && !attribute.getUse().isEmpty() && !"optional".equals(attribute.getUse())) {
+            sb.append(" use=\"").append(escapeXml(attribute.getUse())).append("\"");
+        }
+
+        if (attribute.getDefaultValue() != null && !attribute.getDefaultValue().isEmpty()) {
+            sb.append(" default=\"").append(escapeXml(attribute.getDefaultValue())).append("\"");
+        }
+
+        if (attribute.getFixed() != null && !attribute.getFixed().isEmpty()) {
+            sb.append(" fixed=\"").append(escapeXml(attribute.getFixed())).append("\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    private void serializeRestriction(XsdRestriction restriction, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:restriction");
+
+        if (restriction.getBase() != null && !restriction.getBase().isEmpty()) {
+            sb.append(" base=\"").append(escapeXml(restriction.getBase())).append("\"");
+        }
+
+        sb.append(">\n");
+
+        for (XsdNode child : restriction.getChildren()) {
+            sb.append(serializeSingleNode(child, indent + 1));
+        }
+
+        sb.append(indentation).append("</xs:restriction>\n");
+    }
+
+    private void serializeExtension(XsdExtension extension, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:extension");
+
+        if (extension.getBase() != null && !extension.getBase().isEmpty()) {
+            sb.append(" base=\"").append(escapeXml(extension.getBase())).append("\"");
+        }
+
+        if (extension.hasChildren()) {
+            sb.append(">\n");
+            for (XsdNode child : extension.getChildren()) {
+                sb.append(serializeSingleNode(child, indent + 1));
+            }
+            sb.append(indentation).append("</xs:extension>\n");
+        } else {
+            sb.append("/>\n");
+        }
+    }
+
+    private void serializeSimpleContent(XsdSimpleContent simpleContent, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:simpleContent>\n");
+
+        for (XsdNode child : simpleContent.getChildren()) {
+            sb.append(serializeSingleNode(child, indent + 1));
+        }
+
+        sb.append(indentation).append("</xs:simpleContent>\n");
+    }
+
+    private void serializeComplexContent(XsdComplexContent complexContent, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:complexContent");
+
+        if (complexContent.isMixed()) {
+            sb.append(" mixed=\"true\"");
+        }
+
+        sb.append(">\n");
+
+        for (XsdNode child : complexContent.getChildren()) {
+            sb.append(serializeSingleNode(child, indent + 1));
+        }
+
+        sb.append(indentation).append("</xs:complexContent>\n");
+    }
+
+    private void serializeKey(XsdKey key, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:key");
+
+        if (key.getName() != null && !key.getName().isEmpty()) {
+            sb.append(" name=\"").append(escapeXml(key.getName())).append("\"");
+        }
+
+        sb.append(">\n");
+
+        for (XsdNode child : key.getChildren()) {
+            sb.append(serializeSingleNode(child, indent + 1));
+        }
+
+        sb.append(indentation).append("</xs:key>\n");
+    }
+
+    private void serializeKeyRef(XsdKeyRef keyRef, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:keyref");
+
+        if (keyRef.getName() != null && !keyRef.getName().isEmpty()) {
+            sb.append(" name=\"").append(escapeXml(keyRef.getName())).append("\"");
+        }
+
+        if (keyRef.getRefer() != null && !keyRef.getRefer().isEmpty()) {
+            sb.append(" refer=\"").append(escapeXml(keyRef.getRefer())).append("\"");
+        }
+
+        sb.append(">\n");
+
+        for (XsdNode child : keyRef.getChildren()) {
+            sb.append(serializeSingleNode(child, indent + 1));
+        }
+
+        sb.append(indentation).append("</xs:keyref>\n");
+    }
+
+    private void serializeUnique(XsdUnique unique, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:unique");
+
+        if (unique.getName() != null && !unique.getName().isEmpty()) {
+            sb.append(" name=\"").append(escapeXml(unique.getName())).append("\"");
+        }
+
+        sb.append(">\n");
+
+        for (XsdNode child : unique.getChildren()) {
+            sb.append(serializeSingleNode(child, indent + 1));
+        }
+
+        sb.append(indentation).append("</xs:unique>\n");
+    }
+
+    private void serializeSelector(XsdSelector selector, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:selector");
+
+        if (selector.getXpath() != null && !selector.getXpath().isEmpty()) {
+            sb.append(" xpath=\"").append(escapeXml(selector.getXpath())).append("\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    private void serializeField(XsdField field, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:field");
+
+        if (field.getXpath() != null && !field.getXpath().isEmpty()) {
+            sb.append(" xpath=\"").append(escapeXml(field.getXpath())).append("\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    private void serializeAny(XsdAny any, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:any");
+
+        if (any.getNamespace() != null && !"##any".equals(any.getNamespace())) {
+            sb.append(" namespace=\"").append(escapeXml(any.getNamespace())).append("\"");
+        }
+
+        if (any.getProcessContents() != null && any.getProcessContents() != XsdAny.ProcessContents.STRICT) {
+            sb.append(" processContents=\"").append(any.getProcessContents().getValue()).append("\"");
+        }
+
+        appendCardinality(any, sb);
+        sb.append("/>\n");
+    }
+
+    private void serializeAnyAttribute(XsdAnyAttribute anyAttr, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:anyAttribute");
+
+        if (anyAttr.getNamespace() != null && !"##any".equals(anyAttr.getNamespace())) {
+            sb.append(" namespace=\"").append(escapeXml(anyAttr.getNamespace())).append("\"");
+        }
+
+        if (anyAttr.getProcessContents() != null && anyAttr.getProcessContents() != XsdAny.ProcessContents.STRICT) {
+            sb.append(" processContents=\"").append(anyAttr.getProcessContents().getValue()).append("\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    private void serializeList(XsdList list, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:list");
+
+        if (list.getItemType() != null && !list.getItemType().isEmpty()) {
+            sb.append(" itemType=\"").append(escapeXml(list.getItemType())).append("\"");
+        }
+
+        if (list.hasChildren()) {
+            sb.append(">\n");
+            for (XsdNode child : list.getChildren()) {
+                sb.append(serializeSingleNode(child, indent + 1));
+            }
+            sb.append(indentation).append("</xs:list>\n");
+        } else {
+            sb.append("/>\n");
+        }
+    }
+
+    private void serializeUnion(XsdUnion union, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:union");
+
+        if (union.getMemberTypes() != null && !union.getMemberTypes().isEmpty()) {
+            String memberTypesStr = String.join(" ", union.getMemberTypes());
+            sb.append(" memberTypes=\"").append(escapeXml(memberTypesStr)).append("\"");
+        }
+
+        if (union.hasChildren()) {
+            sb.append(">\n");
+            for (XsdNode child : union.getChildren()) {
+                sb.append(serializeSingleNode(child, indent + 1));
+            }
+            sb.append(indentation).append("</xs:union>\n");
+        } else {
+            sb.append("/>\n");
+        }
+    }
+
+    private void serializeFacet(XsdFacet facet, StringBuilder sb, String indentation) {
+        if (facet.getFacetType() == null) {
+            return;
+        }
+
+        String facetName = facet.getFacetType().getXmlName();
+        sb.append(indentation).append("<xs:").append(facetName);
+
+        if (facet.getValue() != null) {
+            sb.append(" value=\"").append(escapeXml(facet.getValue())).append("\"");
+        }
+
+        if (facet.isFixed()) {
+            sb.append(" fixed=\"true\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    private void serializeAssert(XsdAssert xsdAssert, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:assert");
+
+        if (xsdAssert.getTest() != null && !xsdAssert.getTest().isEmpty()) {
+            sb.append(" test=\"").append(escapeXml(xsdAssert.getTest())).append("\"");
+        }
+
+        if (xsdAssert.getXpathDefaultNamespace() != null && !xsdAssert.getXpathDefaultNamespace().isEmpty()) {
+            sb.append(" xpathDefaultNamespace=\"").append(escapeXml(xsdAssert.getXpathDefaultNamespace())).append("\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    private void serializeAlternative(XsdAlternative alternative, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:alternative");
+
+        if (alternative.getTest() != null && !alternative.getTest().isEmpty()) {
+            sb.append(" test=\"").append(escapeXml(alternative.getTest())).append("\"");
+        }
+
+        if (alternative.getType() != null && !alternative.getType().isEmpty()) {
+            sb.append(" type=\"").append(escapeXml(alternative.getType())).append("\"");
+        }
+
+        if (alternative.hasChildren()) {
+            sb.append(">\n");
+            for (XsdNode child : alternative.getChildren()) {
+                sb.append(serializeSingleNode(child, indent + 1));
+            }
+            sb.append(indentation).append("</xs:alternative>\n");
+        } else {
+            sb.append("/>\n");
+        }
+    }
+
+    private void serializeOpenContent(XsdOpenContent openContent, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:openContent");
+
+        if (openContent.getMode() != null) {
+            sb.append(" mode=\"").append(openContent.getMode().getValue()).append("\"");
+        }
+
+        if (openContent.hasChildren()) {
+            sb.append(">\n");
+            for (XsdNode child : openContent.getChildren()) {
+                sb.append(serializeSingleNode(child, indent + 1));
+            }
+            sb.append(indentation).append("</xs:openContent>\n");
+        } else {
+            sb.append("/>\n");
+        }
+    }
+
+    private void serializeRedefine(XsdRedefine redefine, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:redefine");
+
+        if (redefine.getSchemaLocation() != null && !redefine.getSchemaLocation().isEmpty()) {
+            sb.append(" schemaLocation=\"").append(escapeXml(redefine.getSchemaLocation())).append("\"");
+        }
+
+        if (redefine.hasChildren()) {
+            sb.append(">\n");
+            for (XsdNode child : redefine.getChildren()) {
+                sb.append(serializeSingleNode(child, indent + 1));
+            }
+            sb.append(indentation).append("</xs:redefine>\n");
+        } else {
+            sb.append("/>\n");
+        }
+    }
+
+    private void serializeOverride(XsdOverride override, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:override");
+
+        if (override.getSchemaLocation() != null && !override.getSchemaLocation().isEmpty()) {
+            sb.append(" schemaLocation=\"").append(escapeXml(override.getSchemaLocation())).append("\"");
+        }
+
+        if (override.hasChildren()) {
+            sb.append(">\n");
+            for (XsdNode child : override.getChildren()) {
+                sb.append(serializeSingleNode(child, indent + 1));
+            }
+            sb.append(indentation).append("</xs:override>\n");
+        } else {
+            sb.append("/>\n");
         }
     }
 

@@ -560,8 +560,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         double canvasWidth = Math.max(requiredWidth, 800);
         double canvasHeight = Math.max(requiredHeight, 600);
 
-        // Limit maximum canvas size to prevent JavaFX texture errors (max 16384 pixels)
-        final double MAX_CANVAS_SIZE = 15000;
+        // Limit maximum canvas size to prevent JavaFX texture allocation errors
+        // 8192 is a safe limit for most GPU configurations
+        final double MAX_CANVAS_SIZE = 8192;
         if (canvasWidth > MAX_CANVAS_SIZE || canvasHeight > MAX_CANVAS_SIZE) {
             logger.warn("Canvas size {}x{} exceeds maximum. Limiting to {}x{}",
                     canvasWidth, canvasHeight, MAX_CANVAS_SIZE, MAX_CANVAS_SIZE);
@@ -569,19 +570,42 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             canvasHeight = Math.min(canvasHeight, MAX_CANVAS_SIZE);
         }
 
-        // Resize canvas if needed
-        if (canvas.getWidth() != canvasWidth || canvas.getHeight() != canvasHeight) {
-            canvas.setWidth(canvasWidth);
-            canvas.setHeight(canvasHeight);
-            // logger.debug("Canvas resized to {}x{}", canvasWidth, canvasHeight);
+        // Resize canvas if needed - wrap in try-catch to handle GPU texture allocation failures
+        try {
+            if (canvas.getWidth() != canvasWidth || canvas.getHeight() != canvasHeight) {
+                canvas.setWidth(canvasWidth);
+                canvas.setHeight(canvasHeight);
+                // logger.debug("Canvas resized to {}x{}", canvasWidth, canvasHeight);
+            }
+
+            // Clear canvas
+            gc.setFill(Color.WHITE);
+            gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        } catch (Exception e) {
+            logger.error("Failed to resize/clear canvas to {}x{}: {}", canvasWidth, canvasHeight, e.getMessage());
+            // Try with smaller size as fallback
+            try {
+                canvas.setWidth(2000);
+                canvas.setHeight(2000);
+                gc.setFill(Color.WHITE);
+                gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+                logger.info("Fallback to smaller canvas size 2000x2000");
+            } catch (Exception e2) {
+                logger.error("Fallback canvas resize also failed: {}", e2.getMessage());
+                return; // Cannot render
+            }
         }
 
-        // Clear canvas
-        gc.setFill(Color.WHITE);
-        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-
-        // Render tree
-        renderTree(gc, rootNode);
+        // Render tree - wrap in try-catch to handle rendering failures gracefully
+        try {
+            renderTree(gc, rootNode);
+        } catch (Exception e) {
+            logger.error("Failed to render tree: {}. Schema may be too large for graphical display.", e.getMessage());
+            // Show error message on canvas
+            gc.setFill(Color.RED);
+            gc.fillText("Error: Schema too large for graphical display. Try collapsing some nodes.", 50, 50);
+            gc.fillText("Details: " + e.getMessage(), 50, 70);
+        }
     }
 
     /**

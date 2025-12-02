@@ -25,10 +25,13 @@ public class VirtualSchemaFactory {
     private static final String VIRTUAL_NAMESPACE = "http://virtual-schema/complextype-editor";
 
     /**
-     * Creates a virtual XsdSchema containing only the given ComplexType.
+     * Creates a virtual XsdSchema containing the given ComplexType.
      * <p>
      * The ComplexType is wrapped as a global element for visualization.
      * This allows XsdGraphView to display and edit the type in isolation.
+     * <p>
+     * This method also includes all ComplexType definitions from the main schema
+     * so that type references (like type="EquityType") can be resolved.
      *
      * <p><b>Structure of virtual schema:</b>
      * <pre>
@@ -37,6 +40,7 @@ public class VirtualSchemaFactory {
      *   &lt;xs:complexType name="[TypeName]"&gt;
      *     &lt;!-- Type content here --&gt;
      *   &lt;/xs:complexType&gt;
+     *   &lt;!-- All other ComplexTypes from main schema for type resolution --&gt;
      * &lt;/xs:schema&gt;
      * </pre>
      *
@@ -45,6 +49,21 @@ public class VirtualSchemaFactory {
      * @throws IllegalArgumentException if complexType is null or has no name
      */
     public static XsdSchema createVirtualSchemaForComplexType(XsdComplexType complexType) {
+        return createVirtualSchemaForComplexType(complexType, null);
+    }
+
+    /**
+     * Creates a virtual XsdSchema containing the given ComplexType with access to main schema types.
+     * <p>
+     * The ComplexType is wrapped as a global element for visualization.
+     * All ComplexType definitions from the main schema are included for type resolution.
+     *
+     * @param complexType the ComplexType to wrap in virtual schema
+     * @param mainSchema  the main schema to copy type definitions from (optional)
+     * @return a new virtual XsdSchema containing the ComplexType
+     * @throws IllegalArgumentException if complexType is null or has no name
+     */
+    public static XsdSchema createVirtualSchemaForComplexType(XsdComplexType complexType, XsdSchema mainSchema) {
         if (complexType == null) {
             throw new IllegalArgumentException("ComplexType cannot be null");
         }
@@ -95,6 +114,35 @@ public class VirtualSchemaFactory {
         // Note: ComplexType should be added as a child of the schema
         virtualSchema.addChild(complexType);
         logger.debug("Added ComplexType to virtual schema");
+
+        // 5. Copy all type definitions from main schema for type resolution
+        // This ensures that type references (like type="EquityType") can be resolved
+        if (mainSchema != null) {
+            logger.info("Copying type definitions from main schema for type resolution");
+            int copiedComplexTypes = 0;
+            int copiedSimpleTypes = 0;
+
+            for (XsdNode child : mainSchema.getChildren()) {
+                // Copy ComplexType definitions (skip the one we're editing)
+                if (child instanceof XsdComplexType ct) {
+                    String ctName = ct.getName();
+                    if (ctName != null && !ctName.equals(typeName)) {
+                        virtualSchema.addChild(ct);
+                        copiedComplexTypes++;
+                    }
+                }
+                // Copy SimpleType definitions for type references
+                else if (child instanceof XsdSimpleType st) {
+                    if (st.getName() != null) {
+                        virtualSchema.addChild(st);
+                        copiedSimpleTypes++;
+                    }
+                }
+            }
+
+            logger.info("Copied {} ComplexType and {} SimpleType definitions to virtual schema",
+                    copiedComplexTypes, copiedSimpleTypes);
+        }
 
         logger.info("Virtual schema created successfully: {} children total", virtualSchema.getChildren().size());
 

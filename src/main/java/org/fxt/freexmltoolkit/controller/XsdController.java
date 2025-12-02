@@ -1799,19 +1799,30 @@ public class XsdController implements FavoritesParentController {
                         // if (saveXsdButtonGraphic != null) {
                         //     saveXsdButtonGraphic.setDisable(true);
                         // }
-                        statusText.setText("XSD saved successfully: " + file.getName());
 
                         // Clean up auto-save file after successful save
                         cleanupAutoSave();
+
+                        // Build success message based on save type
+                        String message;
+                        if (saveCommand.isMultiFileSave()) {
+                            int fileCount = saveCommand.getSavedFileCount();
+                            statusText.setText("Multi-file save: " + fileCount + " files saved");
+                            message = saveCommand.getSaveSummary();
+                        } else {
+                            statusText.setText("XSD saved successfully: " + file.getName());
+                            message = "XSD file saved successfully!";
+                        }
 
                         // Show success notification
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
                         alert.setTitle("Save Successful");
                         alert.setHeaderText(null);
-                        alert.setContentText("XSD file saved successfully!");
+                        alert.setContentText(message);
                         alert.showAndWait();
 
-                        logger.info("Successfully saved XSD using V2 editor SaveCommand");
+                        logger.info("Successfully saved XSD using V2 editor SaveCommand (multi-file: {})",
+                                saveCommand.isMultiFileSave());
                         return;
                     } else {
                         showError("Save Failed", "Failed to save XSD file using V2 editor.");
@@ -3241,25 +3252,46 @@ public class XsdController implements FavoritesParentController {
 
                 // Build detailed success message
                 StringBuilder message = new StringBuilder();
-                message.append("✓ File saved successfully\n\n");
-                message.append("File: ").append(currentXsdFile.getName()).append("\n");
-                message.append("Path: ").append(currentXsdFile.getAbsolutePath()).append("\n");
-                message.append("Size: ").append(formatFileSize(fileSizeAfter));
 
-                if (fileSizeBefore > 0) {
-                    long sizeDiff = fileSizeAfter - fileSizeBefore;
-                    if (sizeDiff != 0) {
-                        message.append(" (").append(sizeDiff > 0 ? "+" : "")
-                                .append(formatFileSize(Math.abs(sizeDiff))).append(")");
+                // Check if this was a multi-file save
+                if (saveCmd.isMultiFileSave()) {
+                    int fileCount = saveCmd.getSavedFileCount();
+                    message.append("✓ Multi-file save successful\n\n");
+                    message.append("Saved ").append(fileCount).append(" file(s):\n");
+
+                    var results = saveCmd.getMultiFileSaveResults();
+                    if (results != null) {
+                        results.forEach((path, result) -> {
+                            if (result.success()) {
+                                message.append("  • ").append(path.getFileName());
+                                if (result.nodeCount() > 0) {
+                                    message.append(" (").append(result.nodeCount()).append(" nodes)");
+                                }
+                                message.append("\n");
+                            }
+                        });
                     }
+                    message.append("\n");
+                } else {
+                    message.append("✓ File saved successfully\n\n");
+                    message.append("File: ").append(currentXsdFile.getName()).append("\n");
+                    message.append("Path: ").append(currentXsdFile.getAbsolutePath()).append("\n");
+                    message.append("Size: ").append(formatFileSize(fileSizeAfter));
+
+                    if (fileSizeBefore > 0) {
+                        long sizeDiff = fileSizeAfter - fileSizeBefore;
+                        if (sizeDiff != 0) {
+                            message.append(" (").append(sizeDiff > 0 ? "+" : "")
+                                    .append(formatFileSize(Math.abs(sizeDiff))).append(")");
+                        }
+                    }
+                    message.append("\n");
                 }
-                message.append("\n");
 
                 message.append("Duration: ").append(duration).append(" ms\n");
 
                 if (backupPath != null && java.nio.file.Files.exists(backupPath)) {
                     message.append("Backup: ").append(backupPath.getFileName()).append("\n");
-                    message.append("Backup size: ").append(formatFileSize(java.nio.file.Files.size(backupPath))).append("\n");
                 }
 
                 message.append("\nTimestamp: ").append(java.time.LocalDateTime.now()
