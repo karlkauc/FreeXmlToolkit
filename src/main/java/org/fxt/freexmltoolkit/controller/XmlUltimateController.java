@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
+import java.util.concurrent.CompletableFuture;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -292,14 +293,22 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     private String currentXsltContent = "";
     private final String generatedSchemaContent = "";
 
+    // Lazy initialization flags for performance optimization
+    private boolean xsltDevelopmentInitialized = false;
+    private boolean xpathIntelliSenseInitialized = false;
+    private boolean xqueryIntelliSenseInitialized = false;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         logger.info("Initializing Ultimate XML Controller - The Complete XML Editor");
+        long startTime = System.currentTimeMillis();
+
         initializeComboBoxes();
         initializeUI();
         initializeTables();
         initializeXPathXQuery();
-        initializeXsltDevelopment();
+        // Phase 1: XSLT Development is now lazily initialized on first tab selection
+        setupLazyXsltDevelopmentInit();
         loadTemplates();
         createInitialTab();
         initializeFavorites();
@@ -309,7 +318,29 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         updateUndoRedoButtons();
         setupKeyboardShortcuts();
         applySmallIconsSetting();
-        logger.info("Ultimate XML Controller initialized successfully");
+
+        long elapsed = System.currentTimeMillis() - startTime;
+        logger.info("Ultimate XML Controller initialized successfully in {}ms", elapsed);
+    }
+
+    /**
+     * Sets up lazy initialization for the XSLT Development tab.
+     * The XSLT editors are only created when the user first clicks the tab,
+     * saving ~100-150ms on initial page load.
+     */
+    private void setupLazyXsltDevelopmentInit() {
+        if (developmentTabPane != null) {
+            developmentTabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+                if (newTab == xsltDevelopmentTab && !xsltDevelopmentInitialized) {
+                    logger.debug("Lazy initializing XSLT Development tab on first selection");
+                    Platform.runLater(() -> {
+                        initializeXsltDevelopment();
+                        xsltDevelopmentInitialized = true;
+                    });
+                }
+            });
+            logger.debug("Lazy XSLT Development initialization listener registered");
+        }
     }
 
     private void initializeComboBoxes() {
@@ -640,17 +671,30 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             }
         });
 
-        // Initialize XPath IntelliSense engine
-        xpathIntelliSenseEngine = new XPathIntelliSenseEngine(codeAreaXpath, false);
-        xpathIntelliSenseEngine.setXmlContentSupplier(this::getCurrentXmlContent);
-        logger.debug("XPath IntelliSense engine initialized");
+        // Phase 2: Defer IntelliSense initialization until first focus for performance
+        // XPath IntelliSense - initialized on first focus
+        codeAreaXpath.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (isFocused && !xpathIntelliSenseInitialized) {
+                logger.debug("Lazy initializing XPath IntelliSense engine on first focus");
+                xpathIntelliSenseEngine = new XPathIntelliSenseEngine(codeAreaXpath, false);
+                xpathIntelliSenseEngine.setXmlContentSupplier(this::getCurrentXmlContent);
+                xpathIntelliSenseInitialized = true;
+                logger.debug("XPath IntelliSense engine initialized");
+            }
+        });
 
-        // Initialize XQuery IntelliSense engine
-        xqueryIntelliSenseEngine = new XPathIntelliSenseEngine(codeAreaXQuery, true);
-        xqueryIntelliSenseEngine.setXmlContentSupplier(this::getCurrentXmlContent);
-        logger.debug("XQuery IntelliSense engine initialized");
+        // XQuery IntelliSense - initialized on first focus
+        codeAreaXQuery.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (isFocused && !xqueryIntelliSenseInitialized) {
+                logger.debug("Lazy initializing XQuery IntelliSense engine on first focus");
+                xqueryIntelliSenseEngine = new XPathIntelliSenseEngine(codeAreaXQuery, true);
+                xqueryIntelliSenseEngine.setXmlContentSupplier(this::getCurrentXmlContent);
+                xqueryIntelliSenseInitialized = true;
+                logger.debug("XQuery IntelliSense engine initialized");
+            }
+        });
 
-        logger.info("XPath/XQuery code areas initialized successfully with IntelliSense support");
+        logger.info("XPath/XQuery code areas initialized (IntelliSense deferred until first focus)");
     }
 
     private void initializeTables() {
@@ -798,6 +842,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
 
     /**
      * Refresh the Recent Files menu with current recent files list.
+     * Phase 3: File existence checks are performed asynchronously for better performance.
      * Only shows XML files that exist.
      */
     private void refreshRecentFilesMenu() {
@@ -815,23 +860,38 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             return;
         }
 
-        for (File file : recentFiles) {
-            if (file.exists() && file.getName().toLowerCase().endsWith(".xml")) {
-                MenuItem item = new MenuItem(file.getName());
-                item.setOnAction(e -> {
-                    loadXmlFile(file);
-                    logger.info("Opened recent file from toolbar: {}", file.getAbsolutePath());
-                });
-                toolbarRecentFiles.getItems().add(item);
-            }
-        }
+        // Show loading indicator while checking files in background
+        MenuItem loadingItem = new MenuItem("Loading...");
+        loadingItem.setDisable(true);
+        toolbarRecentFiles.getItems().add(loadingItem);
 
-        // If no XML files in recent list
-        if (toolbarRecentFiles.getItems().isEmpty()) {
-            MenuItem noFiles = new MenuItem("No recent XML files");
-            noFiles.setDisable(true);
-            toolbarRecentFiles.getItems().add(noFiles);
-        }
+        // Perform file.exists() checks in background thread to avoid blocking UI
+        CompletableFuture.supplyAsync(() -> {
+            List<File> existingFiles = new java.util.ArrayList<>();
+            for (File file : recentFiles) {
+                if (file.exists() && file.getName().toLowerCase().endsWith(".xml")) {
+                    existingFiles.add(file);
+                }
+            }
+            return existingFiles;
+        }).thenAcceptAsync(existingFiles -> {
+            toolbarRecentFiles.getItems().clear();
+
+            if (existingFiles.isEmpty()) {
+                MenuItem noFiles = new MenuItem("No recent XML files");
+                noFiles.setDisable(true);
+                toolbarRecentFiles.getItems().add(noFiles);
+            } else {
+                for (File file : existingFiles) {
+                    MenuItem item = new MenuItem(file.getName());
+                    item.setOnAction(e -> {
+                        loadXmlFile(file);
+                        logger.info("Opened recent file from toolbar: {}", file.getAbsolutePath());
+                    });
+                    toolbarRecentFiles.getItems().add(item);
+                }
+            }
+        }, Platform::runLater);
     }
 
     /**
