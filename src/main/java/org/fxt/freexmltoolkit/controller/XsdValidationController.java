@@ -899,7 +899,132 @@ public class XsdValidationController implements FavoritesParentController {
         // Setup multi-select file chooser for batch files
         xmlFileChooser.setTitle("Select XML Files");
 
+        // Setup drag and drop for batch validation
+        setupBatchDragAndDrop();
+
         logger.debug("Batch validation initialized");
+    }
+
+    /**
+     * Sets up drag and drop functionality for the batch validation table.
+     * Allows users to drag and drop XML files and/or folders onto the table.
+     */
+    private void setupBatchDragAndDrop() {
+        if (batchFilesTable == null) {
+            logger.debug("Batch files table not available for drag and drop setup");
+            return;
+        }
+
+        batchFilesTable.setOnDragOver(this::handleBatchDragOver);
+        batchFilesTable.setOnDragDropped(this::handleBatchDragDropped);
+
+        logger.debug("Drag and drop registered for batch validation table");
+    }
+
+    /**
+     * Handles drag over event for the batch validation table.
+     * Accepts XML files and directories.
+     *
+     * @param event the drag event
+     */
+    private void handleBatchDragOver(javafx.scene.input.DragEvent event) {
+        if (event.getDragboard().hasFiles()) {
+            // Accept if at least one XML file or directory is in the drag
+            boolean hasValidContent = event.getDragboard().getFiles().stream()
+                    .anyMatch(file -> file.isDirectory() ||
+                            file.getName().toLowerCase().endsWith(".xml"));
+
+            if (hasValidContent) {
+                event.acceptTransferModes(TransferMode.COPY);
+                logger.debug("Batch table accepting XML file/folder drag");
+            }
+        }
+        event.consume();
+    }
+
+    /**
+     * Handles drag dropped event for the batch validation table.
+     * Processes dropped XML files and recursively scans dropped directories.
+     *
+     * @param event the drag event
+     */
+    private void handleBatchDragDropped(javafx.scene.input.DragEvent event) {
+        Dragboard db = event.getDragboard();
+        boolean success = false;
+
+        if (db.hasFiles()) {
+            List<File> allXmlFiles = new ArrayList<>();
+
+            for (File file : db.getFiles()) {
+                if (file.isDirectory()) {
+                    // Recursively collect all XML files from the directory
+                    collectXmlFilesRecursively(file, allXmlFiles);
+                } else if (file.getName().toLowerCase().endsWith(".xml")) {
+                    allXmlFiles.add(file);
+                }
+            }
+
+            if (!allXmlFiles.isEmpty()) {
+                addDroppedFilesToBatch(allXmlFiles);
+                success = true;
+                logger.info("Dropped {} XML files onto batch validation table", allXmlFiles.size());
+            } else {
+                logger.debug("No XML files found in dropped items on batch table");
+            }
+        }
+
+        event.setDropCompleted(success);
+        event.consume();
+    }
+
+    /**
+     * Recursively collects all XML files from a directory and its subdirectories.
+     *
+     * @param directory the directory to scan
+     * @param xmlFiles  the list to add found XML files to
+     */
+    private void collectXmlFilesRecursively(File directory, List<File> xmlFiles) {
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    collectXmlFilesRecursively(file, xmlFiles);
+                } else if (file.getName().toLowerCase().endsWith(".xml")) {
+                    xmlFiles.add(file);
+                }
+            }
+        }
+    }
+
+    /**
+     * Adds dropped files to the batch list, filtering out duplicates.
+     *
+     * @param files the list of XML files to add
+     */
+    private void addDroppedFilesToBatch(List<File> files) {
+        int addedCount = 0;
+        int duplicateCount = 0;
+
+        for (File file : files) {
+            // Check for duplicates
+            boolean alreadyExists = batchFiles.stream()
+                    .anyMatch(bf -> bf.getXmlFile().getAbsolutePath().equals(file.getAbsolutePath()));
+
+            if (!alreadyExists) {
+                batchFiles.add(new BatchValidationFile(file));
+                addedCount++;
+            } else {
+                duplicateCount++;
+            }
+        }
+
+        updateBatchSummary();
+
+        if (duplicateCount > 0) {
+            logger.info("Added {} files to batch, skipped {} duplicates", addedCount, duplicateCount);
+        } else {
+            logger.info("Added {} files to batch", addedCount);
+        }
     }
 
     /**
