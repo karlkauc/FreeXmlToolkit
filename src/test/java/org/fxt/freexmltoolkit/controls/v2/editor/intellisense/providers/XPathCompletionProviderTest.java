@@ -361,8 +361,8 @@ class XPathCompletionProviderTest {
         }
 
         @Test
-        @DisplayName("Results should be limited to 50 items")
-        void results_limitedTo50() {
+        @DisplayName("Results should be limited to 200 items")
+        void results_limitedTo200() {
             XPathEditorContext context = new XPathEditorContext.Builder()
                     .contextType(XPathContextType.PATH_START)
                     .currentToken("")
@@ -370,7 +370,7 @@ class XPathCompletionProviderTest {
 
             List<CompletionItem> items = xpathProvider.getCompletions(context);
 
-            assertTrue(items.size() <= 50, "Should return at most 50 items");
+            assertTrue(items.size() <= 200, "Should return at most 200 items");
         }
     }
 

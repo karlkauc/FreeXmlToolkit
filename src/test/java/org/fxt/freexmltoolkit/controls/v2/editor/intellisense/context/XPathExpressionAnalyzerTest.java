@@ -310,12 +310,13 @@ class XPathExpressionAnalyzerTest {
     class EdgeCaseTests {
 
         @Test
-        @DisplayName("Null expression should return empty context")
-        void nullExpression_shouldReturnEmptyContext() {
+        @DisplayName("Null expression should return PATH_START context for initial completion")
+        void nullExpression_shouldReturnPathStartContext() {
             XPathEditorContext context = XPathExpressionAnalyzer.analyze(null, 0, false);
 
             assertNotNull(context);
-            assertEquals(XPathContextType.UNKNOWN, context.getContextType());
+            // Null/empty expression is treated as starting point for typing
+            assertEquals(XPathContextType.PATH_START, context.getContextType());
         }
 
         @Test

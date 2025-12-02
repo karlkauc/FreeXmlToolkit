@@ -2511,22 +2511,24 @@ public class XsdDocumentationService {
     private void setSourceCodeSnippets(XsdExtendedElement extendedElem, Node node, String typeName, Node typeDefinitionNode) {
         // Always set the element's own source code
         String elementSourceCode = nodeToString(node);
-        extendedElem.setSourceCode(elementSourceCode);
 
-        // If the option is disabled or there's no type reference, don't set referenced type code
+        // If the option is disabled or there's no type reference, set only element source code
         if (!includeTypeDefinitionsInSourceCode || typeName == null || typeName.isEmpty()) {
+            extendedElem.setSourceCode(elementSourceCode);
             return;
         }
 
         // Check if this is a built-in XSD type (xs:string, xs:int, etc.)
         if (typeName.startsWith("xs:") || typeName.startsWith("xsd:")) {
             logger.debug("Skipping built-in type definition for: {}", typeName);
+            extendedElem.setSourceCode(elementSourceCode);
             return;
         }
 
         // If we have an inline type definition, it's already included in the element source code
         if (typeDefinitionNode != null && typeDefinitionNode.getParentNode() == node) {
             logger.debug("Type definition is inline, already included in element source code");
+            extendedElem.setSourceCode(elementSourceCode);
             return;
         }
 
@@ -2537,15 +2539,24 @@ public class XsdDocumentationService {
             globalTypeNode = simpleTypeMap.get(cleanTypeName);
         }
 
-        // If we found a global type definition, set it separately
+        // If we found a global type definition, combine it with the element source code
         if (globalTypeNode != null) {
             String typeSourceCode = nodeToString(globalTypeNode);
-            logger.debug("Setting separate type definition for '{}' in source code", cleanTypeName);
+            logger.debug("Including type definition for '{}' in combined source code", cleanTypeName);
 
+            // Combine the element source code with the type definition using marker comments
+            String combinedSource = "<!-- Element Definition -->\n" +
+                    elementSourceCode +
+                    "\n\n" +
+                    "<!-- Referenced Type Definition: " + cleanTypeName + " -->\n" +
+                    typeSourceCode;
+
+            extendedElem.setSourceCode(combinedSource);
             extendedElem.setReferencedTypeCode(typeSourceCode);
             extendedElem.setReferencedTypeName(cleanTypeName);
         } else {
             logger.debug("No global type definition found for: {}", cleanTypeName);
+            extendedElem.setSourceCode(elementSourceCode);
         }
     }
 }

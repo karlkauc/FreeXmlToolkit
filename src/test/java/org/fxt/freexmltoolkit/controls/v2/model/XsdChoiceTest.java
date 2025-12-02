@@ -83,14 +83,15 @@ class XsdChoiceTest {
 
         assertEquals(2, copy.getChildren().size());
 
+        // Children should NOT get the suffix - only the root node being copied gets it
         XsdElement copiedElement1 = (XsdElement) copy.getChildren().get(0);
-        assertEquals("element1_copy", copiedElement1.getName());
+        assertEquals("element1", copiedElement1.getName(), "Child name should be copied without suffix");
         assertEquals("xs:string", copiedElement1.getType());
         assertNotEquals(element1.getId(), copiedElement1.getId());
         assertSame(copy, copiedElement1.getParent());
 
         XsdElement copiedElement2 = (XsdElement) copy.getChildren().get(1);
-        assertEquals("element2_copy", copiedElement2.getName());
+        assertEquals("element2", copiedElement2.getName(), "Child name should be copied without suffix");
         assertEquals("xs:int", copiedElement2.getType());
         assertNotEquals(element2.getId(), copiedElement2.getId());
         assertSame(copy, copiedElement2.getParent());
@@ -236,7 +237,8 @@ class XsdChoiceTest {
 
         assertEquals(1, copiedNested.getChildren().size());
         XsdElement copiedElement = (XsdElement) copiedNested.getChildren().get(0);
-        assertEquals("nestedElement_copy", copiedElement.getName());
+        // Children should NOT get the suffix - only the root node being copied gets it
+        assertEquals("nestedElement", copiedElement.getName(), "Child name should be copied without suffix");
         assertEquals("xs:string", copiedElement.getType());
     }
 
@@ -360,8 +362,9 @@ class XsdChoiceTest {
         assertInstanceOf(XsdElement.class, copy.getChildren().get(0));
         assertInstanceOf(XsdSequence.class, copy.getChildren().get(1));
 
+        // Children should NOT get the suffix - only the root node being copied gets it
         XsdElement copiedElement = (XsdElement) copy.getChildren().get(0);
-        assertEquals("stringElement_copy", copiedElement.getName());
+        assertEquals("stringElement", copiedElement.getName(), "Child name should be copied without suffix");
         assertEquals("xs:string", copiedElement.getType());
     }
 }

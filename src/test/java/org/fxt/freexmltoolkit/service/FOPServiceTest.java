@@ -643,13 +643,15 @@ class FOPServiceTest {
             <document><content>Test</content></document>
             """;
 
-        // XSL that references non-existent elements, causing runtime error
+        // XSL that uses xsl:message with terminate="yes" to force a transformation error
         String errorXslContent = """
             <?xml version="1.0" encoding="UTF-8"?>
             <xsl:stylesheet version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:fo="http://www.w3.org/1999/XSL/Format">
                 <xsl:template match="/">
+                    <!-- Force a termination error with xsl:message -->
+                    <xsl:message terminate="yes">Intentional transformation error for testing</xsl:message>
                     <fo:root>
                         <fo:layout-master-set>
                             <fo:simple-page-master master-name="A4"
@@ -659,8 +661,7 @@ class FOPServiceTest {
                         </fo:layout-master-set>
                         <fo:page-sequence master-reference="A4">
                             <fo:flow flow-name="xsl-region-body">
-                                <!-- This will cause error: invalid property value -->
-                                <fo:block font-size="invalid-size">
+                                <fo:block>
                                     <xsl:value-of select="document/content"/>
                                 </fo:block>
                             </fo:flow>
@@ -685,9 +686,8 @@ class FOPServiceTest {
         });
 
         assertNotNull(exception.getMessage(), "Exception should have a message");
-        assertTrue(exception.getMessage().contains("FOP processing error") ||
-                        exception.getMessage().contains("Failed to transform") ||
-                        exception.getMessage().contains("error"),
-                "Exception message should indicate an error: " + exception.getMessage());
+        assertTrue(exception.getMessage().contains("Failed to transform") ||
+                        exception.getMessage().contains("Intentional transformation error"),
+                "Exception message should indicate transformation error: " + exception.getMessage());
     }
 }

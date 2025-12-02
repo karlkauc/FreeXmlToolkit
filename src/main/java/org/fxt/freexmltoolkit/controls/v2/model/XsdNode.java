@@ -416,9 +416,10 @@ public abstract class XsdNode {
     /**
      * Helper method to copy base properties from this node to a target node.
      * Used by subclasses in their deepCopy() implementations.
+     * Note: Children are copied WITHOUT the suffix - suffix only applies to the root node being copied.
      *
      * @param target the target node to copy properties to
-     * @param suffix the suffix to propagate to children (can be null)
+     * @param suffix unused, kept for API compatibility
      */
     protected void copyBasicPropertiesTo(XsdNode target, String suffix) {
         target.setMinOccurs(this.minOccurs);
@@ -431,9 +432,9 @@ public abstract class XsdNode {
             target.addDocumentation(doc.deepCopy());
         }
 
-        // Recursively copy children with suffix propagation
+        // Recursively copy children WITHOUT suffix (suffix only applies to root node)
         for (XsdNode child : this.children) {
-            XsdNode copiedChild = child.deepCopy(suffix);
+            XsdNode copiedChild = child.deepCopy(null);
             target.addChild(copiedChild);
         }
     }

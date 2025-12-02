@@ -91,34 +91,42 @@ class CommandManagerTest {
 
     @Test
     void testMultipleUndoRedo() {
-        XmlElement element = new XmlElement("test");
+        // Use different elements to prevent command merging (canMergeWith returns true for same element)
+        XmlElement element1 = new XmlElement("test1");
+        XmlElement element2 = new XmlElement("test2");
+        XmlElement element3 = new XmlElement("test3");
 
-        manager.executeCommand(new RenameNodeCommand(element, "name1"));
-        manager.executeCommand(new RenameNodeCommand(element, "name2"));
-        manager.executeCommand(new RenameNodeCommand(element, "name3"));
+        manager.executeCommand(new RenameNodeCommand(element1, "name1"));
+        manager.executeCommand(new RenameNodeCommand(element2, "name2"));
+        manager.executeCommand(new RenameNodeCommand(element3, "name3"));
 
-        assertEquals("name3", element.getName());
+        assertEquals("name1", element1.getName());
+        assertEquals("name2", element2.getName());
+        assertEquals("name3", element3.getName());
         assertEquals(3, manager.getUndoStackSize());
 
         manager.undo();
-        assertEquals("name2", element.getName());
+        assertEquals("test3", element3.getName()); // Reverted to original
 
         manager.undo();
-        assertEquals("name1", element.getName());
+        assertEquals("test2", element2.getName()); // Reverted to original
 
         manager.redo();
-        assertEquals("name2", element.getName());
+        assertEquals("name2", element2.getName()); // Re-applied
 
         manager.redo();
-        assertEquals("name3", element.getName());
+        assertEquals("name3", element3.getName()); // Re-applied
     }
 
     @Test
     void testRedoStackClearedOnNewCommand() {
-        XmlElement element = new XmlElement("test");
+        // Use different elements to prevent command merging (canMergeWith returns true for same element)
+        XmlElement element1 = new XmlElement("test1");
+        XmlElement element2 = new XmlElement("test2");
+        XmlElement element3 = new XmlElement("test3");
 
-        manager.executeCommand(new RenameNodeCommand(element, "name1"));
-        manager.executeCommand(new RenameNodeCommand(element, "name2"));
+        manager.executeCommand(new RenameNodeCommand(element1, "name1"));
+        manager.executeCommand(new RenameNodeCommand(element2, "name2"));
         manager.undo();
         manager.undo();
 
@@ -126,7 +134,7 @@ class CommandManagerTest {
         assertEquals(2, manager.getRedoStackSize());
 
         // Execute new command - redo stack should be cleared
-        manager.executeCommand(new RenameNodeCommand(element, "name3"));
+        manager.executeCommand(new RenameNodeCommand(element3, "name3"));
 
         assertEquals(0, manager.getRedoStackSize());
         assertFalse(manager.canRedo());
@@ -135,10 +143,11 @@ class CommandManagerTest {
     @Test
     void testHistoryLimit() {
         CommandManager limitedManager = new CommandManager(5);
-        XmlElement element = new XmlElement("test");
 
-        // Add 10 commands
+        // Use different elements for each command to prevent merging
+        // (canMergeWith returns true for same element)
         for (int i = 0; i < 10; i++) {
+            XmlElement element = new XmlElement("test" + i);
             limitedManager.executeCommand(new RenameNodeCommand(element, "name" + i));
         }
 

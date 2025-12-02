@@ -113,11 +113,8 @@ class XmlIntelliSenseEngineTest {
             assertEquals("<element>content</element>", text);
 
             // Count closing tags - should only be one
-            long closingTagCount = text.chars()
-                    .boxed()
-                    .collect(java.util.stream.Collectors.toList())
-                    .toString()
-                    .split("</element>", -1).length - 1;
+            // Use simple split on original text (not chars conversion)
+            int closingTagCount = text.split("</element>", -1).length - 1;
 
             assertEquals(1, closingTagCount, "Should only have one closing tag");
         });
@@ -129,11 +126,12 @@ class XmlIntelliSenseEngineTest {
             // Start with clean element
             codeArea.replaceText("<UniqueDocumentID></UniqueDocumentID>");
 
-            // Position cursor between tags
-            int insertPos = codeArea.getText().indexOf("></");
+            // Position cursor between tags - indexOf("><") finds '>' position,
+            // so we need to insert at position + 1 (after the '>')
+            int insertPos = codeArea.getText().indexOf("><") + 1;
             codeArea.moveTo(insertPos);
 
-            // Insert content
+            // Insert content at the correct position (after '>' but before '</')
             codeArea.insertText(insertPos, "1");
 
             String result = codeArea.getText();

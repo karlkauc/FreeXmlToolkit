@@ -326,9 +326,34 @@ public class FuzzySearch {
      */
     private static int calculateAdvancedScore(String query, CompletionItem item, SearchOptions options) {
         int baseScore = calculateScore(query, item);
+        int descriptionScore = 0;
+        int dataTypeScore = 0;
 
+        // Search in description if enabled - check even if label doesn't match
+        if (options.searchInDescription && item.getDescription() != null) {
+            if (item.getDescription().toLowerCase().contains(query)) {
+                descriptionScore = 80; // Significant score for description match
+            }
+        }
+
+        // Search in data type if enabled - check even if label doesn't match
+        if (options.searchInDataType && item.getDataType() != null) {
+            if (item.getDataType().toLowerCase().contains(query)) {
+                dataTypeScore = 70; // Score for data type match
+            }
+        }
+
+        // If label doesn't match but description or dataType does, use those scores
         if (baseScore <= 0) {
-            return 0;
+            if (descriptionScore > 0 || dataTypeScore > 0) {
+                baseScore = Math.max(descriptionScore, dataTypeScore);
+            } else {
+                return 0;
+            }
+        } else {
+            // Add as bonus when label also matches
+            baseScore += (descriptionScore > 0 ? 30 : 0);
+            baseScore += (dataTypeScore > 0 ? 25 : 0);
         }
 
         // Bonus for required items
@@ -342,20 +367,6 @@ public class FuzzySearch {
         // Bonus for items with documentation
         if (item.getDescription() != null && !item.getDescription().isEmpty()) {
             baseScore += 20;
-        }
-
-        // Search in description if enabled
-        if (options.searchInDescription && item.getDescription() != null) {
-            if (item.getDescription().toLowerCase().contains(query)) {
-                baseScore += 30;
-            }
-        }
-
-        // Search in data type if enabled
-        if (options.searchInDataType && item.getDataType() != null) {
-            if (item.getDataType().toLowerCase().contains(query)) {
-                baseScore += 25;
-            }
         }
 
         return baseScore;
@@ -475,18 +486,19 @@ public class FuzzySearch {
         String lowerQuery = query.toLowerCase();
 
         int queryIndex = 0;
-        for (int i = 0; i < text.length() && queryIndex < query.length(); i++) {
-            if (lowerText.charAt(i) == lowerQuery.charAt(queryIndex)) {
-                result.append("<mark>").append(text.charAt(i)).append("</mark>");
+        int textIndex = 0;
+        for (; textIndex < text.length() && queryIndex < query.length(); textIndex++) {
+            if (lowerText.charAt(textIndex) == lowerQuery.charAt(queryIndex)) {
+                result.append("<mark>").append(text.charAt(textIndex)).append("</mark>");
                 queryIndex++;
             } else {
-                result.append(text.charAt(i));
+                result.append(text.charAt(textIndex));
             }
         }
 
-        // Append remaining characters
-        if (result.length() < text.length()) {
-            result.append(text.substring(result.length()));
+        // Append remaining characters from text that weren't processed
+        if (textIndex < text.length()) {
+            result.append(text.substring(textIndex));
         }
 
         return result.toString();

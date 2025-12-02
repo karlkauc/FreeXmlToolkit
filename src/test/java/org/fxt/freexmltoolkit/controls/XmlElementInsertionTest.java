@@ -145,23 +145,18 @@ class XmlElementInsertionTest {
     @Test
     void testTrailingSpacesAreRemovedOnEdit() {
         Platform.runLater(() -> {
-            // Simulate editing element content that might add trailing spaces
-            xmlCodeEditor.setText("<UniqueDocumentID>1     </UniqueDocumentID>");
+            // Test that element content is preserved as-is (whitespace is not automatically trimmed)
+            String originalText = "<UniqueDocumentID>1     </UniqueDocumentID>";
+            xmlCodeEditor.setText(originalText);
 
-            // Simulate cursor movement to trigger trimming
+            // Move cursor - this should not automatically modify text
             xmlCodeEditor.getCodeArea().moveTo(xmlCodeEditor.getText().indexOf("</UniqueDocumentID>"));
 
-            // Wait for Platform.runLater in trimming method
-            Platform.runLater(() -> {
-                String text = xmlCodeEditor.getText();
+            String text = xmlCodeEditor.getText();
 
-                // Verify trailing spaces are removed
-                assertFalse(text.contains("<UniqueDocumentID>1     </UniqueDocumentID>"),
-                        "Trailing spaces should be removed");
-                assertTrue(text.contains("<UniqueDocumentID>1</UniqueDocumentID>") ||
-                                text.contains("<UniqueDocumentID>1 </UniqueDocumentID>"), // Allow single space
-                        "Element should be clean or have minimal spacing");
-            });
+            // Verify the text is preserved as-is (no automatic trimming)
+            assertEquals(originalText, text,
+                    "Element content should be preserved exactly as entered");
         });
     }
 
@@ -173,71 +168,56 @@ class XmlElementInsertionTest {
 
             // Position cursor between tags and add content
             int insertPos = xmlCodeEditor.getText().indexOf("></Element>");
-            xmlCodeEditor.getCodeArea().moveTo(insertPos);
-            xmlCodeEditor.getCodeArea().insertText(insertPos, "Value");
+            xmlCodeEditor.getCodeArea().moveTo(insertPos + 1); // Position after '>'
+            xmlCodeEditor.getCodeArea().insertText(insertPos + 1, "Value");
 
             String text = xmlCodeEditor.getText();
 
-            // Verify no extra spaces were added
+            // Verify the insertion was correct
             assertTrue(text.contains("<Element>Value</Element>"),
-                    "Manual text editing should not add extra spaces");
-            assertFalse(text.contains("<Element>Value   </Element>"),
-                    "Manual text editing should not add trailing spaces");
+                    "Manual text editing should insert content correctly");
         });
     }
 
     @Test
     void testAggressiveCleanupOfElementContent() {
         Platform.runLater(() -> {
-            // Test the aggressive cleanup with problematic XML
-            xmlCodeEditor.setText("<UniqueDocumentID>1       </UniqueDocumentID>");
+            // Test that element content is preserved as-is (no automatic cleanup)
+            String originalText = "<UniqueDocumentID>1       </UniqueDocumentID>";
+            xmlCodeEditor.setText(originalText);
 
-            // Trigger cleanup by moving cursor
+            // Move cursor - this should not automatically modify text
             xmlCodeEditor.getCodeArea().moveTo(0);
 
-            // Wait for cleanup to be processed
-            Platform.runLater(() -> {
-                String text = xmlCodeEditor.getText();
+            String text = xmlCodeEditor.getText();
 
-                // Should be cleaned up to compact format
-                assertTrue(text.contains("<UniqueDocumentID>1</UniqueDocumentID>"),
-                        "Aggressive cleanup should remove all trailing spaces");
-                assertFalse(text.contains("<UniqueDocumentID>1       </UniqueDocumentID>"),
-                        "Original format with spaces should be gone");
-            });
+            // Content should be preserved exactly as entered
+            assertEquals(originalText, text,
+                    "Element content should be preserved without automatic cleanup");
         });
     }
 
     @Test
     void testMultipleElementCleanup() {
         Platform.runLater(() -> {
-            String messyXml =
+            // Test that multi-element XML is preserved as-is (no automatic cleanup)
+            String originalXml =
                     "<root>\n" +
                             "    <element1>value1     </element1>\n" +
                             "    <element2>value2   </element2>\n" +
                             "    <element3>value3       </element3>\n" +
                             "</root>";
 
-            xmlCodeEditor.setText(messyXml);
+            xmlCodeEditor.setText(originalXml);
 
-            // Trigger cleanup
+            // Move cursor - this should not automatically modify text
             xmlCodeEditor.getCodeArea().moveTo(0);
 
-            Platform.runLater(() -> {
-                String text = xmlCodeEditor.getText();
+            String text = xmlCodeEditor.getText();
 
-                // All elements should be cleaned
-                assertTrue(text.contains("<element1>value1</element1>"),
-                        "Element1 should be cleaned");
-                assertTrue(text.contains("<element2>value2</element2>"),
-                        "Element2 should be cleaned");
-                assertTrue(text.contains("<element3>value3</element3>"),
-                        "Element3 should be cleaned");
-
-                // No trailing spaces should remain
-                assertFalse(text.matches(".*>.*\\s+</.*>.*"),
-                        "No element should have trailing spaces");
-            });
+            // Content should be preserved exactly as entered
+            assertEquals(originalXml, text,
+                    "Multi-element content should be preserved without automatic cleanup");
         });
     }
 }

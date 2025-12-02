@@ -176,9 +176,10 @@ public class XPathCompletionProvider {
                 .comparingInt(CompletionItem::getRelevanceScore).reversed()
                 .thenComparing(CompletionItem::getLabel));
 
-        // Limit results
-        if (items.size() > 50) {
-            items = new ArrayList<>(items.subList(0, 50));
+        // Limit results - increased to 200 to ensure diverse types are included
+        // (elements, functions, axes, operators should all be represented)
+        if (items.size() > 200) {
+            items = new ArrayList<>(items.subList(0, 200));
         }
 
         logger.debug("Returning {} completions", items.size());

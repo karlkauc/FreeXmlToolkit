@@ -134,7 +134,8 @@ public class XsdAutoDownloadTest {
         Optional<String> schemaLocation = xmlService.getSchemaNameFromCurrentXMLFile();
 
         assertTrue(schemaLocation.isPresent(), "Schema location should be found");
-        assertTrue(schemaLocation.get().startsWith("file://"), "Should be a file URL for local schema");
+        // File.toURI().toString() returns "file:/path" on Unix/macOS, check for "file:" prefix
+        assertTrue(schemaLocation.get().startsWith("file:"), "Should be a file URL for local schema, got: " + schemaLocation.get());
         assertTrue(schemaLocation.get().contains("local-schema.xsd"), "Should reference the local schema file");
     }
 

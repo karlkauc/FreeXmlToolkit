@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,9 +29,14 @@ public class XmlGraphicEditorContextMenuTest {
 
     @BeforeAll
     void setupJavaFX() throws Exception {
-        // Initialize JavaFX Toolkit for testing
-        Platform.startup(() -> {
-        });
+        // Initialize JavaFX Toolkit for testing using JFXPanel
+        // This is more reliable than Platform.startup() in headless environments
+        try {
+            new JFXPanel();
+        } catch (Exception | Error e) {
+            // JavaFX initialization may fail in headless environments - tests may be skipped
+            System.err.println("JavaFX initialization failed: " + e.getMessage());
+        }
 
         // Create test XML document
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

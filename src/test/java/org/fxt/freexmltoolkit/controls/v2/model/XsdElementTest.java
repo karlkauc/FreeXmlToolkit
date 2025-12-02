@@ -451,7 +451,8 @@ class XsdElementTest {
 
         assertEquals(1, copy.getChildren().size());
         XsdElement copiedChild = (XsdElement) copy.getChildren().get(0);
-        assertEquals("child_copy", copiedChild.getName());
+        // Children should NOT get the suffix - only the root node being copied gets it
+        assertEquals("child", copiedChild.getName(), "Child name should be copied without suffix");
         assertEquals("xs:int", copiedChild.getType());
         assertNotEquals(child.getId(), copiedChild.getId());
         assertSame(copy, copiedChild.getParent());

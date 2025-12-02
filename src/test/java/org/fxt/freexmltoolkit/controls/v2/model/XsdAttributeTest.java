@@ -205,7 +205,8 @@ class XsdAttributeTest {
 
         assertEquals(1, copy.getChildren().size());
         XsdSimpleType copiedChild = (XsdSimpleType) copy.getChildren().get(0);
-        assertEquals("stringType_copy", copiedChild.getName());
+        // Children should NOT get the suffix - only the root node being copied gets it
+        assertEquals("stringType", copiedChild.getName(), "Child name should be copied without suffix");
         assertNotEquals(childType.getId(), copiedChild.getId());
         assertSame(copy, copiedChild.getParent());
     }

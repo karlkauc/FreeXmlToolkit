@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -351,7 +352,8 @@ class XmlDocumentElementExtractorTest {
             String xml2 = "<root><different/></root>";
 
             extractor.extractFromXml(xml1);
-            Set<String> elements1 = extractor.getAllElements();
+            // Make a defensive copy since getAllElements() returns an unmodifiable view
+            Set<String> elements1 = new HashSet<>(extractor.getAllElements());
 
             extractor.extractFromXml(xml2);
             Set<String> elements2 = extractor.getAllElements();

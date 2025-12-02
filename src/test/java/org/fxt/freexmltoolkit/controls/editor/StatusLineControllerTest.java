@@ -29,6 +29,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -50,12 +53,18 @@ class StatusLineControllerTest {
     }
 
     @BeforeEach
-    void setUp() {
-        // Reset to initial state
+    void setUp() throws InterruptedException {
+        // Reset to initial state and wait for completion to avoid race conditions
+        CountDownLatch latch = new CountDownLatch(1);
         Platform.runLater(() -> {
-            codeArea.replaceText("");
-            statusLineController.resetToDefaults();
+            try {
+                codeArea.replaceText("");
+                statusLineController.resetToDefaults();
+            } finally {
+                latch.countDown();
+            }
         });
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "setUp should complete within timeout");
     }
 
     @Test

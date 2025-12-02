@@ -84,14 +84,15 @@ class XsdAllTest {
 
         assertEquals(2, copy.getChildren().size());
 
+        // Children should NOT get the suffix - only the root node being copied gets it
         XsdElement copiedElement1 = (XsdElement) copy.getChildren().get(0);
-        assertEquals("element1_copy", copiedElement1.getName());
+        assertEquals("element1", copiedElement1.getName(), "Child name should be copied without suffix");
         assertEquals("xs:string", copiedElement1.getType());
         assertNotEquals(element1.getId(), copiedElement1.getId());
         assertSame(copy, copiedElement1.getParent());
 
         XsdElement copiedElement2 = (XsdElement) copy.getChildren().get(1);
-        assertEquals("element2_copy", copiedElement2.getName());
+        assertEquals("element2", copiedElement2.getName(), "Child name should be copied without suffix");
         assertEquals("xs:int", copiedElement2.getType());
         assertNotEquals(element2.getId(), copiedElement2.getId());
         assertSame(copy, copiedElement2.getParent());
@@ -335,14 +336,15 @@ class XsdAllTest {
         assertEquals(2, copy.getChildren().size());
         assertEquals("Complex all compositor", copy.getDocumentation());
 
+        // Children should NOT get the suffix - only the root node being copied gets it
         XsdElement copiedElement1 = (XsdElement) copy.getChildren().get(0);
-        assertEquals("element1_copy", copiedElement1.getName());
+        assertEquals("element1", copiedElement1.getName(), "Child name should be copied without suffix");
         assertEquals("xs:string", copiedElement1.getType());
         assertEquals(0, copiedElement1.getMinOccurs());
         assertEquals(1, copiedElement1.getMaxOccurs());
 
         XsdElement copiedElement2 = (XsdElement) copy.getChildren().get(1);
-        assertEquals("element2_copy", copiedElement2.getName());
+        assertEquals("element2", copiedElement2.getName(), "Child name should be copied without suffix");
         assertEquals("xs:int", copiedElement2.getType());
         assertEquals(1, copiedElement2.getMinOccurs());
         assertEquals(1, copiedElement2.getMaxOccurs());

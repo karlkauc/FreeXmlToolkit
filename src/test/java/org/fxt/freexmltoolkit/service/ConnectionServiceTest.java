@@ -288,16 +288,16 @@ class ConnectionServiceTest {
         assertNotNull(result.resultHeader(), "Headers should not be null");
         assertTrue(result.resultHeader().length > 0, "Should have headers");
 
-        // Check for custom header
+        // Check for custom header (case-insensitive since HTTP headers are case-insensitive)
         boolean foundCustomHeader = false;
         for (String header : result.resultHeader()) {
-            if (header.contains("X-Custom-Header")) {
+            if (header.toLowerCase().contains("x-custom-header")) {
                 foundCustomHeader = true;
-                assertTrue(header.contains("test-value"), "Custom header should have expected value");
+                assertTrue(header.toLowerCase().contains("test-value"), "Custom header should have expected value");
                 break;
             }
         }
-        assertTrue(foundCustomHeader, "Should find custom header");
+        assertTrue(foundCustomHeader, "Should find custom header, headers: " + String.join(", ", result.resultHeader()));
     }
 
     @Test

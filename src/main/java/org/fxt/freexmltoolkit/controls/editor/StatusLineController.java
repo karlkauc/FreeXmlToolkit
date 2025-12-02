@@ -194,10 +194,8 @@ public class StatusLineController {
      * Updates the indentation label to show the current configured indent spaces.
      */
     private void updateIndentationLabel() {
-        int indentSpaces = propertiesService.getXmlIndentSpaces();
-        currentIndentationSize = indentSpaces;
         String indentType = useSpaces ? "spaces" : "tabs";
-        indentationLabel.setText("↹ " + indentSpaces + " " + indentType);
+        indentationLabel.setText("↹ " + currentIndentationSize + " " + indentType);
     }
 
     /**

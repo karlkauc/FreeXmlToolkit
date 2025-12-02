@@ -542,7 +542,7 @@ public class XmlElement extends XmlNode {
 
     @Override
     public String toString() {
-        return "XmlElement[name=" + getQualifiedName() + ", children=" + children.size() + ", attributes=" + attributes.size() + "]";
+        return "XmlElement[id=" + getId() + ", name=" + getQualifiedName() + ", children=" + children.size() + ", attributes=" + attributes.size() + "]";
     }
 
     // ==================== Utility ====================

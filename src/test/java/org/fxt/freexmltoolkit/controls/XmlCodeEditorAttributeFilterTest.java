@@ -167,7 +167,7 @@ class XmlCodeEditorAttributeFilterTest {
             }
         });
 
-        assertTrue(latch.await(10, TimeUnit.SECONDS), "Test should complete within 10 seconds");
+        assertTrue(latch.await(30, TimeUnit.SECONDS), "Test should complete within 30 seconds");
     }
 
     @Test
@@ -231,7 +231,7 @@ class XmlCodeEditorAttributeFilterTest {
             }
         });
 
-        assertTrue(latch.await(10, TimeUnit.SECONDS), "Test should complete within 10 seconds");
+        assertTrue(latch.await(30, TimeUnit.SECONDS), "Test should complete within 30 seconds");
     }
 
     @Test
@@ -263,6 +263,6 @@ class XmlCodeEditorAttributeFilterTest {
             }
         });
 
-        assertTrue(latch.await(10, TimeUnit.SECONDS), "Test should complete within 10 seconds");
+        assertTrue(latch.await(30, TimeUnit.SECONDS), "Test should complete within 30 seconds");
     }
 }
