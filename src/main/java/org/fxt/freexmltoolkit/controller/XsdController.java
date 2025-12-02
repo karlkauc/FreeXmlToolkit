@@ -157,6 +157,10 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private StackPane typeLibraryStackPane;
 
+    // Lazy initialization flag for TypeLibraryView (performance optimization)
+    private boolean typeLibraryInitialized = false;
+    private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema pendingTypeLibrarySchema = null;
+
     // --- Toolbar buttons ---
     @FXML
     private Button toolbarNewFile;
@@ -3401,13 +3405,27 @@ public class XsdController implements FavoritesParentController {
      * Initialize the type library panel
      */
     private void initializeTypeLibrary() {
-        // Set up type library tab selection handler
+        // Set up type library tab selection handler with lazy initialization
         if (typeLibraryTab != null) {
             typeLibraryTab.setOnSelectionChanged(event -> {
                 if (typeLibraryTab.isSelected()) {
                     logger.debug("Type library tab selected");
-                    // Type library is now automatically populated via TypeEditorTabManager
-                    // when a schema is loaded via updateTypeEditorWithSchema()
+                    // Lazy initialization: Only create TypeLibraryView when tab is first selected
+                    if (!typeLibraryInitialized && pendingTypeLibrarySchema != null) {
+                        logger.debug("Lazy initializing TypeLibraryView on first tab selection");
+                        long startTime = System.currentTimeMillis();
+                        Platform.runLater(() -> {
+                            if (typeLibraryStackPane != null) {
+                                typeLibraryStackPane.getChildren().clear();
+                                org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
+                                    new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(pendingTypeLibrarySchema);
+                                typeLibraryStackPane.getChildren().add(typeLibraryView);
+                                typeLibraryInitialized = true;
+                                long elapsed = System.currentTimeMillis() - startTime;
+                                logger.info("TypeLibraryView lazily initialized in {}ms", elapsed);
+                            }
+                        });
+                    }
                 }
             });
         }
@@ -3608,16 +3626,11 @@ public class XsdController implements FavoritesParentController {
                 logger.warn("Type Editor StackPane is not initialized (FXML injection failed?)");
             }
 
-            // Initialize Type Library View (shows all types with usage info)
-            if (typeLibraryStackPane != null) {
-                typeLibraryStackPane.getChildren().clear();
-                org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
-                    new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(schema);
-                typeLibraryStackPane.getChildren().add(typeLibraryView);
-                logger.info("Type Library tab initialized with TypeLibraryView");
-            } else {
-                logger.warn("Type Library StackPane is not initialized");
-            }
+            // Store schema for lazy Type Library View initialization (performance optimization)
+            // TypeLibraryView will be created when user first clicks the Type Library tab
+            pendingTypeLibrarySchema = schema;
+            typeLibraryInitialized = false;
+            logger.debug("Type Library deferred - will initialize on first tab selection");
 
         } catch (Exception e) {
             logger.error("Error initializing Type Editor", e);
@@ -3642,14 +3655,14 @@ public class XsdController implements FavoritesParentController {
                 typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
                 logger.info("Type Editor updated with loaded schema: {}", schema.getTargetNamespace());
 
-                // Update Type Library View with new schema
+                // Update pending schema for lazy Type Library View initialization
+                // Reset flag so TypeLibraryView will be recreated on next tab selection
+                pendingTypeLibrarySchema = schema;
+                typeLibraryInitialized = false;
                 if (typeLibraryStackPane != null) {
                     typeLibraryStackPane.getChildren().clear();
-                    org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
-                        new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(schema);
-                    typeLibraryStackPane.getChildren().add(typeLibraryView);
-                    logger.info("Type Library view updated with new schema");
                 }
+                logger.debug("Type Library reset - will reinitialize on next tab selection");
 
             } catch (Exception e) {
                 logger.error("Error updating Type Editor with schema", e);
