@@ -386,6 +386,9 @@ public class XsdController implements FavoritesParentController {
         // Initialize type editor
         initializeTypeEditor();
 
+        // Initialize type library (lazy loading on tab selection)
+        initializeTypeLibrary();
+
         xsdTab.setOnSelectionChanged(event -> {
             if (xsdTab.isSelected()) {
                 if (xmlService.getCurrentXsdFile() == null) {
