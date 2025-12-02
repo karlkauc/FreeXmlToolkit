@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.model;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +36,9 @@ public abstract class XsdNode {
     private String documentation;
     private final List<XsdDocumentation> documentations = new ArrayList<>();
     private XsdAppInfo appinfo;
+
+    // Source tracking for multi-file XSD support
+    private IncludeSourceInfo sourceInfo;
 
     /**
      * Creates a new XSD node with a unique ID.
@@ -353,6 +357,45 @@ public abstract class XsdNode {
     }
 
     /**
+     * Gets the source information for multi-file XSD support.
+     * This tracks which file this node belongs to in schemas using xs:include.
+     *
+     * @return the source info, or null if not set
+     */
+    public IncludeSourceInfo getSourceInfo() {
+        return sourceInfo;
+    }
+
+    /**
+     * Sets the source information for multi-file XSD support.
+     *
+     * @param sourceInfo the source info indicating which file this node belongs to
+     */
+    public void setSourceInfo(IncludeSourceInfo sourceInfo) {
+        IncludeSourceInfo oldValue = this.sourceInfo;
+        this.sourceInfo = sourceInfo;
+        pcs.firePropertyChange("sourceInfo", oldValue, sourceInfo);
+    }
+
+    /**
+     * Checks if this node is from an included file (not the main schema).
+     *
+     * @return true if this node came from an xs:include, false if from main schema or unknown
+     */
+    public boolean isFromInclude() {
+        return sourceInfo != null && sourceInfo.isFromInclude();
+    }
+
+    /**
+     * Gets the source file path for this node.
+     *
+     * @return the source file path, or null if not set
+     */
+    public Path getSourceFile() {
+        return sourceInfo != null ? sourceInfo.getSourceFile() : null;
+    }
+
+    /**
      * Adds a property change listener.
      *
      * @param listener the listener to add
@@ -426,6 +469,9 @@ public abstract class XsdNode {
         target.setMaxOccurs(this.maxOccurs);
         target.setDocumentation(this.documentation);
         target.setAppinfo(this.appinfo);
+
+        // Copy source info (immutable, so direct reference is fine)
+        target.setSourceInfo(this.sourceInfo);
 
         // Copy documentation entries (deep copy)
         for (XsdDocumentation doc : this.documentations) {

@@ -1154,8 +1154,10 @@ public class XsdController implements FavoritesParentController {
                 factoryRef[0] = factory;  // Store factory reference
 
                 updateMessage("Processing schema elements...");
-                java.nio.file.Path baseDir = currentXsdFile != null ? currentXsdFile.toPath().getParent() : null;
-                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = factory.fromString(xsdContent, baseDir);
+                java.nio.file.Path mainSchemaFile = currentXsdFile != null ? currentXsdFile.toPath() : null;
+                java.nio.file.Path baseDir = mainSchemaFile != null ? mainSchemaFile.getParent() : null;
+                // Use fromStringWithSchemaFile to enable include tracking for nodes from included files
+                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = factory.fromStringWithSchemaFile(xsdContent, mainSchemaFile, baseDir);
 
                 updateMessage("Creating graphical representation...");
                 return schema;

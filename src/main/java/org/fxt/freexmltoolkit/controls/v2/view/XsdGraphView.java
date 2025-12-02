@@ -13,6 +13,7 @@ import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.MoveNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.PasteNodeCommand;
@@ -66,6 +67,11 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private static final double ZOOM_MAX = 5.0;
     private static final double ZOOM_STEP = 0.1;
     private Label zoomLabel;
+
+    // Include grouping mode
+    private IncludeGroupingMode includeGroupingMode = IncludeGroupingMode.FLAT;
+    private ComboBox<IncludeGroupingMode> includeGroupingModeComboBox;
+    private Label currentSourceFileLabel;
 
     // Drag & Drop state
     private boolean isDragging = false;
@@ -141,6 +147,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             } else {
                 selectedNode = null;
             }
+            // Update source file indicator
+            updateSourceFileIndicator();
             // Redraw to show selection changes
             redraw();
         });
@@ -252,6 +260,30 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         zoomLabel = new Label("100%");
         zoomLabel.setStyle("-fx-padding: 5; -fx-font-weight: bold;");
 
+        // Include grouping mode selector
+        Separator separator3 = new Separator();
+        separator3.setOrientation(javafx.geometry.Orientation.VERTICAL);
+
+        Label includeLabel = new Label("Include View:");
+        includeLabel.setStyle("-fx-padding: 5;");
+
+        includeGroupingModeComboBox = new ComboBox<>();
+        includeGroupingModeComboBox.getItems().addAll(IncludeGroupingMode.values());
+        includeGroupingModeComboBox.setValue(includeGroupingMode);
+        includeGroupingModeComboBox.setTooltip(new Tooltip("Select how nodes from xs:include files are displayed"));
+        includeGroupingModeComboBox.setOnAction(e -> {
+            includeGroupingMode = includeGroupingModeComboBox.getValue();
+            logger.debug("Include grouping mode changed to: {}", includeGroupingMode);
+            // Rebuild visual tree to apply new grouping mode
+            rebuildVisualTree();
+            redraw();
+        });
+
+        // Source file indicator (shows current source file of selected node)
+        currentSourceFileLabel = new Label("");
+        currentSourceFileLabel.setStyle("-fx-padding: 5; -fx-text-fill: #0369a1; -fx-font-style: italic;");
+        currentSourceFileLabel.setVisible(false);
+
         Label infoLabel = new Label("XSD Editor V2 (Beta) - Graphical View");
         infoLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-style: italic;");
 
@@ -264,6 +296,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 propertiesToggle,
                 separator2,
                 zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel,
+                separator3,
+                includeLabel, includeGroupingModeComboBox, currentSourceFileLabel,
                 spacer, infoLabel
         );
 
@@ -1622,6 +1656,76 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             contextMenuFactory.setOpenSimpleTypeEditorCallback(callback);
         } else {
             logger.warn("setOpenSimpleTypeEditorCallback: contextMenuFactory is null, callback stored for later");
+        }
+    }
+
+    /**
+     * Updates the source file indicator label in the toolbar based on the currently selected node.
+     * Shows the source file name if the node is from an included file.
+     */
+    private void updateSourceFileIndicator() {
+        if (currentSourceFileLabel == null) {
+            return;
+        }
+
+        VisualNode primarySelection = selectionModel.getPrimarySelection();
+        if (primarySelection == null) {
+            currentSourceFileLabel.setVisible(false);
+            currentSourceFileLabel.setText("");
+            return;
+        }
+
+        Object modelObject = primarySelection.getModelObject();
+        logger.debug("updateSourceFileIndicator: modelObject={}, class={}",
+                modelObject, modelObject != null ? modelObject.getClass().getSimpleName() : "null");
+
+        if (modelObject instanceof XsdNode xsdNode) {
+            IncludeSourceInfo sourceInfo = xsdNode.getSourceInfo();
+            logger.debug("updateSourceFileIndicator: sourceInfo={}, isFromInclude={}",
+                    sourceInfo, sourceInfo != null ? sourceInfo.isFromInclude() : "null");
+
+            if (sourceInfo != null && sourceInfo.isFromInclude()) {
+                String fileName = sourceInfo.getFileName();
+                currentSourceFileLabel.setText("From: " + fileName);
+                currentSourceFileLabel.setVisible(true);
+                currentSourceFileLabel.setTooltip(new Tooltip(
+                        "This element is defined in: " + sourceInfo.getSchemaLocation()));
+                logger.info("Node '{}' is from included file: {}", xsdNode.getName(), fileName);
+            } else {
+                currentSourceFileLabel.setText("");
+                currentSourceFileLabel.setVisible(false);
+                logger.debug("Node '{}' is from main schema (sourceInfo={})",
+                        xsdNode.getName(), sourceInfo);
+            }
+        } else {
+            currentSourceFileLabel.setText("");
+            currentSourceFileLabel.setVisible(false);
+        }
+    }
+
+    /**
+     * Gets the current include grouping mode.
+     *
+     * @return the current include grouping mode
+     */
+    public IncludeGroupingMode getIncludeGroupingMode() {
+        return includeGroupingMode;
+    }
+
+    /**
+     * Sets the include grouping mode and updates the UI.
+     *
+     * @param mode the new include grouping mode
+     */
+    public void setIncludeGroupingMode(IncludeGroupingMode mode) {
+        if (mode != null && mode != this.includeGroupingMode) {
+            this.includeGroupingMode = mode;
+            if (includeGroupingModeComboBox != null) {
+                includeGroupingModeComboBox.setValue(mode);
+            }
+            rebuildVisualTree();
+            redraw();
+            logger.info("Include grouping mode set to: {}", mode);
         }
     }
 }

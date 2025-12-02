@@ -240,6 +240,28 @@ public class XsdNodeRenderer {
             gc.strokeLine(pencilX - 2, pencilY + 2, pencilX + 2, pencilY - 2);
         }
 
+        // Draw include file indicator (small colored badge in bottom-left corner)
+        if (node.isFromInclude()) {
+            double badgeSize = 10;
+            double badgeX = x + 4;
+            double badgeY = y + height - badgeSize - 4;
+
+            // Draw badge background (cyan/teal color for include indicator)
+            gc.setFill(Color.rgb(14, 165, 233));  // sky-500 color
+            gc.fillRoundRect(badgeX, badgeY, badgeSize, badgeSize, 3, 3);
+
+            // Draw "I" symbol for include
+            gc.setFill(Color.WHITE);
+            gc.setFont(Font.font("Segoe UI", javafx.scene.text.FontWeight.BOLD, 7));
+            gc.setTextAlign(TextAlignment.CENTER);
+            gc.setTextBaseline(VPos.CENTER);
+            gc.fillText("I", badgeX + badgeSize / 2, badgeY + badgeSize / 2);
+
+            // Reset text alignment
+            gc.setTextAlign(TextAlignment.LEFT);
+            gc.setTextBaseline(VPos.TOP);
+        }
+
         // Draw expand/collapse button if node has children
         if (node.hasChildren()) {
             drawExpandButton(gc, node, x, y, width, height);
@@ -1001,6 +1023,37 @@ public class XsdNodeRenderer {
          */
         public void setOnModelChangeCallback(Runnable callback) {
             this.onModelChangeCallback = callback;
+        }
+
+        /**
+         * Checks if this node is from an included file.
+         * Uses the sourceInfo from the underlying XsdNode model.
+         *
+         * @return true if the node is from an included file, false otherwise
+         * @since 2.0
+         */
+        public boolean isFromInclude() {
+            if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+                var sourceInfo = xsdNode.getSourceInfo();
+                return sourceInfo != null && sourceInfo.isFromInclude();
+            }
+            return false;
+        }
+
+        /**
+         * Gets the source file name if available.
+         *
+         * @return the source file name, or null if not from an include
+         * @since 2.0
+         */
+        public String getSourceFileName() {
+            if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+                var sourceInfo = xsdNode.getSourceInfo();
+                if (sourceInfo != null) {
+                    return sourceInfo.getFileName();
+                }
+            }
+            return null;
         }
     }
 }

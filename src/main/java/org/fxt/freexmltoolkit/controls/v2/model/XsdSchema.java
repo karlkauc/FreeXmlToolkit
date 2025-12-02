@@ -1,9 +1,14 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents an XSD schema (xs:schema) - the root element.
@@ -19,6 +24,12 @@ public class XsdSchema extends XsdNode {
     private final Map<String, String> namespaces = new HashMap<>();
     private final Map<String, String> additionalAttributes = new HashMap<>();
     private final List<String> leadingComments = new ArrayList<>();
+
+    // Multi-file support properties
+    private Path mainSchemaPath;
+    private final Map<String, List<XsdNode>> nodesByInclude = new LinkedHashMap<>();
+    private final Map<String, XsdInclude> includeMap = new HashMap<>();
+    private final Set<Path> allIncludedFiles = new HashSet<>();
 
     /**
      * Creates a new XSD schema.
@@ -194,6 +205,142 @@ public class XsdSchema extends XsdNode {
         pcs.firePropertyChange("namespaces", null, new HashMap<>(namespaces));
     }
 
+    // ========== Multi-File Support Methods ==========
+
+    /**
+     * Gets the main schema file path.
+     *
+     * @return the main schema file path, or null if not set
+     */
+    public Path getMainSchemaPath() {
+        return mainSchemaPath;
+    }
+
+    /**
+     * Sets the main schema file path.
+     *
+     * @param mainSchemaPath the absolute path to the main schema file
+     */
+    public void setMainSchemaPath(Path mainSchemaPath) {
+        Path oldValue = this.mainSchemaPath;
+        this.mainSchemaPath = mainSchemaPath;
+        pcs.firePropertyChange("mainSchemaPath", oldValue, mainSchemaPath);
+    }
+
+    /**
+     * Registers a node as belonging to a specific include file.
+     *
+     * @param node    the node to register
+     * @param include the XsdInclude that brought this node in
+     */
+    public void registerNodeForInclude(XsdNode node, XsdInclude include) {
+        if (include == null || node == null) return;
+
+        String location = include.getSchemaLocation();
+        if (location == null) return;
+
+        nodesByInclude.computeIfAbsent(location, k -> new ArrayList<>()).add(node);
+        includeMap.put(location, include);
+
+        if (include.getResolvedPath() != null) {
+            allIncludedFiles.add(include.getResolvedPath());
+        }
+    }
+
+    /**
+     * Gets all nodes that came from a specific include file.
+     *
+     * @param schemaLocation the schemaLocation attribute of the include
+     * @return list of nodes from that include (never null)
+     */
+    public List<XsdNode> getNodesFromInclude(String schemaLocation) {
+        return nodesByInclude.getOrDefault(schemaLocation, Collections.emptyList());
+    }
+
+    /**
+     * Gets the XsdInclude node for a given schema location.
+     *
+     * @param schemaLocation the schemaLocation attribute
+     * @return the XsdInclude node, or null if not found
+     */
+    public XsdInclude getIncludeByLocation(String schemaLocation) {
+        return includeMap.get(schemaLocation);
+    }
+
+    /**
+     * Gets all include schema locations registered in this schema.
+     *
+     * @return unmodifiable set of schema locations
+     */
+    public Set<String> getIncludeLocations() {
+        return Collections.unmodifiableSet(nodesByInclude.keySet());
+    }
+
+    /**
+     * Gets all XsdInclude nodes in this schema.
+     *
+     * @return unmodifiable collection of XsdInclude nodes
+     */
+    public java.util.Collection<XsdInclude> getAllIncludes() {
+        return Collections.unmodifiableCollection(includeMap.values());
+    }
+
+    /**
+     * Gets all files involved in this schema (main + all includes).
+     *
+     * @return set of all file paths
+     */
+    public Set<Path> getAllInvolvedFiles() {
+        Set<Path> files = new HashSet<>(allIncludedFiles);
+        if (mainSchemaPath != null) {
+            files.add(mainSchemaPath);
+        }
+        return files;
+    }
+
+    /**
+     * Checks if this schema has any includes.
+     *
+     * @return true if at least one xs:include is present
+     */
+    public boolean hasIncludes() {
+        return !includeMap.isEmpty();
+    }
+
+    /**
+     * Groups all direct child nodes by their source file.
+     *
+     * @return map of file path to list of nodes from that file
+     */
+    public Map<Path, List<XsdNode>> groupChildrenBySourceFile() {
+        Map<Path, List<XsdNode>> result = new LinkedHashMap<>();
+
+        // Ensure main schema is first
+        if (mainSchemaPath != null) {
+            result.put(mainSchemaPath, new ArrayList<>());
+        }
+
+        for (XsdNode child : getChildren()) {
+            Path sourceFile = child.getSourceFile();
+            if (sourceFile == null) {
+                sourceFile = mainSchemaPath;
+            }
+            result.computeIfAbsent(sourceFile, k -> new ArrayList<>()).add(child);
+        }
+
+        return result;
+    }
+
+    /**
+     * Clears all include tracking data.
+     * Call this when reloading the schema.
+     */
+    public void clearIncludeTracking() {
+        nodesByInclude.clear();
+        includeMap.clear();
+        allIncludedFiles.clear();
+    }
+
     @Override
     public XsdNodeType getNodeType() {
         return XsdNodeType.SCHEMA;
@@ -273,6 +420,11 @@ public class XsdSchema extends XsdNode {
         for (String comment : this.leadingComments) {
             copy.addLeadingComment(comment);
         }
+
+        // Copy multi-file support properties
+        // Note: nodesByInclude and includeMap are NOT copied as they are runtime data
+        // that gets populated during parsing. mainSchemaPath is copied.
+        copy.mainSchemaPath = this.mainSchemaPath;
 
         // Copy base properties and children (propagate suffix to children)
         copyBasicPropertiesTo(copy, suffix);

@@ -29,6 +29,10 @@ import java.util.Set;
  * <p>This factory creates the new XsdNode-based object hierarchy (XsdSchema, XsdElement, etc.)
  * which supports PropertyChangeSupport and unified parent-child relationships.</p>
  *
+ * <p>Multi-file support: When parsing XSD schemas with xs:include statements, this factory
+ * tracks which file each node comes from using {@link IncludeTracker} and {@link IncludeSourceInfo}.
+ * This enables the serializer to write changes back to the correct source files.</p>
+ *
  * @since 2.0
  */
 public class XsdNodeFactory {
@@ -44,6 +48,18 @@ public class XsdNodeFactory {
     private final Set<String> processedImports = new HashSet<>(); // Track processed import URLs to prevent duplicates
     private final java.util.Map<String, XsdSchema> importedSchemas = new java.util.HashMap<>(); // Cache for imported schemas
     private Path currentSchemaFile;
+
+    /**
+     * Tracks the include hierarchy and assigns source info to parsed nodes.
+     * Initialized when loading from a file path.
+     */
+    private IncludeTracker includeTracker;
+
+    /**
+     * Flag to control whether include structure is preserved for multi-file serialization.
+     * When true (default), nodes are tagged with their source file information.
+     */
+    private boolean preserveIncludeStructure = true;
 
     /**
      * Creates an XSD model from a file.
@@ -68,11 +84,40 @@ public class XsdNodeFactory {
         String content = Files.readString(absoluteFile);
         Path previousRoot = currentSchemaFile;
         currentSchemaFile = absoluteFile;
+
+        // Initialize include tracker for multi-file support
+        if (preserveIncludeStructure) {
+            includeTracker = new IncludeTracker(absoluteFile);
+        }
+
         try {
-            return fromString(content, absoluteFile.getParent());
+            XsdSchema schema = fromString(content, absoluteFile.getParent());
+
+            // Set the main schema path for multi-file tracking
+            schema.setMainSchemaPath(absoluteFile);
+
+            return schema;
         } finally {
             currentSchemaFile = previousRoot;
         }
+    }
+
+    /**
+     * Sets whether include structure should be preserved for multi-file serialization.
+     *
+     * @param preserveIncludeStructure true to track source files, false to flatten
+     */
+    public void setPreserveIncludeStructure(boolean preserveIncludeStructure) {
+        this.preserveIncludeStructure = preserveIncludeStructure;
+    }
+
+    /**
+     * Checks if include structure preservation is enabled.
+     *
+     * @return true if source tracking is enabled
+     */
+    public boolean isPreserveIncludeStructure() {
+        return preserveIncludeStructure;
     }
 
     /**
@@ -95,6 +140,28 @@ public class XsdNodeFactory {
      * @throws Exception if parsing fails
      */
     public XsdSchema fromString(String xsdContent, Path baseDirectory) throws Exception {
+        return fromStringWithSchemaFile(xsdContent, null, baseDirectory);
+    }
+
+    /**
+     * Creates an XSD model from a string with support for multi-file include tracking.
+     * <p>
+     * This method is useful when the XSD content comes from an edited text area but we still
+     * know the original file path. It enables proper source tracking for nodes from xs:include files.
+     *
+     * @param xsdContent      the XSD content as string
+     * @param mainSchemaFile  the path to the main schema file (for include tracking, can be null)
+     * @param baseDirectory   optional base directory used to resolve xs:include locations (can be null)
+     * @return the parsed XSD schema model
+     * @throws Exception if parsing fails
+     */
+    public XsdSchema fromStringWithSchemaFile(String xsdContent, Path mainSchemaFile, Path baseDirectory) throws Exception {
+        // Initialize include tracker if we have a main schema file and tracking is enabled
+        if (mainSchemaFile != null && preserveIncludeStructure) {
+            currentSchemaFile = mainSchemaFile.toAbsolutePath().normalize();
+            includeTracker = new IncludeTracker(currentSchemaFile);
+            logger.debug("Include tracking enabled for schema: {}", currentSchemaFile);
+        }
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -129,6 +196,11 @@ public class XsdNodeFactory {
 
         // Process imports after the schema is fully parsed
         processImports(schema);
+
+        // Set main schema path if we have include tracking
+        if (currentSchemaFile != null) {
+            schema.setMainSchemaPath(currentSchemaFile);
+        }
 
         return schema;
     }
@@ -182,6 +254,7 @@ public class XsdNodeFactory {
 
     /**
      * Parses child nodes of a schema (or included schema) and attaches them to the provided parent schema.
+     * When include tracking is enabled, each node is tagged with its source file information.
      */
     private void parseSchemaChildren(Element schemaElement, XsdSchema schema, Path baseDirectory,
                                      DocumentBuilderFactory factory) {
@@ -192,6 +265,7 @@ public class XsdNodeFactory {
             // Handle comment nodes
             if (child.getNodeType() == Node.COMMENT_NODE) {
                 XsdComment comment = new XsdComment(child.getNodeValue());
+                tagNodeWithSourceInfo(comment);
                 schema.addChild(comment);
                 continue;
             }
@@ -204,44 +278,76 @@ public class XsdNodeFactory {
 
             if (isXsdElement(childElement, "element")) {
                 XsdElement element = parseElement(childElement);
+                tagNodeWithSourceInfo(element);
                 schema.addChild(element);
             } else if (isXsdElement(childElement, "complexType")) {
                 XsdComplexType complexType = parseComplexType(childElement);
+                tagNodeWithSourceInfo(complexType);
                 schema.addChild(complexType);
             } else if (isXsdElement(childElement, "simpleType")) {
                 XsdSimpleType simpleType = parseSimpleType(childElement);
+                tagNodeWithSourceInfo(simpleType);
                 schema.addChild(simpleType);
             } else if (isXsdElement(childElement, "group")) {
                 XsdGroup group = parseGroup(childElement);
+                tagNodeWithSourceInfo(group);
                 schema.addChild(group);
             } else if (isXsdElement(childElement, "attributeGroup")) {
                 XsdAttributeGroup attributeGroup = parseAttributeGroup(childElement);
+                tagNodeWithSourceInfo(attributeGroup);
                 schema.addChild(attributeGroup);
             } else if (isXsdElement(childElement, "annotation")) {
                 parseAnnotation(childElement, schema);
             } else if (isXsdElement(childElement, "import")) {
                 XsdImport xsdImport = parseImport(childElement);
+                tagNodeWithSourceInfo(xsdImport);
                 schema.addChild(xsdImport);
             } else if (isXsdElement(childElement, "include")) {
                 XsdInclude xsdInclude = parseInclude(childElement);
+                tagNodeWithSourceInfo(xsdInclude);
                 schema.addChild(xsdInclude);
-                inlineSchemaReference(childElement, baseDirectory, schema, factory);
+                inlineSchemaReference(childElement, baseDirectory, schema, factory, xsdInclude);
             } else if (isXsdElement(childElement, "redefine")) {
                 XsdRedefine xsdRedefine = parseRedefine(childElement);
+                tagNodeWithSourceInfo(xsdRedefine);
                 schema.addChild(xsdRedefine);
             } else if (isXsdElement(childElement, "override")) {
                 XsdOverride xsdOverride = parseOverride(childElement);
+                tagNodeWithSourceInfo(xsdOverride);
                 schema.addChild(xsdOverride);
             }
         }
     }
 
     /**
+     * Tags a node with the current source file information from the include tracker.
+     * This method recursively tags all descendants with the same source info.
+     *
+     * @param node the node to tag
+     */
+    private void tagNodeWithSourceInfo(XsdNode node) {
+        if (node == null || includeTracker == null || !preserveIncludeStructure) {
+            return;
+        }
+
+        includeTracker.tagNodeRecursively(node);
+    }
+
+    /**
      * Resolves xs:include references by loading the referenced schema and adding its top-level components
      * to the current schema. This keeps the visual tree functional even when schemas are split across files.
+     *
+     * <p>When include tracking is enabled, nodes parsed from the included file are tagged with their
+     * source information, enabling multi-file serialization.</p>
+     *
+     * @param directiveElement the xs:include DOM element
+     * @param baseDirectory    the base directory for resolving relative paths
+     * @param targetSchema     the schema to add components to
+     * @param factory          the document builder factory
+     * @param xsdInclude       the XsdInclude model node for tracking
      */
     private void inlineSchemaReference(Element directiveElement, Path baseDirectory, XsdSchema targetSchema,
-                                       DocumentBuilderFactory factory) {
+                                       DocumentBuilderFactory factory, XsdInclude xsdInclude) {
         if (baseDirectory == null || factory == null) {
             return; // Cannot resolve without file context
         }
@@ -249,17 +355,26 @@ public class XsdNodeFactory {
         String schemaLocation = directiveElement.getAttribute("schemaLocation");
         if (schemaLocation == null || schemaLocation.isBlank()) {
             logger.warn("Encountered xs:include without schemaLocation. Skipping.");
+            if (xsdInclude != null) {
+                xsdInclude.markResolutionFailed("No schemaLocation attribute");
+            }
             return;
         }
 
         if (schemaLocation.contains("://")) {
             logger.debug("Skipping remote schema include '{}'", schemaLocation);
+            if (xsdInclude != null) {
+                xsdInclude.markResolutionFailed("Remote schemas not supported");
+            }
             return;
         }
 
         Path resolvedPath = baseDirectory.resolve(schemaLocation).normalize();
         if (!Files.exists(resolvedPath)) {
             logger.warn("Included schema '{}' not found relative to '{}'", schemaLocation, baseDirectory);
+            if (xsdInclude != null) {
+                xsdInclude.markResolutionFailed("File not found: " + resolvedPath);
+            }
             return;
         }
 
@@ -268,6 +383,9 @@ public class XsdNodeFactory {
             realPath = resolvedPath.toRealPath();
         } catch (Exception ex) {
             logger.warn("Failed to resolve real path for included schema '{}': {}", resolvedPath, ex.getMessage());
+            if (xsdInclude != null) {
+                xsdInclude.markResolutionFailed("Path resolution failed: " + ex.getMessage());
+            }
             return;
         }
 
@@ -278,6 +396,9 @@ public class XsdNodeFactory {
 
         if (!includeStack.add(realPath)) {
             logger.warn("Circular include detected for '{}'. Skipping to prevent infinite recursion.", realPath);
+            if (xsdInclude != null) {
+                xsdInclude.markResolutionFailed("Circular include detected");
+            }
             return;
         }
 
@@ -288,14 +409,64 @@ public class XsdNodeFactory {
 
             if (!isXsdElement(includedRoot, "schema")) {
                 logger.warn("Included file '{}' does not contain an xs:schema root. Skipping.", realPath);
+                if (xsdInclude != null) {
+                    xsdInclude.markResolutionFailed("Not a valid XSD schema");
+                }
                 return;
             }
 
-            Path nextBaseDir = realPath.getParent();
-            parseSchemaChildren(includedRoot, targetSchema, nextBaseDir, factory);
-            processedIncludes.add(realPath);
+            // Set resolution info on the XsdInclude node
+            if (xsdInclude != null) {
+                xsdInclude.setResolvedPath(realPath);
+            }
+
+            // Push include context for source tracking
+            if (includeTracker != null && preserveIncludeStructure && xsdInclude != null) {
+                includeTracker.pushContext(xsdInclude, realPath);
+            }
+
+            try {
+                Path nextBaseDir = realPath.getParent();
+
+                // Track child count before parsing to register new nodes
+                int childCountBefore = targetSchema.getChildren().size();
+
+                parseSchemaChildren(includedRoot, targetSchema, nextBaseDir, factory);
+
+                // Register newly added nodes with the schema's include tracking
+                if (preserveIncludeStructure && xsdInclude != null) {
+                    java.util.List<XsdNode> allChildren = targetSchema.getChildren();
+                    for (int i = childCountBefore; i < allChildren.size(); i++) {
+                        XsdNode addedNode = allChildren.get(i);
+                        targetSchema.registerNodeForInclude(addedNode, xsdInclude);
+                    }
+                }
+
+                processedIncludes.add(realPath);
+
+                // Mark include as successfully resolved
+                if (xsdInclude != null) {
+                    // Create a minimal schema representation for the included content
+                    XsdSchema includedSchemaRef = new XsdSchema();
+                    includedSchemaRef.setTargetNamespace(targetSchema.getTargetNamespace());
+                    includedSchemaRef.setMainSchemaPath(realPath);
+                    xsdInclude.setIncludedSchema(includedSchemaRef);
+                }
+
+                logger.debug("Successfully inlined schema from '{}' with {} new components",
+                        realPath, targetSchema.getChildren().size() - childCountBefore);
+
+            } finally {
+                // Pop include context
+                if (includeTracker != null && preserveIncludeStructure && xsdInclude != null) {
+                    includeTracker.popContext();
+                }
+            }
         } catch (Exception ex) {
             logger.warn("Failed to inline schema include '{}': {}", realPath, ex.getMessage());
+            if (xsdInclude != null) {
+                xsdInclude.markResolutionFailed("Parse error: " + ex.getMessage());
+            }
         } finally {
             includeStack.remove(realPath);
         }
