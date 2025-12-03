@@ -51,6 +51,7 @@ import org.fxt.freexmltoolkit.domain.ValidationStatus;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.xml.sax.SAXParseException;
 
@@ -84,6 +85,8 @@ public class XsdValidationController implements FavoritesParentController {
     private VBox rootVBox;
     @FXML
     private Button xmlLoadButton, xsdLoadButton, excelExport, clearResults;
+    @FXML
+    private Button xmlLoadButtonGrid, xsdLoadButtonGrid;
     @FXML
     private TextField xmlFileName, xsdFileName, remoteXsdLocation;
     @FXML
@@ -203,6 +206,9 @@ public class XsdValidationController implements FavoritesParentController {
         boolean disable = !xsdLoadButton.isDisable();
         xsdLoadButton.setDisable(disable);
         xsdFileName.setDisable(disable);
+        if (xsdLoadButtonGrid != null) {
+            xsdLoadButtonGrid.setDisable(disable);
+        }
     }
 
     /**
@@ -422,18 +428,22 @@ public class XsdValidationController implements FavoritesParentController {
 
     /**
      * Handles drag over event for the entire validation page.
+     * Accepts both XML files (for validation) and XSD files (as schema).
      *
      * @param event the drag event
      */
     private void handlePageDragOver(javafx.scene.input.DragEvent event) {
         if (event.getDragboard().hasFiles()) {
-            // Check if at least one XML file is in the drag
-            boolean hasXmlFile = event.getDragboard().getFiles().stream()
-                    .anyMatch(file -> file.getName().toLowerCase().endsWith(".xml"));
+            // Check if at least one XML or XSD file is in the drag
+            boolean hasValidFile = event.getDragboard().getFiles().stream()
+                    .anyMatch(file -> {
+                        String name = file.getName().toLowerCase();
+                        return name.endsWith(".xml") || name.endsWith(".xsd");
+                    });
 
-            if (hasXmlFile) {
+            if (hasValidFile) {
                 event.acceptTransferModes(TransferMode.COPY);
-                logger.debug("Validation page accepting XML file drag");
+                logger.debug("Validation page accepting XML/XSD file drag");
             }
         }
         event.consume(); // Prevent event from bubbling to global handler
@@ -441,7 +451,7 @@ public class XsdValidationController implements FavoritesParentController {
 
     /**
      * Handles drag dropped event for the entire validation page.
-     * Loads the first XML file into the validation view (not the XML editor).
+     * Loads XML files for validation and XSD files as schema.
      *
      * @param event the drag event
      */
@@ -452,25 +462,42 @@ public class XsdValidationController implements FavoritesParentController {
         if (db.hasFiles()) {
             logger.info("Files dropped on validation page: processing {} files", db.getFiles().size());
 
-            // Filter for XML files
+            // Separate XML and XSD files
             var xmlFiles = db.getFiles().stream()
                     .filter(file -> file.getName().toLowerCase().endsWith(".xml"))
                     .toList();
+            var xsdFiles = db.getFiles().stream()
+                    .filter(file -> file.getName().toLowerCase().endsWith(".xsd"))
+                    .toList();
 
+            // Process XSD files first (set as schema)
+            if (!xsdFiles.isEmpty()) {
+                File firstXsdFile = xsdFiles.get(0);
+                xmlService.setCurrentXsdFile(firstXsdFile);
+                xsdFileName.setText(firstXsdFile.getName());
+                showContent();
+                success = true;
+                logger.info("Loaded XSD schema via drag and drop: {}", firstXsdFile.getName());
+
+                if (xsdFiles.size() > 1) {
+                    logger.info("Multiple XSD files dropped ({}). Only the first file was used as schema: {}",
+                            xsdFiles.size(), firstXsdFile.getName());
+                }
+            }
+
+            // Process XML files (for validation)
             if (!xmlFiles.isEmpty()) {
-                // Load the first XML file for validation
                 File firstXmlFile = xmlFiles.get(0);
                 processXmlFile(firstXmlFile);
                 success = true;
-
                 logger.info("Loaded XML file for validation via drag and drop: {}", firstXmlFile.getName());
 
                 if (xmlFiles.size() > 1) {
                     logger.info("Multiple XML files dropped ({}). Only the first file was loaded: {}",
                             xmlFiles.size(), firstXmlFile.getName());
                 }
-            } else {
-                logger.debug("No XML files found in dropped files on validation page");
+            } else if (xsdFiles.isEmpty()) {
+                logger.debug("No XML or XSD files found in dropped files on validation page");
             }
         }
 
@@ -489,6 +516,38 @@ public class XsdValidationController implements FavoritesParentController {
         if (file != null) {
             logger.debug("Loaded File: {}", file.getAbsolutePath());
             fileProcessor.accept(file);
+        }
+    }
+
+    /**
+     * FXML handler for XML file selection button in the grid.
+     * Opens a file chooser dialog to select an XML file for validation.
+     */
+    @FXML
+    private void selectXmlFile() {
+        File file = xmlFileChooser.showOpenDialog(null);
+        if (file != null) {
+            logger.debug("Selected XML file: {}", file.getAbsolutePath());
+            processXmlFile(file);
+        }
+    }
+
+    /**
+     * FXML handler for XSD file selection button in the grid.
+     * Opens a file chooser dialog to select an XSD schema file.
+     */
+    @FXML
+    private void selectXsdFile() {
+        File file = xsdFileChooser.showOpenDialog(null);
+        if (file != null) {
+            logger.debug("Selected XSD file: {}", file.getAbsolutePath());
+            xmlService.setCurrentXsdFile(file);
+            xsdFileName.setText(file.getName());
+            showContent();
+            // If XML file is already loaded, trigger validation
+            if (xmlService.getCurrentXmlFile() != null) {
+                processXmlFile();
+            }
         }
     }
 
@@ -572,6 +631,9 @@ public class XsdValidationController implements FavoritesParentController {
      * Displays the validation results in the UI.
      */
     private void displayValidationResults() {
+        // Add header with filename and timestamp
+        addValidationResultsHeader();
+
         if (validationErrors != null && !validationErrors.isEmpty()) {
             logger.warn(validationErrors.toString());
             updateStatus(SingleFileValidationStatus.ERROR, "Validation failed. " + validationErrors.size() + " error(s) found.");
@@ -595,6 +657,40 @@ public class XsdValidationController implements FavoritesParentController {
 
             errorListBox.getChildren().add(successLabel);
         }
+    }
+
+    /**
+     * Adds a header with filename and timestamp to the validation results.
+     */
+    private void addValidationResultsHeader() {
+        File currentFile = xmlService.getCurrentXmlFile();
+        if (currentFile == null) return;
+
+        // Create header with filename
+        Label fileLabel = new Label("File: " + currentFile.getName());
+        fileLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+        FontIcon fileIcon = new FontIcon("bi-file-earmark-code");
+        fileIcon.setIconSize(16);
+        fileLabel.setGraphic(fileIcon);
+        fileLabel.setGraphicTextGap(8);
+
+        // Create timestamp label
+        String timestamp = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        Label timestampLabel = new Label("Validated: " + timestamp);
+        timestampLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+        FontIcon clockIcon = new FontIcon("bi-clock");
+        clockIcon.setIconSize(14);
+        clockIcon.setIconColor(Color.web("#6c757d"));
+        timestampLabel.setGraphic(clockIcon);
+        timestampLabel.setGraphicTextGap(6);
+
+        // Create header container
+        VBox headerBox = new VBox(3);
+        headerBox.setStyle("-fx-padding: 0 0 10 0; -fx-border-color: transparent transparent #dee2e6 transparent; -fx-border-width: 0 0 1 0;");
+        headerBox.getChildren().addAll(fileLabel, timestampLabel);
+
+        errorListBox.getChildren().add(headerBox);
     }
 
     /**
@@ -744,49 +840,31 @@ public class XsdValidationController implements FavoritesParentController {
      */
     @FXML
     private void showHelp() {
-        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
-        helpDialog.setTitle("XSD Validation - Help");
-        helpDialog.setHeaderText("How to use the XSD Validation Tool");
+        var features = java.util.List.of(
+                new String[]{"bi-file-earmark-code", "Load XML", "Load XML files via toolbar, file selector, or drag & drop"},
+                new String[]{"bi-search", "Schema Detection", "Auto-detect XSD from XML or manually select schema file"},
+                new String[]{"bi-check-circle", "Validation", "Validate XML against XSD with detailed error reporting"},
+                new String[]{"bi-list-check", "Results Review", "Green = success, Red = errors with line numbers"},
+                new String[]{"bi-file-earmark-excel", "Export Results", "Export validation errors to Excel spreadsheet"},
+                new String[]{"bi-folder2-open", "Batch Validation", "Validate multiple XML files against the same schema"}
+        );
 
-        String helpText = """
-                1. Load XML File:
-                   - Click the XML file button in the toolbar or use the file selector
-                   - Drag and drop is also supported
+        var shortcuts = java.util.List.of(
+                new String[]{"F5", "Start validation"},
+                new String[]{"Ctrl+D", "Add current file to favorites"},
+                new String[]{"Ctrl+Shift+D", "Toggle favorites panel"},
+                new String[]{"F1", "Show this help dialog"}
+        );
 
-                2. Schema Detection:
-                   - Enable "Autodetect Schema" to automatically find the XSD from the XML file
-                   - Or manually select an XSD file using the XSD file button
-
-                3. Start Validation:
-                   - Click the validation button (checkmark icon) to validate the XML
-                   - Results will be displayed in the "Validation Results" section
-
-                4. Review Results:
-                   - Green status = Validation successful
-                   - Red status = Validation failed (errors will be listed)
-                   - Click "Go to error" to jump to the XML editor tab
-
-                5. Export Results:
-                   - Click the Excel export button to save validation errors to an Excel file
-
-                6. Clear Results:
-                   - Click the eraser button to reset the validation interface
-
-                Keyboard Shortcuts:
-                - F5: Start validation
-                - Ctrl+D: Add to favorites
-                - Ctrl+Shift+D: Toggle favorites panel
-                - F1: Show this help dialog
-                """;
-
-        helpDialog.setContentText(helpText);
-        helpDialog.getDialogPane().setMinWidth(600);
-
-        // Add icon to help dialog
-        FontIcon helpIcon = new FontIcon("bi-question-circle");
-        helpIcon.setIconSize(48);
-        helpIcon.setIconColor(Color.web("#17a2b8"));
-        helpDialog.setGraphic(helpIcon);
+        var helpDialog = DialogHelper.createHelpDialog(
+                "XSD Validation - Help",
+                "XSD Validation",
+                "Validate XML documents against XSD schemas",
+                "bi-check2-square",
+                DialogHelper.HeaderTheme.INFO,
+                features,
+                shortcuts
+        );
 
         helpDialog.showAndWait();
         logger.debug("Help dialog shown");
@@ -923,20 +1001,23 @@ public class XsdValidationController implements FavoritesParentController {
 
     /**
      * Handles drag over event for the batch validation table.
-     * Accepts XML files and directories.
+     * Accepts XML files, XSD files (as schema), and directories.
      *
      * @param event the drag event
      */
     private void handleBatchDragOver(javafx.scene.input.DragEvent event) {
         if (event.getDragboard().hasFiles()) {
-            // Accept if at least one XML file or directory is in the drag
+            // Accept if at least one XML, XSD file or directory is in the drag
             boolean hasValidContent = event.getDragboard().getFiles().stream()
-                    .anyMatch(file -> file.isDirectory() ||
-                            file.getName().toLowerCase().endsWith(".xml"));
+                    .anyMatch(file -> {
+                        if (file.isDirectory()) return true;
+                        String name = file.getName().toLowerCase();
+                        return name.endsWith(".xml") || name.endsWith(".xsd");
+                    });
 
             if (hasValidContent) {
                 event.acceptTransferModes(TransferMode.COPY);
-                logger.debug("Batch table accepting XML file/folder drag");
+                logger.debug("Batch table accepting XML/XSD file/folder drag");
             }
         }
         event.consume();
@@ -945,6 +1026,7 @@ public class XsdValidationController implements FavoritesParentController {
     /**
      * Handles drag dropped event for the batch validation table.
      * Processes dropped XML files and recursively scans dropped directories.
+     * XSD files are used as the batch schema (selects "Use same XSD" mode).
      *
      * @param event the drag event
      */
@@ -954,22 +1036,51 @@ public class XsdValidationController implements FavoritesParentController {
 
         if (db.hasFiles()) {
             List<File> allXmlFiles = new ArrayList<>();
+            List<File> xsdFiles = new ArrayList<>();
 
             for (File file : db.getFiles()) {
                 if (file.isDirectory()) {
                     // Recursively collect all XML files from the directory
                     collectXmlFilesRecursively(file, allXmlFiles);
-                } else if (file.getName().toLowerCase().endsWith(".xml")) {
-                    allXmlFiles.add(file);
+                } else {
+                    String name = file.getName().toLowerCase();
+                    if (name.endsWith(".xml")) {
+                        allXmlFiles.add(file);
+                    } else if (name.endsWith(".xsd")) {
+                        xsdFiles.add(file);
+                    }
                 }
             }
 
+            // Process XSD files first (set as batch schema)
+            if (!xsdFiles.isEmpty()) {
+                File firstXsdFile = xsdFiles.get(0);
+                batchXsdFile = firstXsdFile;
+                if (batchXsdFileName != null) {
+                    batchXsdFileName.setText(firstXsdFile.getName());
+                }
+                // Enable "Use same XSD" mode
+                if (sameXsdRadio != null) {
+                    sameXsdRadio.setSelected(true);
+                    if (batchXsdFileName != null) batchXsdFileName.setDisable(false);
+                    if (selectBatchXsdBtn != null) selectBatchXsdBtn.setDisable(false);
+                }
+                success = true;
+                logger.info("Set batch XSD schema via drag and drop: {}", firstXsdFile.getName());
+
+                if (xsdFiles.size() > 1) {
+                    logger.info("Multiple XSD files dropped ({}). Only the first file was used as schema: {}",
+                            xsdFiles.size(), firstXsdFile.getName());
+                }
+            }
+
+            // Process XML files
             if (!allXmlFiles.isEmpty()) {
                 addDroppedFilesToBatch(allXmlFiles);
                 success = true;
                 logger.info("Dropped {} XML files onto batch validation table", allXmlFiles.size());
-            } else {
-                logger.debug("No XML files found in dropped items on batch table");
+            } else if (xsdFiles.isEmpty()) {
+                logger.debug("No XML or XSD files found in dropped items on batch table");
             }
         }
 

@@ -3,10 +3,12 @@ package org.fxt.freexmltoolkit.util;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
-import javafx.stage.Stage;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -450,6 +452,203 @@ public class DialogHelper {
         }
 
         return alert;
+    }
+
+    // ============================================
+    // HELP DIALOGS
+    // ============================================
+
+    /**
+     * Creates a keyboard shortcut item for help dialogs.
+     *
+     * @param shortcut    the keyboard shortcut text (e.g., "Ctrl+Z")
+     * @param description the shortcut description
+     * @return the shortcut HBox
+     */
+    public static HBox createShortcutItem(String shortcut, String description) {
+        HBox item = new HBox(15);
+        item.setAlignment(Pos.CENTER_LEFT);
+        item.getStyleClass().add("dialog-shortcut-item");
+
+        // Shortcut key badge
+        Label keyLabel = new Label(shortcut);
+        keyLabel.getStyleClass().add("dialog-shortcut-key");
+        keyLabel.setMinWidth(120);
+        keyLabel.setStyle("""
+                -fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+                -fx-border-color: #dee2e6;
+                -fx-border-width: 1;
+                -fx-border-radius: 6;
+                -fx-background-radius: 6;
+                -fx-padding: 6 12;
+                -fx-font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+                -fx-font-size: 12px;
+                -fx-font-weight: bold;
+                -fx-text-fill: #495057;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 2, 0, 0, 1);
+                """);
+
+        // Description
+        Label descLabel = new Label(description);
+        descLabel.setStyle("-fx-text-fill: #495057; -fx-font-size: 14px;");
+
+        item.getChildren().addAll(keyLabel, descLabel);
+        return item;
+    }
+
+    /**
+     * Creates a section title for help dialogs.
+     *
+     * @param iconLiteral the icon literal
+     * @param iconColor   the icon color
+     * @param title       the section title
+     * @return the section title HBox
+     */
+    public static HBox createHelpSectionTitle(String iconLiteral, String iconColor, String title) {
+        HBox titleBox = new HBox(10);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+        titleBox.setPadding(new Insets(0, 0, 5, 0));
+
+        FontIcon icon = new FontIcon(iconLiteral);
+        icon.setIconSize(20);
+        icon.setIconColor(Color.web(iconColor));
+
+        Label label = new Label(title);
+        label.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: " + iconColor + ";");
+
+        titleBox.getChildren().addAll(icon, label);
+        return titleBox;
+    }
+
+    /**
+     * Creates a styled help dialog with features and keyboard shortcuts.
+     *
+     * @param title          the window title
+     * @param headerTitle    the header title
+     * @param headerSubtitle the header subtitle
+     * @param iconLiteral    the header icon
+     * @param theme          the header theme
+     * @param features       list of feature items (each String[3]: iconLiteral, title, description)
+     * @param shortcuts      list of shortcut items (each String[2]: shortcut, description)
+     * @return the configured dialog
+     */
+    public static Dialog<ButtonType> createHelpDialog(
+            String title,
+            String headerTitle,
+            String headerSubtitle,
+            String iconLiteral,
+            HeaderTheme theme,
+            java.util.List<String[]> features,
+            java.util.List<String[]> shortcuts) {
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle(title);
+        dialog.initModality(Modality.APPLICATION_MODAL);
+
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getStylesheets().add(
+                DialogHelper.class.getResource("/css/dialog-theme.css").toExternalForm()
+        );
+
+        // Create header
+        VBox header = createDialogHeader(headerTitle, headerSubtitle, iconLiteral, theme);
+
+        // Create content
+        VBox content = new VBox(20);
+        content.setPadding(new Insets(25));
+        content.setStyle("-fx-background-color: #ffffff;");
+
+        // Features section
+        if (features != null && !features.isEmpty()) {
+            VBox featuresSection = createSection("Features", null);
+            featuresSection.setStyle("""
+                    -fx-background-color: #f8f9fa;
+                    -fx-border-color: #e9ecef;
+                    -fx-border-width: 1;
+                    -fx-border-radius: 10;
+                    -fx-background-radius: 10;
+                    -fx-padding: 20;
+                    """);
+
+            VBox featuresContent = new VBox(12);
+            String[] colors = {"#007bff", "#28a745", "#17a2b8", "#fd7e14", "#6f42c1", "#e83e8c"};
+            int colorIndex = 0;
+
+            for (String[] feature : features) {
+                if (feature.length >= 3) {
+                    HBox featureItem = createFeatureItem(
+                            feature[0],
+                            colors[colorIndex % colors.length],
+                            feature[1],
+                            feature[2]
+                    );
+                    featuresContent.getChildren().add(featureItem);
+                    colorIndex++;
+                }
+            }
+            featuresSection.getChildren().add(featuresContent);
+            content.getChildren().add(featuresSection);
+        }
+
+        // Keyboard shortcuts section
+        if (shortcuts != null && !shortcuts.isEmpty()) {
+            VBox shortcutsSection = new VBox(15);
+            shortcutsSection.setStyle("""
+                    -fx-background-color: #f8f9fa;
+                    -fx-border-color: #e9ecef;
+                    -fx-border-width: 1;
+                    -fx-border-radius: 10;
+                    -fx-background-radius: 10;
+                    -fx-padding: 20;
+                    """);
+
+            // Section header
+            HBox sectionHeader = createHelpSectionTitle("bi-keyboard", "#6f42c1", "Keyboard Shortcuts");
+            shortcutsSection.getChildren().add(sectionHeader);
+
+            // Shortcuts grid
+            VBox shortcutsContent = new VBox(8);
+            for (String[] shortcut : shortcuts) {
+                if (shortcut.length >= 2) {
+                    shortcutsContent.getChildren().add(
+                            createShortcutItem(shortcut[0], shortcut[1])
+                    );
+                }
+            }
+            shortcutsSection.getChildren().add(shortcutsContent);
+            content.getChildren().add(shortcutsSection);
+        }
+
+        // Wrap in ScrollPane
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
+        scrollPane.setPrefViewportHeight(400);
+
+        // Main layout
+        BorderPane root = new BorderPane();
+        root.setTop(header);
+        root.setCenter(scrollPane);
+
+        dialogPane.setContent(root);
+        dialogPane.setPrefWidth(550);
+        dialogPane.getButtonTypes().add(ButtonType.OK);
+
+        // Style the OK button
+        Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
+        if (okButton != null) {
+            okButton.setStyle("""
+                    -fx-background-color: linear-gradient(to bottom, #007bff, #0056b3);
+                    -fx-text-fill: white;
+                    -fx-font-weight: bold;
+                    -fx-font-size: 14px;
+                    -fx-padding: 8 24;
+                    -fx-background-radius: 6;
+                    -fx-cursor: hand;
+                    """);
+        }
+
+        return dialog;
     }
 
     /**

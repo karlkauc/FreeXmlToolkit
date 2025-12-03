@@ -33,7 +33,6 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.BatchValidationFile;
-import org.fxt.freexmltoolkit.domain.ValidationStatus;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.jetbrains.annotations.NotNull;
@@ -1127,11 +1126,17 @@ public class XmlServiceImpl implements XmlService {
                             var pathNew = Path.of(newFile.getAbsolutePath());
 
                             try {
+                                long downloadStart = System.currentTimeMillis();
                                 String textContent = connectionService.getTextContentFromURL(new URI(possibleSchemaLocation.get()));
                                 // NEU: Schema-Inhalt vor dem Speichern validieren
                                 if (isSchemaValid(textContent)) {
-                                    Files.write(pathNew, textContent.getBytes());
+                                    byte[] contentBytes = textContent.getBytes();
+                                    Files.write(pathNew, contentBytes);
                                     logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());
+
+                                    // Add to central cache index
+                                    addToCacheIndex(pathNew, possibleSchemaLocation.get(), contentBytes, downloadStart);
+
                                     this.setCurrentXsdFile(new File(pathNew.toUri()));
                                     this.remoteXsdLocation = possibleSchemaLocation.get();
 
@@ -1879,12 +1884,17 @@ public class XmlServiceImpl implements XmlService {
 
             // Download imported schema
             logger.info("Downloading imported schema: {}", resolvedUrl);
+            long downloadStart = System.currentTimeMillis();
             String importedContent = connectionService.getTextContentFromURL(new URI(resolvedUrl));
 
             // Validate imported schema
             if (isSchemaValid(importedContent)) {
-                Files.write(importedSchemaPath, importedContent.getBytes());
+                byte[] contentBytes = importedContent.getBytes();
+                Files.write(importedSchemaPath, contentBytes);
                 logger.info("Downloaded imported schema: {} -> {}", resolvedUrl, importedSchemaPath);
+
+                // Add to central cache index
+                addToCacheIndex(importedSchemaPath, resolvedUrl, contentBytes, downloadStart);
 
                 // Recursively download imports of this imported schema
                 downloadImportedSchemas(importedContent, resolvedUrl, cacheDir);
@@ -1962,5 +1972,116 @@ public class XmlServiceImpl implements XmlService {
             logger.debug("Could not extract filename from URL: {}", url);
         }
         return null;
+    }
+
+    /**
+     * Adds a downloaded schema to the global cache index.
+     *
+     * @param localFile     the local file that was written
+     * @param remoteUrl     the original remote URL
+     * @param content       the schema content as bytes
+     * @param downloadStart the time when download started (for duration calculation)
+     */
+    private void addToCacheIndex(Path localFile, String remoteUrl, byte[] content, long downloadStart) {
+        try {
+            long downloadDuration = System.currentTimeMillis() - downloadStart;
+
+            // Calculate hashes
+            String md5Hash = DigestUtils.md5Hex(content);
+            String sha256Hash = DigestUtils.sha256Hex(content);
+
+            // Extract schema info using StAX
+            SchemaCacheEntry.SchemaInfo schemaInfo = extractSchemaInfoForIndex(localFile);
+
+            // Create cache entry
+            SchemaCacheEntry entry = SchemaCacheEntry.builder()
+                    .localFilename(localFile.toString())
+                    .remoteUrl(remoteUrl)
+                    .downloadTimestamp(java.time.Instant.now())
+                    .fileSizeBytes(content.length)
+                    .md5Hash(md5Hash)
+                    .sha256Hash(sha256Hash)
+                    .http(SchemaCacheEntry.HttpInfo.of(200, downloadDuration))
+                    .schema(schemaInfo)
+                    .usage(SchemaCacheEntry.UsageInfo.initial())
+                    .build();
+
+            // Add to global cache index and save
+            SchemaCacheIndex globalIndex = SchemaCacheIndex.getGlobalInstance();
+            globalIndex.addOrUpdateEntry(entry);
+            SchemaCacheIndex.saveGlobalIndex();
+
+            logger.debug("Added schema to cache index: {} -> {}", remoteUrl, localFile);
+        } catch (Exception e) {
+            logger.warn("Failed to add schema to cache index: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Extracts schema information from an XSD file using StAX for the cache index.
+     */
+    private SchemaCacheEntry.SchemaInfo extractSchemaInfoForIndex(Path schemaFile) {
+        String targetNamespace = null;
+        String xsdVersion = "1.0";
+        java.util.List<String> imports = new java.util.ArrayList<>();
+        java.util.List<String> includes = new java.util.ArrayList<>();
+        java.util.List<String> redefines = new java.util.ArrayList<>();
+
+        try {
+            javax.xml.stream.XMLInputFactory factory = javax.xml.stream.XMLInputFactory.newInstance();
+            factory.setProperty(javax.xml.stream.XMLInputFactory.IS_NAMESPACE_AWARE, true);
+            factory.setProperty(javax.xml.stream.XMLInputFactory.SUPPORT_DTD, false);
+
+            try (java.io.InputStream is = Files.newInputStream(schemaFile)) {
+                javax.xml.stream.XMLStreamReader reader = factory.createXMLStreamReader(is);
+
+                while (reader.hasNext()) {
+                    int event = reader.next();
+
+                    if (event == javax.xml.stream.XMLStreamConstants.START_ELEMENT) {
+                        String localName = reader.getLocalName();
+                        String namespaceURI = reader.getNamespaceURI();
+
+                        if ("http://www.w3.org/2001/XMLSchema".equals(namespaceURI)) {
+                            switch (localName) {
+                                case "schema" -> targetNamespace = reader.getAttributeValue(null, "targetNamespace");
+                                case "import" -> {
+                                    String schemaLocation = reader.getAttributeValue(null, "schemaLocation");
+                                    if (schemaLocation != null && !schemaLocation.isBlank()) {
+                                        imports.add(schemaLocation);
+                                    }
+                                }
+                                case "include" -> {
+                                    String schemaLocation = reader.getAttributeValue(null, "schemaLocation");
+                                    if (schemaLocation != null && !schemaLocation.isBlank()) {
+                                        includes.add(schemaLocation);
+                                    }
+                                }
+                                case "redefine", "override" -> {
+                                    if ("override".equals(localName)) xsdVersion = "1.1";
+                                    String schemaLocation = reader.getAttributeValue(null, "schemaLocation");
+                                    if (schemaLocation != null && !schemaLocation.isBlank()) {
+                                        redefines.add(schemaLocation);
+                                    }
+                                }
+                                case "assert", "assertion", "openContent", "defaultOpenContent" -> xsdVersion = "1.1";
+                            }
+                        }
+                    }
+                }
+                reader.close();
+            }
+        } catch (Exception e) {
+            logger.debug("Failed to extract schema info from {}: {}", schemaFile, e.getMessage());
+            return SchemaCacheEntry.SchemaInfo.empty();
+        }
+
+        return new SchemaCacheEntry.SchemaInfo(
+                targetNamespace,
+                xsdVersion,
+                imports.isEmpty() ? java.util.List.of() : java.util.List.copyOf(imports),
+                includes.isEmpty() ? java.util.List.of() : java.util.List.copyOf(includes),
+                redefines.isEmpty() ? java.util.List.of() : java.util.List.copyOf(redefines)
+        );
     }
 }

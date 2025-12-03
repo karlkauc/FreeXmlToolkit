@@ -29,7 +29,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -39,19 +41,16 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
-import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.DragDropService;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
-import org.fxt.freexmltoolkit.service.XsltTransformationResult;
+import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.util.DialogHelper;
+import org.kordamp.ikonli.javafx.FontIcon;
 
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
@@ -1358,24 +1357,36 @@ public class XsltDeveloperController implements FavoritesParentController {
      */
     @FXML
     private void showHelp() {
-        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
-        helpDialog.setTitle("XSLT Developer - Help");
-        helpDialog.setHeaderText("How to use the Advanced XSLT Developer");
-        helpDialog.setContentText("""
-                Transform XML documents using XSLT stylesheets with powerful features.
+        var features = java.util.List.of(
+                new String[]{"bi-code-slash", "XSLT 3.0 Support", "Full support for XSLT 3.0, 2.0, and 1.0 transformations with Saxon HE engine"},
+                new String[]{"bi-lightning", "Live Transform Mode", "Enable real-time transformation preview as you edit XML or XSLT content"},
+                new String[]{"bi-file-earmark-code", "Multiple Output Formats", "Generate XML, HTML, Text, or JSON output from your transformations"},
+                new String[]{"bi-sliders", "XSLT Parameters", "Define typed parameters (xs:string, xs:boolean, xs:decimal, etc.) to pass to stylesheets"},
+                new String[]{"bi-speedometer2", "Performance Profiling", "Monitor transformation time, output size, and execution metrics"},
+                new String[]{"bi-bug", "Debug Mode", "Enable debug logging and trace output for troubleshooting transformations"},
+                new String[]{"bi-star", "Favorites System", "Save frequently used XML and XSLT files for quick access"}
+        );
 
-                FEATURES:
-                - Load XML and XSLT files for transformation
-                - Live preview mode for real-time results
-                - Multiple output formats (XML, HTML, Text)
-                - Performance metrics and debugging
+        var shortcuts = java.util.List.of(
+                new String[]{"F5", "Execute XSLT transformation"},
+                new String[]{"Ctrl+L", "Toggle live transform mode"},
+                new String[]{"Ctrl+R", "Reload and transform"},
+                new String[]{"Ctrl+Shift+C", "Copy transformation result"},
+                new String[]{"Ctrl+Alt+S", "Save transformation result"},
+                new String[]{"Ctrl+D", "Add current file to favorites"},
+                new String[]{"Ctrl+Shift+D", "Toggle favorites panel"},
+                new String[]{"F1", "Show this help dialog"}
+        );
 
-                KEYBOARD SHORTCUTS:
-                - F5: Execute transformation
-                - Ctrl+D: Add to favorites
-                - Ctrl+Shift+D: Toggle favorites panel
-                - F1: Show this help dialog
-                """);
+        var helpDialog = DialogHelper.createHelpDialog(
+                "XSLT Developer - Help",
+                "Advanced XSLT Developer",
+                "Professional XSLT 3.0 development environment with live preview, performance profiling, and debugging capabilities.",
+                "bi-code-square",
+                DialogHelper.HeaderTheme.PRIMARY,
+                features,
+                shortcuts
+        );
         helpDialog.showAndWait();
     }
 

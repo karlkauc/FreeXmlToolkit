@@ -36,11 +36,8 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
-import org.fxt.freexmltoolkit.service.DragDropService;
-import org.fxt.freexmltoolkit.service.FOPService;
-import org.fxt.freexmltoolkit.service.FavoritesService;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -710,24 +707,30 @@ public class FopController implements FavoritesParentController {
      */
     @FXML
     private void showHelp() {
-        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
-        helpDialog.setTitle("FOP - Help");
-        helpDialog.setHeaderText("How to use the PDF Generator (Apache FOP)");
-        helpDialog.setContentText("""
-                Use this tool to generate PDF documents from XML data using XSL-FO.
+        var features = java.util.List.of(
+                new String[]{"bi-file-earmark-richtext", "PDF Generation", "Generate professional PDF documents from XML data"},
+                new String[]{"bi-file-earmark-code", "XSL-FO Support", "Use XSL-FO stylesheets for precise layout control"},
+                new String[]{"bi-eye", "Live Preview", "Preview generated PDFs directly in the application"},
+                new String[]{"bi-gear", "Customization", "Configure paper size, margins, and formatting options"}
+        );
 
-                STEPS:
-                1. Load an XML source file
-                2. Load an XSL-FO stylesheet
-                3. Select an output PDF file path
-                4. Click "Generate" to create the PDF
+        var shortcuts = java.util.List.of(
+                new String[]{"F5", "Generate PDF document"},
+                new String[]{"Ctrl+D", "Add current file to favorites"},
+                new String[]{"Ctrl+Shift+D", "Toggle favorites panel"},
+                new String[]{"F1", "Show this help dialog"}
+        );
 
-                KEYBOARD SHORTCUTS:
-                - F5: Generate PDF
-                - Ctrl+D: Add to favorites
-                - Ctrl+Shift+D: Toggle favorites panel
-                - F1: Show this help dialog
-                """);
+        var helpDialog = DialogHelper.createHelpDialog(
+                "FOP - Help",
+                "PDF Generator",
+                "Generate PDF documents from XML using Apache FOP",
+                "bi-file-earmark-richtext",
+                DialogHelper.HeaderTheme.DANGER,
+                features,
+                shortcuts
+        );
+
         helpDialog.showAndWait();
     }
 

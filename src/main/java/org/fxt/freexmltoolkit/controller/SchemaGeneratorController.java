@@ -34,11 +34,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.DragDropService;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
-import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
-import org.fxt.freexmltoolkit.service.SchemaGenerationResult;
+import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -794,24 +791,30 @@ public class SchemaGeneratorController implements FavoritesParentController {
      */
     @FXML
     private void showHelp() {
-        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
-        helpDialog.setTitle("Schema Generator - Help");
-        helpDialog.setHeaderText("How to use the Intelligent Schema Generator");
-        helpDialog.setContentText("""
-                Generate XSD schemas from XML documents automatically.
+        var features = java.util.List.of(
+                new String[]{"bi-diagram-3", "Smart Type Inference", "Automatically detects and infers XSD types from your XML data"},
+                new String[]{"bi-box-seam", "Complex Type Generation", "Generates complex types with proper structure and constraints"},
+                new String[]{"bi-speedometer2", "Schema Optimization", "Optimizes generated schemas for readability and efficiency"},
+                new String[]{"bi-file-earmark-bar-graph", "Analysis Reports", "Detailed reports about the generated schema structure"}
+        );
 
-                FEATURES:
-                - Smart type inference from XML data
-                - Complex type generation
-                - Schema optimization
-                - Detailed analysis reports
+        var shortcuts = java.util.List.of(
+                new String[]{"F5", "Generate schema from XML"},
+                new String[]{"Ctrl+D", "Add current file to favorites"},
+                new String[]{"Ctrl+Shift+D", "Toggle favorites panel"},
+                new String[]{"F1", "Show this help dialog"}
+        );
 
-                KEYBOARD SHORTCUTS:
-                - F5: Generate schema
-                - Ctrl+D: Add to favorites
-                - Ctrl+Shift+D: Toggle favorites panel
-                - F1: Show this help dialog
-                """);
+        var helpDialog = DialogHelper.createHelpDialog(
+                "Schema Generator - Help",
+                "Schema Generator",
+                "Generate XSD schemas from XML documents automatically",
+                "bi-diagram-3",
+                DialogHelper.HeaderTheme.SUCCESS,
+                features,
+                shortcuts
+        );
+
         helpDialog.showAndWait();
     }
 

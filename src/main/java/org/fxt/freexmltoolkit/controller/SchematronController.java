@@ -24,7 +24,6 @@ import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.*;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TestFile;
-import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
@@ -2839,38 +2838,32 @@ public class SchematronController implements FavoritesParentController {
      */
     @FXML
     private void showHelp() {
-        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
-        helpDialog.setTitle("Schematron Validator - Help");
-        helpDialog.setHeaderText("Business Rules and Validation for XML Documents");
-        helpDialog.setContentText("""
-                WHAT IS SCHEMATRON?
+        var features = java.util.List.of(
+                new String[]{"bi-code-slash", "Code Editor", "Create and edit Schematron rules with syntax highlighting"},
+                new String[]{"bi-diagram-2", "Visual Builder", "Create rules visually without XML knowledge"},
+                new String[]{"bi-play-circle", "Testing", "Validate XML documents against your Schematron rules"},
+                new String[]{"bi-book", "Documentation", "Auto-generate documentation for your validation logic"}
+        );
 
-                Schematron is a rule-based validation system for XML documents. It enables the definition of
-                business rules and integrity constraints that go beyond the capabilities of XML Schema (XSD).
+        var shortcuts = java.util.List.of(
+                new String[]{"F5", "Run all tests"},
+                new String[]{"Ctrl+S", "Save Schematron file"},
+                new String[]{"Ctrl+Shift+S", "Save file with new name"},
+                new String[]{"Ctrl+D", "Add current file to favorites"},
+                new String[]{"Ctrl+Shift+D", "Toggle favorites panel"},
+                new String[]{"F1", "Show this help dialog"}
+        );
 
-                FEATURES:
+        var helpDialog = DialogHelper.createHelpDialog(
+                "Schematron Validator - Help",
+                "Schematron Validator",
+                "Business rules and validation for XML documents",
+                "bi-shield-check",
+                DialogHelper.HeaderTheme.WARNING,
+                features,
+                shortcuts
+        );
 
-                • Code Editor: Create and edit Schematron rules with syntax highlighting and auto-completion
-                • Visual Builder: Create rules visually without XML knowledge using a user-friendly interface
-                • Testing: Validate XML documents against your Schematron rules and see detailed results
-                • Documentation: Automatically generate documentation for your Schematron rules and validation logic
-
-                GETTING STARTED:
-
-                1. Go to the 'Code' tab to create a new Schematron schema or load an existing one
-                2. Use the 'New Rule' and 'New Pattern' buttons to add validation rules
-                3. Test your rules in the 'Test' tab with sample XML documents
-                4. Generate documentation for your schema in the 'Documentation' tab
-
-                KEYBOARD SHORTCUTS:
-
-                - F5: Run all tests
-                - Ctrl+S: Save Schematron file
-                - Ctrl+Shift+S: Save As
-                - Ctrl+D: Add to favorites
-                - Ctrl+Shift+D: Toggle favorites panel
-                - F1: Show this help dialog
-                """);
         helpDialog.showAndWait();
     }
 

@@ -314,7 +314,7 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
      * @return true if latest is newer than current, false otherwise
      */
     boolean isNewerVersion(String latest, String current) {
-        if (latest == null || current == null) {
+        if (latest == null || current == null || latest.isEmpty() || current.isEmpty()) {
             return false;
         }
 

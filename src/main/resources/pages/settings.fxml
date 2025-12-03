@@ -329,6 +329,23 @@
                                     <Label text="Help improve the application by sharing anonymous usage data"
                                            style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
                                 </VBox>
+
+                                <!-- Cache Information -->
+                                <VBox spacing="6"
+                                      style="-fx-background-color: #e8f5e9; -fx-background-radius: 4px; -fx-padding: 12px;">
+                                    <HBox spacing="8" alignment="CENTER_LEFT">
+                                        <FontIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#28a745"/>
+                                        <Label text="Cache Folder:"
+                                               style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                    </HBox>
+                                    <Label fx:id="cachePathLabel" text="Loading..."
+                                           style="-fx-font-size: 11px; -fx-text-fill: #495057; -fx-font-family: monospace; -fx-wrap-text: true;"/>
+                                    <HBox spacing="12" alignment="CENTER_LEFT">
+                                        <Label fx:id="cacheSizeLabel" text="Cache size: calculating..."
+                                               style="-fx-font-size: 11px; -fx-text-fill: #6c757d;"/>
+                                    </HBox>
+                                </VBox>
+
                                 <HBox spacing="12" alignment="CENTER_LEFT">
                                     <Button fx:id="clearCacheButton" mnemonicParsing="false" onAction="#clearCache"
                                             text="Clear Local Cache"
@@ -337,8 +354,14 @@
                                             <FontIcon iconLiteral="bi-trash" iconSize="14"/>
                                         </graphic>
                                     </Button>
-                                    <Label fx:id="cacheSizeLabel" text="Cache size: calculating..."
-                                           style="-fx-font-size: 11px; -fx-text-fill: #6c757d;"/>
+                                    <Button fx:id="openCacheFolderButton" mnemonicParsing="false"
+                                            onAction="#openCacheFolder"
+                                            text="Open Folder"
+                                            style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                        </graphic>
+                                    </Button>
                                 </HBox>
                             </VBox>
                         </VBox>

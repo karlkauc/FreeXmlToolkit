@@ -40,6 +40,7 @@ import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.TemplateEngine;
 import org.fxt.freexmltoolkit.service.TemplateRepository;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -678,12 +679,27 @@ public class TemplatesController {
      */
     @FXML
     private void showHelp() {
-        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
-        helpDialog.setTitle("Templates - Help");
-        helpDialog.setHeaderText("How to use the Smart Templates System");
-        helpDialog.setContentText("""
-                Use this tool to work with your documents.\n\n                Press F1 to show this help.
-                """);
+        var features = java.util.List.of(
+                new String[]{"bi-file-earmark-text", "Template Management", "Create, edit, and organize your XML templates"},
+                new String[]{"bi-lightning", "Quick Generation", "Generate XML documents from templates with custom parameters"},
+                new String[]{"bi-sliders", "Parameter Support", "Define and customize template parameters easily"},
+                new String[]{"bi-clipboard-check", "Preview & Copy", "Preview generated XML and copy to clipboard"}
+        );
+
+        var shortcuts = java.util.List.<String[]>of(
+                new String[]{"F1", "Show this help dialog"}
+        );
+
+        var helpDialog = DialogHelper.createHelpDialog(
+                "Templates - Help",
+                "Smart Templates",
+                "Create and manage XML templates for quick document generation",
+                "bi-file-earmark-text",
+                DialogHelper.HeaderTheme.PURPLE,
+                features,
+                shortcuts
+        );
+
         helpDialog.showAndWait();
     }
 

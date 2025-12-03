@@ -23,6 +23,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
@@ -40,7 +45,9 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Properties;
@@ -128,10 +135,10 @@ public class SettingsController {
     CheckBox useSmallIcons;
 
     @FXML
-    Button clearCacheButton;
+    Button clearCacheButton, openCacheFolderButton;
 
     @FXML
-    Label cacheSizeLabel;
+    Label cacheSizeLabel, cachePathLabel;
 
     // Data for favorites table
     private final ObservableList<FileFavorite> favoritesData = FXCollections.observableArrayList();
@@ -795,37 +802,43 @@ public class SettingsController {
     // Cache Management Methods
 
     /**
-     * Updates the cache size label with the current cache folder size.
+     * Updates the cache size and path labels with current cache folder information.
      */
     private void updateCacheSizeLabel() {
         try {
             File cacheDir = getCacheFolder();
-            if (cacheDir != null && cacheDir.exists()) {
-                long size = calculateFolderSize(cacheDir);
-                cacheSizeLabel.setText("Cache size: " + formatFileSize(size));
+            if (cacheDir != null) {
+                // Update cache path label
+                cachePathLabel.setText(cacheDir.getAbsolutePath());
+
+                if (cacheDir.exists()) {
+                    long size = calculateFolderSize(cacheDir);
+                    cacheSizeLabel.setText("Cache size: " + formatFileSize(size));
+                } else {
+                    cacheSizeLabel.setText("Cache size: 0 B (folder does not exist yet)");
+                }
             } else {
+                cachePathLabel.setText("Not configured");
                 cacheSizeLabel.setText("Cache size: 0 B");
             }
         } catch (Exception e) {
             logger.warn("Could not calculate cache size: {}", e.getMessage());
+            cachePathLabel.setText("Error loading path");
             cacheSizeLabel.setText("Cache size: unknown");
         }
     }
 
     /**
-     * Gets the cache folder based on current settings.
+     * Gets the cache folder.
+     * This returns the folder where cached files are stored.
      *
-     * @return The cache folder
+     * @return The cache folder (~/.freeXmlToolkit/cache/)
      */
     private File getCacheFolder() {
-        Properties properties = propertiesService.loadProperties();
-        boolean useSystem = Boolean.parseBoolean(properties.getProperty("useSystemTempFolder", "true"));
-        if (useSystem) {
-            return new File(System.getProperty("java.io.tmpdir"), "FreeXmlToolkit");
-        } else {
-            String customFolder = properties.getProperty("customTempFolder", System.getProperty("java.io.tmpdir"));
-            return new File(customFolder);
-        }
+        return new File(
+                org.apache.commons.io.FileUtils.getUserDirectory(),
+                ".freeXmlToolkit" + File.separator + "cache"
+        );
     }
 
     /**
@@ -859,6 +872,46 @@ public class SettingsController {
                 }
             }
         });
+    }
+
+    /**
+     * Opens the cache folder in the system file explorer.
+     */
+    @FXML
+    private void openCacheFolder() {
+        try {
+            File cacheDir = getCacheFolder();
+            if (cacheDir != null) {
+                // Create folder if it doesn't exist
+                if (!cacheDir.exists()) {
+                    boolean created = cacheDir.mkdirs();
+                    if (!created) {
+                        showAlert(Alert.AlertType.ERROR, "Error",
+                                "Could not create cache folder: " + cacheDir.getAbsolutePath());
+                        return;
+                    }
+                    logger.info("Created cache folder: {}", cacheDir.getAbsolutePath());
+                }
+
+                // Open folder in system file explorer
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+                    Desktop.getDesktop().open(cacheDir);
+                    logger.debug("Opened cache folder: {}", cacheDir.getAbsolutePath());
+                } else {
+                    // Fallback: show the path in a dialog
+                    showAlert(Alert.AlertType.INFORMATION, "Cache Folder Location",
+                            "Cache folder path:\n\n" + cacheDir.getAbsolutePath() +
+                                    "\n\nNote: Your system does not support opening folders directly.");
+                }
+            } else {
+                showAlert(Alert.AlertType.WARNING, "No Cache Folder",
+                        "Cache folder is not configured.");
+            }
+        } catch (IOException e) {
+            logger.error("Failed to open cache folder", e);
+            showAlert(Alert.AlertType.ERROR, "Error Opening Folder",
+                    "Could not open the cache folder: " + e.getMessage());
+        }
     }
 
     /**

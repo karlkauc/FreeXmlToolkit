@@ -42,6 +42,7 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 import java.awt.*;
 import java.io.File;
@@ -685,19 +686,31 @@ public class XsltController {
      */
     @FXML
     private void showHelp() {
-        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
-        helpDialog.setTitle("XSLT - Help");
-        helpDialog.setHeaderText("How to use the XSLT Transformation Tool");
-        helpDialog.setContentText("""
-                Use this tool to work with your documents.
+        var features = java.util.List.of(
+                new String[]{"bi-arrow-repeat", "Auto-Refresh", "File lists update automatically every 5 seconds to show new files"},
+                new String[]{"bi-lightning-charge", "Auto-Recompile", "Stylesheets are automatically recompiled when changes are detected"},
+                new String[]{"bi-file-earmark-arrow-down", "Drag & Drop Support", "Drop XML and XSLT files directly onto the interface to load them"},
+                new String[]{"bi-eye", "Dual Output Views", "View transformation results as rendered HTML or raw text/XML"},
+                new String[]{"bi-graph-up", "Performance Statistics", "Detailed metrics including execution time, file sizes, and throughput"},
+                new String[]{"bi-link-45deg", "Linked Stylesheet Detection", "Automatically detects and loads stylesheets referenced in XML files"}
+        );
 
-                FEATURES:
-                - Auto-refresh: File lists update automatically every 5 seconds
-                - Auto-recompile: Stylesheets are recompiled when changed
-                - Drag & Drop: Drop XML/XSLT files to load them
+        var shortcuts = java.util.List.of(
+                new String[]{"Ctrl+R", "Reload and transform"},
+                new String[]{"Ctrl+B", "Open result in default browser"},
+                new String[]{"Ctrl+Shift+E", "Open result in text editor"},
+                new String[]{"F1", "Show this help dialog"}
+        );
 
-                Press F1 to show this help.
-                """);
+        var helpDialog = DialogHelper.createHelpDialog(
+                "XSLT Viewer - Help",
+                "XSLT Transformation Tool",
+                "Transform XML documents with XSLT stylesheets using a file-explorer-based interface.",
+                "bi-arrow-left-right",
+                DialogHelper.HeaderTheme.SUCCESS,
+                features,
+                shortcuts
+        );
         helpDialog.showAndWait();
     }
 

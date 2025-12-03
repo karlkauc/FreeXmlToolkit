@@ -21,7 +21,6 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
-import java.util.concurrent.CompletableFuture;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -53,6 +52,7 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -70,6 +70,7 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -2632,29 +2633,39 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
      */
     @FXML
     private void showHelp() {
-        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
-        helpDialog.setTitle("XML Editor - Help");
-        helpDialog.setHeaderText("How to use the Ultimate XML Editor");
-        helpDialog.setContentText("""
-                Edit and validate XML documents with powerful features.
+        // Define features with icons
+        var features = java.util.List.of(
+                new String[]{"bi-code-slash", "Syntax Highlighting", "Rich code highlighting for XML, XSD, and related formats"},
+                new String[]{"bi-lightbulb", "IntelliSense & Auto-Complete", "Context-aware suggestions based on your XSD schema"},
+                new String[]{"bi-search", "XPath & XQuery", "Execute XPath and XQuery expressions with live results"},
+                new String[]{"bi-check-circle", "Validation", "Validate XML against XSD schemas with detailed error reporting"},
+                new String[]{"bi-braces", "Format & Prettify", "Auto-format and beautify your XML documents"},
+                new String[]{"bi-arrow-counterclockwise", "Undo/Redo", "Full undo/redo history for all changes"}
+        );
 
-                FEATURES:
-                - Syntax highlighting and code completion
-                - XPath and XQuery execution
-                - XML validation against XSD
-                - Format and prettify XML
-                - Undo/Redo support
+        // Define keyboard shortcuts
+        var shortcuts = java.util.List.of(
+                new String[]{"Ctrl+Z", "Undo last change"},
+                new String[]{"Ctrl+Y", "Redo last undone change"},
+                new String[]{"Ctrl+S", "Save current file"},
+                new String[]{"Ctrl+Shift+S", "Save file with new name"},
+                new String[]{"F5", "Validate XML against schema"},
+                new String[]{"Ctrl+D", "Add current file to favorites"},
+                new String[]{"Ctrl+Shift+D", "Toggle favorites panel"},
+                new String[]{"F1", "Show this help dialog"}
+        );
 
-                KEYBOARD SHORTCUTS:
-                - Ctrl+Z: Undo
-                - Ctrl+Y: Redo
-                - F5: Validate XML
-                - Ctrl+S: Save file
-                - Ctrl+Shift+S: Save As
-                - Ctrl+D: Add to favorites
-                - Ctrl+Shift+D: Toggle favorites panel
-                - F1: Show this help dialog
-                """);
+        // Create and show the help dialog
+        var helpDialog = DialogHelper.createHelpDialog(
+                "XML Editor - Help",
+                "XML Editor",
+                "Edit and validate XML documents with powerful features",
+                "bi-file-earmark-code",
+                DialogHelper.HeaderTheme.PRIMARY,
+                features,
+                shortcuts
+        );
+
         helpDialog.showAndWait();
     }
 }

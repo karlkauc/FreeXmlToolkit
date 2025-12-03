@@ -32,6 +32,7 @@ import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.fxt.freexmltoolkit.service.SignatureService;
 import org.fxt.freexmltoolkit.service.SignatureService.SignatureServiceException;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 import java.io.File;
 
@@ -696,72 +697,33 @@ public class SignatureController {
      */
     @FXML
     private void showHelp() {
-        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
-        helpDialog.setTitle("XML Signature Tool - Help");
-        helpDialog.setHeaderText("Digital Signatures for XML Documents");
-        helpDialog.setContentText("""
-                HOW TO USE THE SIGNATURE TOOL
+        var features = java.util.List.of(
+                new String[]{"bi-key", "Certificate Creation", "Generate self-signed digital certificates with RSA, DSA, EC, or ECDSA algorithms"},
+                new String[]{"bi-pen", "XML Signing", "Apply enveloped, enveloping, or detached digital signatures to XML documents"},
+                new String[]{"bi-patch-check", "Signature Validation", "Verify the cryptographic integrity of signed XML documents"},
+                new String[]{"bi-sliders", "Expert Mode", "Advanced XML-DSig options with full control over algorithms and methods"},
+                new String[]{"bi-shield-lock", "Multiple Algorithms", "Support for SHA1/SHA256/SHA384/SHA512 digest and signature algorithms"},
+                new String[]{"bi-file-earmark-lock", "Keystore Management", "Create and manage JKS keystores with secure password protection"},
+                new String[]{"bi-file-earmark-arrow-down", "Drag & Drop", "Load XML and keystore files by dragging them onto the interface"}
+        );
 
-                This tool provides a complete workflow for creating digital certificates, signing XML documents,
-                validating signatures, and advanced XML-DSig operations through Expert Mode.
+        var shortcuts = java.util.List.of(
+                new String[]{"Tab 1", "Create Certificate and Keystore"},
+                new String[]{"Tab 2", "Sign XML Document"},
+                new String[]{"Tab 3", "Validate Signed Document"},
+                new String[]{"Tab 4", "Expert Mode (Advanced)"},
+                new String[]{"F1", "Show this help dialog"}
+        );
 
-                1. CREATE A CERTIFICATE AND KEYSTORE
-
-                This tab allows you to generate a new self-signed digital certificate and a secure keystore (.jks file)
-                to hold it. Fill in the 'Distinguished Name (DN)' details to identify the certificate owner. Provide a
-                unique alias and strong passwords for the keystore and the key itself. Upon creation, the tool will
-                generate a .jks file, a _publicKey.pem, an encrypted _privateKey.pem, and a summary.txt in the
-                certs/[alias] directory.
-
-                2. SIGN AN XML DOCUMENT
-
-                Use this tab to apply a digital signature to an XML file. First, load the XML document you want to sign
-                and the .jks keystore file you created in the previous step. Then, enter the alias and passwords that
-                match the keystore. The tool will create a new, signed XML file with a _signed postfix, embedding the
-                signature directly into the document.
-
-                3. VALIDATE A SIGNED DOCUMENT
-
-                This tab verifies the integrity of a signed XML document. Load a signed XML file (e.g., one created in
-                step 2). The application will check if the signature is cryptographically valid and has not been tampered
-                with. You will receive a confirmation message indicating whether the validation was successful or not.
-
-                4. EXPERT MODE - ADVANCED XML-DSIG OPERATIONS
-
-                The Expert Mode provides comprehensive XML Digital Signature capabilities according to W3C XML-DSig
-                standards. This advanced interface allows you to access all available key algorithms, signature methods,
-                and validation options for professional XML security requirements.
-
-                Advanced Key Generation:
-                • Choose from RSA, DSA, EC (Elliptic Curve), or ECDSA algorithms
-                • Configure key sizes: RSA/DSA (1024-4096 bits), EC (256-521 bits)
-                • Select signature algorithms: SHA1/SHA256/SHA384/SHA512 with RSA/DSA/ECDSA
-                • Set certificate validity period and Subject Alternative Names
-                • Generate certificates with advanced cryptographic options
-
-                Advanced XML Signing:
-                • Canonicalization Methods: Standard C14N, Exclusive C14N (with/without comments)
-                • Transform Methods: Enveloped signature, XPath, XSLT, canonicalization
-                • Digest Methods: SHA1, SHA256, SHA384, SHA512, MD5
-                • Signature Types: Enveloped (inside document), Enveloping (document inside signature), Detached (separate)
-                • Configure all XML-DSig parameters according to your security requirements
-
-                Advanced Signature Validation:
-                • Certificate Chain Validation: Verify complete certificate hierarchy
-                • Trust Anchor Validation: Check against trusted certificate authorities
-                • Revocation Checking: OCSP and CRL certificate revocation verification
-                • Timestamp Validation: Verify time-stamped signatures for long-term validity
-                • Detailed Reports: Generate comprehensive validation reports with technical details
-
-                Professional Features:
-                • Real-time logging with timestamps in the results area
-                • Drag-and-drop file support for all operations
-                • Comprehensive error reporting and validation feedback
-                • Full compliance with W3C XML-DSig and related security standards
-                • Suitable for enterprise and high-security applications
-
-                Press F1 to show this help.
-                """);
+        var helpDialog = DialogHelper.createHelpDialog(
+                "XML Signature Tool - Help",
+                "Digital Signatures",
+                "Complete XML digital signature workflow: create certificates, sign documents, and validate signatures according to W3C XML-DSig standards.",
+                "bi-shield-check",
+                DialogHelper.HeaderTheme.INFO,
+                features,
+                shortcuts
+        );
         helpDialog.showAndWait();
     }
 

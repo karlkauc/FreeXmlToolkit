@@ -22,6 +22,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +37,10 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -52,6 +58,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li>HTTP/HTTPS support with configurable timeout</li>
  *   <li>Cache statistics tracking</li>
  *   <li>Manual cache clearing</li>
+ *   <li>Persistent metadata index (cache-index.json)</li>
  * </ul>
  * </p>
  */
@@ -64,12 +71,15 @@ public class SchemaResourceCache {
             ".freeXmlToolkit", "cache", "schemas"
     );
 
+    private static final Path INDEX_FILE = CACHE_DIR.resolve("cache-index.json");
+
     private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(30);
 
     private final ConcurrentHashMap<String, Path> urlToLocalPath = new ConcurrentHashMap<>();
     private final HttpClient httpClient;
+    private final SchemaCacheIndex cacheIndex;
 
-    // Statistics
+    // Statistics (kept for backward compatibility)
     private final AtomicLong cacheHits = new AtomicLong(0);
     private final AtomicLong cacheMisses = new AtomicLong(0);
     private final AtomicLong downloadErrors = new AtomicLong(0);
@@ -93,6 +103,9 @@ public class SchemaResourceCache {
             logger.error("Failed to create schema cache directory: {}", CACHE_DIR, e);
         }
 
+        // Load or create cache index
+        this.cacheIndex = SchemaCacheIndex.load(INDEX_FILE);
+
         // Load existing cached files into memory map
         loadExistingCache();
     }
@@ -108,27 +121,51 @@ public class SchemaResourceCache {
      * @throws IOException if the download fails or the file cannot be written
      */
     public Path getOrDownload(String url) throws IOException {
+        return getOrDownload(url, null);
+    }
+
+    /**
+     * Gets or downloads a remote schema file, tracking the referencing schema.
+     *
+     * @param url            the remote URL of the schema file
+     * @param referencingUrl the URL of the schema that references this one (for tracking)
+     * @return the local path to the cached schema file
+     * @throws IOException if the download fails or the file cannot be written
+     */
+    public Path getOrDownload(String url, String referencingUrl) throws IOException {
+        String filename = generateFilename(url);
+
         // Check in-memory cache first
         Path cachedPath = urlToLocalPath.get(url);
         if (cachedPath != null && Files.exists(cachedPath)) {
             cacheHits.incrementAndGet();
+            cacheIndex.recordAccess(filename);
+            if (referencingUrl != null) {
+                cacheIndex.addReference(filename, referencingUrl);
+            }
             logger.debug("Cache hit for schema: {}", url);
             return cachedPath;
         }
 
         // Check if file exists on disk (might have been cached in previous session)
-        String filename = generateFilename(url);
         Path localPath = CACHE_DIR.resolve(filename);
         if (Files.exists(localPath)) {
             urlToLocalPath.put(url, localPath);
             cacheHits.incrementAndGet();
+            cacheIndex.recordAccess(filename);
+            if (referencingUrl != null) {
+                cacheIndex.addReference(filename, referencingUrl);
+            }
             logger.debug("Cache hit (disk) for schema: {}", url);
             return localPath;
         }
 
         // Download and cache
         cacheMisses.incrementAndGet();
+        cacheIndex.recordCacheMiss();
         logger.info("Downloading remote schema: {}", url);
+
+        long startTime = System.currentTimeMillis();
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -137,18 +174,34 @@ public class SchemaResourceCache {
                     .GET()
                     .build();
 
-            HttpResponse<InputStream> response = httpClient.send(request,
-                    HttpResponse.BodyHandlers.ofInputStream());
+            HttpResponse<byte[]> response = httpClient.send(request,
+                    HttpResponse.BodyHandlers.ofByteArray());
+
+            long downloadDuration = System.currentTimeMillis() - startTime;
 
             if (response.statusCode() != 200) {
                 downloadErrors.incrementAndGet();
+                cacheIndex.recordDownloadError();
                 throw new IOException("HTTP " + response.statusCode() + " for URL: " + url);
             }
 
+            byte[] content = response.body();
+
             // Write to cache file
-            try (InputStream inputStream = response.body()) {
-                Files.copy(inputStream, localPath);
+            Files.write(localPath, content);
+
+            // Create cache entry with metadata
+            SchemaCacheEntry entry = createCacheEntry(
+                    filename, url, localPath, content, response, downloadDuration
+            );
+            cacheIndex.addOrUpdateEntry(entry);
+
+            if (referencingUrl != null) {
+                cacheIndex.addReference(filename, referencingUrl);
             }
+
+            // Save index after download
+            cacheIndex.save(INDEX_FILE);
 
             urlToLocalPath.put(url, localPath);
             logger.info("Cached remote schema: {} -> {}", url, localPath);
@@ -157,11 +210,152 @@ public class SchemaResourceCache {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             downloadErrors.incrementAndGet();
+            cacheIndex.recordDownloadError();
             throw new IOException("Download interrupted for URL: " + url, e);
         } catch (Exception e) {
             downloadErrors.incrementAndGet();
+            cacheIndex.recordDownloadError();
             throw new IOException("Failed to download schema from URL: " + url, e);
         }
+    }
+
+    /**
+     * Creates a cache entry with all metadata.
+     */
+    private SchemaCacheEntry createCacheEntry(
+            String filename,
+            String url,
+            Path localPath,
+            byte[] content,
+            HttpResponse<byte[]> response,
+            long downloadDuration
+    ) {
+        // Calculate hashes
+        String md5Hash = calculateHash(content, "MD5");
+        String sha256Hash = calculateHash(content, "SHA-256");
+
+        // Extract HTTP headers
+        Long contentLength = response.headers().firstValueAsLong("Content-Length").stream()
+                .boxed().findFirst().orElse(null);
+        SchemaCacheEntry.HttpInfo httpInfo = new SchemaCacheEntry.HttpInfo(
+                response.statusCode(),
+                response.headers().firstValue("Content-Type").orElse(null),
+                response.headers().firstValue("Last-Modified").orElse(null),
+                response.headers().firstValue("ETag").orElse(null),
+                contentLength,
+                downloadDuration
+        );
+
+        // Extract schema info
+        SchemaCacheEntry.SchemaInfo schemaInfo = extractSchemaInfo(localPath);
+
+        return SchemaCacheEntry.builder()
+                .localFilename(filename)
+                .remoteUrl(url)
+                .downloadTimestamp(Instant.now())
+                .fileSizeBytes(content.length)
+                .md5Hash(md5Hash)
+                .sha256Hash(sha256Hash)
+                .http(httpInfo)
+                .schema(schemaInfo)
+                .usage(SchemaCacheEntry.UsageInfo.initial())
+                .build();
+    }
+
+    /**
+     * Calculates a hash of the given content.
+     */
+    private String calculateHash(byte[] content, String algorithm) {
+        try {
+            MessageDigest md = MessageDigest.getInstance(algorithm);
+            byte[] hash = md.digest(content);
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            logger.warn("Hash algorithm {} not available", algorithm);
+            return null;
+        }
+    }
+
+    /**
+     * Extracts schema information from an XSD file using StAX.
+     */
+    private SchemaCacheEntry.SchemaInfo extractSchemaInfo(Path schemaFile) {
+        String targetNamespace = null;
+        String xsdVersion = "1.0"; // Default
+        List<String> imports = new ArrayList<>();
+        List<String> includes = new ArrayList<>();
+        List<String> redefines = new ArrayList<>();
+
+        try {
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
+            factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+
+            try (InputStream is = Files.newInputStream(schemaFile)) {
+                XMLStreamReader reader = factory.createXMLStreamReader(is);
+
+                while (reader.hasNext()) {
+                    int event = reader.next();
+
+                    if (event == XMLStreamConstants.START_ELEMENT) {
+                        String localName = reader.getLocalName();
+                        String namespaceURI = reader.getNamespaceURI();
+
+                        // Check if it's an XSD element
+                        if ("http://www.w3.org/2001/XMLSchema".equals(namespaceURI)) {
+                            switch (localName) {
+                                case "schema" -> {
+                                    targetNamespace = reader.getAttributeValue(null, "targetNamespace");
+                                }
+                                case "import" -> {
+                                    String schemaLocation = reader.getAttributeValue(null, "schemaLocation");
+                                    if (schemaLocation != null && !schemaLocation.isBlank()) {
+                                        imports.add(schemaLocation);
+                                    }
+                                }
+                                case "include" -> {
+                                    String schemaLocation = reader.getAttributeValue(null, "schemaLocation");
+                                    if (schemaLocation != null && !schemaLocation.isBlank()) {
+                                        includes.add(schemaLocation);
+                                    }
+                                }
+                                case "redefine" -> {
+                                    String schemaLocation = reader.getAttributeValue(null, "schemaLocation");
+                                    if (schemaLocation != null && !schemaLocation.isBlank()) {
+                                        redefines.add(schemaLocation);
+                                    }
+                                }
+                                case "override" -> {
+                                    // XSD 1.1 feature
+                                    xsdVersion = "1.1";
+                                    String schemaLocation = reader.getAttributeValue(null, "schemaLocation");
+                                    if (schemaLocation != null && !schemaLocation.isBlank()) {
+                                        redefines.add(schemaLocation);
+                                    }
+                                }
+                                case "assert", "assertion", "openContent", "defaultOpenContent" -> {
+                                    // XSD 1.1 features
+                                    xsdVersion = "1.1";
+                                }
+                            }
+                        }
+                    }
+                }
+
+                reader.close();
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to extract schema info from {}: {}", schemaFile, e.getMessage());
+            return SchemaCacheEntry.SchemaInfo.empty();
+        }
+
+        return new SchemaCacheEntry.SchemaInfo(
+                targetNamespace,
+                xsdVersion,
+                imports.isEmpty() ? List.of() : List.copyOf(imports),
+                includes.isEmpty() ? List.of() : List.copyOf(includes),
+                redefines.isEmpty() ? List.of() : List.copyOf(redefines)
+        );
     }
 
     /**
@@ -205,6 +399,7 @@ public class SchemaResourceCache {
         }
 
         urlToLocalPath.clear();
+        cacheIndex.clear();
         cacheHits.set(0);
         cacheMisses.set(0);
         downloadErrors.set(0);
@@ -255,6 +450,22 @@ public class SchemaResourceCache {
     }
 
     /**
+     * Gets the cache index for accessing detailed metadata.
+     *
+     * @return the cache index
+     */
+    public SchemaCacheIndex getCacheIndex() {
+        return cacheIndex;
+    }
+
+    /**
+     * Saves the cache index to disk.
+     */
+    public void saveIndex() {
+        cacheIndex.save(INDEX_FILE);
+    }
+
+    /**
      * Generates a unique filename for a URL using MD5 hash.
      * Preserves the original file extension.
      */
@@ -290,7 +501,51 @@ public class SchemaResourceCache {
         try {
             if (Files.exists(CACHE_DIR)) {
                 logger.debug("Loading existing schema cache from: {}", CACHE_DIR);
-                // Files are loaded on-demand, no need to pre-populate
+
+                // Rebuild URL-to-path mappings from index
+                for (var entry : cacheIndex.getEntries().entrySet()) {
+                    String filename = entry.getKey();
+                    SchemaCacheEntry cacheEntry = entry.getValue();
+                    Path localPath = CACHE_DIR.resolve(filename);
+
+                    if (Files.exists(localPath) && cacheEntry.remoteUrl() != null) {
+                        urlToLocalPath.put(cacheEntry.remoteUrl(), localPath);
+                    }
+                }
+
+                // Also scan for files not in index (from previous versions)
+                File[] files = CACHE_DIR.toFile().listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        if (file.isFile() && !file.getName().equals("cache-index.json")) {
+                            String filename = file.getName();
+                            if (!cacheIndex.getEntry(filename).isPresent()) {
+                                // Create basic entry for legacy cached file
+                                try {
+                                    byte[] content = Files.readAllBytes(file.toPath());
+                                    SchemaCacheEntry.SchemaInfo schemaInfo = extractSchemaInfo(file.toPath());
+
+                                    SchemaCacheEntry entry = SchemaCacheEntry.builder()
+                                            .localFilename(filename)
+                                            .fileSizeBytes(file.length())
+                                            .md5Hash(calculateHash(content, "MD5"))
+                                            .sha256Hash(calculateHash(content, "SHA-256"))
+                                            .schema(schemaInfo)
+                                            .usage(SchemaCacheEntry.UsageInfo.initial())
+                                            .build();
+
+                                    cacheIndex.addOrUpdateEntry(entry);
+                                    logger.debug("Added legacy cache entry: {}", filename);
+                                } catch (IOException e) {
+                                    logger.warn("Failed to index legacy cache file: {}", filename);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Save updated index
+                cacheIndex.save(INDEX_FILE);
             }
         } catch (Exception e) {
             logger.warn("Error loading existing cache", e);
