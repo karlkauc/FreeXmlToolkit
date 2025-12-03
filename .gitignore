@@ -9,6 +9,8 @@ CLAUDE.md
 GEMINI.md
 
 .claude/settings.local.json
+*settings.local.json
+
 
 # Backup Files
 *.bak*
