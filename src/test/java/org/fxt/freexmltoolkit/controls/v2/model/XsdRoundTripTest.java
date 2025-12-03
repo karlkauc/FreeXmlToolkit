@@ -332,4 +332,101 @@ class XsdRoundTripTest {
 
         System.out.println("✅ Round-trip test passed for list and union types");
     }
+
+    @Test
+    void testRoundTripMultiLanguageDocumentation() throws Exception {
+        // This test reproduces the user's issue: opening an XSD with multi-language
+        // documentation (xml:lang attributes) and saving it should preserve the
+        // separate documentation elements, not merge them into a single element.
+        String originalXsd = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                    <xs:complexType name="AccountType">
+                        <xs:annotation>
+                            <xs:documentation>Master data of accounts</xs:documentation>
+                        </xs:annotation>
+                        <xs:sequence>
+                            <xs:element name="IndicatorCreditDebit" minOccurs="0">
+                                <xs:annotation>
+                                    <xs:documentation xml:lang="en">Account balance set as default</xs:documentation>
+                                    <xs:documentation xml:lang="de">Gibt an ob das Konto default einen Soll oder Habensaldo aufweist</xs:documentation>
+                                </xs:annotation>
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="Credit"/>
+                                        <xs:enumeration value="Debit"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element name="AccountNumber" type="xs:integer" minOccurs="0">
+                                <xs:annotation>
+                                    <xs:documentation xml:lang="en">Account number used for booking procedure</xs:documentation>
+                                    <xs:documentation xml:lang="de">Gibt das bei einer Buchung verwendete Konto an</xs:documentation>
+                                </xs:annotation>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:schema>
+                """;
+
+        XsdNodeFactory factory = new XsdNodeFactory();
+        XsdSerializer serializer = new XsdSerializer();
+
+        // Parse original XSD
+        XsdSchema schema1 = factory.fromString(originalXsd);
+
+        // Verify multi-language documentations were parsed correctly
+        XsdComplexType accountType = (XsdComplexType) schema1.getChildren().get(0);
+        XsdSequence sequence = (XsdSequence) accountType.getChildren().get(0);
+        XsdElement indicatorElement = (XsdElement) sequence.getChildren().get(0);
+
+        // Check that the element has 2 documentation entries with correct languages
+        assertEquals(2, indicatorElement.getDocumentations().size(),
+                    "Element should have 2 documentation entries");
+        assertEquals("en", indicatorElement.getDocumentations().get(0).getLang(),
+                    "First documentation should be 'en'");
+        assertEquals("de", indicatorElement.getDocumentations().get(1).getLang(),
+                    "Second documentation should be 'de'");
+
+        // Serialize WITHOUT any editing (simulating open-save cycle)
+        String serialized1 = serializer.serialize(schema1);
+
+        // Verify the serialized output contains separate documentation elements with xml:lang
+        assertTrue(serialized1.contains("xml:lang=\"en\""),
+                  "Serialized XSD should contain xml:lang=\"en\" attribute");
+        assertTrue(serialized1.contains("xml:lang=\"de\""),
+                  "Serialized XSD should contain xml:lang=\"de\" attribute");
+        assertTrue(serialized1.contains("Account balance set as default"),
+                  "Serialized XSD should contain English text");
+        assertTrue(serialized1.contains("Gibt an ob das Konto default einen Soll oder Habensaldo aufweist"),
+                  "Serialized XSD should contain German text");
+
+        // Verify it does NOT merge them with [lang] prefixes
+        assertFalse(serialized1.contains("[en]"),
+                   "Serialized XSD should NOT contain [en] prefix (indicates merged documentation)");
+        assertFalse(serialized1.contains("[de]"),
+                   "Serialized XSD should NOT contain [de] prefix (indicates merged documentation)");
+
+        // Parse again and verify round-trip stability
+        XsdSchema schema2 = factory.fromString(serialized1);
+        String serialized2 = serializer.serialize(schema2);
+
+        // Check that multi-language docs are still preserved after second round-trip
+        XsdComplexType accountType2 = (XsdComplexType) schema2.getChildren().get(0);
+        XsdSequence sequence2 = (XsdSequence) accountType2.getChildren().get(0);
+        XsdElement indicatorElement2 = (XsdElement) sequence2.getChildren().get(0);
+
+        assertEquals(2, indicatorElement2.getDocumentations().size(),
+                    "Element should still have 2 documentation entries after round-trip");
+        assertEquals("en", indicatorElement2.getDocumentations().get(0).getLang(),
+                    "First documentation should still be 'en' after round-trip");
+        assertEquals("de", indicatorElement2.getDocumentations().get(1).getLang(),
+                    "Second documentation should still be 'de' after round-trip");
+
+        // Verify both serializations are identical
+        assertEquals(normalizeXml(serialized1), normalizeXml(serialized2),
+                    "Round-trip serialization should produce identical results");
+
+        System.out.println("✅ Round-trip test passed for multi-language documentation");
+    }
 }

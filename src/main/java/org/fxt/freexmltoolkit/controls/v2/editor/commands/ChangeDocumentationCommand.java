@@ -3,7 +3,11 @@ package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Command to change the documentation text of an XSD node.
@@ -11,6 +15,10 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
  * This command modifies the xs:documentation annotation of an XSD element,
  * attribute, type, or other XSD construct. The documentation is typically
  * used to provide human-readable descriptions of schema components.
+ * <p>
+ * IMPORTANT: When setting the legacy documentation string, this command clears
+ * the multi-language documentations list to ensure the serializer uses the new
+ * string value instead of the old list entries.
  * <p>
  * Supports full undo/redo functionality by storing both old and new values.
  *
@@ -24,6 +32,7 @@ public class ChangeDocumentationCommand implements XsdCommand {
     private final XsdNode node;
     private final String oldDocumentation;
     private final String newDocumentation;
+    private final List<XsdDocumentation> oldDocumentations; // Preserve old multi-lang docs for undo
 
     /**
      * Creates a new change documentation command.
@@ -45,6 +54,8 @@ public class ChangeDocumentationCommand implements XsdCommand {
         this.node = node;
         this.oldDocumentation = node.getDocumentation();
         this.newDocumentation = newDocumentation;
+        // Save old multi-language documentations for undo
+        this.oldDocumentations = new ArrayList<>(node.getDocumentations());
     }
 
     @Override
@@ -54,6 +65,12 @@ public class ChangeDocumentationCommand implements XsdCommand {
                     node.getName(), oldDocumentation, newDocumentation);
 
             node.setDocumentation(newDocumentation);
+
+            // CRITICAL: Clear the multi-language documentations list.
+            // This ensures the XsdSerializer uses the updated legacy string
+            // instead of the stale list entries when saving the file.
+            node.clearDocumentations();
+
             editorContext.setDirty(true);
 
             logger.info("Successfully changed documentation of node '{}'", node.getName());
@@ -72,6 +89,10 @@ public class ChangeDocumentationCommand implements XsdCommand {
                     node.getName(), oldDocumentation);
 
             node.setDocumentation(oldDocumentation);
+
+            // Restore the old multi-language documentations list
+            node.setDocumentations(oldDocumentations);
+
             editorContext.setDirty(true);
 
             logger.info("Successfully undone documentation change of node '{}'", node.getName());

@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- edited with XMLSpy v2017 rel. 3 sp1 (http://www.altova.com) by Peter Raffelsberger (Private) -->
-<!-- Mit XMLSpy v2015 (x64) (http://www.altova.com) von Kauc Karl (Erste Asset Management GmbH) bearbeitet -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
-           elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
-    <xs:include schemaLocation="FundsXML4_Core.xsd"/>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" attributeFormDefault="unqualified" elementFormDefault="qualified" version="4.2.10" vc:minVersion="1.1">
     <xs:complexType name="FundStaticDataType">
         <xs:sequence>
             <xs:element name="DomicileCountry" type="ISOCountryCodeType" minOccurs="0">
@@ -73,8 +69,7 @@
             <xs:element name="ClosedType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>HARD ... Nobody can buy new shares
-                        SOFT ... Only existing investors can buy new shares
-                    </xs:documentation>
+SOFT ... Only existing investors can buy new shares</xs:documentation>
                 </xs:annotation>
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
@@ -132,37 +127,27 @@
                                 <xs:sequence>
                                     <xs:element name="Name" type="Text256Type">
                                         <xs:annotation>
-                                            <xs:documentation>Indicates the name of the person in charge of the
-                                                management of the portfolio
-                                            </xs:documentation>
+                                            <xs:documentation>Indicates the name of the person in charge of the management of the portfolio</xs:documentation>
                                         </xs:annotation>
                                     </xs:element>
                                     <xs:element name="StartDate" type="xs:date">
                                         <xs:annotation>
-                                            <xs:documentation>Indicates the start date from which on the fund manager
-                                                was made responsible for managing the portfolio.
-                                            </xs:documentation>
+                                            <xs:documentation>Indicates the start date from which on the fund manager was made responsible for managing the portfolio.</xs:documentation>
                                         </xs:annotation>
                                     </xs:element>
                                     <xs:element name="Role" type="xs:string">
                                         <xs:annotation>
-                                            <xs:documentation>Indicates the role of the person in charge of the
-                                                management of the portfolio
-                                            </xs:documentation>
+                                            <xs:documentation>Indicates the role of the person in charge of the management of the portfolio</xs:documentation>
                                         </xs:annotation>
                                     </xs:element>
                                     <xs:element name="YearOfBirth" type="xs:date" minOccurs="0">
                                         <xs:annotation>
-                                            <xs:documentation>Indicates the date of birth of the person in charge of the
-                                                management of the portfolio
-                                            </xs:documentation>
+                                            <xs:documentation>Indicates the date of birth of the person in charge of the management of the portfolio</xs:documentation>
                                         </xs:annotation>
                                     </xs:element>
                                     <xs:element name="Gender" minOccurs="0">
                                         <xs:annotation>
-                                            <xs:documentation>Indicates the gender of the person in charge of the
-                                                management of the portfolio
-                                            </xs:documentation>
+                                            <xs:documentation>Indicates the gender of the person in charge of the management of the portfolio</xs:documentation>
                                         </xs:annotation>
                                         <xs:simpleType>
                                             <xs:restriction base="xs:string">
@@ -174,9 +159,7 @@
                                     </xs:element>
                                     <xs:element name="StartOfCareer" type="xs:date" minOccurs="0">
                                         <xs:annotation>
-                                            <xs:documentation>Indicates when the person in charge of the management of
-                                                the portfolio started his professional career in the financial industry
-                                            </xs:documentation>
+                                            <xs:documentation>Indicates when the person in charge of the management of the portfolio started his professional career in the financial industry</xs:documentation>
                                         </xs:annotation>
                                     </xs:element>
                                     <xs:element name="Biography" minOccurs="0">
@@ -187,16 +170,12 @@
                                             <xs:sequence>
                                                 <xs:element name="BriefBiography" type="xs:string">
                                                     <xs:annotation>
-                                                        <xs:documentation>Indicates a brief curriculum vitae (CV) of the
-                                                            person in charge of the management of the portfolio
-                                                        </xs:documentation>
+                                                        <xs:documentation>Indicates a brief curriculum vitae (CV) of the person in charge of the management of the portfolio</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:element>
                                                 <xs:element name="BiographyLanguage" type="ISOLanguageCodeType">
                                                     <xs:annotation>
-                                                        <xs:documentation>Specifies the language of the Portfolio
-                                                            Manager's brief biography.
-                                                        </xs:documentation>
+                                                        <xs:documentation>Specifies the language of the Portfolio Manager&apos;s brief biography.</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:element>
                                             </xs:sequence>
@@ -233,11 +212,9 @@
                                 <xs:sequence>
                                     <xs:element name="CostType">
                                         <xs:annotation>
-                                            <xs:documentation>OGC (= "Management fees and other administrative or
-                                                operating cost")
-                                                Performance Fee
-                                                Transaction Costs
-                                            </xs:documentation>
+                                            <xs:documentation>OGC (= &quot;Management fees and other administrative or operating cost&quot;)
+Performance Fee
+Transaction Costs</xs:documentation>
                                         </xs:annotation>
                                         <xs:simpleType>
                                             <xs:restriction base="xs:string">
@@ -265,13 +242,11 @@
             </xs:element>
             <xs:element name="SFDRProductType" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>Financial Instrument SFDR Product Type
-                        Reference of the article of SFDR european regulation applying to the product (art 6, art 8 or
-                        art 9)
-                        6= no product acc. to Art. 8/9
-                        8= Art. 8 SFDR Product (ESG characteristics)
-                        9= Art. 9 SFDR product (ESG objective)
-                    </xs:documentation>
+                    <xs:documentation>Financial Instrument SFDR Product Type 
+Reference of the article of SFDR european regulation applying to the product (art 6, art 8 or art 9)
+6= no product acc. to Art. 8/9
+8= Art. 8 SFDR Product (ESG characteristics)
+9= Art. 9 SFDR product (ESG objective)</xs:documentation>
                 </xs:annotation>
                 <xs:simpleType>
                     <xs:restriction base="xs:int">
@@ -380,8 +355,7 @@
             <xs:element name="ClosedType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>HARD ... Nobody can buy new shares
-                        SOFT ... Only existing investors can buy new shares
-                    </xs:documentation>
+SOFT ... Only existing investors can buy new shares</xs:documentation>
                 </xs:annotation>
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
@@ -613,13 +587,7 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:attribute name="ListedType" type="BenchmarkUsageType"/>
-                    <xs:attribute name="FreeType">
-                        <xs:simpleType>
-                            <xs:restriction base="xs:string">
-                                <xs:maxLength value="100"/>
-                            </xs:restriction>
-                        </xs:simpleType>
-                    </xs:attribute>
+                    <xs:attribute name="FreeType"/>
                 </xs:complexType>
             </xs:element>
             <xs:element name="BenchmarkComponents" minOccurs="0">

@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2014 rel. 2 sp1 (x64) (http://www.altova.com) von newmagic datensysteme gmbh (newmagic datensysteme gmbh) bearbeitet -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
-           elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
-    <xs:include schemaLocation="FundsXML4_Core.xsd"/>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" attributeFormDefault="unqualified" elementFormDefault="qualified" version="4.2.10" vc:minVersion="1.1">
     <xs:complexType name="CountrySpecificDataATType">
         <xs:complexContent>
             <xs:extension base="xs:anyType"/>
@@ -12,14 +9,12 @@
         <xs:sequence>
             <xs:element name="FundDataPortalContent" type="xs:string" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>Valid options defined in documentation of fund data portal by OeKB
-                    </xs:documentation>
+                    <xs:documentation>Valid options defined in documentation of fund data portal by OeKB</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="FundDataPortalInfos" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>Optional informations from fund data portal when downloading data
-                    </xs:documentation>
+                    <xs:documentation>Optional informations from fund data portal when downloading data</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
@@ -50,15 +45,12 @@
                     <xs:sequence>
                         <xs:element name="Subscription" type="AmountType" minOccurs="0">
                             <xs:annotation>
-                                <xs:documentation>Mittelzufluesse aus Ausgabe von Anteilsrechten fuer den Gesamtfonds
-                                </xs:documentation>
+                                <xs:documentation>Mittelzufluesse aus Ausgabe von Anteilsrechten fuer den Gesamtfonds</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="Redemption" type="AmountType" minOccurs="0">
                             <xs:annotation>
-                                <xs:documentation>Mittelabfluesse aus Ruecknahme von Anteilsrechten fuer den
-                                    Gesamtfonds
-                                </xs:documentation>
+                                <xs:documentation>Mittelabfluesse aus Ruecknahme von Anteilsrechten fuer den Gesamtfonds</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="Distribution" type="AmountType" minOccurs="0">
@@ -68,21 +60,17 @@
                         </xs:element>
                         <xs:element name="TotalNetAssetPreviousMonth" type="AmountType" minOccurs="0">
                             <xs:annotation>
-                                <xs:documentation>Fondsvermoegen des Vormonats (ultimo) des Gesamtfonds (sollte dem Wert
-                                    der letzten Meldung entsprechen; wenns geht)
-                                </xs:documentation>
+                                <xs:documentation>Fondsvermoegen des Vormonats (ultimo) des Gesamtfonds (sollte dem Wert der letzten Meldung entsprechen; wenns geht)</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="OtherIncomeNonSecurities" type="AmountType" minOccurs="0">
                             <xs:annotation>
-                                <xs:documentation>Sonstiges Einkommen aus nicht-Wertpapiervermögen (Zinseinkommen aus
-                                    Einlagen, GmbH Ausschüttungen, etc)
-                                </xs:documentation>
+                                <xs:documentation>Sonstiges Einkommen aus nicht-Wertpapiervermögen (Zinseinkommen aus Einlagen, GmbH Ausschüttungen, etc)</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="Meldungstyp">
                             <xs:annotation>
-                                <xs:documentation>"OFI" ... OFI/IF Meldung an OeNB</xs:documentation>
+                                <xs:documentation>&quot;OFI&quot; ... OFI/IF Meldung an OeNB</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
@@ -95,9 +83,7 @@
             </xs:element>
             <xs:element name="PKG2012" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>Daten für die Quartalsmeldeverordnung 2012 der FMA auf der Basis des neuen
-                        Pensionskassengesetzes
-                    </xs:documentation>
+                    <xs:documentation>Daten für die Quartalsmeldeverordnung 2012 der FMA auf der Basis des neuen Pensionskassengesetzes</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence minOccurs="0">
@@ -109,26 +95,18 @@
                                 <xs:sequence>
                                     <xs:element name="Position" maxOccurs="unbounded">
                                         <xs:annotation>
-                                            <xs:documentation>Je Position zumindest ein Knoten mit einer UniqueID und
-                                                der QMV-Kategorie und/oder dem zuzurechnenden Betrag. Bei Derivaten
-                                                sollten hier zwei Knoten je Position angegeben werden (Bewertung +
-                                                Exposure).
-                                            </xs:documentation>
+                                            <xs:documentation>Je Position zumindest ein Knoten mit einer UniqueID und der QMV-Kategorie und/oder dem zuzurechnenden Betrag. Bei Derivaten sollten hier zwei Knoten je Position angegeben werden (Bewertung + Exposure).</xs:documentation>
                                         </xs:annotation>
                                         <xs:complexType>
                                             <xs:sequence>
                                                 <xs:element name="Identifiers" type="IdentifiersType">
                                                     <xs:annotation>
-                                                        <xs:documentation>Bezug zur Position bzw. Bezug zum Wertpapier,
-                                                            Derivat oder Geld
-                                                        </xs:documentation>
+                                                        <xs:documentation>Bezug zur Position bzw. Bezug zum Wertpapier, Derivat oder Geld</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:element>
                                                 <xs:element name="Category">
                                                     <xs:annotation>
-                                                        <xs:documentation>PKG/QMV-Kategorie (dreistellige Nummer) laut
-                                                            Vermögensausweis
-                                                        </xs:documentation>
+                                                        <xs:documentation>PKG/QMV-Kategorie (dreistellige Nummer) laut Vermögensausweis</xs:documentation>
                                                     </xs:annotation>
                                                     <xs:simpleType>
                                                         <xs:restriction base="xs:decimal">
@@ -138,9 +116,7 @@
                                                 </xs:element>
                                                 <xs:element name="Value" type="AmountType">
                                                     <xs:annotation>
-                                                        <xs:documentation>Betrag, der aufgrund der oben genannten
-                                                            Position einer Kategorie zugerechnet wird
-                                                        </xs:documentation>
+                                                        <xs:documentation>Betrag, der aufgrund der oben genannten Position einer Kategorie zugerechnet wird</xs:documentation>
                                                     </xs:annotation>
                                                 </xs:element>
                                             </xs:sequence>
@@ -163,9 +139,7 @@
                                             <xs:sequence>
                                                 <xs:element name="Category">
                                                     <xs:annotation>
-                                                        <xs:documentation>PKG/QMV-Kategorie (dreistellige Nummer) laut
-                                                            Vermögensausweis
-                                                        </xs:documentation>
+                                                        <xs:documentation>PKG/QMV-Kategorie (dreistellige Nummer) laut Vermögensausweis</xs:documentation>
                                                     </xs:annotation>
                                                     <xs:simpleType>
                                                         <xs:restriction base="xs:decimal">
@@ -189,8 +163,7 @@
             </xs:element>
             <xs:element name="FundDataPortalInfos" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>Optional informations from fund data portal when downloading data
-                    </xs:documentation>
+                    <xs:documentation>Optional informations from fund data portal when downloading data</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
@@ -212,8 +185,7 @@
         <xs:sequence>
             <xs:element name="OeKBStammdatenblatt" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>Enthält die Felder des OeKB Stammdatenblatts lt. Beschreibungen der OeKB
-                    </xs:documentation>
+                    <xs:documentation>Enthält die Felder des OeKB Stammdatenblatts lt. Beschreibungen der OeKB</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
@@ -868,23 +840,20 @@
         <xs:sequence>
             <xs:element name="OeKBStammdatenblatt" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>Enthält die Felder des OeKB Stammdatenblatts lt. Beschreibungen der OeKB
-                    </xs:documentation>
+                    <xs:documentation>Enthält die Felder des OeKB Stammdatenblatts lt. Beschreibungen der OeKB</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="GueltigAb" type="xs:date">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">Datum ab wann das Stammdatenblatt gültig ist
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">Datum ab wann das Stammdatenblatt gültig ist</xs:documentation>
                                 <xs:documentation xml:lang="en">valid since</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="FMA_Fondsname">
                             <xs:annotation>
                                 <xs:documentation xml:lang="de">Fondsname laut FMP</xs:documentation>
-                                <xs:documentation xml:lang="en">official fund name according to legal authority
-                                </xs:documentation>
+                                <xs:documentation xml:lang="en">official fund name according to legal authority</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:normalizedString">
@@ -900,23 +869,17 @@
                         </xs:element>
                         <xs:element name="Tranchenfonds" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">Flag, ob es sich um einen Tanchenfonds (Gebühren,
-                                    Währungen, etc.) handelt
-                                </xs:documentation>
-                                <xs:documentation xml:lang="en">Indicates a hedged or currency tranche
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">Flag, ob es sich um einen Tanchenfonds (Gebühren, Währungen, etc.) handelt</xs:documentation>
+                                <xs:documentation xml:lang="en">Indicates a hedged or currency tranche</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="ISIN" type="ISINType"/>
                         <xs:element name="ISIN_Typ">
                             <xs:annotation>
                                 <xs:documentation xml:lang="de">FONDS
-                                    TECHNISCHE_ISIN
-                                    C-PLAN
-                                </xs:documentation>
-                                <xs:documentation xml:lang="en">Indicates a regular fund, internal (technicial) ISIN or
-                                    a saving plan
-                                </xs:documentation>
+TECHNISCHE_ISIN
+C-PLAN</xs:documentation>
+                                <xs:documentation xml:lang="en">Indicates a regular fund, internal (technicial) ISIN or a saving plan</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:normalizedString">
@@ -951,15 +914,13 @@
                         </xs:element>
                         <xs:element name="Umbrella_Flag" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">Handelt es sich um einen Umbrella Fonds
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">Handelt es sich um einen Umbrella Fonds</xs:documentation>
                                 <xs:documentation xml:lang="en">Indicates an umbrealla fund</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="ETF_Flag" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">Handelt es sich um einen börsengehandelten Fonds
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">Handelt es sich um einen börsengehandelten Fonds</xs:documentation>
                                 <xs:documentation xml:lang="en">Indicates an ETF</xs:documentation>
                             </xs:annotation>
                         </xs:element>
@@ -1017,8 +978,7 @@
                         </xs:element>
                         <xs:element name="Ausschuettungsdatum" type="DayMonthType">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">Datum der jählichen Ausschüttung TT.MM.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">Datum der jählichen Ausschüttung TT.MM.</xs:documentation>
                                 <xs:documentation xml:lang="en">Date of yearly distribution DD.MM.</xs:documentation>
                             </xs:annotation>
                         </xs:element>
@@ -1074,8 +1034,7 @@
                         <xs:element name="Zielgruppe">
                             <xs:annotation>
                                 <xs:documentation xml:lang="de">Zielgruppe laut ÖKB</xs:documentation>
-                                <xs:documentation xml:lang="en">investor target group according to ÖKB
-                                </xs:documentation>
+                                <xs:documentation xml:lang="en">investor target group according to ÖKB</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
@@ -1103,8 +1062,7 @@
                         </xs:element>
                         <xs:element name="MaxAusgabeaufschlag" type="PercentageType">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">Max. Ausgabeaufschlag laut Fondsprospekt
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">Max. Ausgabeaufschlag laut Fondsprospekt</xs:documentation>
                                 <xs:documentation xml:lang="en">max. AGIO according to prospect</xs:documentation>
                             </xs:annotation>
                         </xs:element>
@@ -1122,8 +1080,7 @@
                         </xs:element>
                         <xs:element name="MaxVerwaltungsgebuehr" type="PercentageType">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">Maximale Verwaltungsgebühr laut Prospekt
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">Maximale Verwaltungsgebühr laut Prospekt</xs:documentation>
                                 <xs:documentation xml:lang="en">max. admin fee</xs:documentation>
                             </xs:annotation>
                         </xs:element>
@@ -1159,18 +1116,17 @@
                         <xs:element name="FondsCharakteristik">
                             <xs:annotation>
                                 <xs:documentation xml:lang="de">0.1 - Allgemeine Charakteristik des Fonds
-                                    OGAW OGAW = UCITS
-                                    AIFRO AIF Privatkunde - offen
-                                    AIFRG AIF Privatkunde - geschlossen
-                                    AIFIO AIF professioneller Kunde - offen
-                                    AIFIG AIF professioneller Kunde - geschlossen
-                                    EUSEO EUSEF - offen
-                                    EUSEG EUSEF - geschlossen
-                                    EUVEO EUVECA - offen
-                                    EUVEG EUVECA - geschlossen
-                                    ELTIO ELTIF - offen
-                                    ELTIG ELTIF - geschlossen
-                                </xs:documentation>
+OGAW	OGAW = UCITS
+AIFRO	AIF Privatkunde  - offen
+AIFRG	AIF Privatkunde  - geschlossen
+AIFIO	AIF professioneller Kunde - offen
+AIFIG	AIF professioneller Kunde  - geschlossen
+EUSEO	EUSEF - offen
+EUSEG	EUSEF - geschlossen
+EUVEO	EUVECA - offen
+EUVEG	EUVECA - geschlossen
+ELTIO	ELTIF - offen
+ELTIG	ELTIF - geschlossen</xs:documentation>
                                 <xs:documentation xml:lang="en">legal fund type</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1198,60 +1154,59 @@
                         <xs:element name="Fondskategorie">
                             <xs:annotation>
                                 <xs:documentation xml:lang="de">1.0 - Fondskategorie
-                                    1.1. Rentenfonds (mind. 51% Rentenanteil)
-                                    RSHT Short (Duration 0-3 Jahre)
-                                    RMED Medium (Duration 3-7 Jahre)
-                                    RLONG Long (Duration ab 7 Jahre)
-                                    RFLEX Flexibel (Duration flexibel)
-
-                                    1.2. Geldmarktfonds
-                                    MMFST Kurzfristige Geldmarktfonds (Short Term MMF)
-                                    MMF standard Geldmarktfonds (standard MMF)
-
-                                    1.3. Gemischte Fonds
-                                    GKON Konservativ Richtwert:
-                                    GAUS Ausgewogen Richtwert:
-                                    GDYN Dynamisch-Flexibel Richtwert:
-
-                                    1.4. Aktienfonds
-                                    AKT Aktien (direkt und/oder indirekt)
-
-                                    1.5. Spezifische Ausprägung (mind. 51%)
-                                    DHF Dachhedgefonds
-                                    DERF Derivatefonds
-
-                                    1.6. Hedge Fonds
-                                    HLGBS Equity: Long Bias
-                                    HLGST Equity: Long/Short
-                                    HMTNL Equity: Market neutral
-                                    HSTBS Equity: Short Bias
-                                    HFXIA Relative Value: Fixed Income Arbitrage
-                                    HCBAR Relative Value: Convertible Bond Arbitrage
-                                    HVLAR Relative Value: Volatility Arbitrage
-                                    HDSRS Event Driven: Distressed/Restructuring
-                                    HRAMA Event Driven: Risk Arbitrage/Merger Arbitrage
-                                    HEYSS Event Driven: Equity Special Situations
-                                    HCLST Credit Long/Short
-                                    HABLG Credit Asset Based Lending
-                                    HMACR Macro
-                                    HCTAF Managed Futures/CTA: Fundamental
-                                    HCTAQ Managed Futures/CTA: Quantitative
-                                    HHFND Multi-strategy hedge fund
-                                    HOFND Other hedge fund strategy
-
-                                    1.7. Private Equity Fonds
-                                    PVENT Venture Capital
-                                    PGRTH Growth Capital
-                                    PMZNE Mezzanine Capital
-                                    PMULT Multi-strategy private equity fund
-                                    POTHR Other private equity fund strategy
-
-                                    1.8. Real Estate Fonds
-                                    IRESL Wohnimmobilien
-                                    ICOML Gewerbeimmobilien
-                                    IINDL Industrieimmobilien
-                                    IMULT Gemischte Nutzung
-                                </xs:documentation>
+1.1.	Rentenfonds (mind. 51% Rentenanteil)
+RSHT	Short (Duration 0-3 Jahre)
+RMED	Medium (Duration 3-7 Jahre)
+RLONG	Long (Duration ab 7 Jahre)
+RFLEX	Flexibel (Duration flexibel)
+	
+1.2.	Geldmarktfonds
+MMFST	Kurzfristige Geldmarktfonds (Short Term MMF)
+MMF		standard Geldmarktfonds (standard MMF)
+	
+1.3.	Gemischte Fonds
+GKON	Konservativ Richtwert:
+GAUS	Ausgewogen Richtwert:
+GDYN	Dynamisch-Flexibel Richtwert:
+	
+1.4.	Aktienfonds
+AKT		Aktien (direkt und/oder indirekt)
+	
+1.5.	Spezifische Ausprägung (mind. 51%)
+DHF		Dachhedgefonds
+DERF	Derivatefonds
+	
+1.6.	Hedge Fonds
+HLGBS	Equity: Long Bias
+HLGST	Equity: Long/Short
+HMTNL	Equity: Market neutral
+HSTBS	Equity: Short Bias
+HFXIA	Relative Value: Fixed Income Arbitrage
+HCBAR	Relative Value: Convertible Bond Arbitrage
+HVLAR	Relative Value: Volatility Arbitrage
+HDSRS	Event Driven: Distressed/Restructuring
+HRAMA	Event Driven: Risk Arbitrage/Merger Arbitrage
+HEYSS	Event Driven: Equity Special Situations
+HCLST	Credit Long/Short
+HABLG	Credit Asset Based Lending
+HMACR	Macro
+HCTAF	Managed Futures/CTA: Fundamental
+HCTAQ	Managed Futures/CTA: Quantitative
+HHFND	Multi-strategy hedge fund
+HOFND	Other hedge fund strategy
+	
+1.7.	Private Equity Fonds
+PVENT	Venture Capital
+PGRTH	Growth Capital
+PMZNE	Mezzanine Capital
+PMULT	Multi-strategy private equity fund
+POTHR	Other private equity fund strategy
+	
+1.8.	Real Estate Fonds
+IRESL	Wohnimmobilien
+ICOML	Gewerbeimmobilien
+IINDL	Industrieimmobilien
+IMULT	Gemischte Nutzung</xs:documentation>
                                 <xs:documentation xml:lang="en">fund investment type</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1299,11 +1254,10 @@
                         </xs:element>
                         <xs:element name="ActiveStyleManagement">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">5.5. Active Style Management
-                                    GRWTH Growth
-                                    VALUE Value
-                                    BLEND Blend
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">5.5.	Active Style Management
+GRWTH	Growth
+VALUE	Value
+BLEND	Blend</xs:documentation>
                                 <xs:documentation xml:lang="en">type of active style management</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1317,18 +1271,16 @@
                         </xs:element>
                         <xs:element name="PassiveStyleManagement" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">5.6. Passive Style Management - Indextracking
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">5.6.	Passive Style Management - Indextracking</xs:documentation>
                                 <xs:documentation xml:lang="en">passive fund (indextracing) flag</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="RegulatorRisikomanagement">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">6.4. Regulatorisches Risikomanagement
-                                    COMMA Commitment Approach gemäß DerVO
-                                    VARAB VaR absolut gemäß DerVO
-                                    VARRE VaR relativ gemäß DerVO
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">6.4.	Regulatorisches Risikomanagement
+COMMA	Commitment Approach gemäß DerVO
+VARAB	VaR absolut gemäß DerVO
+VARRE	VaR relativ gemäß DerVO</xs:documentation>
                                 <xs:documentation xml:lang="en">regulatory risk management</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1341,11 +1293,10 @@
                         </xs:element>
                         <xs:element name="EinsatzDerivate">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">5.12. Einsatz von Derivaten
-                                    DERH Derivate nur zur Absicherung
-                                    DERHS Derivate zur Absicherung und als Teil der Anlagestrategie
-                                    NEIN keine Derivate
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">5.12.	Einsatz von Derivaten
+DERH	Derivate nur zur Absicherung
+DERHS	Derivate zur Absicherung und als Teil der Anlagestrategie
+NEIN	keine Derivate</xs:documentation>
                                 <xs:documentation xml:lang="en">usage of derivatives</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1358,25 +1309,22 @@
                         </xs:element>
                         <xs:element name="ZugehoerigkeitRahmenwerk">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">2.6. Zugehörigkeit zu Rahmenwerk
-                                    RK46 OGAW (Publikumsfonds mit Veranlagung gemäß § 46 iVm § 66ff InvFG 2011)
-                                    RK75 OGAW (Publikumsfonds mit Veranlagung gemäß § 46 iVm § 75 InvFG 2011)
-                                    NK166 AIF (Publikumsfonds mit Veranlagung gemäß § 166 f InvFG 2011 iVm AIFMG )
-                                    NKSP AIF (Spezialfonds mit Veranlagung gemäß § 163 ff iVm InvFG 2011 iVm AIFMG)
-                                    NKSPA AIF (Spezialfonds mit Veranlagung gemäß § 163 iVm § 166f InvFG 2011 iVm AIFMG)
-                                    NKSPI AIF (Spezialfonds mit Veranlagung gemäß § 163 iVm § 75 InvFG 2011 iVm AIFMG)
-                                    NKPIF AIF (PIF gemäß § 168ff InvFG 2011)
-                                    NKPZV AIF (PIF und ZVE gemäß § 168 ff InvFG 2011 iVm § 108 h EStG)
-                                    NKZVE AIF (ZVE gemäß § 108h EStG)
-                                    EUSEF EuSEF (gemäß Verordnung (EU) 346/2013 des Europäischen Parlaments und des
-                                    Rates über Europäische Fonds für soziales Unternehmertum)
-                                    EUVEC EuVECA (gemäß Verordnung (EU) 345/2013 des Europäischen Parlaments und des
-                                    Rates über Europäische Risikokapitalfonds)
-                                    ELTIF ELTIF (gemäß Kommissionsvorschlag)
-                                    IMMO Immobilieninvestmentfonds gemäß ImmoInvFG iVm AIFMG
-                                    IMMOG Immobilieninvestmentfonds gemäß AIFMG
-                                    SONST Sonstige AIF gemäß AIFMG
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">2.6.	Zugehörigkeit zu Rahmenwerk
+RK46	OGAW (Publikumsfonds mit Veranlagung gemäß § 46 iVm § 66ff InvFG 2011)
+RK75	OGAW (Publikumsfonds mit Veranlagung gemäß § 46 iVm § 75 InvFG 2011)
+NK166	AIF (Publikumsfonds mit Veranlagung gemäß § 166 f InvFG 2011 iVm AIFMG )
+NKSP	AIF (Spezialfonds mit Veranlagung gemäß § 163 ff iVm InvFG 2011 iVm AIFMG)
+NKSPA	AIF (Spezialfonds mit Veranlagung gemäß § 163 iVm § 166f InvFG 2011 iVm AIFMG)
+NKSPI	AIF (Spezialfonds mit Veranlagung gemäß § 163 iVm § 75 InvFG 2011 iVm AIFMG)
+NKPIF	AIF (PIF gemäß § 168ff InvFG 2011)
+NKPZV	AIF (PIF und ZVE gemäß § 168 ff InvFG 2011 iVm § 108 h EStG)
+NKZVE	AIF (ZVE gemäß § 108h EStG)
+EUSEF	EuSEF (gemäß Verordnung (EU) 346/2013 des Europäischen Parlaments und des Rates	  über Europäische Fonds für soziales Unternehmertum)
+EUVEC	EuVECA (gemäß Verordnung (EU) 345/2013 des Europäischen Parlaments und des Rates   über Europäische Risikokapitalfonds)
+ELTIF	ELTIF (gemäß Kommissionsvorschlag)
+IMMO	Immobilieninvestmentfonds gemäß ImmoInvFG iVm AIFMG
+IMMOG	Immobilieninvestmentfonds gemäß AIFMG
+SONST	Sonstige AIF gemäß AIFMG</xs:documentation>
                                 <xs:documentation xml:lang="en">legal framework</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1401,30 +1349,29 @@
                         </xs:element>
                         <xs:element name="Anlageregion">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">4.1. Anlageregion
-                                    AT Österreich
-                                    NAM Nordamerika
-                                    LAM Latein Amerika
-                                    AP Asien/Pazifischer Raum
-                                    APXJ Asien/Pazifischer Raum (ausgenommen Japan)
-                                    JPN Japan
-                                    SASIA Südasien - Asia Sub Continent
-                                    EURGE Europa gesamt
-                                    EU Europa (EU)
-                                    EURO Euroland - Euro area
-                                    EUXUK Europa (ausgenommen UK)
-                                    ME Mittlerer Osten
-                                    AFR Afrika
-                                    MEAEM Mittlerer Osten und Afrika, emerging markets
-                                    LAMEM Latein Amerika, emerging markets
-                                    APEM Asien/Pazifischer Raum, emerging markets
-                                    CEE Mittel- und Osteuropa, emerging markets
-                                    COMM "Commonwealth of Independent States, emerging markets
-                                    Gemeinschaft unabhängiger Staaten"
-                                    GLDM Global, developed markets
-                                    GLEM Global, emerging markets
-                                    GLAC Global, all countries
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">4.1.	Anlageregion
+AT	Österreich
+NAM	Nordamerika
+LAM	Latein Amerika
+AP	Asien/Pazifischer Raum
+APXJ	Asien/Pazifischer Raum (ausgenommen Japan)
+JPN	Japan
+SASIA	Südasien - Asia Sub Continent
+EURGE	Europa gesamt
+EU	Europa (EU)
+EURO	Euroland - Euro area
+EUXUK	Europa (ausgenommen UK)
+ME	Mittlerer Osten
+AFR	Afrika
+MEAEM	Mittlerer Osten und Afrika, emerging markets
+LAMEM	Latein Amerika, emerging markets
+APEM	Asien/Pazifischer Raum, emerging markets
+CEE	Mittel- und Osteuropa, emerging markets
+COMM	&quot;Commonwealth of Independent States, emerging markets
+Gemeinschaft unabhängiger Staaten&quot;
+GLDM	Global, developed markets
+GLEM	Global, emerging markets
+GLAC	Global, all countries</xs:documentation>
                                 <xs:documentation xml:lang="en">main investment region</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1455,14 +1402,13 @@
                         </xs:element>
                         <xs:element name="Anlagewaehrung">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">4.2. Anlagewährung
-                                    EUR EUR (ausschließlich)
-                                    EURVW EUR (überwiegend)
-                                    EURHG EUR hedged (überwiegend)
-                                    SICUR Single Currency
-                                    GLDOM Global mit dominanter Währung
-                                    GL Global
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">4.2.	Anlagewährung
+EUR	EUR (ausschließlich)
+EURVW	EUR (überwiegend)
+EURHG	EUR hedged (überwiegend)
+SICUR	Single Currency
+GLDOM	Global mit dominanter Währung
+GL	Global</xs:documentation>
                                 <xs:documentation xml:lang="en">investement currency</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1478,13 +1424,12 @@
                         </xs:element>
                         <xs:element name="SRRIKategorie">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">6.1. SRRI Kategorie
-                                    MARKT Market Fund
-                                    AR Absolute Return Fund
-                                    TR Total Return Fund
-                                    STRUC Structural Fund
-                                    LIFCY Life Cycle Fund
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">6.1.	SRRI Kategorie
+MARKT	Market Fund
+AR	Absolute Return Fund
+TR	Total Return Fund
+STRUC	Structural Fund
+LIFCY	Life Cycle Fund</xs:documentation>
                                 <xs:documentation xml:lang="en">SRRI category</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1500,41 +1445,33 @@
                         </xs:element>
                         <xs:element name="GeltendesRecht" type="ISOCountryCodeType">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">2.10. geltendes Recht
-                                    AT österr. InvFG oder österr. ImmoInvFG 2011 und/oder österr. AIFMG
-                                    XXX ISO Codes
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">2.10.	geltendes Recht
+AT	österr. InvFG oder österr. ImmoInvFG 2011 und/oder österr. AIFMG
+XXX	ISO Codes</xs:documentation>
                                 <xs:documentation xml:lang="en">applicable law</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="SchwerpunktAnlagewaehrung" type="ISOCurrencyCodeType" minOccurs="0">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">ISO-Code darf nur bei Anlagewährung 'SICUR' oder 'GLDOM'
-                                    angegeben werden.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">ISO-Code darf nur bei Anlagewährung &apos;SICUR&apos; oder &apos;GLDOM&apos; angegeben werden.</xs:documentation>
                                 <xs:documentation xml:lang="en">main investement currency</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="Leerverkauf" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">- Wenn 'JA' dann darf Allgem. Charakteristik des Fonds
-                                    nicht 'OGAW' sein.
-                                    Weiters darf bei 'JA' die Zugehörigkeit zu Rahmenwerk nicht 'RK46', 'RK75', 'NK166',
-                                    'NKSP', 'NKSPA', 'NKSPI', 'NKPIF', 'NKPZV', 'NKZVE', ('EUSEF', 'EUVEC', 'ELTIF'),
-                                    'IMMO' oder 'IMMOG' sein.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">- Wenn &apos;JA&apos; dann darf Allgem. Charakteristik des Fonds nicht &apos;OGAW&apos; sein. 
+Weiters darf bei &apos;JA&apos; die Zugehörigkeit zu Rahmenwerk nicht &apos;RK46&apos;, &apos;RK75&apos;, &apos;NK166&apos;, &apos;NKSP&apos;, &apos;NKSPA&apos;, &apos;NKSPI&apos;, &apos;NKPIF&apos;, &apos;NKPZV&apos;, &apos;NKZVE&apos;, (&apos;EUSEF&apos;, &apos;EUVEC&apos;, &apos;ELTIF&apos;), &apos;IMMO&apos; oder &apos;IMMOG&apos; sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">short selling allowed</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="Fondstyp">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">3.1. Fondstyp
-                                    FOF Dachfonds (mind. 51% Subfonds)
-                                    ZIELF Zielfonds (bis max. 10% Subfonds)
-                                    INVF Investmentfonds
-                                    IMMO Immobilien-Investmentfonds (gemäß ImmoInvFG)
-                                    SONST sonstige AIF
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">3.1.	Fondstyp
+FOF	Dachfonds (mind. 51% Subfonds)
+ZIELF	Zielfonds (bis max. 10% Subfonds)
+INVF	Investmentfonds 
+IMMO	Immobilien-Investmentfonds (gemäß ImmoInvFG)
+SONST	sonstige AIF</xs:documentation>
                                 <xs:documentation xml:lang="en">fund investment type (fund of fund)</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1549,11 +1486,10 @@
                         </xs:element>
                         <xs:element name="Rententypen">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">5.1. Rententypen
-                                    CORP Corporate Bonds
-                                    GOV Government Bonds
-                                    AGBND Aggregate Bonds (= Corporate Bonds and Government Bonds)
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">5.1.	Rententypen
+CORP	Corporate Bonds
+GOV	Government Bonds
+AGBND	Aggregate Bonds (= Corporate Bonds and Government Bonds)</xs:documentation>
                                 <xs:documentation xml:lang="en">Bond type</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1567,12 +1503,11 @@
                         </xs:element>
                         <xs:element name="DurationRentenGemischteFonds">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">5.2. Duration von Renten bei Gemischten Fonds
-                                    RSHT Short (Duration 0-3 Jahre)
-                                    RMED Medium (Duration 3-7 Jahre)
-                                    RLONG Long (Duration ab 7 Jahre)
-                                    RFLEX Flexibel (Duration flexibel)
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">5.2.	Duration von Renten bei Gemischten Fonds
+RSHT	Short (Duration 0-3 Jahre)
+RMED	Medium (Duration 3-7 Jahre)
+RLONG	Long (Duration ab 7 Jahre)
+RFLEX	Flexibel (Duration flexibel)</xs:documentation>
                                 <xs:documentation xml:lang="en">duration of balanced funds</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1587,14 +1522,12 @@
                         </xs:element>
                         <xs:element name="RisikoklasseRenten">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">5.3. Risikoklasse/Renten
-                                    MINAA AAA bis AA
-                                    INGR Investment Grade
-                                    NINGR non Investment Grade
+                                <xs:documentation xml:lang="de">5.3.	Risikoklasse/Renten
+MINAA	AAA bis AA
+INGR	Investment Grade
+NINGR	non Investment Grade
 
-                                    - Fondskategorie darf nur ein Code aus 'Rentenfonds', 'Geldmarktfonds' oder
-                                    'Gemischter Fonds' sein.
-                                </xs:documentation>
+- Fondskategorie darf nur ein Code aus &apos;Rentenfonds&apos;, &apos;Geldmarktfonds&apos; oder &apos;Gemischter Fonds&apos; sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">bonds rating</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1608,12 +1541,8 @@
                         </xs:element>
                         <xs:element name="SachwertImmobilien" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">- Wenn 'JA' dann darf Allgem. Charakteristik des Fonds
-                                    nicht 'OGAW' sein.
-                                    Weiters darf bei 'JA' die Zugehörigkeit zu Rahmenwerk nicht 'RK46', 'RK75', 'NK166',
-                                    'NKSP', 'NKSPA', 'NKSPI', 'NKPIF', 'NKPZV', 'NKZVE', ('EUSEF', 'EUVEC', 'ELTIF')
-                                    sein.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">- Wenn &apos;JA&apos; dann darf Allgem. Charakteristik des Fonds nicht &apos;OGAW&apos; sein. 
+Weiters darf bei &apos;JA&apos; die Zugehörigkeit zu Rahmenwerk nicht &apos;RK46&apos;, &apos;RK75&apos;, &apos;NK166&apos;, &apos;NKSP&apos;, &apos;NKSPA&apos;, &apos;NKSPI&apos;, &apos;NKPIF&apos;, &apos;NKPZV&apos;, &apos;NKZVE&apos;, (&apos;EUSEF&apos;, &apos;EUVEC&apos;, &apos;ELTIF&apos;) sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">commidities / real estate</xs:documentation>
                             </xs:annotation>
                         </xs:element>
@@ -1625,17 +1554,13 @@
                         </xs:element>
                         <xs:element name="Muendelsicher" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">JA ist nur bei der Fondskategorie Rentenfonds,
-                                    Geldmarktfonds oder Real Estate Fonds möglich.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">JA ist nur bei der Fondskategorie Rentenfonds, Geldmarktfonds oder Real Estate Fonds möglich.</xs:documentation>
                                 <xs:documentation xml:lang="en">financial security fund</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="AbfertPensionsRStFonds" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">JA ist nur bei der Fondskategorie Rentenfonds,
-                                    Geldmarktfonds, Gemischte Fonds oder Real Estate Fonds möglich.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">JA ist nur bei der Fondskategorie Rentenfonds, Geldmarktfonds, Gemischte Fonds oder Real Estate Fonds möglich.</xs:documentation>
                                 <xs:documentation xml:lang="en">cash reserves fund</xs:documentation>
                             </xs:annotation>
                         </xs:element>
@@ -1647,30 +1572,24 @@
                         </xs:element>
                         <xs:element name="PensionskassenFondsParagraf25" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">JA ist nur bei der Fondskategorie Rentenfonds,
-                                    Geldmarktfonds, Gemischte Fonds oder Real Estate Fonds möglich.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">JA ist nur bei der Fondskategorie Rentenfonds, Geldmarktfonds, Gemischte Fonds oder Real Estate Fonds möglich.</xs:documentation>
                                 <xs:documentation xml:lang="en">pension fund flag</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="Inflationsschutzanleihen" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">Fondskategorie ein 'Rentenfonds' oder 'Gemischter Fonds'
-                                    sein.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">Fondskategorie ein &apos;Rentenfonds&apos; oder &apos;Gemischter Fonds&apos; sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">inflation protectedflag</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="Pensionsinvestmentfonds">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">2.5. Pensionsinvestmentfonds
-                                    PIF Pensionsinvestmentfonds
-                                    ZVE Zukunftsvorsorge-PIF (reine Fondslösung)
-                                    NEIN Nein
+                                <xs:documentation xml:lang="de">2.5.	Pensionsinvestmentfonds	
+PIF	Pensionsinvestmentfonds	
+ZVE	Zukunftsvorsorge-PIF (reine Fondslösung)	
+NEIN	Nein	
 
-                                    Bei PIF und ZVE kann die Allg. Charakteristik des Fonds nicht 'OGAW' sein und die
-                                    Fondskategorie muss 'Gemischter Fonds' sein.
-                                </xs:documentation>
+Bei PIF und ZVE kann die Allg. Charakteristik des Fonds nicht &apos;OGAW&apos; sein und die Fondskategorie muss &apos;Gemischter Fonds&apos; sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">pension fund type</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1683,25 +1602,19 @@
                         </xs:element>
                         <xs:element name="Convertibles" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">- Bei 'JA' muss die Fondskategorie ein 'Rentenfonds'
-                                    oder 'Gemischter Fonds' sein.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">- Bei &apos;JA&apos; muss die Fondskategorie ein &apos;Rentenfonds&apos; oder &apos;Gemischter Fonds&apos; sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">Convertibles allowed flag</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="AbsMbs" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">- Bei 'JA' muss die Fondskategorie ein 'Rentenfonds'
-                                    oder 'Gemischter Fonds' sein.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">- Bei &apos;JA&apos; muss die Fondskategorie ein &apos;Rentenfonds&apos; oder &apos;Gemischter Fonds&apos; sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">ABS / MBS flag</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="NachhaltigkeitsfondsUZ49" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">- Bei 'JA' darf die Fondskategorie nicht
-                                    'Geldmarktfonds' sein.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">- Bei &apos;JA&apos; darf die Fondskategorie nicht &apos;Geldmarktfonds&apos; sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">sustainable fund</xs:documentation>
                             </xs:annotation>
                         </xs:element>
@@ -1713,13 +1626,12 @@
                         </xs:element>
                         <xs:element name="MasterFeederFonds">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">2.8. Master Feeder Fonds
-                                    MSTER Master
-                                    FDER Feeder
-                                    NEIN Nein
+                                <xs:documentation xml:lang="de">2.8.	Master Feeder Fonds
+MSTER	Master
+FDER	Feeder
+NEIN	Nein
 
-                                    - Bei FDER muss Fondstyp 'FOF' sein.
-                                </xs:documentation>
+- Bei FDER muss Fondstyp &apos;FOF&apos; sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">master or feeder fund</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1748,13 +1660,11 @@
                         </xs:element>
                         <xs:element name="KapitalisierungAktien">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">5.4. Kapitalisierung/Aktien
-                                    SMCAP Small Caps
-                                    LMCAP Large Caps/Mid Caps
+                                <xs:documentation xml:lang="de">5.4.	Kapitalisierung/Aktien
+SMCAP	Small Caps
+LMCAP	Large Caps/Mid Caps
 
-                                    - Fondskategorie darf nur ein Code aus 'Gemischter Fonds', 'Aktienfonds' oder
-                                    'Private Equity Fonds' sein.
-                                </xs:documentation>
+- Fondskategorie darf nur ein Code aus &apos;Gemischter Fonds&apos;, &apos;Aktienfonds&apos; oder &apos;Private Equity Fonds&apos; sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">equity capitalization</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1773,8 +1683,7 @@
                         </xs:element>
                         <xs:element name="Industrieschwerpunkt">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">5.14 Industrieschwerpunkt
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">5.14	Industrieschwerpunkt</xs:documentation>
                                 <xs:documentation xml:lang="en">industry focus</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1785,18 +1694,14 @@
                         </xs:element>
                         <xs:element name="AnlageAlternativeInvestments">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">5.13 Anlage in alternativen Investments (gemäß § 166 Abs
-                                    1 Z 3 InvFG 2011)
-                                    NEIN keine
-                                    AIK10 bis 10%
-                                    AIM10 mehr als 10%
+                                <xs:documentation xml:lang="de">5.13	Anlage in alternativen Investments (gemäß § 166 Abs 1 Z 3 InvFG 2011)
+NEIN	keine 
+AIK10	bis 10%
+AIM10	mehr als 10%
 
-                                    - 'NEIN' ist zwingend bei Allgem. Charakteristik des Fonds 'OGAW' zu verwenden.
-                                    - Bei 'AIK10' und 'AIM10' darf Allgem. Charakteristik des Fonds nicht 'OGAW' sein.
-                                    (Beachte § 166 Abs. 1 Z 3 InvFG 2011)
-                                </xs:documentation>
-                                <xs:documentation xml:lang="en">alternative investment percentage allowed
-                                </xs:documentation>
+- &apos;NEIN&apos; ist zwingend bei Allgem. Charakteristik des Fonds &apos;OGAW&apos; zu verwenden.
+- Bei &apos;AIK10&apos; und &apos;AIM10&apos; darf Allgem. Charakteristik des Fonds nicht &apos;OGAW&apos; sein. (Beachte § 166 Abs. 1 Z 3 InvFG 2011)</xs:documentation>
+                                <xs:documentation xml:lang="en">alternative investment percentage allowed</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
@@ -1826,14 +1731,11 @@
                         </xs:element>
                         <xs:element name="ImmobilienInvFG">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">3.7. Immobilien/InvFG
-                                    IMM10 Anteil/Immobilienfonds bis zu 10%
-                                    IMM20 Anteil/Immobilienfonds bis zu 20%
+                                <xs:documentation xml:lang="de">3.7.	Immobilien/InvFG
+IMM10	Anteil/Immobilienfonds bis zu 10%
+IMM20	Anteil/Immobilienfonds bis zu 20%
 
-                                    - IMM10 und IMM20 dürfen bei Allgem. Charakteristik des Fonds nicht 'OGAW' haben und
-                                    als Fondskategorie keinen der 'Real Estate Fonds'. (Beachte § 166 Abs. 1 Z 4 InvFG
-                                    2011)
-                                </xs:documentation>
+- IMM10 und IMM20 dürfen bei Allgem. Charakteristik des Fonds nicht &apos;OGAW&apos; haben  und als Fondskategorie keinen der &apos;Real Estate Fonds&apos;.  (Beachte § 166 Abs. 1 Z 4 InvFG 2011)</xs:documentation>
                                 <xs:documentation xml:lang="en">type of real estate fund</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1846,22 +1748,17 @@
                         </xs:element>
                         <xs:element name="Rohstoff" type="xs:boolean">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">- Wenn 'JA' dann darf Allgem. Charakteristik des Fonds
-                                    nicht 'OGAW' sein.
-                                    Weiters darf bei 'JA' die Zugehörigkeit zu Rahmenwerk nicht 'RK46', 'RK75', 'NK166',
-                                    'NKSP', 'NKSPA', 'NKSPI', 'NKPIF', 'NKPZV', 'NKZVE', ('EUSEF', 'EUVEC', 'ELTIF'),
-                                    'IMMO' oder 'IMMOG' sein.
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">- Wenn &apos;JA&apos; dann darf Allgem. Charakteristik des Fonds nicht &apos;OGAW&apos; sein. 
+Weiters darf bei &apos;JA&apos; die Zugehörigkeit zu Rahmenwerk nicht &apos;RK46&apos;, &apos;RK75&apos;, &apos;NK166&apos;, &apos;NKSP&apos;, &apos;NKSPA&apos;, &apos;NKSPI&apos;, &apos;NKPIF&apos;, &apos;NKPZV&apos;, &apos;NKZVE&apos;, (&apos;EUSEF&apos;, &apos;EUVEC&apos;, &apos;ELTIF&apos;), &apos;IMMO&apos; oder &apos;IMMOG&apos; sein.</xs:documentation>
                                 <xs:documentation xml:lang="en">Commodity allowed flag</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="PreismeldungOeKB">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">3.5. Preismeldung an OeKB
-                                    TGL tägliche Preismeldung
-                                    NTGL nicht tägliche Preismeldung
-                                    NEIN keine Preismeldung
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">3.5.	Preismeldung an OeKB
+TGL	tägliche Preismeldung
+NTGL	nicht tägliche Preismeldung
+NEIN	keine Preismeldung</xs:documentation>
                                 <xs:documentation xml:lang="en">daily price delivery to OeKB</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1874,10 +1771,9 @@
                         </xs:element>
                         <xs:element name="ArtPreisberechnung">
                             <xs:annotation>
-                                <xs:documentation xml:lang="de">3.6. Art der Preisberechnung
-                                    DAT+1 Datum Fondspreis = Bewertungsdatum plus 1 Tag
-                                    DAT Datum Fondspreis = Bewertungsdatum
-                                </xs:documentation>
+                                <xs:documentation xml:lang="de">3.6.	Art der Preisberechnung
+DAT+1	Datum Fondspreis = Bewertungsdatum plus 1 Tag
+DAT	Datum Fondspreis = Bewertungsdatum</xs:documentation>
                                 <xs:documentation xml:lang="en">price day is eod assets (T / T+1)</xs:documentation>
                             </xs:annotation>
                             <xs:simpleType>
@@ -1954,20 +1850,17 @@
                     <xs:sequence>
                         <xs:element name="SubscriptionRedemption" type="FundAmountType" minOccurs="0">
                             <xs:annotation>
-                                <xs:documentation>In Euro
-                                </xs:documentation>
+                                <xs:documentation>In Euro</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element name="OwnSubfunds" type="FundAmountType" minOccurs="0">
                             <xs:annotation>
-                                <xs:documentation>In Euro
-                                </xs:documentation>
+                                <xs:documentation>In Euro</xs:documentation>
                             </xs:annotation>
                         </xs:element>
-                        <xs:element name="ManagedExternally" type="FundAmountType" minOccurs="0" maxOccurs="1">
+                        <xs:element name="ManagedExternally" type="FundAmountType" minOccurs="0">
                             <xs:annotation>
-                                <xs:documentation>In Euro
-                                </xs:documentation>
+                                <xs:documentation>In Euro</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                     </xs:sequence>
@@ -1975,11 +1868,9 @@
             </xs:element>
         </xs:sequence>
     </xs:complexType>
-    <xs:simpleType name="IdentnummerType" final="restriction">
+    <xs:simpleType name="IdentnummerType">
         <xs:annotation>
-            <xs:documentation>Identnummer der Oesterreichischen Nationalbank: maximal 8 stellig nummerisch mit
-                Prüfziffer
-            </xs:documentation>
+            <xs:documentation>Identnummer der Oesterreichischen Nationalbank: maximal 8 stellig nummerisch mit Prüfziffer</xs:documentation>
         </xs:annotation>
         <xs:restriction base="xs:string">
             <xs:maxLength value="8"/>

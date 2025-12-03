@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" attributeFormDefault="unqualified" elementFormDefault="qualified" version="4.2.10" vc:minVersion="1.1">
+    <xs:complexType name="CountrySpecificDataLUType">
+        <xs:complexContent>
+            <xs:extension base="xs:anyType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="CountrySpecificControlDataLUType">
+        <xs:complexContent>
+            <xs:extension base="xs:anyType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="CountrySpecificFundDataLUType">
+        <xs:complexContent>
+            <xs:extension base="xs:anyType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="CountrySpecificAssetMasterDataLUType">
+        <xs:complexContent>
+            <xs:extension base="xs:anyType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="CountrySpecificShareClassDataLUType">
+        <xs:complexContent>
+            <xs:extension base="xs:anyType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="CountrySpecificEMTLUType">
+        <xs:complexContent>
+            <xs:extension base="xs:anyType"/>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:schema>

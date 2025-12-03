@@ -1284,6 +1284,32 @@ public class XsdNodeFactory {
     }
 
     /**
+     * Parses legacy documentation format with [lang] markers.
+     * Example: "[en] English text [de] German text" -> two XsdDocumentation entries
+     *
+     * @param text the documentation text possibly containing [lang] markers
+     * @return list of parsed XsdDocumentation entries, or null if not legacy format
+     */
+    private java.util.List<XsdDocumentation> parseLegacyDocumentation(String text) {
+        // Pattern: [lang] followed by text until next [lang] or end
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\[([a-z]{2,3})\\]\\s*([^\\[]+)");
+        java.util.regex.Matcher matcher = pattern.matcher(text);
+
+        java.util.List<XsdDocumentation> docs = new java.util.ArrayList<>();
+        while (matcher.find()) {
+            String lang = matcher.group(1);
+            String docText = matcher.group(2).trim();
+            if (!docText.isEmpty()) {
+                docs.add(new XsdDocumentation(docText, lang));
+            }
+        }
+
+        // If we found at least one [lang] marker, return the parsed docs
+        // Otherwise return null to indicate this is not legacy format
+        return docs.isEmpty() ? null : docs;
+    }
+
+    /**
      * Parses xs:annotation and extracts documentation and appinfo.
      * Each documentation element is preserved separately with its xml:lang attribute.
      */
@@ -1305,13 +1331,29 @@ public class XsdNodeFactory {
                     String lang = childElement.getAttribute("xml:lang");
                     String source = childElement.getAttribute("source");
 
-                    // Create XsdDocumentation entry
-                    XsdDocumentation doc = new XsdDocumentation(
-                            text.trim(),
-                            (lang != null && !lang.isEmpty()) ? lang : null,
-                            (source != null && !source.isEmpty()) ? source : null
-                    );
-                    target.addDocumentation(doc);
+                    // Check if this is a legacy format with [lang] markers
+                    if (lang == null || lang.isEmpty()) {
+                        java.util.List<XsdDocumentation> parsed = parseLegacyDocumentation(text.trim());
+                        if (parsed != null && !parsed.isEmpty()) {
+                            // Legacy format detected, add all parsed entries
+                            for (XsdDocumentation doc : parsed) {
+                                target.addDocumentation(doc);
+                            }
+                        } else {
+                            // Not legacy format, add as-is
+                            XsdDocumentation doc = new XsdDocumentation(text.trim(), null,
+                                    (source != null && !source.isEmpty()) ? source : null);
+                            target.addDocumentation(doc);
+                        }
+                    } else {
+                        // Has xml:lang attribute, use it directly
+                        XsdDocumentation doc = new XsdDocumentation(
+                                text.trim(),
+                                lang,
+                                (source != null && !source.isEmpty()) ? source : null
+                        );
+                        target.addDocumentation(doc);
+                    }
                 }
             } else if (isXsdElement(childElement, "appinfo")) {
                 // Get the "source" attribute
@@ -1342,20 +1384,8 @@ public class XsdNodeFactory {
             }
         }
 
-        // Also set the legacy documentation string for backwards compatibility
-        if (target.hasDocumentations()) {
-            StringBuilder legacyDoc = new StringBuilder();
-            for (XsdDocumentation doc : target.getDocumentations()) {
-                if (legacyDoc.length() > 0) {
-                    legacyDoc.append("\n\n");
-                }
-                if (doc.getLang() != null) {
-                    legacyDoc.append("[").append(doc.getLang()).append("] ");
-                }
-                legacyDoc.append(doc.getText());
-            }
-            target.setDocumentation(legacyDoc.toString());
-        }
+        // Do NOT set legacy documentation string - let the serializer handle it
+        // The legacy string is only used as fallback when documentations list is empty
 
         if (appInfo.hasEntries()) {
             target.setAppinfo(appInfo);

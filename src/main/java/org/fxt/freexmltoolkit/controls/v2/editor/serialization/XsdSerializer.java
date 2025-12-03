@@ -335,7 +335,9 @@ public class XsdSerializer {
         }
 
         // Check if element has annotation, children, or inline constraints to serialize
-        boolean hasAnnotation = element.getDocumentation() != null || element.getAppinfo() != null;
+        boolean hasAnnotation = !element.getDocumentations().isEmpty() ||
+                                element.getDocumentation() != null ||
+                                element.getAppinfo() != null;
         boolean needsInlineConstraints = hasConstraints && !hasSimpleTypeChild;
 
         if (element.hasChildren() || hasAnnotation || needsInlineConstraints) {
@@ -878,8 +880,14 @@ public class XsdSerializer {
 
         // Check if there's anything to serialize
         boolean hasDocumentations = !documentations.isEmpty();
-        boolean hasLegacyDoc = !hasDocumentations && node.getDocumentation() != null;
+        boolean hasLegacyDoc = !hasDocumentations && node.getDocumentation() != null &&  !node.getDocumentation().isEmpty();
         boolean hasAppinfo = appinfo != null && appinfo.hasEntries();
+
+        // DEBUG logging
+        if (hasDocumentations || hasLegacyDoc || hasAppinfo) {
+            logger.debug("serializeAnnotation for node '{}': docs.size={}, hasLegacyDoc={}, hasAppinfo={}",
+                        node.getName(), documentations.size(), hasLegacyDoc, hasAppinfo);
+        }
 
         if (!hasDocumentations && !hasLegacyDoc && !hasAppinfo) {
             return; // Nothing to serialize

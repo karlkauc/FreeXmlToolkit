@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.junit.jupiter.api.BeforeEach;
@@ -287,5 +288,99 @@ class ChangeDocumentationCommandTest {
 
         // Act & Assert
         assertEquals(newDocumentation, command.getNewDocumentation(), "getNewDocumentation() should return new value");
+    }
+
+    // ========== Multi-Language Documentation Tests ==========
+
+    @Test
+    @DisplayName("execute() should clear multi-language documentations list")
+    void testExecuteClearsDocumentationsList() {
+        // Arrange: Add multi-language documentations
+        element.addDocumentation(new XsdDocumentation("English text", "en"));
+        element.addDocumentation(new XsdDocumentation("German text", "de"));
+        assertEquals(2, element.getDocumentations().size(), "Should have 2 documentation entries initially");
+
+        String newDocumentation = "New single documentation";
+        ChangeDocumentationCommand command = new ChangeDocumentationCommand(editorContext, element, newDocumentation);
+
+        // Act
+        boolean result = command.execute();
+
+        // Assert
+        assertTrue(result, "execute() should return true");
+        assertEquals(newDocumentation, element.getDocumentation(), "Legacy documentation should be set");
+        assertTrue(element.getDocumentations().isEmpty(), "Documentations list should be cleared after execute()");
+    }
+
+    @Test
+    @DisplayName("undo() should restore multi-language documentations list")
+    void testUndoRestoresDocumentationsList() {
+        // Arrange: Add multi-language documentations
+        XsdDocumentation doc1 = new XsdDocumentation("English text", "en");
+        XsdDocumentation doc2 = new XsdDocumentation("German text", "de");
+        element.addDocumentation(doc1);
+        element.addDocumentation(doc2);
+        element.setDocumentation("[en] English text\n\n[de] German text"); // Legacy string
+
+        ChangeDocumentationCommand command = new ChangeDocumentationCommand(editorContext, element, "New documentation");
+        command.execute();
+
+        // Verify state after execute
+        assertTrue(element.getDocumentations().isEmpty(), "Documentations list should be empty after execute");
+
+        // Act
+        boolean result = command.undo();
+
+        // Assert
+        assertTrue(result, "undo() should return true");
+        assertEquals("[en] English text\n\n[de] German text", element.getDocumentation(),
+                "Legacy documentation should be restored");
+        assertEquals(2, element.getDocumentations().size(), "Documentations list should be restored to 2 entries");
+        assertEquals("en", element.getDocumentations().get(0).getLang(), "First doc should have 'en' lang");
+        assertEquals("de", element.getDocumentations().get(1).getLang(), "Second doc should have 'de' lang");
+    }
+
+    @Test
+    @DisplayName("execute() should work correctly when documentations list is empty")
+    void testExecuteWithEmptyDocumentationsList() {
+        // Arrange: Element has no multi-language docs, only legacy string
+        element.setDocumentation("Old documentation");
+        assertTrue(element.getDocumentations().isEmpty(), "Documentations list should be empty initially");
+
+        String newDocumentation = "New documentation";
+        ChangeDocumentationCommand command = new ChangeDocumentationCommand(editorContext, element, newDocumentation);
+
+        // Act
+        boolean result = command.execute();
+
+        // Assert
+        assertTrue(result, "execute() should return true");
+        assertEquals(newDocumentation, element.getDocumentation(), "Documentation should be updated");
+        assertTrue(element.getDocumentations().isEmpty(), "Documentations list should remain empty");
+    }
+
+    @Test
+    @DisplayName("undo() after execute() should correctly restore both legacy and multi-language docs")
+    void testUndoAfterExecuteRestoresBothFormats() {
+        // Arrange: Set up element with both legacy string and multi-language docs
+        element.setDocumentation("Original legacy doc");
+        element.addDocumentation(new XsdDocumentation("Original English", "en"));
+
+        // Create and execute command
+        ChangeDocumentationCommand command = new ChangeDocumentationCommand(editorContext, element, "Modified doc");
+        command.execute();
+
+        // Verify execution cleared the list
+        assertTrue(element.getDocumentations().isEmpty(), "List should be empty after execute");
+        assertEquals("Modified doc", element.getDocumentation(), "Legacy doc should be modified");
+
+        // Act: Undo
+        command.undo();
+
+        // Assert: Both formats should be restored
+        assertEquals("Original legacy doc", element.getDocumentation(), "Legacy doc should be restored");
+        assertEquals(1, element.getDocumentations().size(), "Multi-language list should be restored");
+        assertEquals("en", element.getDocumentations().get(0).getLang(), "Doc lang should be restored");
+        assertEquals("Original English", element.getDocumentations().get(0).getText(), "Doc text should be restored");
     }
 }

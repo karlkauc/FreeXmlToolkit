@@ -8,6 +8,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.Alert;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +28,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDatatypeFacets;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
@@ -51,7 +58,11 @@ public class XsdPropertiesPanel extends VBox {
     private CheckBox unboundedCheckBox;
 
     // Documentation section controls
-    private TextArea documentationArea;
+    private TableView<XsdDocumentation> documentationTableView;
+    private Button addDocBtn;
+    private Button editDocBtn;
+    private Button deleteDocBtn;
+    private TextArea documentationArea; // Legacy field, hidden
     private TextArea appinfoArea; // Kept for backward compatibility
     private AppInfoEditorPanel appInfoEditorPanel; // New structured editor
 
@@ -420,12 +431,7 @@ public class XsdPropertiesPanel extends VBox {
             }
         });
 
-        // Documentation - fire command when focus lost
-        documentationArea.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
-                handleDocumentationChange();
-            }
-        });
+        // Documentation - no listener needed anymore, changes are handled by table edit commits and buttons
 
         // AppInfo handling is now done by AppInfoEditorPanel internally
         // It creates commands directly when fields change
@@ -538,13 +544,75 @@ public class XsdPropertiesPanel extends VBox {
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(10));
 
-        // Documentation
-        vbox.getChildren().add(new Label("Documentation:"));
-        documentationArea = new TextArea();
-        documentationArea.setPromptText("xs:documentation content");
-        documentationArea.setPrefRowCount(3);
-        documentationArea.setWrapText(true);
-        vbox.getChildren().add(documentationArea);
+        // Documentation Section
+        Label docLabel = new Label("Documentation (Multi-Language Support):");
+        docLabel.setStyle("-fx-font-weight: bold;");
+        vbox.getChildren().add(docLabel);
+
+        // TableView for documentation entries
+        documentationTableView = new TableView<>();
+        documentationTableView.setEditable(true);
+        documentationTableView.setPrefHeight(150);
+        documentationTableView.setPlaceholder(new Label("No documentation entries"));
+
+        // Language column (xml:lang)
+        TableColumn<XsdDocumentation, String> langColumn = new TableColumn<>("Language (xml:lang)");
+        langColumn.setPrefWidth(150);
+        langColumn.setCellValueFactory(cellData -> {
+            String lang = cellData.getValue().getLang();
+            return new javafx.beans.property.SimpleStringProperty(lang != null ? lang : "");
+        });
+        langColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        langColumn.setOnEditCommit(event -> {
+            XsdDocumentation doc = event.getRowValue();
+            String newLang = event.getNewValue();
+            doc.setLang(newLang.isEmpty() ? null : newLang);
+            handleDocumentationsChange();
+        });
+
+        // Text column
+        TableColumn<XsdDocumentation, String> textColumn = new TableColumn<>("Documentation Text");
+        textColumn.setPrefWidth(350);
+        textColumn.setCellValueFactory(cellData -> {
+            String text = cellData.getValue().getText();
+            return new javafx.beans.property.SimpleStringProperty(text != null ? text : "");
+        });
+        textColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        textColumn.setOnEditCommit(event -> {
+            XsdDocumentation doc = event.getRowValue();
+            doc.setText(event.getNewValue());
+            handleDocumentationsChange();
+        });
+
+        documentationTableView.getColumns().addAll(langColumn, textColumn);
+
+        vbox.getChildren().add(documentationTableView);
+
+        // Buttons for Add/Edit/Delete
+        HBox buttonBox = new HBox(10);
+        addDocBtn = new Button("Add");
+        addDocBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        addDocBtn.setOnAction(e -> handleAddDocumentation());
+
+        editDocBtn = new Button("Edit");
+        editDocBtn.setGraphic(new FontIcon("bi-pencil"));
+        editDocBtn.setDisable(true);
+        editDocBtn.setOnAction(e -> handleEditDocumentation());
+
+        deleteDocBtn = new Button("Delete");
+        deleteDocBtn.setGraphic(new FontIcon("bi-trash"));
+        deleteDocBtn.setDisable(true);
+        deleteDocBtn.setOnAction(e -> handleDeleteDocumentation());
+
+        // Enable/disable edit and delete buttons based on selection
+        documentationTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            boolean hasSelection = newVal != null;
+            editDocBtn.setDisable(!hasSelection);
+            deleteDocBtn.setDisable(!hasSelection);
+        });
+
+        buttonBox.getChildren().addAll(addDocBtn, editDocBtn, deleteDocBtn);
+        vbox.getChildren().add(buttonBox);
 
         // Separator
         Separator separator = new Separator();
@@ -559,7 +627,11 @@ public class XsdPropertiesPanel extends VBox {
         appInfoEditorPanel = new AppInfoEditorPanel(editorContext);
         vbox.getChildren().add(appInfoEditorPanel);
 
-        // Hidden legacy appinfo area for backward compatibility (not shown in UI)
+        // Hidden legacy fields for backward compatibility (not shown in UI)
+        documentationArea = new TextArea();
+        documentationArea.setManaged(false);
+        documentationArea.setVisible(false);
+
         appinfoArea = new TextArea();
         appinfoArea.setManaged(false);
         appinfoArea.setVisible(false);
@@ -660,6 +732,14 @@ public class XsdPropertiesPanel extends VBox {
             minOccursSpinner.setDisable(!isEditMode);
             maxOccursSpinner.setDisable(!isEditMode || unboundedCheckBox.isSelected());
             unboundedCheckBox.setDisable(!isEditMode);
+
+            // Documentation table and buttons
+            documentationTableView.setDisable(!isEditMode);
+            addDocBtn.setDisable(!isEditMode);
+            editDocBtn.setDisable(!isEditMode || documentationTableView.getSelectionModel().getSelectedItem() == null);
+            deleteDocBtn.setDisable(!isEditMode || documentationTableView.getSelectionModel().getSelectedItem() == null);
+
+            // Legacy fields (hidden)
             documentationArea.setEditable(isEditMode);
             appinfoArea.setEditable(isEditMode);
 
@@ -717,16 +797,17 @@ public class XsdPropertiesPanel extends VBox {
             // Update Documentation section from model
             logger.debug("ModelObject type: {}", modelObject != null ? modelObject.getClass().getName() : "null");
             if (modelObject instanceof XsdNode xsdNode) {
-                String documentation = xsdNode.getDocumentation();
-                logger.debug("Loading documentation: '{}'", documentation);
-                documentationArea.setText(documentation != null ? documentation : "");
+                // Load multi-language documentations into TableView
+                java.util.List<XsdDocumentation> docs = xsdNode.getDocumentations();
+                logger.debug("Loading {} documentation entries", docs.size());
+                documentationTableView.setItems(FXCollections.observableArrayList(docs));
 
                 // Update the structured AppInfo editor panel
                 appInfoEditorPanel.setNode(xsdNode);
                 logger.debug("Documentation panel and AppInfo editor updated with values");
             } else {
                 logger.warn("ModelObject is not an XsdNode, cannot load documentation/appinfo");
-                documentationArea.setText("");
+                documentationTableView.setItems(FXCollections.observableArrayList());
                 appInfoEditorPanel.setNode(null);
             }
 
@@ -792,7 +873,7 @@ public class XsdPropertiesPanel extends VBox {
             unboundedCheckBox.setSelected(false);
             maxOccursSpinner.setDisable(false);
 
-            documentationArea.clear();
+            documentationTableView.setItems(FXCollections.observableArrayList());
             appInfoEditorPanel.setNode(null); // Clear the structured AppInfo editor
 
             nillableCheckBox.setSelected(false);
@@ -972,24 +1053,170 @@ public class XsdPropertiesPanel extends VBox {
     }
 
     /**
-     * Handles changes to the documentation field.
+     * Handles changes to the documentation list.
+     * Called when inline editing is done or when Add/Edit/Delete buttons are used.
      */
-    private void handleDocumentationChange() {
+    private void handleDocumentationsChange() {
+        if (currentNode == null || currentNode.getModelObject() == null || updating) {
+            logger.debug("handleDocumentationsChange skipped: currentNode={}, updating={}", currentNode, updating);
+            return;
+        }
+
+        XsdNode node = (XsdNode) currentNode.getModelObject();
+        java.util.List<XsdDocumentation> newDocumentations = new java.util.ArrayList<>(documentationTableView.getItems());
+
+        logger.info("handleDocumentationsChange: node={}, tableView.items.size={}, newDocs.size={}",
+                    node.getName(), documentationTableView.getItems().size(), newDocumentations.size());
+        for (int i = 0; i < newDocumentations.size(); i++) {
+            XsdDocumentation doc = newDocumentations.get(i);
+            logger.info("  Doc[{}]: lang='{}', text='{}'", i, doc.getLang(),
+                        doc.getText().length() > 50 ? doc.getText().substring(0, 47) + "..." : doc.getText());
+        }
+
+        // Create and execute command
+        ChangeDocumentationsCommand command = new ChangeDocumentationsCommand(editorContext, node, newDocumentations);
+        editorContext.getCommandManager().executeCommand(command);
+        logger.info("Executed ChangeDocumentationsCommand with {} entries for node '{}'", newDocumentations.size(), node.getName());
+    }
+
+    /**
+     * Handles adding a new documentation entry.
+     */
+    private void handleAddDocumentation() {
         if (currentNode == null || currentNode.getModelObject() == null) {
             return;
         }
 
-        String newDocumentation = documentationArea.getText();
-        XsdNode node = (XsdNode) currentNode.getModelObject();
-        String currentDocumentation = node.getDocumentation();
+        // Show input dialog for language and text
+        Dialog<XsdDocumentation> dialog = new Dialog<>();
+        dialog.setTitle("Add Documentation");
+        dialog.setHeaderText("Add new documentation entry");
 
-        // Only create command if value actually changed
-        if (!java.util.Objects.equals(newDocumentation, currentDocumentation)) {
-            ChangeDocumentationCommand command = new ChangeDocumentationCommand(
-                    editorContext, node, newDocumentation);
-            editorContext.getCommandManager().executeCommand(command);
-            logger.debug("Executed ChangeDocumentationCommand");
+        // Set the button types
+        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        // Create the form
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField langField = new TextField();
+        langField.setPromptText("e.g., en, de (leave empty for no language)");
+        TextArea textArea = new TextArea();
+        textArea.setPromptText("Documentation text");
+        textArea.setPrefRowCount(3);
+
+        grid.add(new Label("Language (xml:lang):"), 0, 0);
+        grid.add(langField, 1, 0);
+        grid.add(new Label("Text:"), 0, 1);
+        grid.add(textArea, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Convert the result when the add button is clicked
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                String text = textArea.getText();
+                if (text != null && !text.trim().isEmpty()) {
+                    String lang = langField.getText();
+                    return new XsdDocumentation(
+                            text.trim(),
+                            (lang != null && !lang.trim().isEmpty()) ? lang.trim() : null
+                    );
+                }
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(newDoc -> {
+            documentationTableView.getItems().add(newDoc);
+            handleDocumentationsChange();
+            logger.debug("Added new documentation entry with lang='{}'", newDoc.getLang());
+        });
+    }
+
+    /**
+     * Handles editing a selected documentation entry.
+     */
+    private void handleEditDocumentation() {
+        XsdDocumentation selected = documentationTableView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
         }
+
+        // Show input dialog for language and text
+        Dialog<XsdDocumentation> dialog = new Dialog<>();
+        dialog.setTitle("Edit Documentation");
+        dialog.setHeaderText("Edit documentation entry");
+
+        // Set the button types
+        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+        // Create the form
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField langField = new TextField(selected.getLang() != null ? selected.getLang() : "");
+        langField.setPromptText("e.g., en, de (leave empty for no language)");
+        TextArea textArea = new TextArea(selected.getText());
+        textArea.setPromptText("Documentation text");
+        textArea.setPrefRowCount(3);
+
+        grid.add(new Label("Language (xml:lang):"), 0, 0);
+        grid.add(langField, 1, 0);
+        grid.add(new Label("Text:"), 0, 1);
+        grid.add(textArea, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Convert the result when the save button is clicked
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                String text = textArea.getText();
+                if (text != null && !text.trim().isEmpty()) {
+                    String lang = langField.getText();
+                    selected.setLang((lang != null && !lang.trim().isEmpty()) ? lang.trim() : null);
+                    selected.setText(text.trim());
+                    return selected;
+                }
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(editedDoc -> {
+            documentationTableView.refresh();
+            handleDocumentationsChange();
+            logger.debug("Edited documentation entry with lang='{}'", editedDoc.getLang());
+        });
+    }
+
+    /**
+     * Handles deleting a selected documentation entry.
+     */
+    private void handleDeleteDocumentation() {
+        XsdDocumentation selected = documentationTableView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        // Confirm deletion
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Documentation");
+        alert.setHeaderText("Delete documentation entry?");
+        alert.setContentText("Are you sure you want to delete this documentation entry?");
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                documentationTableView.getItems().remove(selected);
+                handleDocumentationsChange();
+                logger.debug("Deleted documentation entry");
+            }
+        });
     }
 
     /**

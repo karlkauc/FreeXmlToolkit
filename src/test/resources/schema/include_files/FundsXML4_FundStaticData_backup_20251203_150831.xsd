@@ -1,0 +1,649 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" attributeFormDefault="unqualified" elementFormDefault="qualified" version="4.2.10" vc:minVersion="1.1">
+    <xs:complexType name="FundStaticDataType">
+        <xs:sequence>
+            <xs:element name="DomicileCountry" type="ISOCountryCodeType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>ISO Country Code with two characters</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:choice>
+                <xs:element name="ListedLegalStructure" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>UCITS, AIF, SICAV, ...</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="UCITS"/>
+                            <xs:enumeration value="UCITS - SICAV"/>
+                            <xs:enumeration value="UCITS - SICAF"/>
+                            <xs:enumeration value="UCITS - CONTRACTUAL TYPE"/>
+                            <xs:enumeration value="AIF"/>
+                            <xs:enumeration value="AIF - HEDGE FUND"/>
+                            <xs:enumeration value="AIF - PRIVATE EQUITY FUND"/>
+                            <xs:enumeration value="AIF - VENTURE CAPITAL FUND"/>
+                            <xs:enumeration value="AIF - REAL ESTATE FUND"/>
+                            <xs:enumeration value="AIF - REIT"/>
+                            <xs:enumeration value="AIF - INFRASTRUCTURE FUND"/>
+                            <xs:enumeration value="AIF - COMMODITY FUND"/>
+                            <xs:enumeration value="AIF - SOVEREIGN WEALTH FUND"/>
+                            <xs:enumeration value="AIF - ELTIF"/>
+                            <xs:enumeration value="AIF - EUVECA"/>
+                            <xs:enumeration value="AIF - EUSEF"/>
+                            <xs:enumeration value="SPV"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+                <xs:element name="UnlistedLegalStructure" type="Text200Type" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>Free text legal structure</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:choice>
+            <xs:element name="InceptionDate" type="xs:date" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Inception date of fund</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="StartOfFiscalYear" type="DayMonthType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>First day of fiscal year (day/month)</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="EndOfFiscalYear" type="DayMonthType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Las day of fiscal year (day/month)</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="OpenClosedEnded" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Defines whether shares can be bought or not: OPEN or CLOSED</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="OPEN"/>
+                        <xs:enumeration value="CLOSED"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="ClosedType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>HARD ... Nobody can buy new shares
+SOFT ... Only existing investors can buy new shares</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="HARD"/>
+                        <xs:enumeration value="SOFT"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="MaturityDate" type="xs:date" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Maturity date (planned end date) of fund</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="LiquidationDate" type="xs:date" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date when fund has been closed (due to low volume, merger, ...)</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="LiquidationReason" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Client Exit, Low Volume, Merger or Other</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="CLIENT EXIT"/>
+                        <xs:enumeration value="LOW VOLUME"/>
+                        <xs:enumeration value="MERGER"/>
+                        <xs:enumeration value="OTHER"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Administrator" type="CompanyType" minOccurs="0"/>
+            <xs:element name="Auditor" type="CompanyType" minOccurs="0"/>
+            <xs:element name="Custodian" type="CompanyType" minOccurs="0"/>
+            <xs:element name="InvestmentCompany" type="CompanyType" minOccurs="0"/>
+            <xs:element name="FundTexts" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="FundText" type="FundRelatedTextType" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SelfManagedSICAVFlag" type="xs:boolean" minOccurs="0"/>
+            <xs:element name="CustomAttributes" type="AttributesType" minOccurs="0"/>
+            <xs:element name="Classifications" type="ClassificationsType" minOccurs="0"/>
+            <xs:element name="Companies" type="FundCompaniesType" minOccurs="0"/>
+            <xs:element name="PortfolioManagers" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Information about the person or persons that manage the fund</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="PortfolioManager" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Name" type="Text256Type">
+                                        <xs:annotation>
+                                            <xs:documentation>Indicates the name of the person in charge of the management of the portfolio</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:element>
+                                    <xs:element name="StartDate" type="xs:date">
+                                        <xs:annotation>
+                                            <xs:documentation>Indicates the start date from which on the fund manager was made responsible for managing the portfolio.</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:element>
+                                    <xs:element name="Role" type="xs:string">
+                                        <xs:annotation>
+                                            <xs:documentation>Indicates the role of the person in charge of the management of the portfolio</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:element>
+                                    <xs:element name="YearOfBirth" type="xs:date" minOccurs="0">
+                                        <xs:annotation>
+                                            <xs:documentation>Indicates the date of birth of the person in charge of the management of the portfolio</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:element>
+                                    <xs:element name="Gender" minOccurs="0">
+                                        <xs:annotation>
+                                            <xs:documentation>Indicates the gender of the person in charge of the management of the portfolio</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="Male"/>
+                                                <xs:enumeration value="Female"/>
+                                                <xs:enumeration value="Diverse"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:element>
+                                    <xs:element name="StartOfCareer" type="xs:date" minOccurs="0">
+                                        <xs:annotation>
+                                            <xs:documentation>Indicates when the person in charge of the management of the portfolio started his professional career in the financial industry</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:element>
+                                    <xs:element name="Biography" minOccurs="0">
+                                        <xs:annotation>
+                                            <xs:documentation>Biography of the Portfolio Manager</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="BriefBiography" type="xs:string">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Indicates a brief curriculum vitae (CV) of the person in charge of the management of the portfolio</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:element>
+                                                <xs:element name="BiographyLanguage" type="ISOLanguageCodeType">
+                                                    <xs:annotation>
+                                                        <xs:documentation>Specifies the language of the Portfolio Manager&apos;s brief biography.</xs:documentation>
+                                                    </xs:annotation>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Benchmarks" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Benchmark" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:complexContent>
+                                    <xs:extension base="BenchmarkStaticDataType"/>
+                                </xs:complexContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="FundHedgingStrategy" type="HedgingStrategyType" minOccurs="0"/>
+            <xs:element name="OngoingCosts" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Fee Structure according to prospectus</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence maxOccurs="unbounded">
+                        <xs:element name="OngoingCost">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="CostType">
+                                        <xs:annotation>
+                                            <xs:documentation>OGC (= &quot;Management fees and other administrative or operating cost&quot;)
+Performance Fee
+Transaction Costs</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="Ongoing Costs"/>
+                                                <xs:enumeration value="Ongoing Charges"/>
+                                                <xs:enumeration value="Performance Fee"/>
+                                                <xs:enumeration value="Transaction Costs"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:element>
+                                    <xs:element name="PublicationDate" type="xs:date"/>
+                                    <xs:element name="ValidFrom" type="xs:date" minOccurs="0"/>
+                                    <xs:element name="ValidTo" type="xs:date" minOccurs="0"/>
+                                    <xs:element name="Percentage" type="PercentageType"/>
+                                    <xs:element name="YearlyAmount" type="AmountType" minOccurs="0">
+                                        <xs:annotation>
+                                            <xs:documentation>Absolute Amount per 10.000 in Fund CCY</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SFDRProductType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Financial Instrument SFDR Product Type 
+Reference of the article of SFDR european regulation applying to the product (art 6, art 8 or art 9)
+6= no product acc. to Art. 8/9
+8= Art. 8 SFDR Product (ESG characteristics)
+9= Art. 9 SFDR product (ESG objective)</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:int">
+                        <xs:enumeration value="0"/>
+                        <xs:enumeration value="6"/>
+                        <xs:enumeration value="8"/>
+                        <xs:enumeration value="9"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="SubfundStaticDataType">
+        <xs:sequence>
+            <xs:element name="InceptionDate" type="xs:date" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Inception date of fund</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="MaturityDate" type="xs:date" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Maturity date (planned end date) of fund</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="LiquidationDate" type="xs:date" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date when fund has been closed (due to low volume, merger, ...)</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="LiquidationReason" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Client Exit, Low Volume, Merger or Other</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="CLIENT EXIT"/>
+                        <xs:enumeration value="LOW VOLUME"/>
+                        <xs:enumeration value="MERGER"/>
+                        <xs:enumeration value="OTHER"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Advisor" type="CompanyType" minOccurs="0"/>
+            <xs:element name="Companies" type="SubfundCompaniesType" minOccurs="0"/>
+            <xs:element name="Managers" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Manager" type="CompanyType" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Policies" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Policy" type="xs:string" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="StockExchanges" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Exchange" maxOccurs="unbounded">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:length value="4"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ExchangeTradedFlag" type="xs:boolean" minOccurs="0"/>
+            <xs:element name="FundOfFundFlag" type="xs:boolean" minOccurs="0"/>
+            <xs:element name="SocialResponsibleFlag" type="xs:boolean" minOccurs="0"/>
+            <xs:element name="ManagementType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>ACTIVE or PASSIVE</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="6"/>
+                        <xs:maxLength value="7"/>
+                        <xs:enumeration value="ACTIVE"/>
+                        <xs:enumeration value="PASSIVE"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="PricePublishedFlag" type="xs:boolean" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Defines whether prices are published or not</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="OpenClosedEnded" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Defines whether shares can be bought or not: OPEN or CLOSED</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="4"/>
+                        <xs:maxLength value="6"/>
+                        <xs:enumeration value="OPEN"/>
+                        <xs:enumeration value="CLOSED"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="ClosedType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>HARD ... Nobody can buy new shares
+SOFT ... Only existing investors can buy new shares</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:length value="4"/>
+                        <xs:enumeration value="HARD"/>
+                        <xs:enumeration value="SOFT"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="SalesCategory" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>PUBLIC, RETAIL, RETAIL-HNW, SPECIAL</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="6"/>
+                        <xs:maxLength value="11"/>
+                        <xs:enumeration value="PUBLIC"/>
+                        <xs:enumeration value="RETAIL"/>
+                        <xs:enumeration value="RETAIL-HNW"/>
+                        <xs:enumeration value="SPECIAL"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="InvestmentHorizon" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Recommended holding period in years</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Minimum" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="Optimum" type="xs:decimal" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="IsFeederFor" type="IdentifiersType" minOccurs="0"/>
+            <xs:element name="IsMasterFor" type="IdentifiersType" minOccurs="0"/>
+            <xs:element name="FundTexts" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="FundText" type="FundRelatedTextType" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="CustomAttributes" type="AttributesType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="SingleFundStaticDataType">
+        <xs:sequence>
+            <xs:element name="Advisor" type="CompanyType" minOccurs="0"/>
+            <xs:element name="Managers" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Manager" type="CompanyType" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Policies" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Policy" type="xs:string" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="StockExchanges" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Exchange" maxOccurs="unbounded">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:length value="4"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ExchangeTradedFlag" type="xs:boolean" minOccurs="0"/>
+            <xs:element name="FundOfFundFlag" type="xs:boolean" minOccurs="0"/>
+            <xs:element name="SocialResponsibleFlag" type="xs:boolean" minOccurs="0"/>
+            <xs:element name="ManagementType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>ACTIVE or PASSIVE</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ACTIVE"/>
+                        <xs:enumeration value="PASSIVE"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="PricePublishedFlag" type="xs:boolean" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Defines whether prices are published or not</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="SalesCategory" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>PUBLIC, RETAIL, RETAIL-HNW, SPECIAL</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="PUBLIC"/>
+                        <xs:enumeration value="RETAIL"/>
+                        <xs:enumeration value="RETAIL-HNW"/>
+                        <xs:enumeration value="SPECIAL"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="InvestmentHorizon" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Recommended holding period in years</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Minimum" type="xs:decimal" minOccurs="0"/>
+                        <xs:element name="Optimum" type="xs:decimal" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="IsFeederFor" type="IdentifiersType" minOccurs="0"/>
+            <xs:element name="IsMasterFor" type="IdentifiersType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="FundCompanyType">
+        <xs:sequence>
+            <xs:choice>
+                <xs:element name="ListedRole">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="Distributing Agent"/>
+                            <xs:enumeration value="Domiciliary Agent"/>
+                            <xs:enumeration value="Fund Promoter"/>
+                            <xs:enumeration value="Legal Advisor"/>
+                            <xs:enumeration value="Management Company"/>
+                            <xs:enumeration value="Paying Agent"/>
+                            <xs:enumeration value="Sub Transfer Agent"/>
+                            <xs:enumeration value="Sub Investment Advisor"/>
+                            <xs:enumeration value="Swiss Paying Agent"/>
+                            <xs:enumeration value="Swiss Representative"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+                <xs:element name="UnlistedRole" type="Text200Type"/>
+            </xs:choice>
+            <xs:element name="RoleStart" type="xs:date" minOccurs="0"/>
+            <xs:element name="RoleEnd" type="xs:date" minOccurs="0"/>
+            <xs:element name="Details" type="CompanyType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="FundCompaniesType">
+        <xs:sequence>
+            <xs:element name="Company" type="FundCompanyType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="SubfundCompanyType">
+        <xs:sequence>
+            <xs:choice>
+                <xs:element name="ListedRole">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="Auditor"/>
+                            <xs:enumeration value="Administrator"/>
+                            <xs:enumeration value="Custodian"/>
+                            <xs:enumeration value="Distributing Agent"/>
+                            <xs:enumeration value="Domiciliary Agent"/>
+                            <xs:enumeration value="Fund Promoter"/>
+                            <xs:enumeration value="Investment Company"/>
+                            <xs:enumeration value="Legal Advisor"/>
+                            <xs:enumeration value="Paying Agent"/>
+                            <xs:enumeration value="Sub Transfer Agent"/>
+                            <xs:enumeration value="Sub Investment Advisor"/>
+                            <xs:enumeration value="Swiss Paying Agent"/>
+                            <xs:enumeration value="Swiss Representative"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+                <xs:element name="UnlistedRole" type="Text200Type"/>
+            </xs:choice>
+            <xs:element name="RoleStart" type="xs:date" minOccurs="0"/>
+            <xs:element name="RoleEnd" type="xs:date" minOccurs="0"/>
+            <xs:element name="Details" type="CompanyType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="SubfundCompaniesType">
+        <xs:sequence>
+            <xs:element name="Company" type="SubfundCompanyType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="BenchmarkStaticDataType">
+        <xs:sequence>
+            <xs:element name="BenchmarkID" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Link to Benchmark Dynamic Data</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="255"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Name">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="255"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Currency" type="ISOCurrencyCodeType"/>
+            <xs:element name="Provider" type="BenchmarkProviderCompany" minOccurs="0"/>
+            <xs:element name="BenchmarkType" minOccurs="0">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="Market Index"/>
+                        <xs:enumeration value="Blended Benchmark"/>
+                        <xs:enumeration value="Custom"/>
+                        <xs:enumeration value="Absolute Value/Target Return"/>
+                        <xs:enumeration value="Peer Groups and Universes"/>
+                        <xs:enumeration value="Factor Based Models"/>
+                        <xs:enumeration value="Returns Based"/>
+                        <xs:enumeration value="Exchange Traded Fund"/>
+                        <xs:enumeration value="Other"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="BenchmarkUsage" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>official, internal, performance attribution, etc.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:attribute name="ListedType" type="BenchmarkUsageType"/>
+                    <xs:attribute name="FreeType"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="BenchmarkComponents" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>if blended Benchmark</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="BenchmarkComponent" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="BenchmarkComponentID" minOccurs="0">
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:maxLength value="255"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:element>
+                                    <xs:element name="ValidFrom" type="xs:date"/>
+                                    <xs:element name="ValidTo" type="xs:date" minOccurs="0"/>
+                                    <xs:sequence>
+                                        <xs:element name="Name">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:maxLength value="255"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name="Provider" type="BenchmarkProviderCompany" minOccurs="0"/>
+                                        <xs:element name="Identifier" type="IdentifiersType"/>
+                                        <xs:element name="Weight" type="PercentageType"/>
+                                    </xs:sequence>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="BenchmarkProviderCompany">
+        <xs:complexContent>
+            <xs:extension base="CompanyType">
+                <xs:sequence>
+                    <xs:element name="IsESMARegisterd" type="xs:boolean" minOccurs="0"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:simpleType name="BenchmarkUsageType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="OFFICIAL"/>
+            <xs:enumeration value="INTERNAL"/>
+            <xs:enumeration value="PERFORMANCE ATTRIBUTION"/>
+            <xs:enumeration value="PRIIP KID"/>
+            <xs:enumeration value="UCITS KIID"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

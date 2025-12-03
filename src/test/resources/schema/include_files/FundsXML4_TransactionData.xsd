@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) von XMLSpy2013 (s IT Solutions AT Spardat GmbH z.B. Buchhaltung) bearbeitet -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
-           elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
-    <xs:include schemaLocation="FundsXML4_Core.xsd"/>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" attributeFormDefault="unqualified" elementFormDefault="qualified" version="4.2.10" vc:minVersion="1.1">
     <xs:complexType name="EarningsType">
         <xs:sequence>
             <xs:element name="Earning" type="EarningType" maxOccurs="unbounded">
                 <xs:annotation>
-                    <xs:documentation>Earning data (single coupon, dividend or distribution) resulting from a security
-                        position
-                    </xs:documentation>
+                    <xs:documentation>Earning data (single coupon, dividend or distribution) resulting from a security position</xs:documentation>
                 </xs:annotation>
             </xs:element>
         </xs:sequence>
@@ -46,19 +41,15 @@
             </xs:element>
             <xs:element name="Identifiers" type="IdentifiersType" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation xml:lang="en">Identifiers of instrument (like ISIN, Ticker, ...)
-                    </xs:documentation>
+                    <xs:documentation xml:lang="en">Identifiers of instrument (like ISIN, Ticker, ...)</xs:documentation>
                     <xs:documentation xml:lang="de">Kennnummern des Instrumentes (ISIN, Ticker, ...)</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="EarningKind">
                 <xs:annotation>
                     <xs:documentation xml:lang="en">Type of earning:
-                        Coupon, Dividend, Fund distribution, ...
-                    </xs:documentation>
-                    <xs:documentation xml:lang="de">Diese Bezeichnung ist aus dem Dictionary zu entnehmen.Gibt die
-                        Ertragsart an: z.B Coupon, Dividend,Fund distribution
-                    </xs:documentation>
+Coupon, Dividend, Fund distribution, ...</xs:documentation>
+                    <xs:documentation xml:lang="de">Diese Bezeichnung ist aus dem Dictionary zu entnehmen.Gibt die Ertragsart an: z.B Coupon, Dividend,Fund distribution</xs:documentation>
                 </xs:annotation>
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
@@ -145,15 +136,6 @@
                 </xs:annotation>
             </xs:element>
             <xs:choice minOccurs="0">
-                <xs:annotation>
-                    <xs:documentation xml:lang="en">Details specific for coupons, dividends and distributions
-                    </xs:documentation>
-                    <xs:documentation xml:lang="de">Aufsplittung in die verschiedenen Ertraegnissarten:
-                        - Kupons
-                        - Dividenden
-                        - Fondsausschuettung
-                    </xs:documentation>
-                </xs:annotation>
                 <xs:element name="Coupon">
                     <xs:annotation>
                         <xs:documentation xml:lang="en">Earning details for coupon payments</xs:documentation>
@@ -164,8 +146,7 @@
                             <xs:element name="UnitInterestsGrossValue" type="FundAmountType" minOccurs="0">
                                 <xs:annotation>
                                     <xs:documentation xml:lang="en">Unit interests gross value</xs:documentation>
-                                    <xs:documentation xml:lang="de">Bruttostueckzinsen der Transaktion
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="de">Bruttostueckzinsen der Transaktion</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="UnitInterestsNetValue" type="FundAmountType" minOccurs="0">
@@ -177,8 +158,7 @@
                             <xs:element name="CapitalYieldsTaxValue" type="FundAmountType" minOccurs="0">
                                 <xs:annotation>
                                     <xs:documentation xml:lang="en">Capital yields tax value</xs:documentation>
-                                    <xs:documentation xml:lang="de">KESt-Betrag der Wertpapiertransaktion
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="de">KESt-Betrag der Wertpapiertransaktion</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="EUWithholdingTaxValue" type="FundAmountType" minOccurs="0">
@@ -257,31 +237,25 @@
                             </xs:element>
                             <xs:element name="PayoutGrossValue" type="FundAmountType" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation xml:lang="en">Payout gross value of distribution
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="en">Payout gross value of distribution</xs:documentation>
                                     <xs:documentation xml:lang="de">Brutto-Ausschüttungsbetrag</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="CapitalYieldsTaxUnitValue" type="FundAmountType" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation xml:lang="en">Capital yields tax value (per unit)
-                                    </xs:documentation>
-                                    <xs:documentation xml:lang="de">KESt-Betrag der Ausschüttung (pro Stück)
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="en">Capital yields tax value (per unit)</xs:documentation>
+                                    <xs:documentation xml:lang="de">KESt-Betrag der Ausschüttung (pro Stück)</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="CapitalYieldsTaxOverallValue" type="FundAmountType" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation xml:lang="en">Total capital yields tax value (per unit)
-                                    </xs:documentation>
-                                    <xs:documentation xml:lang="de">KESt-Gesamtbetrag der Ausschüttung (pro Stück)
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="en">Total capital yields tax value (per unit)</xs:documentation>
+                                    <xs:documentation xml:lang="de">KESt-Gesamtbetrag der Ausschüttung (pro Stück)</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="EUWithholdingTaxUnitValue" type="FundAmountType" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation xml:lang="en">EU withholding tax value (per unit)
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="en">EU withholding tax value (per unit)</xs:documentation>
                                     <xs:documentation xml:lang="de">EU-Quest Betrag pro Stück</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
@@ -358,8 +332,7 @@
             </xs:element>
             <xs:element name="TransactionKind">
                 <xs:annotation>
-                    <xs:documentation xml:lang="en">BUY, SELL, LENDING_BUY, LENDING_SELL, CORP_ACTION, CASH
-                    </xs:documentation>
+                    <xs:documentation xml:lang="en">BUY, SELL, LENDING_BUY, LENDING_SELL, CORP_ACTION, CASH</xs:documentation>
                     <xs:documentation xml:lang="de">BUY, SELL, LENDING_BUY, LENDING_SELL</xs:documentation>
                 </xs:annotation>
                 <xs:simpleType>
@@ -394,8 +367,7 @@
             <xs:element name="ClosingDate" type="xs:date" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation xml:lang="en">Closing date (trade date)</xs:documentation>
-                    <xs:documentation xml:lang="de">Gibt das Datum an, an dem das Geschaefts abgeschlossen wurde
-                    </xs:documentation>
+                    <xs:documentation xml:lang="de">Gibt das Datum an, an dem das Geschaefts abgeschlossen wurde</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="OrderTimestamp" type="xs:dateTime" minOccurs="0">
@@ -416,9 +388,7 @@
             <xs:element name="NominalOrUnitsOrContracts" type="xs:decimal">
                 <xs:annotation>
                     <xs:documentation xml:lang="en">Nominal or units or contracts (without sign)</xs:documentation>
-                    <xs:documentation xml:lang="de">Gibt die Stuecke oder Nominale oder Kontraktzahl an (ohne
-                        Vorzeichen)
-                    </xs:documentation>
+                    <xs:documentation xml:lang="de">Gibt die Stuecke oder Nominale oder Kontraktzahl an (ohne Vorzeichen)</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="CleanPrice" type="FundAmountType" minOccurs="0">
@@ -445,8 +415,7 @@
             <xs:element name="InterestClaimGross" type="FundAmountType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation xml:lang="en">Interest claim gross of traded instrument</xs:documentation>
-                    <xs:documentation xml:lang="de">Brutto-Zinsanspruch des gehandelten Wertpapieres/Derivates/Geldes
-                    </xs:documentation>
+                    <xs:documentation xml:lang="de">Brutto-Zinsanspruch des gehandelten Wertpapieres/Derivates/Geldes</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="ZeroBondInterestClaimGross" type="FundAmountType" minOccurs="0">
@@ -457,11 +426,8 @@
             </xs:element>
             <xs:element name="DirtyValue" type="FundAmountType" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation xml:lang="en">Dirty value (total value) including accruels/interests
-                    </xs:documentation>
-                    <xs:documentation xml:lang="de">Gesamtwert des gehandelten Instrumentes (Kurswert plus
-                        Ansprüche/Zinsen)
-                    </xs:documentation>
+                    <xs:documentation xml:lang="en">Dirty value (total value) including accruels/interests</xs:documentation>
+                    <xs:documentation xml:lang="de">Gesamtwert des gehandelten Instrumentes (Kurswert plus Ansprüche/Zinsen)</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="SettlementAmount" type="FundAmountType" minOccurs="0">
@@ -488,31 +454,88 @@
                     <xs:documentation xml:lang="de">Devisenkurse der Transaktion</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="Expenses" type="FundAmountType" minOccurs="0">
+            <xs:element name="Expenses" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation xml:lang="en">Expenses/fees of transaction</xs:documentation>
                     <xs:documentation xml:lang="de">Spesen der Transaktion</xs:documentation>
                 </xs:annotation>
+                <xs:complexType>
+                    <xs:choice>
+                        <xs:element name="Amount" maxOccurs="unbounded">
+                            <xs:annotation>
+                                <xs:documentation xml:lang="en">Amounts in currency as defined in attribute</xs:documentation>
+                                <xs:documentation xml:lang="de">Betrag in frei waehlbarer Waehrung</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:decimal">
+                                        <xs:attribute name="ccy" type="ISOCurrencyCodeType" use="required"/>
+                                        <xs:attribute name="isFundCcy" type="xs:boolean"/>
+                                        <xs:attribute name="isSubfundCcy" type="xs:boolean"/>
+                                        <xs:attribute name="isShareClassCcy" type="xs:boolean"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="Expense" maxOccurs="unbounded">
+                            <xs:annotation>
+                                <xs:documentation>Transaction Cost</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Type" minOccurs="0">
+                                        <xs:annotation>
+                                            <xs:documentation>Implicit or Explicit</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="Explicit"/>
+                                                <xs:enumeration value="Implicit"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:element>
+                                    <xs:element name="Detail" minOccurs="0">
+                                        <xs:annotation>
+                                            <xs:documentation>Detalied Transaction Cost type</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="Brokerage Commissions"/>
+                                                <xs:enumeration value="Exchange Fees"/>
+                                                <xs:enumeration value="Custody and Maintenance Fees"/>
+                                                <xs:enumeration value="Clearing and Settlement"/>
+                                                <xs:enumeration value="Taxes and Levies"/>
+                                                <xs:enumeration value="Bid-Ask Spread"/>
+                                                <xs:enumeration value="Market Impact"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:element>
+                                    <xs:element name="Description" type="xs:string" minOccurs="0">
+                                        <xs:annotation>
+                                            <xs:documentation>Text description</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:element>
+                                    <xs:element name="Amount" type="AmountType">
+                                        <xs:annotation>
+                                            <xs:documentation>Transaction Cost Amount</xs:documentation>
+                                        </xs:annotation>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:choice>
+                </xs:complexType>
             </xs:element>
             <xs:element name="IndicatorKindOfValue" type="xs:string" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation xml:lang="en">Type of price used for transaction (e.g. Spot rate, Opening rate,
-                        Closing rate, Fill or Kill). Valid options are defined in the dictionary.
-                    </xs:documentation>
-                    <xs:documentation xml:lang="de">Gibt die Art des Kurses an der bei der Wertpapiertransaktion
-                        verwendet wurde(wie z.B. Spot rate, Opening rate, Closing rate, Fill or Kill). Diese Bezeichnung
-                        ist aus dem Dictionary zu entnehmen.
-                    </xs:documentation>
+                    <xs:documentation xml:lang="en">Type of price used for transaction (e.g. Spot rate, Opening rate, Closing rate, Fill or Kill). Valid options are defined in the dictionary.</xs:documentation>
+                    <xs:documentation xml:lang="de">Gibt die Art des Kurses an der bei der Wertpapiertransaktion verwendet wurde(wie z.B. Spot rate, Opening rate, Closing rate, Fill or Kill). Diese Bezeichnung ist aus dem Dictionary zu entnehmen.</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="PostingText" type="Text256Type" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation xml:lang="en">Posting text of transaction (typically provided by the fund
-                        accounting system)
-                    </xs:documentation>
-                    <xs:documentation xml:lang="de">Buchungstext der Transaktion (üblicherweise vom
-                        Fondsbuchhaltungssystem zur Verfügung gestellt)
-                    </xs:documentation>
+                    <xs:documentation xml:lang="en">Posting text of transaction (typically provided by the fund accounting system)</xs:documentation>
+                    <xs:documentation xml:lang="de">Buchungstext der Transaktion (üblicherweise vom Fondsbuchhaltungssystem zur Verfügung gestellt)</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="AccountNumber" type="xs:integer" minOccurs="0">
@@ -523,11 +546,9 @@
             </xs:element>
             <xs:element name="IndicatorSPESTDuty" type="xs:boolean" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation xml:lang="en">Indicates whether transaction has to consider SPEST
-                    </xs:documentation>
-                    <xs:documentation xml:lang="de">Gibt an ob das Geschaeft SPEST-Pflichtig ist
-                        (Boolean: true / false)
-                    </xs:documentation>
+                    <xs:documentation xml:lang="en">Indicates whether transaction has to consider SPEST</xs:documentation>
+                    <xs:documentation xml:lang="de">Gibt an ob das Geschaeft SPEST-Pflichtig ist 
+(Boolean: true / false)</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="Counterparty" type="CompanyType" minOccurs="0">
@@ -543,15 +564,12 @@
             </xs:element>
             <xs:element name="ProfitLoss" type="FundAmountType" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation xml:lang="en">Profit/Loss amount of the transaction in fund currency.
-                        Differentiation of transaction type among:
-                        - Derivatives
-                        - Bonds
-                        - Corporate actions
-                        and further detail related to the respective type of transaction.
-                    </xs:documentation>
-                    <xs:documentation xml:lang="de">Zeigt den Gewinn/Verlust der Transaktion in Fondswaehrung
-                    </xs:documentation>
+                    <xs:documentation xml:lang="en">Profit/Loss amount of the transaction in fund currency. Differentiation of transaction type among:
+- Derivatives
+- Bonds
+- Corporate actions
+and further detail related to the respective type of transaction.</xs:documentation>
+                    <xs:documentation xml:lang="de">Zeigt den Gewinn/Verlust der Transaktion in Fondswaehrung</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="FinallySettled" type="xs:boolean" minOccurs="0">
@@ -560,17 +578,6 @@
                 </xs:annotation>
             </xs:element>
             <xs:choice minOccurs="0">
-                <xs:annotation>
-                    <xs:documentation xml:lang="en">Additional data for specialized transactions (derivatives, bonds,
-                        corporate actions, Forex)
-                    </xs:documentation>
-                    <xs:documentation xml:lang="de">Unterscheidung der Transaktionsart in:
-                        - Derrivative
-                        - Renten
-                        - Kapitalmassnahmen
-                        und Angabe der durch die Transaktionsart bestimmten Detail-Daten
-                    </xs:documentation>
-                </xs:annotation>
                 <xs:element name="Derivatives">
                     <xs:annotation>
                         <xs:documentation>Details for derivative transactions</xs:documentation>
@@ -579,16 +586,12 @@
                         <xs:sequence>
                             <xs:element name="HedgingFlag" type="xs:boolean" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation>Enthaelt das Kennzeichen, ob das Geschaeft zur Absicherung oder
-                                        zur Spekulationszwecken gemacht wurde
-                                    </xs:documentation>
+                                    <xs:documentation>Enthaelt das Kennzeichen, ob das Geschaeft zur Absicherung oder zur Spekulationszwecken gemacht wurde</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="OpenCloseCash" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation>Enthaelt das Kennzeichen, ob es sich bei dem Geschaeft um ein
-                                        Opening,Closing oder Barausgleich handelt
-                                    </xs:documentation>
+                                    <xs:documentation>Enthaelt das Kennzeichen, ob es sich bei dem Geschaeft um ein Opening,Closing oder Barausgleich handelt</xs:documentation>
                                 </xs:annotation>
                                 <xs:simpleType>
                                     <xs:restriction base="xs:string">
@@ -654,9 +657,7 @@
                             </xs:element>
                             <xs:element name="IndexBondAccrual" type="FundAmountType" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation>Gibt den Buchungsbedingten Abgrenzungsbetrag fuer Indexanleihen
-                                        an
-                                    </xs:documentation>
+                                    <xs:documentation>Gibt den Buchungsbedingten Abgrenzungsbetrag fuer Indexanleihen an</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="InflationaryAdjustment" type="FundAmountType" minOccurs="0">
@@ -664,24 +665,19 @@
                                     <xs:documentation>Gibt den Inflationsausgleich an</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
-                            <xs:element name="EntryConditionalInflationaryAdjustment" type="FundAmountType"
-                                        minOccurs="0">
+                            <xs:element name="EntryConditionalInflationaryAdjustment" type="FundAmountType" minOccurs="0">
                                 <xs:annotation>
                                     <xs:documentation>Buchungbedingter Inflationsausgleich</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="EntryConditionalIndexBondAccrual" type="xs:decimal" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation>Gibt den Buchungsbedingten Abgrenzungsbetrag fuer Indexanleihen
-                                        an
-                                    </xs:documentation>
+                                    <xs:documentation>Gibt den Buchungsbedingten Abgrenzungsbetrag fuer Indexanleihen an</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="ExCouponFlag" type="xs:boolean" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation>Enthaelt das Kennzeichen, ob die Wertpapiertransaktion ohne Kupon
-                                        abgerechnet wird
-                                    </xs:documentation>
+                                    <xs:documentation>Enthaelt das Kennzeichen, ob die Wertpapiertransaktion ohne Kupon abgerechnet wird</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                         </xs:sequence>
@@ -701,16 +697,13 @@
                                     <xs:sequence>
                                         <xs:element name="Identifiers" type="IdentifiersType">
                                             <xs:annotation>
-                                                <xs:documentation>Kennnummer von welcher der Bestand weggebucht wird
-                                                </xs:documentation>
+                                                <xs:documentation>Kennnummer von welcher der Bestand weggebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="AssetUniqueID" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation xml:lang="en">Link to AssetMasterData
-                                                </xs:documentation>
-                                                <xs:documentation xml:lang="de">Referenz zu den Wertpapierstammdaten
-                                                </xs:documentation>
+                                                <xs:documentation xml:lang="en">Link to AssetMasterData</xs:documentation>
+                                                <xs:documentation xml:lang="de">Referenz zu den Wertpapierstammdaten</xs:documentation>
                                             </xs:annotation>
                                             <xs:simpleType>
                                                 <xs:restriction base="xs:IDREF">
@@ -725,23 +718,18 @@
                                         </xs:element>
                                         <xs:element name="UnitsExDate" type="xs:decimal" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>***Should be "UnitsExDate"
-                                                    Anzahl der Stuecke, die vom Bestand weggebucht werden
-                                                </xs:documentation>
+                                                <xs:documentation>***Should be &quot;UnitsExDate&quot;
+Anzahl der Stuecke, die vom Bestand weggebucht werden</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="Price" type="xs:decimal" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Gibt den Kurs an mit dem der auszubuchende Bestand
-                                                    gebucht wird
-                                                </xs:documentation>
+                                                <xs:documentation>Gibt den Kurs an mit dem der auszubuchende Bestand gebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="MarketValue" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Gibt den Kurswert an mit dem der auszubuchende Bestand
-                                                    gebucht wird
-                                                </xs:documentation>
+                                                <xs:documentation>Gibt den Kurswert an mit dem der auszubuchende Bestand gebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="NominalOrUnits" type="xs:decimal" minOccurs="0">
@@ -751,83 +739,63 @@
                                         </xs:element>
                                         <xs:element name="ExchangeRateValue" type="xs:decimal" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Gibt den Devisenkurs an mit dem der auszubuchende
-                                                    Bestand gebucht wird
-                                                </xs:documentation>
+                                                <xs:documentation>Gibt den Devisenkurs an mit dem der auszubuchende Bestand gebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="Interests" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Enthaelt die Zinsen des Wertpapier, welches ausgebucht
-                                                    wird
-                                                </xs:documentation>
+                                                <xs:documentation>Enthaelt die Zinsen des Wertpapier, welches ausgebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="InterestsCurrency" type="ISOCurrencyCodeType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Enthaelt die Waehrung in welcher die Zinsen angegeben
-                                                    sind falls Fremdwaehrung
-                                                </xs:documentation>
+                                                <xs:documentation>Enthaelt die Waehrung in welcher die Zinsen angegeben sind falls Fremdwaehrung</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="CostValue" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Einstandswert vom auszubuchenden Bestand
-                                                </xs:documentation>
+                                                <xs:documentation>Einstandswert vom auszubuchenden Bestand</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="ValueDate" type="xs:date" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>****Should be "ValueDate"
-                                                    Valutadatum
-                                                </xs:documentation>
+                                                <xs:documentation>****Should be &quot;ValueDate&quot;
+Valutadatum</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="DividendCurrency" type="ISOCurrencyCodeType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Enthaelt die Waehrung in welcher die Dividende
-                                                    angegeben ist falls Fremdwaehrung
-                                                </xs:documentation>
+                                                <xs:documentation>Enthaelt die Waehrung in welcher die Dividende angegeben ist falls Fremdwaehrung</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="DividendExchangeRate" type="xs:decimal" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Devisenkurs mit dem die Dividende vom auszubuchenden
-                                                    Bestand gebucht wurde
-                                                </xs:documentation>
+                                                <xs:documentation>Devisenkurs mit dem die Dividende vom auszubuchenden Bestand gebucht wurde</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="NetDividend" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Nettodividende des auszubuchenden Bestandes
-                                                </xs:documentation>
+                                                <xs:documentation>Nettodividende des auszubuchenden Bestandes</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="Quest" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Quellensteuer der Dividende des auszubuchenden
-                                                    Bestandes
-                                                </xs:documentation>
+                                                <xs:documentation>Quellensteuer der Dividende des auszubuchenden Bestandes</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="ProfitLoss" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Angabe des Gewinn/des Verlustes des auszubuchenden
-                                                    Bestandes
-                                                </xs:documentation>
+                                                <xs:documentation>Angabe des Gewinn/des Verlustes des auszubuchenden Bestandes</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
-                                        <xs:element name="UnitsInterestCapitalYieldsTax" type="FundAmountType"
-                                                    minOccurs="0">
+                                        <xs:element name="UnitsInterestCapitalYieldsTax" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Kapitalertragsteuer des auszubuchenden Bestandes
-                                                </xs:documentation>
+                                                <xs:documentation>Kapitalertragsteuer des auszubuchenden Bestandes</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="EUWithholdingTax" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>EU-QUEST des auszubuchenden Bestandes
-                                                </xs:documentation>
+                                                <xs:documentation>EU-QUEST des auszubuchenden Bestandes</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                     </xs:sequence>
@@ -841,16 +809,13 @@
                                     <xs:sequence>
                                         <xs:element name="Identifiers" type="IdentifiersType">
                                             <xs:annotation>
-                                                <xs:documentation>Kennnummer auf welche der Bestand gebucht wird
-                                                </xs:documentation>
+                                                <xs:documentation>Kennnummer auf welche der Bestand gebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="AssetUniqueID" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation xml:lang="en">Link to AssetMasterData
-                                                </xs:documentation>
-                                                <xs:documentation xml:lang="de">Referenz zu den Wertpapierstammdaten
-                                                </xs:documentation>
+                                                <xs:documentation xml:lang="en">Link to AssetMasterData</xs:documentation>
+                                                <xs:documentation xml:lang="de">Referenz zu den Wertpapierstammdaten</xs:documentation>
                                             </xs:annotation>
                                             <xs:simpleType>
                                                 <xs:restriction base="xs:IDREF">
@@ -865,22 +830,17 @@
                                         </xs:element>
                                         <xs:element name="Currency" type="ISOCurrencyCodeType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Waehrung des Bestandes der eingebucht wird
-                                                </xs:documentation>
+                                                <xs:documentation>Waehrung des Bestandes der eingebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="Price" type="xs:decimal" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Gibt den Kurs an, mit dem der einzubuchende Bestand
-                                                    gebucht wird
-                                                </xs:documentation>
+                                                <xs:documentation>Gibt den Kurs an, mit dem der einzubuchende Bestand gebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="MarketValue" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Gibt den Kurswert an, mit dem der einzubuchende
-                                                    Bestand gebucht wird
-                                                </xs:documentation>
+                                                <xs:documentation>Gibt den Kurswert an, mit dem der einzubuchende Bestand gebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="NominalOrUnits" type="xs:decimal" minOccurs="0">
@@ -890,42 +850,32 @@
                                         </xs:element>
                                         <xs:element name="ExchangeRate" type="xs:decimal" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Gibt den Devisenkurs an, mit dem der einzubuchende
-                                                    Bestand gebucht wird
-                                                </xs:documentation>
+                                                <xs:documentation>Gibt den Devisenkurs an, mit dem der einzubuchende Bestand gebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="Interests" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Enthaelt die Zinsen des Wertpapieres, welches
-                                                    eingebucht wird
-                                                </xs:documentation>
+                                                <xs:documentation>Enthaelt die Zinsen des Wertpapieres, welches eingebucht wird</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="InterestsCurrency" type="ISOCurrencyCodeType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Enthaelt die Waehrung fuer die Zinsen vom
-                                                    einzubuchenden Betrag
-                                                </xs:documentation>
+                                                <xs:documentation>Enthaelt die Waehrung fuer die Zinsen vom einzubuchenden Betrag</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="CostValue" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Einstandswert des einzubuchenden Bestandes
-                                                </xs:documentation>
+                                                <xs:documentation>Einstandswert des einzubuchenden Bestandes</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
-                                        <xs:element name="UnitsInterestCapitalYieldsTax" type="FundAmountType"
-                                                    minOccurs="0">
+                                        <xs:element name="UnitsInterestCapitalYieldsTax" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>Kapitalertragsteuer des einzubuchenden Bestandes
-                                                </xs:documentation>
+                                                <xs:documentation>Kapitalertragsteuer des einzubuchenden Bestandes</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="EUWithholdingTax" type="FundAmountType" minOccurs="0">
                                             <xs:annotation>
-                                                <xs:documentation>EU-QUEST des einzubuchenden Bestandes
-                                                </xs:documentation>
+                                                <xs:documentation>EU-QUEST des einzubuchenden Bestandes</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                     </xs:sequence>
@@ -934,16 +884,15 @@
                             <xs:element name="CorporateActionKind" minOccurs="0">
                                 <xs:annotation>
                                     <xs:documentation>S = Split
-                                        RS = Reversesplit
-                                        M = Merger
-                                        SD = Stock dividend
-                                        NSinS = New Shares in Shares
-                                        DEM = Demerger
-                                        RI =Rights issue
-                                        ESC = Exchange of share certificate
-                                        CD = Capital Decrease
-                                        GenM= General Meetings
-                                    </xs:documentation>
+RS = Reversesplit
+M = Merger
+SD = Stock dividend
+NSinS = New Shares in Shares
+DEM = Demerger
+RI =Rights issue
+ESC = Exchange of share certificate 
+CD = Capital Decrease
+GenM= General Meetings</xs:documentation>
                                 </xs:annotation>
                                 <xs:simpleType>
                                     <xs:restriction base="xs:string">
@@ -962,65 +911,50 @@
                             </xs:element>
                             <xs:element name="ExDividendDate" type="xs:date" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation xml:lang="en">Ex dividend day of the corporate action
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="en">Ex dividend day of the corporate action</xs:documentation>
                                     <xs:documentation xml:lang="de">Extag</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="ExpensesValutaDate" type="xs:date" minOccurs="0">
                                 <xs:annotation>
                                     <xs:documentation xml:lang="en">Valuta day of expenses</xs:documentation>
-                                    <xs:documentation xml:lang="de">Gibt das Valutadatum der Spesen an
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="de">Gibt das Valutadatum der Spesen an</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="ExpensesExchangeRate" type="xs:decimal" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation xml:lang="en">Exchange rate applied for expenses
-                                    </xs:documentation>
-                                    <xs:documentation xml:lang="de">Enthaelt den Devisenkurs der fuer die Spesenbuchung
-                                        verwendet wird
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="en">Exchange rate applied for expenses</xs:documentation>
+                                    <xs:documentation xml:lang="de">Enthaelt den Devisenkurs der fuer die Spesenbuchung verwendet wird</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="Expenses" type="FundAmountType" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation xml:lang="en">Expenses in fund and/or foreign currency
-                                    </xs:documentation>
-                                    <xs:documentation xml:lang="de">Enthaelt den Spesenbetrag in Fonds- und
-                                        Fremdwaehrung
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="en">Expenses in fund and/or foreign currency</xs:documentation>
+                                    <xs:documentation xml:lang="de">Enthaelt den Spesenbetrag in Fonds- und Fremdwaehrung</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="AccountNumberExpenses" type="xs:integer" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation xml:lang="en">Account number used for booking of expenses
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="en">Account number used for booking of expenses</xs:documentation>
                                     <xs:documentation xml:lang="de">Gibt das Spesenkonto an</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="UnitInterestEUWithholdingTax" type="FundAmountType" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation xml:lang="en">Unit interests to be used for calculating EU
-                                        withholding tax
-                                    </xs:documentation>
-                                    <xs:documentation xml:lang="de">Gibt die StuecKZinsen fuer die Berechnung der
-                                        EU-QUEST an
-                                    </xs:documentation>
+                                    <xs:documentation xml:lang="en">Unit interests to be used for calculating EU withholding tax</xs:documentation>
+                                    <xs:documentation xml:lang="de">Gibt die StuecKZinsen fuer die Berechnung der EU-QUEST an</xs:documentation>
                                 </xs:annotation>
                             </xs:element>
                             <xs:element name="CorporateActionDocument" minOccurs="0">
                                 <xs:annotation>
-                                    <xs:documentation>Text document describing details of corporate action
-                                    </xs:documentation>
+                                    <xs:documentation>Text document describing details of corporate action</xs:documentation>
                                 </xs:annotation>
                                 <xs:complexType>
                                     <xs:sequence>
                                         <xs:element name="Format" type="Text256Type">
                                             <xs:annotation>
                                                 <xs:documentation>Technical format of document:
-                                                    PDF, XML, Excel, Word, Image, ...
-                                                </xs:documentation>
+PDF, XML, Excel, Word, Image, ...</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
                                         <xs:element name="DocumentURL" type="Text1000Type" minOccurs="0">
@@ -1091,8 +1025,7 @@
             </xs:element>
             <xs:element name="CustomAttributes" type="AttributesType" minOccurs="0">
                 <xs:annotation>
-                    <xs:documentation>Additional information which does not fit in the existing nodes above
-                    </xs:documentation>
+                    <xs:documentation>Additional information which does not fit in the existing nodes above</xs:documentation>
                 </xs:annotation>
             </xs:element>
         </xs:sequence>

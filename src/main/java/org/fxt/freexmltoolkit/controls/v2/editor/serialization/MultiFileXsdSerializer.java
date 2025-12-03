@@ -487,7 +487,8 @@ public class MultiFileXsdSerializer {
 
         appendCardinality(element, sb);
 
-        if (element.hasChildren() || element.getDocumentation() != null) {
+        if (element.hasChildren() || !element.getDocumentations().isEmpty() ||
+            element.getDocumentation() != null || element.getAppinfo() != null) {
             sb.append(">\n");
             serializeAnnotationIfPresent(element, sb, indentation + indentString, indent + 1);
             for (XsdNode child : element.getChildren()) {
@@ -512,7 +513,8 @@ public class MultiFileXsdSerializer {
             sb.append(" abstract=\"true\"");
         }
 
-        if (complexType.hasChildren() || complexType.getDocumentation() != null) {
+        if (complexType.hasChildren() || !complexType.getDocumentations().isEmpty() ||
+            complexType.getDocumentation() != null || complexType.getAppinfo() != null) {
             sb.append(">\n");
             serializeAnnotationIfPresent(complexType, sb, indentation + indentString, indent + 1);
             for (XsdNode child : complexType.getChildren()) {
@@ -995,13 +997,49 @@ public class MultiFileXsdSerializer {
     }
 
     private void serializeAnnotationIfPresent(XsdNode node, StringBuilder sb, String indentation, int indent) {
-        if (node.getDocumentation() != null && !node.getDocumentation().isEmpty()) {
-            sb.append(indentation).append("<xs:annotation>\n");
+        java.util.List<org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation> documentations = node.getDocumentations();
+        org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo appinfo = node.getAppinfo();
+
+        // Check if there's anything to serialize
+        boolean hasDocumentations = !documentations.isEmpty();
+        boolean hasLegacyDoc = !hasDocumentations && node.getDocumentation() != null && !node.getDocumentation().isEmpty();
+        boolean hasAppinfo = appinfo != null && appinfo.hasEntries();
+
+        if (!hasDocumentations && !hasLegacyDoc && !hasAppinfo) {
+            return; // Nothing to serialize
+        }
+
+        sb.append(indentation).append("<xs:annotation>\n");
+
+        // Serialize documentation entries (new multi-language approach)
+        if (hasDocumentations) {
+            for (org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation doc : documentations) {
+                sb.append(indentation).append(indentString).append("<xs:documentation");
+                if (doc.hasLang()) {
+                    sb.append(" xml:lang=\"").append(escapeXml(doc.getLang())).append("\"");
+                }
+                if (doc.getSource() != null && !doc.getSource().isEmpty()) {
+                    sb.append(" source=\"").append(escapeXml(doc.getSource())).append("\"");
+                }
+                sb.append(">");
+                sb.append(escapeXml(doc.getText()));
+                sb.append("</xs:documentation>\n");
+            }
+        } else if (hasLegacyDoc) {
+            // Fallback to legacy single documentation string
             sb.append(indentation).append(indentString).append("<xs:documentation>");
             sb.append(escapeXml(node.getDocumentation()));
             sb.append("</xs:documentation>\n");
-            sb.append(indentation).append("</xs:annotation>\n");
         }
+
+        // Serialize structured appinfo entries
+        if (hasAppinfo) {
+            for (String xmlString : appinfo.toXmlStrings()) {
+                sb.append(indentation).append(indentString).append(xmlString).append("\n");
+            }
+        }
+
+        sb.append(indentation).append("</xs:annotation>\n");
     }
 
     /**
