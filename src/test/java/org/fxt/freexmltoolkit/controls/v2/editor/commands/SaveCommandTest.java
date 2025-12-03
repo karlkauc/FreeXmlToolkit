@@ -1,17 +1,21 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.MultiFileXsdSerializer.SaveResult;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -266,5 +270,325 @@ class SaveCommandTest {
 
         // Assert
         assertEquals(testFilePath, returnedPath, "getFilePath() should return the correct path");
+    }
+
+    // ========== Multi-File Save Tests ==========
+
+    @Nested
+    @DisplayName("Multi-File Save")
+    class MultiFileSaveTests {
+
+        private XsdSchema multiFileSchema;
+        private XsdEditorContext multiFileContext;
+        private Path mainFilePath;
+        private Path includeFilePath;
+
+        @BeforeEach
+        void setUpMultiFile() throws IOException {
+            // Create schema with nodes from main and include files
+            multiFileSchema = new XsdSchema();
+            multiFileSchema.setTargetNamespace("http://example.com/multifile");
+
+            // Create include directory
+            Path includeDir = tempDir.resolve("include");
+            Files.createDirectories(includeDir);
+
+            mainFilePath = tempDir.resolve("main.xsd");
+            includeFilePath = includeDir.resolve("types.xsd");
+
+            // Add main file element
+            XsdElement mainElement = new XsdElement("MainElement");
+            mainElement.setType("xs:string");
+            IncludeSourceInfo mainSourceInfo = IncludeSourceInfo.forMainSchema(mainFilePath);
+            mainElement.setSourceInfo(mainSourceInfo);
+            multiFileSchema.addChild(mainElement);
+
+            // Add included file element
+            XsdElement includedElement = new XsdElement("IncludedElement");
+            includedElement.setType("xs:int");
+            IncludeSourceInfo includeSourceInfo = IncludeSourceInfo.forIncludedSchema(
+                    includeFilePath, "include/types.xsd", null);
+            includedElement.setSourceInfo(includeSourceInfo);
+            multiFileSchema.addChild(includedElement);
+
+            // Set main schema path
+            multiFileSchema.setMainSchemaPath(mainFilePath);
+
+            multiFileContext = new XsdEditorContext(multiFileSchema);
+        }
+
+        @Test
+        @DisplayName("execute() should detect multi-file schema")
+        void testExecuteDetectsMultiFileSchema() {
+            // Arrange
+            SaveCommand command = new SaveCommand(multiFileContext, multiFileSchema, mainFilePath, false);
+
+            // Act
+            boolean result = command.execute();
+
+            // Assert
+            assertTrue(result, "execute() should return true");
+            assertTrue(command.isMultiFileSave(), "Should detect multi-file schema");
+        }
+
+        @Test
+        @DisplayName("execute() should save multiple files")
+        void testExecuteSavesMultipleFiles() {
+            // Arrange
+            SaveCommand command = new SaveCommand(multiFileContext, multiFileSchema, mainFilePath, false);
+
+            // Act
+            boolean result = command.execute();
+
+            // Assert
+            assertTrue(result, "execute() should return true");
+            assertTrue(Files.exists(mainFilePath), "Main file should exist");
+            assertTrue(Files.exists(includeFilePath), "Include file should exist");
+        }
+
+        @Test
+        @DisplayName("getSavedFileCount() should return correct count for multi-file save")
+        void testGetSavedFileCountMultiFile() {
+            // Arrange
+            SaveCommand command = new SaveCommand(multiFileContext, multiFileSchema, mainFilePath, false);
+
+            // Act
+            command.execute();
+
+            // Assert
+            assertEquals(2, command.getSavedFileCount(), "Should have saved 2 files");
+        }
+
+        @Test
+        @DisplayName("getMultiFileSaveResults() should return results for each file")
+        void testGetMultiFileSaveResultsReturnsAllFiles() {
+            // Arrange
+            SaveCommand command = new SaveCommand(multiFileContext, multiFileSchema, mainFilePath, false);
+
+            // Act
+            command.execute();
+            Map<Path, SaveResult> results = command.getMultiFileSaveResults();
+
+            // Assert
+            assertNotNull(results, "Results should not be null");
+            assertEquals(2, results.size(), "Should have results for 2 files");
+            assertTrue(results.containsKey(mainFilePath), "Results should contain main file");
+            assertTrue(results.containsKey(includeFilePath), "Results should contain include file");
+        }
+
+        @Test
+        @DisplayName("getSaveSummary() should show all saved files")
+        void testGetSaveSummaryMultiFile() {
+            // Arrange
+            SaveCommand command = new SaveCommand(multiFileContext, multiFileSchema, mainFilePath, false);
+
+            // Act
+            command.execute();
+            String summary = command.getSaveSummary();
+
+            // Assert
+            assertTrue(summary.contains("2"), "Summary should mention file count");
+            assertTrue(summary.contains("main.xsd"), "Summary should contain main file name");
+            assertTrue(summary.contains("types.xsd"), "Summary should contain include file name");
+        }
+
+        @Test
+        @DisplayName("execute() should create backups for all files when requested")
+        void testExecuteCreatesBackupsForAllFiles() throws IOException {
+            // Arrange - create existing files
+            Files.writeString(mainFilePath, "<?xml version=\"1.0\"?>\n<xs:schema/>");
+            Files.writeString(includeFilePath, "<?xml version=\"1.0\"?>\n<xs:schema/>");
+
+            SaveCommand command = new SaveCommand(multiFileContext, multiFileSchema, mainFilePath, true);
+
+            // Act
+            boolean result = command.execute();
+            Map<Path, SaveResult> results = command.getMultiFileSaveResults();
+
+            // Assert
+            assertTrue(result, "execute() should return true");
+            assertNotNull(results, "Results should not be null");
+
+            // Check backup was created for main file
+            SaveResult mainResult = results.get(mainFilePath);
+            assertNotNull(mainResult, "Main file result should exist");
+            assertNotNull(mainResult.backupPath(), "Main file should have backup");
+            assertTrue(Files.exists(mainResult.backupPath()), "Main file backup should exist");
+        }
+
+        @Test
+        @DisplayName("execute() should reset dirty flag on successful multi-file save")
+        void testExecuteResetsDirtyFlagMultiFile() {
+            // Arrange
+            multiFileContext.setDirty(true);
+
+            SaveCommand command = new SaveCommand(multiFileContext, multiFileSchema, mainFilePath, false);
+
+            // Act
+            command.execute();
+
+            // Assert
+            assertFalse(multiFileContext.isDirty(), "Dirty flag should be reset after successful save");
+        }
+
+        @Test
+        @DisplayName("each file should contain correct elements")
+        void testEachFileContainsCorrectElements() throws IOException {
+            // Arrange
+            SaveCommand command = new SaveCommand(multiFileContext, multiFileSchema, mainFilePath, false);
+
+            // Act
+            command.execute();
+
+            // Assert
+            String mainContent = Files.readString(mainFilePath);
+            String includeContent = Files.readString(includeFilePath);
+
+            assertTrue(mainContent.contains("MainElement"), "Main file should contain MainElement");
+            assertTrue(includeContent.contains("IncludedElement"), "Include file should contain IncludedElement");
+        }
+    }
+
+    @Nested
+    @DisplayName("Single-File Save Detection")
+    class SingleFileSaveDetectionTests {
+
+        @Test
+        @DisplayName("isMultiFileSave() should return false for single-file schema")
+        void testIsMultiFileSaveReturnsFalseForSingleFile() {
+            // Arrange - schema without include source info (default from setUp)
+            SaveCommand command = new SaveCommand(editorContext, schema, testFilePath, false);
+
+            // Act
+            command.execute();
+
+            // Assert
+            assertFalse(command.isMultiFileSave(), "Single-file schema should not be multi-file save");
+        }
+
+        @Test
+        @DisplayName("getSavedFileCount() should return 1 for single-file save")
+        void testGetSavedFileCountSingleFile() {
+            // Arrange
+            SaveCommand command = new SaveCommand(editorContext, schema, testFilePath, false);
+
+            // Act
+            command.execute();
+
+            // Assert
+            assertEquals(1, command.getSavedFileCount(), "Single-file save should count as 1");
+        }
+
+        @Test
+        @DisplayName("getMultiFileSaveResults() should return null for single-file save")
+        void testGetMultiFileSaveResultsNullForSingleFile() {
+            // Arrange
+            SaveCommand command = new SaveCommand(editorContext, schema, testFilePath, false);
+
+            // Act
+            command.execute();
+
+            // Assert
+            assertNull(command.getMultiFileSaveResults(),
+                    "Multi-file results should be null for single-file save");
+        }
+
+        @Test
+        @DisplayName("getSaveSummary() should show single file for single-file save")
+        void testGetSaveSummarySingleFile() {
+            // Arrange
+            SaveCommand command = new SaveCommand(editorContext, schema, testFilePath, false);
+
+            // Act
+            command.execute();
+            String summary = command.getSaveSummary();
+
+            // Assert
+            assertTrue(summary.contains("test.xsd"), "Summary should contain filename");
+            assertFalse(summary.contains("files:"), "Summary should not show multi-file format");
+        }
+    }
+
+    @Nested
+    @DisplayName("Edge Cases")
+    class EdgeCaseTests {
+
+        @Test
+        @DisplayName("getSaveSummary() should return 'Save failed' when save unsuccessful")
+        void testGetSaveSummaryWhenFailed() {
+            // Arrange
+            SaveCommand command = new SaveCommand(editorContext, schema, testFilePath, false);
+            // Don't execute - save not performed
+
+            // Act
+            String summary = command.getSaveSummary();
+
+            // Assert
+            assertEquals("Save failed", summary, "Summary should indicate failure when not saved");
+        }
+
+        @Test
+        @DisplayName("getSavedFileCount() should return 0 when save unsuccessful")
+        void testGetSavedFileCountWhenFailed() {
+            // Arrange
+            SaveCommand command = new SaveCommand(editorContext, schema, testFilePath, false);
+            // Don't execute - save not performed
+
+            // Act
+            int count = command.getSavedFileCount();
+
+            // Assert
+            assertEquals(0, count, "File count should be 0 when not saved");
+        }
+
+        @Test
+        @DisplayName("schema with null children should use single-file save")
+        void testSchemaWithNullChildrenUsesSingleFileSave() {
+            // Arrange
+            XsdSchema emptySchema = new XsdSchema();
+            XsdEditorContext emptyContext = new XsdEditorContext(emptySchema);
+            SaveCommand command = new SaveCommand(emptyContext, emptySchema, testFilePath, false);
+
+            // Act
+            boolean result = command.execute();
+
+            // Assert
+            assertTrue(result, "execute() should succeed");
+            assertFalse(command.isMultiFileSave(), "Empty schema should not use multi-file save");
+        }
+
+        @Test
+        @DisplayName("schema with elements but no sourceInfo should use single-file save")
+        void testSchemaWithNoSourceInfoUsesSingleFileSave() {
+            // Arrange - use default schema from setUp which has no sourceInfo
+            SaveCommand command = new SaveCommand(editorContext, schema, testFilePath, false);
+
+            // Act
+            command.execute();
+
+            // Assert
+            assertFalse(command.isMultiFileSave(),
+                    "Schema with elements but no sourceInfo should use single-file save");
+        }
+
+        @Test
+        @DisplayName("schema with main-only sourceInfo should use single-file save")
+        void testSchemaWithMainOnlySourceInfoUsesSingleFileSave() {
+            // Arrange
+            XsdSchema mainOnlySchema = new XsdSchema();
+            XsdElement element = new XsdElement("MainOnly");
+            element.setSourceInfo(IncludeSourceInfo.forMainSchema(testFilePath));
+            mainOnlySchema.addChild(element);
+
+            XsdEditorContext mainOnlyContext = new XsdEditorContext(mainOnlySchema);
+            SaveCommand command = new SaveCommand(mainOnlyContext, mainOnlySchema, testFilePath, false);
+
+            // Act
+            command.execute();
+
+            // Assert
+            assertFalse(command.isMultiFileSave(),
+                    "Schema with only main-schema sourceInfo should use single-file save");
+        }
     }
 }

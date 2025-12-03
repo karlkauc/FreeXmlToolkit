@@ -58,8 +58,8 @@ public class ComplexTypeEditorView extends BorderPane {
             logger.info("Initializing ComplexTypeEditorView for type: {}", complexType.getName());
             logger.debug("ComplexType '{}' has {} children", complexType.getName(), complexType.getChildren().size());
 
-            // Create virtual schema for this ComplexType
-            virtualSchema = VirtualSchemaFactory.createVirtualSchemaForComplexType(complexType);
+            // Create virtual schema for this ComplexType (pass mainSchema for type resolution)
+            virtualSchema = VirtualSchemaFactory.createVirtualSchemaForComplexType(complexType, mainSchema);
             logger.info("Virtual schema created with {} children", virtualSchema.getChildren().size());
 
             // Create XsdGraphView with virtual schema
@@ -180,8 +180,8 @@ public class ComplexTypeEditorView extends BorderPane {
         try {
             logger.info("Reloading ComplexType: {}", complexType.getName());
 
-            // Recreate virtual schema with fresh data
-            virtualSchema = VirtualSchemaFactory.createVirtualSchemaForComplexType(complexType);
+            // Recreate virtual schema with fresh data (pass mainSchema for type resolution)
+            virtualSchema = VirtualSchemaFactory.createVirtualSchemaForComplexType(complexType, mainSchema);
 
             // Recreate XsdGraphView with new virtual schema
             graphView = new XsdGraphView(virtualSchema);
