@@ -165,10 +165,13 @@
                             <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                 <TextField fx:id="xmlFileName" editable="false" promptText="Select the XML file to validate"
                                            HBox.hgrow="ALWAYS"/>
-                                <Button fx:id="xmlLoadButtonGrid">
+                                <Button fx:id="xmlLoadButtonGrid" onAction="#selectXmlFile">
                                     <graphic>
                                         <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                     </graphic>
+                                    <tooltip>
+                                        <Tooltip text="Select XML file"/>
+                                    </tooltip>
                                 </Button>
                             </HBox>
 
@@ -188,10 +191,13 @@
                             <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
                                 <TextField fx:id="xsdFileName" editable="false" disable="true"
                                            promptText="Select the XSD schema file manually" HBox.hgrow="ALWAYS"/>
-                                <Button>
+                                <Button fx:id="xsdLoadButtonGrid" onAction="#selectXsdFile">
                                     <graphic>
                                         <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                     </graphic>
+                                    <tooltip>
+                                        <Tooltip text="Select XSD schema file"/>
+                                    </tooltip>
                                 </Button>
                             </HBox>
 
@@ -331,40 +337,46 @@
                     <Label fx:id="batchStatusLabel" text="Ready"/>
                 </HBox>
 
-                <!-- Files TableView -->
-                <TableView fx:id="batchFilesTable" VBox.vgrow="ALWAYS">
-                    <placeholder>
-                        <VBox alignment="CENTER" spacing="10">
-                            <FontIcon iconLiteral="bi-files" iconSize="48" iconColor="#adb5bd"/>
-                            <Label text="No files added" style="-fx-font-size: 14px; -fx-text-fill: #6c757d;"/>
-                            <Label text="Click 'Add Files' or 'Add Folder' to add XML files for batch validation"
-                                   style="-fx-font-size: 12px; -fx-text-fill: #adb5bd;"/>
-                        </VBox>
-                    </placeholder>
-                    <columns>
-                        <TableColumn fx:id="batchFileNameColumn" text="File Name" prefWidth="200"/>
-                        <TableColumn fx:id="batchFilePathColumn" text="Path" prefWidth="250"/>
-                        <TableColumn fx:id="batchStatusColumn" text="Status" prefWidth="100"/>
-                        <TableColumn fx:id="batchErrorsColumn" text="Errors" prefWidth="80"/>
-                        <TableColumn fx:id="batchXsdColumn" text="XSD Used" prefWidth="150"/>
-                        <TableColumn fx:id="batchDurationColumn" text="Duration" prefWidth="100"/>
-                    </columns>
-                </TableView>
+                <!-- SplitPane for resizable Table and Error Details -->
+                <SplitPane fx:id="batchSplitPane" orientation="VERTICAL" dividerPositions="0.6" VBox.vgrow="ALWAYS">
+                    <!-- Top Section: Files Table and Summary -->
+                    <VBox spacing="5">
+                        <!-- Files TableView -->
+                        <TableView fx:id="batchFilesTable" VBox.vgrow="ALWAYS">
+                            <placeholder>
+                                <VBox alignment="CENTER" spacing="10">
+                                    <FontIcon iconLiteral="bi-files" iconSize="48" iconColor="#adb5bd"/>
+                                    <Label text="No files added" style="-fx-font-size: 14px; -fx-text-fill: #6c757d;"/>
+                                    <Label text="Click 'Add Files' or 'Add Folder' to add XML files for batch validation"
+                                           style="-fx-font-size: 12px; -fx-text-fill: #adb5bd;"/>
+                                </VBox>
+                            </placeholder>
+                            <columns>
+                                <TableColumn fx:id="batchFileNameColumn" text="File Name" prefWidth="200"/>
+                                <TableColumn fx:id="batchFilePathColumn" text="Path" prefWidth="250"/>
+                                <TableColumn fx:id="batchStatusColumn" text="Status" prefWidth="100"/>
+                                <TableColumn fx:id="batchErrorsColumn" text="Errors" prefWidth="80"/>
+                                <TableColumn fx:id="batchXsdColumn" text="XSD Used" prefWidth="150"/>
+                                <TableColumn fx:id="batchDurationColumn" text="Duration" prefWidth="100"/>
+                            </columns>
+                        </TableView>
 
-                <!-- Summary and Filter -->
-                <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 5;">
-                    <Label fx:id="batchSummaryLabel" text="Total: 0 | Passed: 0 | Failed: 0" style="-fx-font-weight: bold;"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Label text="Filter:"/>
-                    <ComboBox fx:id="batchFilterCombo" prefWidth="120" onAction="#filterBatchResults"/>
-                </HBox>
+                        <!-- Summary and Filter -->
+                        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 5;">
+                            <Label fx:id="batchSummaryLabel" text="Total: 0 | Passed: 0 | Failed: 0" style="-fx-font-weight: bold;"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label text="Filter:"/>
+                            <ComboBox fx:id="batchFilterCombo" prefWidth="120" onAction="#filterBatchResults"/>
+                        </HBox>
+                    </VBox>
 
-                <!-- Error Details for Selected File -->
-                <TitledPane fx:id="batchErrorDetailsTitledPane" text="Error Details for Selected File" expanded="true" collapsible="true">
-                    <ScrollPane fitToWidth="true" prefHeight="200">
-                        <VBox fx:id="batchErrorDetailsBox" spacing="5" style="-fx-padding: 10; -fx-background-color: white;"/>
-                    </ScrollPane>
-                </TitledPane>
+                    <!-- Bottom Section: Error Details (now resizable) -->
+                    <TitledPane fx:id="batchErrorDetailsTitledPane" text="Error Details for Selected File" expanded="true" collapsible="true">
+                        <ScrollPane fitToWidth="true" fitToHeight="true">
+                            <VBox fx:id="batchErrorDetailsBox" spacing="5" style="-fx-padding: 10; -fx-background-color: white;"/>
+                        </ScrollPane>
+                    </TitledPane>
+                </SplitPane>
             </VBox>
         </Tab>
     </TabPane>

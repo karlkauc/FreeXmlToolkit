@@ -424,17 +424,27 @@ public class XsdValidationService {
     }
 
     /**
-     * Load XSD schema from file or URL
+     * Load XSD schema from file or URL.
+     * <p>
+     * Uses SchemaResourceResolver to support relative xs:import and xs:include references.
+     * The systemId is set on the StreamSource to enable proper relative path resolution.
+     * </p>
      */
     private Schema loadSchema(String xsdPath) {
         try {
             SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Source schemaSource;
+
+            // Configure resource resolver to handle relative schema references (xs:import, xs:include)
+            SchemaResourceResolver resourceResolver = new SchemaResourceResolver();
+            schemaFactory.setResourceResolver(resourceResolver);
+
+            StreamSource schemaSource;
 
             if (xsdPath.startsWith("http://") || xsdPath.startsWith("https://")) {
                 // Load from URL
                 URI schemaUri = URI.create(xsdPath);
                 schemaSource = new StreamSource(schemaUri.toURL().openStream());
+                schemaSource.setSystemId(xsdPath); // Enable relative import resolution from URL
             } else {
                 // Load from file
                 Path schemaFilePath = Paths.get(xsdPath);
@@ -443,6 +453,7 @@ public class XsdValidationService {
                     return null;
                 }
                 schemaSource = new StreamSource(Files.newInputStream(schemaFilePath));
+                schemaSource.setSystemId(schemaFilePath.toUri().toString()); // Enable relative import resolution
             }
 
             Schema schema = schemaFactory.newSchema(schemaSource);

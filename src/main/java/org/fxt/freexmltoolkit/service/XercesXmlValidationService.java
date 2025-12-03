@@ -20,8 +20,6 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.w3c.dom.ls.LSInput;
-import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -33,10 +31,10 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -64,6 +62,7 @@ public class XercesXmlValidationService implements XmlValidationService {
 
     private final SchemaFactory schemaFactory10;
     private final SchemaFactory schemaFactory11;
+    private final SchemaResourceResolver resourceResolver;
 
     /**
      * Creates a new Xerces validation service instance.
@@ -147,147 +146,28 @@ public class XercesXmlValidationService implements XmlValidationService {
             logger.warn("Could not set Xerces features: {}", e.getMessage());
         }
 
-        // Configure resource resolver to handle relative schema references
-        LSResourceResolver resourceResolver = createResourceResolver();
+        // Configure shared resource resolver to handle schema references (xs:import, xs:include)
+        // Supports local files, remote URLs (HTTP/HTTPS with caching), and circular import detection
+        this.resourceResolver = new SchemaResourceResolver();
         schemaFactory10.setResourceResolver(resourceResolver);
         schemaFactory11.setResourceResolver(resourceResolver);
     }
 
     /**
-     * Creates a resource resolver that can resolve relative schema references.
-     * This resolver looks for schema files in the same directory as the main schema file.
+     * Gets the schema resource resolver used by this service.
      *
-     * @return LSResourceResolver instance
+     * @return the schema resource resolver
      */
-    private LSResourceResolver createResourceResolver() {
-        return new LSResourceResolver() {
-            @Override
-            public LSInput resolveResource(String type, String namespaceURI, String publicId,
-                                          String systemId, String baseURI) {
-                logger.debug("Resolving resource - type: {}, namespace: {}, systemId: {}, baseURI: {}",
-                           type, namespaceURI, systemId, baseURI);
-
-                if (systemId == null) {
-                    return null;
-                }
-
-                try {
-                    // Try to resolve relative path based on baseURI
-                    Path resolvedPath;
-                    if (baseURI != null && !baseURI.isEmpty()) {
-                        // Convert file:// URI to path
-                        String basePath = baseURI.startsWith("file://")
-                            ? baseURI.substring(7)
-                            : baseURI.startsWith("file:")
-                                ? baseURI.substring(5)
-                                : baseURI;
-
-                        Path baseDir = Paths.get(basePath).getParent();
-                        if (baseDir != null) {
-                            resolvedPath = baseDir.resolve(systemId).normalize();
-                        } else {
-                            resolvedPath = Paths.get(systemId);
-                        }
-                    } else {
-                        resolvedPath = Paths.get(systemId);
-                    }
-
-                    if (Files.exists(resolvedPath)) {
-                        logger.debug("Resolved schema reference to: {}", resolvedPath);
-                        return new LSInputImpl(publicId, systemId, Files.newInputStream(resolvedPath));
-                    } else {
-                        logger.warn("Could not resolve schema reference: {}", resolvedPath);
-                    }
-                } catch (Exception e) {
-                    logger.warn("Error resolving resource {}: {}", systemId, e.getMessage());
-                }
-
-                return null;
-            }
-        };
+    public SchemaResourceResolver getResourceResolver() {
+        return resourceResolver;
     }
-
-    /**
-         * Simple implementation of LSInput for schema resolution.
-         */
-        private record LSInputImpl(String publicId, String systemId, InputStream byteStream) implements LSInput {
-
-        @Override
-            public Reader getCharacterStream() {
-                return null;
-            }
-
-            @Override
-            public void setCharacterStream(Reader characterStream) {
-            }
-
-            @Override
-            public InputStream getByteStream() {
-                return byteStream;
-            }
-
-            @Override
-            public void setByteStream(InputStream byteStream) {
-            }
-
-            @Override
-            public String getStringData() {
-                return null;
-            }
-
-            @Override
-            public void setStringData(String stringData) {
-            }
-
-            @Override
-            public String getSystemId() {
-                return systemId;
-            }
-
-            @Override
-            public void setSystemId(String systemId) {
-            }
-
-            @Override
-            public String getPublicId() {
-                return publicId;
-            }
-
-            @Override
-            public void setPublicId(String publicId) {
-            }
-
-            @Override
-            public String getBaseURI() {
-                return null;
-            }
-
-            @Override
-            public void setBaseURI(String baseURI) {
-            }
-
-            @Override
-            public String getEncoding() {
-                return null;
-            }
-
-            @Override
-            public void setEncoding(String encoding) {
-            }
-
-            @Override
-            public boolean getCertifiedText() {
-                return false;
-            }
-
-            @Override
-            public void setCertifiedText(boolean certifiedText) {
-            }
-        }
 
     @Override
     public List<SAXParseException> validateText(String xmlString, File schemaFile) {
         final List<SAXParseException> exceptions = new LinkedList<>();
+
+        // Reset circular detection for new validation
+        resourceResolver.resetCircularDetection();
 
         // If no schema is provided, only check for well-formedness.
         if (schemaFile == null) {
@@ -311,7 +191,10 @@ public class XercesXmlValidationService implements XmlValidationService {
                 logger.debug("Validating XSD 1.1 schema as XSD 1.0: {}", schemaFile.getAbsolutePath());
                 
                 // Don't pre-validate since XSD 1.0 validator might reject XSD 1.1 syntax
-                Schema schema = factory.newSchema(new StreamSource(schemaFile));
+                // Set systemId to enable relative import resolution
+                StreamSource schemaSource = new StreamSource(schemaFile);
+                schemaSource.setSystemId(schemaFile.toURI().toString());
+                Schema schema = factory.newSchema(schemaSource);
                 Validator validator = schema.newValidator();
                 
                 validator.setErrorHandler(new ErrorHandler() {
@@ -355,7 +238,10 @@ public class XercesXmlValidationService implements XmlValidationService {
 
             // Perform validation with the appropriate schema version
             // The factory already supports the correct XSD version
-            Schema schema = factory.newSchema(new StreamSource(schemaFile));
+            // Set systemId to enable relative import resolution
+            StreamSource schemaSource = new StreamSource(schemaFile);
+            schemaSource.setSystemId(schemaFile.toURI().toString());
+            Schema schema = factory.newSchema(schemaSource);
             Validator validator = schema.newValidator();
 
             validator.setErrorHandler(new ErrorHandler() {
@@ -540,7 +426,10 @@ public class XercesXmlValidationService implements XmlValidationService {
             SchemaFactory factory = isXsd11 ? schemaFactory11 : schemaFactory10;
 
             // The factory already supports the correct XSD version
-            factory.newSchema(new StreamSource(schemaFile));
+            // Set systemId to enable relative import resolution
+            StreamSource schemaSource = new StreamSource(schemaFile);
+            schemaSource.setSystemId(schemaFile.toURI().toString());
+            factory.newSchema(schemaSource);
             return null; // Schema is valid
         } catch (SAXException e) {
             String errorMsg = "Schema validation error: " + e.getMessage();

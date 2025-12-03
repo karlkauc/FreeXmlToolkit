@@ -49,17 +49,34 @@ public class SaxonXmlValidationService implements XmlValidationService {
 
     private static final Logger logger = LogManager.getLogger(SaxonXmlValidationService.class);
     private final SchemaFactory factory;
+    private final SchemaResourceResolver resourceResolver;
 
     /**
      * Creates a new Saxon validation service instance.
      */
     public SaxonXmlValidationService() {
+        this.resourceResolver = new SchemaResourceResolver();
         this.factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
+        // Configure resource resolver to handle schema references (xs:import, xs:include)
+        // Supports local files, remote URLs (HTTP/HTTPS with caching), and circular import detection
+        this.factory.setResourceResolver(resourceResolver);
+    }
+
+    /**
+     * Gets the schema resource resolver used by this service.
+     *
+     * @return the schema resource resolver
+     */
+    public SchemaResourceResolver getResourceResolver() {
+        return resourceResolver;
     }
 
     @Override
     public List<SAXParseException> validateText(String xmlString, File schemaFile) {
         final List<SAXParseException> exceptions = new LinkedList<>();
+
+        // Reset circular detection for new validation
+        resourceResolver.resetCircularDetection();
 
         // If no schema is provided, only check for well-formedness.
         if (schemaFile == null) {
@@ -95,7 +112,10 @@ public class SaxonXmlValidationService implements XmlValidationService {
 
             // If the schema is valid XSD 1.0, proceed with full validation
             logger.debug("Validating against XSD 1.0 schema: {}", schemaFile.getAbsolutePath());
-            Schema schemaToUse = factory.newSchema(new StreamSource(schemaFile));
+            // Create StreamSource with systemId set to enable relative import resolution
+            StreamSource schemaSource = new StreamSource(schemaFile);
+            schemaSource.setSystemId(schemaFile.toURI().toString());
+            Schema schemaToUse = factory.newSchema(schemaSource);
             Validator localValidator = schemaToUse.newValidator();
 
             localValidator.setErrorHandler(new ErrorHandler() {
@@ -251,7 +271,10 @@ public class SaxonXmlValidationService implements XmlValidationService {
             }
 
             // For XSD 1.0, use the standard validation
-            factory.newSchema(new StreamSource(schemaFile));
+            // Set systemId to enable relative import resolution during schema validation
+            StreamSource schemaSource = new StreamSource(schemaFile);
+            schemaSource.setSystemId(schemaFile.toURI().toString());
+            factory.newSchema(schemaSource);
             return true;
         } catch (IOException e) {
             logger.error("Could not read schema file: {}", schemaFile.getAbsolutePath(), e);
