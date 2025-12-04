@@ -238,9 +238,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             }
         });
 
-        Separator separator2 = new Separator();
-        separator2.setOrientation(javafx.geometry.Orientation.VERTICAL);
-
         // Zoom buttons
         Button zoomInBtn = new Button("+");
         zoomInBtn.setStyle("-fx-font-weight: bold; -fx-padding: 5 10;");
@@ -293,8 +290,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         toolbar.getItems().addAll(
                 expandAllBtn, collapseAllBtn, fitBtn,
                 separator,
-                propertiesToggle,
-                separator2,
                 zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel,
                 separator3,
                 includeLabel, includeGroupingModeComboBox, currentSourceFileLabel,

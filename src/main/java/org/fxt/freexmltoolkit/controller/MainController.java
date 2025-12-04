@@ -828,6 +828,9 @@ public class MainController implements Initializable {
 
     @FXML
     private void toggleXmlEditorSidebar() {
+        if (xmlEditorSidebarMenuItem == null) {
+            return;
+        }
         boolean isVisible = xmlEditorSidebarMenuItem.isSelected();
         logger.debug("Toggle XML Editor Sidebar: {}", isVisible);
 
@@ -859,6 +862,9 @@ public class MainController implements Initializable {
 
     @FXML
     private void toggleXPathQueryPane() {
+        if (xpathQueryPaneMenuItem == null) {
+            return;
+        }
         boolean isVisible = xpathQueryPaneMenuItem.isSelected();
         logger.debug("Toggle XPath Query Pane: {}", isVisible);
 
@@ -876,7 +882,24 @@ public class MainController implements Initializable {
         return paneVisible == null || Boolean.parseBoolean(paneVisible);
     }
 
+    /**
+     * Toggles the XPath/XQuery pane from the sidebar button.
+     *
+     * @param visible whether the pane should be visible
+     */
+    public void toggleXPathPaneFromSidebar(boolean visible) {
+        logger.debug("Toggle XPath/XQuery Pane from sidebar button: {}", visible);
 
+        if (xpathQueryPaneMenuItem != null) {
+            xpathQueryPaneMenuItem.setSelected(visible);
+        }
+
+        propertiesService.set("xpathQueryPane.visible", String.valueOf(visible));
+
+        if (xmlUltimateController != null) {
+            xmlUltimateController.setDevelopmentPaneVisible(visible);
+        }
+    }
 
     @FXML
     private void handleNewFile() {

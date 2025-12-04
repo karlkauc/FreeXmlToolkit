@@ -138,7 +138,7 @@
         <!-- Query & Analysis Group -->
         <Button fx:id="runXpathQuery" text="Query" contentDisplay="TOP" styleClass="toolbar-button" onAction="#runXpathQueryPressed">
             <graphic>
-                <FontIcon iconLiteral="bi-code-slash" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+                <FontIcon iconLiteral="bi-play-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Run XPath/XQuery (Ctrl+Q)"/>
@@ -184,6 +184,16 @@
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle Properties Panel (Ctrl+P)"/>
+            </tooltip>
+        </ToggleButton>
+
+        <!-- XPath/XQuery Panel Toggle -->
+        <ToggleButton fx:id="toggleXPathPaneButton" text="XPath" contentDisplay="TOP" styleClass="toolbar-button" onAction="#toggleXPathPane">
+            <graphic>
+                <FontIcon iconLiteral="bi-code-slash" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle XPath/XQuery Panel (Ctrl+Q)"/>
             </tooltip>
         </ToggleButton>
 

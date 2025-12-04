@@ -154,6 +154,8 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     @FXML
     private ToggleButton togglePropertiesPaneButton;
     @FXML
+    private ToggleButton toggleXPathPaneButton;
+    @FXML
     private Button helpButton;
     @FXML
     private Button undoBtn;
@@ -795,6 +797,13 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             logger.debug("Properties pane toggle button initialized with state: {}", sidebarVisible);
         }
 
+        // Initialize XPath/XQuery pane toggle button state - get state from parent controller
+        if (toggleXPathPaneButton != null && parentController != null) {
+            boolean xpathPaneVisible = parentController.isXPathQueryPaneVisible();
+            toggleXPathPaneButton.setSelected(xpathPaneVisible);
+            logger.debug("XPath pane toggle button initialized with state: {}", xpathPaneVisible);
+        }
+
         logger.debug("Favorites system initialized");
     }
 
@@ -1007,11 +1016,13 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         applyButtonSettings(openFile, displayMode, iconSize, buttonStyle);
         applyButtonSettings(saveFile, displayMode, iconSize, buttonStyle);
         applyButtonSettings(saveAsFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarRecentFiles, displayMode, iconSize, buttonStyle);
         applyButtonSettings(undoBtn, displayMode, iconSize, buttonStyle);
         applyButtonSettings(redoBtn, displayMode, iconSize, buttonStyle);
         applyButtonSettings(addToFavoritesButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(togglePropertiesPaneButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toggleXPathPaneButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(prettyPrint, displayMode, iconSize, buttonStyle);
         applyButtonSettings(validateButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(xmlExcelCsvConverterButton, displayMode, iconSize, buttonStyle);
@@ -1544,6 +1555,33 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
 
         logToConsole("Properties pane " + (shouldBeVisible ? "shown" : "hidden"));
         logger.debug("Properties pane toggled to: {}", shouldBeVisible ? "visible" : "hidden");
+    }
+
+    /**
+     * Toggles the XPath/XQuery panel visibility.
+     */
+    @FXML
+    public void toggleXPathPane() {
+        logger.info("Toggling XPath/XQuery Pane from toolbar");
+
+        if (toggleXPathPaneButton == null) {
+            logger.warn("Cannot toggle XPath pane: toggle button is null");
+            return;
+        }
+
+        if (parentController == null) {
+            logger.warn("Cannot toggle XPath pane: parent controller is null");
+            return;
+        }
+
+        // Use the toggle button's selected state to determine what to do
+        boolean shouldBeVisible = toggleXPathPaneButton.isSelected();
+
+        // Delegate to MainController to handle the toggle
+        parentController.toggleXPathPaneFromSidebar(shouldBeVisible);
+
+        logToConsole("XPath/XQuery pane " + (shouldBeVisible ? "shown" : "hidden"));
+        logger.debug("XPath/XQuery pane toggled to: {}", shouldBeVisible ? "visible" : "hidden");
     }
 
     @FXML
