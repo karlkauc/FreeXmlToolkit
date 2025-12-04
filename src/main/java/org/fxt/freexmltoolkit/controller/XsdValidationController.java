@@ -200,14 +200,17 @@ public class XsdValidationController implements FavoritesParentController {
 
     /**
      * Toggles the auto-detection of XSD files.
+     * When autodetect is checked, manual XSD selection is disabled.
+     * When autodetect is unchecked, manual XSD selection is enabled.
      */
     @FXML
     public void toggleAutoDetection() {
-        boolean disable = !xsdLoadButton.isDisable();
-        xsdLoadButton.setDisable(disable);
-        xsdFileName.setDisable(disable);
+        // When autodetect is selected (ON), manual XSD selection should be disabled
+        boolean disableManualSelection = autodetect.isSelected();
+        xsdLoadButton.setDisable(disableManualSelection);
+        xsdFileName.setDisable(disableManualSelection);
         if (xsdLoadButtonGrid != null) {
-            xsdLoadButtonGrid.setDisable(disable);
+            xsdLoadButtonGrid.setDisable(disableManualSelection);
         }
     }
 
