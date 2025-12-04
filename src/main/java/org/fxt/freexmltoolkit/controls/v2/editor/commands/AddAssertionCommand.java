@@ -60,7 +60,7 @@ public class AddAssertionCommand implements XsdCommand {
             logger.debug("Adding assertion '{}' to element '{}'", assertion, element.getName());
 
             element.addAssertion(assertion);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully added assertion to element '{}'", element.getName());
             return true;
@@ -77,7 +77,7 @@ public class AddAssertionCommand implements XsdCommand {
             logger.debug("Removing assertion '{}' from element '{}'", assertion, element.getName());
 
             element.removeAssertion(assertion);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully removed assertion from element '{}'", element.getName());
             return true;

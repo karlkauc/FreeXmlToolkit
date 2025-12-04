@@ -84,7 +84,7 @@ public class ChangeDocumentationsCommand implements XsdCommand {
             // instead of the stale legacy string when saving the file.
             node.setDocumentation(null);
 
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(node);
 
             logger.info("Successfully changed documentations of node '{}'", node.getName());
             return true;
@@ -107,7 +107,7 @@ public class ChangeDocumentationsCommand implements XsdCommand {
             // Restore the old legacy documentation string
             node.setDocumentation(oldLegacyDocumentation);
 
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(node);
 
             logger.info("Successfully undone documentations change of node '{}'", node.getName());
             return true;

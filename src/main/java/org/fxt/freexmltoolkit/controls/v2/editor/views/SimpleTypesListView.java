@@ -16,6 +16,7 @@ import javafx.scene.layout.Priority;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -531,9 +532,11 @@ public class SimpleTypesListView extends BorderPane {
      * @return usage count
      */
     private int calculateUsage(XsdSimpleType simpleType) {
-        // TODO Phase 5: Implement actual usage finder
-        // For now return 0
-        return 0;
+        if (simpleType == null || simpleType.getName() == null) {
+            return 0;
+        }
+        TypeUsageFinder finder = new TypeUsageFinder(schema);
+        return finder.countUsages(simpleType.getName());
     }
 
     /**

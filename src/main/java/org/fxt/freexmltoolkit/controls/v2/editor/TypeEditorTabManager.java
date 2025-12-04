@@ -7,7 +7,10 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputDialog;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.dialogs.TypeUsageDialog;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.AbstractTypeEditorTab;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.ComplexTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypesListTab;
@@ -16,6 +19,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -148,14 +152,59 @@ public class TypeEditorTabManager {
             });
 
             tab.setOnDeleteType(simpleType -> {
-                // TODO Phase 5: Check usage before deleting
-                mainSchema.removeChild(simpleType);
-                // Refresh the list tab (it will auto-update from schema changes)
+                // Check usage before deleting
+                TypeUsageFinder finder = new TypeUsageFinder(mainSchema);
+                List<TypeUsageLocation> usages = finder.findUsages(simpleType.getName());
+
+                if (!usages.isEmpty()) {
+                    // Type is used - show warning dialog
+                    Alert warningAlert = new Alert(Alert.AlertType.WARNING);
+                    warningAlert.setTitle("Type In Use");
+                    warningAlert.setHeaderText("Cannot delete type '" + simpleType.getName() + "'");
+                    warningAlert.setContentText("This type is used in " + usages.size() +
+                            " location(s). Remove all usages before deleting.\n\n" +
+                            "Click 'Show Usages' to see where this type is used.");
+
+                    ButtonType showUsagesBtn = new ButtonType("Show Usages");
+                    ButtonType cancelBtn = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+                    warningAlert.getButtonTypes().setAll(showUsagesBtn, cancelBtn);
+
+                    Optional<ButtonType> result = warningAlert.showAndWait();
+                    if (result.isPresent() && result.get() == showUsagesBtn) {
+                        // Show the usage dialog
+                        TypeUsageDialog usageDialog = new TypeUsageDialog(simpleType.getName(), usages);
+                        usageDialog.showAndWait();
+                    }
+                    // Don't delete - type is still in use
+                } else {
+                    // Type is not used - confirm deletion
+                    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirmAlert.setTitle("Confirm Deletion");
+                    confirmAlert.setHeaderText("Delete type '" + simpleType.getName() + "'?");
+                    confirmAlert.setContentText("This type is not used anywhere and can be safely deleted.");
+
+                    Optional<ButtonType> result = confirmAlert.showAndWait();
+                    if (result.isPresent() && result.get() == ButtonType.OK) {
+                        mainSchema.removeChild(simpleType);
+                        logger.info("Deleted SimpleType: {}", simpleType.getName());
+                    }
+                }
             });
 
             tab.setOnFindUsage(simpleType -> {
-                // TODO Phase 5: Implement usage finder
-                System.out.println("Find usage for: " + simpleType.getName());
+                // Find all usages and show dialog
+                TypeUsageFinder finder = new TypeUsageFinder(mainSchema);
+                List<TypeUsageLocation> usages = finder.findUsages(simpleType.getName());
+
+                logger.debug("Found {} usages of type '{}'", usages.size(), simpleType.getName());
+
+                TypeUsageDialog dialog = new TypeUsageDialog(simpleType.getName(), usages);
+                dialog.setOnNavigateToNode(node -> {
+                    // Navigate to the node in the schema tree
+                    // This would need integration with the main schema view
+                    logger.info("Navigate to node: {} ({})", node.getName(), node.getNodeType());
+                });
+                dialog.showAndWait();
             });
 
             tab.setOnAddType(() -> {

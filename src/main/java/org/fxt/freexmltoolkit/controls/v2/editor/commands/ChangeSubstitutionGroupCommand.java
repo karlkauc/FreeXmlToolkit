@@ -63,7 +63,7 @@ public class ChangeSubstitutionGroupCommand implements XsdCommand {
                     element.getName(), oldSubstitutionGroup, newSubstitutionGroup);
 
             element.setSubstitutionGroup(newSubstitutionGroup);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully changed substitution group of element '{}'", element.getName());
             return true;
@@ -81,7 +81,7 @@ public class ChangeSubstitutionGroupCommand implements XsdCommand {
                     element.getName(), oldSubstitutionGroup);
 
             element.setSubstitutionGroup(oldSubstitutionGroup);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully undone substitution group change of element '{}'", element.getName());
             return true;

@@ -2,6 +2,8 @@ package org.fxt.freexmltoolkit.controls.v2.editor;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -320,6 +322,135 @@ class XsdEditorContextTest {
         assertFalse(context.isDirty());
         assertEquals(1, events.size());
         assertFalse((Boolean) events.get(events.size() - 1).getNewValue());
+    }
+
+    // ========== MARK NODE DIRTY TESTS ==========
+
+    @Test
+    @DisplayName("markNodeDirty should mark file dirty for node with sourceInfo")
+    void testMarkNodeDirtyWithSourceInfo() {
+        // Arrange
+        Path mainFile = Path.of("/schema/main.xsd");
+        Path includeFile = Path.of("/schema/types.xsd");
+
+        schema.setMainSchemaPath(mainFile);
+
+        XsdElement element = new XsdElement("TestElement");
+        IncludeSourceInfo sourceInfo = IncludeSourceInfo.forIncludedSchema(
+                includeFile, "types.xsd", null);
+        element.setSourceInfo(sourceInfo);
+        schema.addChild(element);
+
+        // Act
+        context.markNodeDirty(element);
+
+        // Assert
+        assertTrue(context.isFileDirty(includeFile), "Include file should be dirty");
+        assertFalse(context.isFileDirty(mainFile), "Main file should not be dirty");
+        assertTrue(context.isDirty(), "Overall dirty flag should be set");
+    }
+
+    @Test
+    @DisplayName("markNodeDirty should mark main schema file for node without sourceInfo")
+    void testMarkNodeDirtyWithoutSourceInfo() {
+        // Arrange
+        Path mainFile = Path.of("/schema/main.xsd");
+        schema.setMainSchemaPath(mainFile);
+
+        XsdElement element = new XsdElement("TestElement");
+        // No sourceInfo set - should default to main schema
+        schema.addChild(element);
+
+        // Act
+        context.markNodeDirty(element);
+
+        // Assert
+        assertTrue(context.isFileDirty(mainFile), "Main file should be dirty");
+        assertTrue(context.isDirty(), "Overall dirty flag should be set");
+    }
+
+    @Test
+    @DisplayName("markNodeDirty should mark main schema file for node with main-schema sourceInfo")
+    void testMarkNodeDirtyWithMainSchemaSourceInfo() {
+        // Arrange
+        Path mainFile = Path.of("/schema/main.xsd");
+        schema.setMainSchemaPath(mainFile);
+
+        XsdElement element = new XsdElement("TestElement");
+        IncludeSourceInfo sourceInfo = IncludeSourceInfo.forMainSchema(mainFile);
+        element.setSourceInfo(sourceInfo);
+        schema.addChild(element);
+
+        // Act
+        context.markNodeDirty(element);
+
+        // Assert
+        assertTrue(context.isFileDirty(mainFile), "Main file should be dirty");
+        assertTrue(context.isDirty(), "Overall dirty flag should be set");
+    }
+
+    @Test
+    @DisplayName("markNodeDirty should handle null node gracefully")
+    void testMarkNodeDirtyWithNullNode() {
+        // Arrange
+        Path mainFile = Path.of("/schema/main.xsd");
+        schema.setMainSchemaPath(mainFile);
+
+        // Act - should not throw
+        context.markNodeDirty(null);
+
+        // Assert - main schema should be marked dirty as fallback
+        assertTrue(context.isFileDirty(mainFile), "Main file should be dirty");
+    }
+
+    @Test
+    @DisplayName("markNodeDirty should set overall dirty when no mainSchemaPath")
+    void testMarkNodeDirtyWithoutMainSchemaPath() {
+        // Arrange - schema without main path set
+        XsdElement element = new XsdElement("TestElement");
+        schema.addChild(element);
+
+        // Act
+        context.markNodeDirty(element);
+
+        // Assert
+        assertTrue(context.isDirty(), "Overall dirty flag should be set");
+    }
+
+    @Test
+    @DisplayName("markNodeDirty should track multiple files correctly")
+    void testMarkNodeDirtyMultipleFiles() {
+        // Arrange
+        Path mainFile = Path.of("/schema/main.xsd");
+        Path includeFile1 = Path.of("/schema/types.xsd");
+        Path includeFile2 = Path.of("/schema/elements.xsd");
+
+        schema.setMainSchemaPath(mainFile);
+
+        XsdElement mainElement = new XsdElement("MainElement");
+        mainElement.setSourceInfo(IncludeSourceInfo.forMainSchema(mainFile));
+        schema.addChild(mainElement);
+
+        XsdElement includeElement1 = new XsdElement("IncludeElement1");
+        includeElement1.setSourceInfo(IncludeSourceInfo.forIncludedSchema(
+                includeFile1, "types.xsd", null));
+        schema.addChild(includeElement1);
+
+        XsdElement includeElement2 = new XsdElement("IncludeElement2");
+        includeElement2.setSourceInfo(IncludeSourceInfo.forIncludedSchema(
+                includeFile2, "elements.xsd", null));
+        schema.addChild(includeElement2);
+
+        // Act
+        context.markNodeDirty(mainElement);
+        context.markNodeDirty(includeElement1);
+
+        // Assert
+        Set<Path> dirtyFiles = context.getDirtyFiles();
+        assertEquals(2, dirtyFiles.size(), "Should have 2 dirty files");
+        assertTrue(dirtyFiles.contains(mainFile), "Main file should be dirty");
+        assertTrue(dirtyFiles.contains(includeFile1), "Include file 1 should be dirty");
+        assertFalse(dirtyFiles.contains(includeFile2), "Include file 2 should not be dirty");
     }
 
     // ========== HELPER TEST CLASS ==========

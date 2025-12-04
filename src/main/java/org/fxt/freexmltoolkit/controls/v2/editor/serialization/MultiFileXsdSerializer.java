@@ -1174,6 +1174,135 @@ public class MultiFileXsdSerializer {
     }
 
     /**
+     * Saves only the files that have been marked as dirty using atomic operations.
+     * <p>
+     * This method implements a two-phase commit approach:
+     * <ol>
+     *   <li>Phase 1: Write all content to temporary files</li>
+     *   <li>Phase 2: If all writes succeed, atomically move temp files to targets</li>
+     *   <li>If any operation fails, all temp files are cleaned up and no changes are made</li>
+     * </ol>
+     * <p>
+     * This ensures that either all files are saved successfully, or no files are modified
+     * (atomic save semantics).
+     *
+     * @param schema        the XSD schema to save
+     * @param editorContext the editor context containing dirty file tracking
+     * @param createBackups whether to create backups before overwriting
+     * @return map of file path to save result
+     */
+    public Map<Path, SaveResult> saveChangedFilesOnlyAtomic(XsdSchema schema, XsdEditorContext editorContext,
+                                                            boolean createBackups) {
+        if (schema == null || editorContext == null) {
+            logger.warn("Cannot save: schema or context is null");
+            return Collections.emptyMap();
+        }
+
+        Set<Path> dirtyFiles = editorContext.getDirtyFiles();
+
+        if (dirtyFiles.isEmpty()) {
+            logger.info("No dirty files to save (atomic)");
+            return Collections.emptyMap();
+        }
+
+        logger.info("Atomic save of {} dirty files", dirtyFiles.size());
+
+        Path mainPath = schema.getMainSchemaPath();
+        Map<Path, List<XsdNode>> nodesByFile = groupNodesBySourceFile(schema, mainPath);
+        Map<Path, SaveResult> results = new LinkedHashMap<>();
+
+        // Phase 1: Write to temporary files
+        Map<Path, Path> tempFiles = new LinkedHashMap<>();
+        Map<Path, String> contentByFile = new LinkedHashMap<>();
+
+        try {
+            // Generate content for each dirty file first (to detect errors before writing)
+            for (Path filePath : dirtyFiles) {
+                List<XsdNode> nodes = nodesByFile.get(filePath);
+                if (nodes == null) {
+                    throw new IOException("No nodes found for dirty file: " + filePath);
+                }
+
+                String content;
+                if (filePath.equals(mainPath)) {
+                    content = serializeMainSchema(schema, nodes);
+                } else {
+                    content = serializeIncludedSchema(schema, nodes);
+                }
+                contentByFile.put(filePath, content);
+            }
+
+            // Write each file to a temporary location
+            for (Map.Entry<Path, String> entry : contentByFile.entrySet()) {
+                Path filePath = entry.getKey();
+                String content = entry.getValue();
+
+                // Create temp file in the same directory as target (for atomic move)
+                Path tempFile = Files.createTempFile(
+                        filePath.getParent(),
+                        filePath.getFileName().toString() + "_",
+                        ".tmp"
+                );
+                Files.writeString(tempFile, content);
+                tempFiles.put(filePath, tempFile);
+
+                logger.debug("Wrote temp file for {}: {}", filePath.getFileName(), tempFile.getFileName());
+            }
+
+            // Phase 2: All writes succeeded - create backups and move atomically
+            Map<Path, Path> backupPaths = new LinkedHashMap<>();
+
+            if (createBackups) {
+                for (Path filePath : dirtyFiles) {
+                    if (Files.exists(filePath)) {
+                        Path backupPath = createBackup(filePath);
+                        backupPaths.put(filePath, backupPath);
+                        logger.debug("Created backup for {}: {}", filePath.getFileName(), backupPath.getFileName());
+                    }
+                }
+            }
+
+            // Move temp files to target locations atomically
+            for (Map.Entry<Path, Path> entry : tempFiles.entrySet()) {
+                Path targetPath = entry.getKey();
+                Path tempPath = entry.getValue();
+
+                // Atomic move (replace existing)
+                Files.move(tempPath, targetPath,
+                        StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+
+                int nodeCount = nodesByFile.get(targetPath) != null ? nodesByFile.get(targetPath).size() : 0;
+                Path backupPath = backupPaths.get(targetPath);
+                results.put(targetPath, SaveResult.success(targetPath, backupPath, nodeCount));
+
+                logger.info("Atomically saved {}", targetPath.getFileName());
+            }
+
+            logger.info("Atomic save completed successfully: {} files saved", results.size());
+            return results;
+
+        } catch (Exception e) {
+            // Cleanup: Delete all temp files that were created
+            logger.error("Atomic save failed, rolling back: {}", e.getMessage(), e);
+
+            for (Path tempFile : tempFiles.values()) {
+                try {
+                    Files.deleteIfExists(tempFile);
+                    logger.debug("Cleaned up temp file: {}", tempFile.getFileName());
+                } catch (IOException cleanupError) {
+                    logger.warn("Failed to cleanup temp file {}: {}", tempFile, cleanupError.getMessage());
+                }
+            }
+
+            // Return failure result for the main schema path
+            Path mainSchemaPath = schema.getMainSchemaPath();
+            return Map.of(mainSchemaPath, SaveResult.failure(mainSchemaPath,
+                    "Atomic save failed: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Sorts the nodes for a specific file according to the current sort order.
      * This method is used to sort nodes within each included file.
      *

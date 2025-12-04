@@ -5,6 +5,8 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.CommandManager;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 import java.beans.PropertyChangeListener;
@@ -276,5 +278,60 @@ public class XsdEditorContext {
         if (anyDirty != dirty) {
             setDirty(anyDirty);
         }
+    }
+
+    /**
+     * Marks the file containing the given node as dirty.
+     * This method automatically determines the source file from the node's
+     * {@link IncludeSourceInfo} and marks that file as dirty.
+     * <p>
+     * If the node doesn't have source info or the source file cannot be determined,
+     * the main schema file is marked as dirty as a fallback.
+     *
+     * @param node the node that was modified
+     */
+    public void markNodeDirty(XsdNode node) {
+        Path sourceFile = getNodeSourceFile(node);
+        String nodeDesc = (node != null)
+                ? (node.getName() != null ? node.getName() : node.getId().toString())
+                : "(null node)";
+
+        if (sourceFile != null) {
+            setFileDirty(sourceFile, true);
+            logger.debug("Marked file dirty from node: {} -> {}", nodeDesc, sourceFile.getFileName());
+        } else {
+            // Fallback: mark main schema dirty
+            Path mainPath = schema.getMainSchemaPath();
+            if (mainPath != null) {
+                setFileDirty(mainPath, true);
+                logger.debug("Marked main schema dirty (fallback) from node: {}", nodeDesc);
+            } else {
+                // If no main path, just set global dirty flag
+                setDirty(true);
+                logger.debug("Set global dirty flag (no path available) from node: {}", nodeDesc);
+            }
+        }
+    }
+
+    /**
+     * Gets the source file path for a node.
+     * Uses the node's {@link IncludeSourceInfo} if available,
+     * otherwise returns the main schema path.
+     *
+     * @param node the node to get the source file for
+     * @return the source file path, or null if not determinable
+     */
+    private Path getNodeSourceFile(XsdNode node) {
+        if (node == null) {
+            return schema.getMainSchemaPath();
+        }
+
+        IncludeSourceInfo sourceInfo = node.getSourceInfo();
+        if (sourceInfo != null && sourceInfo.getSourceFile() != null) {
+            return sourceInfo.getSourceFile();
+        }
+
+        // Fallback to main schema path
+        return schema.getMainSchemaPath();
     }
 }

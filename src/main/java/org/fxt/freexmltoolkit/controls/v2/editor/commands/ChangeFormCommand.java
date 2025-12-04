@@ -81,7 +81,7 @@ public class ChangeFormCommand implements XsdCommand {
                 attribute.setForm(newForm);
             }
 
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(node);
 
             logger.info("Successfully changed form of {} '{}'", node.getNodeType(), node.getName());
             return true;
@@ -105,7 +105,7 @@ public class ChangeFormCommand implements XsdCommand {
                 attribute.setForm(oldForm);
             }
 
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(node);
 
             logger.info("Successfully undone form change of {} '{}'", node.getNodeType(), node.getName());
             return true;

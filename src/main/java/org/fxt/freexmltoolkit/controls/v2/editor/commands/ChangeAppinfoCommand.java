@@ -58,7 +58,7 @@ public class ChangeAppinfoCommand implements XsdCommand {
                     node.getName(), oldAppinfo, newAppinfo);
 
             node.setAppinfo(newAppinfo);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(node);
 
             logger.info("Successfully changed appinfo of node '{}'", node.getName());
             return true;
@@ -76,7 +76,7 @@ public class ChangeAppinfoCommand implements XsdCommand {
                     node.getName(), oldAppinfo);
 
             node.setAppinfo(oldAppinfo);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(node);
 
             logger.info("Successfully undone appinfo change of node '{}'", node.getName());
             return true;

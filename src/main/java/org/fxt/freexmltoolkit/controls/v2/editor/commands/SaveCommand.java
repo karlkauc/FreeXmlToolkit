@@ -12,6 +12,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Command to save the XSD schema to a file.
@@ -112,19 +113,35 @@ public class SaveCommand implements XsdCommand {
     /**
      * Executes a multi-file save for schemas with xs:include statements.
      * Each node is saved back to its original source file.
+     * <p>
+     * Uses per-file dirty tracking to only save files that have actually changed.
+     * Falls back to saving all files if no per-file tracking is available.
      */
     private boolean executeMultiFileSave() {
         logger.info("Saving XSD schema to multiple files (multi-file save)");
 
         MultiFileXsdSerializer multiSerializer = new MultiFileXsdSerializer();
-        multiFileSaveResults = multiSerializer.saveAll(schema, filePath, createBackup);
+
+        // Check if we have per-file dirty tracking available
+        Set<Path> dirtyFiles = editorContext.getDirtyFiles();
+
+        if (!dirtyFiles.isEmpty()) {
+            // Use incremental save - only save dirty files (atomic)
+            logger.info("Using per-file dirty tracking: {} files to save", dirtyFiles.size());
+            multiFileSaveResults = multiSerializer.saveChangedFilesOnlyAtomic(schema, editorContext, createBackup);
+        } else {
+            // No per-file dirty tracking - save all files (new file, explicit save, or legacy mode)
+            logger.info("No per-file dirty tracking available, saving all files");
+            multiFileSaveResults = multiSerializer.saveAll(schema, filePath, createBackup);
+        }
 
         // Check if all saves were successful
         boolean allSuccessful = multiFileSaveResults.values().stream()
                 .allMatch(SaveResult::success);
 
         if (allSuccessful) {
-            // Reset dirty flag on successful save
+            // Reset dirty flags on successful save
+            editorContext.clearAllFileDirty();
             editorContext.resetDirty();
             saveSuccessful = true;
             isMultiFileSave = true;

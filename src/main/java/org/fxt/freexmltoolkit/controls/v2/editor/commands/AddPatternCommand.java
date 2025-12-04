@@ -58,7 +58,7 @@ public class AddPatternCommand implements XsdCommand {
             logger.debug("Adding pattern '{}' to element '{}'", pattern, element.getName());
 
             element.addPattern(pattern);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully added pattern to element '{}'", element.getName());
             return true;
@@ -75,7 +75,7 @@ public class AddPatternCommand implements XsdCommand {
             logger.debug("Removing pattern '{}' from element '{}'", pattern, element.getName());
 
             element.removePattern(pattern);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully removed pattern from element '{}'", element.getName());
             return true;

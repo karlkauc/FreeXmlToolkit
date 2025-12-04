@@ -58,7 +58,7 @@ public class ChangeTypeCommand implements XsdCommand {
             // Update the model - this will fire PropertyChangeEvent
             // which triggers automatic view refresh via VisualNode's listener
             setTypeOnNode(node, newType);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(node);
 
             logger.info("Successfully changed type of {} '{}'", node.getClass().getSimpleName(), node.getName());
             return true;
@@ -77,7 +77,7 @@ public class ChangeTypeCommand implements XsdCommand {
 
             // Update the model - this will fire PropertyChangeEvent
             setTypeOnNode(node, oldType);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(node);
 
             logger.info("Successfully undone type change of {} '{}'", node.getClass().getSimpleName(), node.getName());
             return true;

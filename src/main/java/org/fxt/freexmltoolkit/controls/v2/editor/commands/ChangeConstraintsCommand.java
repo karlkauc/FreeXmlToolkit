@@ -85,7 +85,7 @@ public class ChangeConstraintsCommand implements XsdCommand {
             element.setNillable(newNillable);
             element.setAbstract(newAbstract);
             element.setFixed(newFixed);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully changed constraints of element '{}'", element.getName());
             return true;
@@ -105,7 +105,7 @@ public class ChangeConstraintsCommand implements XsdCommand {
             element.setNillable(oldNillable);
             element.setAbstract(oldAbstract);
             element.setFixed(oldFixed);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully undone constraints change of element '{}'", element.getName());
             return true;

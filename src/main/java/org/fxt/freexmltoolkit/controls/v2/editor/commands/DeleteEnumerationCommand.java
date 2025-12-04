@@ -60,7 +60,7 @@ public class DeleteEnumerationCommand implements XsdCommand {
                 return false;
             }
 
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully deleted enumeration from element '{}'", element.getName());
             return true;
@@ -77,7 +77,7 @@ public class DeleteEnumerationCommand implements XsdCommand {
             logger.debug("Re-adding enumeration '{}' to element '{}'", enumeration, element.getName());
 
             element.addEnumeration(enumeration);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully restored enumeration to element '{}'", element.getName());
             return true;

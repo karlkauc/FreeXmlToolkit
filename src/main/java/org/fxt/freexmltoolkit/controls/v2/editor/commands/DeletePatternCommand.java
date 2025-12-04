@@ -60,7 +60,7 @@ public class DeletePatternCommand implements XsdCommand {
                 return false;
             }
 
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully deleted pattern from element '{}'", element.getName());
             return true;
@@ -77,7 +77,7 @@ public class DeletePatternCommand implements XsdCommand {
             logger.debug("Re-adding pattern '{}' to element '{}'", pattern, element.getName());
 
             element.addPattern(pattern);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully restored pattern to element '{}'", element.getName());
             return true;

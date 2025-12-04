@@ -60,7 +60,7 @@ public class DeleteAssertionCommand implements XsdCommand {
                 return false;
             }
 
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully deleted assertion from element '{}'", element.getName());
             return true;
@@ -77,7 +77,7 @@ public class DeleteAssertionCommand implements XsdCommand {
             logger.debug("Re-adding assertion '{}' to element '{}'", assertion, element.getName());
 
             element.addAssertion(assertion);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully restored assertion to element '{}'", element.getName());
             return true;

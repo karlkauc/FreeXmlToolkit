@@ -58,7 +58,7 @@ public class AddEnumerationCommand implements XsdCommand {
             logger.debug("Adding enumeration '{}' to element '{}'", enumeration, element.getName());
 
             element.addEnumeration(enumeration);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully added enumeration to element '{}'", element.getName());
             return true;
@@ -75,7 +75,7 @@ public class AddEnumerationCommand implements XsdCommand {
             logger.debug("Removing enumeration '{}' from element '{}'", enumeration, element.getName());
 
             element.removeEnumeration(enumeration);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(element);
 
             logger.info("Successfully removed enumeration from element '{}'", element.getName());
             return true;

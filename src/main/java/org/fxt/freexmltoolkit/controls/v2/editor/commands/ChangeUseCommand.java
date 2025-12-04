@@ -85,7 +85,7 @@ public class ChangeUseCommand implements XsdCommand {
                     attribute.getName(), oldUse, newUse);
 
             attribute.setUse(newUse);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(attribute);
 
             logger.info("Successfully changed use of attribute '{}'", attribute.getName());
             return true;
@@ -103,7 +103,7 @@ public class ChangeUseCommand implements XsdCommand {
                     attribute.getName(), oldUse);
 
             attribute.setUse(oldUse);
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(attribute);
 
             logger.info("Successfully undone use change of attribute '{}'", attribute.getName());
             return true;

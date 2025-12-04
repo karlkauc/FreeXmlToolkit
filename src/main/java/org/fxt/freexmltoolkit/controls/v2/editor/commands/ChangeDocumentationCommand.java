@@ -71,7 +71,7 @@ public class ChangeDocumentationCommand implements XsdCommand {
             // instead of the stale list entries when saving the file.
             node.clearDocumentations();
 
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(node);
 
             logger.info("Successfully changed documentation of node '{}'", node.getName());
             return true;
@@ -93,7 +93,7 @@ public class ChangeDocumentationCommand implements XsdCommand {
             // Restore the old multi-language documentations list
             node.setDocumentations(oldDocumentations);
 
-            editorContext.setDirty(true);
+            editorContext.markNodeDirty(node);
 
             logger.info("Successfully undone documentation change of node '{}'", node.getName());
             return true;
