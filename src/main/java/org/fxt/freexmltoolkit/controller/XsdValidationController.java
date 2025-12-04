@@ -202,7 +202,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Toggles the auto-detection of XSD files.
      */
     @FXML
-    private void toggleAutoDetection() {
+    public void toggleAutoDetection() {
         boolean disable = !xsdLoadButton.isDisable();
         xsdLoadButton.setDisable(disable);
         xsdFileName.setDisable(disable);
@@ -524,7 +524,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Opens a file chooser dialog to select an XML file for validation.
      */
     @FXML
-    private void selectXmlFile() {
+    public void selectXmlFile() {
         File file = xmlFileChooser.showOpenDialog(null);
         if (file != null) {
             logger.debug("Selected XML file: {}", file.getAbsolutePath());
@@ -537,7 +537,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Opens a file chooser dialog to select an XSD schema file.
      */
     @FXML
-    private void selectXsdFile() {
+    public void selectXsdFile() {
         File file = xsdFileChooser.showOpenDialog(null);
         if (file != null) {
             logger.debug("Selected XSD file: {}", file.getAbsolutePath());
@@ -789,7 +789,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Clears the validation results from the UI.
      */
     @FXML
-    private void clearResultAction() {
+    public void clearResultAction() {
         logger.debug("clear results");
         resetUI();
         xmlFileName.clear();
@@ -804,7 +804,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Exports the validation errors to an Excel file.
      */
     @FXML
-    private void excelExport() {
+    public void excelExport() {
         if (validationErrors != null && !validationErrors.isEmpty()) {
             excelFileChooser.setInitialFileName("ValidationErrors.xlsx");
             File exportFile = excelFileChooser.showSaveDialog(null);
@@ -839,7 +839,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Shows the help dialog with usage instructions.
      */
     @FXML
-    private void showHelp() {
+    public void showHelp() {
         var features = java.util.List.of(
                 new String[]{"bi-file-earmark-code", "Load XML", "Load XML files via toolbar, file selector, or drag & drop"},
                 new String[]{"bi-search", "Schema Detection", "Auto-detect XSD from XML or manually select schema file"},
@@ -1210,7 +1210,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Opens file chooser to select XSD schema for batch validation.
      */
     @FXML
-    private void selectBatchXsd() {
+    public void selectBatchXsd() {
         File file = xsdFileChooser.showOpenDialog(null);
         if (file != null) {
             batchXsdFile = file;
@@ -1225,7 +1225,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Opens file chooser to add multiple XML files to batch.
      */
     @FXML
-    private void addFilesToBatch() {
+    public void addFilesToBatch() {
         List<File> files = xmlFileChooser.showOpenMultipleDialog(null);
         if (files != null && !files.isEmpty()) {
             for (File file : files) {
@@ -1245,7 +1245,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Opens directory chooser to add all XML files from a folder (recursively).
      */
     @FXML
-    private void addFolderToBatch() {
+    public void addFolderToBatch() {
         File folder = directoryChooser.showDialog(null);
         if (folder != null && folder.isDirectory()) {
             try {
@@ -1279,7 +1279,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Removes selected files from the batch list.
      */
     @FXML
-    private void removeBatchSelected() {
+    public void removeBatchSelected() {
         List<BatchValidationFile> selected = new ArrayList<>(batchFilesTable.getSelectionModel().getSelectedItems());
         if (!selected.isEmpty()) {
             batchFiles.removeAll(selected);
@@ -1292,7 +1292,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Clears all files from the batch list.
      */
     @FXML
-    private void clearBatch() {
+    public void clearBatch() {
         batchFiles.clear();
         batchErrorDetailsBox.getChildren().clear();
         updateBatchSummary();
@@ -1303,7 +1303,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Runs batch validation on all files in the background.
      */
     @FXML
-    private void runBatchValidation() {
+    public void runBatchValidation() {
         if (batchFiles.isEmpty()) {
             showAlert("No Files", "Please add XML files to validate.");
             return;
@@ -1417,7 +1417,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Cancels the running batch validation.
      */
     @FXML
-    private void cancelBatchValidation() {
+    public void cancelBatchValidation() {
         batchCancelled = true;
         logger.debug("Batch validation cancellation requested");
     }
@@ -1426,7 +1426,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Filters the batch results based on the selected filter.
      */
     @FXML
-    private void filterBatchResults() {
+    public void filterBatchResults() {
         if (batchFilterCombo == null || filteredBatchFiles == null) return;
 
         String filter = batchFilterCombo.getValue();
@@ -1530,7 +1530,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Exports all batch results to Excel.
      */
     @FXML
-    private void exportBatchAll() {
+    public void exportBatchAll() {
         if (batchFiles.isEmpty()) {
             showAlert("No Files", "No files to export.");
             return;
@@ -1551,7 +1551,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Exports errors for the selected file to Excel.
      */
     @FXML
-    private void exportBatchSelected() {
+    public void exportBatchSelected() {
         BatchValidationFile selected = batchFilesTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             showAlert("No Selection", "Please select a file to export its errors.");
