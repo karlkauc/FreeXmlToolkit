@@ -73,6 +73,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # Schritt 1.5: Datei-Zeitstempel auf aktuelle Build-Zeit setzen
+      # GitHub Actions checkout setzt alle Zeitstempel auf 1980-01-01 (DOS-Epoch)
+      - name: Set file timestamps to build time
+        shell: bash
+        run: |
+          echo "Setting all file timestamps to current build time..."
+          find . -type f -not -path "./.git/*" -exec touch {} \;
+          echo "Timestamps updated to: $(date)"
+
       # Schritt 2: Java Development Kit (JDK) einrichten
       # Stelle sicher, dass du eine JDK-Version wählst, die jpackage enthält (JDK 14+)
       - name: Set up JDK

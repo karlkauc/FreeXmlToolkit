@@ -304,13 +304,16 @@ fun createZipTask(jpackageTaskName: String, platform: String, arch: String): Str
         group = "distribution"
         description = "Create ZIP archive for $platform-$arch app-image"
         dependsOn(jpackageTaskName)
-        
+
         val sourceDir = "build/dist/$platform-$arch-app-image"
         val zipFileName = "FreeXmlToolkit-$platform-$arch-app-image-${project.version}.zip"
-        
+
         from(sourceDir)
         archiveFileName.set(zipFileName)
         destinationDirectory.set(file("build/dist"))
+
+        // Preserve file timestamps (build time) in ZIP archive
+        isPreserveFileTimestamps = true
         
         doFirst {
             if (!file(sourceDir).exists()) {
@@ -594,6 +597,17 @@ $platformArgs""".trimIndent())
                         file.renameTo(File(file.parent, expectedName))
                     }
                 }
+            }
+
+            // Set timestamps on all output files to build time
+            // This fixes the 1980-01-01 timestamp issue from GitHub Actions checkout
+            val buildTime = System.currentTimeMillis()
+            val outputDir = file(sourceDir)
+            if (outputDir.exists()) {
+                outputDir.walkTopDown().forEach { f ->
+                    f.setLastModified(buildTime)
+                }
+                println("Updated timestamps in $sourceDir to build time")
             }
         }
     }
