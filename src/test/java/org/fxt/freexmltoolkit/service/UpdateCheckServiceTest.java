@@ -744,6 +744,16 @@ class UpdateCheckServiceTest {
         public void setUseSmallIcons(boolean useSmallIcons) {
             properties.setProperty("ui.use.small.icons", String.valueOf(useSmallIcons));
         }
+
+        @Override
+        public String getXsdSortOrder() {
+            return properties.getProperty("xsd.sort.order", "TYPE_BEFORE_NAME");
+        }
+
+        @Override
+        public void setXsdSortOrder(String sortOrder) {
+            properties.setProperty("xsd.sort.order", sortOrder);
+        }
     }
 
     /**

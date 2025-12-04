@@ -5,6 +5,9 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +40,7 @@ public class XsdSerializer {
     private static final int MAX_SERIALIZATION_DEPTH = 100; // Prevent infinite recursion
 
     private String indentString = DEFAULT_INDENT;
+    private XsdSortOrder sortOrder = null; // null means use default from settings
 
     /**
      * Creates a backup of the specified file.
@@ -130,8 +134,17 @@ public class XsdSerializer {
 
         sb.append(">\n");
 
+        // Get the effective sort order (from instance or from settings)
+        XsdSortOrder effectiveSortOrder = getEffectiveSortOrder();
+
+        // Sort children before serializing
+        List<XsdNode> sortedChildren = XsdNodeSorter.sortSchemaChildren(
+                schema.getChildren(), effectiveSortOrder);
+
+        logger.debug("Serializing {} children with sort order: {}", sortedChildren.size(), effectiveSortOrder);
+
         // Serialize children (global elements, types, etc.)
-        for (XsdNode child : schema.getChildren()) {
+        for (XsdNode child : sortedChildren) {
             serializeXsdNode(child, sb, 1);
         }
 
@@ -1407,6 +1420,65 @@ public class XsdSerializer {
      */
     public void setIndentString(String indentString) {
         this.indentString = indentString != null ? indentString : DEFAULT_INDENT;
+    }
+
+    /**
+     * Sets the sort order for serialization.
+     * If set to null, the default from application settings will be used.
+     *
+     * @param sortOrder the sort order to use, or null for default
+     */
+    public void setSortOrder(XsdSortOrder sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    /**
+     * Gets the sort order used for serialization.
+     *
+     * @return the current sort order, or null if using default from settings
+     */
+    public XsdSortOrder getSortOrder() {
+        return sortOrder;
+    }
+
+    /**
+     * Gets the effective sort order for serialization.
+     * If a sort order has been explicitly set on this instance, that is returned.
+     * Otherwise, the default from application settings is used.
+     *
+     * @return the effective sort order
+     */
+    private XsdSortOrder getEffectiveSortOrder() {
+        if (sortOrder != null) {
+            return sortOrder;
+        }
+
+        // Get from application settings
+        try {
+            PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+            String sortOrderStr = propertiesService.getXsdSortOrder();
+            return XsdSortOrder.valueOf(sortOrderStr);
+        } catch (Exception e) {
+            logger.warn("Could not get sort order from settings, using default NAME_BEFORE_TYPE: {}", e.getMessage());
+            return XsdSortOrder.NAME_BEFORE_TYPE;
+        }
+    }
+
+    /**
+     * Serializes an XsdSchema to XSD XML with the specified sort order.
+     *
+     * @param schema    the XSD schema model
+     * @param sortOrder the sort order to use for this serialization
+     * @return XSD XML string
+     */
+    public String serialize(XsdSchema schema, XsdSortOrder sortOrder) {
+        XsdSortOrder previousSortOrder = this.sortOrder;
+        try {
+            this.sortOrder = sortOrder;
+            return serialize(schema);
+        } finally {
+            this.sortOrder = previousSortOrder;
+        }
     }
 
     /**

@@ -381,4 +381,22 @@ public class PropertiesServiceImpl implements PropertiesService {
         saveProperties(properties);
         logger.debug("Set use small icons to: {}", useSmallIcons);
     }
+
+    // XSD Serialization settings implementation
+
+    @Override
+    public String getXsdSortOrder() {
+        return properties.getProperty("xsd.sort.order", "NAME_BEFORE_TYPE");
+    }
+
+    @Override
+    public void setXsdSortOrder(String sortOrder) {
+        if (sortOrder != null && (sortOrder.equals("TYPE_BEFORE_NAME") || sortOrder.equals("NAME_BEFORE_TYPE"))) {
+            properties.setProperty("xsd.sort.order", sortOrder);
+            saveProperties(properties);
+            logger.debug("Set XSD sort order to: {}", sortOrder);
+        } else {
+            logger.warn("Invalid XSD sort order '{}', ignoring", sortOrder);
+        }
+    }
 }

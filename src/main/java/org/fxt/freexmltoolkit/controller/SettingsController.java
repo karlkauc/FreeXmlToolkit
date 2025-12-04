@@ -39,6 +39,7 @@ import org.fxt.freexmltoolkit.domain.ConnectionResult;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.service.ConnectionService;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
@@ -80,6 +81,13 @@ public class SettingsController {
     // XSD Editor Settings
     @FXML
     CheckBox xsdAutoSaveEnabled, xsdBackupEnabled, xsdPrettyPrintOnSave;
+
+    // XSD Serialization Order Settings
+    @FXML
+    RadioButton sortTypeBeforeName, sortNameBeforeType;
+
+    @FXML
+    ToggleGroup xsdSortOrder;
 
     // SSL Settings
     @FXML
@@ -399,6 +407,12 @@ public class SettingsController {
             props.setProperty("xsd.backup.versions", xsdBackupVersions.getValue().toString());
             props.setProperty("xsd.prettyPrint.onSave", String.valueOf(xsdPrettyPrintOnSave.isSelected()));
 
+            // Save XSD sort order setting
+            XsdSortOrder selectedSortOrder = sortTypeBeforeName.isSelected()
+                    ? XsdSortOrder.TYPE_BEFORE_NAME
+                    : XsdSortOrder.NAME_BEFORE_TYPE;
+            propertiesService.setXsdSortOrder(selectedSortOrder.name());
+
             // Save UI settings
             props.setProperty("ui.theme", darkTheme.isSelected() ? "dark" : "light");
             props.setProperty("ui.xml.font.size", xmlFontSize.getValue().toString());
@@ -527,6 +541,22 @@ public class SettingsController {
         xsdBackupVersions.setDisable(!propertiesService.isXsdBackupEnabled());
 
         xsdPrettyPrintOnSave.setSelected(propertiesService.isXsdPrettyPrintOnSave());
+
+        // Load XSD sort order setting
+        String sortOrderStr = propertiesService.getXsdSortOrder();
+        XsdSortOrder sortOrder = XsdSortOrder.TYPE_BEFORE_NAME; // default
+        try {
+            if (sortOrderStr != null && !sortOrderStr.isBlank()) {
+                sortOrder = XsdSortOrder.valueOf(sortOrderStr);
+            }
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid XSD sort order in settings: {}, using default", sortOrderStr);
+        }
+        if (sortOrder == XsdSortOrder.TYPE_BEFORE_NAME) {
+            sortTypeBeforeName.setSelected(true);
+        } else {
+            sortNameBeforeType.setSelected(true);
+        }
 
         // Load UI settings
         String theme = props.getProperty("ui.theme", "light");

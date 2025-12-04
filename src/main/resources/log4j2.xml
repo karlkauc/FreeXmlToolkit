@@ -61,7 +61,7 @@
                 additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.fxt.freexmltoolkit.service.ThreadPoolManager" level="INFO" additivity="false">
+        <Logger name="org.fxt.freexmltoolkit.service.ThreadPoolManager" additivity="INFO">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>

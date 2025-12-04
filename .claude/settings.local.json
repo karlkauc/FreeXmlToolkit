@@ -64,7 +64,13 @@
       "WebFetch(domain:kordamp.org)",
       "Bash(git push:*)",
       "Bash(/dev/null sleep 2 sed -i.bak s/xml.editor.use.v2=false/xml.editor.use.v2=true/g FreeXmlToolkit.properties echo '✅ Set xml.editor.use.v2=true (V2)' cat FreeXmlToolkit.properties)",
-      "Bash(FreeXmlToolkit.properties)"
+      "Bash(FreeXmlToolkit.properties)",
+      "Bash(git -C /Users/karlkauc/IdeaProjects/FreeXmlToolkit show 1bd38703 --stat)",
+      "Bash(python3:*)",
+      "Bash(gh release:*)",
+      "Bash(git tag:*)",
+      "Bash(for cls in ErrorRecoveryManager MinimapView ModernXmlThemeManager UpdateNotificationDialog)",
+      "Bash(do echo \"=== $cls ===\")"
     ],
     "deny": []
   }

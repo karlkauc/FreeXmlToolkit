@@ -9,6 +9,12 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Central context for the XSD editor.
@@ -28,6 +34,9 @@ public class XsdEditorContext {
 
     private boolean editMode = true;  // Default to true to enable editing
     private boolean dirty = false;
+
+    // Per-file dirty tracking for multi-file XSD schemas
+    private final Map<Path, Boolean> fileDirtyMap = new HashMap<>();
 
     /**
      * Creates a new editor context for the given schema.
@@ -185,5 +194,87 @@ public class XsdEditorContext {
      */
     public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(propertyName, listener);
+    }
+
+    // Per-file dirty tracking methods
+
+    /**
+     * Sets the dirty flag for a specific file.
+     * Used for multi-file XSD schemas where each file tracks its own changes.
+     *
+     * @param file  the file path
+     * @param dirty true if the file has unsaved changes
+     */
+    public void setFileDirty(Path file, boolean dirty) {
+        if (file != null) {
+            fileDirtyMap.put(file, dirty);
+            updateOverallDirty();
+            logger.debug("File dirty: {} = {}", file.getFileName(), dirty);
+        }
+    }
+
+    /**
+     * Checks if a specific file has unsaved changes.
+     *
+     * @param file the file path
+     * @return true if the file is dirty, false otherwise
+     */
+    public boolean isFileDirty(Path file) {
+        return file != null && fileDirtyMap.getOrDefault(file, false);
+    }
+
+    /**
+     * Gets the set of files that have unsaved changes.
+     *
+     * @return set of dirty file paths
+     */
+    public Set<Path> getDirtyFiles() {
+        return fileDirtyMap.entrySet().stream()
+                .filter(Map.Entry::getValue)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Clears the dirty flag for a specific file.
+     * Called after successfully saving the file.
+     *
+     * @param file the file path
+     */
+    public void clearFileDirty(Path file) {
+        if (file != null) {
+            fileDirtyMap.put(file, false);
+            updateOverallDirty();
+            logger.debug("Cleared dirty flag for: {}", file.getFileName());
+        }
+    }
+
+    /**
+     * Clears all per-file dirty flags.
+     * Called after saving all files.
+     */
+    public void clearAllFileDirty() {
+        fileDirtyMap.clear();
+        updateOverallDirty();
+        logger.debug("Cleared all per-file dirty flags");
+    }
+
+    /**
+     * Gets an unmodifiable view of the per-file dirty map.
+     *
+     * @return unmodifiable map of file paths to dirty flags
+     */
+    public Map<Path, Boolean> getFileDirtyMap() {
+        return Collections.unmodifiableMap(fileDirtyMap);
+    }
+
+    /**
+     * Updates the overall dirty flag based on per-file dirty states.
+     */
+    private void updateOverallDirty() {
+        boolean anyDirty = fileDirtyMap.values().stream().anyMatch(Boolean::booleanValue);
+        if (anyDirty != dirty) {
+            setDirty(anyDirty);
+        }
     }
 }

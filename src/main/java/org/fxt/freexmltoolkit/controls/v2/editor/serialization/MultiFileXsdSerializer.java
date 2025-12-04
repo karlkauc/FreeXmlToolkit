@@ -2,7 +2,10 @@ package org.fxt.freexmltoolkit.controls.v2.editor.serialization;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,6 +45,7 @@ public class MultiFileXsdSerializer {
 
     private String indentString = DEFAULT_INDENT;
     private boolean createBackups = true;
+    private XsdSortOrder sortOrder = null; // null means use default from settings
 
     /**
      * Result of saving a single file.
@@ -254,23 +258,32 @@ public class MultiFileXsdSerializer {
         // Schema element with namespace declarations
         appendSchemaOpenTag(schema, sb);
 
-        // Serialize children - xs:include and xs:import first, then main-file nodes
+        // Sort and serialize children - xs:include and xs:import first, then main-file nodes
+        // The sorting logic ensures proper ordering according to settings
+        List<XsdNode> sortedNodes = sortNodesForFile(mainNodes != null ? mainNodes : new ArrayList<>());
+
+        // Collect import/include nodes from schema children (they may not be in mainNodes)
+        List<XsdNode> importIncludeNodes = new ArrayList<>();
         for (XsdNode child : schema.getChildren()) {
-            // Always include xs:include and xs:import in main schema
             if (child instanceof XsdInclude || child instanceof XsdImport) {
-                serializeXsdNode(child, sb, 1);
+                importIncludeNodes.add(child);
             }
         }
 
-        // Then serialize nodes that belong to the main file
-        if (mainNodes != null) {
-            for (XsdNode node : mainNodes) {
-                // Skip includes/imports (already serialized above)
-                if (node instanceof XsdInclude || node instanceof XsdImport) {
-                    continue;
-                }
-                serializeXsdNode(node, sb, 1);
+        // Sort import/include nodes (XsdNodeSorter puts them first and sorts them alphabetically)
+        List<XsdNode> sortedImportIncludes = XsdNodeSorter.sortSchemaChildren(importIncludeNodes, getEffectiveSortOrder());
+
+        // Serialize imports/includes first
+        for (XsdNode node : sortedImportIncludes) {
+            serializeXsdNode(node, sb, 1);
+        }
+
+        // Then serialize sorted main-file nodes (excluding imports/includes)
+        for (XsdNode node : sortedNodes) {
+            if (node instanceof XsdInclude || node instanceof XsdImport) {
+                continue;
             }
+            serializeXsdNode(node, sb, 1);
         }
 
         sb.append("</xs:schema>\n");
@@ -290,8 +303,11 @@ public class MultiFileXsdSerializer {
         // Schema element - use same namespace/targetNamespace as main schema
         appendSchemaOpenTag(mainSchema, sb);
 
-        // Serialize only the nodes that belong to this included file
-        for (XsdNode node : nodes) {
+        // Sort nodes according to settings
+        List<XsdNode> sortedNodes = sortNodesForFile(nodes);
+
+        // Serialize only the nodes that belong to this included file (sorted)
+        for (XsdNode node : sortedNodes) {
             // Skip xs:include/xs:import nodes in included files
             if (node instanceof XsdInclude || node instanceof XsdImport) {
                 continue;
@@ -1083,5 +1099,91 @@ public class MultiFileXsdSerializer {
      */
     public void setCreateBackups(boolean createBackups) {
         this.createBackups = createBackups;
+    }
+
+    /**
+     * Sets the sort order for serialization.
+     * If set to null, the default from application settings will be used.
+     *
+     * @param sortOrder the sort order to use, or null for default
+     */
+    public void setSortOrder(XsdSortOrder sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    /**
+     * Gets the sort order used for serialization.
+     *
+     * @return the current sort order, or null if using default from settings
+     */
+    public XsdSortOrder getSortOrder() {
+        return sortOrder;
+    }
+
+    /**
+     * Gets the effective sort order for serialization.
+     * If a sort order has been explicitly set on this instance, that is returned.
+     * Otherwise, the default from application settings is used.
+     *
+     * @return the effective sort order
+     */
+    private XsdSortOrder getEffectiveSortOrder() {
+        if (sortOrder != null) {
+            return sortOrder;
+        }
+
+        // Get from application settings
+        try {
+            PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+            String sortOrderStr = propertiesService.getXsdSortOrder();
+            return XsdSortOrder.valueOf(sortOrderStr);
+        } catch (Exception e) {
+            logger.warn("Could not get sort order from settings, using default NAME_BEFORE_TYPE: {}", e.getMessage());
+            return XsdSortOrder.NAME_BEFORE_TYPE;
+        }
+    }
+
+    /**
+     * Saves only the files that have been marked as dirty in the editor context.
+     * This enables incremental saves where only changed files are written.
+     *
+     * @param schema        the XSD schema to save
+     * @param editorContext the editor context containing dirty file tracking
+     * @param createBackups whether to create backups before overwriting
+     * @return map of file path to save result (only for files that were actually saved)
+     */
+    public Map<Path, SaveResult> saveChangedFilesOnly(XsdSchema schema, XsdEditorContext editorContext,
+                                                       boolean createBackups) {
+        if (schema == null || editorContext == null) {
+            logger.warn("Cannot save: schema or context is null");
+            return Collections.emptyMap();
+        }
+
+        Set<Path> dirtyFiles = editorContext.getDirtyFiles();
+
+        if (dirtyFiles.isEmpty()) {
+            logger.info("No dirty files to save");
+            return Collections.emptyMap();
+        }
+
+        logger.info("Saving {} dirty files", dirtyFiles.size());
+
+        // Use the saveFiles method with the dirty files set
+        return saveFiles(schema, dirtyFiles, createBackups);
+    }
+
+    /**
+     * Sorts the nodes for a specific file according to the current sort order.
+     * This method is used to sort nodes within each included file.
+     *
+     * @param nodes the nodes to sort
+     * @return sorted list of nodes
+     */
+    private List<XsdNode> sortNodesForFile(List<XsdNode> nodes) {
+        if (nodes == null || nodes.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return XsdNodeSorter.sortSchemaChildren(nodes, getEffectiveSortOrder());
     }
 }

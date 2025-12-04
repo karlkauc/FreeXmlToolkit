@@ -5,9 +5,7 @@
 * xslt developer - help dialog alert anpassen
 * xslt developer - button open xslt stylesheet 
 * xslt developer - Parameter default leer
-* xslt developer - parameter auf grid view umstellen & editierbar machen
-* im xslt viewer hat der reload button keinen keyboard shortcut
-* xslt viewer - directory reload bei neu öffnen ??
-* xslt viewer - chache bei änderungen invalidieren ??
-* settings: sortieren bei xsd abspeichern: name vor typ, oder type vor name
-* xml editor grid - copy xpath
+* im xslt viewer hat der reload button keinen keyboard shortcut - falsche implementierung
+* XML Editor - Recent mit aufnehmen
+* Schema Validator - ganzes verzeichnis auf einmal valdidieren & report
+* 
