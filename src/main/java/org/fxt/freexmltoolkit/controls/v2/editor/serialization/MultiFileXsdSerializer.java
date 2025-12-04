@@ -293,6 +293,9 @@ public class MultiFileXsdSerializer {
 
     /**
      * Serializes an included schema file with only its own nodes.
+     * <p>
+     * Note: xs:include/xs:import nodes that belong to this file (based on their source info)
+     * will be serialized. This supports nested includes where file B includes file C.
      */
     private String serializeIncludedSchema(XsdSchema mainSchema, List<XsdNode> nodes) {
         StringBuilder sb = new StringBuilder();
@@ -306,12 +309,10 @@ public class MultiFileXsdSerializer {
         // Sort nodes according to settings
         List<XsdNode> sortedNodes = sortNodesForFile(nodes);
 
-        // Serialize only the nodes that belong to this included file (sorted)
+        // Serialize nodes that belong to this included file (sorted)
+        // xs:include/xs:import nodes are included if they are part of the 'nodes' list,
+        // which means they belong to this file based on source info tracking
         for (XsdNode node : sortedNodes) {
-            // Skip xs:include/xs:import nodes in included files
-            if (node instanceof XsdInclude || node instanceof XsdImport) {
-                continue;
-            }
             serializeXsdNode(node, sb, 1);
         }
 
