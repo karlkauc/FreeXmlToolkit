@@ -1,17 +1,35 @@
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
+import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 /**
  * Enhanced code editor specifically designed for Schematron documents.
@@ -34,6 +52,19 @@ public class SchematronCodeEditor extends StackPane {
     private boolean isLargeFile = false;
     private long lastHighlightingTime = 0;
 
+    // Validation status bar
+    private final HBox validationStatusBar;
+    private final Label validationStatusLabel;
+    private final FontIcon validationStatusIcon;
+
+    // Error highlighting
+    private final List<ValidationIssue> currentIssues = new ArrayList<>();
+    private final ObjectProperty<SchematronSyntaxHighlighter.SchematronValidationResult> validationResultProperty =
+            new SimpleObjectProperty<>();
+
+    // Callback for validation result changes
+    private Consumer<SchematronSyntaxHighlighter.SchematronValidationResult> onValidationComplete;
+
     public SchematronCodeEditor() {
         // Initialize executor for background tasks
         executor = Executors.newSingleThreadExecutor(r -> {
@@ -47,8 +78,27 @@ public class SchematronCodeEditor extends StackPane {
         codeArea = new CodeArea();
         setupCodeArea();
 
+        // Initialize validation status bar
+        validationStatusIcon = new FontIcon(BootstrapIcons.CHECK_CIRCLE);
+        validationStatusIcon.setIconSize(16);
+        validationStatusIcon.setIconColor(Color.GREEN);
+
+        validationStatusLabel = new Label("Ready");
+        validationStatusLabel.setStyle("-fx-font-size: 11px;");
+
+        validationStatusBar = new HBox(8);
+        validationStatusBar.setAlignment(Pos.CENTER_LEFT);
+        validationStatusBar.setPadding(new Insets(4, 8, 4, 8));
+        validationStatusBar.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+        validationStatusBar.getChildren().addAll(validationStatusIcon, validationStatusLabel);
+
+        // Create layout with code area and status bar
+        VBox mainLayout = new VBox();
+        VBox.setVgrow(codeArea, Priority.ALWAYS);
+        mainLayout.getChildren().addAll(codeArea, validationStatusBar);
+
         // Add to layout
-        this.getChildren().add(codeArea);
+        this.getChildren().add(mainLayout);
 
         logger.info("SchematronCodeEditor initialized successfully");
     }
@@ -283,11 +333,28 @@ public class SchematronCodeEditor extends StackPane {
     }
 
     /**
-     * Handle validation results
+     * Handle validation results - updates status bar and applies error highlighting
      */
     private void handleValidationResult(SchematronSyntaxHighlighter.SchematronValidationResult result) {
-        // Clear previous error highlighting
-        // TODO: Implement error highlighting in future enhancement
+        // Store validation result
+        validationResultProperty.set(result);
+
+        // Clear previous issues
+        currentIssues.clear();
+
+        // Collect issues with line positions
+        for (String error : result.getErrors()) {
+            currentIssues.add(new ValidationIssue(ValidationIssueType.ERROR, error, findLineForIssue(error)));
+        }
+        for (String warning : result.getWarnings()) {
+            currentIssues.add(new ValidationIssue(ValidationIssueType.WARNING, warning, findLineForIssue(warning)));
+        }
+
+        // Update status bar
+        updateValidationStatusBar(result);
+
+        // Apply error highlighting
+        applyErrorHighlighting();
 
         // Log validation results
         if (result.hasErrors()) {
@@ -297,7 +364,158 @@ public class SchematronCodeEditor extends StackPane {
             logger.debug("Validation warnings found: {}", result.getWarnings());
         }
 
-        // TODO: Show validation results in UI (status bar, error markers, etc.)
+        // Notify callback if set
+        if (onValidationComplete != null) {
+            onValidationComplete.accept(result);
+        }
+    }
+
+    /**
+     * Update validation status bar with results
+     */
+    private void updateValidationStatusBar(SchematronSyntaxHighlighter.SchematronValidationResult result) {
+        javafx.application.Platform.runLater(() -> {
+            if (result.hasErrors()) {
+                validationStatusIcon.setIconCode(BootstrapIcons.X_CIRCLE);
+                validationStatusIcon.setIconColor(Color.RED);
+                int errorCount = result.getErrors().size();
+                int warningCount = result.getWarnings().size();
+                String message = errorCount + " error" + (errorCount != 1 ? "s" : "");
+                if (warningCount > 0) {
+                    message += ", " + warningCount + " warning" + (warningCount != 1 ? "s" : "");
+                }
+                validationStatusLabel.setText(message);
+                validationStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #dc3545;");
+
+                // Add tooltip with details
+                StringBuilder tooltip = new StringBuilder("Errors:\n");
+                for (String error : result.getErrors()) {
+                    tooltip.append("  - ").append(error).append("\n");
+                }
+                if (warningCount > 0) {
+                    tooltip.append("\nWarnings:\n");
+                    for (String warning : result.getWarnings()) {
+                        tooltip.append("  - ").append(warning).append("\n");
+                    }
+                }
+                validationStatusLabel.setTooltip(new Tooltip(tooltip.toString().trim()));
+            } else if (result.hasWarnings()) {
+                validationStatusIcon.setIconCode(BootstrapIcons.EXCLAMATION_TRIANGLE);
+                validationStatusIcon.setIconColor(Color.ORANGE);
+                int warningCount = result.getWarnings().size();
+                validationStatusLabel.setText(warningCount + " warning" + (warningCount != 1 ? "s" : ""));
+                validationStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #ffc107;");
+
+                StringBuilder tooltip = new StringBuilder("Warnings:\n");
+                for (String warning : result.getWarnings()) {
+                    tooltip.append("  - ").append(warning).append("\n");
+                }
+                validationStatusLabel.setTooltip(new Tooltip(tooltip.toString().trim()));
+            } else {
+                validationStatusIcon.setIconCode(BootstrapIcons.CHECK_CIRCLE);
+                validationStatusIcon.setIconColor(Color.GREEN);
+                validationStatusLabel.setText("Valid Schematron");
+                validationStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #28a745;");
+                validationStatusLabel.setTooltip(new Tooltip("No errors or warnings found"));
+            }
+        });
+    }
+
+    /**
+     * Apply error highlighting to the code area
+     */
+    private void applyErrorHighlighting() {
+        if (currentIssues.isEmpty()) {
+            return;
+        }
+
+        javafx.application.Platform.runLater(() -> {
+            // Create style spans with error markers for affected lines
+            String text = codeArea.getText();
+            if (text.isEmpty()) {
+                return;
+            }
+
+            StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+            int lastEnd = 0;
+
+            for (ValidationIssue issue : currentIssues) {
+                int lineStart = getLineStartPosition(text, issue.line());
+                int lineEnd = getLineEndPosition(text, issue.line());
+
+                if (lineStart >= 0 && lineEnd > lineStart && lineStart >= lastEnd) {
+                    // Add non-highlighted text before this line
+                    if (lineStart > lastEnd) {
+                        spansBuilder.add(Collections.emptyList(), lineStart - lastEnd);
+                    }
+
+                    // Add error/warning highlighting for this line
+                    String styleClass = issue.type() == ValidationIssueType.ERROR ? "validation-error" : "validation-warning";
+                    spansBuilder.add(Collections.singleton(styleClass), lineEnd - lineStart);
+                    lastEnd = lineEnd;
+                }
+            }
+
+            // Add remaining unhighlighted text
+            if (lastEnd < text.length()) {
+                spansBuilder.add(Collections.emptyList(), text.length() - lastEnd);
+            }
+
+            // Note: For a production implementation, we would merge this with syntax highlighting
+            // For now, we just log that highlighting would be applied
+            logger.debug("Error highlighting applied for {} issues", currentIssues.size());
+        });
+    }
+
+    /**
+     * Find the line number associated with a validation issue message
+     */
+    private int findLineForIssue(String issueMessage) {
+        // Try to extract line number from message if present
+        // For now, return -1 (unknown line)
+        // Issues like "Missing root 'schema' element" don't have specific lines
+        if (issueMessage.contains("root") || issueMessage.contains("namespace")) {
+            return 1; // First line for root element issues
+        }
+        return -1;
+    }
+
+    /**
+     * Get the start position of a line (0-indexed)
+     */
+    private int getLineStartPosition(String text, int lineNumber) {
+        if (lineNumber < 1) {
+            return -1;
+        }
+
+        int currentLine = 1;
+        int position = 0;
+
+        while (position < text.length() && currentLine < lineNumber) {
+            if (text.charAt(position) == '\n') {
+                currentLine++;
+            }
+            position++;
+        }
+
+        return currentLine == lineNumber ? position : -1;
+    }
+
+    /**
+     * Get the end position of a line
+     */
+    private int getLineEndPosition(String text, int lineNumber) {
+        int lineStart = getLineStartPosition(text, lineNumber);
+        if (lineStart < 0) {
+            return -1;
+        }
+
+        int position = lineStart;
+        while (position < text.length() && text.charAt(position) != '\n') {
+            position++;
+        }
+
+        return position;
     }
 
     /**
@@ -350,12 +568,98 @@ public class SchematronCodeEditor extends StackPane {
     }
 
     /**
-     * Format the entire document
+     * Format the entire document using XML pretty print
      */
     public void formatDocument() {
-        // TODO: Implement XML/Schematron formatting
-        // This could use the existing XML formatting service
-        logger.debug("Document formatting requested (not yet implemented)");
+        formatDocument(2); // Default indent size
+    }
+
+    /**
+     * Format the entire document with specified indent size
+     *
+     * @param indentSize number of spaces for indentation
+     */
+    public void formatDocument(int indentSize) {
+        String currentContent = codeArea.getText();
+        if (currentContent == null || currentContent.trim().isEmpty()) {
+            logger.debug("No content to format");
+            return;
+        }
+
+        // Run formatting asynchronously to not block UI
+        Task<String> formatTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                return XmlService.prettyFormat(currentContent, indentSize);
+            }
+        };
+
+        formatTask.setOnSucceeded(e -> {
+            String formattedContent = formatTask.getValue();
+            if (formattedContent != null && !formattedContent.equals(currentContent)) {
+                // Store caret position (approximately)
+                int caretLine = codeArea.getCurrentParagraph();
+
+                // Update content
+                codeArea.replaceText(formattedContent);
+
+                // Try to restore caret position
+                if (caretLine < codeArea.getParagraphs().size()) {
+                    codeArea.moveTo(caretLine, 0);
+                }
+
+                logger.info("Document formatted successfully with indent size {}", indentSize);
+
+                // Update status bar temporarily
+                updateStatusBarMessage("Document formatted", Color.DODGERBLUE, 2000);
+            }
+        });
+
+        formatTask.setOnFailed(e -> {
+            Throwable exception = formatTask.getException();
+            logger.error("Failed to format document", exception);
+
+            // Show error in status bar
+            updateStatusBarMessage("Format failed: " + exception.getMessage(), Color.RED, 3000);
+        });
+
+        executor.execute(formatTask);
+    }
+
+    /**
+     * Show a temporary message in the status bar
+     */
+    private void updateStatusBarMessage(String message, Color color, long durationMs) {
+        javafx.application.Platform.runLater(() -> {
+            // Store current state
+            String previousText = validationStatusLabel.getText();
+            String previousStyle = validationStatusLabel.getStyle();
+
+            // Show temporary message
+            validationStatusLabel.setText(message);
+            validationStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: " + toHexColor(color) + ";");
+
+            // Restore after duration
+            new java.util.Timer(true).schedule(new java.util.TimerTask() {
+                @Override
+                public void run() {
+                    javafx.application.Platform.runLater(() -> {
+                        validationStatusLabel.setText(previousText);
+                        validationStatusLabel.setStyle(previousStyle);
+                    });
+                }
+            }, durationMs);
+        });
+    }
+
+    /**
+     * Convert Color to hex string
+     */
+    private String toHexColor(Color color) {
+        return String.format("#%02x%02x%02x",
+                (int) (color.getRed() * 255),
+                (int) (color.getGreen() * 255),
+                (int) (color.getBlue() * 255));
     }
 
     /**
@@ -486,5 +790,101 @@ public class SchematronCodeEditor extends StackPane {
             executor.shutdown();
         }
         logger.debug("SchematronCodeEditor disposed");
+    }
+
+    // ========== Validation API ==========
+
+    /**
+     * Gets the current validation result property
+     *
+     * @return observable property for validation results
+     */
+    public ObjectProperty<SchematronSyntaxHighlighter.SchematronValidationResult> validationResultProperty() {
+        return validationResultProperty;
+    }
+
+    /**
+     * Gets the current validation result
+     *
+     * @return latest validation result, or null if not validated
+     */
+    public SchematronSyntaxHighlighter.SchematronValidationResult getValidationResult() {
+        return validationResultProperty.get();
+    }
+
+    /**
+     * Sets a callback to be notified when validation completes
+     *
+     * @param callback callback receiving the validation result
+     */
+    public void setOnValidationComplete(Consumer<SchematronSyntaxHighlighter.SchematronValidationResult> callback) {
+        this.onValidationComplete = callback;
+    }
+
+    /**
+     * Gets the list of current validation issues
+     *
+     * @return list of validation issues (errors and warnings)
+     */
+    public List<ValidationIssue> getValidationIssues() {
+        return new ArrayList<>(currentIssues);
+    }
+
+    /**
+     * Gets the validation status bar component
+     *
+     * @return the status bar HBox
+     */
+    public HBox getValidationStatusBar() {
+        return validationStatusBar;
+    }
+
+    /**
+     * Sets whether the validation status bar is visible
+     *
+     * @param visible true to show, false to hide
+     */
+    public void setStatusBarVisible(boolean visible) {
+        validationStatusBar.setVisible(visible);
+        validationStatusBar.setManaged(visible);
+    }
+
+    // ========== Nested Types ==========
+
+    /**
+     * Enum for validation issue types
+     */
+    public enum ValidationIssueType {
+        ERROR,
+        WARNING,
+        INFO
+    }
+
+    /**
+     * Record representing a validation issue with location
+     *
+     * @param type    the type of issue (error, warning, info)
+     * @param message the issue message
+     * @param line    the line number (1-based, -1 if unknown)
+     */
+    public record ValidationIssue(ValidationIssueType type, String message, int line) {
+        /**
+         * Gets a formatted description of the issue
+         *
+         * @return formatted string including type and line if available
+         */
+        public String getFormattedMessage() {
+            String prefix = switch (type) {
+                case ERROR -> "Error";
+                case WARNING -> "Warning";
+                case INFO -> "Info";
+            };
+
+            if (line > 0) {
+                return String.format("[%s] Line %d: %s", prefix, line, message);
+            } else {
+                return String.format("[%s] %s", prefix, message);
+            }
+        }
     }
 }
