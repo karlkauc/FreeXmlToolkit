@@ -12,6 +12,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.tabs.AbstractTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.ComplexTypeEditorTab;
+import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SchemaStatisticsTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypesListTab;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
@@ -42,6 +43,7 @@ public class TypeEditorTabManager {
     private final TabPane tabPane;
     private final XsdSchema mainSchema;
     private final Map<String, AbstractTypeEditorTab> openTypeTabs;
+    private SchemaStatisticsTab statisticsTab;
 
     /**
      * Creates a new TypeEditorTabManager.
@@ -236,6 +238,45 @@ public class TypeEditorTabManager {
             openTypeTabs.put(tabId, tab);
             tabPane.getSelectionModel().select(tab);
         }
+    }
+
+    /**
+     * Opens the schema statistics tab.
+     * Only one instance of this tab can be open (singleton).
+     */
+    public void openSchemaStatisticsTab() {
+        if (statisticsTab != null && tabPane.getTabs().contains(statisticsTab)) {
+            // Tab already open, just select it
+            tabPane.getSelectionModel().select(statisticsTab);
+            logger.debug("Statistics tab already open, selecting it");
+        } else {
+            // Performance tracking
+            long startTime = System.currentTimeMillis();
+
+            // Create new statistics tab
+            statisticsTab = new SchemaStatisticsTab(mainSchema);
+
+            // Set close handler
+            statisticsTab.setOnClosed(e -> {
+                statisticsTab = null;
+                logger.debug("Statistics tab closed");
+            });
+
+            tabPane.getTabs().add(statisticsTab);
+            tabPane.getSelectionModel().select(statisticsTab);
+
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info("Opened Schema Statistics tab in {}ms", duration);
+        }
+    }
+
+    /**
+     * Gets the schema statistics tab if it's open.
+     *
+     * @return the statistics tab, or null if not open
+     */
+    public SchemaStatisticsTab getSchemaStatisticsTab() {
+        return statisticsTab;
     }
 
     /**

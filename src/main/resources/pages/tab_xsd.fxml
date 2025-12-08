@@ -170,6 +170,18 @@
 
         <Region HBox.hgrow="ALWAYS"/>
 
+        <!-- Statistics -->
+        <Button fx:id="toolbarStatistics" text="Statistics" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarStatistics">
+            <graphic>
+                <FontIcon iconLiteral="bi-bar-chart" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Show Schema Statistics"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
         <!-- Help -->
         <Button fx:id="toolbarHelp" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarHelp">
             <graphic>

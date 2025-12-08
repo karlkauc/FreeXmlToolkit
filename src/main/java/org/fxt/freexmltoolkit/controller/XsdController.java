@@ -191,6 +191,8 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private MenuButton toolbarRecentFiles;
     @FXML
+    private Button toolbarStatistics;
+    @FXML
     private Button toolbarHelp;
 
 
@@ -4167,6 +4169,38 @@ public class XsdController implements FavoritesParentController {
     public void handleToolbarShowFavorites() {
         logger.info("Toolbar: Show Favorites clicked");
         handleShowFavorites();
+    }
+
+    @FXML
+    public void handleToolbarStatistics() {
+        logger.info("Toolbar: Statistics clicked");
+        openSchemaStatistics();
+    }
+
+    /**
+     * Opens the schema statistics tab.
+     * Shows comprehensive statistics about the currently loaded XSD schema.
+     */
+    public void openSchemaStatistics() {
+        if (typeEditorTabManager == null) {
+            logger.error("Type Editor not initialized - cannot open statistics");
+            showError("No Schema Loaded", "Please load an XSD schema first to view statistics.");
+            return;
+        }
+
+        try {
+            typeEditorTabManager.openSchemaStatisticsTab();
+
+            // Switch to Type Editor tab
+            if (tabPane != null && typeEditorTab != null) {
+                tabPane.getSelectionModel().select(typeEditorTab);
+            }
+
+            logger.info("Schema Statistics tab opened");
+        } catch (Exception e) {
+            logger.error("Failed to open schema statistics", e);
+            showError("Error", "Failed to open schema statistics: " + e.getMessage());
+        }
     }
 
     @FXML
