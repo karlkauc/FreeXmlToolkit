@@ -691,3 +691,4 @@ Platform.runLater(() -> {
 - überprüfe die ikonli bootstrap icons unter https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 stelle sicher, dass das icon auch exisistiert bevor du es verwendest.
 - alle texte welche dem user angezeigt werden (fehlermeldunge, etc.) sollen auf englisch sein
+- alle @FXML methoden in den controllern müssen public sein. das module system verhindert sonst in den jlink/jpackage release den zugriff auf die methoden.
