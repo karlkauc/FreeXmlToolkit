@@ -1,0 +1,570 @@
+package org.fxt.freexmltoolkit.controls.v2.editor.views;
+
+import javafx.application.Platform;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
+import org.kordamp.ikonli.javafx.FontIcon;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * View displaying XSD schema quality analysis results.
+ * Shows quality score, naming convention distribution, and issues with filtering.
+ *
+ * @since 2.0
+ */
+public class QualityChecksView extends BorderPane {
+
+    private static final Logger logger = LogManager.getLogger(QualityChecksView.class);
+
+    private final XsdSchema schema;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "QualityChecksView-Worker");
+        t.setDaemon(true);
+        return t;
+    });
+
+    private QualityResult currentResult;
+
+    // UI Components - Header
+    private Label scoreLabel;
+    private Label scoreDescriptionLabel;
+    private Circle scoreCircle;
+
+    // UI Components - Filters
+    private ComboBox<String> categoryFilter;
+    private ComboBox<String> severityFilter;
+
+    // UI Components - Score Panel
+    private VBox namingDistributionBox;
+
+    // UI Components - Issues
+    private TableView<QualityIssue> issuesTable;
+    private ObservableList<QualityIssue> allIssues;
+    private FilteredList<QualityIssue> filteredIssues;
+    private TextArea detailsArea;
+
+    // UI Components - Loading
+    private ProgressIndicator loadingIndicator;
+
+    /**
+     * Creates a new quality checks view.
+     *
+     * @param schema the XSD schema to analyze
+     */
+    public QualityChecksView(XsdSchema schema) {
+        this.schema = schema;
+        initializeUI();
+        refresh();
+    }
+
+    /**
+     * Initializes the UI.
+     */
+    private void initializeUI() {
+        setPadding(new Insets(10));
+
+        // Top: Toolbar with filters
+        VBox topBox = new VBox(5);
+        topBox.getChildren().addAll(createToolbar(), createFilterBar());
+        setTop(topBox);
+
+        // Main content
+        SplitPane mainSplit = new SplitPane();
+        mainSplit.setDividerPositions(0.3);
+
+        // Left: Score panel
+        VBox scorePanel = createScorePanel();
+        scorePanel.setMinWidth(200);
+        scorePanel.setMaxWidth(300);
+
+        // Right: Issues split pane
+        SplitPane issuesSplit = new SplitPane();
+        issuesSplit.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        issuesSplit.setDividerPositions(0.65);
+
+        VBox issuesBox = createIssuesTable();
+        VBox detailsBox = createDetailsPanel();
+
+        issuesSplit.getItems().addAll(issuesBox, detailsBox);
+
+        mainSplit.getItems().addAll(scorePanel, issuesSplit);
+
+        // Stack pane for loading overlay
+        loadingIndicator = new ProgressIndicator();
+        loadingIndicator.setMaxSize(50, 50);
+        loadingIndicator.setVisible(false);
+
+        StackPane stackPane = new StackPane(mainSplit, loadingIndicator);
+        setCenter(stackPane);
+    }
+
+    /**
+     * Creates the toolbar.
+     */
+    private ToolBar createToolbar() {
+        Label titleLabel = new Label("Quality Analysis");
+        titleLabel.setStyle("-fx-font-size: 14pt; -fx-font-weight: bold;");
+        FontIcon titleIcon = new FontIcon(BootstrapIcons.AWARD);
+        titleIcon.setIconSize(18);
+        titleLabel.setGraphic(titleIcon);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        scoreLabel = new Label("--");
+        scoreLabel.setStyle("-fx-font-size: 14pt; -fx-font-weight: bold;");
+
+        scoreDescriptionLabel = new Label("");
+        scoreDescriptionLabel.setStyle("-fx-text-fill: #666666;");
+
+        Button refreshBtn = new Button("Refresh");
+        refreshBtn.setGraphic(new FontIcon(BootstrapIcons.ARROW_CLOCKWISE));
+        refreshBtn.setOnAction(e -> refresh());
+
+        return new ToolBar(titleLabel, spacer, scoreLabel, scoreDescriptionLabel, refreshBtn);
+    }
+
+    /**
+     * Creates the filter bar.
+     */
+    private HBox createFilterBar() {
+        Label filterLabel = new Label("Filter:");
+        filterLabel.setStyle("-fx-font-weight: bold;");
+
+        // Category filter
+        categoryFilter = new ComboBox<>();
+        categoryFilter.getItems().addAll("All Categories", "Naming Convention", "Best Practice", "Deprecated");
+        categoryFilter.setValue("All Categories");
+        categoryFilter.setOnAction(e -> applyFilters());
+
+        // Severity filter
+        severityFilter = new ComboBox<>();
+        severityFilter.getItems().addAll("All Severities", "Error", "Warning", "Info", "Suggestion");
+        severityFilter.setValue("All Severities");
+        severityFilter.setOnAction(e -> applyFilters());
+
+        HBox filterBar = new HBox(10, filterLabel, categoryFilter, severityFilter);
+        filterBar.setAlignment(Pos.CENTER_LEFT);
+        filterBar.setPadding(new Insets(5, 0, 5, 0));
+
+        return filterBar;
+    }
+
+    /**
+     * Creates the score panel with score display and naming distribution.
+     */
+    private VBox createScorePanel() {
+        VBox panel = new VBox(15);
+        panel.setPadding(new Insets(10));
+        panel.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 5;");
+
+        // Score circle
+        StackPane scorePane = createScoreDisplay();
+
+        // Naming distribution section
+        Label namingLabel = new Label("Naming Conventions");
+        namingLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12pt;");
+
+        namingDistributionBox = new VBox(5);
+        namingDistributionBox.setPadding(new Insets(5));
+
+        // Summary section
+        Label summaryLabel = new Label("Summary");
+        summaryLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12pt;");
+
+        panel.getChildren().addAll(scorePane, new Separator(), namingLabel, namingDistributionBox, new Separator(), summaryLabel);
+
+        return panel;
+    }
+
+    /**
+     * Creates the score display circle.
+     */
+    private StackPane createScoreDisplay() {
+        scoreCircle = new Circle(50);
+        scoreCircle.setFill(Color.LIGHTGRAY);
+        scoreCircle.setStroke(Color.GRAY);
+        scoreCircle.setStrokeWidth(3);
+
+        Text scoreText = new Text("--");
+        scoreText.setFont(Font.font("System", FontWeight.BOLD, 28));
+        scoreText.setFill(Color.WHITE);
+
+        // Bind score text to scoreLabel
+        scoreLabel.textProperty().addListener((obs, oldVal, newVal) -> {
+            String numericPart = newVal.replaceAll("[^0-9]", "");
+            scoreText.setText(numericPart.isEmpty() ? "--" : numericPart);
+        });
+
+        StackPane scorePane = new StackPane(scoreCircle, scoreText);
+        scorePane.setPadding(new Insets(10));
+
+        return scorePane;
+    }
+
+    /**
+     * Creates the issues table.
+     */
+    private VBox createIssuesTable() {
+        allIssues = FXCollections.observableArrayList();
+        filteredIssues = new FilteredList<>(allIssues, p -> true);
+
+        issuesTable = new TableView<>(filteredIssues);
+        issuesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        issuesTable.setPlaceholder(new Label("No quality issues found"));
+
+        // Severity column with icon
+        TableColumn<QualityIssue, String> severityCol = new TableColumn<>("Severity");
+        severityCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().severity().name()));
+        severityCol.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    IssueSeverity severity = IssueSeverity.valueOf(item);
+                    FontIcon icon = getSeverityIcon(severity);
+                    setGraphic(icon);
+                    setText(getSeverityText(severity));
+                }
+            }
+        });
+        severityCol.setPrefWidth(90);
+
+        // Category column with icon
+        TableColumn<QualityIssue, String> categoryCol = new TableColumn<>("Category");
+        categoryCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().category().name()));
+        categoryCol.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    IssueCategory category = IssueCategory.valueOf(item);
+                    FontIcon icon = getCategoryIcon(category);
+                    setGraphic(icon);
+                    setText(getCategoryText(category));
+                }
+            }
+        });
+        categoryCol.setPrefWidth(120);
+
+        // Message column
+        TableColumn<QualityIssue, String> messageCol = new TableColumn<>("Message");
+        messageCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().message()));
+        messageCol.setPrefWidth(300);
+
+        // Affected count column
+        TableColumn<QualityIssue, Integer> affectedCol = new TableColumn<>("Affected");
+        affectedCol.setCellValueFactory(data ->
+                new SimpleIntegerProperty(data.getValue().affectedElements().size()).asObject());
+        affectedCol.setPrefWidth(70);
+
+        issuesTable.getColumns().addAll(severityCol, categoryCol, messageCol, affectedCol);
+
+        // Selection listener
+        issuesTable.getSelectionModel().selectedItemProperty().addListener(
+                (obs, oldVal, newVal) -> showDetails(newVal));
+
+        VBox box = new VBox(issuesTable);
+        VBox.setVgrow(issuesTable, Priority.ALWAYS);
+        return box;
+    }
+
+    /**
+     * Creates the details panel.
+     */
+    private VBox createDetailsPanel() {
+        Label detailsLabel = new Label("Details");
+        detailsLabel.setStyle("-fx-font-weight: bold;");
+
+        detailsArea = new TextArea();
+        detailsArea.setEditable(false);
+        detailsArea.setWrapText(true);
+        detailsArea.setStyle("-fx-font-family: monospace;");
+        VBox.setVgrow(detailsArea, Priority.ALWAYS);
+
+        VBox box = new VBox(5, detailsLabel, detailsArea);
+        box.setPadding(new Insets(5));
+        return box;
+    }
+
+    /**
+     * Gets the severity icon.
+     */
+    private FontIcon getSeverityIcon(IssueSeverity severity) {
+        FontIcon icon = new FontIcon();
+        icon.setIconSize(14);
+
+        switch (severity) {
+            case ERROR -> {
+                icon.setIconLiteral("bi-x-circle-fill");
+                icon.setIconColor(Color.RED);
+            }
+            case WARNING -> {
+                icon.setIconLiteral("bi-exclamation-triangle-fill");
+                icon.setIconColor(Color.ORANGE);
+            }
+            case INFO -> {
+                icon.setIconLiteral("bi-info-circle-fill");
+                icon.setIconColor(Color.DODGERBLUE);
+            }
+            case SUGGESTION -> {
+                icon.setIconLiteral("bi-lightbulb-fill");
+                icon.setIconColor(Color.GOLD);
+            }
+        }
+
+        return icon;
+    }
+
+    /**
+     * Gets severity display text.
+     */
+    private String getSeverityText(IssueSeverity severity) {
+        return switch (severity) {
+            case ERROR -> "Error";
+            case WARNING -> "Warning";
+            case INFO -> "Info";
+            case SUGGESTION -> "Suggestion";
+        };
+    }
+
+    /**
+     * Gets the category icon.
+     */
+    private FontIcon getCategoryIcon(IssueCategory category) {
+        FontIcon icon = new FontIcon();
+        icon.setIconSize(14);
+
+        switch (category) {
+            case NAMING_CONVENTION -> {
+                icon.setIconLiteral("bi-type");
+                icon.setIconColor(Color.PURPLE);
+            }
+            case BEST_PRACTICE -> {
+                icon.setIconLiteral("bi-check2-square");
+                icon.setIconColor(Color.GREEN);
+            }
+            case DEPRECATED -> {
+                icon.setIconLiteral("bi-calendar-x");
+                icon.setIconColor(Color.GRAY);
+            }
+        }
+
+        return icon;
+    }
+
+    /**
+     * Gets category display text.
+     */
+    private String getCategoryText(IssueCategory category) {
+        return switch (category) {
+            case NAMING_CONVENTION -> "Naming";
+            case BEST_PRACTICE -> "Best Practice";
+            case DEPRECATED -> "Deprecated";
+        };
+    }
+
+    /**
+     * Applies the current filters to the issues list.
+     */
+    private void applyFilters() {
+        String categoryValue = categoryFilter.getValue();
+        String severityValue = severityFilter.getValue();
+
+        filteredIssues.setPredicate(issue -> {
+            boolean categoryMatch = "All Categories".equals(categoryValue) ||
+                    getCategoryText(issue.category()).equals(categoryValue.replace(" Convention", ""));
+
+            boolean severityMatch = "All Severities".equals(severityValue) ||
+                    getSeverityText(issue.severity()).equals(severityValue);
+
+            return categoryMatch && severityMatch;
+        });
+    }
+
+    /**
+     * Shows details for the selected issue.
+     */
+    private void showDetails(QualityIssue issue) {
+        if (issue == null) {
+            detailsArea.clear();
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Category: ").append(getCategoryText(issue.category())).append("\n");
+        sb.append("Severity: ").append(getSeverityText(issue.severity())).append("\n");
+        sb.append("\n");
+        sb.append("Message:\n");
+        sb.append("  ").append(issue.message()).append("\n");
+
+        if (issue.suggestion() != null && !issue.suggestion().isBlank()) {
+            sb.append("\nSuggestion:\n");
+            sb.append("  ").append(issue.suggestion()).append("\n");
+        }
+
+        if (!issue.affectedElements().isEmpty()) {
+            sb.append("\nAffected Elements (").append(issue.affectedElements().size()).append("):\n");
+            for (String element : issue.affectedElements()) {
+                sb.append("  - ").append(element).append("\n");
+            }
+        }
+
+        detailsArea.setText(sb.toString());
+    }
+
+    /**
+     * Refreshes the quality analysis.
+     */
+    public void refresh() {
+        logger.debug("Refreshing quality checks view");
+        loadingIndicator.setVisible(true);
+
+        executor.submit(() -> {
+            try {
+                XsdQualityChecker checker = new XsdQualityChecker(schema);
+                QualityResult result = checker.check();
+
+                Platform.runLater(() -> {
+                    currentResult = result;
+                    updateUI(result);
+                    loadingIndicator.setVisible(false);
+                });
+            } catch (Exception e) {
+                logger.error("Failed to run quality checks", e);
+                Platform.runLater(() -> {
+                    loadingIndicator.setVisible(false);
+                    scoreLabel.setText("Error");
+                    scoreDescriptionLabel.setText(e.getMessage());
+                });
+            }
+        });
+    }
+
+    /**
+     * Updates the UI with the quality result.
+     */
+    private void updateUI(QualityResult result) {
+        // Update score display
+        int score = result.score();
+        scoreLabel.setText(score + "/100");
+        scoreDescriptionLabel.setText(result.getScoreDescription());
+
+        // Update score circle color
+        Color scoreColor = getScoreColor(score);
+        scoreCircle.setFill(scoreColor);
+        scoreCircle.setStroke(scoreColor.darker());
+
+        // Update naming distribution
+        updateNamingDistribution(result);
+
+        // Update issues table
+        allIssues.clear();
+        allIssues.addAll(result.issues());
+
+        // Clear details
+        detailsArea.clear();
+    }
+
+    /**
+     * Gets the color for a score value.
+     */
+    private Color getScoreColor(int score) {
+        if (score >= 90) return Color.web("#28a745"); // Green - Excellent
+        if (score >= 75) return Color.web("#17a2b8"); // Blue - Good
+        if (score >= 60) return Color.web("#ffc107"); // Yellow - Fair
+        if (score >= 40) return Color.web("#fd7e14"); // Orange - Needs Improvement
+        return Color.web("#dc3545"); // Red - Poor
+    }
+
+    /**
+     * Updates the naming distribution display.
+     */
+    private void updateNamingDistribution(QualityResult result) {
+        namingDistributionBox.getChildren().clear();
+
+        NamingConvention dominant = result.dominantNamingConvention();
+
+        for (NamingConvention convention : NamingConvention.values()) {
+            int count = result.namingDistribution().getOrDefault(convention, 0);
+            if (count > 0 || convention == dominant) {
+                HBox row = createNamingRow(convention, count, convention == dominant);
+                namingDistributionBox.getChildren().add(row);
+            }
+        }
+
+        // Add dominant info
+        if (dominant != NamingConvention.UNKNOWN) {
+            Label dominantLabel = new Label("Dominant: " + dominant.getDisplayName());
+            dominantLabel.setStyle("-fx-font-style: italic; -fx-text-fill: #666666;");
+            namingDistributionBox.getChildren().add(dominantLabel);
+        }
+    }
+
+    /**
+     * Creates a row for naming convention display.
+     */
+    private HBox createNamingRow(NamingConvention convention, int count, boolean isDominant) {
+        Label nameLabel = new Label(convention.getDisplayName());
+        if (isDominant) {
+            nameLabel.setStyle("-fx-font-weight: bold;");
+        }
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label countLabel = new Label(String.valueOf(count));
+        countLabel.setStyle("-fx-font-family: monospace;");
+
+        HBox row = new HBox(5, nameLabel, spacer, countLabel);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        if (isDominant) {
+            row.setStyle("-fx-background-color: #e7f3ff; -fx-padding: 2 5 2 5; -fx-background-radius: 3;");
+        }
+
+        return row;
+    }
+
+    /**
+     * Gets the current quality result.
+     *
+     * @return the current result, or null if not yet analyzed
+     */
+    public QualityResult getCurrentResult() {
+        return currentResult;
+    }
+
+    /**
+     * Cleanup resources.
+     */
+    public void dispose() {
+        executor.shutdown();
+    }
+}

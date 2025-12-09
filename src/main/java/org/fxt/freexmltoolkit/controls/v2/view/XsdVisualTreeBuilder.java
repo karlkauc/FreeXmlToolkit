@@ -662,6 +662,26 @@ public class XsdVisualTreeBuilder {
             logger.warn("Referenced element '{}' not found in global element index (has {} elements). " +
                     "This may be because the element is defined in an imported schema that hasn't been loaded.",
                     elementName, globalElementIndex.size());
+
+            // Create a placeholder child node for unresolved external references
+            // This allows the user to see that there is a reference and expand the node
+            String namespacePrefix = ref.contains(":") ? ref.substring(0, ref.indexOf(":")) : null;
+            String placeholderLabel = namespacePrefix != null
+                    ? "External: " + ref + " (from " + namespacePrefix + " namespace)"
+                    : "External: " + ref + " (unresolved)";
+
+            VisualNode placeholderNode = new VisualNode(
+                    placeholderLabel,
+                    "Referenced element not loaded",
+                    NodeWrapperType.ELEMENT,
+                    referencingElement,  // Use the referencing element as the model
+                    parentNode,
+                    1, 1,
+                    onModelChangeCallback
+            );
+            parentNode.addChild(placeholderNode);
+            logger.info("Created placeholder for unresolved reference '{}', parentNode '{}' now has {} children",
+                    ref, parentNode.getLabel(), parentNode.getChildren().size());
         }
     }
 
