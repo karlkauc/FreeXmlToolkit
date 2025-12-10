@@ -9,10 +9,11 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
+import javafx.scene.shape.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -54,6 +55,10 @@ public class QualityChecksView extends BorderPane {
     private Label scoreLabel;
     private Label scoreDescriptionLabel;
     private Circle scoreCircle;
+
+    // UI Components - Progress Ring
+    private Arc progressArc;
+    private Text scoreText;
 
     // UI Components - Filters
     private ComboBox<String> categoryFilter;
@@ -224,15 +229,18 @@ public class QualityChecksView extends BorderPane {
     }
 
     /**
-     * Creates the score panel with score display and naming distribution.
+     * Creates the score panel with score display, legend, and naming distribution.
      */
     private VBox createScorePanel() {
-        VBox panel = new VBox(15);
+        VBox panel = new VBox(10);
         panel.setPadding(new Insets(10));
         panel.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 5;");
 
-        // Score circle
+        // Score ring
         StackPane scorePane = createScoreDisplay();
+
+        // Color legend
+        HBox legend = createColorLegend();
 
         // Naming distribution section
         Label namingLabel = new Label("Naming Conventions");
@@ -245,34 +253,103 @@ public class QualityChecksView extends BorderPane {
         Label summaryLabel = new Label("Summary");
         summaryLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12pt;");
 
-        panel.getChildren().addAll(scorePane, new Separator(), namingLabel, namingDistributionBox, new Separator(), summaryLabel);
+        panel.getChildren().addAll(scorePane, legend, new Separator(), namingLabel, namingDistributionBox, new Separator(), summaryLabel);
 
         return panel;
     }
 
     /**
-     * Creates the score display circle.
+     * Creates the score display with a progress ring.
      */
     private StackPane createScoreDisplay() {
-        scoreCircle = new Circle(50);
-        scoreCircle.setFill(Color.LIGHTGRAY);
-        scoreCircle.setStroke(Color.GRAY);
-        scoreCircle.setStrokeWidth(3);
+        double radius = 55;
+        double strokeWidth = 12;
 
-        Text scoreText = new Text("--");
-        scoreText.setFont(Font.font("System", FontWeight.BOLD, 28));
-        scoreText.setFill(Color.WHITE);
+        // Background arc (full circle, light gray)
+        Arc backgroundArc = new Arc(0, 0, radius, radius, 0, 360);
+        backgroundArc.setType(ArcType.OPEN);
+        backgroundArc.setStroke(Color.web("#e9ecef"));
+        backgroundArc.setStrokeWidth(strokeWidth);
+        backgroundArc.setFill(Color.TRANSPARENT);
+        backgroundArc.setStrokeLineCap(StrokeLineCap.ROUND);
 
-        // Bind score text to scoreLabel
-        scoreLabel.textProperty().addListener((obs, oldVal, newVal) -> {
-            String numericPart = newVal.replaceAll("[^0-9]", "");
-            scoreText.setText(numericPart.isEmpty() ? "--" : numericPart);
-        });
+        // Progress arc (colored, percentage of circle)
+        progressArc = new Arc(0, 0, radius, radius, 90, 0); // Start at top (90 degrees)
+        progressArc.setType(ArcType.OPEN);
+        progressArc.setStroke(Color.LIGHTGRAY);
+        progressArc.setStrokeWidth(strokeWidth);
+        progressArc.setFill(Color.TRANSPARENT);
+        progressArc.setStrokeLineCap(StrokeLineCap.ROUND);
 
-        StackPane scorePane = new StackPane(scoreCircle, scoreText);
-        scorePane.setPadding(new Insets(10));
+        // Score text in center
+        scoreText = new Text("--");
+        scoreText.setFont(Font.font("System", FontWeight.BOLD, 36));
+        scoreText.setFill(Color.web("#495057"));
+
+        // Keep scoreCircle for backwards compatibility (hidden)
+        scoreCircle = new Circle(radius - strokeWidth / 2);
+        scoreCircle.setFill(Color.TRANSPARENT);
+        scoreCircle.setStroke(Color.TRANSPARENT);
+
+        Group arcGroup = new Group(backgroundArc, progressArc);
+        StackPane scorePane = new StackPane(arcGroup, scoreText);
+        scorePane.setPadding(new Insets(15));
+        scorePane.setMinSize(140, 140);
 
         return scorePane;
+    }
+
+    /**
+     * Creates the color legend showing score ranges.
+     */
+    private HBox createColorLegend() {
+        HBox legend = new HBox(6);
+        legend.setAlignment(Pos.CENTER);
+        legend.setPadding(new Insets(5, 0, 10, 0));
+
+        legend.getChildren().addAll(
+                createLegendItem(Color.web("#28a745"), "90+"),
+                createLegendItem(Color.web("#17a2b8"), "75+"),
+                createLegendItem(Color.web("#ffc107"), "60+"),
+                createLegendItem(Color.web("#fd7e14"), "40+"),
+                createLegendItem(Color.web("#dc3545"), "<40")
+        );
+
+        return legend;
+    }
+
+    /**
+     * Creates a single legend item with color box and label.
+     */
+    private HBox createLegendItem(Color color, String label) {
+        Rectangle rect = new Rectangle(10, 10, color);
+        rect.setArcWidth(2);
+        rect.setArcHeight(2);
+        Label text = new Label(label);
+        text.setStyle("-fx-font-size: 9px; -fx-text-fill: #6c757d;");
+        HBox item = new HBox(2, rect, text);
+        item.setAlignment(Pos.CENTER_LEFT);
+        return item;
+    }
+
+    /**
+     * Updates the progress ring with the given score.
+     */
+    private void updateProgressRing(int score) {
+        if (progressArc == null || scoreText == null) return;
+
+        // Calculate arc length: negative for clockwise from top
+        // -3.6 * score gives the arc length in degrees
+        double arcLength = -3.6 * score;
+        progressArc.setLength(arcLength);
+
+        // Update color based on score
+        Color color = getScoreColor(score);
+        progressArc.setStroke(color);
+
+        // Update text
+        scoreText.setText(String.valueOf(score));
+        scoreText.setFill(color.darker());
     }
 
     /**
@@ -583,10 +660,8 @@ public class QualityChecksView extends BorderPane {
         scoreLabel.setText(score + "/100");
         scoreDescriptionLabel.setText(result.getScoreDescription());
 
-        // Update score circle color
-        Color scoreColor = getScoreColor(score);
-        scoreCircle.setFill(scoreColor);
-        scoreCircle.setStroke(scoreColor.darker());
+        // Update progress ring
+        updateProgressRing(score);
 
         // Update naming distribution
         updateNamingDistribution(result);
