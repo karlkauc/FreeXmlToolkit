@@ -83,6 +83,10 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private Tab xsdTab;
     @FXML
+    private Tab schemaAnalysisTab;
+    @FXML
+    private StackPane schemaAnalysisStackPane;
+    @FXML
     private Label statusText;
 
     // schema flattening
@@ -161,6 +165,10 @@ public class XsdController implements FavoritesParentController {
     private boolean typeLibraryInitialized = false;
     private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema pendingTypeLibrarySchema = null;
 
+    // Schema Analysis
+    private boolean schemaAnalysisInitialized = false;
+    private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema pendingSchemaAnalysisSchema = null;
+
     // --- Toolbar buttons ---
     @FXML
     private Button toolbarNewFile;
@@ -190,8 +198,6 @@ public class XsdController implements FavoritesParentController {
     private Button toolbarShowFavorites;
     @FXML
     private MenuButton toolbarRecentFiles;
-    @FXML
-    private Button toolbarStatistics;
     @FXML
     private Button toolbarHelp;
 
@@ -390,6 +396,9 @@ public class XsdController implements FavoritesParentController {
 
         // Initialize type library (lazy loading on tab selection)
         initializeTypeLibrary();
+
+        // Initialize schema analysis (lazy loading on tab selection)
+        initializeSchemaAnalysis();
 
         xsdTab.setOnSelectionChanged(event -> {
             if (xsdTab.isSelected()) {
@@ -3471,6 +3480,36 @@ public class XsdController implements FavoritesParentController {
     }
 
     /**
+     * Initialize the schema analysis panel with lazy loading
+     */
+    private void initializeSchemaAnalysis() {
+        // Set up schema analysis tab selection handler with lazy initialization
+        if (schemaAnalysisTab != null) {
+            schemaAnalysisTab.setOnSelectionChanged(event -> {
+                if (schemaAnalysisTab.isSelected()) {
+                    logger.debug("Schema analysis tab selected");
+                    // Lazy initialization: Only create SchemaAnalysisTabPane when tab is first selected
+                    if (!schemaAnalysisInitialized && pendingSchemaAnalysisSchema != null) {
+                        logger.debug("Lazy initializing SchemaAnalysisTabPane on first tab selection");
+                        long startTime = System.currentTimeMillis();
+                        Platform.runLater(() -> {
+                            if (schemaAnalysisStackPane != null) {
+                                schemaAnalysisStackPane.getChildren().clear();
+                                org.fxt.freexmltoolkit.controls.v2.editor.views.SchemaAnalysisTabPane analysisPane =
+                                    new org.fxt.freexmltoolkit.controls.v2.editor.views.SchemaAnalysisTabPane(pendingSchemaAnalysisSchema);
+                                schemaAnalysisStackPane.getChildren().add(analysisPane);
+                                schemaAnalysisInitialized = true;
+                                long elapsed = System.currentTimeMillis() - startTime;
+                                logger.info("SchemaAnalysisTabPane lazily initialized in {}ms", elapsed);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    /**
      * Marks the current XSD as modified and updates UI accordingly.
      * This updates the unsaved changes flag, enables save buttons,
      * and updates the status text to inform the user.
@@ -3702,6 +3741,15 @@ public class XsdController implements FavoritesParentController {
                     typeLibraryStackPane.getChildren().clear();
                 }
                 logger.debug("Type Library reset - will reinitialize on next tab selection");
+
+                // Update pending schema for lazy Schema Analysis initialization
+                // Reset flag so SchemaAnalysisTabPane will be recreated on next tab selection
+                pendingSchemaAnalysisSchema = schema;
+                schemaAnalysisInitialized = false;
+                if (schemaAnalysisStackPane != null) {
+                    schemaAnalysisStackPane.getChildren().clear();
+                }
+                logger.debug("Schema Analysis reset - will reinitialize on next tab selection");
 
             } catch (Exception e) {
                 logger.error("Error updating Type Editor with schema", e);
@@ -4171,35 +4219,30 @@ public class XsdController implements FavoritesParentController {
         handleShowFavorites();
     }
 
-    @FXML
-    public void handleToolbarStatistics() {
-        logger.info("Toolbar: Statistics clicked");
-        openSchemaStatistics();
-    }
 
     /**
-     * Opens the schema statistics tab.
-     * Shows comprehensive statistics about the currently loaded XSD schema.
+     * Opens the schema analysis tab.
+     * Shows comprehensive statistics, constraints, validation and quality checks about the currently loaded XSD schema.
      */
     public void openSchemaStatistics() {
-        if (typeEditorTabManager == null) {
-            logger.error("Type Editor not initialized - cannot open statistics");
-            showError("No Schema Loaded", "Please load an XSD schema first to view statistics.");
+        if (pendingSchemaAnalysisSchema == null) {
+            logger.error("No schema loaded - cannot open schema analysis");
+            showError("No Schema Loaded", "Please load an XSD schema first to view analysis.");
             return;
         }
 
         try {
-            typeEditorTabManager.openSchemaStatisticsTab();
-
-            // Switch to Type Editor tab
-            if (tabPane != null && typeEditorTab != null) {
-                tabPane.getSelectionModel().select(typeEditorTab);
+            // Switch to Schema Analysis tab (will trigger lazy initialization)
+            if (tabPane != null && schemaAnalysisTab != null) {
+                tabPane.getSelectionModel().select(schemaAnalysisTab);
+                logger.info("Schema Analysis tab opened");
+            } else {
+                logger.error("Schema Analysis tab not initialized");
+                showError("Error", "Schema Analysis tab is not available.");
             }
-
-            logger.info("Schema Statistics tab opened");
         } catch (Exception e) {
-            logger.error("Failed to open schema statistics", e);
-            showError("Error", "Failed to open schema statistics: " + e.getMessage());
+            logger.error("Failed to open schema analysis", e);
+            showError("Error", "Failed to open schema analysis: " + e.getMessage());
         }
     }
 

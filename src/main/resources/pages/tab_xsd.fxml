@@ -166,21 +166,7 @@
             </tooltip>
         </MenuButton>
 
-        <Separator orientation="VERTICAL"/>
-
         <Region HBox.hgrow="ALWAYS"/>
-
-        <!-- Statistics -->
-        <Button fx:id="toolbarStatistics" text="Statistics" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarStatistics">
-            <graphic>
-                <FontIcon iconLiteral="bi-bar-chart" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Show Schema Statistics"/>
-            </tooltip>
-        </Button>
-
-        <Separator orientation="VERTICAL"/>
 
         <!-- Help -->
         <Button fx:id="toolbarHelp" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarHelp">
@@ -390,6 +376,28 @@
                     </SplitPane>
                 </center>
             </BorderPane>
+        </Tab>
+        <Tab fx:id="schemaAnalysisTab" text="Schema Analysis" styleClass="primary-tab" closable="false">
+            <tooltip>
+                <Tooltip text="Schema Analysis - Statistics, Constraints, Validation, Quality Checks"/>
+            </tooltip>
+            <graphic>
+                <FontIcon iconLiteral="bi-clipboard-data"/>
+            </graphic>
+            <content>
+                <StackPane fx:id="schemaAnalysisStackPane" style="-fx-background-color: #fafafa;">
+                    <!-- Schema analysis pane will be dynamically added here -->
+                    <VBox alignment="CENTER" spacing="20.0">
+                        <children>
+                            <FontIcon iconColor="#ced4da" iconLiteral="bi-clipboard-data" iconSize="64"/>
+                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                   text="No XSD file loaded"/>
+                            <Label style="-fx-text-fill: #6c757d;"
+                                   text="Load an XSD schema to view analysis and statistics."/>
+                        </children>
+                    </VBox>
+                </StackPane>
+            </content>
         </Tab>
         <Tab fx:id="documentation" text="Documentation" styleClass="output-tab" closable="false">
             <tooltip>
