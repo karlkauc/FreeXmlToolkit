@@ -103,6 +103,10 @@ public class SettingsController {
     @FXML
     TextField customTempFolder, httpProxyHost, httpProxyUser, noProxyHost;
 
+    // User Information Fields
+    @FXML
+    TextField userName, userEmail, userCompany;
+
     @FXML
     PasswordField httpProxyPass;
 
@@ -437,6 +441,11 @@ public class SettingsController {
             // Save toolbar icon size setting
             propertiesService.setUseSmallIcons(useSmallIcons.isSelected());
 
+            // Save user information settings
+            props.setProperty("user.name", userName.getText().trim());
+            props.setProperty("user.email", userEmail.getText().trim());
+            props.setProperty("user.company", userCompany.getText().trim());
+
             propertiesService.saveProperties(props);
 
             // Apply toolbar icon size changes immediately
@@ -596,6 +605,11 @@ public class SettingsController {
         // Load toolbar icon size setting
         boolean smallIcons = propertiesService.isUseSmallIcons();
         useSmallIcons.setSelected(smallIcons);
+
+        // Load user information settings
+        userName.setText(props.getProperty("user.name", ""));
+        userEmail.setText(props.getProperty("user.email", ""));
+        userCompany.setText(props.getProperty("user.company", ""));
     }
 
     // Favorites Management Methods

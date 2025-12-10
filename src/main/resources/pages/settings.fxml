@@ -320,6 +320,29 @@
                                 </GridPane>
                             </VBox>
 
+                            <!-- User Information Section -->
+                            <VBox spacing="12" style="-fx-background-color: #f5f0ff; -fx-background-radius: 4px; -fx-padding: 16px;">
+                                <Label text="User Information (optional)"
+                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                <Label text="This information is used for document metadata and signatures"
+                                       style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
+                                <GridPane hgap="12" vgap="10">
+                                    <Label text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="userName" promptText="Your name" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                                    <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="userEmail" promptText="your.email@example.com" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                                    <Label text="Company:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <TextField fx:id="userCompany" promptText="Your company" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+                            </VBox>
+
                             <!-- File & Folder Settings -->
                             <VBox spacing="12" style="-fx-background-color: #fff8dc; -fx-background-radius: 4px; -fx-padding: 16px;">
                                 <Label text="Temporary Folder Configuration"

@@ -105,6 +105,11 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("useSystemProxy", "true");
         properties.setProperty("ssl.trustAllCerts", "false");
 
+        // User information (optional)
+        properties.setProperty("user.name", "");
+        properties.setProperty("user.email", "");
+        properties.setProperty("user.company", "");
+
         try (FileOutputStream fos = new FileOutputStream(FREE_XML_TOOLKIT_PROPERTIES)) {
             properties.store(fos, null);
         } catch (IOException e) {
