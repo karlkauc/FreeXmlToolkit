@@ -31,7 +31,8 @@ public class XsdQualityChecker {
     public enum IssueCategory {
         NAMING_CONVENTION,
         BEST_PRACTICE,
-        DEPRECATED
+        DEPRECATED,
+        CONSTRAINT_CONFLICT
     }
 
     /**
@@ -74,14 +75,15 @@ public class XsdQualityChecker {
             String message,
             String suggestion,
             List<String> affectedElements,
-            XsdNode sourceNode
+            XsdNode sourceNode,
+            String xpath
     ) {
         /**
          * Creates a naming convention issue.
          */
         public static QualityIssue namingIssue(IssueSeverity severity, String message,
                                                String suggestion, List<String> affected) {
-            return new QualityIssue(IssueCategory.NAMING_CONVENTION, severity, message, suggestion, affected, null);
+            return new QualityIssue(IssueCategory.NAMING_CONVENTION, severity, message, suggestion, affected, null, null);
         }
 
         /**
@@ -89,7 +91,8 @@ public class XsdQualityChecker {
          */
         public static QualityIssue bestPracticeIssue(IssueSeverity severity, String message,
                                                      String suggestion, List<String> affected, XsdNode node) {
-            return new QualityIssue(IssueCategory.BEST_PRACTICE, severity, message, suggestion, affected, node);
+            String xpath = node != null ? node.getXPath() : null;
+            return new QualityIssue(IssueCategory.BEST_PRACTICE, severity, message, suggestion, affected, node, xpath);
         }
 
         /**
@@ -97,14 +100,25 @@ public class XsdQualityChecker {
          */
         public static QualityIssue deprecatedIssue(String elementName, String deprecationMessage,
                                                    String alternative, XsdNode node) {
+            String xpath = node != null ? node.getXPath() : null;
             return new QualityIssue(
                     IssueCategory.DEPRECATED,
                     IssueSeverity.WARNING,
                     elementName + " is deprecated" + (deprecationMessage != null ? ": " + deprecationMessage : ""),
                     alternative != null ? "Use " + alternative + " instead" : null,
                     List.of(elementName),
-                    node
+                    node,
+                    xpath
             );
+        }
+
+        /**
+         * Creates a constraint conflict issue.
+         */
+        public static QualityIssue constraintConflictIssue(IssueSeverity severity, String message,
+                                                           String suggestion, List<String> affected, XsdNode node) {
+            String xpath = node != null ? node.getXPath() : null;
+            return new QualityIssue(IssueCategory.CONSTRAINT_CONFLICT, severity, message, suggestion, affected, node, xpath);
         }
     }
 
@@ -242,6 +256,9 @@ public class XsdQualityChecker {
 
         // Best practice checks
         checkBestPractices(node, issues, depth);
+
+        // Check for length/enumeration conflicts
+        checkLengthEnumerationConflict(node, issues);
 
         // Recurse to children
         for (XsdNode child : node.getChildren()) {
@@ -431,6 +448,134 @@ public class XsdQualityChecker {
                 }
             }
         }
+    }
+
+    /**
+     * Checks for conflicts between length constraints and enumeration values.
+     * When a restriction has both length facets and enumerations, the length
+     * constraints become ineffective since enumerations take precedence in XSD validation.
+     */
+    private void checkLengthEnumerationConflict(XsdNode node, List<QualityIssue> issues) {
+        if (!(node instanceof XsdRestriction restriction)) {
+            return;
+        }
+
+        List<XsdFacet> facets = restriction.getFacets();
+
+        // Find length constraints
+        Integer minLength = null;
+        Integer maxLength = null;
+        Integer exactLength = null;
+        List<String> enumerations = new ArrayList<>();
+
+        for (XsdFacet facet : facets) {
+            if (facet.getFacetType() == null) continue;
+            switch (facet.getFacetType()) {
+                case MIN_LENGTH -> minLength = parseIntSafe(facet.getValue());
+                case MAX_LENGTH -> maxLength = parseIntSafe(facet.getValue());
+                case LENGTH -> exactLength = parseIntSafe(facet.getValue());
+                case ENUMERATION -> {
+                    if (facet.getValue() != null) {
+                        enumerations.add(facet.getValue());
+                    }
+                }
+                default -> { /* ignore other facet types */ }
+            }
+        }
+
+        // Only check if both length constraints and enumerations exist
+        if (enumerations.isEmpty()) return;
+        if (minLength == null && maxLength == null && exactLength == null) return;
+
+        // Find violations
+        List<String> tooShort = new ArrayList<>();
+        List<String> tooLong = new ArrayList<>();
+        List<String> wrongLength = new ArrayList<>();
+
+        for (String enumValue : enumerations) {
+            int len = enumValue.length();
+            if (exactLength != null && len != exactLength) {
+                wrongLength.add(enumValue + " (" + len + " chars, expected " + exactLength + ")");
+            }
+            if (minLength != null && len < minLength) {
+                tooShort.add(enumValue + " (" + len + " chars < minLength " + minLength + ")");
+            }
+            if (maxLength != null && len > maxLength) {
+                tooLong.add(enumValue + " (" + len + " chars > maxLength " + maxLength + ")");
+            }
+        }
+
+        // Report violations
+        String parentName = getParentTypeName(restriction);
+
+        if (!tooLong.isEmpty()) {
+            issues.add(QualityIssue.constraintConflictIssue(
+                    IssueSeverity.ERROR,
+                    "Enumeration values exceed maxLength=" + maxLength + " in " + parentName,
+                    "Either increase maxLength to " + findMaxEnumLength(enumerations) +
+                            " or remove the ineffective maxLength constraint",
+                    tooLong,
+                    restriction
+            ));
+        }
+
+        if (!tooShort.isEmpty()) {
+            issues.add(QualityIssue.constraintConflictIssue(
+                    IssueSeverity.ERROR,
+                    "Enumeration values shorter than minLength=" + minLength + " in " + parentName,
+                    "Either decrease minLength to " + findMinEnumLength(enumerations) +
+                            " or remove the ineffective minLength constraint",
+                    tooShort,
+                    restriction
+            ));
+        }
+
+        if (!wrongLength.isEmpty()) {
+            issues.add(QualityIssue.constraintConflictIssue(
+                    IssueSeverity.ERROR,
+                    "Enumeration values don't match length=" + exactLength + " in " + parentName,
+                    "Remove the ineffective length constraint",
+                    wrongLength,
+                    restriction
+            ));
+        }
+    }
+
+    /**
+     * Safely parses an integer value, returning null on failure.
+     */
+    private Integer parseIntSafe(String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Finds the maximum length among enumeration values.
+     */
+    private int findMaxEnumLength(List<String> enums) {
+        return enums.stream().mapToInt(String::length).max().orElse(0);
+    }
+
+    /**
+     * Finds the minimum length among enumeration values.
+     */
+    private int findMinEnumLength(List<String> enums) {
+        return enums.stream().mapToInt(String::length).min().orElse(0);
+    }
+
+    /**
+     * Gets the parent type name for error messages.
+     */
+    private String getParentTypeName(XsdRestriction restriction) {
+        XsdNode parent = restriction.getParent();
+        if (parent != null && parent.getName() != null && !parent.getName().isBlank()) {
+            return parent.getName();
+        }
+        return "unnamed type";
     }
 
     /**

@@ -485,6 +485,133 @@ public abstract class XsdNode {
         }
     }
 
+    /**
+     * Computes the XPath expression from the schema root to this node.
+     * The XPath uses the XSD node types (e.g., xs:element, xs:simpleType, xs:restriction).
+     *
+     * @return the XPath expression, e.g., "/xs:schema/xs:simpleType[@name='ListedType']/xs:restriction"
+     */
+    public String getXPath() {
+        StringBuilder path = new StringBuilder();
+        buildXPath(this, path);
+        return path.toString();
+    }
+
+    /**
+     * Recursively builds the XPath by traversing up to the root.
+     *
+     * @param node the current node
+     * @param path the StringBuilder to append to
+     */
+    private void buildXPath(XsdNode node, StringBuilder path) {
+        if (node == null) {
+            return;
+        }
+
+        // First build parent's path
+        if (node.getParent() != null) {
+            buildXPath(node.getParent(), path);
+        }
+
+        // Then append this node's path segment
+        path.append("/");
+        path.append(getXPathSegment(node));
+    }
+
+    /**
+     * Gets the XPath segment for a single node.
+     * Uses the XSD element name (e.g., xs:element, xs:complexType) and includes
+     * identifying attributes like @name where applicable.
+     *
+     * @param node the node
+     * @return the XPath segment, e.g., "xs:element[@name='FundsXML4']"
+     */
+    private String getXPathSegment(XsdNode node) {
+        String typeName = getXsdTypeName(node);
+        String nodeName = node.getName();
+
+        // For named types (element, complexType, simpleType, etc.), include @name attribute
+        if (nodeName != null && !nodeName.isBlank() && isNamedType(node)) {
+            return typeName + "[@name='" + nodeName + "']";
+        }
+
+        // For anonymous types or structural elements, just use the type name
+        return typeName;
+    }
+
+    /**
+     * Maps the XsdNodeType to the XSD element name used in XPath.
+     *
+     * @param node the node
+     * @return the XSD element name (e.g., "xs:element", "xs:complexType")
+     */
+    private String getXsdTypeName(XsdNode node) {
+        return switch (node.getNodeType()) {
+            case SCHEMA -> "xs:schema";
+            case ELEMENT -> "xs:element";
+            case COMPLEX_TYPE -> "xs:complexType";
+            case SIMPLE_TYPE -> "xs:simpleType";
+            case SEQUENCE -> "xs:sequence";
+            case CHOICE -> "xs:choice";
+            case ALL -> "xs:all";
+            case ATTRIBUTE -> "xs:attribute";
+            case ATTRIBUTE_GROUP -> "xs:attributeGroup";
+            case GROUP -> "xs:group";
+            case RESTRICTION -> "xs:restriction";
+            case EXTENSION -> "xs:extension";
+            case SIMPLE_CONTENT -> "xs:simpleContent";
+            case COMPLEX_CONTENT -> "xs:complexContent";
+            case ANNOTATION -> "xs:annotation";
+            case DOCUMENTATION -> "xs:documentation";
+            case APPINFO -> "xs:appinfo";
+            case FACET -> getFacetXsdName(node);
+            case ANY -> "xs:any";
+            case ANY_ATTRIBUTE -> "xs:anyAttribute";
+            case KEY -> "xs:key";
+            case KEYREF -> "xs:keyref";
+            case UNIQUE -> "xs:unique";
+            case SELECTOR -> "xs:selector";
+            case FIELD -> "xs:field";
+            case IMPORT -> "xs:import";
+            case INCLUDE -> "xs:include";
+            case REDEFINE -> "xs:redefine";
+            case OVERRIDE -> "xs:override";
+            case LIST -> "xs:list";
+            case UNION -> "xs:union";
+            case ASSERT -> "xs:assert";
+            case ALTERNATIVE -> "xs:alternative";
+            case OPEN_CONTENT -> "xs:openContent";
+            case COMMENT -> "xs:comment";
+        };
+    }
+
+    /**
+     * Gets the specific XSD name for a facet node based on its facet type.
+     *
+     * @param node the facet node
+     * @return the XSD element name (e.g., "xs:maxLength", "xs:enumeration")
+     */
+    private String getFacetXsdName(XsdNode node) {
+        if (node instanceof XsdFacet facet && facet.getFacetType() != null) {
+            return "xs:" + facet.getFacetType().getXmlName();
+        }
+        return "xs:facet";
+    }
+
+    /**
+     * Determines if a node type uses the @name attribute for identification.
+     *
+     * @param node the node
+     * @return true if this node type can have a @name attribute
+     */
+    private boolean isNamedType(XsdNode node) {
+        return switch (node.getNodeType()) {
+            case ELEMENT, COMPLEX_TYPE, SIMPLE_TYPE, ATTRIBUTE, ATTRIBUTE_GROUP,
+                 GROUP, KEY, KEYREF, UNIQUE -> true;
+            default -> false;
+        };
+    }
+
     @Override
     public String toString() {
         return getNodeType() + " '" + name + "'";

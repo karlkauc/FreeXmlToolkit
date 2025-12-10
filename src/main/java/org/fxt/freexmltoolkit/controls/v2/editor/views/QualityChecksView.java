@@ -15,14 +15,17 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.*;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityExporter;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,6 +47,7 @@ public class QualityChecksView extends BorderPane {
     });
 
     private QualityResult currentResult;
+    private final XsdQualityExporter exporter = new XsdQualityExporter();
 
     // UI Components - Header
     private Label scoreLabel;
@@ -119,7 +123,7 @@ public class QualityChecksView extends BorderPane {
     }
 
     /**
-     * Creates the toolbar.
+     * Creates the toolbar with refresh and export buttons.
      */
     private ToolBar createToolbar() {
         Label titleLabel = new Label("Quality Analysis");
@@ -141,7 +145,21 @@ public class QualityChecksView extends BorderPane {
         refreshBtn.setGraphic(new FontIcon(BootstrapIcons.ARROW_CLOCKWISE));
         refreshBtn.setOnAction(e -> refresh());
 
-        return new ToolBar(titleLabel, spacer, scoreLabel, scoreDescriptionLabel, refreshBtn);
+        // Export buttons
+        Button exportCsvBtn = new Button("CSV");
+        exportCsvBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_SPREADSHEET));
+        exportCsvBtn.setOnAction(e -> exportToCsv());
+
+        Button exportJsonBtn = new Button("JSON");
+        exportJsonBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_CODE));
+        exportJsonBtn.setOnAction(e -> exportToJson());
+
+        Button exportPdfBtn = new Button("PDF");
+        exportPdfBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_RICHTEXT));
+        exportPdfBtn.setOnAction(e -> exportToPdf());
+
+        return new ToolBar(titleLabel, spacer, scoreLabel, scoreDescriptionLabel,
+                refreshBtn, new Separator(), exportCsvBtn, exportJsonBtn, exportPdfBtn);
     }
 
     /**
@@ -153,7 +171,7 @@ public class QualityChecksView extends BorderPane {
 
         // Category filter
         categoryFilter = new ComboBox<>();
-        categoryFilter.getItems().addAll("All Categories", "Naming Convention", "Best Practice", "Deprecated");
+        categoryFilter.getItems().addAll("All Categories", "Naming Convention", "Best Practice", "Deprecated", "Constraint Conflict");
         categoryFilter.setValue("All Categories");
         categoryFilter.setOnAction(e -> applyFilters());
 
@@ -374,6 +392,10 @@ public class QualityChecksView extends BorderPane {
                 icon.setIconLiteral("bi-calendar-x");
                 icon.setIconColor(Color.GRAY);
             }
+            case CONSTRAINT_CONFLICT -> {
+                icon.setIconLiteral("bi-exclamation-diamond-fill");
+                icon.setIconColor(Color.CRIMSON);
+            }
         }
 
         return icon;
@@ -387,6 +409,7 @@ public class QualityChecksView extends BorderPane {
             case NAMING_CONVENTION -> "Naming";
             case BEST_PRACTICE -> "Best Practice";
             case DEPRECATED -> "Deprecated";
+            case CONSTRAINT_CONFLICT -> "Constraint Conflict";
         };
     }
 
@@ -420,6 +443,12 @@ public class QualityChecksView extends BorderPane {
         StringBuilder sb = new StringBuilder();
         sb.append("Category: ").append(getCategoryText(issue.category())).append("\n");
         sb.append("Severity: ").append(getSeverityText(issue.severity())).append("\n");
+
+        // Show XPath location if available
+        if (issue.xpath() != null && !issue.xpath().isBlank()) {
+            sb.append("Location: ").append(issue.xpath()).append("\n");
+        }
+
         sb.append("\n");
         sb.append("Message:\n");
         sb.append("  ").append(issue.message()).append("\n");
@@ -559,6 +588,129 @@ public class QualityChecksView extends BorderPane {
      */
     public QualityResult getCurrentResult() {
         return currentResult;
+    }
+
+    // ========== Export Methods ==========
+
+    /**
+     * Exports quality results to CSV.
+     */
+    private void exportToCsv() {
+        if (currentResult == null) {
+            showWarning("No quality results available. Please run the analysis first.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Quality Report to CSV");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        fileChooser.setInitialFileName("quality-report.csv");
+
+        File file = fileChooser.showSaveDialog(getScene().getWindow());
+        if (file != null) {
+            try {
+                exporter.exportToCsv(currentResult, file.toPath());
+                showInfo("Quality report exported to CSV: " + file.getName());
+            } catch (Exception e) {
+                logger.error("Failed to export CSV", e);
+                showError("Failed to export CSV: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Exports quality results to JSON.
+     */
+    private void exportToJson() {
+        if (currentResult == null) {
+            showWarning("No quality results available. Please run the analysis first.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Quality Report to JSON");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+        fileChooser.setInitialFileName("quality-report.json");
+
+        File file = fileChooser.showSaveDialog(getScene().getWindow());
+        if (file != null) {
+            try {
+                exporter.exportToJson(currentResult, file.toPath());
+                showInfo("Quality report exported to JSON: " + file.getName());
+            } catch (Exception e) {
+                logger.error("Failed to export JSON", e);
+                showError("Failed to export JSON: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Exports quality results to PDF.
+     */
+    private void exportToPdf() {
+        if (currentResult == null) {
+            showWarning("No quality results available. Please run the analysis first.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Quality Report to PDF");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        fileChooser.setInitialFileName("quality-report.pdf");
+
+        File file = fileChooser.showSaveDialog(getScene().getWindow());
+        if (file != null) {
+            // Run PDF generation in background
+            executor.submit(() -> {
+                try {
+                    exporter.exportToPdf(currentResult, file.toPath());
+                    Platform.runLater(() ->
+                            showInfo("Quality report exported to PDF: " + file.getName()));
+                } catch (Exception e) {
+                    logger.error("Failed to export PDF", e);
+                    Platform.runLater(() ->
+                            showError("Failed to export PDF: " + e.getMessage()));
+                }
+            });
+        }
+    }
+
+    // ========== Alert Helpers ==========
+
+    /**
+     * Shows an info alert.
+     */
+    private void showInfo(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Export Successful");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
+     * Shows a warning alert.
+     */
+    private void showWarning(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
+     * Shows an error alert.
+     */
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Export Failed");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     /**
