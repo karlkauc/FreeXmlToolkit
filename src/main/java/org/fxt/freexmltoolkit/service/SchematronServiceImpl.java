@@ -4,25 +4,16 @@ import net.sf.saxon.s9api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -173,32 +164,57 @@ public class SchematronServiceImpl implements SchematronService {
         return validationEvents;
     }
 
-    private void parseSvrlReport(Document svrlDocument, List<SchematronValidationError> validationEvents) throws Exception {
-        XPathFactory xPathFactory = XPathFactory.newInstance();
-        XPath xPath = xPathFactory.newXPath();
-        xPath.setNamespaceContext(new SimpleNamespaceContext("svrl", "http://purl.oclc.org/dsdl/svrl"));
+    private void parseSvrlReport(Document svrlDocument, List<SchematronValidationError> validationEvents) {
+        // Use Saxon XPath 3.1 via SaxonXPathHelper
+        List<XdmNode> failedAsserts = SaxonXPathHelper.evaluateNodes(
+                svrlDocument, "//svrl:failed-assert", SaxonXPathHelper.SVRL_NAMESPACES);
 
-        NodeList failedAsserts = (NodeList) xPath.evaluate("//svrl:failed-assert", svrlDocument, XPathConstants.NODESET);
-        for (int i = 0; i < failedAsserts.getLength(); i++) {
-            Element elem = (Element) failedAsserts.item(i);
-            NodeList textNodes = elem.getElementsByTagNameNS("http://purl.oclc.org/dsdl/svrl", "text");
-            String text = (textNodes.getLength() > 0) ? textNodes.item(0).getTextContent().trim() : "";
-            String role = elem.getAttribute("role");
+        for (XdmNode assertNode : failedAsserts) {
+            String text = getTextNodeContent(assertNode);
+            String role = SaxonXPathHelper.getAttributeValue(assertNode, "role");
+            String test = SaxonXPathHelper.getAttributeValue(assertNode, "test");
+            String location = SaxonXPathHelper.getAttributeValue(assertNode, "location");
+
             validationEvents.add(new SchematronValidationError(
-                    text, elem.getAttribute("test"), elem.getAttribute("location"), 0, 0,
+                    text, test, location, 0, 0,
                     role != null && !role.isEmpty() ? role : "error"));
         }
 
-        NodeList successfulReports = (NodeList) xPath.evaluate("//svrl:successful-report", svrlDocument, XPathConstants.NODESET);
-        for (int i = 0; i < successfulReports.getLength(); i++) {
-            Element elem = (Element) successfulReports.item(i);
-            NodeList textNodes = elem.getElementsByTagNameNS("http://purl.oclc.org/dsdl/svrl", "text");
-            String text = (textNodes.getLength() > 0) ? textNodes.item(0).getTextContent().trim() : "";
-            String role = elem.getAttribute("role");
+        List<XdmNode> successfulReports = SaxonXPathHelper.evaluateNodes(
+                svrlDocument, "//svrl:successful-report", SaxonXPathHelper.SVRL_NAMESPACES);
+
+        for (XdmNode reportNode : successfulReports) {
+            String text = getTextNodeContent(reportNode);
+            String role = SaxonXPathHelper.getAttributeValue(reportNode, "role");
+            String test = SaxonXPathHelper.getAttributeValue(reportNode, "test");
+            String location = SaxonXPathHelper.getAttributeValue(reportNode, "location");
+
             validationEvents.add(new SchematronValidationError(
-                    text, elem.getAttribute("test"), elem.getAttribute("location"), 0, 0,
+                    text, test, location, 0, 0,
                     role != null && !role.isEmpty() ? role : "warning"));
         }
+    }
+
+    /**
+     * Extracts the text content from a svrl:text child node.
+     */
+    private String getTextNodeContent(XdmNode parentNode) {
+        try {
+            // Navigate to svrl:text child
+            for (XdmSequenceIterator<XdmNode> it = parentNode.axisIterator(Axis.CHILD); it.hasNext(); ) {
+                XdmNode child = it.next();
+                if (child.getNodeKind() == XdmNodeKind.ELEMENT) {
+                    String localName = child.getNodeName().getLocalName();
+                    if ("text".equals(localName)) {
+                        String content = child.getStringValue();
+                        return content != null ? content.trim() : "";
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Error extracting text node content: {}", e.getMessage());
+        }
+        return "";
     }
 
     @Override
@@ -226,35 +242,6 @@ public class SchematronServiceImpl implements SchematronService {
         } catch (Exception e) {
             logger.warn("isValidSchematronFile check failed for {}", file.getAbsolutePath(), e);
             return false;
-        }
-    }
-
-    private static class SimpleNamespaceContext implements NamespaceContext {
-        private final Map<String, String> prefixToUri = new HashMap<>();
-
-        public SimpleNamespaceContext(String prefix, String uri) {
-            prefixToUri.put(prefix, uri);
-        }
-
-        @Override
-        public String getNamespaceURI(String prefix) {
-            return prefixToUri.getOrDefault(prefix, javax.xml.XMLConstants.NULL_NS_URI);
-        }
-
-        @Override
-        public String getPrefix(String namespaceURI) {
-            for (Map.Entry<String, String> entry : prefixToUri.entrySet()) {
-                if (entry.getValue().equals(namespaceURI)) {
-                    return entry.getKey();
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public Iterator<String> getPrefixes(String namespaceURI) {
-            String prefix = getPrefix(namespaceURI);
-            return prefix != null ? Collections.singleton(prefix).iterator() : Collections.emptyIterator();
         }
     }
 }

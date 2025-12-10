@@ -18,15 +18,13 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import net.sf.saxon.s9api.XdmNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -38,10 +36,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+import java.util.List;
 import java.awt.*;
 import java.io.*;
 import java.util.HashMap;
@@ -135,6 +130,7 @@ public class GenerateXsdHtmlDocumentationTest {
 
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new InputSource(new FileReader(XML_420_XSD)));
 
@@ -142,19 +138,17 @@ public class GenerateXsdHtmlDocumentationTest {
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-            XPathFactory xPathFactory = new net.sf.saxon.xpath.XPathFactoryImpl();
-            XPath xPath = xPathFactory.newXPath();
+            // Use Saxon XPath 3.1 via SaxonXPathHelper
             String expression = "//xs:complexType[@name='AccountType']";
-            NodeList nodeList = (NodeList) xPath.evaluate(expression, doc, XPathConstants.NODESET);
+            List<XdmNode> nodes = SaxonXPathHelper.evaluateNodes(doc, expression, SaxonXPathHelper.XSD_NAMESPACES);
 
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node n = nodeList.item(i);
-                String elementName = ((Element) n).getAttribute("name");
-                if (!elementName.isEmpty()) {
+            for (XdmNode node : nodes) {
+                String elementName = SaxonXPathHelper.getAttributeValue(node, "name");
+                if (elementName != null && !elementName.isEmpty()) {
                     logger.debug("Element: {}", elementName);
-                    StringWriter buf = new StringWriter();
-                    transformer.transform(new DOMSource(n), new StreamResult(buf));
-                    complexTypes.put(elementName, buf.toString());
+                    // Get the serialized form of the node
+                    String nodeContent = node.toString();
+                    complexTypes.put(elementName, nodeContent);
                 }
             }
 
@@ -168,7 +162,7 @@ public class GenerateXsdHtmlDocumentationTest {
 
 
     @Test
-    public void t2() throws ParserConfigurationException, XPathExpressionException, IOException, SAXException {
+    public void t2() throws ParserConfigurationException, IOException, SAXException {
         String schema = "<xs:schema xmlns:xs=\"http://w...content-available-to-author-only...3.org/2001/XMLSchema\" targetNamespace=\"http://x...content-available-to-author-only...e.com/cloud/adapter/nxsd/surrogate/request\"\r\n" +
                 "       xmlns=\"http://x...content-available-to-author-only...e.com/cloud/adapter/nxsd/surrogate/request\"\r\n" +
                 "       elementFormDefault=\"qualified\">\r\n" +
@@ -195,16 +189,15 @@ public class GenerateXsdHtmlDocumentationTest {
                 "</xs:element>\r\n" +
                 "</xs:schema>\r\n";
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.parse(new InputSource(new StringReader(schema)));
 
-        XPathFactory xPathFactory = XPathFactory.newInstance();
-        XPath xPath = xPathFactory.newXPath();
+        // Use Saxon XPath 3.1 via SaxonXPathHelper
+        String expression = "//xs:element[@name='myapp']//xs:element[@name='content']";
+        List<XdmNode> nodes = SaxonXPathHelper.evaluateNodes(doc, expression, SaxonXPathHelper.XSD_NAMESPACES);
 
-        String expression = "//element[@name='myapp']//element[@name='content']";
-        NodeList nodeList = (NodeList) xPath.evaluate(expression, doc, XPathConstants.NODESET);
-
-        System.out.println("Node count: " + nodeList.getLength());
+        System.out.println("Node count: " + nodes.size());
     }
 
     @Test

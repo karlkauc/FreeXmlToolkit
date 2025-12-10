@@ -12,9 +12,6 @@ import org.xml.sax.InputSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
 import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,17 +38,12 @@ public class XPathExecutionEngine {
     private final XPathCompiler xpathCompiler;
     private final XQueryCompiler xqueryCompiler;
 
-    // Java XPath for basic operations
-    private final javax.xml.xpath.XPath javaXPath;
-
     // Execution settings
-    private boolean useSaxonForAdvanced = true;
     private long executionTimeoutMs = 30000; // 30 seconds
     private int maxResultSize = 10000; // Max number of result items
     private boolean enableProfiling = true;
 
-    // Performance caching
-    private final Map<String, XPathExpression> compiledExpressions = new ConcurrentHashMap<>();
+    // Performance caching for Saxon compiled expressions
     private final Map<String, XPathExecutable> compiledXPathExecutables = new ConcurrentHashMap<>();
     private final Map<String, XQueryExecutable> compiledXQueryExecutables = new ConcurrentHashMap<>();
 
@@ -62,14 +54,10 @@ public class XPathExecutionEngine {
     private final ExecutorService executorService;
 
     public XPathExecutionEngine() {
-        // Initialize Saxon processor
+        // Initialize Saxon processor for XPath 3.1 support
         saxonProcessor = new Processor(false);
         xpathCompiler = saxonProcessor.newXPathCompiler();
         xqueryCompiler = saxonProcessor.newXQueryCompiler();
-
-        // Initialize Java XPath
-        XPathFactory xpathFactory = XPathFactory.newInstance();
-        javaXPath = xpathFactory.newXPath();
 
         // Background executor
         executorService = Executors.newCachedThreadPool(r -> {
@@ -82,7 +70,7 @@ public class XPathExecutionEngine {
         // Set up default namespaces
         setupDefaultNamespaces();
 
-        logger.info("XPath Execution Engine initialized with Saxon {}", saxonProcessor.getSaxonProductVersion());
+        logger.info("XPath Execution Engine initialized with Saxon {} (XPath 3.1 only)", saxonProcessor.getSaxonProductVersion());
     }
 
     public static synchronized XPathExecutionEngine getInstance() {
@@ -196,11 +184,8 @@ public class XPathExecutionEngine {
             // Parse XML document
             Document document = parseXmlDocument(xmlContent);
 
-            if (useSaxonForAdvanced && requiresAdvancedFeatures(xpathExpression)) {
-                return executeSaxonXPath(xpathExpression, document, snippet);
-            } else {
-                return executeJavaXPath(xpathExpression, document, snippet);
-            }
+            // Always use Saxon XPath 3.1 for all XPath operations
+            return executeSaxonXPath(xpathExpression, document, snippet);
 
         } catch (Exception e) {
             return XPathExecutionResult.error("XPath execution failed: " + e.getMessage());
@@ -228,50 +213,6 @@ public class XPathExecutionEngine {
 
         } catch (SaxonApiException e) {
             return XPathExecutionResult.error("Saxon XPath error: " + e.getMessage());
-        }
-    }
-
-    private XPathExecutionResult executeJavaXPath(String xpathExpression, Document document, XPathSnippet snippet) {
-        try {
-            // Get or compile XPath
-            String cacheKey = snippet.getId() + ":" + xpathExpression.hashCode();
-            XPathExpression compiledExpr = compiledExpressions.get(cacheKey);
-
-            if (compiledExpr == null) {
-                compiledExpr = javaXPath.compile(xpathExpression);
-                compiledExpressions.put(cacheKey, compiledExpr);
-            }
-
-            // Execute XPath - try different return types
-            Object result;
-            XPathExecutionResult.ResultType resultType;
-
-            try {
-                // Try NODESET first (most common)
-                result = compiledExpr.evaluate(document, XPathConstants.NODESET);
-                resultType = XPathExecutionResult.ResultType.NODESET;
-            } catch (Exception e) {
-                try {
-                    // Try STRING
-                    result = compiledExpr.evaluate(document, XPathConstants.STRING);
-                    resultType = XPathExecutionResult.ResultType.STRING;
-                } catch (Exception e2) {
-                    try {
-                        // Try NUMBER
-                        result = compiledExpr.evaluate(document, XPathConstants.NUMBER);
-                        resultType = XPathExecutionResult.ResultType.NUMBER;
-                    } catch (Exception e3) {
-                        // Try BOOLEAN
-                        result = compiledExpr.evaluate(document, XPathConstants.BOOLEAN);
-                        resultType = XPathExecutionResult.ResultType.BOOLEAN;
-                    }
-                }
-            }
-
-            return convertJavaXPathResult(result, resultType, xpathExpression);
-
-        } catch (Exception e) {
-            return XPathExecutionResult.error("Java XPath error: " + e.getMessage());
         }
     }
 
@@ -357,42 +298,6 @@ public class XPathExecutionEngine {
         }
     }
 
-    private XPathExecutionResult convertJavaXPathResult(Object result, XPathExecutionResult.ResultType type, String query) {
-        try {
-            List<XPathExecutionResult.ResultItem> items = new ArrayList<>();
-
-            if (type == XPathExecutionResult.ResultType.NODESET && result instanceof org.w3c.dom.NodeList nodeList) {
-
-                for (int i = 0; i < Math.min(nodeList.getLength(), maxResultSize); i++) {
-                    org.w3c.dom.Node node = nodeList.item(i);
-                    XPathExecutionResult.ResultItem item = new XPathExecutionResult.ResultItem();
-                    item.setType(XPathExecutionResult.ResultType.NODE);
-                    item.setValue(nodeToString(node));
-                    item.setNodeName(node.getNodeName());
-                    item.setNodeType(getNodeTypeName(node.getNodeType()));
-                    items.add(item);
-                }
-            } else {
-                // Single value result
-                XPathExecutionResult.ResultItem item = new XPathExecutionResult.ResultItem();
-                item.setType(type);
-                item.setValue(result.toString());
-                items.add(item);
-            }
-
-            XPathExecutionResult execResult = new XPathExecutionResult();
-            execResult.setSuccess(true);
-            execResult.setQuery(query);
-            execResult.setResultItems(items);
-            execResult.setResultCount(items.size());
-
-            return execResult;
-
-        } catch (Exception e) {
-            return XPathExecutionResult.error("Result conversion failed: " + e.getMessage());
-        }
-    }
-
     // ========== Helper Methods ==========
 
     private String resolveSnippetParameters(XPathSnippet snippet, Map<String, String> parameterValues) {
@@ -445,25 +350,6 @@ public class XPathExecutionEngine {
         return builder.parse(new InputSource(new StringReader(xmlContent)));
     }
 
-    private boolean requiresAdvancedFeatures(String expression) {
-        // Check for XPath 2.0+ or 3.1 features
-        String[] advancedFeatures = {
-                "current-date(", "current-time(", "format-date(", "format-number(",
-                "matches(", "replace(", "tokenize(", "distinct-values(",
-                "max(", "min(", "avg(", "sum(", "for ", " return ", " if ", " then ", " else ",
-                "every ", " satisfies ", "some ", "instance of", "cast as", "treat as"
-        };
-
-        String lowerExpr = expression.toLowerCase();
-        for (String feature : advancedFeatures) {
-            if (lowerExpr.contains(feature)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private XPathExecutionResult.ResultType getAtomicResultType(XdmAtomicValue atomic) {
         String typeName = atomic.getTypeName().getLocalName();
         switch (typeName) {
@@ -481,38 +367,6 @@ public class XPathExecutionEngine {
         }
     }
 
-    private String nodeToString(org.w3c.dom.Node node) {
-        if (node.getNodeType() == org.w3c.dom.Node.TEXT_NODE) {
-            return node.getNodeValue();
-        } else if (node.getNodeType() == org.w3c.dom.Node.ATTRIBUTE_NODE) {
-            return node.getNodeValue();
-        } else {
-            // For element nodes, return the text content or serialized form
-            return node.getTextContent();
-        }
-    }
-
-    private String getNodeTypeName(short nodeType) {
-        switch (nodeType) {
-            case org.w3c.dom.Node.ELEMENT_NODE:
-                return "element";
-            case org.w3c.dom.Node.ATTRIBUTE_NODE:
-                return "attribute";
-            case org.w3c.dom.Node.TEXT_NODE:
-                return "text";
-            case org.w3c.dom.Node.CDATA_SECTION_NODE:
-                return "cdata";
-            case org.w3c.dom.Node.COMMENT_NODE:
-                return "comment";
-            case org.w3c.dom.Node.PROCESSING_INSTRUCTION_NODE:
-                return "processing-instruction";
-            case org.w3c.dom.Node.DOCUMENT_NODE:
-                return "document";
-            default:
-                return "unknown";
-        }
-    }
-
     private void recordExecutionStatistics(String snippetId, long executionTime, boolean success) {
         ExecutionStatistics stats = executionStats.computeIfAbsent(snippetId, k -> new ExecutionStatistics());
         stats.recordExecution(executionTime, success);
@@ -524,7 +378,6 @@ public class XPathExecutionEngine {
      * Clear compilation cache
      */
     public void clearCache() {
-        compiledExpressions.clear();
         compiledXPathExecutables.clear();
         compiledXQueryExecutables.clear();
         logger.debug("Cleared XPath/XQuery compilation cache");
@@ -535,7 +388,6 @@ public class XPathExecutionEngine {
      */
     public Map<String, Integer> getCacheStatistics() {
         Map<String, Integer> stats = new HashMap<>();
-        stats.put("javaXPathExpressions", compiledExpressions.size());
         stats.put("saxonXPathExecutables", compiledXPathExecutables.size());
         stats.put("saxonXQueryExecutables", compiledXQueryExecutables.size());
         return stats;
@@ -550,9 +402,14 @@ public class XPathExecutionEngine {
 
     // ========== Configuration ==========
 
+    /**
+     * @deprecated Saxon XPath 3.1 is now used for all operations.
+     *             This method is kept for API compatibility but has no effect.
+     */
+    @Deprecated(since = "2.0", forRemoval = true)
     public void setUseSaxonForAdvanced(boolean useSaxon) {
-        this.useSaxonForAdvanced = useSaxon;
-        logger.debug("Saxon for advanced features: {}", useSaxon ? "enabled" : "disabled");
+        // Saxon is now always used for all XPath operations
+        logger.debug("setUseSaxonForAdvanced() is deprecated - Saxon XPath 3.1 is now used for all operations");
     }
 
     public void setExecutionTimeout(long timeoutMs) {

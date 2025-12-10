@@ -23,13 +23,13 @@ import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.service.*;
 import org.kordamp.ikonli.javafx.FontIcon;
+import net.sf.saxon.s9api.XdmNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -39,9 +39,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -369,53 +366,26 @@ public class XmlEditor extends Tab {
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document xsdDoc = builder.parse(xsdFile);
 
-            // Find the element definition
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            xpath.setNamespaceContext(new javax.xml.namespace.NamespaceContext() {
-                @Override
-                public String getNamespaceURI(String prefix) {
-                    if ("xs".equals(prefix)) {
-                        return "http://www.w3.org/2001/XMLSchema";
-                    }
-                    return null;
-                }
-
-                @Override
-                public String getPrefix(String uri) {
-                    if ("http://www.w3.org/2001/XMLSchema".equals(uri)) {
-                        return "xs";
-                    }
-                    return null;
-                }
-
-                @Override
-                public java.util.Iterator<String> getPrefixes(String uri) {
-                    return java.util.Collections.singletonList("xs").iterator();
-                }
-            });
-
             // Remove namespace prefix if present
             String cleanElementName = elementName;
             if (elementName.contains(":")) {
                 cleanElementName = elementName.split(":")[1];
             }
 
-            // Try to find the element definition
+            // Try to find the element definition using Saxon XPath 3.1
             String elementQuery = "//xs:element[@name='" + cleanElementName + "']";
-            Node elementNode = (Node) xpath.evaluate(elementQuery, xsdDoc, XPathConstants.NODE);
+            XdmNode elementNode = SaxonXPathHelper.evaluateSingleNode(xsdDoc, elementQuery, SaxonXPathHelper.XSD_NAMESPACES);
 
             if (elementNode == null) {
                 // Try without namespace prefix
                 elementQuery = "//element[@name='" + cleanElementName + "']";
-                elementNode = (Node) xpath.evaluate(elementQuery, xsdDoc, XPathConstants.NODE);
+                elementNode = SaxonXPathHelper.evaluateSingleNode(xsdDoc, elementQuery, null);
             }
 
             if (elementNode != null) {
                 // Get the type attribute
-                Node typeAttr = elementNode.getAttributes().getNamedItem("type");
-                if (typeAttr != null) {
-                    String typeName = typeAttr.getNodeValue();
-
+                String typeName = SaxonXPathHelper.getAttributeValue(elementNode, "type");
+                if (typeName != null) {
                     // Check if it's a built-in type
                     if (isBuiltInType(typeName)) {
                         // Remove namespace prefix if present to avoid duplication
@@ -426,16 +396,22 @@ public class XmlEditor extends Tab {
                         return "xs:" + cleanTypeName;
                     }
 
+                    // Remove namespace prefix from type name for lookup
+                    String cleanTypeLookup = typeName;
+                    if (typeName.contains(":")) {
+                        cleanTypeLookup = typeName.split(":")[1];
+                    }
+
                     // Check if it's a simpleType
-                    String simpleTypeQuery = "//xs:simpleType[@name='" + typeName + "']";
-                    Node simpleTypeNode = (Node) xpath.evaluate(simpleTypeQuery, xsdDoc, XPathConstants.NODE);
+                    String simpleTypeQuery = "//xs:simpleType[@name='" + cleanTypeLookup + "']";
+                    XdmNode simpleTypeNode = SaxonXPathHelper.evaluateSingleNode(xsdDoc, simpleTypeQuery, SaxonXPathHelper.XSD_NAMESPACES);
                     if (simpleTypeNode != null) {
                         return "simpleType: " + typeName;
                     }
 
                     // Check if it's a complexType
-                    String complexTypeQuery = "//xs:complexType[@name='" + typeName + "']";
-                    Node complexTypeNode = (Node) xpath.evaluate(complexTypeQuery, xsdDoc, XPathConstants.NODE);
+                    String complexTypeQuery = "//xs:complexType[@name='" + cleanTypeLookup + "']";
+                    XdmNode complexTypeNode = SaxonXPathHelper.evaluateSingleNode(xsdDoc, complexTypeQuery, SaxonXPathHelper.XSD_NAMESPACES);
                     if (complexTypeNode != null) {
                         return "complexType: " + typeName;
                     }
@@ -444,23 +420,22 @@ public class XmlEditor extends Tab {
                 }
 
                 // Check if element has inline type definition
-                NodeList children = elementNode.getChildNodes();
-                for (int i = 0; i < children.getLength(); i++) {
-                    Node child = children.item(i);
-                    if (child.getNodeType() == Node.ELEMENT_NODE) {
-                        String nodeName = child.getLocalName();
-                        if ("simpleType".equals(nodeName) || "xs:simpleType".equals(child.getNodeName())) {
-                            return "inline simpleType";
-                        } else if ("complexType".equals(nodeName) || "xs:complexType".equals(child.getNodeName())) {
-                            return "inline complexType";
-                        }
-                    }
+                String inlineSimpleTypeQuery = ".//xs:simpleType";
+                if (SaxonXPathHelper.evaluateBoolean(xsdDoc,
+                        "//xs:element[@name='" + cleanElementName + "']/xs:simpleType",
+                        SaxonXPathHelper.XSD_NAMESPACES)) {
+                    return "inline simpleType";
+                }
+
+                String inlineComplexTypeQuery = "//xs:element[@name='" + cleanElementName + "']/xs:complexType";
+                if (SaxonXPathHelper.evaluateBoolean(xsdDoc, inlineComplexTypeQuery, SaxonXPathHelper.XSD_NAMESPACES)) {
+                    return "inline complexType";
                 }
 
                 // If no type is specified, check if it's a complex element (has child elements)
                 String hasChildrenQuery = "//xs:element[@name='" + cleanElementName + "']//xs:element";
-                NodeList childElements = (NodeList) xpath.evaluate(hasChildrenQuery, xsdDoc, XPathConstants.NODESET);
-                if (childElements.getLength() > 0) {
+                int childCount = SaxonXPathHelper.evaluateCount(xsdDoc, hasChildrenQuery, SaxonXPathHelper.XSD_NAMESPACES);
+                if (childCount > 0) {
                     return "complexType (implicit)";
                 }
 
@@ -1835,11 +1810,7 @@ public class XmlEditor extends Tab {
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document xsdDoc = builder.parse(xsdFile);
 
-            // Create XPath to find the element and its documentation
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            xpath.setNamespaceContext(new SimpleNamespaceContext(xsdDoc));
-
-            // Look for element documentation in various locations
+            // Look for element documentation in various locations using Saxon XPath 3.1
             String[] xpathQueries = {
                     "//xs:element[@name='" + elementName + "']/xs:annotation/xs:documentation",
                     "//xsd:element[@name='" + elementName + "']/xsd:annotation/xsd:documentation",
@@ -1852,12 +1823,11 @@ public class XmlEditor extends Tab {
             };
 
             for (String query : xpathQueries) {
-                NodeList nodes = (NodeList) xpath.evaluate(query, xsdDoc, XPathConstants.NODESET);
-                if (nodes.getLength() > 0) {
+                List<XdmNode> nodes = SaxonXPathHelper.evaluateNodes(xsdDoc, query, SaxonXPathHelper.XSD_NAMESPACES);
+                if (!nodes.isEmpty()) {
                     StringBuilder documentation = new StringBuilder();
-                    for (int i = 0; i < nodes.getLength(); i++) {
-                        Node node = nodes.item(i);
-                        String content = node.getTextContent();
+                    for (XdmNode node : nodes) {
+                        String content = SaxonXPathHelper.getTextContent(node);
                         if (content != null && !content.trim().isEmpty()) {
                             if (documentation.length() > 0) {
                                 documentation.append("\n\n");
@@ -1919,51 +1889,6 @@ public class XmlEditor extends Tab {
                 this.xsdDocumentationData = null;
             }
         });
-    }
-
-    /**
-     * Simple namespace context for XSD parsing.
-     */
-    private static class SimpleNamespaceContext implements NamespaceContext {
-        private final Map<String, String> prefixMap = new HashMap<>();
-
-        public SimpleNamespaceContext(Document doc) {
-            // Add common XSD namespace prefixes
-            prefixMap.put("xs", "http://www.w3.org/2001/XMLSchema");
-            prefixMap.put("xsd", "http://www.w3.org/2001/XMLSchema");
-
-            // Try to extract namespace information from the document
-            Element root = doc.getDocumentElement();
-            if (root != null) {
-                String defaultNamespace = root.getNamespaceURI();
-                if (defaultNamespace != null) {
-                    prefixMap.put("", defaultNamespace);
-                }
-            }
-        }
-
-        @Override
-        public String getNamespaceURI(String prefix) {
-            return prefixMap.getOrDefault(prefix, "");
-        }
-
-        @Override
-        public String getPrefix(String namespaceURI) {
-            return prefixMap.entrySet().stream()
-                    .filter(entry -> entry.getValue().equals(namespaceURI))
-                    .map(Map.Entry::getKey)
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        @Override
-        public Iterator<String> getPrefixes(String namespaceURI) {
-            return prefixMap.entrySet().stream()
-                    .filter(entry -> entry.getValue().equals(namespaceURI))
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toList())
-                    .iterator();
-        }
     }
 
     /**
@@ -2045,116 +1970,40 @@ public class XmlEditor extends Tab {
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document xsdDoc = builder.parse(xsdFile);
 
-            // Find the element definition
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            xpath.setNamespaceContext(new javax.xml.namespace.NamespaceContext() {
-                @Override
-                public String getNamespaceURI(String prefix) {
-                    if ("xs".equals(prefix)) {
-                        return "http://www.w3.org/2001/XMLSchema";
-                    }
-                    return null;
-                }
-
-                @Override
-                public String getPrefix(String uri) {
-                    if ("http://www.w3.org/2001/XMLSchema".equals(uri)) {
-                        return "xs";
-                    }
-                    return null;
-                }
-
-                @Override
-                public java.util.Iterator<String> getPrefixes(String uri) {
-                    return java.util.Collections.singletonList("xs").iterator();
-                }
-            });
-
             // Remove namespace prefix if present
             String cleanElementName = elementName;
             if (elementName.contains(":")) {
                 cleanElementName = elementName.split(":")[1];
             }
 
-            // Try to find the element definition
-            String elementQuery = "//xs:element[@name='" + cleanElementName + "']";
-            Node elementNode = (Node) xpath.evaluate(elementQuery, xsdDoc, XPathConstants.NODE);
+            // Combined namespace map including Altova extensions
+            Map<String, String> namespaces = new HashMap<>();
+            namespaces.putAll(SaxonXPathHelper.XSD_NAMESPACES);
+            namespaces.put("altova", "http://www.altova.com/xml-schema-extensions");
 
-            if (elementNode == null) {
-                // Try without namespace prefix
-                elementQuery = "//element[@name='" + cleanElementName + "']";
-                elementNode = (Node) xpath.evaluate(elementQuery, xsdDoc, XPathConstants.NODE);
+            // Try to find Altova example values using Saxon XPath 3.1
+            String altovaExamplesQuery = "//xs:element[@name='" + cleanElementName + "']/xs:annotation/xs:appinfo/altova:exampleValues/altova:example/@value";
+            List<String> altovaValues = SaxonXPathHelper.evaluateStringList(xsdDoc, altovaExamplesQuery, namespaces);
+            for (String value : altovaValues) {
+                if (value != null && !value.trim().isEmpty()) {
+                    exampleValues.add(value.trim());
+                }
             }
 
-            if (elementNode != null) {
-                // Look for example values in annotations
-                NodeList annotations = elementNode.getChildNodes();
-                for (int i = 0; i < annotations.getLength(); i++) {
-                    Node annotation = annotations.item(i);
-                    if (annotation.getNodeType() == Node.ELEMENT_NODE &&
-                            ("annotation".equals(annotation.getLocalName()) || "xs:annotation".equals(annotation.getNodeName()))) {
-
-                        // Look for appinfo elements with Altova example values
-                        NodeList appInfos = annotation.getChildNodes();
-                        for (int j = 0; j < appInfos.getLength(); j++) {
-                            Node appInfo = appInfos.item(j);
-                            if (appInfo.getNodeType() == Node.ELEMENT_NODE &&
-                                    ("appinfo".equals(appInfo.getLocalName()) || "xs:appinfo".equals(appInfo.getNodeName()))) {
-
-                                // Look for Altova exampleValues
-                                NodeList appInfoChildren = appInfo.getChildNodes();
-                                for (int k = 0; k < appInfoChildren.getLength(); k++) {
-                                    Node appInfoChild = appInfoChildren.item(k);
-                                    if (appInfoChild.getNodeType() == Node.ELEMENT_NODE &&
-                                            "http://www.altova.com/xml-schema-extensions".equals(appInfoChild.getNamespaceURI()) &&
-                                            "exampleValues".equals(appInfoChild.getLocalName())) {
-
-                                        // Extract individual example values
-                                        NodeList examples = appInfoChild.getChildNodes();
-                                        for (int l = 0; l < examples.getLength(); l++) {
-                                            Node exampleNode = examples.item(l);
-                                            if (exampleNode.getNodeType() == Node.ELEMENT_NODE &&
-                                                    "http://www.altova.com/xml-schema-extensions".equals(exampleNode.getNamespaceURI()) &&
-                                                    "example".equals(exampleNode.getLocalName())) {
-
-                                                // Get the value attribute
-                                                if (exampleNode.hasAttributes()) {
-                                                    Node valueAttr = exampleNode.getAttributes().getNamedItem("value");
-                                                    if (valueAttr != null) {
-                                                        String value = valueAttr.getNodeValue();
-                                                        if (value != null && !value.trim().isEmpty()) {
-                                                            exampleValues.add(value);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Also look for documentation with example values (legacy support)
-                        NodeList docs = annotation.getChildNodes();
-                        for (int j = 0; j < docs.getLength(); j++) {
-                            Node doc = docs.item(j);
-                            if (doc.getNodeType() == Node.ELEMENT_NODE &&
-                                    ("documentation".equals(doc.getLocalName()) || "xs:documentation".equals(doc.getNodeName()))) {
-
-                                String content = doc.getTextContent();
-                                if (content != null && !content.trim().isEmpty()) {
-                                    // Extract example values from documentation
-                                    String[] lines = content.split("\n");
-                                    for (String line : lines) {
-                                        line = line.trim();
-                                        if (line.startsWith("Example:") || line.startsWith("example:")) {
-                                            String example = line.substring(line.indexOf(":") + 1).trim();
-                                            if (!example.isEmpty()) {
-                                                exampleValues.add(example);
-                                            }
-                                        }
-                                    }
-                                }
+            // Also check documentation for example values (legacy support)
+            String documentationQuery = "//xs:element[@name='" + cleanElementName + "']/xs:annotation/xs:documentation";
+            List<XdmNode> docNodes = SaxonXPathHelper.evaluateNodes(xsdDoc, documentationQuery, SaxonXPathHelper.XSD_NAMESPACES);
+            for (XdmNode docNode : docNodes) {
+                String content = SaxonXPathHelper.getTextContent(docNode);
+                if (content != null && !content.trim().isEmpty()) {
+                    // Extract example values from documentation
+                    String[] lines = content.split("\n");
+                    for (String line : lines) {
+                        line = line.trim();
+                        if (line.startsWith("Example:") || line.startsWith("example:")) {
+                            String example = line.substring(line.indexOf(":") + 1).trim();
+                            if (!example.isEmpty()) {
+                                exampleValues.add(example);
                             }
                         }
                     }
@@ -2566,8 +2415,15 @@ public class XmlEditor extends Tab {
         }
 
         try {
-            XPath xpathEvaluator = XPathFactory.newInstance().newXPath();
-            return (Node) xpathEvaluator.evaluate(xpath, document, XPathConstants.NODE);
+            // Use Saxon XPath 3.1 via SaxonXPathHelper
+            XdmNode result = SaxonXPathHelper.evaluateSingleNode(document, xpath, null);
+            if (result != null) {
+                // Convert XdmNode back to DOM Node if needed
+                // Note: This is a simplified version - for complex use cases,
+                // consider working directly with XdmNode
+                return (Node) result.getUnderlyingNode();
+            }
+            return null;
         } catch (Exception e) {
             logger.error("Error finding node by XPath: {}", e.getMessage(), e);
             return null;
