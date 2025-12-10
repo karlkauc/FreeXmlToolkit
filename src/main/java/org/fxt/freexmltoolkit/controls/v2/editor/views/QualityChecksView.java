@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -57,6 +58,7 @@ public class QualityChecksView extends BorderPane {
     // UI Components - Filters
     private ComboBox<String> categoryFilter;
     private ComboBox<String> severityFilter;
+    private TextField searchField;
 
     // UI Components - Score Panel
     private VBox namingDistributionBox;
@@ -158,8 +160,16 @@ public class QualityChecksView extends BorderPane {
         exportPdfBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_RICHTEXT));
         exportPdfBtn.setOnAction(e -> exportToPdf());
 
+        Button exportHtmlBtn = new Button("HTML");
+        exportHtmlBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_TEXT));
+        exportHtmlBtn.setOnAction(e -> exportToHtml());
+
+        Button exportExcelBtn = new Button("Excel");
+        exportExcelBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_EXCEL));
+        exportExcelBtn.setOnAction(e -> exportToExcel());
+
         return new ToolBar(titleLabel, spacer, scoreLabel, scoreDescriptionLabel,
-                refreshBtn, new Separator(), exportCsvBtn, exportJsonBtn, exportPdfBtn);
+                refreshBtn, new Separator(), exportCsvBtn, exportJsonBtn, exportPdfBtn, exportHtmlBtn, exportExcelBtn);
     }
 
     /**
@@ -171,7 +181,8 @@ public class QualityChecksView extends BorderPane {
 
         // Category filter
         categoryFilter = new ComboBox<>();
-        categoryFilter.getItems().addAll("All Categories", "Naming Convention", "Best Practice", "Deprecated", "Constraint Conflict");
+        categoryFilter.getItems().addAll("All Categories", "Naming Convention", "Best Practice", "Deprecated",
+                "Constraint Conflict", "Inconsistent Definition", "Duplicate Definition");
         categoryFilter.setValue("All Categories");
         categoryFilter.setOnAction(e -> applyFilters());
 
@@ -181,7 +192,31 @@ public class QualityChecksView extends BorderPane {
         severityFilter.setValue("All Severities");
         severityFilter.setOnAction(e -> applyFilters());
 
-        HBox filterBar = new HBox(10, filterLabel, categoryFilter, severityFilter);
+        // Fulltext search field with icon
+        searchField = new TextField();
+        searchField.setPromptText("Search in issues...");
+        searchField.setPrefWidth(200);
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
+
+        FontIcon searchIcon = new FontIcon("bi-search");
+        searchIcon.setIconSize(14);
+        searchIcon.setIconColor(Color.GRAY);
+        Label searchIconLabel = new Label();
+        searchIconLabel.setGraphic(searchIcon);
+
+        // Clear search button
+        Button clearBtn = new Button();
+        FontIcon clearIcon = new FontIcon("bi-x-circle");
+        clearIcon.setIconSize(14);
+        clearBtn.setGraphic(clearIcon);
+        clearBtn.setTooltip(new Tooltip("Clear filters"));
+        clearBtn.setOnAction(e -> {
+            searchField.clear();
+            categoryFilter.setValue("All Categories");
+            severityFilter.setValue("All Severities");
+        });
+
+        HBox filterBar = new HBox(10, filterLabel, categoryFilter, severityFilter, new Separator(), searchIconLabel, searchField, clearBtn);
         filterBar.setAlignment(Pos.CENTER_LEFT);
         filterBar.setPadding(new Insets(5, 0, 5, 0));
 
@@ -247,13 +282,23 @@ public class QualityChecksView extends BorderPane {
         allIssues = FXCollections.observableArrayList();
         filteredIssues = new FilteredList<>(allIssues, p -> true);
 
-        issuesTable = new TableView<>(filteredIssues);
+        // Wrap in SortedList to enable column sorting
+        SortedList<QualityIssue> sortedIssues = new SortedList<>(filteredIssues);
+
+        issuesTable = new TableView<>(sortedIssues);
+        sortedIssues.comparatorProperty().bind(issuesTable.comparatorProperty());
+
         issuesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         issuesTable.setPlaceholder(new Label("No quality issues found"));
 
-        // Severity column with icon
+        // Severity column with icon (sortable by severity priority)
         TableColumn<QualityIssue, String> severityCol = new TableColumn<>("Severity");
         severityCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().severity().name()));
+        severityCol.setComparator((s1, s2) -> {
+            int p1 = getSeverityPriority(IssueSeverity.valueOf(s1));
+            int p2 = getSeverityPriority(IssueSeverity.valueOf(s2));
+            return Integer.compare(p1, p2);
+        });
         severityCol.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -373,6 +418,18 @@ public class QualityChecksView extends BorderPane {
     }
 
     /**
+     * Gets severity priority for sorting (lower = more important).
+     */
+    private int getSeverityPriority(IssueSeverity severity) {
+        return switch (severity) {
+            case ERROR -> 0;
+            case WARNING -> 1;
+            case INFO -> 2;
+            case SUGGESTION -> 3;
+        };
+    }
+
+    /**
      * Gets the category icon.
      */
     private FontIcon getCategoryIcon(IssueCategory category) {
@@ -396,6 +453,14 @@ public class QualityChecksView extends BorderPane {
                 icon.setIconLiteral("bi-exclamation-diamond-fill");
                 icon.setIconColor(Color.CRIMSON);
             }
+            case INCONSISTENT_DEFINITION -> {
+                icon.setIconLiteral("bi-shuffle");
+                icon.setIconColor(Color.ORANGE);
+            }
+            case DUPLICATE_DEFINITION -> {
+                icon.setIconLiteral("bi-files");
+                icon.setIconColor(Color.DODGERBLUE);
+            }
         }
 
         return icon;
@@ -410,6 +475,8 @@ public class QualityChecksView extends BorderPane {
             case BEST_PRACTICE -> "Best Practice";
             case DEPRECATED -> "Deprecated";
             case CONSTRAINT_CONFLICT -> "Constraint Conflict";
+            case INCONSISTENT_DEFINITION -> "Inconsistent Definition";
+            case DUPLICATE_DEFINITION -> "Duplicate Definition";
         };
     }
 
@@ -419,6 +486,8 @@ public class QualityChecksView extends BorderPane {
     private void applyFilters() {
         String categoryValue = categoryFilter.getValue();
         String severityValue = severityFilter.getValue();
+        String searchText = searchField != null ? searchField.getText() : "";
+        String searchLower = searchText != null ? searchText.toLowerCase() : "";
 
         filteredIssues.setPredicate(issue -> {
             boolean categoryMatch = "All Categories".equals(categoryValue) ||
@@ -427,7 +496,16 @@ public class QualityChecksView extends BorderPane {
             boolean severityMatch = "All Severities".equals(severityValue) ||
                     getSeverityText(issue.severity()).equals(severityValue);
 
-            return categoryMatch && severityMatch;
+            // Fulltext search: check message, suggestion, xpath, and affected elements
+            boolean textMatch = searchLower.isEmpty() ||
+                    (issue.message() != null && issue.message().toLowerCase().contains(searchLower)) ||
+                    (issue.suggestion() != null && issue.suggestion().toLowerCase().contains(searchLower)) ||
+                    (issue.xpath() != null && issue.xpath().toLowerCase().contains(searchLower)) ||
+                    issue.affectedElements().stream().anyMatch(el -> el.toLowerCase().contains(searchLower)) ||
+                    getCategoryText(issue.category()).toLowerCase().contains(searchLower) ||
+                    getSeverityText(issue.severity()).toLowerCase().contains(searchLower);
+
+            return categoryMatch && severityMatch && textMatch;
         });
     }
 
@@ -673,6 +751,65 @@ public class QualityChecksView extends BorderPane {
                     logger.error("Failed to export PDF", e);
                     Platform.runLater(() ->
                             showError("Failed to export PDF: " + e.getMessage()));
+                }
+            });
+        }
+    }
+
+    /**
+     * Exports quality results to HTML.
+     */
+    private void exportToHtml() {
+        if (currentResult == null) {
+            showWarning("No quality results available. Please run the analysis first.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Quality Report to HTML");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("HTML Files", "*.html"));
+        fileChooser.setInitialFileName("quality-report.html");
+
+        File file = fileChooser.showSaveDialog(getScene().getWindow());
+        if (file != null) {
+            try {
+                exporter.exportToHtml(currentResult, file.toPath());
+                showInfo("Quality report exported to HTML: " + file.getName());
+            } catch (Exception e) {
+                logger.error("Failed to export HTML", e);
+                showError("Failed to export HTML: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Exports quality results to Excel.
+     */
+    private void exportToExcel() {
+        if (currentResult == null) {
+            showWarning("No quality results available. Please run the analysis first.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Quality Report to Excel");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+        fileChooser.setInitialFileName("quality-report.xlsx");
+
+        File file = fileChooser.showSaveDialog(getScene().getWindow());
+        if (file != null) {
+            // Run Excel generation in background
+            executor.submit(() -> {
+                try {
+                    exporter.exportToExcel(currentResult, file.toPath());
+                    Platform.runLater(() ->
+                            showInfo("Quality report exported to Excel: " + file.getName()));
+                } catch (Exception e) {
+                    logger.error("Failed to export Excel", e);
+                    Platform.runLater(() ->
+                            showError("Failed to export Excel: " + e.getMessage()));
                 }
             });
         }

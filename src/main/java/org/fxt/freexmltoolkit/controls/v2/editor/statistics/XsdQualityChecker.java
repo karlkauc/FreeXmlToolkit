@@ -32,7 +32,9 @@ public class XsdQualityChecker {
         NAMING_CONVENTION,
         BEST_PRACTICE,
         DEPRECATED,
-        CONSTRAINT_CONFLICT
+        CONSTRAINT_CONFLICT,
+        INCONSISTENT_DEFINITION,
+        DUPLICATE_DEFINITION
     }
 
     /**
@@ -120,6 +122,24 @@ public class XsdQualityChecker {
             String xpath = node != null ? node.getXPath() : null;
             return new QualityIssue(IssueCategory.CONSTRAINT_CONFLICT, severity, message, suggestion, affected, node, xpath);
         }
+
+        /**
+         * Creates an inconsistent definition issue (same name, different content).
+         */
+        public static QualityIssue inconsistentDefinitionIssue(String message, String suggestion,
+                                                                List<String> affected, XsdNode node) {
+            String xpath = node != null ? node.getXPath() : null;
+            return new QualityIssue(IssueCategory.INCONSISTENT_DEFINITION, IssueSeverity.WARNING, message, suggestion, affected, node, xpath);
+        }
+
+        /**
+         * Creates a duplicate definition issue (different name, same content).
+         */
+        public static QualityIssue duplicateDefinitionIssue(String message, String suggestion,
+                                                             List<String> affected, XsdNode node) {
+            String xpath = node != null ? node.getXPath() : null;
+            return new QualityIssue(IssueCategory.DUPLICATE_DEFINITION, IssueSeverity.INFO, message, suggestion, affected, node, xpath);
+        }
     }
 
     /**
@@ -194,6 +214,12 @@ public class XsdQualityChecker {
         // Traverse schema
         Set<String> visitedIds = new HashSet<>();
         traverseAndCheck(schema, namingByConvention, issues, deprecatedIssues, visitedIds, 0);
+
+        // Check for inconsistent definitions (same name, different content)
+        checkInconsistentDefinitions(issues);
+
+        // Check for duplicate definitions (different name, same content)
+        checkDuplicateDefinitions(issues);
 
         // Calculate naming distribution
         Map<NamingConvention, Integer> namingDistribution = new EnumMap<>(NamingConvention.class);
@@ -587,5 +613,386 @@ public class XsdQualityChecker {
             total += elements.size();
         }
         return total;
+    }
+
+    // ========== Inconsistent Definition Check ==========
+
+    /**
+     * Checks for nodes with the same name but different content/structure.
+     * This indicates potential inconsistencies in the schema design.
+     */
+    private void checkInconsistentDefinitions(List<QualityIssue> issues) {
+        // Group nodes by name and type
+        Map<String, List<XsdNode>> nodesByNameAndType = new HashMap<>();
+
+        collectNamedNodes(schema, nodesByNameAndType, new HashSet<>());
+
+        // Check for same name but different content
+        for (Map.Entry<String, List<XsdNode>> entry : nodesByNameAndType.entrySet()) {
+            List<XsdNode> nodes = entry.getValue();
+            if (nodes.size() < 2) continue;
+
+            // Compare content signatures of nodes with same name
+            Map<String, List<XsdNode>> bySignature = new HashMap<>();
+            for (XsdNode node : nodes) {
+                String signature = computeContentSignature(node);
+                bySignature.computeIfAbsent(signature, k -> new ArrayList<>()).add(node);
+            }
+
+            // If there are multiple different signatures, we have inconsistent definitions
+            if (bySignature.size() > 1) {
+                String name = entry.getKey();
+                List<String> affected = new ArrayList<>();
+                XsdNode firstNode = null;
+
+                for (List<XsdNode> group : bySignature.values()) {
+                    for (XsdNode node : group) {
+                        String xpath = node.getXPath();
+                        affected.add(xpath != null ? xpath : node.getName());
+                        if (firstNode == null) firstNode = node;
+                    }
+                }
+
+                issues.add(QualityIssue.inconsistentDefinitionIssue(
+                        "Multiple definitions of '" + name + "' with different content (" + bySignature.size() + " variants)",
+                        "Consider unifying the definitions or using different names to clarify intent",
+                        affected,
+                        firstNode
+                ));
+            }
+        }
+    }
+
+    /**
+     * Collects all named nodes grouped by their name and node type.
+     * Key format: "nodeType:name" (e.g., "ELEMENT:PersonName" or "COMPLEX_TYPE:AddressType")
+     */
+    private void collectNamedNodes(XsdNode node, Map<String, List<XsdNode>> nodesByNameAndType, Set<String> visitedIds) {
+        if (node == null) return;
+
+        String nodeId = node.getId();
+        if (nodeId != null && visitedIds.contains(nodeId)) return;
+        if (nodeId != null) visitedIds.add(nodeId);
+
+        // Only collect named nodes that are relevant for comparison
+        if (isComparableNamedNode(node)) {
+            String name = node.getName();
+            if (name != null && !name.isBlank()) {
+                String key = node.getNodeType() + ":" + name;
+                nodesByNameAndType.computeIfAbsent(key, k -> new ArrayList<>()).add(node);
+            }
+        }
+
+        // Recurse to children
+        for (XsdNode child : node.getChildren()) {
+            collectNamedNodes(child, nodesByNameAndType, visitedIds);
+        }
+    }
+
+    /**
+     * Determines if a node should be compared for inconsistent/duplicate definitions.
+     */
+    private boolean isComparableNamedNode(XsdNode node) {
+        return switch (node.getNodeType()) {
+            case ELEMENT, COMPLEX_TYPE, SIMPLE_TYPE, ATTRIBUTE, GROUP, ATTRIBUTE_GROUP -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Computes a content signature for a node to compare structural similarity.
+     * Two nodes with the same signature have equivalent content.
+     */
+    private String computeContentSignature(XsdNode node) {
+        StringBuilder sig = new StringBuilder();
+        computeSignatureRecursive(node, sig, new HashSet<>(), 0);
+        return sig.toString();
+    }
+
+    /**
+     * Recursively builds a content signature for structural comparison.
+     */
+    private void computeSignatureRecursive(XsdNode node, StringBuilder sig, Set<String> visited, int depth) {
+        if (node == null || depth > 20) return; // Prevent infinite recursion
+
+        String nodeId = node.getId();
+        if (nodeId != null && visited.contains(nodeId)) {
+            sig.append("[REF]");
+            return;
+        }
+        if (nodeId != null) visited.add(nodeId);
+
+        // Build signature from node type and essential properties
+        sig.append(node.getNodeType().name());
+
+        // Add type reference for elements
+        if (node instanceof XsdElement element) {
+            String type = element.getType();
+            if (type != null && !type.isBlank()) {
+                sig.append(":type=").append(type);
+            }
+        }
+
+        // Add base type for restrictions
+        if (node instanceof XsdRestriction restriction) {
+            String base = restriction.getBase();
+            if (base != null) {
+                sig.append(":base=").append(base);
+            }
+        }
+
+        // Add facets for restrictions
+        if (node instanceof XsdRestriction restriction) {
+            List<XsdFacet> facets = restriction.getFacets();
+            if (!facets.isEmpty()) {
+                sig.append(":facets=[");
+                facets.stream()
+                        .sorted((a, b) -> {
+                            int cmp = a.getFacetType().compareTo(b.getFacetType());
+                            return cmp != 0 ? cmp : String.valueOf(a.getValue()).compareTo(String.valueOf(b.getValue()));
+                        })
+                        .forEach(f -> sig.append(f.getFacetType()).append("=").append(f.getValue()).append(","));
+                sig.append("]");
+            }
+        }
+
+        // Add cardinality
+        sig.append(":").append(node.getMinOccurs()).append("-").append(node.getMaxOccurs());
+
+        // Recurse to children
+        sig.append("{");
+        List<XsdNode> children = node.getChildren();
+        for (XsdNode child : children) {
+            computeSignatureRecursive(child, sig, visited, depth + 1);
+            sig.append(";");
+        }
+        sig.append("}");
+    }
+
+    // ========== Duplicate Definition Check ==========
+
+    /**
+     * Checks for nodes with different names but identical content/structure.
+     * This indicates potential code duplication that could be refactored.
+     */
+    private void checkDuplicateDefinitions(List<QualityIssue> issues) {
+        // Collect all comparable nodes
+        List<XsdNode> comparableNodes = new ArrayList<>();
+        collectAllComparableNodes(schema, comparableNodes, new HashSet<>());
+
+        // Group by content signature
+        Map<String, List<XsdNode>> bySignature = new HashMap<>();
+        for (XsdNode node : comparableNodes) {
+            String name = node.getName();
+            if (name == null || name.isBlank()) continue;
+
+            String signature = computeContentSignature(node);
+            // Only consider non-trivial signatures (exclude simple/empty definitions)
+            if (signature.length() > 30) { // Arbitrary threshold to filter out trivial matches
+                bySignature.computeIfAbsent(signature, k -> new ArrayList<>()).add(node);
+            }
+        }
+
+        // Find groups with same signature but different names
+        Set<String> reportedGroups = new HashSet<>();
+        for (Map.Entry<String, List<XsdNode>> entry : bySignature.entrySet()) {
+            List<XsdNode> nodes = entry.getValue();
+            if (nodes.size() < 2) continue;
+
+            // Check if they have different names
+            Set<String> names = new HashSet<>();
+            for (XsdNode node : nodes) {
+                names.add(node.getNodeType() + ":" + node.getName());
+            }
+
+            if (names.size() > 1) {
+                // Multiple different names with same content - potential duplicates
+                String groupKey = String.join(",", names.stream().sorted().toList());
+                if (reportedGroups.contains(groupKey)) continue;
+                reportedGroups.add(groupKey);
+
+                List<String> affected = new ArrayList<>();
+                XsdNode firstNode = null;
+                Set<String> uniqueNames = new LinkedHashSet<>();
+
+                for (XsdNode node : nodes) {
+                    uniqueNames.add(node.getName());
+                    String xpath = node.getXPath();
+                    affected.add(xpath != null ? xpath : node.getName());
+                    if (firstNode == null) firstNode = node;
+                }
+
+                // Generate human-readable structure description
+                String structureDescription = generateReadableStructure(firstNode);
+
+                // Add structure description as first item in affected list
+                List<String> affectedWithStructure = new ArrayList<>();
+                affectedWithStructure.add("=== Identical Structure ===");
+                affectedWithStructure.add(structureDescription);
+                affectedWithStructure.add("=== Found in Definitions ===");
+                affectedWithStructure.addAll(affected);
+
+                issues.add(QualityIssue.duplicateDefinitionIssue(
+                        "Identical structure found in " + uniqueNames.size() + " different definitions: " + String.join(", ", uniqueNames),
+                        "Consider consolidating into a single reusable type to reduce redundancy",
+                        affectedWithStructure,
+                        firstNode
+                ));
+            }
+        }
+    }
+
+    /**
+     * Collects all nodes that should be compared for duplication.
+     */
+    private void collectAllComparableNodes(XsdNode node, List<XsdNode> result, Set<String> visitedIds) {
+        if (node == null) return;
+
+        String nodeId = node.getId();
+        if (nodeId != null && visitedIds.contains(nodeId)) return;
+        if (nodeId != null) visitedIds.add(nodeId);
+
+        if (isComparableNamedNode(node) && node.getName() != null && !node.getName().isBlank()) {
+            result.add(node);
+        }
+
+        for (XsdNode child : node.getChildren()) {
+            collectAllComparableNodes(child, result, visitedIds);
+        }
+    }
+
+    // ========== Readable Structure Generation ==========
+
+    /**
+     * Generates a human-readable description of a node's structure.
+     * Used to show what the identical structure looks like in duplicate detection.
+     */
+    private String generateReadableStructure(XsdNode node) {
+        StringBuilder sb = new StringBuilder();
+        generateReadableStructureRecursive(node, sb, "", new HashSet<>(), 0);
+        return sb.toString().trim();
+    }
+
+    /**
+     * Recursively builds a human-readable structure description.
+     */
+    private void generateReadableStructureRecursive(XsdNode node, StringBuilder sb, String indent,
+                                                     Set<String> visited, int depth) {
+        if (node == null || depth > 10) return;
+
+        String nodeId = node.getId();
+        if (nodeId != null && visited.contains(nodeId)) {
+            sb.append(indent).append("(circular reference)\n");
+            return;
+        }
+        if (nodeId != null) visited.add(nodeId);
+
+        // Format based on node type
+        switch (node.getNodeType()) {
+            case ELEMENT -> {
+                XsdElement elem = (XsdElement) node;
+                sb.append(indent).append("element");
+                if (elem.getType() != null && !elem.getType().isBlank()) {
+                    sb.append(" type=\"").append(elem.getType()).append("\"");
+                }
+                appendCardinality(sb, node);
+                sb.append("\n");
+            }
+            case COMPLEX_TYPE -> {
+                sb.append(indent).append("complexType\n");
+            }
+            case SIMPLE_TYPE -> {
+                sb.append(indent).append("simpleType\n");
+            }
+            case SEQUENCE -> {
+                sb.append(indent).append("sequence");
+                appendCardinality(sb, node);
+                sb.append("\n");
+            }
+            case CHOICE -> {
+                sb.append(indent).append("choice");
+                appendCardinality(sb, node);
+                sb.append("\n");
+            }
+            case ALL -> {
+                sb.append(indent).append("all\n");
+            }
+            case RESTRICTION -> {
+                XsdRestriction restriction = (XsdRestriction) node;
+                sb.append(indent).append("restriction base=\"").append(restriction.getBase()).append("\"\n");
+
+                // Add facets
+                for (XsdFacet facet : restriction.getFacets()) {
+                    sb.append(indent).append("  ").append(formatFacetType(facet.getFacetType()));
+                    sb.append("=\"").append(facet.getValue()).append("\"\n");
+                }
+            }
+            case EXTENSION -> {
+                sb.append(indent).append("extension\n");
+            }
+            case ATTRIBUTE -> {
+                XsdAttribute attr = (XsdAttribute) node;
+                sb.append(indent).append("attribute");
+                if (attr.getType() != null && !attr.getType().isBlank()) {
+                    sb.append(" type=\"").append(attr.getType()).append("\"");
+                }
+                if (attr.getUse() != null) {
+                    sb.append(" use=\"").append(attr.getUse()).append("\"");
+                }
+                sb.append("\n");
+            }
+            default -> {
+                sb.append(indent).append(node.getNodeType().name().toLowerCase());
+                appendCardinality(sb, node);
+                sb.append("\n");
+            }
+        }
+
+        // Recurse to children
+        String childIndent = indent + "  ";
+        for (XsdNode child : node.getChildren()) {
+            generateReadableStructureRecursive(child, sb, childIndent, visited, depth + 1);
+        }
+    }
+
+    /**
+     * Appends cardinality information if not default (1..1).
+     */
+    private void appendCardinality(StringBuilder sb, XsdNode node) {
+        int min = node.getMinOccurs();
+        int max = node.getMaxOccurs();
+
+        // Only show if not default (1..1)
+        // Note: max = -1 typically means unbounded
+        boolean isDefault = (min == 1 && max == 1);
+        if (!isDefault) {
+            sb.append(" [");
+            sb.append(min);
+            sb.append("..");
+            sb.append(max == -1 || max == Integer.MAX_VALUE ? "*" : String.valueOf(max));
+            sb.append("]");
+        }
+    }
+
+    /**
+     * Formats facet type for display.
+     */
+    private String formatFacetType(XsdFacetType type) {
+        return switch (type) {
+            case MIN_LENGTH -> "minLength";
+            case MAX_LENGTH -> "maxLength";
+            case LENGTH -> "length";
+            case PATTERN -> "pattern";
+            case ENUMERATION -> "enumeration";
+            case WHITE_SPACE -> "whiteSpace";
+            case MAX_INCLUSIVE -> "maxInclusive";
+            case MAX_EXCLUSIVE -> "maxExclusive";
+            case MIN_INCLUSIVE -> "minInclusive";
+            case MIN_EXCLUSIVE -> "minExclusive";
+            case TOTAL_DIGITS -> "totalDigits";
+            case FRACTION_DIGITS -> "fractionDigits";
+            case ASSERTION -> "assertion";
+            case EXPLICIT_TIMEZONE -> "explicitTimezone";
+        };
     }
 }

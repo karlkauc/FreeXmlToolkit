@@ -177,13 +177,22 @@ public class SchemaStatisticsView extends BorderPane {
         exportPdfBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_RICHTEXT));
         exportPdfBtn.setOnAction(e -> exportToPdf());
 
+        Button exportHtmlBtn = new Button("HTML");
+        exportHtmlBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_TEXT));
+        exportHtmlBtn.setOnAction(e -> exportToHtml());
+
+        Button exportExcelBtn = new Button("Excel");
+        exportExcelBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_EXCEL));
+        exportExcelBtn.setOnAction(e -> exportToExcel());
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Label titleLabel = new Label("Schema Statistics");
         titleLabel.setStyle("-fx-font-size: 14pt; -fx-font-weight: bold;");
 
-        return new ToolBar(titleLabel, spacer, refreshBtn, new Separator(), exportCsvBtn, exportJsonBtn, exportPdfBtn);
+        return new ToolBar(titleLabel, spacer, refreshBtn, new Separator(),
+                exportCsvBtn, exportJsonBtn, exportPdfBtn, exportHtmlBtn, exportExcelBtn);
     }
 
     /**
@@ -535,6 +544,71 @@ public class SchemaStatisticsView extends BorderPane {
                     Platform.runLater(() -> {
                         loadingIndicator.setVisible(false);
                         showError("Failed to export PDF: " + e.getMessage());
+                    });
+                }
+            });
+        }
+    }
+
+    /**
+     * Exports statistics to HTML.
+     */
+    private void exportToHtml() {
+        if (currentStatistics == null) {
+            showError("No statistics available. Please refresh first.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Statistics to HTML");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("HTML Files", "*.html"));
+        fileChooser.setInitialFileName("xsd-statistics.html");
+
+        Window window = getScene() != null ? getScene().getWindow() : null;
+        File file = fileChooser.showSaveDialog(window);
+
+        if (file != null) {
+            try {
+                exporter.exportToHtml(currentStatistics, file.toPath());
+                showInfo("Statistics exported to HTML: " + file.getName());
+            } catch (IOException e) {
+                logger.error("Failed to export HTML", e);
+                showError("Failed to export HTML: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Exports statistics to Excel.
+     */
+    private void exportToExcel() {
+        if (currentStatistics == null) {
+            showError("No statistics available. Please refresh first.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Statistics to Excel");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+        fileChooser.setInitialFileName("xsd-statistics.xlsx");
+
+        Window window = getScene() != null ? getScene().getWindow() : null;
+        File file = fileChooser.showSaveDialog(window);
+
+        if (file != null) {
+            loadingIndicator.setVisible(true);
+            executor.submit(() -> {
+                try {
+                    exporter.exportToExcel(currentStatistics, file.toPath());
+                    Platform.runLater(() -> {
+                        loadingIndicator.setVisible(false);
+                        showInfo("Statistics exported to Excel: " + file.getName());
+                    });
+                } catch (IOException e) {
+                    logger.error("Failed to export Excel", e);
+                    Platform.runLater(() -> {
+                        loadingIndicator.setVisible(false);
+                        showError("Failed to export Excel: " + e.getMessage());
                     });
                 }
             });

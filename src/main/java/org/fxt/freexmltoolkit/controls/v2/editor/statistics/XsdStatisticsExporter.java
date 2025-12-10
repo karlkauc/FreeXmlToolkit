@@ -8,6 +8,9 @@ import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 
 import javax.xml.transform.Result;
@@ -24,7 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * Exports XSD statistics to various formats (CSV, JSON, PDF).
+ * Exports XSD statistics to various formats (CSV, JSON, PDF, HTML, Excel).
  *
  * @since 2.0
  */
@@ -386,5 +389,383 @@ public class XsdStatisticsExporter {
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
                 .replace("'", "&apos;");
+    }
+
+    /**
+     * Exports statistics to HTML format.
+     *
+     * @param statistics the statistics to export
+     * @param outputPath the output file path
+     * @throws IOException if writing fails
+     */
+    public void exportToHtml(XsdStatistics statistics, Path outputPath) throws IOException {
+        logger.info("Exporting statistics to HTML: {}", outputPath);
+
+        try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
+            writer.write("<!DOCTYPE html>\n");
+            writer.write("<html lang=\"en\">\n");
+            writer.write("<head>\n");
+            writer.write("  <meta charset=\"UTF-8\">\n");
+            writer.write("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+            writer.write("  <title>XSD Schema Statistics</title>\n");
+            writer.write("  <style>\n");
+            writer.write(getHtmlStyles());
+            writer.write("  </style>\n");
+            writer.write("</head>\n");
+            writer.write("<body>\n");
+
+            // Header
+            writer.write("  <div class=\"container\">\n");
+            writer.write("    <h1>XSD Schema Statistics</h1>\n");
+            writer.write("    <p class=\"timestamp\">Generated: " + statistics.collectedAt().format(DATE_FORMATTER) + "</p>\n");
+
+            // Schema Information
+            writer.write("    <div class=\"section\">\n");
+            writer.write("      <h2>Schema Information</h2>\n");
+            writer.write("      <table>\n");
+            writeHtmlRow(writer, "XSD Version", statistics.xsdVersion());
+            writeHtmlRow(writer, "Target Namespace", statistics.targetNamespace().isEmpty() ? "(none)" : statistics.targetNamespace());
+            writeHtmlRow(writer, "Element Form Default", statistics.elementFormDefault());
+            writeHtmlRow(writer, "Attribute Form Default", statistics.attributeFormDefault());
+            writeHtmlRow(writer, "Namespace Count", String.valueOf(statistics.namespaceCount()));
+            writeHtmlRow(writer, "File Count", String.valueOf(statistics.fileCount()));
+            if (statistics.mainSchemaPath() != null) {
+                writeHtmlRow(writer, "Main Schema Path", statistics.mainSchemaPath().toString());
+            }
+            writer.write("      </table>\n");
+            writer.write("    </div>\n");
+
+            // Node Counts
+            writer.write("    <div class=\"section\">\n");
+            writer.write("      <h2>Node Counts</h2>\n");
+            writer.write("      <table>\n");
+            writeHtmlRow(writer, "Total Nodes", String.valueOf(statistics.totalNodeCount()));
+            writeHtmlRow(writer, "Elements", String.valueOf(statistics.getElementCount()));
+            writeHtmlRow(writer, "Attributes", String.valueOf(statistics.getAttributeCount()));
+            writeHtmlRow(writer, "Complex Types", String.valueOf(statistics.getComplexTypeCount()));
+            writeHtmlRow(writer, "Simple Types", String.valueOf(statistics.getSimpleTypeCount()));
+            writeHtmlRow(writer, "Groups", String.valueOf(statistics.getGroupCount()));
+            writeHtmlRow(writer, "Attribute Groups", String.valueOf(statistics.getAttributeGroupCount()));
+            writer.write("      </table>\n");
+            writer.write("    </div>\n");
+
+            // Documentation Statistics
+            writer.write("    <div class=\"section\">\n");
+            writer.write("      <h2>Documentation Statistics</h2>\n");
+            writer.write("      <table>\n");
+            writeHtmlRow(writer, "Nodes with Documentation", String.valueOf(statistics.nodesWithDocumentation()));
+            writeHtmlRow(writer, "Nodes with AppInfo", String.valueOf(statistics.nodesWithAppInfo()));
+            writeHtmlRow(writer, "Documentation Coverage", String.format("%.1f%%", statistics.documentationCoveragePercent()));
+            for (Map.Entry<String, Integer> entry : statistics.appInfoTagCounts().entrySet()) {
+                writeHtmlRow(writer, entry.getKey() + " tags", String.valueOf(entry.getValue()));
+            }
+            writer.write("      </table>\n");
+            writer.write("    </div>\n");
+
+            // Top Used Types
+            if (!statistics.topUsedTypes().isEmpty()) {
+                writer.write("    <div class=\"section\">\n");
+                writer.write("      <h2>Top Used Types</h2>\n");
+                writer.write("      <table>\n");
+                writer.write("        <tr><th>Type Name</th><th>Usage Count</th></tr>\n");
+                for (XsdStatistics.TypeUsageEntry entry : statistics.topUsedTypes()) {
+                    writer.write("        <tr><td>" + escapeHtml(entry.typeName()) + "</td><td>" + entry.usageCount() + "</td></tr>\n");
+                }
+                writer.write("      </table>\n");
+                writer.write("    </div>\n");
+            }
+
+            // Cardinality Statistics
+            writer.write("    <div class=\"section\">\n");
+            writer.write("      <h2>Cardinality Statistics</h2>\n");
+            writer.write("      <table>\n");
+            writeHtmlRow(writer, "Optional Elements (minOccurs=0)", String.valueOf(statistics.optionalElements()));
+            writeHtmlRow(writer, "Required Elements (minOccurs≥1)", String.valueOf(statistics.requiredElements()));
+            writeHtmlRow(writer, "Unbounded Elements", String.valueOf(statistics.unboundedElements()));
+            writer.write("      </table>\n");
+            writer.write("    </div>\n");
+
+            // Footer
+            writer.write("    <div class=\"footer\">\n");
+            writer.write("      <p>Generated by FreeXmlToolkit</p>\n");
+            writer.write("    </div>\n");
+            writer.write("  </div>\n");
+            writer.write("</body>\n");
+            writer.write("</html>\n");
+        }
+
+        logger.info("HTML export completed: {}", outputPath);
+    }
+
+    private String getHtmlStyles() {
+        return """
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              background-color: #f5f5f5;
+              margin: 0;
+              padding: 20px;
+            }
+            .container {
+              max-width: 900px;
+              margin: 0 auto;
+              background: white;
+              padding: 30px;
+              border-radius: 8px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            h1 {
+              color: #2c3e50;
+              border-bottom: 3px solid #3498db;
+              padding-bottom: 10px;
+              margin-bottom: 5px;
+            }
+            h2 {
+              color: #34495e;
+              margin-top: 25px;
+              border-bottom: 1px solid #bdc3c7;
+              padding-bottom: 5px;
+            }
+            .timestamp {
+              color: #7f8c8d;
+              font-size: 0.9em;
+              margin-top: 0;
+            }
+            .section {
+              margin-bottom: 20px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 10px;
+            }
+            th, td {
+              padding: 10px 15px;
+              text-align: left;
+              border-bottom: 1px solid #ecf0f1;
+            }
+            th {
+              background-color: #3498db;
+              color: white;
+              font-weight: 600;
+            }
+            tr:hover {
+              background-color: #f8f9fa;
+            }
+            td:first-child {
+              font-weight: 500;
+              color: #2c3e50;
+            }
+            td:last-child {
+              font-family: 'Consolas', 'Monaco', monospace;
+              color: #27ae60;
+            }
+            .footer {
+              margin-top: 30px;
+              padding-top: 15px;
+              border-top: 1px solid #ecf0f1;
+              text-align: center;
+              color: #95a5a6;
+              font-size: 0.85em;
+            }
+            """;
+    }
+
+    private void writeHtmlRow(BufferedWriter writer, String label, String value) throws IOException {
+        writer.write("        <tr><td>" + escapeHtml(label) + "</td><td>" + escapeHtml(value) + "</td></tr>\n");
+    }
+
+    private String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;")
+                   .replace("\"", "&quot;");
+    }
+
+    /**
+     * Exports statistics to Excel format (.xlsx).
+     *
+     * @param statistics the statistics to export
+     * @param outputPath the output file path
+     * @throws IOException if writing fails
+     */
+    public void exportToExcel(XsdStatistics statistics, Path outputPath) throws IOException {
+        logger.info("Exporting statistics to Excel: {}", outputPath);
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            // Create styles
+            CellStyle headerStyle = createHeaderStyle(workbook);
+            CellStyle sectionStyle = createSectionStyle(workbook);
+            CellStyle labelStyle = createLabelStyle(workbook);
+            CellStyle valueStyle = createValueStyle(workbook);
+
+            // Create Overview sheet
+            Sheet overviewSheet = workbook.createSheet("Overview");
+            int rowNum = 0;
+
+            // Title
+            Row titleRow = overviewSheet.createRow(rowNum++);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("XSD Schema Statistics");
+            titleCell.setCellStyle(headerStyle);
+            overviewSheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 1));
+
+            // Timestamp
+            Row timestampRow = overviewSheet.createRow(rowNum++);
+            timestampRow.createCell(0).setCellValue("Generated: " + statistics.collectedAt().format(DATE_FORMATTER));
+            rowNum++; // Empty row
+
+            // Schema Information section
+            rowNum = writeExcelSection(overviewSheet, rowNum, "Schema Information", sectionStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "XSD Version", statistics.xsdVersion(), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Target Namespace", statistics.targetNamespace().isEmpty() ? "(none)" : statistics.targetNamespace(), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Element Form Default", statistics.elementFormDefault(), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Attribute Form Default", statistics.attributeFormDefault(), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Namespace Count", String.valueOf(statistics.namespaceCount()), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "File Count", String.valueOf(statistics.fileCount()), labelStyle, valueStyle);
+            rowNum++; // Empty row
+
+            // Node Counts section
+            rowNum = writeExcelSection(overviewSheet, rowNum, "Node Counts", sectionStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Total Nodes", String.valueOf(statistics.totalNodeCount()), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Elements", String.valueOf(statistics.getElementCount()), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Attributes", String.valueOf(statistics.getAttributeCount()), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Complex Types", String.valueOf(statistics.getComplexTypeCount()), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Simple Types", String.valueOf(statistics.getSimpleTypeCount()), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Groups", String.valueOf(statistics.getGroupCount()), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Attribute Groups", String.valueOf(statistics.getAttributeGroupCount()), labelStyle, valueStyle);
+            rowNum++; // Empty row
+
+            // Documentation section
+            rowNum = writeExcelSection(overviewSheet, rowNum, "Documentation Statistics", sectionStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Nodes with Documentation", String.valueOf(statistics.nodesWithDocumentation()), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Nodes with AppInfo", String.valueOf(statistics.nodesWithAppInfo()), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Documentation Coverage", String.format("%.1f%%", statistics.documentationCoveragePercent()), labelStyle, valueStyle);
+            rowNum++; // Empty row
+
+            // Cardinality section
+            rowNum = writeExcelSection(overviewSheet, rowNum, "Cardinality Statistics", sectionStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Optional Elements", String.valueOf(statistics.optionalElements()), labelStyle, valueStyle);
+            rowNum = writeExcelRow(overviewSheet, rowNum, "Required Elements", String.valueOf(statistics.requiredElements()), labelStyle, valueStyle);
+            writeExcelRow(overviewSheet, rowNum, "Unbounded Elements", String.valueOf(statistics.unboundedElements()), labelStyle, valueStyle);
+
+            // Auto-size columns
+            overviewSheet.setColumnWidth(0, 10000);
+            overviewSheet.setColumnWidth(1, 15000);
+
+            // Create Type Usage sheet
+            if (!statistics.topUsedTypes().isEmpty()) {
+                Sheet typeSheet = workbook.createSheet("Type Usage");
+                int typeRowNum = 0;
+
+                Row typeHeaderRow = typeSheet.createRow(typeRowNum++);
+                Cell typeNameHeader = typeHeaderRow.createCell(0);
+                typeNameHeader.setCellValue("Type Name");
+                typeNameHeader.setCellStyle(headerStyle);
+                Cell usageHeader = typeHeaderRow.createCell(1);
+                usageHeader.setCellValue("Usage Count");
+                usageHeader.setCellStyle(headerStyle);
+
+                for (XsdStatistics.TypeUsageEntry entry : statistics.topUsedTypes()) {
+                    Row row = typeSheet.createRow(typeRowNum++);
+                    row.createCell(0).setCellValue(entry.typeName());
+                    row.createCell(1).setCellValue(entry.usageCount());
+                }
+
+                typeSheet.setColumnWidth(0, 15000);
+                typeSheet.setColumnWidth(1, 5000);
+            }
+
+            // Create Node Types sheet
+            Sheet nodeTypesSheet = workbook.createSheet("Node Types");
+            int nodeRowNum = 0;
+
+            Row nodeHeaderRow = nodeTypesSheet.createRow(nodeRowNum++);
+            Cell nodeTypeHeader = nodeHeaderRow.createCell(0);
+            nodeTypeHeader.setCellValue("Node Type");
+            nodeTypeHeader.setCellStyle(headerStyle);
+            Cell countHeader = nodeHeaderRow.createCell(1);
+            countHeader.setCellValue("Count");
+            countHeader.setCellStyle(headerStyle);
+
+            for (XsdNodeType type : XsdNodeType.values()) {
+                int count = statistics.getNodeCount(type);
+                if (count > 0) {
+                    Row row = nodeTypesSheet.createRow(nodeRowNum++);
+                    row.createCell(0).setCellValue(type.name());
+                    row.createCell(1).setCellValue(count);
+                }
+            }
+
+            nodeTypesSheet.setColumnWidth(0, 8000);
+            nodeTypesSheet.setColumnWidth(1, 4000);
+
+            // Write to file
+            try (OutputStream out = Files.newOutputStream(outputPath)) {
+                workbook.write(out);
+            }
+        }
+
+        logger.info("Excel export completed: {}", outputPath);
+    }
+
+    private CellStyle createHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 14);
+        font.setColor(IndexedColors.WHITE.getIndex());
+        style.setFont(font);
+        style.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setAlignment(HorizontalAlignment.LEFT);
+        return style;
+    }
+
+    private CellStyle createSectionStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 12);
+        style.setFont(font);
+        style.setFillForegroundColor(IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return style;
+    }
+
+    private CellStyle createLabelStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        style.setFont(font);
+        return style;
+    }
+
+    private CellStyle createValueStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        style.setAlignment(HorizontalAlignment.LEFT);
+        return style;
+    }
+
+    private int writeExcelSection(Sheet sheet, int rowNum, String title, CellStyle style) {
+        Row row = sheet.createRow(rowNum);
+        Cell cell = row.createCell(0);
+        cell.setCellValue(title);
+        cell.setCellStyle(style);
+        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, 0, 1));
+        return rowNum + 1;
+    }
+
+    private int writeExcelRow(Sheet sheet, int rowNum, String label, String value, CellStyle labelStyle, CellStyle valueStyle) {
+        Row row = sheet.createRow(rowNum);
+        Cell labelCell = row.createCell(0);
+        labelCell.setCellValue(label);
+        labelCell.setCellStyle(labelStyle);
+        Cell valueCell = row.createCell(1);
+        valueCell.setCellValue(value);
+        valueCell.setCellStyle(valueStyle);
+        return rowNum + 1;
     }
 }

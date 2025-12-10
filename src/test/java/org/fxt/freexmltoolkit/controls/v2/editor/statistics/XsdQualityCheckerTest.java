@@ -426,4 +426,207 @@ class XsdQualityCheckerTest {
                     "XPath should contain element name. Actual: " + issue.xpath());
         }
     }
+
+    // ========== Inconsistent Definition Tests ==========
+
+    @Nested
+    @DisplayName("Inconsistent Definition Detection")
+    class InconsistentDefinitionTests {
+
+        @Test
+        @DisplayName("should detect elements with same name but different types")
+        void testSameNameDifferentType() {
+            // Create two elements named "Status" but with different types
+            XsdComplexType parent1 = new XsdComplexType("OrderType");
+            XsdSequence seq1 = new XsdSequence();
+            XsdElement elem1 = new XsdElement("Status");
+            elem1.setType("xs:string");
+            seq1.addChild(elem1);
+            parent1.addChild(seq1);
+
+            XsdComplexType parent2 = new XsdComplexType("InvoiceType");
+            XsdSequence seq2 = new XsdSequence();
+            XsdElement elem2 = new XsdElement("Status");
+            elem2.setType("xs:int"); // Different type!
+            seq2.addChild(elem2);
+            parent2.addChild(seq2);
+
+            schema.addChild(parent1);
+            schema.addChild(parent2);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.INCONSISTENT_DEFINITION);
+            assertEquals(1, issues.size(), "Should detect inconsistent definition");
+            assertTrue(issues.get(0).message().contains("Status"));
+        }
+
+        @Test
+        @DisplayName("should not report issue when elements with same name have same structure")
+        void testSameNameSameStructure() {
+            // Create two elements named "Amount" with same type
+            XsdComplexType parent1 = new XsdComplexType("OrderType");
+            XsdSequence seq1 = new XsdSequence();
+            XsdElement elem1 = new XsdElement("Amount");
+            elem1.setType("xs:decimal");
+            seq1.addChild(elem1);
+            parent1.addChild(seq1);
+
+            XsdComplexType parent2 = new XsdComplexType("InvoiceType");
+            XsdSequence seq2 = new XsdSequence();
+            XsdElement elem2 = new XsdElement("Amount");
+            elem2.setType("xs:decimal"); // Same type
+            seq2.addChild(elem2);
+            parent2.addChild(seq2);
+
+            schema.addChild(parent1);
+            schema.addChild(parent2);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.INCONSISTENT_DEFINITION);
+            assertTrue(issues.isEmpty(), "Should not report issue for consistent definitions");
+        }
+
+        @Test
+        @DisplayName("should detect SimpleTypes with same name but different restrictions")
+        void testSameNameSimpleTypeDifferentRestrictions() {
+            // Create two SimpleTypes named "StatusCodeType" with different patterns
+            XsdSimpleType type1 = new XsdSimpleType("StatusCodeType");
+            XsdRestriction restriction1 = new XsdRestriction("xs:string");
+            restriction1.addFacet(new XsdFacet(XsdFacetType.PATTERN, "[A-Z]{3}"));
+            type1.addChild(restriction1);
+
+            // This simulates a second definition somewhere in included schema
+            // In a real scenario these would be in different files
+            XsdSimpleType type2 = new XsdSimpleType("StatusCodeType");
+            XsdRestriction restriction2 = new XsdRestriction("xs:string");
+            restriction2.addFacet(new XsdFacet(XsdFacetType.PATTERN, "[A-Z]{2}")); // Different pattern
+            type2.addChild(restriction2);
+
+            schema.addChild(type1);
+            schema.addChild(type2);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.INCONSISTENT_DEFINITION);
+            assertEquals(1, issues.size(), "Should detect inconsistent SimpleType definitions");
+            assertTrue(issues.get(0).message().contains("StatusCodeType"));
+        }
+    }
+
+    // ========== Duplicate Definition Tests ==========
+
+    @Nested
+    @DisplayName("Duplicate Definition Detection")
+    class DuplicateDefinitionTests {
+
+        @Test
+        @DisplayName("should detect SimpleTypes with different names but identical restrictions")
+        void testDifferentNameSameRestrictions() {
+            // Create two SimpleTypes with different names but identical content
+            XsdSimpleType type1 = new XsdSimpleType("CustomerStatusType");
+            XsdRestriction restriction1 = new XsdRestriction("xs:string");
+            restriction1.addFacet(new XsdFacet(XsdFacetType.MAX_LENGTH, "50"));
+            restriction1.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "ACTIVE"));
+            restriction1.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "INACTIVE"));
+            type1.addChild(restriction1);
+
+            XsdSimpleType type2 = new XsdSimpleType("AccountStatusType");
+            XsdRestriction restriction2 = new XsdRestriction("xs:string");
+            restriction2.addFacet(new XsdFacet(XsdFacetType.MAX_LENGTH, "50"));
+            restriction2.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "ACTIVE"));
+            restriction2.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "INACTIVE"));
+            type2.addChild(restriction2);
+
+            schema.addChild(type1);
+            schema.addChild(type2);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.DUPLICATE_DEFINITION);
+            assertEquals(1, issues.size(), "Should detect duplicate definitions");
+            assertTrue(issues.get(0).message().contains("CustomerStatusType") ||
+                    issues.get(0).message().contains("AccountStatusType"));
+        }
+
+        @Test
+        @DisplayName("should not report duplicates for structurally different types")
+        void testDifferentNameDifferentContent() {
+            // Create two SimpleTypes that are genuinely different
+            XsdSimpleType type1 = new XsdSimpleType("NameType");
+            XsdRestriction restriction1 = new XsdRestriction("xs:string");
+            restriction1.addFacet(new XsdFacet(XsdFacetType.MAX_LENGTH, "100"));
+            type1.addChild(restriction1);
+
+            XsdSimpleType type2 = new XsdSimpleType("CodeType");
+            XsdRestriction restriction2 = new XsdRestriction("xs:string");
+            restriction2.addFacet(new XsdFacet(XsdFacetType.MAX_LENGTH, "10"));
+            restriction2.addFacet(new XsdFacet(XsdFacetType.PATTERN, "[A-Z0-9]+"));
+            type2.addChild(restriction2);
+
+            schema.addChild(type1);
+            schema.addChild(type2);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.DUPLICATE_DEFINITION);
+            assertTrue(issues.isEmpty(), "Should not report duplicates for different structures");
+        }
+
+        @Test
+        @DisplayName("should not report trivial definitions as duplicates")
+        void testTrivialDefinitionsNotReportedAsDuplicates() {
+            // Create two elements with just a type reference (trivial structure)
+            XsdElement elem1 = new XsdElement("FirstName");
+            elem1.setType("xs:string");
+
+            XsdElement elem2 = new XsdElement("LastName");
+            elem2.setType("xs:string");
+
+            schema.addChild(elem1);
+            schema.addChild(elem2);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            // Trivial definitions should not be flagged as duplicates
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.DUPLICATE_DEFINITION);
+            assertTrue(issues.isEmpty(), "Should not flag trivial definitions as duplicates");
+        }
+
+        @Test
+        @DisplayName("duplicate detection should have INFO severity")
+        void testDuplicateIssueHasInfoSeverity() {
+            XsdSimpleType type1 = new XsdSimpleType("Type1");
+            XsdRestriction restriction1 = new XsdRestriction("xs:string");
+            restriction1.addFacet(new XsdFacet(XsdFacetType.MAX_LENGTH, "25"));
+            restriction1.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "VALUE1"));
+            restriction1.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "VALUE2"));
+            type1.addChild(restriction1);
+
+            XsdSimpleType type2 = new XsdSimpleType("Type2");
+            XsdRestriction restriction2 = new XsdRestriction("xs:string");
+            restriction2.addFacet(new XsdFacet(XsdFacetType.MAX_LENGTH, "25"));
+            restriction2.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "VALUE1"));
+            restriction2.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "VALUE2"));
+            type2.addChild(restriction2);
+
+            schema.addChild(type1);
+            schema.addChild(type2);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.DUPLICATE_DEFINITION);
+            assertFalse(issues.isEmpty());
+            assertEquals(IssueSeverity.INFO, issues.get(0).severity(),
+                    "Duplicate detection should be INFO severity (not ERROR)");
+        }
+    }
 }
