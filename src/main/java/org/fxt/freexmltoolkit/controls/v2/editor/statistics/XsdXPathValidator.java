@@ -1,16 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
-import net.sf.saxon.s9api.Processor;
-import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.XPathCompiler;
+import net.sf.saxon.s9api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.w3c.dom.Document;
 
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 import java.util.*;
 
 /**
@@ -484,21 +479,22 @@ public class XsdXPathValidator {
             return -1;
         }
 
-        XPath xpathEval = XPathFactory.newInstance().newXPath();
+        // Use Saxon for XPath evaluation
+        Processor processor = new Processor(false);
+        XPathCompiler xpathCompiler = processor.newXPathCompiler();
+        XPathExecutable xpathExecutable = xpathCompiler.compile(xpath);
+        XPathSelector xpathSelector = xpathExecutable.load();
 
-        // Try as node set first
+        // Wrap DOM document in Saxon wrapper
+        XdmNode contextNode = processor.newDocumentBuilder().wrap(sampleXml);
+        xpathSelector.setContextItem(contextNode);
+
+        // Evaluate the XPath
         try {
-            org.w3c.dom.NodeList result = (org.w3c.dom.NodeList) xpathEval.evaluate(
-                    xpath, sampleXml, XPathConstants.NODESET);
-            return result.getLength();
+            XdmValue result = xpathSelector.evaluate();
+            return result.size();
         } catch (Exception e) {
-            // Try as string/number
-            try {
-                String result = xpathEval.evaluate(xpath, sampleXml);
-                return result != null && !result.isEmpty() ? 1 : 0;
-            } catch (Exception e2) {
-                throw e; // Re-throw original exception
-            }
+            throw e;
         }
     }
 }

@@ -277,6 +277,104 @@ public class XmlServiceXPathTest {
     }
 
     @Nested
+    @DisplayName("XPath 2.0 Function Tests")
+    class XPath20FunctionTests {
+
+        private static final String FUNDS_XML = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <FundsXML4>
+                    <Funds>
+                        <Fund>
+                            <FundDynamicData>
+                                <Portfolios>
+                                    <Portfolio>
+                                        <Positions>
+                                            <Position>
+                                                <TotalValue>
+                                                    <Amount ccy="EUR">1234567.89</Amount>
+                                                </TotalValue>
+                                            </Position>
+                                            <Position>
+                                                <TotalValue>
+                                                    <Amount ccy="EUR">987654.32</Amount>
+                                                </TotalValue>
+                                            </Position>
+                                            <Position>
+                                                <TotalValue>
+                                                    <Amount ccy="USD">5000.00</Amount>
+                                                </TotalValue>
+                                            </Position>
+                                        </Positions>
+                                    </Portfolio>
+                                </Portfolios>
+                            </FundDynamicData>
+                        </Fund>
+                    </Funds>
+                </FundsXML4>
+                """;
+
+        @Test
+        @DisplayName("Should support XPath 2.0 format-number function with two parameters")
+        void testFormatNumberTwoParams() {
+            String result = xmlService.getXmlFromXpath(FUNDS_XML,
+                "format-number(sum(/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy='EUR']/text()), '###,###,000.0###')");
+
+            assertNotNull(result, "Result should not be null");
+            assertTrue(result.contains("2,222,222.2"), "Result should contain formatted number with comma separator");
+        }
+
+        @Test
+        @DisplayName("Should support XPath 2.0 format-number function with simple pattern")
+        void testFormatNumberSimplePattern() {
+            String result = xmlService.getXmlFromXpath(FUNDS_XML,
+                "format-number(1234.56, '0.00')");
+
+            assertNotNull(result, "Result should not be null");
+            assertTrue(result.contains("1234.56"), "Result should contain formatted number");
+        }
+
+        @Test
+        @DisplayName("Should support XPath 2.0 current-date function")
+        void testCurrentDateFunction() {
+            String result = xmlService.getXmlFromXpath(FUNDS_XML, "current-date()");
+
+            assertNotNull(result, "Result should not be null");
+            assertFalse(result.trim().isEmpty(), "Result should not be empty");
+            // Should return ISO date format like 2025-12-10
+        }
+
+        @Test
+        @DisplayName("Should support XPath 2.0 upper-case function")
+        void testUpperCaseFunction() {
+            String result = xmlService.getXmlFromXpath(TEST_XML, "upper-case('hello world')");
+
+            assertNotNull(result, "Result should not be null");
+            assertEquals("HELLO WORLD", result.trim(), "Result should be uppercase");
+        }
+
+        @Test
+        @DisplayName("Should support XPath 2.0 lower-case function")
+        void testLowerCaseFunction() {
+            String result = xmlService.getXmlFromXpath(TEST_XML, "lower-case('HELLO WORLD')");
+
+            assertNotNull(result, "Result should not be null");
+            assertEquals("hello world", result.trim(), "Result should be lowercase");
+        }
+
+        @Test
+        @DisplayName("Should support XPath 2.0 tokenize function")
+        void testTokenizeFunction() {
+            String result = xmlService.getXmlFromXpath(TEST_XML, "tokenize('a,b,c', ',')");
+
+            assertNotNull(result, "Result should not be null");
+            // Saxon returns sequence items separated by newlines
+            assertTrue(result.contains("a"), "Result should contain 'a'");
+            assertTrue(result.contains("b"), "Result should contain 'b'");
+            assertTrue(result.contains("c"), "Result should contain 'c'");
+        }
+    }
+
+    @Nested
     @DisplayName("Edge Cases")
     class EdgeCaseTests {
 

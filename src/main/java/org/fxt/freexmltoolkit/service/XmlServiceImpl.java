@@ -53,10 +53,6 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -82,8 +78,6 @@ public class XmlServiceImpl implements XmlService {
     private final XmlValidationService xercesValidationService = new XercesXmlValidationService();
 
     final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
-    XPathFactory xPathFactory = new net.sf.saxon.xpath.XPathFactoryImpl();
-    XPath xPathPath = xPathFactory.newXPath();
     Processor processor = new Processor(false);
     XsltCompiler compiler = processor.newXsltCompiler();
     StringWriter sw;
@@ -243,28 +237,31 @@ public class XmlServiceImpl implements XmlService {
         // output methode ermitteln!!
         try {
             if (this.currentXsltFile != null) { // Ensure file is not null before trying to read
-                FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
-                final var builder = builderFactory.newDocumentBuilder();
-                final var xmlDocument = builder.parse(fileIS);
+                // Use Saxon to parse and evaluate XPath
+                net.sf.saxon.s9api.DocumentBuilder docBuilder = processor.newDocumentBuilder();
+                XdmNode doc = docBuilder.build(this.currentXsltFile);
 
                 final String expression = "/stylesheet/output/@method";
-                final XPath xPath = XPathFactory.newInstance().newXPath();
-                final var outputMethodeNode = (Node) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODE);
+                XPathCompiler xpathCompiler = processor.newXPathCompiler();
+                XPathExecutable xpathExecutable = xpathCompiler.compile(expression);
+                XPathSelector xpathSelector = xpathExecutable.load();
+                xpathSelector.setContextItem(doc);
 
-                if (outputMethodeNode != null && outputMethodeNode.getNodeValue() != null) {
-                    logger.debug("Output Method: {}", outputMethodeNode.getNodeValue());
-                    this.xsltOutputMethod = outputMethodeNode.getNodeValue().trim().toLowerCase();
+                XdmValue result = xpathSelector.evaluate();
+
+                if (result.size() > 0) {
+                    String outputMethod = result.itemAt(0).getStringValue();
+                    logger.debug("Output Method: {}", outputMethod);
+                    this.xsltOutputMethod = outputMethod.trim().toLowerCase();
                 } else {
                     this.xsltOutputMethod = null; // Reset if no method found
                 }
             } else {
                 this.xsltOutputMethod = null; // Reset if no XSLT file
             }
-        } catch (XPathExpressionException e) {
+        } catch (SaxonApiException e) {
             logger.error("Could not detect output Method.");
             logger.error(e.getMessage());
-        } catch (ParserConfigurationException | IOException | SAXException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -838,9 +835,29 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public Node getNodeFromXpath(String xPath) {
         try {
-            return (Node) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODE);
+            // Use Saxon with DOM wrapper
+            XPathCompiler xpathCompiler = processor.newXPathCompiler();
+            XPathExecutable xpathExecutable = xpathCompiler.compile(xPath);
+            XPathSelector xpathSelector = xpathExecutable.load();
+
+            // Wrap DOM document in Saxon's DOM wrapper
+            XdmNode contextNode = processor.newDocumentBuilder().wrap(xmlDocument);
+            xpathSelector.setContextItem(contextNode);
+
+            XdmValue result = xpathSelector.evaluate();
+
+            if (result.size() > 0) {
+                XdmItem item = result.itemAt(0);
+                if (item instanceof XdmNode xdmNode) {
+                    // Get the underlying DOM node from Saxon's DOMNodeWrapper
+                    net.sf.saxon.om.NodeInfo nodeInfo = xdmNode.getUnderlyingNode();
+                    if (nodeInfo instanceof net.sf.saxon.dom.DOMNodeWrapper) {
+                        return ((net.sf.saxon.dom.DOMNodeWrapper) nodeInfo).getUnderlyingNode();
+                    }
+                }
+            }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Error evaluating XPath: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -857,9 +874,28 @@ public class XmlServiceImpl implements XmlService {
         }
 
         try {
-            final XPath localXPath = xPathFactory.newXPath();
-            return (Node) localXPath.compile(xPath).evaluate(currentNode, XPathConstants.NODE);
-        } catch (XPathExpressionException e) {
+            // Use Saxon with DOM wrapper
+            XPathCompiler xpathCompiler = processor.newXPathCompiler();
+            XPathExecutable xpathExecutable = xpathCompiler.compile(xPath);
+            XPathSelector xpathSelector = xpathExecutable.load();
+
+            // Wrap the DOM node in Saxon's DOM wrapper
+            XdmNode contextNode = processor.newDocumentBuilder().wrap(currentNode);
+            xpathSelector.setContextItem(contextNode);
+
+            XdmValue result = xpathSelector.evaluate();
+
+            if (result.size() > 0) {
+                XdmItem item = result.itemAt(0);
+                if (item instanceof XdmNode xdmNode) {
+                    // Get the underlying DOM node from Saxon's DOMNodeWrapper
+                    net.sf.saxon.om.NodeInfo nodeInfo = xdmNode.getUnderlyingNode();
+                    if (nodeInfo instanceof net.sf.saxon.dom.DOMNodeWrapper) {
+                        return ((net.sf.saxon.dom.DOMNodeWrapper) nodeInfo).getUnderlyingNode();
+                    }
+                }
+            }
+        } catch (Exception e) {
             logger.error("Error evaluating XPath expression '{}' on the current node. Msg: {}", xPath, e.getMessage(), e);
         }
         return null;
@@ -881,17 +917,31 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public String getXmlFromXpath(String xPath, Node node) {
         try {
-            var resultNode = (Node) xPathPath.compile(xPath).evaluate(node, XPathConstants.NODE);
-            sw = new StringWriter();
+            // Use Saxon with DOM wrapper
+            XPathCompiler xpathCompiler = processor.newXPathCompiler();
+            XPathExecutable xpathExecutable = xpathCompiler.compile(xPath);
+            XPathSelector xpathSelector = xpathExecutable.load();
 
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.transform(new DOMSource(resultNode), new StreamResult(sw));
-            return sw.toString();
+            // Wrap the DOM node in Saxon's DOM wrapper
+            XdmNode contextNode = processor.newDocumentBuilder().wrap(node);
+            xpathSelector.setContextItem(contextNode);
 
-        } catch (XPathExpressionException | TransformerException e) {
-            logger.error(e.getMessage());
+            XdmValue result = xpathSelector.evaluate();
+
+            if (result.size() > 0) {
+                XdmItem item = result.itemAt(0);
+                if (item instanceof XdmNode) {
+                    // Serialize the node to XML string
+                    StringWriter writer = new StringWriter();
+                    Serializer serializer = processor.newSerializer(writer);
+                    serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
+                    serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
+                    serializer.serializeNode((XdmNode) item);
+                    return writer.toString();
+                }
+            }
+        } catch (SaxonApiException e) {
+            logger.error("Error evaluating XPath: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -899,100 +949,102 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public String getXmlFromXpath(String xml, String xPath) {
         try {
-            // Parse the provided XML content instead of using instance field
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new StringReader(xml)));
+            // Use Saxon's native XPath API for full XPath 3.1 support
+            // This supports XPath 2.0/3.0/3.1 functions like format-number(), current-date(), etc.
 
-            // Try to evaluate as NODESET first (for node selections)
-            try {
-                var nodeList = (NodeList) xPathPath.compile(xPath).evaluate(doc, XPathConstants.NODESET);
-                sw = new StringWriter();
+            // Parse XML document using Saxon
+            net.sf.saxon.s9api.DocumentBuilder docBuilder = processor.newDocumentBuilder();
+            Source source = new StreamSource(new StringReader(xml));
+            XdmNode doc = docBuilder.build(source);
 
-                for (int i = 0; i < nodeList.getLength(); i++) {
-                    Node n = nodeList.item(i);
+            // Compile and evaluate XPath expression
+            XPathCompiler xpathCompiler = processor.newXPathCompiler();
+            XPathExecutable xpathExecutable = xpathCompiler.compile(xPath);
+            XPathSelector xpathSelector = xpathExecutable.load();
+            xpathSelector.setContextItem(doc);
 
-                    // Skip null nodes
-                    if (n == null) {
-                        logger.warn("Skipping null node at index {}", i);
-                        continue;
+            // Evaluate the XPath expression
+            XdmValue result = xpathSelector.evaluate();
+
+            // Build result string
+            StringBuilder resultBuilder = new StringBuilder();
+
+            if (result.size() == 0) {
+                // Empty result set
+                return "";
+            }
+
+            for (XdmItem item : result) {
+                if (item.isAtomicValue()) {
+                    // Atomic value (string, number, boolean, date, etc.)
+                    // This handles XPath 2.0+ functions like format-number(), sum(), count(), etc.
+                    resultBuilder.append(item.getStringValue());
+                    if (result.size() > 1) {
+                        resultBuilder.append(System.lineSeparator());
                     }
+                } else if (item instanceof XdmNode node) {
+                    // Node result
+                    switch (node.getNodeKind()) {
+                        case ELEMENT:
+                            // Element nodes - serialize to XML
+                            Serializer serializer = processor.newSerializer(new StringWriter());
+                            serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
+                            serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
 
-                    // Handle different node types appropriately
-                    switch (n.getNodeType()) {
-                        case Node.ELEMENT_NODE:
-                            // Element nodes can be transformed to XML
-                            transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-                            transform.setOutputProperty(OutputKeys.INDENT, "yes");
-                            var swTemp = new StringWriter();
-                            transform.transform(new DOMSource(n), new StreamResult(swTemp));
-                            sw.append(swTemp.toString());
+                            StringWriter elementWriter = new StringWriter();
+                            serializer = processor.newSerializer(elementWriter);
+                            serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
+                            serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
+                            serializer.serializeNode(node);
+
+                            resultBuilder.append(elementWriter.toString());
+                            resultBuilder.append(System.lineSeparator());
                             break;
 
-                        case Node.TEXT_NODE:
-                        case Node.CDATA_SECTION_NODE:
-                            // Text nodes - output the text content directly
-                            String textContent = n.getTextContent();
+                        case TEXT:
+                            // Text nodes - output text content
+                            String textContent = node.getStringValue();
                             if (textContent != null && !textContent.trim().isEmpty()) {
-                                sw.append(textContent.trim());
+                                resultBuilder.append(textContent.trim());
+                                resultBuilder.append(System.lineSeparator());
                             }
                             break;
 
-                        case Node.ATTRIBUTE_NODE:
+                        case ATTRIBUTE:
                             // Attribute nodes - output only the value
-                            sw.append(n.getNodeValue());
+                            resultBuilder.append(node.getStringValue());
+                            resultBuilder.append(System.lineSeparator());
                             break;
 
-                        case Node.COMMENT_NODE:
+                        case COMMENT:
                             // Comment nodes - output in XML comment format
-                            sw.append("<!--").append(n.getNodeValue()).append("-->");
+                            resultBuilder.append("<!--").append(node.getStringValue()).append("-->");
+                            resultBuilder.append(System.lineSeparator());
                             break;
 
-                        case Node.PROCESSING_INSTRUCTION_NODE:
+                        case PROCESSING_INSTRUCTION:
                             // Processing instruction nodes
-                            sw.append("<?").append(n.getNodeName())
-                                    .append(" ").append(n.getNodeValue()).append("?>");
+                            resultBuilder.append("<?").append(node.getNodeName().getLocalName())
+                                    .append(" ").append(node.getStringValue()).append("?>");
+                            resultBuilder.append(System.lineSeparator());
                             break;
 
                         default:
-                            // Other node types - try to get text content
-                            String content = n.getTextContent();
-                            if (content != null) {
-                                sw.append(content);
-                            }
+                            // Other node types - get string value
+                            resultBuilder.append(node.getStringValue());
+                            resultBuilder.append(System.lineSeparator());
                             break;
                     }
-                    sw.append(System.lineSeparator());
                 }
-
-                return sw.toString();
-
-            } catch (XPathExpressionException nodeSetError) {
-                // If NODESET evaluation fails (e.g., for count(), sum(), string() functions),
-                // fall back to STRING evaluation which works for all XPath result types
-                logger.debug("XPath expression returns scalar value, evaluating as string: {}", xPath);
-
-                String result = (String) xPathPath.compile(xPath).evaluate(doc, XPathConstants.STRING);
-                logger.info("XPath scalar result: {}", result);
-                return result;
             }
 
-        } catch (XPathExpressionException e) {
-            logger.error("XPath expression error: {}", e.getMessage(), e);
-            throw new RuntimeException("Invalid XPath expression: " + e.getMessage(), e);
-        } catch (TransformerException e) {
-            logger.error("Transformation error: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to transform XPath result: " + e.getMessage(), e);
-        } catch (ParserConfigurationException e) {
-            logger.error("Parser configuration error: {}", e.getMessage(), e);
-            throw new RuntimeException("XML parser configuration error: " + e.getMessage(), e);
-        } catch (SAXException e) {
-            logger.error("SAX parsing error: {}", e.getMessage(), e);
-            throw new RuntimeException("Invalid XML: " + e.getMessage(), e);
-        } catch (IOException e) {
-            logger.error("IO error: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to read XML: " + e.getMessage(), e);
+            String finalResult = resultBuilder.toString();
+            logger.debug("XPath result: {}", finalResult);
+            return finalResult;
+
+        } catch (SaxonApiException e) {
+            logger.error("Saxon XPath error: {}", e.getMessage(), e);
+            throw new RuntimeException("Invalid XPath expression or XML: " + e.getMessage(), e);
         }
     }
 
@@ -1461,6 +1513,42 @@ public class XmlServiceImpl implements XmlService {
         writeDocumentToFile(doc, xsdFile);
     }
 
+    /**
+     * Helper method to evaluate XPath on a Node using Saxon and return a Node result.
+     * This replaces the old javax.xml.xpath API with Saxon.
+     *
+     * @param xpathExpression The XPath expression to evaluate
+     * @param contextNode The context node to evaluate on
+     * @return The resulting Node, or null if not found
+     */
+    private Node evaluateSaxonXPath(String xpathExpression, Node contextNode) {
+        try {
+            XPathCompiler xpathCompiler = processor.newXPathCompiler();
+            XPathExecutable xpathExecutable = xpathCompiler.compile(xpathExpression);
+            XPathSelector xpathSelector = xpathExecutable.load();
+
+            // Wrap the DOM node in Saxon's DOM wrapper
+            XdmNode wrappedNode = processor.newDocumentBuilder().wrap(contextNode);
+            xpathSelector.setContextItem(wrappedNode);
+
+            XdmValue result = xpathSelector.evaluate();
+
+            if (result.size() > 0) {
+                XdmItem item = result.itemAt(0);
+                if (item instanceof XdmNode xdmNode) {
+                    // Get the underlying DOM node from Saxon's DOMNodeWrapper
+                    net.sf.saxon.om.NodeInfo nodeInfo = xdmNode.getUnderlyingNode();
+                    if (nodeInfo instanceof net.sf.saxon.dom.DOMNodeWrapper) {
+                        return ((net.sf.saxon.dom.DOMNodeWrapper) nodeInfo).getUnderlyingNode();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("XPath evaluation failed: {}", e.getMessage());
+        }
+        return null;
+    }
+
     @Override
     public void updateElementDocumentation(File xsdFile, String elementXpath, String documentation, String javadoc) throws Exception {
         // 1. Parse the document
@@ -1483,15 +1571,14 @@ public class XmlServiceImpl implements XmlService {
             throw new IllegalArgumentException("Invalid XPath provided (empty): " + elementXpath);
         }
 
-        // Use the same robust XPath resolution logic as updateExampleValues
-        XPath xpath = XPathFactory.newInstance().newXPath();
+        // Use Saxon XPath for resolution
         Node contextNode = doc; // Start from the document root
 
         for (String part : parts) {
             if (part.isEmpty()) continue;
 
             String query = getQuery(part);
-            Node foundNode = (Node) xpath.compile(query).evaluate(contextNode, XPathConstants.NODE);
+            Node foundNode = evaluateSaxonXPath(query, contextNode);
 
             // If not found, it might be in a referenced type.
             if (foundNode == null && contextNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -1503,11 +1590,11 @@ public class XmlServiceImpl implements XmlService {
 
                     // Find the type definition anywhere in the document.
                     String typeQuery = "//*[local-name()='complexType' or local-name()='simpleType'][@name='" + typeName + "']";
-                    Node typeDefinitionNode = (Node) xpath.compile(typeQuery).evaluate(doc, XPathConstants.NODE);
+                    Node typeDefinitionNode = evaluateSaxonXPath(typeQuery, doc);
 
                     if (typeDefinitionNode != null) {
                         // Search for our part inside this type definition.
-                        foundNode = (Node) xpath.compile(query).evaluate(typeDefinitionNode, XPathConstants.NODE);
+                        foundNode = evaluateSaxonXPath(query, typeDefinitionNode);
                     }
                 }
             }
@@ -1591,15 +1678,14 @@ public class XmlServiceImpl implements XmlService {
             throw new IllegalArgumentException("Invalid XPath provided (empty): " + elementXpath);
         }
 
-        // New, robust XPath resolution logic that can follow type references.
-        XPath xpath = XPathFactory.newInstance().newXPath();
+        // Use Saxon XPath for resolution
         Node contextNode = doc; // Start from the document root
 
         for (String part : parts) {
             if (part.isEmpty()) continue;
 
             String query = getQuery(part);
-            Node foundNode = (Node) xpath.compile(query).evaluate(contextNode, XPathConstants.NODE);
+            Node foundNode = evaluateSaxonXPath(query, contextNode);
 
             // If not found, it might be in a referenced type.
             if (foundNode == null && contextNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -1611,11 +1697,11 @@ public class XmlServiceImpl implements XmlService {
 
                     // Find the type definition anywhere in the document.
                     String typeQuery = "//*[local-name()='complexType' or local-name()='simpleType'][@name='" + typeName + "']";
-                    Node typeDefinitionNode = (Node) xpath.compile(typeQuery).evaluate(doc, XPathConstants.NODE);
+                    Node typeDefinitionNode = evaluateSaxonXPath(typeQuery, doc);
 
                     if (typeDefinitionNode != null) {
                         // Search for our part inside this type definition.
-                        foundNode = (Node) xpath.compile(query).evaluate(typeDefinitionNode, XPathConstants.NODE);
+                        foundNode = evaluateSaxonXPath(query, typeDefinitionNode);
                     }
                 }
             }
@@ -1689,14 +1775,14 @@ public class XmlServiceImpl implements XmlService {
             throw new IllegalArgumentException("Invalid XPath provided (empty): " + elementXpath);
         }
 
-        XPath xpath = XPathFactory.newInstance().newXPath();
+        // Use Saxon XPath for resolution
         Node contextNode = doc;
 
         for (String part : parts) {
             if (part.isEmpty()) continue;
 
             String query = getQuery(part);
-            Node foundNode = (Node) xpath.compile(query).evaluate(contextNode, XPathConstants.NODE);
+            Node foundNode = evaluateSaxonXPath(query, contextNode);
 
             if (foundNode == null && contextNode.getNodeType() == Node.ELEMENT_NODE) {
                 Element contextElement = (Element) contextNode;
@@ -1704,10 +1790,10 @@ public class XmlServiceImpl implements XmlService {
                 if (!typeAttr.isEmpty()) {
                     String typeName = typeAttr.contains(":") ? typeAttr.split(":")[1] : typeAttr;
                     String typeQuery = "//*[local-name()='complexType' or local-name()='simpleType'][@name='" + typeName + "']";
-                    Node typeDefinitionNode = (Node) xpath.compile(typeQuery).evaluate(doc, XPathConstants.NODE);
+                    Node typeDefinitionNode = evaluateSaxonXPath(typeQuery, doc);
 
                     if (typeDefinitionNode != null) {
-                        foundNode = (Node) xpath.compile(query).evaluate(typeDefinitionNode, XPathConstants.NODE);
+                        foundNode = evaluateSaxonXPath(query, typeDefinitionNode);
                     }
                 }
             }

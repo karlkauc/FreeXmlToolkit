@@ -2105,11 +2105,14 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         logger.debug("Executing query: {}", cleanedQuery);
 
         // Validate XPath syntax before executing (for XPath tab only)
+        // Use Saxon's XPath compiler for full XPath 3.1 support (including format-number, current-date, etc.)
         if (selectedItem != null && "xPathTab".equals(selectedItem.getId())) {
             try {
-                // Try to compile the XPath to catch syntax errors early
-                javax.xml.xpath.XPathFactory.newInstance().newXPath().compile(cleanedQuery);
-            } catch (javax.xml.xpath.XPathExpressionException e) {
+                // Try to compile the XPath to catch syntax errors early using Saxon
+                net.sf.saxon.s9api.Processor processor = new net.sf.saxon.s9api.Processor(false);
+                net.sf.saxon.s9api.XPathCompiler xpathCompiler = processor.newXPathCompiler();
+                xpathCompiler.compile(cleanedQuery);
+            } catch (net.sf.saxon.s9api.SaxonApiException e) {
                 String errorMsg = "Invalid XPath expression: " + e.getMessage();
                 logger.error(errorMsg, e);
                 logToConsole(errorMsg);
