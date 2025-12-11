@@ -575,10 +575,49 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     private void openFileInNewTab(java.io.File file) throws Exception {
         String content = java.nio.file.Files.readString(file.toPath());
 
+        // Check if single-line XML and offer formatting to prevent performance issues
+        boolean disableFolding = false;
+        if (XmlService.isSingleLineXml(content)) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Unformatted XML Detected");
+            alert.setHeaderText("This XML file appears to be on a single line.");
+            alert.setContentText("Loading unformatted XML may cause performance issues.\n\n" +
+                    "Would you like to format the file before loading?");
+
+            ButtonType formatButton = new ButtonType("Format Now");
+            ButtonType loadAnywayButton = new ButtonType("Load Anyway (Limited Features)");
+            ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(formatButton, loadAnywayButton, cancelButton);
+
+            java.util.Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent()) {
+                if (result.get() == formatButton) {
+                    logger.info("User chose to format single-line XML file before loading");
+                    content = XmlService.prettyFormat(content, propertiesService.getXmlIndentSpaces());
+                } else if (result.get() == loadAnywayButton) {
+                    logger.info("User chose to load single-line XML without formatting - folding will be disabled");
+                    disableFolding = true;
+                } else {
+                    logger.info("User cancelled loading single-line XML file");
+                    return; // Cancel - don't load
+                }
+            } else {
+                logger.info("User closed dialog - cancelling load");
+                return; // Dialog closed - don't load
+            }
+        }
+
         // Create new XML editor tab
         XmlEditor xmlEditor = new XmlEditor();
         xmlEditor.setMainController(parentController);
         xmlEditor.setText(file.getName());
+
+        // Disable folding before setting text if user chose "Load Anyway"
+        if (disableFolding) {
+            xmlEditor.setFoldingEnabled(false);
+        }
+
         xmlEditor.setEditorText(content);
 
         // Set the XML file to trigger automatic XSD schema detection

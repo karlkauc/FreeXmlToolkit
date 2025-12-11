@@ -51,6 +51,9 @@ public class XmlCodeEditorV2 extends VBox {
     // IntelliSense
     private final IntelliSenseEngine intelliSenseEngine;
 
+    // Folding control - can be disabled for single-line XML files
+    private boolean foldingEnabled = true;
+
     /**
      * Creates a new XmlCodeEditorV2.
      *
@@ -217,7 +220,13 @@ public class XmlCodeEditorV2 extends VBox {
 
             Platform.runLater(() -> {
                 syntaxManager.applySyntaxHighlighting(text);
-                foldingManager.updateFoldingRegions(text);
+
+                // Only update folding if enabled (disabled for single-line XML files to prevent freezing)
+                if (foldingEnabled) {
+                    foldingManager.updateFoldingRegions(text);
+                } else {
+                    logger.info("Folding disabled - skipping folding region calculation");
+                }
 
                 // Force paragraph graphics refresh after folding regions are updated
                 logger.debug("Refreshing paragraph graphics after setText()");
@@ -375,6 +384,26 @@ public class XmlCodeEditorV2 extends VBox {
      */
     public void refreshStatusLine() {
         statusLineManager.refresh();
+    }
+
+    /**
+     * Sets whether code folding is enabled.
+     * Disabling folding is useful for single-line XML files to prevent performance issues.
+     *
+     * @param enabled true to enable folding, false to disable
+     */
+    public void setFoldingEnabled(boolean enabled) {
+        this.foldingEnabled = enabled;
+        logger.info("Folding enabled: {}", enabled);
+    }
+
+    /**
+     * Checks if code folding is enabled.
+     *
+     * @return true if folding is enabled
+     */
+    public boolean isFoldingEnabled() {
+        return foldingEnabled;
     }
 
     @Override

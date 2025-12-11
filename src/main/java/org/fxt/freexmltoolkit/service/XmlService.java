@@ -125,6 +125,21 @@ public interface XmlService {
 
     List<String> getXQueryResult(String xQuery);
 
+    /**
+     * Checks if the XML content is essentially a single line (has 3 or fewer lines).
+     * Single-line XML files can cause performance issues with folding and syntax highlighting.
+     *
+     * @param content the XML content to check
+     * @return true if the content has 3 or fewer lines
+     */
+    static boolean isSingleLineXml(String content) {
+        if (content == null || content.isEmpty()) {
+            return false;
+        }
+        long lineCount = content.chars().filter(ch -> ch == '\n').count() + 1;
+        return lineCount <= 3;
+    }
+
     static String prettyFormat(File input, int indent) {
         List<String> allLines;
         try {

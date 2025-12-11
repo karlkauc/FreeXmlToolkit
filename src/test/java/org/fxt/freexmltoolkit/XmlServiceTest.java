@@ -197,4 +197,65 @@ public class XmlServiceTest {
         assertTrue(formatted.contains(">value<"),
                 "Text should be trimmed in formatted output");
     }
+
+    // ==================== Single-Line XML Detection Tests ====================
+
+    @Test
+    @DisplayName("Should detect single-line XML (no newlines)")
+    void testIsSingleLineXml_singleLine() {
+        String singleLine = "<root><child>text</child></root>";
+        assertTrue(XmlService.isSingleLineXml(singleLine),
+                "XML with no newlines should be detected as single-line");
+    }
+
+    @Test
+    @DisplayName("Should detect XML with 2 lines as single-line")
+    void testIsSingleLineXml_twoLines() {
+        String twoLines = "<root>\n<child>text</child></root>";
+        assertTrue(XmlService.isSingleLineXml(twoLines),
+                "XML with 2 lines should be detected as single-line");
+    }
+
+    @Test
+    @DisplayName("Should detect XML with 3 lines as single-line")
+    void testIsSingleLineXml_threeLines() {
+        String threeLines = "<root>\n<child>text</child>\n</root>";
+        assertTrue(XmlService.isSingleLineXml(threeLines),
+                "XML with 3 lines should be detected as single-line");
+    }
+
+    @Test
+    @DisplayName("Should NOT detect multi-line XML as single-line")
+    void testIsSingleLineXml_multiLine() {
+        String multiLine = "<root>\n  <child1>text1</child1>\n  <child2>text2</child2>\n</root>";
+        assertFalse(XmlService.isSingleLineXml(multiLine),
+                "XML with 4+ lines should NOT be detected as single-line");
+    }
+
+    @Test
+    @DisplayName("Should handle null input gracefully")
+    void testIsSingleLineXml_null() {
+        assertFalse(XmlService.isSingleLineXml(null),
+                "Null input should return false");
+    }
+
+    @Test
+    @DisplayName("Should handle empty input gracefully")
+    void testIsSingleLineXml_empty() {
+        assertFalse(XmlService.isSingleLineXml(""),
+                "Empty input should return false");
+    }
+
+    @Test
+    @DisplayName("Should detect properly formatted XML as NOT single-line")
+    void testIsSingleLineXml_formattedXml() {
+        String formatted = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <root>
+                    <child>text</child>
+                </root>
+                """;
+        assertFalse(XmlService.isSingleLineXml(formatted),
+                "Properly formatted XML should NOT be detected as single-line");
+    }
 }

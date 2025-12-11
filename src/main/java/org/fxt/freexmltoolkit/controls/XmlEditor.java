@@ -102,6 +102,10 @@ public class XmlEditor extends Tab {
     // --- Graphic View Component ---
     private XmlGraphicEditor currentGraphicEditor;
 
+    // --- Folding Control ---
+    // Can be disabled for single-line XML files to prevent performance issues
+    private boolean foldingEnabled = true;
+
     /**
          * Data class to hold element information.
          */
@@ -2196,6 +2200,30 @@ public class XmlEditor extends Tab {
      */
     public boolean isUsingV2Editor() {
         return useV2Editor;
+    }
+
+    /**
+     * Sets whether code folding is enabled.
+     * Disabling folding is useful for single-line XML files to prevent performance issues.
+     *
+     * @param enabled true to enable folding, false to disable
+     */
+    public void setFoldingEnabled(boolean enabled) {
+        this.foldingEnabled = enabled;
+        // Pass through to V2 editor if active
+        if (useV2Editor && xmlCodeEditorV2 != null) {
+            xmlCodeEditorV2.setFoldingEnabled(enabled);
+        }
+        logger.info("Folding enabled: {}", enabled);
+    }
+
+    /**
+     * Checks if code folding is enabled.
+     *
+     * @return true if folding is enabled
+     */
+    public boolean isFoldingEnabled() {
+        return foldingEnabled;
     }
 
     // ==================== Wrapper methods that work with both V1 and V2 ====================
