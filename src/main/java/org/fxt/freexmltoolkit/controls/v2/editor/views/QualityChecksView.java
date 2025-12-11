@@ -424,7 +424,29 @@ public class QualityChecksView extends BorderPane {
                 new SimpleIntegerProperty(data.getValue().affectedElements().size()).asObject());
         affectedCol.setPrefWidth(70);
 
-        issuesTable.getColumns().addAll(severityCol, categoryCol, messageCol, affectedCol);
+        // Source file column
+        TableColumn<QualityIssue, String> sourceCol = new TableColumn<>("Source");
+        sourceCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getSourceFileName()));
+        sourceCol.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item);
+                    // Show full path in tooltip
+                    QualityIssue issue = getTableView().getItems().get(getIndex());
+                    if (issue.sourceFile() != null) {
+                        setTooltip(new Tooltip(issue.sourceFile().toString()));
+                    }
+                }
+            }
+        });
+        sourceCol.setPrefWidth(120);
+
+        issuesTable.getColumns().addAll(severityCol, categoryCol, messageCol, affectedCol, sourceCol);
 
         // Selection listener
         issuesTable.getSelectionModel().selectedItemProperty().addListener(

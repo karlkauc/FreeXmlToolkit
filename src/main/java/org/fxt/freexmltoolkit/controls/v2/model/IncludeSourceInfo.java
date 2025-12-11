@@ -45,6 +45,19 @@ public final class IncludeSourceInfo {
     }
 
     /**
+     * Creates source info for a node from an imported schema file.
+     *
+     * @param sourceFile     the absolute path to the imported schema file
+     * @param schemaLocation the original schemaLocation attribute value
+     * @param importNode     the XsdImport node that brought this node in
+     * @return source info indicating imported schema origin
+     */
+    public static IncludeSourceInfo forImportedSchema(Path sourceFile, String schemaLocation, XsdImport importNode) {
+        String importId = importNode != null ? importNode.getId() : null;
+        return new IncludeSourceInfo(sourceFile, schemaLocation, importId, false);
+    }
+
+    /**
      * Private constructor - use factory methods instead.
      *
      * @param sourceFile     the absolute path to the source file

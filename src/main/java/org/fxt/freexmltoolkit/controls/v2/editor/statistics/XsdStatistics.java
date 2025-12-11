@@ -44,6 +44,11 @@ public record XsdStatistics(
         int requiredElements,
         int unboundedElements,
 
+        // Schema References (includes/imports)
+        List<XsdSchemaReferenceInfo> schemaReferences,
+        Map<Path, Map<XsdNodeType, Integer>> nodeCountsByFile,
+        int unresolvedReferencesCount,
+
         // Metadata
         LocalDateTime collectedAt
 ) {
@@ -91,6 +96,11 @@ public record XsdStatistics(
         private int optionalElements = 0;
         private int requiredElements = 0;
         private int unboundedElements = 0;
+
+        // Schema References
+        private List<XsdSchemaReferenceInfo> schemaReferences = new ArrayList<>();
+        private Map<Path, Map<XsdNodeType, Integer>> nodeCountsByFile = new HashMap<>();
+        private int unresolvedReferencesCount = 0;
 
         public Builder() {
             // Initialize all node types with 0 count
@@ -249,6 +259,41 @@ public record XsdStatistics(
             return this;
         }
 
+        // Schema References setters
+        public Builder schemaReferences(List<XsdSchemaReferenceInfo> references) {
+            this.schemaReferences = references != null ? new ArrayList<>(references) : new ArrayList<>();
+            return this;
+        }
+
+        public Builder addSchemaReference(XsdSchemaReferenceInfo reference) {
+            if (reference != null) {
+                schemaReferences.add(reference);
+                if (!reference.resolved()) {
+                    unresolvedReferencesCount++;
+                }
+            }
+            return this;
+        }
+
+        public Builder nodeCountsByFile(Map<Path, Map<XsdNodeType, Integer>> counts) {
+            this.nodeCountsByFile = counts != null ? new HashMap<>(counts) : new HashMap<>();
+            return this;
+        }
+
+        public Builder incrementNodeCountForFile(Path file, XsdNodeType type) {
+            if (file != null && type != null) {
+                nodeCountsByFile
+                        .computeIfAbsent(file, k -> new EnumMap<>(XsdNodeType.class))
+                        .merge(type, 1, Integer::sum);
+            }
+            return this;
+        }
+
+        public Builder unresolvedReferencesCount(int count) {
+            this.unresolvedReferencesCount = count;
+            return this;
+        }
+
         /**
          * Calculates the documentation coverage percentage based on current counts.
          */
@@ -268,6 +313,13 @@ public record XsdStatistics(
         }
 
         public XsdStatistics build() {
+            // Create immutable copy of nodeCountsByFile
+            Map<Path, Map<XsdNodeType, Integer>> immutableNodeCountsByFile = new HashMap<>();
+            for (Map.Entry<Path, Map<XsdNodeType, Integer>> entry : nodeCountsByFile.entrySet()) {
+                immutableNodeCountsByFile.put(entry.getKey(),
+                        Collections.unmodifiableMap(new EnumMap<>(entry.getValue())));
+            }
+
             return new XsdStatistics(
                     xsdVersion,
                     targetNamespace,
@@ -290,6 +342,9 @@ public record XsdStatistics(
                     optionalElements,
                     requiredElements,
                     unboundedElements,
+                    Collections.unmodifiableList(new ArrayList<>(schemaReferences)),
+                    Collections.unmodifiableMap(immutableNodeCountsByFile),
+                    unresolvedReferencesCount,
                     LocalDateTime.now()
             );
         }
@@ -356,5 +411,40 @@ public record XsdStatistics(
      */
     public int getExternalSchemaCount() {
         return getImportCount() + getIncludeCount();
+    }
+
+    /**
+     * Returns the number of resolved schema references.
+     */
+    public int getResolvedReferencesCount() {
+        return (int) schemaReferences.stream().filter(XsdSchemaReferenceInfo::resolved).count();
+    }
+
+    /**
+     * Returns whether there are any unresolved schema references.
+     */
+    public boolean hasUnresolvedReferences() {
+        return unresolvedReferencesCount > 0;
+    }
+
+    /**
+     * Gets the total number of schema references (includes + imports).
+     */
+    public int getTotalReferencesCount() {
+        return schemaReferences.size();
+    }
+
+    /**
+     * Gets the node counts for a specific file.
+     */
+    public Map<XsdNodeType, Integer> getNodeCountsForFile(Path file) {
+        return nodeCountsByFile.getOrDefault(file, Collections.emptyMap());
+    }
+
+    /**
+     * Gets the total node count for a specific file.
+     */
+    public int getTotalNodeCountForFile(Path file) {
+        return getNodeCountsForFile(file).values().stream().mapToInt(Integer::intValue).sum();
     }
 }

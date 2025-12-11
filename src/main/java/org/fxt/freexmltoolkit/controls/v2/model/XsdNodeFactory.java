@@ -1706,34 +1706,60 @@ public class XsdNodeFactory {
 
         if (schemaLocation == null || schemaLocation.isEmpty()) {
             logger.warn("Import has no schemaLocation, skipping: namespace='{}'", namespace);
+            xsdImport.markResolutionFailed("No schemaLocation specified");
             return;
         }
 
         // Check if we've already processed this import
         if (processedImports.contains(schemaLocation)) {
             logger.debug("Import already processed, skipping: {}", schemaLocation);
+            xsdImport.setResolutionError("Already processed (duplicate)");
             return;
         }
 
         processedImports.add(schemaLocation);
         logger.info("Loading imported schema: namespace='{}', location='{}'", namespace, schemaLocation);
 
-        // Load the schema content
-        String schemaContent = loadSchemaFromLocation(schemaLocation);
-        if (schemaContent == null || schemaContent.isEmpty()) {
-            logger.warn("Failed to load schema content from: {}", schemaLocation);
-            return;
+        try {
+            // Resolve the schema location to an absolute path
+            Path resolvedPath = null;
+            if (!schemaLocation.startsWith("http://") && !schemaLocation.startsWith("https://")) {
+                if (currentSchemaFile != null) {
+                    resolvedPath = currentSchemaFile.getParent().resolve(schemaLocation).normalize();
+                } else {
+                    resolvedPath = Path.of(schemaLocation).toAbsolutePath().normalize();
+                }
+            }
+
+            // Load the schema content
+            String schemaContent = loadSchemaFromLocation(schemaLocation);
+            if (schemaContent == null || schemaContent.isEmpty()) {
+                logger.warn("Failed to load schema content from: {}", schemaLocation);
+                xsdImport.markResolutionFailed("Failed to load schema content");
+                return;
+            }
+
+            // Parse the imported schema
+            XsdNodeFactory importFactory = new XsdNodeFactory();
+            XsdSchema importedSchema = importFactory.fromString(schemaContent);
+            String importKey = namespace != null ? namespace : schemaLocation;
+            importedSchemas.put(importKey, importedSchema);
+
+            // Also register the imported schema on the main schema for analysis features
+            mainSchema.addImportedSchema(importKey, importedSchema);
+
+            // Update XsdImport with resolution info
+            xsdImport.setImportedSchema(importedSchema);
+            xsdImport.setResolvedPath(resolvedPath);
+
+            logger.info("Successfully loaded imported schema with {} children", importedSchema.getChildren().size());
+
+            // Tag imported nodes with source info (for schema analysis features)
+            mergeSchemaComponents(importedSchema, mainSchema, xsdImport, resolvedPath);
+        } catch (Exception e) {
+            xsdImport.markResolutionFailed(e.getMessage());
+            throw e;
         }
-
-        // Parse the imported schema
-        XsdNodeFactory importFactory = new XsdNodeFactory();
-        XsdSchema importedSchema = importFactory.fromString(schemaContent);
-        importedSchemas.put(namespace != null ? namespace : schemaLocation, importedSchema);
-
-        logger.info("Successfully loaded imported schema with {} children", importedSchema.getChildren().size());
-
-        // Merge global elements and types from imported schema into main schema
-        mergeSchemaComponents(importedSchema, mainSchema, namespace);
     }
 
     /**
@@ -1812,38 +1838,79 @@ public class XsdNodeFactory {
     }
 
     /**
-     * Merges global elements and types from imported schema into main schema.
-     * This allows referencing components from the imported schema via namespace prefix.
+     * Tags imported schema components with source info for tracking.
+     * IMPORTANT: Components are NOT added as direct children of the main schema.
+     * Instead, they remain in the importedSchemas map and are accessed via:
+     * - globalElementIndex in XsdVisualTreeBuilder (for visual tree and ref resolution)
+     * - importedSchemas map (for schema analysis features)
+     *
+     * This preserves the original structure where refs like "ds:Signature" are resolved
+     * through the index, not by looking at schema children.
      *
      * @param importedSchema the imported schema
-     * @param mainSchema the main schema to merge into
-     * @param namespace the target namespace of the imported schema
+     * @param mainSchema the main schema (unused, kept for signature compatibility)
+     * @param xsdImport the XsdImport node that triggered this import
+     * @param resolvedPath the resolved path of the imported schema file
      */
-    private void mergeSchemaComponents(XsdSchema importedSchema, XsdSchema mainSchema, String namespace) {
-        int mergedElements = 0;
-        int mergedTypes = 0;
+    private void mergeSchemaComponents(XsdSchema importedSchema, XsdSchema mainSchema,
+                                        XsdImport xsdImport, Path resolvedPath) {
+        int taggedElements = 0;
+        int taggedTypes = 0;
+        int taggedGroups = 0;
+        String namespace = xsdImport.getNamespace();
+        String schemaLocation = xsdImport.getSchemaLocation();
 
-        // Merge global elements
+        // Create source info for imported nodes
+        IncludeSourceInfo sourceInfo = IncludeSourceInfo.forImportedSchema(
+                resolvedPath, schemaLocation, xsdImport);
+
+        // Tag nodes in the imported schema with source info (but don't copy to main schema!)
+        // This allows Schema Analysis to know where nodes come from, while keeping
+        // the visual tree builder's ref resolution working correctly.
         for (XsdNode child : importedSchema.getChildren()) {
-            if (child instanceof XsdElement element) {
-                // Add element to main schema (it will be available for ref resolution)
-                // Note: We don't add it as a direct child to avoid cluttering the tree
-                // Instead, it will be accessible via the globalElementIndex in XsdVisualTreeBuilder
-                logger.debug("Found global element in imported schema: {}", element.getName());
-                mergedElements++;
-            } else if (child instanceof XsdComplexType complexType) {
-                // Add complex type to main schema
-                logger.debug("Found complex type in imported schema: {}", complexType.getName());
-                mergedTypes++;
-            } else if (child instanceof XsdSimpleType simpleType) {
-                // Add simple type to main schema
-                logger.debug("Found simple type in imported schema: {}", simpleType.getName());
-                mergedTypes++;
+            // Skip import/include/redefine/override nodes
+            if (child instanceof XsdImport || child instanceof XsdInclude ||
+                child instanceof XsdRedefine || child instanceof XsdOverride) {
+                continue;
+            }
+
+            // Tag the original node and its descendants with source info
+            tagNodeWithSourceInfoRecursive(child, sourceInfo);
+
+            // Track statistics
+            if (child instanceof XsdElement) {
+                taggedElements++;
+                logger.debug("Tagged global element from import: {}", child.getName());
+            } else if (child instanceof XsdComplexType) {
+                taggedTypes++;
+                logger.debug("Tagged complex type from import: {}", child.getName());
+            } else if (child instanceof XsdSimpleType) {
+                taggedTypes++;
+                logger.debug("Tagged simple type from import: {}", child.getName());
+            } else if (child instanceof XsdGroup || child instanceof XsdAttributeGroup) {
+                taggedGroups++;
+                logger.debug("Tagged group from import: {}", child.getName());
             }
         }
 
-        logger.info("Merged {} elements and {} types from imported schema (namespace='{}')",
-                mergedElements, mergedTypes, namespace);
+        logger.info("Tagged {} elements, {} types, {} groups in imported schema (namespace='{}', location='{}')",
+                taggedElements, taggedTypes, taggedGroups, namespace, schemaLocation);
+    }
+
+    /**
+     * Recursively tags a node and all its descendants with source info.
+     *
+     * @param node the node to tag
+     * @param sourceInfo the source info to apply
+     */
+    private void tagNodeWithSourceInfoRecursive(XsdNode node, IncludeSourceInfo sourceInfo) {
+        if (node == null) {
+            return;
+        }
+        node.setSourceInfo(sourceInfo);
+        for (XsdNode child : node.getChildren()) {
+            tagNodeWithSourceInfoRecursive(child, sourceInfo);
+        }
     }
 
     /**

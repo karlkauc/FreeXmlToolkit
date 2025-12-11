@@ -2,9 +2,11 @@ package org.fxt.freexmltoolkit.controls.v2.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.beans.PropertyChangeListener;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -374,5 +376,180 @@ class XsdImportTest {
 
         assertEquals(1, xsdImport.getChildren().size());
         assertEquals(childNode, xsdImport.getChildren().get(0));
+    }
+
+    // ========== Multi-File Support (Resolution Tracking) Tests ==========
+
+    @Nested
+    @DisplayName("Multi-File Support Tests")
+    class MultiFileSupportTests {
+
+        @Test
+        @DisplayName("new import should not be resolved")
+        void testNewImportNotResolved() {
+            XsdImport imp = new XsdImport("http://example.com", "test.xsd");
+            assertFalse(imp.isResolved());
+            assertNull(imp.getImportedSchema());
+            assertNull(imp.getResolvedPath());
+            assertNull(imp.getResolutionError());
+        }
+
+        @Test
+        @DisplayName("setImportedSchema should mark as resolved")
+        void testSetImportedSchema() {
+            XsdSchema importedSchema = new XsdSchema();
+            importedSchema.setTargetNamespace("http://example.com");
+
+            xsdImport.setImportedSchema(importedSchema);
+
+            assertTrue(xsdImport.isResolved());
+            assertEquals(importedSchema, xsdImport.getImportedSchema());
+        }
+
+        @Test
+        @DisplayName("setImportedSchema(null) should mark as not resolved")
+        void testSetImportedSchemaNull() {
+            XsdSchema importedSchema = new XsdSchema();
+            xsdImport.setImportedSchema(importedSchema);
+            assertTrue(xsdImport.isResolved());
+
+            xsdImport.setImportedSchema(null);
+            assertFalse(xsdImport.isResolved());
+            assertNull(xsdImport.getImportedSchema());
+        }
+
+        @Test
+        @DisplayName("setImportedSchema should fire PropertyChangeEvent")
+        void testSetImportedSchemaFiresEvent() {
+            AtomicBoolean importedSchemaChanged = new AtomicBoolean(false);
+            AtomicBoolean resolvedChanged = new AtomicBoolean(false);
+
+            xsdImport.addPropertyChangeListener(evt -> {
+                if ("importedSchema".equals(evt.getPropertyName())) {
+                    importedSchemaChanged.set(true);
+                } else if ("resolved".equals(evt.getPropertyName())) {
+                    resolvedChanged.set(true);
+                }
+            });
+
+            xsdImport.setImportedSchema(new XsdSchema());
+
+            assertTrue(importedSchemaChanged.get());
+            assertTrue(resolvedChanged.get());
+        }
+
+        @Test
+        @DisplayName("setResolvedPath should set path")
+        void testSetResolvedPath() {
+            Path path = Path.of("/test/schema.xsd");
+            xsdImport.setResolvedPath(path);
+
+            assertEquals(path, xsdImport.getResolvedPath());
+        }
+
+        @Test
+        @DisplayName("setResolvedPath should fire PropertyChangeEvent")
+        void testSetResolvedPathFiresEvent() {
+            AtomicBoolean eventFired = new AtomicBoolean(false);
+
+            xsdImport.addPropertyChangeListener(evt -> {
+                if ("resolvedPath".equals(evt.getPropertyName())) {
+                    eventFired.set(true);
+                }
+            });
+
+            xsdImport.setResolvedPath(Path.of("/test/schema.xsd"));
+            assertTrue(eventFired.get());
+        }
+
+        @Test
+        @DisplayName("setResolutionError should set error message")
+        void testSetResolutionError() {
+            xsdImport.setResolutionError("File not found");
+            assertEquals("File not found", xsdImport.getResolutionError());
+        }
+
+        @Test
+        @DisplayName("setResolutionError should fire PropertyChangeEvent")
+        void testSetResolutionErrorFiresEvent() {
+            AtomicBoolean eventFired = new AtomicBoolean(false);
+
+            xsdImport.addPropertyChangeListener(evt -> {
+                if ("resolutionError".equals(evt.getPropertyName())) {
+                    eventFired.set(true);
+                }
+            });
+
+            xsdImport.setResolutionError("Error message");
+            assertTrue(eventFired.get());
+        }
+
+        @Test
+        @DisplayName("markResolutionFailed should set error and clear schema")
+        void testMarkResolutionFailed() {
+            // First set a successful import
+            xsdImport.setImportedSchema(new XsdSchema());
+            assertTrue(xsdImport.isResolved());
+
+            // Then mark as failed
+            xsdImport.markResolutionFailed("Connection timeout");
+
+            assertFalse(xsdImport.isResolved());
+            assertNull(xsdImport.getImportedSchema());
+            assertEquals("Connection timeout", xsdImport.getResolutionError());
+        }
+
+        @Test
+        @DisplayName("getImportFileName should extract filename from schemaLocation")
+        void testGetImportFileNameWithPath() {
+            xsdImport.setSchemaLocation("path/to/types.xsd");
+            assertEquals("types.xsd", xsdImport.getImportFileName());
+        }
+
+        @Test
+        @DisplayName("getImportFileName should handle URL")
+        void testGetImportFileNameWithUrl() {
+            xsdImport.setSchemaLocation("http://example.com/schemas/types.xsd");
+            assertEquals("types.xsd", xsdImport.getImportFileName());
+        }
+
+        @Test
+        @DisplayName("getImportFileName should return schemaLocation if no path separator")
+        void testGetImportFileNameSimple() {
+            xsdImport.setSchemaLocation("types.xsd");
+            assertEquals("types.xsd", xsdImport.getImportFileName());
+        }
+
+        @Test
+        @DisplayName("getImportFileName should return 'unknown' if schemaLocation is null")
+        void testGetImportFileNameNull() {
+            xsdImport.setSchemaLocation(null);
+            assertEquals("unknown", xsdImport.getImportFileName());
+        }
+
+        @Test
+        @DisplayName("getImportFileName should return 'unknown' if schemaLocation is empty")
+        void testGetImportFileNameEmpty() {
+            xsdImport.setSchemaLocation("");
+            assertEquals("unknown", xsdImport.getImportFileName());
+        }
+
+        @Test
+        @DisplayName("deepCopy should copy multi-file support properties")
+        void testDeepCopyMultiFileProperties() {
+            XsdSchema importedSchema = new XsdSchema();
+            Path resolvedPath = Path.of("/test/imported.xsd");
+
+            xsdImport.setImportedSchema(importedSchema);
+            xsdImport.setResolvedPath(resolvedPath);
+            xsdImport.setResolutionError("previous error");
+
+            XsdImport copy = (XsdImport) xsdImport.deepCopy("");
+
+            assertTrue(copy.isResolved());
+            assertEquals(importedSchema, copy.getImportedSchema());
+            assertEquals(resolvedPath, copy.getResolvedPath());
+            assertEquals("previous error", copy.getResolutionError());
+        }
     }
 }

@@ -175,7 +175,29 @@ public class IdentityConstraintsView extends BorderPane {
         });
         statusCol.setPrefWidth(100);
 
-        constraintsTable.getColumns().addAll(typeCol, nameCol, parentCol, selectorCol, statusCol);
+        // Source file column
+        TableColumn<IdentityConstraintInfo, String> sourceCol = new TableColumn<>("Source");
+        sourceCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getSourceFileName()));
+        sourceCol.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item);
+                    // Show full path in tooltip
+                    IdentityConstraintInfo info = getTableView().getItems().get(getIndex());
+                    if (info.sourceFile() != null) {
+                        setTooltip(new Tooltip(info.sourceFile().toString()));
+                    }
+                }
+            }
+        });
+        sourceCol.setPrefWidth(100);
+
+        constraintsTable.getColumns().addAll(typeCol, nameCol, parentCol, selectorCol, statusCol, sourceCol);
 
         // Selection listener
         constraintsTable.getSelectionModel().selectedItemProperty().addListener(

@@ -1,14 +1,19 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdSchemaReferenceInfo;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatistics;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatisticsCollector;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatisticsExporter;
@@ -87,6 +92,11 @@ public class SchemaStatisticsView extends BorderPane {
     // Type Usage
     private VBox typeUsageBox;
 
+    // Schema References
+    private TableView<XsdSchemaReferenceInfo> schemaReferencesTable;
+    private ObservableList<XsdSchemaReferenceInfo> schemaReferencesData;
+    private Label schemaReferencesWarningLabel;
+
     // PropertyChangeListener for auto-update
     private final PropertyChangeListener schemaChangeListener = this::onSchemaChanged;
 
@@ -124,6 +134,9 @@ public class SchemaStatisticsView extends BorderPane {
         // Schema Info Section
         TitledPane schemaInfoPane = createSchemaInfoSection();
 
+        // Schema References Section (includes/imports)
+        TitledPane schemaReferencesPane = createSchemaReferencesSection();
+
         // Node Counts Section
         TitledPane nodeCountsPane = createNodeCountsSection();
 
@@ -138,6 +151,7 @@ public class SchemaStatisticsView extends BorderPane {
 
         contentBox.getChildren().addAll(
                 schemaInfoPane,
+                schemaReferencesPane,
                 nodeCountsPane,
                 docsPane,
                 typeUsagePane,
@@ -216,6 +230,122 @@ public class SchemaStatisticsView extends BorderPane {
         pane.setExpanded(true);
         pane.setCollapsible(true);
         pane.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_CODE));
+        return pane;
+    }
+
+    /**
+     * Creates the schema references section showing xs:include and xs:import status.
+     */
+    private TitledPane createSchemaReferencesSection() {
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(10));
+
+        // Warning label for unresolved references
+        schemaReferencesWarningLabel = new Label();
+        schemaReferencesWarningLabel.setStyle("-fx-background-color: #fff3cd; -fx-padding: 8; " +
+                "-fx-text-fill: #856404; -fx-background-radius: 4;");
+        schemaReferencesWarningLabel.setGraphic(new FontIcon(BootstrapIcons.EXCLAMATION_TRIANGLE));
+        schemaReferencesWarningLabel.setVisible(false);
+        schemaReferencesWarningLabel.setManaged(false);
+
+        // Table for schema references
+        schemaReferencesData = FXCollections.observableArrayList();
+        schemaReferencesTable = new TableView<>(schemaReferencesData);
+        schemaReferencesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        schemaReferencesTable.setPrefHeight(150);
+        schemaReferencesTable.setPlaceholder(new Label("No schema references (includes/imports) found"));
+
+        // Type column with icon
+        TableColumn<XsdSchemaReferenceInfo, String> typeCol = new TableColumn<>("Type");
+        typeCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTypeDisplayName()));
+        typeCol.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    setText(item);
+                    FontIcon icon = new FontIcon();
+                    icon.setIconSize(14);
+                    if ("Include".equals(item)) {
+                        icon.setIconLiteral("bi-link-45deg");
+                        icon.setIconColor(Color.DARKBLUE);
+                    } else {
+                        icon.setIconLiteral("bi-box-arrow-in-right");
+                        icon.setIconColor(Color.DARKGREEN);
+                    }
+                    setGraphic(icon);
+                }
+            }
+        });
+        typeCol.setPrefWidth(80);
+
+        // Location column
+        TableColumn<XsdSchemaReferenceInfo, String> locationCol = new TableColumn<>("Location");
+        locationCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFileName()));
+        locationCol.setPrefWidth(150);
+
+        // Status column with icon
+        TableColumn<XsdSchemaReferenceInfo, String> statusCol = new TableColumn<>("Status");
+        statusCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStatusDisplayName()));
+        statusCol.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setTooltip(null);
+                } else {
+                    setText(item);
+                    FontIcon icon = new FontIcon();
+                    icon.setIconSize(14);
+                    if ("Resolved".equals(item)) {
+                        icon.setIconLiteral("bi-check-circle-fill");
+                        icon.setIconColor(Color.GREEN);
+                    } else {
+                        icon.setIconLiteral("bi-x-circle-fill");
+                        icon.setIconColor(Color.RED);
+                        // Show error message in tooltip
+                        XsdSchemaReferenceInfo info = getTableView().getItems().get(getIndex());
+                        if (info.errorMessage() != null) {
+                            setTooltip(new Tooltip(info.errorMessage()));
+                        }
+                    }
+                    setGraphic(icon);
+                }
+            }
+        });
+        statusCol.setPrefWidth(80);
+
+        // Namespace column (for imports)
+        TableColumn<XsdSchemaReferenceInfo, String> namespaceCol = new TableColumn<>("Namespace");
+        namespaceCol.setCellValueFactory(data -> {
+            String ns = data.getValue().namespace();
+            return new SimpleStringProperty(ns != null ? ns : "-");
+        });
+        namespaceCol.setPrefWidth(150);
+
+        // Elements column
+        TableColumn<XsdSchemaReferenceInfo, String> elementsCol = new TableColumn<>("Elements");
+        elementsCol.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().elementCount())));
+        elementsCol.setPrefWidth(70);
+
+        // Types column
+        TableColumn<XsdSchemaReferenceInfo, String> typesCol = new TableColumn<>("Types");
+        typesCol.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().typeCount())));
+        typesCol.setPrefWidth(60);
+
+        schemaReferencesTable.getColumns().addAll(typeCol, locationCol, statusCol, namespaceCol, elementsCol, typesCol);
+
+        content.getChildren().addAll(schemaReferencesWarningLabel, schemaReferencesTable);
+
+        TitledPane pane = new TitledPane("Schema References", content);
+        pane.setExpanded(true);
+        pane.setCollapsible(true);
+        pane.setGraphic(new FontIcon(BootstrapIcons.COLLECTION));
         return pane;
     }
 
@@ -453,8 +583,31 @@ public class SchemaStatisticsView extends BorderPane {
         requiredLabel.setText(String.valueOf(stats.requiredElements()));
         unboundedLabel.setText(String.valueOf(stats.unboundedElements()));
 
+        // Schema References
+        updateSchemaReferencesUI(stats);
+
         // Status
         lastUpdatedLabel.setText("Last updated: " + stats.collectedAt().format(DATE_FORMATTER));
+    }
+
+    /**
+     * Updates the schema references table and warning label.
+     */
+    private void updateSchemaReferencesUI(XsdStatistics stats) {
+        schemaReferencesData.clear();
+        schemaReferencesData.addAll(stats.schemaReferences());
+
+        // Show/hide warning for unresolved references
+        if (stats.hasUnresolvedReferences()) {
+            int unresolved = stats.unresolvedReferencesCount();
+            schemaReferencesWarningLabel.setText(unresolved + " schema reference(s) could not be resolved. " +
+                    "Some elements, types, or constraints may be missing from the analysis.");
+            schemaReferencesWarningLabel.setVisible(true);
+            schemaReferencesWarningLabel.setManaged(true);
+        } else {
+            schemaReferencesWarningLabel.setVisible(false);
+            schemaReferencesWarningLabel.setManaged(false);
+        }
     }
 
     /**

@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -49,9 +50,18 @@ public class XsdStatisticsCollector {
         // Collect schema information
         collectSchemaInfo(builder);
 
-        // Traverse tree and collect node statistics
+        // Collect schema references (includes/imports) information
+        collectSchemaReferences(builder);
+
+        // Traverse tree and collect node statistics (main schema and includes)
         Set<String> visitedIds = new HashSet<>();
         traverseAndCollect(schema, builder, visitedIds);
+
+        // Also traverse imported schemas (they are NOT children of main schema)
+        for (Map.Entry<String, XsdSchema> entry : schema.getImportedSchemas().entrySet()) {
+            logger.debug("Collecting statistics from imported schema: {}", entry.getKey());
+            traverseAndCollect(entry.getValue(), builder, visitedIds);
+        }
 
         // Calculate documentation coverage
         builder.calculateDocumentationCoverage();
@@ -98,6 +108,163 @@ public class XsdStatisticsCollector {
     }
 
     /**
+     * Collects information about schema references (xs:include and xs:import statements).
+     * Deduplicates references by resolved path AND filename to avoid showing the same file multiple times.
+     * Priority: Successfully resolved files take precedence over failed ones.
+     */
+    private void collectSchemaReferences(XsdStatistics.Builder builder) {
+        logger.debug("Collecting schema reference information");
+
+        // Track seen paths to deduplicate (same file might be included from multiple places)
+        Set<Path> seenResolvedPaths = new HashSet<>();
+        Set<String> seenFileNames = new HashSet<>(); // Track by filename for cross-reference dedup
+        List<XsdSchemaReferenceInfo> resolvedRefs = new ArrayList<>();
+        List<XsdSchemaReferenceInfo> unresolvedRefs = new ArrayList<>();
+
+        // First pass: collect all references, separating resolved from unresolved
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof XsdInclude include) {
+                Path resolvedPath = include.getResolvedPath();
+                String schemaLocation = include.getSchemaLocation();
+                String fileName = extractFileName(schemaLocation);
+
+                if (resolvedPath != null) {
+                    // Already seen this exact path?
+                    if (seenResolvedPaths.contains(resolvedPath)) {
+                        continue;
+                    }
+                    seenResolvedPaths.add(resolvedPath);
+                    seenFileNames.add(fileName); // Mark filename as resolved
+                    resolvedRefs.add(collectIncludeInfo(include));
+                } else {
+                    // Collect but will filter later
+                    unresolvedRefs.add(collectIncludeInfo(include));
+                }
+            } else if (child instanceof XsdImport xsdImport) {
+                Path resolvedPath = xsdImport.getResolvedPath();
+                String schemaLocation = xsdImport.getSchemaLocation();
+                String fileName = extractFileName(schemaLocation);
+
+                if (resolvedPath != null) {
+                    if (seenResolvedPaths.contains(resolvedPath)) {
+                        continue;
+                    }
+                    seenResolvedPaths.add(resolvedPath);
+                    seenFileNames.add(fileName);
+                    resolvedRefs.add(collectImportInfo(xsdImport));
+                } else {
+                    unresolvedRefs.add(collectImportInfo(xsdImport));
+                }
+            }
+        }
+
+        // Add all resolved references
+        for (XsdSchemaReferenceInfo ref : resolvedRefs) {
+            builder.addSchemaReference(ref);
+        }
+
+        // Add unresolved references only if filename wasn't already resolved
+        Set<String> seenUnresolvedFileNames = new HashSet<>();
+        for (XsdSchemaReferenceInfo ref : unresolvedRefs) {
+            String fileName = extractFileName(ref.schemaLocation());
+            // Skip if this file was successfully resolved elsewhere
+            if (seenFileNames.contains(fileName)) {
+                continue;
+            }
+            // Skip duplicate unresolved references
+            if (seenUnresolvedFileNames.contains(fileName)) {
+                continue;
+            }
+            seenUnresolvedFileNames.add(fileName);
+            builder.addSchemaReference(ref);
+        }
+    }
+
+    /**
+     * Extracts the filename from a schema location (removes path components).
+     */
+    private String extractFileName(String schemaLocation) {
+        if (schemaLocation == null) {
+            return "";
+        }
+        // Handle both forward and backward slashes
+        int lastSlash = Math.max(schemaLocation.lastIndexOf('/'), schemaLocation.lastIndexOf('\\'));
+        return lastSlash >= 0 ? schemaLocation.substring(lastSlash + 1) : schemaLocation;
+    }
+
+    /**
+     * Collects information about an xs:include statement.
+     */
+    private XsdSchemaReferenceInfo collectIncludeInfo(XsdInclude include) {
+        String schemaLocation = include.getSchemaLocation();
+        boolean resolved = include.isResolved();
+        Path resolvedPath = include.getResolvedPath();
+        String errorMessage = include.getResolutionError();
+
+        if (resolved) {
+            // Count components from this include
+            int[] counts = countComponentsFromSource(include);
+            return XsdSchemaReferenceInfo.forResolvedInclude(
+                    schemaLocation, resolvedPath,
+                    counts[0], counts[1], counts[2]); // elements, types, groups
+        } else {
+            return XsdSchemaReferenceInfo.forFailedInclude(schemaLocation, errorMessage);
+        }
+    }
+
+    /**
+     * Collects information about an xs:import statement.
+     */
+    private XsdSchemaReferenceInfo collectImportInfo(XsdImport xsdImport) {
+        String schemaLocation = xsdImport.getSchemaLocation();
+        String namespace = xsdImport.getNamespace();
+        boolean resolved = xsdImport.isResolved();
+        Path resolvedPath = xsdImport.getResolvedPath();
+        String errorMessage = xsdImport.getResolutionError();
+
+        if (resolved) {
+            // Count components from this import
+            int[] counts = countComponentsFromSource(xsdImport);
+            return XsdSchemaReferenceInfo.forResolvedImport(
+                    schemaLocation, namespace, resolvedPath,
+                    counts[0], counts[1], counts[2]); // elements, types, groups
+        } else {
+            return XsdSchemaReferenceInfo.forFailedImport(schemaLocation, namespace, errorMessage);
+        }
+    }
+
+    /**
+     * Counts elements, types, and groups that came from a specific include/import source.
+     * Returns int array: [elementCount, typeCount, groupCount]
+     */
+    private int[] countComponentsFromSource(XsdNode sourceNode) {
+        int elements = 0;
+        int types = 0;
+        int groups = 0;
+
+        String sourceNodeId = sourceNode.getId();
+
+        // Traverse schema children and count nodes from this source
+        for (XsdNode child : schema.getChildren()) {
+            IncludeSourceInfo sourceInfo = child.getSourceInfo();
+            if (sourceInfo != null && !sourceInfo.isMainSchema()) {
+                String includeId = sourceInfo.getIncludeNodeId();
+                if (sourceNodeId != null && sourceNodeId.equals(includeId)) {
+                    if (child instanceof XsdElement) {
+                        elements++;
+                    } else if (child instanceof XsdComplexType || child instanceof XsdSimpleType) {
+                        types++;
+                    } else if (child instanceof XsdGroup || child instanceof XsdAttributeGroup) {
+                        groups++;
+                    }
+                }
+            }
+        }
+
+        return new int[]{elements, types, groups};
+    }
+
+    /**
      * Recursively traverses the node tree and collects statistics.
      *
      * @param node       the current node
@@ -123,6 +290,12 @@ public class XsdStatisticsCollector {
         XsdNodeType nodeType = node.getNodeType();
         if (nodeType != null) {
             builder.incrementNodeCount(nodeType);
+
+            // Also count per source file
+            Path sourceFile = getSourceFile(node);
+            if (sourceFile != null) {
+                builder.incrementNodeCountForFile(sourceFile, nodeType);
+            }
         }
 
         // Collect documentation statistics
@@ -140,6 +313,17 @@ public class XsdStatisticsCollector {
                 traverseAndCollect(child, builder, visitedIds);
             }
         }
+    }
+
+    /**
+     * Gets the source file for a node, using source info or falling back to main schema path.
+     */
+    private Path getSourceFile(XsdNode node) {
+        IncludeSourceInfo sourceInfo = node.getSourceInfo();
+        if (sourceInfo != null) {
+            return sourceInfo.getSourceFile();
+        }
+        return schema.getMainSchemaPath();
     }
 
     /**

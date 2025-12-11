@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -78,14 +79,15 @@ public class XsdQualityChecker {
             String suggestion,
             List<String> affectedElements,
             XsdNode sourceNode,
-            String xpath
+            String xpath,
+            Path sourceFile
     ) {
         /**
          * Creates a naming convention issue.
          */
         public static QualityIssue namingIssue(IssueSeverity severity, String message,
                                                String suggestion, List<String> affected) {
-            return new QualityIssue(IssueCategory.NAMING_CONVENTION, severity, message, suggestion, affected, null, null);
+            return new QualityIssue(IssueCategory.NAMING_CONVENTION, severity, message, suggestion, affected, null, null, null);
         }
 
         /**
@@ -94,7 +96,8 @@ public class XsdQualityChecker {
         public static QualityIssue bestPracticeIssue(IssueSeverity severity, String message,
                                                      String suggestion, List<String> affected, XsdNode node) {
             String xpath = node != null ? node.getXPath() : null;
-            return new QualityIssue(IssueCategory.BEST_PRACTICE, severity, message, suggestion, affected, node, xpath);
+            Path sourceFile = getSourceFileFromNode(node);
+            return new QualityIssue(IssueCategory.BEST_PRACTICE, severity, message, suggestion, affected, node, xpath, sourceFile);
         }
 
         /**
@@ -103,6 +106,7 @@ public class XsdQualityChecker {
         public static QualityIssue deprecatedIssue(String elementName, String deprecationMessage,
                                                    String alternative, XsdNode node) {
             String xpath = node != null ? node.getXPath() : null;
+            Path sourceFile = getSourceFileFromNode(node);
             return new QualityIssue(
                     IssueCategory.DEPRECATED,
                     IssueSeverity.WARNING,
@@ -110,7 +114,8 @@ public class XsdQualityChecker {
                     alternative != null ? "Use " + alternative + " instead" : null,
                     List.of(elementName),
                     node,
-                    xpath
+                    xpath,
+                    sourceFile
             );
         }
 
@@ -120,7 +125,8 @@ public class XsdQualityChecker {
         public static QualityIssue constraintConflictIssue(IssueSeverity severity, String message,
                                                            String suggestion, List<String> affected, XsdNode node) {
             String xpath = node != null ? node.getXPath() : null;
-            return new QualityIssue(IssueCategory.CONSTRAINT_CONFLICT, severity, message, suggestion, affected, node, xpath);
+            Path sourceFile = getSourceFileFromNode(node);
+            return new QualityIssue(IssueCategory.CONSTRAINT_CONFLICT, severity, message, suggestion, affected, node, xpath, sourceFile);
         }
 
         /**
@@ -129,7 +135,8 @@ public class XsdQualityChecker {
         public static QualityIssue inconsistentDefinitionIssue(String message, String suggestion,
                                                                 List<String> affected, XsdNode node) {
             String xpath = node != null ? node.getXPath() : null;
-            return new QualityIssue(IssueCategory.INCONSISTENT_DEFINITION, IssueSeverity.WARNING, message, suggestion, affected, node, xpath);
+            Path sourceFile = getSourceFileFromNode(node);
+            return new QualityIssue(IssueCategory.INCONSISTENT_DEFINITION, IssueSeverity.WARNING, message, suggestion, affected, node, xpath, sourceFile);
         }
 
         /**
@@ -138,7 +145,33 @@ public class XsdQualityChecker {
         public static QualityIssue duplicateDefinitionIssue(String message, String suggestion,
                                                              List<String> affected, XsdNode node) {
             String xpath = node != null ? node.getXPath() : null;
-            return new QualityIssue(IssueCategory.DUPLICATE_DEFINITION, IssueSeverity.INFO, message, suggestion, affected, node, xpath);
+            Path sourceFile = getSourceFileFromNode(node);
+            return new QualityIssue(IssueCategory.DUPLICATE_DEFINITION, IssueSeverity.INFO, message, suggestion, affected, node, xpath, sourceFile);
+        }
+
+        /**
+         * Gets the source file name for display (without full path).
+         */
+        public String getSourceFileName() {
+            if (sourceFile == null) {
+                return "main";
+            }
+            java.nio.file.Path fileName = sourceFile.getFileName();
+            return fileName != null ? fileName.toString() : "main";
+        }
+
+        /**
+         * Helper to extract source file from node's source info.
+         */
+        private static Path getSourceFileFromNode(XsdNode node) {
+            if (node == null) {
+                return null;
+            }
+            IncludeSourceInfo sourceInfo = node.getSourceInfo();
+            if (sourceInfo != null) {
+                return sourceInfo.getSourceFile();
+            }
+            return null;
         }
     }
 
@@ -211,9 +244,15 @@ public class XsdQualityChecker {
         // Track deprecated elements
         List<QualityIssue> deprecatedIssues = new ArrayList<>();
 
-        // Traverse schema
+        // Traverse main schema (includes are already inlined as children)
         Set<String> visitedIds = new HashSet<>();
         traverseAndCheck(schema, namingByConvention, issues, deprecatedIssues, visitedIds, 0);
+
+        // Also traverse imported schemas (they are NOT children of main schema)
+        for (Map.Entry<String, XsdSchema> entry : schema.getImportedSchemas().entrySet()) {
+            logger.debug("Checking quality for imported schema: {}", entry.getKey());
+            traverseAndCheck(entry.getValue(), namingByConvention, issues, deprecatedIssues, visitedIds, 0);
+        }
 
         // Check for inconsistent definitions (same name, different content)
         checkInconsistentDefinitions(issues);

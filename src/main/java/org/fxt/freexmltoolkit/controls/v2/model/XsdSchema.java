@@ -30,6 +30,7 @@ public class XsdSchema extends XsdNode {
     private final Map<String, List<XsdNode>> nodesByInclude = new LinkedHashMap<>();
     private final Map<String, XsdInclude> includeMap = new HashMap<>();
     private final Set<Path> allIncludedFiles = new HashSet<>();
+    private final Map<String, XsdSchema> importedSchemas = new HashMap<>();
 
     /**
      * Creates a new XSD schema.
@@ -339,6 +340,35 @@ public class XsdSchema extends XsdNode {
         nodesByInclude.clear();
         includeMap.clear();
         allIncludedFiles.clear();
+        importedSchemas.clear();
+    }
+
+    /**
+     * Gets all imported schemas (from xs:import statements).
+     *
+     * @return map of namespace/location to imported schema
+     */
+    public Map<String, XsdSchema> getImportedSchemas() {
+        return Collections.unmodifiableMap(importedSchemas);
+    }
+
+    /**
+     * Adds an imported schema.
+     *
+     * @param key the namespace or schemaLocation
+     * @param schema the imported schema
+     */
+    public void addImportedSchema(String key, XsdSchema schema) {
+        importedSchemas.put(key, schema);
+    }
+
+    /**
+     * Checks if this schema has any imports.
+     *
+     * @return true if at least one xs:import with a loaded schema is present
+     */
+    public boolean hasImports() {
+        return !importedSchemas.isEmpty();
     }
 
     @Override

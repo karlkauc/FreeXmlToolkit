@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -47,7 +48,8 @@ public class XsdIdentityConstraintAnalyzer {
             String testExpression,    // Only for Assert
             ValidationStatus status,
             String statusMessage,
-            XsdNode sourceNode
+            XsdNode sourceNode,
+            Path sourceFile
     ) {
         /**
          * Creates info for a Key, KeyRef, or Unique constraint.
@@ -83,6 +85,8 @@ public class XsdIdentityConstraintAnalyzer {
                     .filter(Objects::nonNull)
                     .toList();
 
+            Path sourceFile = getSourceFileFromNode(constraint);
+
             return new IdentityConstraintInfo(
                     type,
                     constraint.getName(),
@@ -93,7 +97,8 @@ public class XsdIdentityConstraintAnalyzer {
                     null, // testExpression is only for asserts
                     status,
                     statusMessage,
-                    constraint
+                    constraint,
+                    sourceFile
             );
         }
 
@@ -106,6 +111,8 @@ public class XsdIdentityConstraintAnalyzer {
                 ValidationStatus status,
                 String statusMessage) {
 
+            Path sourceFile = getSourceFileFromNode(assertion);
+
             return new IdentityConstraintInfo(
                     ConstraintType.ASSERT,
                     assertion.getName(),
@@ -116,7 +123,8 @@ public class XsdIdentityConstraintAnalyzer {
                     assertion.getTest(),
                     status,
                     statusMessage,
-                    assertion
+                    assertion,
+                    sourceFile
             );
         }
 
@@ -144,6 +152,31 @@ public class XsdIdentityConstraintAnalyzer {
                 case UNIQUE -> "Unique";
                 case ASSERT -> "Assert";
             };
+        }
+
+        /**
+         * Gets the source file name for display (without full path).
+         */
+        public String getSourceFileName() {
+            if (sourceFile == null) {
+                return "main";
+            }
+            Path fileName = sourceFile.getFileName();
+            return fileName != null ? fileName.toString() : "main";
+        }
+
+        /**
+         * Helper to extract source file from node's source info.
+         */
+        private static Path getSourceFileFromNode(XsdNode node) {
+            if (node == null) {
+                return null;
+            }
+            IncludeSourceInfo sourceInfo = node.getSourceInfo();
+            if (sourceInfo != null) {
+                return sourceInfo.getSourceFile();
+            }
+            return null;
         }
     }
 
@@ -211,12 +244,21 @@ public class XsdIdentityConstraintAnalyzer {
 
         Set<String> visitedIds = new HashSet<>();
 
-        // Collect all key/unique names for KeyRef validation
+        // Collect all key/unique names for KeyRef validation (main schema and imports)
         Set<String> keyAndUniqueNames = new HashSet<>();
         collectKeyAndUniqueNames(schema, keyAndUniqueNames, new HashSet<>());
+        for (XsdSchema importedSchema : schema.getImportedSchemas().values()) {
+            collectKeyAndUniqueNames(importedSchema, keyAndUniqueNames, new HashSet<>());
+        }
 
-        // Traverse and collect constraints
+        // Traverse and collect constraints from main schema (includes are already inlined)
         traverseAndCollect(schema, keys, keyRefs, uniques, asserts, keyAndUniqueNames, visitedIds);
+
+        // Also traverse imported schemas (they are NOT children of main schema)
+        for (Map.Entry<String, XsdSchema> entry : schema.getImportedSchemas().entrySet()) {
+            logger.debug("Analyzing identity constraints in imported schema: {}", entry.getKey());
+            traverseAndCollect(entry.getValue(), keys, keyRefs, uniques, asserts, keyAndUniqueNames, visitedIds);
+        }
 
         // Calculate counts
         int errorCount = 0;
