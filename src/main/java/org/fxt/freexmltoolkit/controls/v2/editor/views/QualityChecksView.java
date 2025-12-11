@@ -692,6 +692,12 @@ public class QualityChecksView extends BorderPane {
         allIssues.clear();
         allIssues.addAll(result.issues());
 
+        // Sort by severity (errors first) by default
+        TableColumn<QualityIssue, ?> severityColumn = issuesTable.getColumns().get(0);
+        issuesTable.getSortOrder().clear();
+        issuesTable.getSortOrder().add(severityColumn);
+        severityColumn.setSortType(TableColumn.SortType.ASCENDING);
+
         // Clear details
         detailsArea.clear();
     }
