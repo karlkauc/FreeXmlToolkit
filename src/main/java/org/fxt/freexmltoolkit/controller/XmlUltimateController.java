@@ -1205,7 +1205,11 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             }
 
             try {
-                Files.writeString(editorFile.toPath(), currentXmlContent);
+                // Add metadata before saving
+                ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+                String contentWithMetadata = metadataService.addOrUpdateXmlMetadata(currentXmlContent);
+
+                Files.writeString(editorFile.toPath(), contentWithMetadata);
                 editor.notifyEditorFileSaved();
                 currentTab.setText(editorFile.getName());
                 logToConsole("Saved file: " + editorFile.getAbsolutePath());
@@ -1258,7 +1262,11 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             File selectedFile = fileChooser.showSaveDialog(null);
             if (selectedFile != null) {
                 try {
-                    Files.writeString(selectedFile.toPath(), currentXmlContent);
+                    // Add metadata before saving
+                    ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+                    String contentWithMetadata = metadataService.addOrUpdateXmlMetadata(currentXmlContent);
+
+                    Files.writeString(selectedFile.toPath(), contentWithMetadata);
                     editor.notifyEditorFileSaved();
 
                     // Update the editor with the new file
@@ -1737,7 +1745,12 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             File file = fileChooser.showSaveDialog(null);
             if (file != null) {
                 try {
-                    Files.writeString(file.toPath(), xsltStylesheetEditor.getCodeArea().getText());
+                    // Add metadata before saving
+                    ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+                    String xsltContent = xsltStylesheetEditor.getCodeArea().getText();
+                    String contentWithMetadata = metadataService.addOrUpdateXmlMetadata(xsltContent);
+
+                    Files.writeString(file.toPath(), contentWithMetadata);
                     logToConsole("XSLT saved: " + file.getName());
                 } catch (IOException e) {
                     showError("Save Error", "Could not save XSLT: " + e.getMessage());

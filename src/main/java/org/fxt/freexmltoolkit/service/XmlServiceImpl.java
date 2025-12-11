@@ -640,6 +640,10 @@ public class XmlServiceImpl implements XmlService {
         logger.debug("Writing Excel File: {} - {} errors.", file.getName(), errorList.size());
 
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            // Set document metadata
+            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+            metadataService.setExcelMetadata(workbook, "XML Validation Error Report");
+
             var fileContent = Files.readAllLines(this.getCurrentXmlFile().toPath());
             XSSFSheet sheet = workbook.createSheet("Validation Error Report");
 
@@ -702,6 +706,10 @@ public class XmlServiceImpl implements XmlService {
         logger.debug("Writing batch Excel report: {} - {} files.", outputFile.getName(), files.size());
 
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            // Set document metadata
+            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+            metadataService.setExcelMetadata(workbook, "Batch XML Validation Report");
+
             // Create header styles
             CellStyle headerStyle = workbook.createCellStyle();
             XSSFFont headerFont = workbook.createFont();

@@ -750,7 +750,12 @@ public class SchematronController implements FavoritesParentController {
 
         try {
             String content = xmlCodeEditor.getText();
-            Files.writeString(currentSchematronFile.toPath(), content);
+
+            // Add metadata before saving
+            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+            String contentWithMetadata = metadataService.addOrUpdateXmlMetadata(content);
+
+            Files.writeString(currentSchematronFile.toPath(), contentWithMetadata);
 
             logger.info("Schematron file saved: {}", currentSchematronFile.getAbsolutePath());
             showInfo("File Saved", "File saved successfully: " + currentSchematronFile.getName());

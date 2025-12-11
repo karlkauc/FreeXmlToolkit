@@ -12,6 +12,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -138,8 +140,25 @@ public class XsdStatisticsExporter {
     public void exportToJson(XsdStatistics statistics, Path outputPath) throws IOException {
         logger.info("Exporting statistics to JSON: {}", outputPath);
 
+        ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+
         // Build a structured map for JSON
         Map<String, Object> jsonData = new LinkedHashMap<>();
+
+        // Add metadata at the beginning
+        Map<String, String> metadata = new LinkedHashMap<>();
+        metadata.put("generator", metadataService.getAppName());
+        metadata.put("version", metadataService.getAppVersion());
+        String userName = metadataService.getUserName();
+        if (userName != null) {
+            metadata.put("author", userName);
+        }
+        String company = metadataService.getUserCompany();
+        if (company != null) {
+            metadata.put("company", company);
+        }
+        metadata.put("generatedAt", metadataService.getTimestamp() + "Z");
+        jsonData.put("_metadata", metadata);
 
         // Schema Information
         Map<String, Object> schemaInfo = new LinkedHashMap<>();
@@ -200,10 +219,10 @@ public class XsdStatisticsExporter {
         cardinality.put("unboundedElements", statistics.unboundedElements());
         jsonData.put("cardinality", cardinality);
 
-        // Metadata
-        Map<String, String> metadata = new LinkedHashMap<>();
-        metadata.put("collectedAt", statistics.collectedAt().format(DATE_FORMATTER));
-        jsonData.put("metadata", metadata);
+        // Collection metadata (statistics collection time)
+        Map<String, String> collectionInfo = new LinkedHashMap<>();
+        collectionInfo.put("collectedAt", statistics.collectedAt().format(DATE_FORMATTER));
+        jsonData.put("collectionInfo", collectionInfo);
 
         // Write JSON
         Gson gson = new GsonBuilder()
@@ -234,9 +253,10 @@ public class XsdStatisticsExporter {
             // Create FOP factory
             FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
             FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-            foUserAgent.setTitle("XSD Schema Statistics");
-            foUserAgent.setAuthor(System.getProperty("user.name"));
-            foUserAgent.setCreator("FreeXmlToolkit");
+
+            // Set PDF metadata from ExportMetadataService
+            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+            metadataService.setPdfMetadata(foUserAgent, "XSD Schema Statistics");
 
             // Ensure parent directory exists
             Files.createDirectories(outputPath.getParent());
@@ -401,12 +421,15 @@ public class XsdStatisticsExporter {
     public void exportToHtml(XsdStatistics statistics, Path outputPath) throws IOException {
         logger.info("Exporting statistics to HTML: {}", outputPath);
 
+        ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+
         try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
             writer.write("<!DOCTYPE html>\n");
             writer.write("<html lang=\"en\">\n");
             writer.write("<head>\n");
             writer.write("  <meta charset=\"UTF-8\">\n");
             writer.write("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+            writer.write(metadataService.generateHtmlMetaTags());
             writer.write("  <title>XSD Schema Statistics</title>\n");
             writer.write("  <style>\n");
             writer.write(getHtmlStyles());
@@ -594,7 +617,11 @@ public class XsdStatisticsExporter {
     public void exportToExcel(XsdStatistics statistics, Path outputPath) throws IOException {
         logger.info("Exporting statistics to Excel: {}", outputPath);
 
-        try (Workbook workbook = new XSSFWorkbook()) {
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            // Set document metadata
+            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+            metadataService.setExcelMetadata(workbook, "XSD Schema Statistics Report");
+
             // Create styles
             CellStyle headerStyle = createHeaderStyle(workbook);
             CellStyle sectionStyle = createSectionStyle(workbook);

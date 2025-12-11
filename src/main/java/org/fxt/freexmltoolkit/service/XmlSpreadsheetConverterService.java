@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -169,6 +170,12 @@ public class XmlSpreadsheetConverterService {
 
         boolean isXlsx = outputFile.getName().toLowerCase().endsWith(".xlsx");
         Workbook workbook = isXlsx ? new XSSFWorkbook() : new HSSFWorkbook();
+
+        // Set document metadata for XLSX files
+        if (isXlsx && workbook instanceof XSSFWorkbook xssfWorkbook) {
+            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+            metadataService.setExcelMetadata(xssfWorkbook, "XML to Excel Conversion");
+        }
 
         try {
             Sheet sheet = workbook.createSheet("XML Structure");

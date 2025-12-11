@@ -24,6 +24,7 @@ import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
 
 import javax.xml.transform.Result;
@@ -132,4 +133,51 @@ public class FOPService {
         defaultParameter.put("author", System.getProperty("user.name"));
     }
 
+    /**
+     * Creates a PDF file with automatic metadata from ExportMetadataService.
+     *
+     * @param xmlFile   the XML file to transform
+     * @param xslFile   the XSL file to use for transformation
+     * @param pdfOutput the output PDF file
+     * @param title     the PDF document title
+     * @return the created PDF file
+     * @throws FOPServiceException if PDF generation fails
+     */
+    public File createPdfFileWithAutoMetadata(File xmlFile, File xslFile, File pdfOutput, String title) throws FOPServiceException {
+        ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+
+        String author = metadataService.getUserName();
+        if (author == null) author = "";
+
+        String company = metadataService.getUserCompany();
+        String keywords = company != null ? company : "";
+
+        // PDFSettings(customParameter, producer, author, creator, creationDate, title, keywords)
+        PDFSettings settings = new PDFSettings(
+                new HashMap<>(),                             // customParameter
+                metadataService.getAppNameWithVersion(),    // producer
+                author,                                      // author
+                metadataService.getAppName(),               // creator
+                metadataService.getTimestamp(),             // creationDate
+                title != null ? title : "",                 // title
+                keywords                                     // keywords
+        );
+
+        return createPdfFile(xmlFile, xslFile, pdfOutput, settings);
+    }
+
+    /**
+     * Applies metadata from ExportMetadataService to FOUserAgent.
+     *
+     * @param foUserAgent the FOP user agent
+     * @param title       the document title
+     */
+    public static void applyMetadataToFOUserAgent(FOUserAgent foUserAgent, String title) {
+        if (foUserAgent == null) {
+            return;
+        }
+
+        ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+        metadataService.setPdfMetadata(foUserAgent, title);
+    }
 }

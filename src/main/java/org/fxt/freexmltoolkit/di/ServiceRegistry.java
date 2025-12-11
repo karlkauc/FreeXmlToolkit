@@ -75,6 +75,9 @@ public final class ServiceRegistry {
         // 6. SchematronService - no singleton pattern, create new instance
         registerFactory(SchematronService.class, SchematronServiceImpl::new);
 
+        // 7. ExportMetadataService - for metadata in exported files
+        registerFactory(ExportMetadataService.class, ExportMetadataService::new);
+
         initialized = true;
     }
 

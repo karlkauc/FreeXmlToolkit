@@ -4,7 +4,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
-
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
@@ -1518,8 +1519,12 @@ public class XsdSerializer {
             createBackup(filePath);
         }
 
+        // Add or update metadata in the content
+        ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+        String contentWithMetadata = metadataService.addOrUpdateXmlMetadata(content);
+
         // Write content
-        Files.writeString(filePath, content);
+        Files.writeString(filePath, contentWithMetadata);
         logger.info("Saved XSD to: {}", filePath);
     }
 }

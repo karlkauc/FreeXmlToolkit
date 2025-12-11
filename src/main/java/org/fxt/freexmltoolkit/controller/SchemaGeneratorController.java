@@ -620,7 +620,12 @@ public class SchemaGeneratorController implements FavoritesParentController {
         File file = fileChooser.showSaveDialog(exportSchemaBtn.getScene().getWindow());
         if (file != null) {
             try {
-                Files.write(file.toPath(), xsdOutputArea.getText().getBytes(StandardCharsets.UTF_8));
+                // Add metadata before saving
+                ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+                String xsdContent = xsdOutputArea.getText();
+                String contentWithMetadata = metadataService.addOrUpdateXmlMetadata(xsdContent);
+
+                Files.write(file.toPath(), contentWithMetadata.getBytes(StandardCharsets.UTF_8));
                 showInfo("Export Successful", "Schema exported to: " + file.getAbsolutePath());
                 logger.info("Schema exported to: {}", file.getAbsolutePath());
             } catch (IOException e) {

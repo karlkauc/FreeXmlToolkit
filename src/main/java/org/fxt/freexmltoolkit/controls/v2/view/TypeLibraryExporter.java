@@ -2,6 +2,8 @@ package org.fxt.freexmltoolkit.controls.v2.view;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -70,7 +72,11 @@ public class TypeLibraryExporter {
      * Export to Excel (XLSX) format with multiple sheets
      */
     public static void exportToExcel(List<TypeInfo> types, File file) throws IOException {
-        try (Workbook workbook = new XSSFWorkbook()) {
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            // Set document metadata
+            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+            metadataService.setExcelMetadata(workbook, "XSD Type Library Export");
+
             // Create styles
             CellStyle headerStyle = createHeaderStyle(workbook);
             CellStyle unusedStyle = createUnusedStyle(workbook);
@@ -108,11 +114,14 @@ public class TypeLibraryExporter {
      * Export to HTML format with XMLSpy styling
      */
     public static void exportToHTML(List<TypeInfo> types, File file, String schemaName) throws IOException {
+        ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+
         StringBuilder html = new StringBuilder();
 
         html.append("<!DOCTYPE html>\n");
         html.append("<html>\n<head>\n");
         html.append("<meta charset=\"UTF-8\">\n");
+        html.append(metadataService.generateHtmlMetaTags());
         html.append("<title>Type Library - ").append(escapeHtml(schemaName)).append("</title>\n");
         html.append("<style>\n");
         html.append(getXmlSpyCSS());

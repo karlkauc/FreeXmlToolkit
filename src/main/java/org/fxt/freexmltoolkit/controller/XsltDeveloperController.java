@@ -1147,7 +1147,12 @@ public class XsltDeveloperController implements FavoritesParentController {
         File file = fileChooser.showSaveDialog(saveXsltBtn.getScene().getWindow());
         if (file != null) {
             try {
-                Files.write(file.toPath(), xsltInputEditor.getCodeArea().getText().getBytes(StandardCharsets.UTF_8));
+                // Add metadata before saving
+                ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+                String xsltContent = xsltInputEditor.getCodeArea().getText();
+                String contentWithMetadata = metadataService.addOrUpdateXmlMetadata(xsltContent);
+
+                Files.write(file.toPath(), contentWithMetadata.getBytes(StandardCharsets.UTF_8));
                 showInfo("Save Successful", "XSLT saved to: " + file.getAbsolutePath());
                 logger.info("XSLT saved to: {}", file.getAbsolutePath());
             } catch (IOException e) {
@@ -1185,7 +1190,15 @@ public class XsltDeveloperController implements FavoritesParentController {
         File file = fileChooser.showSaveDialog(saveResultBtn.getScene().getWindow());
         if (file != null) {
             try {
-                Files.write(file.toPath(), transformationResultArea.getText().getBytes(StandardCharsets.UTF_8));
+                String content = transformationResultArea.getText();
+
+                // Add metadata for XML-based output formats
+                if ("xml".equalsIgnoreCase(extension) || "xhtml".equalsIgnoreCase(extension)) {
+                    ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+                    content = metadataService.addOrUpdateXmlMetadata(content);
+                }
+
+                Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
                 showInfo("Save Successful", "Result saved to: " + file.getAbsolutePath());
                 logger.info("Result saved to: {}", file.getAbsolutePath());
             } catch (IOException e) {

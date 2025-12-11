@@ -12,6 +12,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.*;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -139,6 +141,8 @@ public class XsdQualityExporter {
     public void exportToJson(QualityResult result, Path outputPath) throws IOException {
         logger.info("Exporting quality results to JSON: {}", outputPath);
 
+        ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .serializeNulls()
@@ -146,6 +150,22 @@ public class XsdQualityExporter {
 
         // Create exportable structure (without XsdNode references which aren't serializable)
         Map<String, Object> exportData = new LinkedHashMap<>();
+
+        // Add metadata at the beginning
+        Map<String, String> metadata = new LinkedHashMap<>();
+        metadata.put("generator", metadataService.getAppName());
+        metadata.put("version", metadataService.getAppVersion());
+        String userName = metadataService.getUserName();
+        if (userName != null) {
+            metadata.put("author", userName);
+        }
+        String company = metadataService.getUserCompany();
+        if (company != null) {
+            metadata.put("company", company);
+        }
+        metadata.put("generatedAt", metadataService.getTimestamp() + "Z");
+        exportData.put("_metadata", metadata);
+
         exportData.put("generatedAt", DATE_FORMATTER.format(LocalDateTime.now()));
         exportData.put("score", result.score());
         exportData.put("scoreDescription", result.getScoreDescription());
@@ -197,8 +217,10 @@ public class XsdQualityExporter {
         // Create FOP factory and user agent
         FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
         FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-        foUserAgent.setTitle("XSD Quality Analysis Report");
-        foUserAgent.setCreator("FreeXmlToolkit");
+
+        // Set PDF metadata from ExportMetadataService
+        ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+        metadataService.setPdfMetadata(foUserAgent, "XSD Quality Analysis Report");
 
         // Create output stream for PDF
         try (OutputStream out = Files.newOutputStream(outputPath)) {
@@ -437,12 +459,15 @@ public class XsdQualityExporter {
     public void exportToHtml(QualityResult result, Path outputPath) throws IOException {
         logger.info("Exporting quality results to HTML: {}", outputPath);
 
+        ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+
         try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
             writer.write("<!DOCTYPE html>\n");
             writer.write("<html lang=\"en\">\n");
             writer.write("<head>\n");
             writer.write("  <meta charset=\"UTF-8\">\n");
             writer.write("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+            writer.write(metadataService.generateHtmlMetaTags());
             writer.write("  <title>XSD Quality Analysis Report</title>\n");
             writer.write("  <style>\n");
             writer.write(getHtmlStyles());
@@ -656,7 +681,11 @@ public class XsdQualityExporter {
     public void exportToExcel(QualityResult result, Path outputPath) throws IOException {
         logger.info("Exporting quality results to Excel: {}", outputPath);
 
-        try (Workbook workbook = new XSSFWorkbook()) {
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            // Set document metadata
+            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+            metadataService.setExcelMetadata(workbook, "XSD Quality Analysis Report");
+
             // Create styles
             CellStyle headerStyle = createHeaderStyle(workbook);
             CellStyle sectionStyle = createSectionStyle(workbook);
