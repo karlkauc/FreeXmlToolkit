@@ -1,7 +1,16 @@
 package org.fxt.freexmltoolkit.controls.intellisense;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
+import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
+import org.fxt.freexmltoolkit.service.xsd.adapters.IntelliSenseAdapter;
+
 import java.io.File;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -12,6 +21,8 @@ import java.util.stream.Collectors;
  * Handles multiple XSD schemas simultaneously with namespace awareness.
  */
 public class MultiSchemaManager {
+
+    private static final Logger logger = LogManager.getLogger(MultiSchemaManager.class);
 
     // Schema registry
     private final Map<String, SchemaInfo> schemaRegistry = new ConcurrentHashMap<>();
@@ -30,7 +41,10 @@ public class MultiSchemaManager {
 
     // Performance components
     private final CompletionCache completionCache;
-    private final XsdDocumentationExtractor documentationExtractor;
+
+    // Unified XSD parsing service and IntelliSense adapter
+    private final XsdParsingService xsdParsingService;
+    private final IntelliSenseAdapter intelliSenseAdapter;
 
     public MultiSchemaManager() {
         this.backgroundExecutor = Executors.newFixedThreadPool(3, new ThreadFactory() {
@@ -45,7 +59,17 @@ public class MultiSchemaManager {
             }
         });
         this.completionCache = new CompletionCache();
-        this.documentationExtractor = new XsdDocumentationExtractor();
+        this.xsdParsingService = new XsdParsingServiceImpl();
+        this.intelliSenseAdapter = new IntelliSenseAdapter();
+    }
+
+    /**
+     * Gets the XSD parsing service used by this manager.
+     *
+     * @return the XSD parsing service
+     */
+    public XsdParsingService getXsdParsingService() {
+        return xsdParsingService;
     }
 
     /**
@@ -86,9 +110,12 @@ public class MultiSchemaManager {
      */
     private String loadSchemaFromFile(String schemaId, String filePath, String targetNamespace, boolean setAsPrimary) {
         try {
-            // Load and parse schema
-            XsdDocumentationExtractor.SchemaInfo extractedInfo =
-                    documentationExtractor.extractFromFile(new File(filePath));
+            // Load and parse schema using unified XsdParsingService
+            Path schemaPath = new File(filePath).toPath();
+            ParsedSchema parsedSchema = xsdParsingService.parse(schemaPath, XsdParseOptions.defaults());
+
+            // Extract IntelliSense info using adapter
+            IntelliSenseAdapter.SchemaInfo extractedInfo = intelliSenseAdapter.toSchemaInfo(parsedSchema);
 
             // Create schema info
             SchemaInfo schemaInfo = new SchemaInfo(
@@ -115,9 +142,11 @@ public class MultiSchemaManager {
             // Notify listeners
             notifySchemaAdded(schemaInfo);
 
+            logger.debug("Loaded schema {} from file: {}", schemaId, filePath);
             return schemaId;
 
         } catch (Exception e) {
+            logger.error("Failed to load schema from file: {}", filePath, e);
             throw new RuntimeException("Failed to load schema: " + filePath, e);
         }
     }
@@ -146,9 +175,11 @@ public class MultiSchemaManager {
      */
     private String loadSchemaFromUrl(String schemaId, String url, String targetNamespace) {
         try {
-            // Load and parse schema from URL
-            XsdDocumentationExtractor.SchemaInfo extractedInfo =
-                    documentationExtractor.extractFromUrl(new URI(url).toURL());
+            // Load and parse schema from URL using unified XsdParsingService
+            ParsedSchema parsedSchema = xsdParsingService.parseFromUrl(url, XsdParseOptions.defaults());
+
+            // Extract IntelliSense info using adapter
+            IntelliSenseAdapter.SchemaInfo extractedInfo = intelliSenseAdapter.toSchemaInfo(parsedSchema);
 
             // Create schema info
             SchemaInfo schemaInfo = new SchemaInfo(
@@ -175,9 +206,11 @@ public class MultiSchemaManager {
             // Notify listeners
             notifySchemaAdded(schemaInfo);
 
+            logger.debug("Loaded schema {} from URL: {}", schemaId, url);
             return schemaId;
 
         } catch (Exception e) {
+            logger.error("Failed to load schema from URL: {}", url, e);
             throw new RuntimeException("Failed to load schema from URL: " + url, e);
         }
     }
@@ -280,10 +313,10 @@ public class MultiSchemaManager {
     private List<CompletionItem> generateCompletionItemsFromSchema(String context, SchemaInfo schema) {
         List<CompletionItem> items = new ArrayList<>();
 
-        XsdDocumentationExtractor.SchemaInfo schemaInfo = schema.extractedInfo;
+        IntelliSenseAdapter.SchemaInfo schemaInfo = schema.extractedInfo;
 
         // Generate element completion items
-        for (XsdDocumentationExtractor.ElementInfo element : schemaInfo.elements) {
+        for (IntelliSenseAdapter.ElementInfo element : schemaInfo.elements) {
             if (matchesContext(element.name, context)) {
                 CompletionItem item = new CompletionItem.Builder(
                         element.name,
@@ -302,7 +335,7 @@ public class MultiSchemaManager {
         }
 
         // Generate attribute completion items
-        for (XsdDocumentationExtractor.AttributeInfo attribute : schemaInfo.attributes) {
+        for (IntelliSenseAdapter.AttributeInfo attribute : schemaInfo.attributes) {
             if (matchesContext(attribute.name, context)) {
                 CompletionItem item = new CompletionItem.Builder(
                         attribute.name,
@@ -555,12 +588,12 @@ public class MultiSchemaManager {
         public final String schemaId;
         public final String source; // File path or URL
         public final String targetNamespace;
-        public final XsdDocumentationExtractor.SchemaInfo extractedInfo;
+        public final IntelliSenseAdapter.SchemaInfo extractedInfo;
         public final long loadTime;
         private volatile String namespacePrefix;
 
         public SchemaInfo(String schemaId, String source, String targetNamespace,
-                          XsdDocumentationExtractor.SchemaInfo extractedInfo, long loadTime) {
+                          IntelliSenseAdapter.SchemaInfo extractedInfo, long loadTime) {
             this.schemaId = schemaId;
             this.source = source;
             this.targetNamespace = targetNamespace;

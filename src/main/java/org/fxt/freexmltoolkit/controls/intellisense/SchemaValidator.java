@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.intellisense;
 
+import org.fxt.freexmltoolkit.service.xsd.adapters.IntelliSenseAdapter;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -245,12 +247,12 @@ public class SchemaValidator {
             List<ValidationRule> rules = new ArrayList<>();
 
             // Generate rules from schema elements
-            for (XsdDocumentationExtractor.ElementInfo element : schema.extractedInfo.elements) {
+            for (IntelliSenseAdapter.ElementInfo element : schema.extractedInfo.elements) {
                 rules.add(new ElementValidationRule(element));
             }
 
             // Generate rules from schema attributes
-            for (XsdDocumentationExtractor.AttributeInfo attribute : schema.extractedInfo.attributes) {
+            for (IntelliSenseAdapter.AttributeInfo attribute : schema.extractedInfo.attributes) {
                 rules.add(new AttributeValidationRule(attribute));
             }
 
@@ -397,47 +399,47 @@ public class SchemaValidator {
     }
 
     // Element validation rule
-        private record ElementValidationRule(XsdDocumentationExtractor.ElementInfo elementInfo) implements ValidationRule {
+    private record ElementValidationRule(IntelliSenseAdapter.ElementInfo elementInfo) implements ValidationRule {
 
         @Override
-            public List<ValidationIssue> validate(String xmlContent) {
-                List<ValidationIssue> issues = new ArrayList<>();
+        public List<ValidationIssue> validate(String xmlContent) {
+            List<ValidationIssue> issues = new ArrayList<>();
 
-                // Check if required element is present
-                if (elementInfo.required) {
-                    if (!xmlContent.contains("<" + elementInfo.name)) {
-                        issues.add(new ValidationIssue(
-                                ValidationSeverity.ERROR, 1, 1,
-                                "Missing required element",
-                                "Required element '" + elementInfo.name + "' is missing"));
-                    }
+            // Check if required element is present
+            if (elementInfo.required) {
+                if (!xmlContent.contains("<" + elementInfo.name)) {
+                    issues.add(new ValidationIssue(
+                            ValidationSeverity.ERROR, 1, 1,
+                            "Missing required element",
+                            "Required element '" + elementInfo.name + "' is missing"));
                 }
-
-                return issues;
             }
+
+            return issues;
         }
+    }
 
     // Attribute validation rule
-        private record AttributeValidationRule(
-            XsdDocumentationExtractor.AttributeInfo attributeInfo) implements ValidationRule {
+    private record AttributeValidationRule(
+            IntelliSenseAdapter.AttributeInfo attributeInfo) implements ValidationRule {
 
         @Override
-            public List<ValidationIssue> validate(String xmlContent) {
-                List<ValidationIssue> issues = new ArrayList<>();
+        public List<ValidationIssue> validate(String xmlContent) {
+            List<ValidationIssue> issues = new ArrayList<>();
 
-                // Check if required attribute is present
-                if (attributeInfo.required) {
-                    if (!xmlContent.contains(attributeInfo.name + "=")) {
-                        issues.add(new ValidationIssue(
-                                ValidationSeverity.WARNING, 1, 1,
-                                "Missing required attribute",
-                                "Required attribute '" + attributeInfo.name + "' may be missing"));
-                    }
+            // Check if required attribute is present
+            if (attributeInfo.required) {
+                if (!xmlContent.contains(attributeInfo.name + "=")) {
+                    issues.add(new ValidationIssue(
+                            ValidationSeverity.WARNING, 1, 1,
+                            "Missing required attribute",
+                            "Required attribute '" + attributeInfo.name + "' may be missing"));
                 }
-
-                return issues;
             }
+
+            return issues;
         }
+    }
 
     // Cache statistics
         public record CacheStatistics(int validationCacheSize, int rulesCacheSize) {

@@ -3,6 +3,10 @@ package org.fxt.freexmltoolkit.service;
 import javafx.concurrent.Task;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
+import org.fxt.freexmltoolkit.service.xsd.SchemaResolver;
 import org.w3c.dom.Document;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
@@ -68,9 +72,22 @@ public class XsdValidationService {
     // Built-in schema paths for common XML types
     private final Map<String, String> commonSchemas = new HashMap<>();
 
+    // Unified XSD parsing service
+    private final XsdParsingService xsdParsingService;
+
     private XsdValidationService() {
         initializeCommonSchemas();
+        this.xsdParsingService = new XsdParsingServiceImpl();
         logger.info("XSD Validation Service initialized with caching enabled");
+    }
+
+    /**
+     * Gets the XSD parsing service used by this validation service.
+     *
+     * @return the XSD parsing service
+     */
+    public XsdParsingService getXsdParsingService() {
+        return xsdParsingService;
     }
 
     public static synchronized XsdValidationService getInstance() {
@@ -426,7 +443,7 @@ public class XsdValidationService {
     /**
      * Load XSD schema from file or URL.
      * <p>
-     * Uses SchemaResourceResolver to support relative xs:import and xs:include references.
+     * Uses unified SchemaResolver to support relative xs:import and xs:include references.
      * The systemId is set on the StreamSource to enable proper relative path resolution.
      * </p>
      */
@@ -434,9 +451,10 @@ public class XsdValidationService {
         try {
             SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
-            // Configure resource resolver to handle relative schema references (xs:import, xs:include)
-            SchemaResourceResolver resourceResolver = new SchemaResourceResolver();
-            schemaFactory.setResourceResolver(resourceResolver);
+            // Configure unified schema resolver to handle relative schema references (xs:import, xs:include)
+            SchemaResolver schemaResolver = new SchemaResolver(XsdParseOptions.defaults());
+            Path baseDir = xsdPath.startsWith("http") ? null : Paths.get(xsdPath).getParent();
+            schemaFactory.setResourceResolver(schemaResolver.createLSResourceResolver(baseDir));
 
             StreamSource schemaSource;
 

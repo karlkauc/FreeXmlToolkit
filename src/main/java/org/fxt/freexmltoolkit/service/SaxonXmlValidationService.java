@@ -20,6 +20,11 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
+import org.fxt.freexmltoolkit.service.xsd.SchemaResolver;
+import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -49,26 +54,51 @@ public class SaxonXmlValidationService implements XmlValidationService {
 
     private static final Logger logger = LogManager.getLogger(SaxonXmlValidationService.class);
     private final SchemaFactory factory;
-    private final SchemaResourceResolver resourceResolver;
+    private final SchemaResolver schemaResolver;
+    private final SchemaResolver.ValidationResourceResolver resourceResolver;
+    private final XsdParsingService xsdParsingService;
 
     /**
      * Creates a new Saxon validation service instance.
      */
     public SaxonXmlValidationService() {
-        this.resourceResolver = new SchemaResourceResolver();
-        this.factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
-        // Configure resource resolver to handle schema references (xs:import, xs:include)
+        // Configure unified schema resolver to handle schema references (xs:import, xs:include)
         // Supports local files, remote URLs (HTTP/HTTPS with caching), and circular import detection
+        this.schemaResolver = new SchemaResolver(XsdParseOptions.defaults());
+        this.resourceResolver = (SchemaResolver.ValidationResourceResolver) schemaResolver.createLSResourceResolver(null);
+
+        this.factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
         this.factory.setResourceResolver(resourceResolver);
+
+        // Initialize the unified XsdParsingService for schema parsing
+        this.xsdParsingService = new XsdParsingServiceImpl();
+    }
+
+    /**
+     * Gets the XSD parsing service used by this validation service.
+     *
+     * @return the XSD parsing service
+     */
+    public XsdParsingService getXsdParsingService() {
+        return xsdParsingService;
     }
 
     /**
      * Gets the schema resource resolver used by this service.
      *
-     * @return the schema resource resolver
+     * @return the schema resource resolver as LSResourceResolver
      */
-    public SchemaResourceResolver getResourceResolver() {
+    public LSResourceResolver getResourceResolver() {
         return resourceResolver;
+    }
+
+    /**
+     * Gets the unified schema resolver used by this service.
+     *
+     * @return the schema resolver
+     */
+    public SchemaResolver getSchemaResolver() {
+        return schemaResolver;
     }
 
     @Override

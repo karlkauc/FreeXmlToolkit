@@ -34,6 +34,14 @@ import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
+import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
+import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -495,6 +503,39 @@ public class XsdController implements FavoritesParentController {
             }
         });
         logger.debug("Drag and drop initialized for XSD controller");
+
+        // Initialize flatten button state based on text field content
+        initializeFlattenButton();
+    }
+
+    /**
+     * Initializes the flatten button and adds listeners to enable/disable it based on input fields.
+     */
+    private void initializeFlattenButton() {
+        if (flattenXsdButton == null || xsdToFlattenPath == null || flattenedXsdPath == null) {
+            return;
+        }
+
+        // Initially disable the button
+        flattenXsdButton.setDisable(true);
+
+        // Create a listener that checks both fields
+        Runnable updateButtonState = () -> {
+            String source = xsdToFlattenPath.getText();
+            String dest = flattenedXsdPath.getText();
+            boolean hasSource = source != null && !source.isBlank();
+            boolean hasDest = dest != null && !dest.isBlank();
+            flattenXsdButton.setDisable(!(hasSource && hasDest));
+        };
+
+        // Add listeners to both text fields
+        xsdToFlattenPath.textProperty().addListener((obs, oldVal, newVal) -> updateButtonState.run());
+        flattenedXsdPath.textProperty().addListener((obs, oldVal, newVal) -> updateButtonState.run());
+
+        // Check initial state
+        updateButtonState.run();
+
+        logger.debug("Flatten button initialized with text field listeners");
     }
 
     private void applyEditorSettings() {
@@ -1151,6 +1192,11 @@ public class XsdController implements FavoritesParentController {
 
     /**
      * Loads XSD content into the V2 graphical view using the new model-based architecture.
+     * <p>
+     * Note: This method uses XsdNodeFactory directly for optimal V2 model creation.
+     * For unified schema parsing, use {@link org.fxt.freexmltoolkit.service.xsd.XsdParsingService}
+     * with {@link org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter}.
+     * </p>
      */
     private void loadXsdIntoGraphicViewV2(String xsdContent) {
         // Store factory reference to get imported schemas after parsing
@@ -2629,8 +2675,30 @@ public class XsdController implements FavoritesParentController {
         Task<String> flattenTask = new Task<>() {
             @Override
             protected String call() throws Exception {
-                XsdFlattenerService flattener = new XsdFlattenerService();
-                return flattener.flatten(sourceFile, destinationFile);
+                // Use new unified XsdParsingService with FLATTEN mode
+                XsdParsingService parsingService = new XsdParsingServiceImpl();
+                XsdParseOptions options = XsdParseOptions.forFlattening();
+
+                ParsedSchema parsedSchema = parsingService.parse(sourceFile.toPath(), options);
+
+                // Convert to XsdSchema model for proper serialization with sorting
+                XsdModelAdapter modelAdapter = new XsdModelAdapter(options);
+                XsdSchema xsdModel = modelAdapter.toXsdModel(parsedSchema);
+
+                // Get sort order from settings
+                XsdSortOrder sortOrder = getSortOrderFromSettings();
+                logger.info("Using sort order from settings: {}", sortOrder);
+
+                // Serialize with XsdSerializer which respects sort order
+                XsdSerializer serializer = new XsdSerializer();
+                String flattenedContent = serializer.serialize(xsdModel, sortOrder);
+
+                // Write to destination file
+                logger.info("Writing flattened schema to: {}", destinationFile.getAbsolutePath());
+                java.nio.file.Files.writeString(destinationFile.toPath(), flattenedContent);
+                logger.info("Successfully wrote {} characters to: {}", flattenedContent.length(), destinationFile.getAbsolutePath());
+
+                return flattenedContent;
             }
         };
 
@@ -2664,6 +2732,21 @@ public class XsdController implements FavoritesParentController {
             return "";
         }
         return originalPath.substring(0, originalPath.length() - 4) + "_flattened.xsd";
+    }
+
+    /**
+     * Gets the XSD sort order from application settings.
+     *
+     * @return the configured sort order, or NAME_BEFORE_TYPE as default
+     */
+    private XsdSortOrder getSortOrderFromSettings() {
+        try {
+            String sortOrderStr = propertiesService.getXsdSortOrder();
+            return XsdSortOrder.valueOf(sortOrderStr);
+        } catch (Exception e) {
+            logger.warn("Could not get sort order from settings, using default NAME_BEFORE_TYPE: {}", e.getMessage());
+            return XsdSortOrder.NAME_BEFORE_TYPE;
+        }
     }
 
     // Make sure this method already exists or add it

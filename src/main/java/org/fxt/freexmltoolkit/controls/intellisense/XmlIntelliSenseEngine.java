@@ -33,7 +33,6 @@ public class XmlIntelliSenseEngine {
     private final CodeArea codeArea;
     private final ThreadPoolManager threadPoolManager;
     private final CompletionCache completionCache;
-    private final XsdDocumentationExtractor documentationExtractor;
     private final SchemaValidator schemaValidator;
     private final AtomicInteger threadCounter = new AtomicInteger(0);
 
@@ -68,7 +67,6 @@ public class XmlIntelliSenseEngine {
         this.codeArea = codeArea;
         this.threadPoolManager = ThreadPoolManager.getInstance();
         this.completionCache = new CompletionCache();
-        this.documentationExtractor = new XsdDocumentationExtractor();
         this.schemaValidator = null; // Will be initialized when schema is available
 
         initialize();
