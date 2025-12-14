@@ -37,6 +37,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
 import org.fxt.freexmltoolkit.controls.dialogs.UpdateNotificationDialog;
+import org.fxt.freexmltoolkit.controls.dialogs.UpdateProgressDialog;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.DragDropService;
@@ -1120,10 +1121,42 @@ public class MainController implements Initializable {
     private void showUpdateDialog(UpdateInfo updateInfo) {
         try {
             UpdateNotificationDialog dialog = new UpdateNotificationDialog(updateInfo);
-            dialog.showAndWait();
+            dialog.showAndWait().ifPresent(action -> {
+                if (action == UpdateNotificationDialog.UpdateAction.DOWNLOAD_AND_INSTALL) {
+                    startAutoUpdate(updateInfo);
+                }
+            });
         } catch (Exception e) {
             logger.error("Failed to show update dialog", e);
         }
+    }
+
+    /**
+     * Starts the automatic update process.
+     *
+     * @param updateInfo the update information
+     */
+    private void startAutoUpdate(UpdateInfo updateInfo) {
+        logger.info("Starting auto-update to version {}", updateInfo.latestVersion());
+
+        UpdateProgressDialog progressDialog = new UpdateProgressDialog(updateInfo);
+        progressDialog.startUpdate(result -> {
+            if (result.success()) {
+                logger.info("Auto-update initiated successfully. Application will restart.");
+                // The UpdateProgressDialog will handle Platform.exit()
+            } else {
+                logger.warn("Auto-update failed: {}", result.errorMessage());
+                // Show error dialog
+                Platform.runLater(() -> {
+                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    errorAlert.setTitle("Update Failed");
+                    errorAlert.setHeaderText("Could not complete the update");
+                    errorAlert.setContentText(result.errorMessage() +
+                            "\n\nYou can try again or download the update manually from GitHub.");
+                    errorAlert.showAndWait();
+                });
+            }
+        });
     }
 
     /**

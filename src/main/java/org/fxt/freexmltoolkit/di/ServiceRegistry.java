@@ -78,6 +78,9 @@ public final class ServiceRegistry {
         // 7. ExportMetadataService - for metadata in exported files
         registerFactory(ExportMetadataService.class, ExportMetadataService::new);
 
+        // 8. AutoUpdateService - for automatic application updates
+        registerFactory(AutoUpdateService.class, AutoUpdateServiceImpl::getInstance);
+
         initialized = true;
     }
 

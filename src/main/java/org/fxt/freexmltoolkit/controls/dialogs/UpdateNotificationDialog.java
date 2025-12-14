@@ -61,8 +61,13 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
      * Actions that can be taken in the update dialog
      */
     public enum UpdateAction {
+        /** Open browser to download manually */
         DOWNLOAD,
+        /** Download and install the update automatically */
+        DOWNLOAD_AND_INSTALL,
+        /** Close dialog, ask again later */
         REMIND_LATER,
+        /** Skip this version */
         SKIP_VERSION
     }
 
@@ -117,17 +122,28 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         dialogPane.setContent(content);
 
         // Custom buttons
-        ButtonType downloadButton = new ButtonType("Download", ButtonBar.ButtonData.OK_DONE);
+        ButtonType installButton = new ButtonType("Download & Install", ButtonBar.ButtonData.OK_DONE);
+        ButtonType downloadButton = new ButtonType("Open in Browser", ButtonBar.ButtonData.LEFT);
         ButtonType remindLaterButton = new ButtonType("Remind Me Later", ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType skipVersionButton = new ButtonType("Skip This Version", ButtonBar.ButtonData.OTHER);
 
-        dialogPane.getButtonTypes().addAll(downloadButton, remindLaterButton, skipVersionButton);
+        dialogPane.getButtonTypes().addAll(installButton, downloadButton, remindLaterButton, skipVersionButton);
 
-        // Style the Download button
+        // Style the Install button (primary action)
+        Button installBtn = (Button) dialogPane.lookupButton(installButton);
+        if (installBtn != null) {
+            installBtn.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;");
+            FontIcon installIcon = new FontIcon("bi-cloud-download");
+            installIcon.setIconSize(14);
+            installIcon.setIconColor(Color.WHITE);
+            installBtn.setGraphic(installIcon);
+        }
+
+        // Style the Download button (secondary action)
         Button downloadBtn = (Button) dialogPane.lookupButton(downloadButton);
         if (downloadBtn != null) {
-            downloadBtn.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;");
-            FontIcon downloadIcon = new FontIcon("bi-download");
+            downloadBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
+            FontIcon downloadIcon = new FontIcon("bi-box-arrow-up-right");
             downloadIcon.setIconSize(14);
             downloadIcon.setIconColor(Color.WHITE);
             downloadBtn.setGraphic(downloadIcon);
@@ -135,7 +151,9 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
 
         // Result converter
         setResultConverter(buttonType -> {
-            if (buttonType == downloadButton) {
+            if (buttonType == installButton) {
+                return UpdateAction.DOWNLOAD_AND_INSTALL;
+            } else if (buttonType == downloadButton) {
                 openDownloadPage();
                 return UpdateAction.DOWNLOAD;
             } else if (buttonType == skipVersionButton) {
@@ -282,7 +300,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         infoIcon.setIconSize(16);
         infoIcon.setIconColor(Color.web("#0d6efd"));
 
-        Label infoLabel = new Label("Click 'Download' to open the GitHub releases page in your browser.");
+        Label infoLabel = new Label("Click 'Download & Install' to automatically update. The application will restart after installation.");
         infoLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #0a58ca;");
         infoLabel.setWrapText(true);
 

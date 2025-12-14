@@ -309,19 +309,31 @@ fun createZipTask(jpackageTaskName: String, platform: String, arch: String): Str
         val zipFileName = "FreeXmlToolkit-$platform-$arch-app-image-${project.version}.zip"
 
         from(sourceDir)
+
+        // Include platform-specific updater script for auto-update functionality
+        from("release/updater") {
+            if (platform == "windows") {
+                include("updater.bat")
+            } else {
+                include("updater.sh")
+            }
+            into("FreeXmlToolkit")
+        }
+
         archiveFileName.set(zipFileName)
         destinationDirectory.set(file("build/dist"))
 
         // Preserve file timestamps (build time) in ZIP archive
         isPreserveFileTimestamps = true
-        
+
         doFirst {
             if (!file(sourceDir).exists()) {
                 throw GradleException("Source directory $sourceDir does not exist")
             }
             println("Creating ZIP: $zipFileName from $sourceDir")
+            println("Including updater script for $platform")
         }
-        
+
         doLast {
             val zipFile = archiveFile.get().asFile
             if (zipFile.exists()) {

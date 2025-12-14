@@ -754,6 +754,36 @@ class UpdateCheckServiceTest {
         public void setXsdSortOrder(String sortOrder) {
             properties.setProperty("xsd.sort.order", sortOrder);
         }
+
+        @Override
+        public boolean isXmlEditorUseV2() {
+            return Boolean.parseBoolean(properties.getProperty("xml.editor.use.v2", "false"));
+        }
+
+        @Override
+        public void setXmlEditorUseV2(boolean useV2) {
+            properties.setProperty("xml.editor.use.v2", String.valueOf(useV2));
+        }
+
+        @Override
+        public boolean isBackupUseSeparateDirectory() {
+            return Boolean.parseBoolean(properties.getProperty("backup.use.separate.directory", "true"));
+        }
+
+        @Override
+        public void setBackupUseSeparateDirectory(boolean useSeparate) {
+            properties.setProperty("backup.use.separate.directory", String.valueOf(useSeparate));
+        }
+
+        @Override
+        public String getBackupDirectory() {
+            return properties.getProperty("backup.directory", System.getProperty("user.home") + "/.freexmltoolkit/backups");
+        }
+
+        @Override
+        public void setBackupDirectory(String path) {
+            properties.setProperty("backup.directory", path);
+        }
     }
 
     /**
