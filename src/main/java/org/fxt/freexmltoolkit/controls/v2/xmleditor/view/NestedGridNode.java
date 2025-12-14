@@ -165,22 +165,33 @@ public class NestedGridNode {
     }
 
     private String extractTextContent(XmlElement element) {
-        StringBuilder text = new StringBuilder();
+        // First check if this element has any element children
         boolean hasElementChildren = false;
-
         for (XmlNode child : element.getChildren()) {
             if (child instanceof XmlElement) {
                 hasElementChildren = true;
-            } else if (child instanceof XmlText) {
+                break;
+            }
+        }
+
+        // If it has element children, it's not a leaf - return null
+        if (hasElementChildren) {
+            return null;
+        }
+
+        // Extract text content from text nodes
+        StringBuilder text = new StringBuilder();
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlText) {
                 String t = ((XmlText) child).getText().trim();
                 if (!t.isEmpty()) {
+                    if (text.length() > 0) text.append(" ");
                     text.append(t);
                 }
             }
         }
 
-        // Only return text if no element children
-        return hasElementChildren ? null : (text.length() > 0 ? text.toString() : null);
+        return text.length() > 0 ? text.toString() : null;
     }
 
     private void setupModelListener() {
@@ -200,6 +211,17 @@ public class NestedGridNode {
         NestedGridNode root = new NestedGridNode(document, null, 0);
         buildChildren(root, document.getChildren(), 1);
         return root;
+    }
+
+    /**
+     * Builds a NestedGridNode from an XmlElement with all its children.
+     * Used for creating child grids in expanded table cells.
+     */
+    public static NestedGridNode buildFromElement(XmlElement element, int depth) {
+        NestedGridNode node = new NestedGridNode(element, null, depth);
+        buildChildren(node, element.getChildren(), depth + 1);
+        node.setExpanded(true);  // Start expanded
+        return node;
     }
 
     private static void buildChildren(NestedGridNode parent, List<XmlNode> children, int depth) {
@@ -447,6 +469,14 @@ public class NestedGridNode {
         boolean old = this.expanded;
         this.expanded = expanded;
         pcs.firePropertyChange("expanded", old, expanded);
+    }
+
+    /**
+     * Check if this node has content that can be expanded/collapsed.
+     * A node is expandable if it has children or repeating element tables.
+     */
+    public boolean hasExpandableContent() {
+        return !children.isEmpty() || !repeatingTables.isEmpty();
     }
     public void toggleExpanded() { setExpanded(!expanded); }
 

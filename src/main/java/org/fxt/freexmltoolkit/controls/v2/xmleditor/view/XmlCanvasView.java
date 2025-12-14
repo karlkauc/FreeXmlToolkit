@@ -12,6 +12,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
@@ -310,6 +311,20 @@ public class XmlCanvasView extends Pane {
         }
     }
 
+    /**
+     * Calculates sizes recursively for a standalone subtree (used for expanded table cells).
+     */
+    private void calculateSizesRecursively(NestedGridNode node, double availableWidth) {
+        calculateSizes(node, availableWidth);
+    }
+
+    /**
+     * Positions nodes recursively for a standalone subtree (used for expanded table cells).
+     */
+    private void positionNodesRecursively(NestedGridNode node, double x, double y) {
+        positionNodes(node, x, y);
+    }
+
     private void updateScrollBars() {
         double viewportWidth = canvas.getWidth();
         double viewportHeight = canvas.getHeight();
@@ -441,12 +456,131 @@ public class XmlCanvasView extends Pane {
             return;
         }
 
-        // Row click
-        int rowIndex = table.getRowIndexAt(my);
-        if (rowIndex >= 0) {
+        // Check if click is on an expanded child grid (or any of its children)
+        NestedGridNode clickedNode = findNodeInExpandedChildGrids(table, mx, my);
+        if (clickedNode != null) {
+            // Handle click on nested grid - same as regular node click
+            handleNestedGridClick(clickedNode, mx, my, clickCount);
+            return;
+        }
+
+        // Row/cell click
+        int rowIndex = table.getRowIndexAtY(my);
+        int colIndex = table.getColumnIndexAt(mx);
+
+        if (rowIndex >= 0 && colIndex >= 0) {
+            RepeatingElementsTable.TableColumn col = table.getColumn(colIndex);
+            RepeatingElementsTable.TableRow row = table.getRows().get(rowIndex);
+
+            // Check if clicked on a complex cell
+            if (col != null && row.hasComplexChild(col.getName())) {
+                // Toggle cell expansion
+                table.toggleCellExpansion(rowIndex, col.getName());
+                table.calculateHeight();
+                layoutDirty = true;
+                ensureLayout();
+                updateScrollBars();
+                render();
+                return;
+            }
+
+            // Normal row selection
             table.setSelectedRowIndex(rowIndex);
             selectTable(table);
             selectNode(null);
+            render();
+        } else if (rowIndex >= 0) {
+            // Click in row but not on a specific column
+            table.setSelectedRowIndex(rowIndex);
+            selectTable(table);
+            selectNode(null);
+            render();
+        }
+    }
+
+    /**
+     * Find the deepest nested node at the given point within expanded child grids.
+     * Searches recursively through all expanded rows and columns.
+     */
+    private NestedGridNode findNodeInExpandedChildGrids(RepeatingElementsTable table, double mx, double my) {
+        for (RepeatingElementsTable.TableRow row : table.getRows()) {
+            for (String colName : row.getExpandedColumns()) {
+                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+                if (childGrid != null) {
+                    // Check if point is within this child grid or any of its descendants
+                    NestedGridNode hit = findNodeAtPoint(childGrid, mx, my);
+                    if (hit != null) {
+                        return hit;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Recursively find the deepest node at a given point.
+     */
+    private NestedGridNode findNodeAtPoint(NestedGridNode node, double mx, double my) {
+        if (!isPointInNode(node, mx, my)) {
+            return null;
+        }
+
+        // Check tables in this node first
+        for (RepeatingElementsTable table : node.getRepeatingTables()) {
+            if (table.containsPoint(mx, my)) {
+                // Check for nested child grids in this table
+                NestedGridNode nested = findNodeInExpandedChildGrids(table, mx, my);
+                if (nested != null) {
+                    return nested;
+                }
+            }
+        }
+
+        // Check children recursively (find deepest match)
+        if (node.isExpanded()) {
+            for (NestedGridNode child : node.getChildren()) {
+                NestedGridNode hit = findNodeAtPoint(child, mx, my);
+                if (hit != null) {
+                    return hit;
+                }
+            }
+        }
+
+        // This node is the best match
+        return node;
+    }
+
+    private boolean isPointInNode(NestedGridNode node, double mx, double my) {
+        double x = node.getX();
+        double y = node.getY();
+        double w = node.getWidth();
+        double h = node.getHeight();
+        return mx >= x && mx <= x + w && my >= y && my <= y + h;
+    }
+
+    /**
+     * Handle click on a nested grid node - same behavior as main grid nodes.
+     */
+    private void handleNestedGridClick(NestedGridNode node, double mx, double my, int clickCount) {
+        double localX = mx - node.getX();
+        double localY = my - node.getY();
+
+        // Check if click is on header (expand/collapse area)
+        boolean headerClick = localY <= NestedGridNode.HEADER_HEIGHT;
+        boolean expandButtonClick = headerClick && localX <= 20;  // First 20px for expand/collapse button
+
+        if (expandButtonClick && node.hasExpandableContent()) {
+            // Toggle expand/collapse
+            node.setExpanded(!node.isExpanded());
+            layoutDirty = true;
+            ensureLayout();
+            updateScrollBars();
+            render();
+        } else {
+            // Header click or single click - select the node
+            selectNode(node);
+            selectTable(null);
             render();
         }
     }
@@ -491,9 +625,18 @@ public class XmlCanvasView extends Pane {
                 needsRedraw = true;
             }
 
-            // Cursor
+            // Cursor - HAND for header and complex cells
             if (hitTable.isHeaderHit(mx, my)) {
                 canvas.setCursor(javafx.scene.Cursor.HAND);
+            } else if (newRowIndex >= 0 && newColIndex >= 0) {
+                // Check if hovering over a complex cell
+                RepeatingElementsTable.TableColumn col = hitTable.getColumn(newColIndex);
+                RepeatingElementsTable.TableRow row = hitTable.getRows().get(newRowIndex);
+                if (col != null && row.hasComplexChild(col.getName())) {
+                    canvas.setCursor(javafx.scene.Cursor.HAND);
+                } else {
+                    canvas.setCursor(javafx.scene.Cursor.DEFAULT);
+                }
             } else {
                 canvas.setCursor(javafx.scene.Cursor.DEFAULT);
             }
@@ -700,6 +843,29 @@ public class XmlCanvasView extends Pane {
             // Render individual children
             for (NestedGridNode child : node.getChildren()) {
                 renderVisible(child, viewportTop, viewportBottom);
+            }
+        }
+    }
+
+    /**
+     * Renders a grid node and all its children recursively.
+     * Used for rendering expanded child grids in table cells.
+     * This doesn't do viewport culling - it renders everything.
+     */
+    private void renderGridRecursively(NestedGridNode node) {
+        // First render this node
+        renderGrid(node);
+
+        // If expanded, render children
+        if (node.isExpanded()) {
+            // Render any repeating tables
+            for (RepeatingElementsTable table : node.getRepeatingTables()) {
+                renderTable(table);
+            }
+
+            // Render child nodes
+            for (NestedGridNode child : node.getChildren()) {
+                renderGridRecursively(child);
             }
         }
     }
@@ -1014,10 +1180,31 @@ public class XmlCanvasView extends Pane {
         drawTableColumnHeaders(table, x, rowY, w);
         rowY += ROW_HEIGHT;
 
-        // Data rows
+        // Data rows with expanded child grids
         for (int i = 0; i < table.getRows().size(); i++) {
             drawTableDataRow(table, i, x, rowY, w);
             rowY += ROW_HEIGHT;
+
+            // Render any expanded child grids for this row
+            RepeatingElementsTable.TableRow row = table.getRows().get(i);
+            for (String colName : row.getExpandedColumns()) {
+                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+                if (childGrid != null) {
+                    // Position the child grid
+                    double childX = x + INDENT;
+                    double childW = w - INDENT * 2;
+
+                    // Calculate sizes for the entire subtree
+                    calculateSizesRecursively(childGrid, childW);
+
+                    // Position the entire subtree
+                    positionNodesRecursively(childGrid, childX, rowY);
+
+                    // Render the child grid and its children recursively
+                    renderGridRecursively(childGrid);
+                    rowY += childGrid.getHeight() + GRID_PADDING;
+                }
+            }
         }
     }
 
@@ -1134,17 +1321,52 @@ public class XmlCanvasView extends Pane {
 
         double colX = x + GRID_PADDING;
         for (RepeatingElementsTable.TableColumn col : table.getColumns()) {
-            String value = row.getValue(col.getName());
+            String colName = col.getName();
+            String value = row.getValue(colName);
+            boolean isComplex = row.hasComplexChild(colName);
+            boolean isExpanded = row.isColumnExpanded(colName);
 
-            // Color based on column type
-            if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
-                gc.setFill(TEXT_ATTRIBUTE_VALUE);
-            } else {
-                gc.setFill(TEXT_CONTENT);
+            double textStartX = colX;
+
+            // Draw expand/collapse indicator for complex cells
+            if (isComplex) {
+                double iconX = colX + 2;
+                double iconY = y + ROW_HEIGHT / 2;
+                double iconSize = 3;
+
+                // Draw expand/collapse arrow
+                gc.setStroke(Color.rgb(59, 130, 246));  // Blue
+                gc.setLineWidth(1.5);
+
+                if (isExpanded) {
+                    // Down arrow (expanded)
+                    gc.strokeLine(iconX, iconY - iconSize, iconX + iconSize, iconY);
+                    gc.strokeLine(iconX + iconSize, iconY, iconX + iconSize * 2, iconY - iconSize);
+                } else {
+                    // Right arrow (collapsed)
+                    gc.strokeLine(iconX, iconY - iconSize, iconX + iconSize, iconY);
+                    gc.strokeLine(iconX, iconY + iconSize, iconX + iconSize, iconY);
+                }
+
+                textStartX = colX + iconSize * 2 + 6;
             }
 
-            gc.fillText(truncateText(value, col.getWidth() - GRID_PADDING * 2),
-                        colX, y + ROW_HEIGHT / 2);
+            // Color based on column type and value content
+            if (isComplex) {
+                // Complex element indicator - show in blue/link color with underline
+                gc.setFill(Color.rgb(59, 130, 246)); // Blue-500
+                gc.setFont(Font.font("System", FontWeight.NORMAL, 12));
+            } else if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
+                gc.setFill(TEXT_ATTRIBUTE_VALUE);
+                gc.setFont(ROW_FONT);
+            } else {
+                gc.setFill(TEXT_CONTENT);
+                gc.setFont(ROW_FONT);
+            }
+
+            // Truncate text based on available space
+            double availableWidth = col.getWidth() - (textStartX - colX) - GRID_PADDING;
+            gc.fillText(truncateText(value, availableWidth), textStartX, y + ROW_HEIGHT / 2);
 
             // Column separator
             colX += col.getWidth();

@@ -106,6 +106,10 @@ public class RepeatingElementsTable {
     public static class TableRow {
         private final XmlElement element;
         private final Map<String, String> values = new LinkedHashMap<>();
+        private final Map<String, XmlElement> complexChildren = new LinkedHashMap<>();
+        private final Map<String, NestedGridNode> expandedChildGrids = new LinkedHashMap<>();
+        private final Set<String> expandedColumns = new HashSet<>();
+        private boolean expanded = false;  // Is this row expanded to show details?
 
         public TableRow(XmlElement element) {
             this.element = element;
@@ -113,9 +117,49 @@ public class RepeatingElementsTable {
 
         public XmlElement getElement() { return element; }
         public Map<String, String> getValues() { return values; }
+        public Map<String, XmlElement> getComplexChildren() { return complexChildren; }
+        public Map<String, NestedGridNode> getExpandedChildGrids() { return expandedChildGrids; }
 
         public String getValue(String columnName) {
             return values.getOrDefault(columnName, "");
+        }
+
+        public boolean hasComplexChild(String columnName) {
+            return complexChildren.containsKey(columnName);
+        }
+
+        public XmlElement getComplexChild(String columnName) {
+            return complexChildren.get(columnName);
+        }
+
+        public boolean isColumnExpanded(String columnName) {
+            return expandedColumns.contains(columnName);
+        }
+
+        public void toggleColumnExpanded(String columnName) {
+            if (expandedColumns.contains(columnName)) {
+                expandedColumns.remove(columnName);
+                expandedChildGrids.remove(columnName);
+            } else {
+                expandedColumns.add(columnName);
+            }
+        }
+
+        public Set<String> getExpandedColumns() { return expandedColumns; }
+
+        public boolean isExpanded() { return expanded; }
+        public void setExpanded(boolean expanded) { this.expanded = expanded; }
+
+        public NestedGridNode getOrCreateChildGrid(String columnName, int depth) {
+            if (!expandedChildGrids.containsKey(columnName)) {
+                XmlElement childElement = complexChildren.get(columnName);
+                if (childElement != null) {
+                    // Use buildFromElement to create a fully populated grid with children
+                    NestedGridNode childGrid = NestedGridNode.buildFromElement(childElement, depth + 1);
+                    expandedChildGrids.put(columnName, childGrid);
+                }
+            }
+            return expandedChildGrids.get(columnName);
         }
     }
 
@@ -205,6 +249,10 @@ public class RepeatingElementsTable {
                             String text = extractElementText(childEl);
                             if (!row.getValues().containsKey(childName)) {
                                 row.getValues().put(childName, text);
+                                // Store complex children for later expansion
+                                if (hasElementChildren(childEl)) {
+                                    row.getComplexChildren().put(childName, childEl);
+                                }
                             }
                             break;
                         }
@@ -222,12 +270,30 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Extracts text content from an element (direct text children).
+     * Checks if an element has child elements (not just text).
+     */
+    private boolean hasElementChildren(XmlElement element) {
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlElement) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Extracts text content from an element.
+     * For leaf elements (only text), returns the text.
+     * For complex elements (with child elements), returns a summary like "{3 children}".
      */
     private String extractElementText(XmlElement element) {
         StringBuilder text = new StringBuilder();
+        int elementChildCount = 0;
+
         for (XmlNode child : element.getChildren()) {
-            if (child instanceof XmlText) {
+            if (child instanceof XmlElement) {
+                elementChildCount++;
+            } else if (child instanceof XmlText) {
                 String t = ((XmlText) child).getText().trim();
                 if (!t.isEmpty()) {
                     if (text.length() > 0) text.append(" ");
@@ -235,6 +301,18 @@ public class RepeatingElementsTable {
                 }
             }
         }
+
+        // If it has element children, show a summary
+        if (elementChildCount > 0) {
+            if (text.length() > 0) {
+                // Mixed content: show text + indicator
+                return text.toString() + " {+" + elementChildCount + "}";
+            } else {
+                // Only element children
+                return "{" + elementChildCount + (elementChildCount == 1 ? " child" : " children") + "}";
+            }
+        }
+
         return text.toString();
     }
 
@@ -258,16 +336,130 @@ public class RepeatingElementsTable {
     // ==================== Layout Calculation ====================
 
     /**
-     * Calculates the height of this table.
+     * Calculates the height of this table, including any expanded child grids.
      */
     public double calculateHeight() {
         if (!expanded) {
             this.height = HEADER_HEIGHT + GRID_PADDING;
         } else {
-            // Header + column header + data rows
-            this.height = HEADER_HEIGHT + ROW_HEIGHT + rows.size() * ROW_HEIGHT + GRID_PADDING;
+            // Header + column header
+            double h = HEADER_HEIGHT + ROW_HEIGHT;
+
+            // Add height for each row + any expanded child grids
+            for (TableRow row : rows) {
+                h += ROW_HEIGHT;  // The data row itself
+
+                // Add height for any expanded child grids in this row
+                for (String colName : row.getExpandedColumns()) {
+                    NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+                    if (childGrid != null) {
+                        h += childGrid.getHeight() + GRID_PADDING;
+                    }
+                }
+            }
+
+            this.height = h + GRID_PADDING;
         }
         return this.height;
+    }
+
+    /**
+     * Gets the Y position of a specific row within this table.
+     */
+    public double getRowY(int rowIndex) {
+        double rowY = y + HEADER_HEIGHT + ROW_HEIGHT;  // After table header + column headers
+
+        for (int i = 0; i < rowIndex && i < rows.size(); i++) {
+            rowY += ROW_HEIGHT;
+            // Add height for any expanded child grids in rows before this one
+            TableRow row = rows.get(i);
+            for (String colName : row.getExpandedColumns()) {
+                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+                if (childGrid != null) {
+                    rowY += childGrid.getHeight() + GRID_PADDING;
+                }
+            }
+        }
+
+        return rowY;
+    }
+
+    /**
+     * Gets the row index at a specific Y position.
+     */
+    public int getRowIndexAtY(double py) {
+        if (py < y + HEADER_HEIGHT + ROW_HEIGHT) {
+            return -1;  // In header area
+        }
+
+        double currentY = y + HEADER_HEIGHT + ROW_HEIGHT;
+
+        for (int i = 0; i < rows.size(); i++) {
+            double rowEndY = currentY + ROW_HEIGHT;
+            // Add expanded child grid heights
+            TableRow row = rows.get(i);
+            for (String colName : row.getExpandedColumns()) {
+                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+                if (childGrid != null) {
+                    rowEndY += childGrid.getHeight() + GRID_PADDING;
+                }
+            }
+
+            if (py >= currentY && py < rowEndY) {
+                // Check if we're in the data row or in an expanded child grid
+                if (py < currentY + ROW_HEIGHT) {
+                    return i;  // In the data row itself
+                } else {
+                    return i;  // In an expanded area of this row
+                }
+            }
+            currentY = rowEndY;
+        }
+
+        return -1;
+    }
+
+    /**
+     * Checks if a point is within an expanded child grid area.
+     * Returns the child grid if found, null otherwise.
+     */
+    public NestedGridNode getChildGridAt(double px, double py) {
+        if (!expanded) return null;
+
+        double currentY = y + HEADER_HEIGHT + ROW_HEIGHT;
+
+        for (TableRow row : rows) {
+            double dataRowEndY = currentY + ROW_HEIGHT;
+
+            // Check if py is in the expanded area (below the data row)
+            if (py >= dataRowEndY) {
+                double expandedY = dataRowEndY;
+                for (String colName : row.getExpandedColumns()) {
+                    NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+                    if (childGrid != null) {
+                        double childEndY = expandedY + childGrid.getHeight() + GRID_PADDING;
+                        if (py >= expandedY && py < childEndY) {
+                            // Check X bounds too
+                            if (px >= childGrid.getX() && px <= childGrid.getX() + childGrid.getWidth()) {
+                                return childGrid;
+                            }
+                        }
+                        expandedY = childEndY;
+                    }
+                }
+            }
+
+            // Move to next row
+            currentY = dataRowEndY;
+            for (String colName : row.getExpandedColumns()) {
+                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+                if (childGrid != null) {
+                    currentY += childGrid.getHeight() + GRID_PADDING;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -412,6 +604,55 @@ public class RepeatingElementsTable {
     public XmlElement getSelectedElement() {
         if (selectedRowIndex >= 0 && selectedRowIndex < rows.size()) {
             return rows.get(selectedRowIndex).getElement();
+        }
+        return null;
+    }
+
+    /**
+     * Toggles expansion of a complex cell and creates/removes the child grid.
+     * @param rowIndex Row index
+     * @param columnName Column name
+     * @return true if the cell was expanded/collapsed, false if not a complex cell
+     */
+    public boolean toggleCellExpansion(int rowIndex, String columnName) {
+        if (rowIndex < 0 || rowIndex >= rows.size()) return false;
+
+        TableRow row = rows.get(rowIndex);
+        if (!row.hasComplexChild(columnName)) return false;
+
+        row.toggleColumnExpanded(columnName);
+
+        // If now expanded, create the child grid
+        if (row.isColumnExpanded(columnName)) {
+            NestedGridNode childGrid = row.getOrCreateChildGrid(columnName, depth);
+            if (childGrid != null) {
+                // Position will be set during layout
+                childGrid.setExpanded(true);
+            }
+        }
+
+        pcs.firePropertyChange("cellExpansion", null, columnName);
+        return true;
+    }
+
+    /**
+     * Gets a column by its name.
+     */
+    public TableColumn getColumn(String name) {
+        for (TableColumn col : columns) {
+            if (col.getName().equals(name)) {
+                return col;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets a column by its index.
+     */
+    public TableColumn getColumn(int index) {
+        if (index >= 0 && index < columns.size()) {
+            return columns.get(index);
         }
         return null;
     }
