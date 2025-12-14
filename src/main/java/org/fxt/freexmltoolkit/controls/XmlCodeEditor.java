@@ -42,7 +42,11 @@ import java.util.function.IntFunction;
  * - FileOperationsManager: Handles file operations and monitoring
  * - XmlContextMenuManager: Manages context menu and actions
  * - StatusLineController: Controls status line display
+ *
+ * @deprecated This is a V1 editor class. V2 editors should be used instead.
+ *             This class will be removed in a future version.
  */
+@Deprecated(since = "2.0", forRemoval = true)
 public class XmlCodeEditor extends VBox {
 
     private static final Logger logger = LogManager.getLogger(XmlCodeEditor.class);

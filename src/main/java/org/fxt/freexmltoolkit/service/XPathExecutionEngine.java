@@ -402,16 +402,6 @@ public class XPathExecutionEngine {
 
     // ========== Configuration ==========
 
-    /**
-     * @deprecated Saxon XPath 3.1 is now used for all operations.
-     *             This method is kept for API compatibility but has no effect.
-     */
-    @Deprecated(since = "2.0", forRemoval = true)
-    public void setUseSaxonForAdvanced(boolean useSaxon) {
-        // Saxon is now always used for all XPath operations
-        logger.debug("setUseSaxonForAdvanced() is deprecated - Saxon XPath 3.1 is now used for all operations");
-    }
-
     public void setExecutionTimeout(long timeoutMs) {
         this.executionTimeoutMs = timeoutMs;
         logger.debug("Execution timeout set to {}ms", timeoutMs);

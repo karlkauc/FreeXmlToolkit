@@ -13,7 +13,11 @@ import java.util.regex.Pattern;
 /**
  * Advanced XML Syntax Highlighter with semantic awareness and theme integration.
  * Provides intelligent highlighting with error detection, validation feedback, and customizable themes.
+ *
+ * @deprecated Use {@link org.fxt.freexmltoolkit.controls.v2.editor.managers.SyntaxHighlightManagerV2} instead.
+ *             This V1 class will be removed in a future version.
  */
+@Deprecated(since = "2.0", forRemoval = true)
 public class AdvancedXmlSyntaxHighlighter {
 
     private static final Logger logger = LogManager.getLogger(AdvancedXmlSyntaxHighlighter.class);

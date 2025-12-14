@@ -49,7 +49,11 @@ import java.util.stream.IntStream;
  * - Attribute names and values (e.g., searching "type" finds type="..." attributes)
  * - Text content within elements (e.g., searching "John" finds <name>John</name>)
  * - XML comments (e.g., searching "TODO" finds <!-- TODO: ... --> comments)
+ *
+ * @deprecated This is a V1 editor class. V2 editors should be used instead.
+ *             This class will be removed in a future version.
  */
+@Deprecated(since = "2.0", forRemoval = true)
 public class XmlGraphicEditor extends VBox {
 
     private static final Logger logger = LogManager.getLogger(XmlGraphicEditor.class);

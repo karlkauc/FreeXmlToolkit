@@ -16,7 +16,11 @@ import java.util.regex.Pattern;
 /**
  * Manages syntax highlighting for XML content in the CodeArea.
  * This class handles pattern matching, CSS styling, and enumeration highlighting.
+ *
+ * @deprecated Use {@link org.fxt.freexmltoolkit.controls.v2.editor.managers.SyntaxHighlightManagerV2} instead.
+ *             This V1 class will be removed in a future version.
  */
+@Deprecated(since = "2.0", forRemoval = true)
 public class SyntaxHighlightManager {
 
     private static final Logger logger = LogManager.getLogger(SyntaxHighlightManager.class);

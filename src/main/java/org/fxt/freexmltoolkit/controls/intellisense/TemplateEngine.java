@@ -11,7 +11,11 @@ import java.util.stream.Collectors;
 /**
  * Template engine for managing and expanding code snippets.
  * Provides template management, expansion, and IntelliSense integration.
+ *
+ * @deprecated Use {@link org.fxt.freexmltoolkit.service.TemplateEngine} instead.
+ *             This class will be removed in a future version.
  */
+@Deprecated(since = "2.0", forRemoval = true)
 public class TemplateEngine {
 
     private final Map<String, SnippetTemplate> templates = new ConcurrentHashMap<>();

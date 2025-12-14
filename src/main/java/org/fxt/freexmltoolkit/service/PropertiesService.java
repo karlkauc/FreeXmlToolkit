@@ -233,4 +233,48 @@ public interface PropertiesService {
      * @param sortOrder the sort order: "TYPE_BEFORE_NAME" or "NAME_BEFORE_TYPE"
      */
     void setXsdSortOrder(String sortOrder);
+
+    // Backup directory settings
+
+    /**
+     * Gets whether backups should be saved to a separate directory instead of the same directory as the original file.
+     *
+     * @return true if backups should be saved to a separate directory, false for same directory as original (default: false)
+     */
+    boolean isBackupUseSeparateDirectory();
+
+    /**
+     * Sets whether backups should be saved to a separate directory.
+     *
+     * @param useSeparate true to use separate directory, false for same directory as original
+     */
+    void setBackupUseSeparateDirectory(boolean useSeparate);
+
+    /**
+     * Gets the backup directory path where backup files are stored when using a separate directory.
+     *
+     * @return the backup directory path (default: ~/.freexmltoolkit/backups)
+     */
+    String getBackupDirectory();
+
+    /**
+     * Sets the backup directory path.
+     *
+     * @param path the backup directory path
+     */
+    void setBackupDirectory(String path);
+
+    /**
+     * Gets whether to use XML Editor V2 instead of V1.
+     *
+     * @return true if V2 editor should be used, false for V1 (default: false)
+     */
+    boolean isXmlEditorUseV2();
+
+    /**
+     * Sets whether to use XML Editor V2 instead of V1.
+     *
+     * @param useV2 true to use V2 editor, false to use V1
+     */
+    void setXmlEditorUseV2(boolean useV2);
 }

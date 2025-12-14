@@ -82,6 +82,19 @@ public class SettingsController {
     @FXML
     CheckBox xsdAutoSaveEnabled, xsdBackupEnabled, xsdPrettyPrintOnSave;
 
+    // Backup Directory Settings
+    @FXML
+    RadioButton backupSameDirectory, backupSeparateDirectory;
+
+    @FXML
+    ToggleGroup backupLocation;
+
+    @FXML
+    TextField backupDirectoryPath;
+
+    @FXML
+    Button browseBackupDirectory;
+
     // XSD Serialization Order Settings
     @FXML
     RadioButton sortTypeBeforeName, sortNameBeforeType;
@@ -145,6 +158,13 @@ public class SettingsController {
     // Toolbar Icon Settings
     @FXML
     CheckBox useSmallIcons;
+
+    // XML Editor Version Settings
+    @FXML
+    RadioButton xmlEditorV1, xmlEditorV2;
+
+    @FXML
+    ToggleGroup xmlEditorVersion;
 
     @FXML
     Button clearCacheButton, openCacheFolderButton;
@@ -219,6 +239,20 @@ public class SettingsController {
         // XSD backup versions only enabled when backup is enabled
         xsdBackupEnabled.selectedProperty().addListener((observable, oldValue, newValue) ->
                 xsdBackupVersions.setDisable(!newValue));
+
+        // Backup directory fields only enabled when separate directory is selected
+        backupSeparateDirectory.selectedProperty().addListener((observable, oldValue, newValue) ->
+                updateBackupDirectoryFieldState());
+    }
+
+    /**
+     * Enables or disables the backup directory path field and browse button
+     * based on whether the "Separate backup directory" option is selected.
+     */
+    private void updateBackupDirectoryFieldState() {
+        boolean enabled = backupSeparateDirectory.isSelected();
+        backupDirectoryPath.setDisable(!enabled);
+        browseBackupDirectory.setDisable(!enabled);
     }
 
     private void enableTempFolderFields(boolean enable) {
@@ -411,6 +445,10 @@ public class SettingsController {
             props.setProperty("xsd.backup.versions", xsdBackupVersions.getValue().toString());
             props.setProperty("xsd.prettyPrint.onSave", String.valueOf(xsdPrettyPrintOnSave.isSelected()));
 
+            // Save backup directory settings
+            propertiesService.setBackupUseSeparateDirectory(backupSeparateDirectory.isSelected());
+            propertiesService.setBackupDirectory(backupDirectoryPath.getText());
+
             // Save XSD sort order setting
             XsdSortOrder selectedSortOrder = sortTypeBeforeName.isSelected()
                     ? XsdSortOrder.TYPE_BEFORE_NAME
@@ -440,6 +478,9 @@ public class SettingsController {
 
             // Save toolbar icon size setting
             propertiesService.setUseSmallIcons(useSmallIcons.isSelected());
+
+            // Save XML Editor version setting
+            propertiesService.setXmlEditorUseV2(xmlEditorV2.isSelected());
 
             // Save user information settings
             props.setProperty("user.name", userName.getText().trim());
@@ -472,6 +513,29 @@ public class SettingsController {
 
         if (selectedDirectory != null) {
             customTempFolder.setText(selectedDirectory.getAbsolutePath());
+        }
+    }
+
+    /**
+     * Opens a directory chooser to select the backup directory.
+     */
+    @FXML
+    public void browseBackupDirectory() {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Select Backup Directory");
+
+        // Set initial directory if the current path exists
+        String currentPath = backupDirectoryPath.getText();
+        if (currentPath != null && !currentPath.isBlank()) {
+            File currentDir = new File(currentPath);
+            if (currentDir.exists() && currentDir.isDirectory()) {
+                chooser.setInitialDirectory(currentDir);
+            }
+        }
+
+        File selectedDirectory = chooser.showDialog(browseBackupDirectory.getScene().getWindow());
+        if (selectedDirectory != null) {
+            backupDirectoryPath.setText(selectedDirectory.getAbsolutePath());
         }
     }
 
@@ -549,6 +613,16 @@ public class SettingsController {
         xsdBackupVersions.getValueFactory().setValue(propertiesService.getXsdBackupVersions());
         xsdBackupVersions.setDisable(!propertiesService.isXsdBackupEnabled());
 
+        // Load backup directory settings
+        boolean useSeparateDir = propertiesService.isBackupUseSeparateDirectory();
+        if (useSeparateDir) {
+            backupSeparateDirectory.setSelected(true);
+        } else {
+            backupSameDirectory.setSelected(true);
+        }
+        backupDirectoryPath.setText(propertiesService.getBackupDirectory());
+        updateBackupDirectoryFieldState();
+
         xsdPrettyPrintOnSave.setSelected(propertiesService.isXsdPrettyPrintOnSave());
 
         // Load XSD sort order setting
@@ -605,6 +679,14 @@ public class SettingsController {
         // Load toolbar icon size setting
         boolean smallIcons = propertiesService.isUseSmallIcons();
         useSmallIcons.setSelected(smallIcons);
+
+        // Load XML Editor version setting
+        boolean useV2Editor = propertiesService.isXmlEditorUseV2();
+        if (useV2Editor) {
+            xmlEditorV2.setSelected(true);
+        } else {
+            xmlEditorV1.setSelected(true);
+        }
 
         // Load user information settings
         userName.setText(props.getProperty("user.name", ""));

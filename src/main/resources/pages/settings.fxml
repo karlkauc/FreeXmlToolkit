@@ -144,7 +144,36 @@
                         <VBox style="-fx-padding: 20px; -fx-background-color: #ffffff;" spacing="20">
                             <Label text="XML Editor Configuration"
                                    style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
-                            
+
+                            <!-- Editor Version Settings -->
+                            <VBox spacing="12" style="-fx-background-color: #e8f4e8; -fx-background-radius: 4px; -fx-padding: 16px;">
+                                <fx:define>
+                                    <ToggleGroup fx:id="xmlEditorVersion"/>
+                                </fx:define>
+                                <Label text="Editor Version"
+                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                <VBox spacing="8">
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <RadioButton fx:id="xmlEditorV1" text="V1 Editor (Classic)">
+                                            <toggleGroup>
+                                                <fx:reference source="xmlEditorVersion"/>
+                                            </toggleGroup>
+                                        </RadioButton>
+                                        <Label text="- Stable, feature-complete" style="-fx-font-size: 10px; -fx-text-fill: #6c757d;"/>
+                                    </HBox>
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <RadioButton fx:id="xmlEditorV2" text="V2 Editor (Modern)">
+                                            <toggleGroup>
+                                                <fx:reference source="xmlEditorVersion"/>
+                                            </toggleGroup>
+                                        </RadioButton>
+                                        <Label text="- New architecture, experimental" style="-fx-font-size: 10px; -fx-text-fill: #6c757d;"/>
+                                    </HBox>
+                                </VBox>
+                                <Label text="Note: Changes take effect after reopening XML files"
+                                       style="-fx-font-size: 10px; -fx-text-fill: #e67e22; -fx-font-style: italic;"/>
+                            </VBox>
+
                             <!-- Formatting Settings -->
                             <VBox spacing="12" style="-fx-background-color: #f0f8ff; -fx-background-radius: 4px; -fx-padding: 16px;">
                                 <Label text="Formatting Settings"
@@ -235,6 +264,33 @@
                                         <Label text="Number of Backup Versions:"/>
                                         <Spinner fx:id="xsdBackupVersions" editable="true" initialValue="3" min="1" max="10" prefWidth="100"/>
                                     </HBox>
+                                </VBox>
+
+                                <Separator/>
+
+                                <Label text="Backup Location"
+                                       style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
+                                <VBox spacing="8">
+                                    <RadioButton fx:id="backupSameDirectory" text="Same directory as original file">
+                                        <toggleGroup>
+                                            <ToggleGroup fx:id="backupLocation"/>
+                                        </toggleGroup>
+                                    </RadioButton>
+                                    <RadioButton fx:id="backupSeparateDirectory" text="Separate backup directory:"
+                                                 toggleGroup="$backupLocation"/>
+                                    <HBox spacing="8" alignment="CENTER_LEFT" style="-fx-padding: 0 0 0 24;">
+                                        <TextField fx:id="backupDirectoryPath" prefWidth="350"
+                                                   promptText="~/.freexmltoolkit/backups" HBox.hgrow="ALWAYS"
+                                                   style="-fx-background-color: white; -fx-border-color: #4a90e2; -fx-border-radius: 4px; -fx-background-radius: 4px;"/>
+                                        <Button fx:id="browseBackupDirectory" onAction="#browseBackupDirectory" text="Browse..."
+                                                style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
+                                            <graphic>
+                                                <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                            </graphic>
+                                        </Button>
+                                    </HBox>
+                                    <Label text="When using a separate directory, backups are stored centrally instead of next to the original file"
+                                           style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic; -fx-padding: 0 0 0 24;"/>
                                 </VBox>
                             </VBox>
 

@@ -410,7 +410,7 @@ public class SchematronController implements FavoritesParentController {
             }
         } catch (Exception e) {
             logger.error("Failed to initialize code editor", e);
-            showError("Initialization Error", "Failed to initialize code editor: " + e.getMessage());
+            DialogHelper.showError("Initialization Error", "", "Failed to initialize code editor: " + e.getMessage());
         }
     }
     
@@ -452,7 +452,7 @@ public class SchematronController implements FavoritesParentController {
             }
         } catch (Exception e) {
             logger.error("Failed to initialize visual builder", e);
-            showError("Initialization Error", "Failed to initialize visual builder: " + e.getMessage());
+            DialogHelper.showError("Initialization Error", "", "Failed to initialize visual builder: " + e.getMessage());
         }
     }
 
@@ -471,7 +471,7 @@ public class SchematronController implements FavoritesParentController {
             logger.debug("Testing framework initialized successfully");
         } catch (Exception e) {
             logger.error("Failed to initialize testing framework", e);
-            showError("Initialization Error", "Failed to initialize testing framework: " + e.getMessage());
+            DialogHelper.showError("Initialization Error", "", "Failed to initialize testing framework: " + e.getMessage());
         }
     }
 
@@ -492,7 +492,7 @@ public class SchematronController implements FavoritesParentController {
             }
         } catch (Exception e) {
             logger.error("Failed to initialize documentation generator", e);
-            showError("Initialization Error", "Failed to initialize documentation generator: " + e.getMessage());
+            DialogHelper.showError("Initialization Error", "", "Failed to initialize documentation generator: " + e.getMessage());
         }
     }
 
@@ -576,7 +576,7 @@ public class SchematronController implements FavoritesParentController {
                     content -> loadSchematronContent(file, content),
                     error -> {
                         logger.error("Failed to load Schematron file: {}", file.getAbsolutePath(), error);
-                        showError("File Load Error", "Failed to load file: " + error.getMessage());
+                        DialogHelper.showError("File Load Error", "", "Failed to load file: " + error.getMessage());
                     }
             );
         } else {
@@ -586,7 +586,7 @@ public class SchematronController implements FavoritesParentController {
                 loadSchematronContent(file, content);
             } catch (IOException e) {
                 logger.error("Failed to load Schematron file: {}", file.getAbsolutePath(), e);
-                showError("File Load Error", "Failed to load file: " + e.getMessage());
+                DialogHelper.showError("File Load Error", "", "Failed to load file: " + e.getMessage());
             }
         }
     }
@@ -730,11 +730,11 @@ public class SchematronController implements FavoritesParentController {
                 }
 
                 logger.info("Schematron file saved as: {}", selectedFile.getAbsolutePath());
-                showInfo("File Saved", "File saved as: " + selectedFile.getName());
+                DialogHelper.showInformation("File Saved", "", "File saved as: " + selectedFile.getName());
 
             } catch (IOException e) {
                 logger.error("Failed to save Schematron file as", e);
-                showError("Save Error", "Failed to save file: " + e.getMessage());
+                DialogHelper.showError("Save Error", "", "Failed to save file: " + e.getMessage());
             }
         }
     }
@@ -758,11 +758,11 @@ public class SchematronController implements FavoritesParentController {
             Files.writeString(currentSchematronFile.toPath(), contentWithMetadata);
 
             logger.info("Schematron file saved: {}", currentSchematronFile.getAbsolutePath());
-            showInfo("File Saved", "File saved successfully: " + currentSchematronFile.getName());
+            DialogHelper.showInformation("File Saved", "", "File saved successfully: " + currentSchematronFile.getName());
 
         } catch (IOException e) {
             logger.error("Failed to save Schematron file", e);
-            showError("Save Error", "Failed to save file: " + e.getMessage());
+            DialogHelper.showError("Save Error", "", "Failed to save file: " + e.getMessage());
         }
     }
 
@@ -906,7 +906,7 @@ public class SchematronController implements FavoritesParentController {
     @FXML
     private void formatSchematron() {
         if (xmlCodeEditor == null || xmlCodeEditor.getText().isEmpty()) {
-            showWarning("Format", "No Schematron content to format");
+            DialogHelper.showWarning("Format", "", "No Schematron content to format");
             return;
         }
 
@@ -924,16 +924,16 @@ public class SchematronController implements FavoritesParentController {
                 xmlCodeEditor.setText(formattedContent);
                 xmlCodeEditor.refreshHighlighting();
                 
-                showInfo("Format", "Schematron file formatted successfully");
+                DialogHelper.showInformation("Format", "", "Schematron file formatted successfully");
                 logger.info("Schematron file formatted");
             } else if (formattedContent == null) {
-                showError("Format Error", "Failed to format Schematron file. Please check the XML syntax.");
+                DialogHelper.showError("Format Error", "", "Failed to format Schematron file. Please check the XML syntax.");
             } else {
-                showInfo("Format", "Schematron file is already properly formatted");
+                DialogHelper.showInformation("Format", "", "Schematron file is already properly formatted");
             }
         } catch (Exception e) {
             logger.error("Error formatting Schematron file", e);
-            showError("Format Error", "Failed to format: " + e.getMessage());
+            DialogHelper.showError("Format Error", "", "Failed to format: " + e.getMessage());
         }
     }
 
@@ -942,7 +942,7 @@ public class SchematronController implements FavoritesParentController {
      */
     private void validateSchematron() {
         if (xmlCodeEditor == null || xmlCodeEditor.getText().isEmpty()) {
-            showWarning("Validation", "No Schematron content to validate");
+            DialogHelper.showWarning("Validation", "", "No Schematron content to validate");
             return;
         }
 
@@ -958,7 +958,7 @@ public class SchematronController implements FavoritesParentController {
 
         } catch (Exception e) {
             logger.error("Validation error", e);
-            showError("Validation Error", e.getMessage());
+            DialogHelper.showError("Validation Error", "", e.getMessage());
         }
     }
 
@@ -1069,7 +1069,7 @@ public class SchematronController implements FavoritesParentController {
         StringBuilder message = new StringBuilder();
 
         if (!result.hasAnyIssues()) {
-            showInfo("Validation Complete", "No issues found. Document is valid!");
+            DialogHelper.showInformation("Validation Complete", "", "No issues found. Document is valid!");
             return;
         }
 
@@ -1102,9 +1102,9 @@ public class SchematronController implements FavoritesParentController {
         }
 
         if (result.hasErrors()) {
-            showError("Validation Results", message.toString());
+            DialogHelper.showError("Validation Results", "", message.toString());
         } else {
-            showWarning("Validation Results", message.toString());
+            DialogHelper.showWarning("Validation Results", "", message.toString());
         }
     }
 
@@ -1260,33 +1260,6 @@ public class SchematronController implements FavoritesParentController {
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
         logger.debug("Parent controller set for SchematronController");
-    }
-
-    /**
-     * Show error dialog
-     * @deprecated Use {@link DialogHelper#showError(String, String, String)} instead
-     */
-    @Deprecated(since = "2.0", forRemoval = true)
-    private void showError(String title, String message) {
-        DialogHelper.showError(title, "", message);
-    }
-
-    /**
-     * Show information dialog
-     * @deprecated Use {@link DialogHelper#showInformation(String, String, String)} instead
-     */
-    @Deprecated(since = "2.0", forRemoval = true)
-    private void showInfo(String title, String message) {
-        DialogHelper.showInformation(title, "", message);
-    }
-
-    /**
-     * Show warning dialog
-     * @deprecated Use {@link DialogHelper#showWarning(String, String, String)} instead
-     */
-    @Deprecated(since = "2.0", forRemoval = true)
-    private void showWarning(String title, String message) {
-        DialogHelper.showWarning(title, "", message);
     }
 
     // ======================================================================
@@ -1537,7 +1510,7 @@ public class SchematronController implements FavoritesParentController {
                 loadedSchemaLabel.setTooltip(new Tooltip(file.getAbsolutePath()));
             }
             
-            showInfo("Schema Loaded", "Schematron schema loaded: " + file.getName());
+            DialogHelper.showInformation("Schema Loaded", "", "Schematron schema loaded: " + file.getName());
             logger.info("Loaded test schema: {}", file.getAbsolutePath());
         }
     }
@@ -1548,7 +1521,7 @@ public class SchematronController implements FavoritesParentController {
     @FXML
     private void useCurrentSchema() {
         if (xmlCodeEditor == null || xmlCodeEditor.getText().isEmpty()) {
-            showWarning("No Schema", "No Schematron schema in the code editor");
+            DialogHelper.showWarning("No Schema", "", "No Schematron schema in the code editor");
             return;
         }
 
@@ -1569,10 +1542,10 @@ public class SchematronController implements FavoritesParentController {
                     loadedSchemaLabel.setTooltip(new Tooltip("Using temporary file from current editor content"));
                 }
                 
-                showInfo("Schema Ready", "Using current editor content for testing");
+                DialogHelper.showInformation("Schema Ready", "", "Using current editor content for testing");
             } catch (IOException e) {
                 logger.error("Failed to create temporary schema file", e);
-                showError("Error", "Failed to prepare schema for testing: " + e.getMessage());
+                DialogHelper.showError("Error", "", "Failed to prepare schema for testing: " + e.getMessage());
             }
         } else {
             // Update the label to show the current file
@@ -1581,7 +1554,7 @@ public class SchematronController implements FavoritesParentController {
                 loadedSchemaLabel.setTooltip(new Tooltip(testSchematronFile.getAbsolutePath()));
             }
             
-            showInfo("Schema Ready", "Using current schema: " + testSchematronFile.getName());
+            DialogHelper.showInformation("Schema Ready", "", "Using current schema: " + testSchematronFile.getName());
         }
     }
 
@@ -1624,7 +1597,7 @@ public class SchematronController implements FavoritesParentController {
                 }
             }
 
-            showInfo("Files Added", "Added " + selectedFiles.size() + " file(s) for testing");
+            DialogHelper.showInformation("Files Added", "", "Added " + selectedFiles.size() + " file(s) for testing");
         }
     }
 
@@ -1667,12 +1640,12 @@ public class SchematronController implements FavoritesParentController {
                     }
                 }
 
-                showInfo("Folder Added", "Found and added " + addedCount + " XML file(s) from " + directory.getName());
+                DialogHelper.showInformation("Folder Added", "", "Found and added " + addedCount + " XML file(s) from " + directory.getName());
                 logger.info("Added {} XML files from folder: {}", addedCount, directory.getAbsolutePath());
 
             } catch (IOException e) {
                 logger.error("Error scanning folder for XML files", e);
-                showError("Error", "Failed to scan folder: " + e.getMessage());
+                DialogHelper.showError("Error", "", "Failed to scan folder: " + e.getMessage());
             }
         }
     }
@@ -1705,13 +1678,13 @@ public class SchematronController implements FavoritesParentController {
                     }
                 }
 
-                showInfo("Samples Loaded", "Loaded " + addedCount + " sample XML file(s)");
+                DialogHelper.showInformation("Samples Loaded", "", "Loaded " + addedCount + " sample XML file(s)");
                 logger.info("Loaded {} sample XML files", addedCount);
             } else {
-                showWarning("No Samples", "No sample XML files found in " + samplesDir.getAbsolutePath());
+                DialogHelper.showWarning("No Samples", "", "No sample XML files found in " + samplesDir.getAbsolutePath());
             }
         } else {
-            showWarning("No Samples", "Sample directory not found. Please add XML files manually.");
+            DialogHelper.showWarning("No Samples", "", "Sample directory not found. Please add XML files manually.");
         }
     }
 
@@ -1721,12 +1694,12 @@ public class SchematronController implements FavoritesParentController {
     @FXML
     public void runAllTests() {
         if (testSchematronFile == null) {
-            showWarning("No Schema", "Please load a Schematron schema first");
+            DialogHelper.showWarning("No Schema", "", "Please load a Schematron schema first");
             return;
         }
 
         if (testFiles.isEmpty()) {
-            showWarning("No Test Files", "Please add XML files to test");
+            DialogHelper.showWarning("No Test Files", "", "Please add XML files to test");
             return;
         }
 
@@ -1768,7 +1741,7 @@ public class SchematronController implements FavoritesParentController {
                     }
                 }
 
-                showInfo("Test Results",
+                DialogHelper.showInformation("Test Results", "",
                         String.format("Tests completed:\n✓ Passed: %d\n✗ Failed: %d", passed, failed));
             }
 
@@ -1785,12 +1758,12 @@ public class SchematronController implements FavoritesParentController {
         TestFile selected = testFilesTable.getSelectionModel().getSelectedItem();
 
         if (selected == null) {
-            showWarning("No Selection", "Please select a file to test");
+            DialogHelper.showWarning("No Selection", "", "Please select a file to test");
             return;
         }
 
         if (testSchematronFile == null) {
-            showWarning("No Schema", "Please load a Schematron schema first");
+            DialogHelper.showWarning("No Schema", "", "Please load a Schematron schema first");
             return;
         }
 
@@ -1870,7 +1843,7 @@ public class SchematronController implements FavoritesParentController {
             
             // Show error dialog to user
             Platform.runLater(() -> {
-                showError("Schematron Loading Error", 
+                DialogHelper.showError("Schematron Loading Error", "", 
                     "Failed to load or compile the Schematron file:\n\n" + e.getMessage() + 
                     "\n\nPlease check that the Schematron file is valid and try again.");
             });
@@ -1916,7 +1889,7 @@ public class SchematronController implements FavoritesParentController {
     @FXML
     private void exportResults() {
         if (testFiles.isEmpty()) {
-            showWarning("No Results", "No test results to export");
+            DialogHelper.showWarning("No Results", "", "No test results to export");
             return;
         }
 
@@ -1963,12 +1936,12 @@ public class SchematronController implements FavoritesParentController {
                     propertiesService.setLastOpenDirectory(file.getParent());
                 }
                 
-                showInfo("Export Complete", "Test results exported to: " + file.getName());
+                DialogHelper.showInformation("Export Complete", "", "Test results exported to: " + file.getName());
                 logger.info("Exported test results to: {} (detailed: {})", file.getAbsolutePath(), exportOptions.includeDetails);
 
             } catch (IOException e) {
                 logger.error("Failed to export test results", e);
-                showError("Export Error", "Failed to export results: " + e.getMessage());
+                DialogHelper.showError("Export Error", "", "Failed to export results: " + e.getMessage());
             }
         }
     }
@@ -2027,7 +2000,7 @@ public class SchematronController implements FavoritesParentController {
         ObservableList<TestFile> selectedItems = testFilesTable.getSelectionModel().getSelectedItems();
 
         if (selectedItems.isEmpty()) {
-            showWarning("No Selection", "Please select files to remove");
+            DialogHelper.showWarning("No Selection", "", "Please select files to remove");
             return;
         }
 
@@ -2455,7 +2428,7 @@ public class SchematronController implements FavoritesParentController {
 
         } catch (Exception e) {
             logger.error("Error loading Schematron file: {}", e.getMessage(), e);
-            showError("Load Error", "Failed to load Schematron file: " + e.getMessage());
+            DialogHelper.showError("Load Error", "", "Failed to load Schematron file: " + e.getMessage());
         }
     }
 
@@ -2474,7 +2447,7 @@ public class SchematronController implements FavoritesParentController {
             }
         } catch (Exception e) {
             logger.error("Error saving Schematron: {}", e.getMessage(), e);
-            showError("Save Error", "Failed to save Schematron file: " + e.getMessage());
+            DialogHelper.showError("Save Error", "", "Failed to save Schematron file: " + e.getMessage());
         }
     }
 
@@ -2530,12 +2503,12 @@ public class SchematronController implements FavoritesParentController {
                 
                 saveSchematronFile();
                 logger.info("Schematron file saved as: {}", selectedFile.getAbsolutePath());
-                showInfo("Save Successful", "Schematron file saved successfully.");
+                DialogHelper.showInformation("Save Successful", "", "Schematron file saved successfully.");
             }
 
         } catch (Exception e) {
             logger.error("Error saving Schematron file as: {}", e.getMessage(), e);
-            showError("Save Error", "Failed to save Schematron file: " + e.getMessage());
+            DialogHelper.showError("Save Error", "", "Failed to save Schematron file: " + e.getMessage());
         }
     }
 

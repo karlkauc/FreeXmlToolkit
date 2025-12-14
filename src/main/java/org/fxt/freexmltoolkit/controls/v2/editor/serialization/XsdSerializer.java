@@ -45,6 +45,9 @@ public class XsdSerializer {
 
     /**
      * Creates a backup of the specified file.
+     * The backup location is determined by application settings:
+     * - If "use separate directory" is enabled, backups go to the configured backup directory
+     * - Otherwise, backups are created in the same directory as the original file
      *
      * @param filePath the file to backup
      * @return the path to the backup file
@@ -56,11 +59,25 @@ public class XsdSerializer {
             return null;
         }
 
+        // Determine backup directory based on settings
+        Path backupDir;
+        PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+
+        if (propertiesService.isBackupUseSeparateDirectory()) {
+            backupDir = Path.of(propertiesService.getBackupDirectory());
+            // Auto-create the backup directory if it doesn't exist
+            Files.createDirectories(backupDir);
+            logger.debug("Using separate backup directory: {}", backupDir);
+        } else {
+            backupDir = filePath.getParent();
+        }
+
+        // Create backup filename with timestamp
         String timestamp = LocalDateTime.now().format(BACKUP_TIMESTAMP_FORMAT);
         String fileName = filePath.getFileName().toString();
         String backupFileName = fileName.replaceFirst("(\\.[^.]+)$", "_backup_" + timestamp + "$1");
 
-        Path backupPath = filePath.getParent().resolve(backupFileName);
+        Path backupPath = backupDir.resolve(backupFileName);
         Files.copy(filePath, backupPath, StandardCopyOption.REPLACE_EXISTING);
 
         logger.info("Created backup: {}", backupPath);
@@ -417,81 +434,6 @@ public class XsdSerializer {
 
         sb.append(innerIndent).append("</xs:restriction>\n");
         sb.append(indentation).append("</xs:simpleType>\n");
-    }
-
-    /**
-     * Synchronizes constraint lists (enumerations, patterns, assertions) from the element
-     * back to the XsdRestriction facets in the tree structure before serialization.
-     * This ensures that changes made via commands are reflected in the serialized XSD.
-     *
-     * @param element the element to synchronize
-     * @deprecated This method modifies the model during serialization, which can cause
-     *             infinite loops due to PropertyChangeEvents. Use serializeInlineConstraints() instead.
-     */
-    @Deprecated
-    @SuppressWarnings("unused")
-    private void synchronizeConstraintsToFacets(XsdElement element) {
-        // Check if element has any constraints to synchronize
-        if (element.getEnumerations().isEmpty() &&
-            element.getPatterns().isEmpty() &&
-            element.getAssertions().isEmpty()) {
-            return; // Nothing to synchronize
-        }
-
-        // Find or create simpleType child
-        XsdSimpleType simpleType = null;
-        for (XsdNode child : element.getChildren()) {
-            if (child instanceof XsdSimpleType) {
-                simpleType = (XsdSimpleType) child;
-                break;
-            }
-        }
-
-        // If no simpleType exists, create one (without name for inline type)
-        if (simpleType == null) {
-            simpleType = new XsdSimpleType("");
-            element.addChild(simpleType);
-        }
-
-        // Find or create restriction child
-        XsdRestriction restriction = null;
-        for (XsdNode child : simpleType.getChildren()) {
-            if (child instanceof XsdRestriction) {
-                restriction = (XsdRestriction) child;
-                break;
-            }
-        }
-
-        // If no restriction exists, create one
-        if (restriction == null) {
-            restriction = new XsdRestriction("xs:string"); // Default base type
-            simpleType.addChild(restriction);
-        }
-
-        // Clear existing constraint facets from restriction
-        restriction.getFacets().removeIf(facet ->
-            facet.getFacetType() == XsdFacetType.ENUMERATION ||
-            facet.getFacetType() == XsdFacetType.PATTERN ||
-            facet.getFacetType() == XsdFacetType.ASSERTION
-        );
-
-        // Add enumerations as facets
-        for (String enumValue : element.getEnumerations()) {
-            XsdFacet facet = new XsdFacet(XsdFacetType.ENUMERATION, enumValue);
-            restriction.addFacet(facet);
-        }
-
-        // Add patterns as facets
-        for (String pattern : element.getPatterns()) {
-            XsdFacet facet = new XsdFacet(XsdFacetType.PATTERN, pattern);
-            restriction.addFacet(facet);
-        }
-
-        // Add assertions as facets
-        for (String assertion : element.getAssertions()) {
-            XsdFacet facet = new XsdFacet(XsdFacetType.ASSERTION, assertion);
-            restriction.addFacet(facet);
-        }
     }
 
     private void serializeComplexType(XsdComplexType complexType, StringBuilder sb, String indentation, int indent) {
@@ -1480,29 +1422,6 @@ public class XsdSerializer {
         } finally {
             this.sortOrder = previousSortOrder;
         }
-    }
-
-    /**
-     * Serializes a visual node tree to XSD XML.
-     *
-     * @param rootNode the root visual node
-     * @return XSD XML string
-     * @deprecated Use serialize(XsdSchema) instead for model-based serialization.
-     */
-    @Deprecated
-    public String serializeFromVisualNode(VisualNode rootNode) {
-        logger.warn("serializeFromVisualNode() is deprecated. Use serialize(XsdSchema) for proper model-based serialization.");
-
-        // This method is kept for backwards compatibility but should not be used
-        String sb = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"" +
-                " elementFormDefault=\"qualified\">\n" +
-                "\n" +
-                "  <!-- Warning: Serialized from VisualNode (view layer) instead of XsdNode (model layer) -->\n" +
-                "\n" +
-                "</xs:schema>\n";
-
-        return sb;
     }
 
     /**

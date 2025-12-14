@@ -21,6 +21,8 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 import org.fxt.freexmltoolkit.service.*;
 import org.kordamp.ikonli.javafx.FontIcon;
 import net.sf.saxon.s9api.XdmNode;
@@ -51,6 +53,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * XML Editor tab component.
+ *
+ * @deprecated This is a V1 editor class. V2 editors should be used instead.
+ *             This class will be removed in a future version.
+ */
+@Deprecated(since = "2.0", forRemoval = true)
 public class XmlEditor extends Tab {
 
     public static final int MAX_SIZE_FOR_FORMATTING = 1024 * 1024 * 20;
@@ -119,12 +128,12 @@ public class XmlEditor extends Tab {
     public XmlEditor() {
         // Check feature flag for V2 editor
         PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
-        String v2Flag = propertiesService.get("xml.editor.use.v2");
-        this.useV2Editor = Boolean.parseBoolean(v2Flag);
+        this.useV2Editor = propertiesService.isXmlEditorUseV2();
+        logger.info("XML Editor V2 flag from properties: {} (will use {})", useV2Editor, useV2Editor ? "V2" : "V1");
 
         // Create V1 or V2 editor based on flag
         if (useV2Editor) {
-            logger.info("🆕 Using XmlCodeEditorV2 (NEW)");
+            logger.info("🆕 Creating XmlCodeEditorV2 (NEW)");
             this.xmlCodeEditor = null;
             this.xmlCodeEditorV2 = org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory.createForXmlEditor(this);
             this.codeArea = xmlCodeEditorV2.getCodeArea();
@@ -2154,26 +2163,100 @@ public class XmlEditor extends Tab {
 
     private void refreshGraphicView() {
         try {
-            VBox vBox = new VBox();
-            vBox.setPadding(new Insets(3));
-            if (document != null) {
-                currentGraphicEditor = new XmlGraphicEditor(document, this);
-                // Set sidebar controller for integration with XmlEditorSidebar functionality
-                if (sidebarController != null) {
-                    currentGraphicEditor.setSidebarController(sidebarController);
-                }
-                // Integrate search functionality with parent container
-                currentGraphicEditor.integrateSearchWithContainer(vBox);
-                
-                VBox.setVgrow(currentGraphicEditor, Priority.ALWAYS);
-                vBox.getChildren().add(currentGraphicEditor);
+            if (useV2Editor) {
+                // V2 editor: Use XmlHybridView with XmlEditorContext
+                refreshGraphicViewV2();
+            } else if (document != null) {
+                // V1 editor: Use classic XmlGraphicEditor
+                refreshGraphicViewV1();
             }
-            ScrollPane pane = new ScrollPane(vBox);
-            pane.setBackground(new Background(new BackgroundFill(Color.rgb(200, 200, 50, 0.5), new CornerRadii(5), new Insets(5))));
-            this.graphic.setContent(pane);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Error refreshing graphic view: {}", e.getMessage(), e);
         }
+    }
+
+    /**
+     * Refreshes the graphic view using V1 XmlGraphicEditor.
+     */
+    private void refreshGraphicViewV1() {
+        VBox vBox = new VBox();
+        vBox.setPadding(new Insets(3));
+
+        currentGraphicEditor = new XmlGraphicEditor(document, this);
+        // Set sidebar controller for integration with XmlEditorSidebar functionality
+        if (sidebarController != null) {
+            currentGraphicEditor.setSidebarController(sidebarController);
+        }
+        // Integrate search functionality with parent container
+        currentGraphicEditor.integrateSearchWithContainer(vBox);
+
+        VBox.setVgrow(currentGraphicEditor, Priority.ALWAYS);
+        vBox.getChildren().add(currentGraphicEditor);
+
+        ScrollPane pane = new ScrollPane(vBox);
+        pane.setBackground(new Background(new BackgroundFill(Color.rgb(200, 200, 50, 0.5), new CornerRadii(5), new Insets(5))));
+        this.graphic.setContent(pane);
+    }
+
+    /**
+     * Refreshes the graphic view using V2 XmlCanvasView (XMLSpy Grid-style).
+     */
+    private void refreshGraphicViewV2() {
+        try {
+            String xmlContent = codeArea.getText();
+            if (xmlContent == null || xmlContent.isBlank()) {
+                showGraphicViewPlaceholder("No XML content to display.");
+                return;
+            }
+
+            // Create XmlEditorContext and parse the XML content
+            XmlEditorContext xmlEditorContext = new XmlEditorContext();
+            try {
+                xmlEditorContext.loadDocumentFromString(xmlContent);
+            } catch (Exception parseException) {
+                logger.warn("Failed to parse XML for graphic view: {}", parseException.getMessage());
+                showGraphicViewPlaceholder("Cannot display graphic view:\n\n" + parseException.getMessage() +
+                        "\n\nFix the XML errors first.");
+                return;
+            }
+
+            // Create XmlCanvasView with the context (XMLSpy Grid-style view)
+            XmlCanvasView canvasView = new XmlCanvasView(xmlEditorContext);
+            canvasView.expandAll();
+
+            // Set preferred size and allow growth
+            canvasView.setPrefSize(800, 600);
+            VBox.setVgrow(canvasView, Priority.ALWAYS);
+
+            // Wrap in a container
+            VBox container = new VBox(canvasView);
+            VBox.setVgrow(canvasView, Priority.ALWAYS);
+            container.setPadding(new Insets(3));
+
+            // No ScrollPane needed - XmlCanvasView has its own scrollbar
+            this.graphic.setContent(container);
+
+            logger.info("V2 Graphic view (XmlCanvasView) loaded successfully");
+        } catch (Exception e) {
+            logger.error("Error creating V2 graphic view: {}", e.getMessage(), e);
+            showGraphicViewPlaceholder("Error loading graphic view:\n\n" + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows a placeholder message in the graphic view.
+     */
+    private void showGraphicViewPlaceholder(String message) {
+        VBox vBox = new VBox();
+        vBox.setPadding(new Insets(20));
+
+        Label infoLabel = new Label(message);
+        infoLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+        infoLabel.setWrapText(true);
+        vBox.getChildren().add(infoLabel);
+
+        ScrollPane pane = new ScrollPane(vBox);
+        this.graphic.setContent(pane);
     }
 
     public XmlCodeEditor getXmlCodeEditor() {

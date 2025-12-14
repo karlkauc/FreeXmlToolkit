@@ -1,7 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -35,6 +39,8 @@ import java.time.format.DateTimeFormatter;
  * @since 2.0
  */
 public class XmlSerializer {
+
+    private static final Logger logger = LogManager.getLogger(XmlSerializer.class);
 
     /**
      * Default indentation (2 spaces).
@@ -228,17 +234,35 @@ public class XmlSerializer {
 
     /**
      * Creates a timestamped backup of a file.
+     * The backup location is determined by application settings:
+     * - If "use separate directory" is enabled, backups go to the configured backup directory
+     * - Otherwise, backups are created in the same directory as the original file
      *
      * @param originalPath the original file path
      * @throws IOException if an I/O error occurs
      */
     private void createBackup(Path originalPath) throws IOException {
+        // Determine backup directory based on settings
+        Path backupDir;
+        PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+
+        if (propertiesService.isBackupUseSeparateDirectory()) {
+            backupDir = Path.of(propertiesService.getBackupDirectory());
+            // Auto-create the backup directory if it doesn't exist
+            Files.createDirectories(backupDir);
+            logger.debug("Using separate backup directory: {}", backupDir);
+        } else {
+            backupDir = originalPath.getParent();
+        }
+
+        // Create backup filename with timestamp
         String timestamp = LocalDateTime.now().format(BACKUP_DATE_FORMAT);
         String backupFileName = originalPath.getFileName().toString() +
                 String.format(BACKUP_SUFFIX, timestamp);
-        Path backupPath = originalPath.resolveSibling(backupFileName);
+        Path backupPath = backupDir.resolve(backupFileName);
 
         Files.copy(originalPath, backupPath);
+        logger.info("Created backup: {}", backupPath);
     }
 
     /**

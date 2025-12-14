@@ -404,4 +404,51 @@ public class PropertiesServiceImpl implements PropertiesService {
             logger.warn("Invalid XSD sort order '{}', ignoring", sortOrder);
         }
     }
+
+    // Backup directory settings implementation
+
+    /**
+     * Default backup directory path: ~/.freexmltoolkit/backups
+     */
+    private static final String DEFAULT_BACKUP_DIR =
+            System.getProperty("user.home") + File.separator +
+                    ".freexmltoolkit" + File.separator + "backups";
+
+    @Override
+    public boolean isBackupUseSeparateDirectory() {
+        return Boolean.parseBoolean(properties.getProperty("backup.use.separate.directory", "false"));
+    }
+
+    @Override
+    public void setBackupUseSeparateDirectory(boolean useSeparate) {
+        properties.setProperty("backup.use.separate.directory", String.valueOf(useSeparate));
+        saveProperties(properties);
+        logger.debug("Set backup use separate directory to: {}", useSeparate);
+    }
+
+    @Override
+    public String getBackupDirectory() {
+        return properties.getProperty("backup.directory", DEFAULT_BACKUP_DIR);
+    }
+
+    @Override
+    public void setBackupDirectory(String path) {
+        if (path != null && !path.isBlank()) {
+            properties.setProperty("backup.directory", path);
+            saveProperties(properties);
+            logger.debug("Set backup directory to: {}", path);
+        }
+    }
+
+    @Override
+    public boolean isXmlEditorUseV2() {
+        return Boolean.parseBoolean(properties.getProperty("xml.editor.use.v2", "false"));
+    }
+
+    @Override
+    public void setXmlEditorUseV2(boolean useV2) {
+        properties.setProperty("xml.editor.use.v2", String.valueOf(useV2));
+        saveProperties(properties);
+        logger.debug("Set XML editor use V2 to: {}", useV2);
+    }
 }

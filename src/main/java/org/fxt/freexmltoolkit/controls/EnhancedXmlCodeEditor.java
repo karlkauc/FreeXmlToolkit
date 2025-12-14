@@ -27,7 +27,11 @@ import java.util.regex.Pattern;
  * Enhanced XML Code Editor with professional features inspired by modern IDEs.
  * Provides advanced editing capabilities, intelligent auto-completion,
  * multi-cursor support, and performance optimization for large files.
+ *
+ * @deprecated This is a V1 editor class. V2 editors should be used instead.
+ *             This class will be removed in a future version.
  */
+@Deprecated(since = "2.0", forRemoval = true)
 public class EnhancedXmlCodeEditor extends StackPane {
 
     private static final Logger logger = LogManager.getLogger(EnhancedXmlCodeEditor.class);

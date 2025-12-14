@@ -1785,7 +1785,7 @@ public class XsdController implements FavoritesParentController {
         }
 
         if (!hasContent) {
-            showError("No XSD Content", "There is no XSD content to save.");
+            DialogHelper.showError("No XSD Content", "", "There is no XSD content to save.");
             return;
         }
 
@@ -1882,12 +1882,12 @@ public class XsdController implements FavoritesParentController {
                                 saveCommand.isMultiFileSave());
                         return;
                     } else {
-                        showError("Save Failed", "Failed to save XSD file using V2 editor.");
+                        DialogHelper.showError("Save Failed", "", "Failed to save XSD file using V2 editor.");
                         return;
                     }
                 } else {
                     logger.warn("V2 editor context has no schema model");
-                    showError("Save Failed", "Cannot save: V2 editor has no schema model. Please reload the file.");
+                    DialogHelper.showError("Save Failed", "", "Cannot save: V2 editor has no schema model. Please reload the file.");
                     return;
                 }
             }
@@ -1912,7 +1912,7 @@ public class XsdController implements FavoritesParentController {
             }
 
             if (updatedXsd == null || updatedXsd.trim().isEmpty()) {
-                showError("Failed to get XSD content", "Could not retrieve the XSD content.");
+                DialogHelper.showError("Failed to get XSD content", "", "Could not retrieve the XSD content.");
                 return;
             }
 
@@ -1945,7 +1945,7 @@ public class XsdController implements FavoritesParentController {
 
         } catch (IOException e) {
             logger.error("Failed to save XSD file", e);
-            showError("Save Failed", "Failed to save XSD file: " + e.getMessage());
+            DialogHelper.showError("Save Failed", "", "Failed to save XSD file: " + e.getMessage());
         }
     }
 
@@ -1962,7 +1962,10 @@ public class XsdController implements FavoritesParentController {
     }
 
     /**
-     * Creates backup with versioning if enabled in settings
+     * Creates backup with versioning if enabled in settings.
+     * The backup location is determined by application settings:
+     * - If "use separate directory" is enabled, backups go to the configured backup directory
+     * - Otherwise, backups are created in the same directory as the original file
      */
     private void createBackupIfEnabled(File file) throws IOException {
         if (!file.exists() || !propertiesService.isXsdBackupEnabled()) {
@@ -1974,13 +1977,24 @@ public class XsdController implements FavoritesParentController {
             return;
         }
 
+        // Determine backup directory based on settings
+        Path backupDir;
+        if (propertiesService.isBackupUseSeparateDirectory()) {
+            backupDir = Path.of(propertiesService.getBackupDirectory());
+            // Auto-create the backup directory if it doesn't exist
+            Files.createDirectories(backupDir);
+            logger.debug("Using separate backup directory: {}", backupDir);
+        } else {
+            backupDir = file.toPath().getParent();
+        }
+
         Path sourcePath = file.toPath();
         String baseName = file.getName();
 
-        // Rotate existing backups (e.g., .bak3 -> .bak4, .bak2 -> .bak3, etc.)
+        // Rotate existing backups in the backup directory (e.g., .bak3 -> .bak4, .bak2 -> .bak3, etc.)
         for (int i = backupVersions - 1; i > 0; i--) {
-            Path oldBackup = sourcePath.resolveSibling(baseName + ".bak" + i);
-            Path newBackup = sourcePath.resolveSibling(baseName + ".bak" + (i + 1));
+            Path oldBackup = backupDir.resolve(baseName + ".bak" + i);
+            Path newBackup = backupDir.resolve(baseName + ".bak" + (i + 1));
             if (Files.exists(oldBackup)) {
                 if (i == backupVersions - 1) {
                     // Delete the oldest backup if we're at max versions
@@ -1991,7 +2005,7 @@ public class XsdController implements FavoritesParentController {
         }
 
         // Create the new backup as .bak1
-        Path newBackupPath = sourcePath.resolveSibling(baseName + ".bak1");
+        Path newBackupPath = backupDir.resolve(baseName + ".bak1");
         Files.copy(sourcePath, newBackupPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         logger.info("Backup created: {}", newBackupPath);
     }
@@ -2010,7 +2024,7 @@ public class XsdController implements FavoritesParentController {
             }
 
             if (xsdContent == null || xsdContent.trim().isEmpty()) {
-                showError("No Content", "There is no XSD content to format.");
+                DialogHelper.showError("No Content", "", "There is no XSD content to format.");
                 return;
             }
 
@@ -2034,7 +2048,7 @@ public class XsdController implements FavoritesParentController {
 
         } catch (Exception e) {
             logger.error("Failed to format XSD", e);
-            showError("Format Error", "Failed to format XSD: " + e.getMessage());
+            DialogHelper.showError("Format Error", "", "Failed to format XSD: " + e.getMessage());
         }
     }
 
@@ -2069,15 +2083,6 @@ public class XsdController implements FavoritesParentController {
             // Return original content if formatting fails
             return xsdContent;
         }
-    }
-
-    /**
-     * Shows an error dialog
-     * @deprecated Use {@link DialogHelper#showError(String, String, String)} instead
-     */
-    @Deprecated(since = "2.0", forRemoval = true)
-    private void showError(String title, String content) {
-        DialogHelper.showError(title, "", content);
     }
 
     // ======================================================================
@@ -3872,7 +3877,7 @@ public class XsdController implements FavoritesParentController {
 
         } catch (Exception e) {
             logger.error("Error opening ComplexType editor", e);
-            showError("Error", "Could not open ComplexType editor: " + e.getMessage());
+            DialogHelper.showError("Error", "", "Could not open ComplexType editor: " + e.getMessage());
         }
     }
 
@@ -3899,7 +3904,7 @@ public class XsdController implements FavoritesParentController {
 
         } catch (Exception e) {
             logger.error("Error opening SimpleType editor", e);
-            showError("Error", "Could not open SimpleType editor: " + e.getMessage());
+            DialogHelper.showError("Error", "", "Could not open SimpleType editor: " + e.getMessage());
         }
     }
 
@@ -3924,7 +3929,7 @@ public class XsdController implements FavoritesParentController {
 
         } catch (Exception e) {
             logger.error("Error opening SimpleTypes List", e);
-            showError("Error", "Could not open SimpleTypes List: " + e.getMessage());
+            DialogHelper.showError("Error", "", "Could not open SimpleTypes List: " + e.getMessage());
         }
     }
 
@@ -4117,7 +4122,7 @@ public class XsdController implements FavoritesParentController {
 
         } catch (Exception e) {
             logger.error("Error showing XSD Overview Dialog", e);
-            showError("Error", "Could not show overview dialog: " + e.getMessage());
+            DialogHelper.showError("Error", "", "Could not show overview dialog: " + e.getMessage());
         }
     }
 
@@ -4310,7 +4315,7 @@ public class XsdController implements FavoritesParentController {
     public void openSchemaStatistics() {
         if (pendingSchemaAnalysisSchema == null) {
             logger.error("No schema loaded - cannot open schema analysis");
-            showError("No Schema Loaded", "Please load an XSD schema first to view analysis.");
+            DialogHelper.showError("No Schema Loaded", "", "Please load an XSD schema first to view analysis.");
             return;
         }
 
@@ -4321,11 +4326,11 @@ public class XsdController implements FavoritesParentController {
                 logger.info("Schema Analysis tab opened");
             } else {
                 logger.error("Schema Analysis tab not initialized");
-                showError("Error", "Schema Analysis tab is not available.");
+                DialogHelper.showError("Error", "", "Schema Analysis tab is not available.");
             }
         } catch (Exception e) {
             logger.error("Failed to open schema analysis", e);
-            showError("Error", "Failed to open schema analysis: " + e.getMessage());
+            DialogHelper.showError("Error", "", "Failed to open schema analysis: " + e.getMessage());
         }
     }
 
