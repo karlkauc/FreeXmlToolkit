@@ -1180,32 +1180,147 @@ public class XmlCanvasView extends Pane {
         drawTableColumnHeaders(table, x, rowY, w);
         rowY += ROW_HEIGHT;
 
-        // Data rows with expanded child grids
+        // Data rows - each row may have variable height due to expanded cells
         for (int i = 0; i < table.getRows().size(); i++) {
-            drawTableDataRow(table, i, x, rowY, w);
-            rowY += ROW_HEIGHT;
-
-            // Render any expanded child grids for this row
             RepeatingElementsTable.TableRow row = table.getRows().get(i);
-            for (String colName : row.getExpandedColumns()) {
-                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-                if (childGrid != null) {
-                    // Position the child grid
-                    double childX = x + INDENT;
-                    double childW = w - INDENT * 2;
+            double rowHeight = calculateRowHeight(table, row);
 
-                    // Calculate sizes for the entire subtree
-                    calculateSizesRecursively(childGrid, childW);
+            // Draw the row with variable height
+            drawTableDataRowWithExpandedCells(table, row, i, x, rowY, w, rowHeight);
 
-                    // Position the entire subtree
-                    positionNodesRecursively(childGrid, childX, rowY);
+            rowY += rowHeight;
+        }
+    }
 
-                    // Render the child grid and its children recursively
-                    renderGridRecursively(childGrid);
-                    rowY += childGrid.getHeight() + GRID_PADDING;
-                }
+    /**
+     * Calculate the height of a row, accounting for expanded child grids in cells.
+     */
+    private double calculateRowHeight(RepeatingElementsTable table, RepeatingElementsTable.TableRow row) {
+        double maxCellHeight = ROW_HEIGHT;
+
+        for (String colName : row.getExpandedColumns()) {
+            NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+            if (childGrid != null) {
+                double colW = table.getColumnWidth(colName);
+                double childW = colW - 4;
+
+                // Calculate size with column width constraint
+                calculateSizesRecursively(childGrid, childW);
+
+                // Cell height = text row + child grid + padding
+                double cellHeight = ROW_HEIGHT + childGrid.getHeight() + 4;
+                maxCellHeight = Math.max(maxCellHeight, cellHeight);
             }
         }
+
+        return maxCellHeight;
+    }
+
+    /**
+     * Draw a table data row with expanded child grids rendered inside their cells.
+     */
+    private void drawTableDataRowWithExpandedCells(RepeatingElementsTable table,
+                                                    RepeatingElementsTable.TableRow row,
+                                                    int rowIndex, double x, double y,
+                                                    double w, double rowHeight) {
+        // Row background
+        Color rowBg;
+        if (table == selectedTable && table.getSelectedRowIndex() == rowIndex) {
+            rowBg = TABLE_ROW_SELECTED;
+        } else if (table == hoveredTable && hoveredTableRowIndex == rowIndex) {
+            rowBg = TABLE_ROW_HOVER;
+        } else {
+            rowBg = (rowIndex % 2 == 0) ? TABLE_ROW_EVEN : TABLE_ROW_ODD;
+        }
+
+        gc.setFill(rowBg);
+        gc.fillRect(x + 1, y, w - 2, rowHeight);
+
+        // Bottom border
+        gc.setStroke(ROW_SEPARATOR);
+        gc.setLineWidth(0.5);
+        gc.strokeLine(x + GRID_PADDING, y + rowHeight, x + w - GRID_PADDING, y + rowHeight);
+
+        // Draw each cell
+        double colX = x + GRID_PADDING;
+        for (RepeatingElementsTable.TableColumn col : table.getColumns()) {
+            String colName = col.getName();
+            String value = row.getValue(colName);
+            boolean isComplex = row.hasComplexChild(colName);
+            boolean isExpanded = row.isColumnExpanded(colName);
+
+            // Draw cell content
+            drawTableCell(col, colX, y, value, isComplex, isExpanded);
+
+            // Draw expanded child grid inside the cell (below the text)
+            if (isExpanded) {
+                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+                if (childGrid != null) {
+                    double childX = colX + 2;
+                    double childY = y + ROW_HEIGHT;  // Below the text
+                    double childW = col.getWidth() - 4;
+
+                    // Size already calculated in calculateRowHeight
+                    positionNodesRecursively(childGrid, childX, childY);
+                    renderGridRecursively(childGrid);
+                }
+            }
+
+            // Column separator (full height of the row)
+            colX += col.getWidth();
+            gc.setStroke(ROW_SEPARATOR);
+            gc.setLineWidth(0.5);
+            gc.strokeLine(colX, y, colX, y + rowHeight);
+        }
+    }
+
+    /**
+     * Draw a single table cell's text content.
+     */
+    private void drawTableCell(RepeatingElementsTable.TableColumn col, double colX, double y,
+                               String value, boolean isComplex, boolean isExpanded) {
+        double textStartX = colX;
+
+        // Draw expand/collapse indicator for complex cells
+        if (isComplex) {
+            double iconX = colX + 2;
+            double iconY = y + ROW_HEIGHT / 2;
+            double iconSize = 3;
+
+            gc.setStroke(Color.rgb(59, 130, 246));  // Blue
+            gc.setLineWidth(1.5);
+
+            if (isExpanded) {
+                // Down arrow (expanded)
+                gc.strokeLine(iconX, iconY - iconSize, iconX + iconSize, iconY);
+                gc.strokeLine(iconX + iconSize, iconY, iconX + iconSize * 2, iconY - iconSize);
+            } else {
+                // Right arrow (collapsed)
+                gc.strokeLine(iconX, iconY - iconSize, iconX + iconSize, iconY);
+                gc.strokeLine(iconX, iconY + iconSize, iconX + iconSize, iconY);
+            }
+
+            textStartX = colX + iconSize * 2 + 6;
+        }
+
+        // Set text style
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.CENTER);
+
+        if (isComplex) {
+            gc.setFill(Color.rgb(59, 130, 246)); // Blue
+            gc.setFont(Font.font("System", FontWeight.NORMAL, 12));
+        } else if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
+            gc.setFill(TEXT_ATTRIBUTE_VALUE);
+            gc.setFont(ROW_FONT);
+        } else {
+            gc.setFill(TEXT_CONTENT);
+            gc.setFont(ROW_FONT);
+        }
+
+        // Truncate and draw text
+        double availableWidth = col.getWidth() - (textStartX - colX) - GRID_PADDING;
+        gc.fillText(truncateText(value, availableWidth), textStartX, y + ROW_HEIGHT / 2);
     }
 
     private void drawTableHeader(RepeatingElementsTable table, double x, double y, double w) {
@@ -1284,89 +1399,6 @@ public class XmlCanvasView extends Pane {
         for (RepeatingElementsTable.TableColumn col : table.getColumns()) {
             gc.fillText(truncateText(col.getDisplayName(), col.getWidth() - GRID_PADDING * 2),
                         colX, y + ROW_HEIGHT / 2);
-
-            // Column separator
-            colX += col.getWidth();
-            gc.setStroke(ROW_SEPARATOR);
-            gc.setLineWidth(0.5);
-            gc.strokeLine(colX, y, colX, y + ROW_HEIGHT);
-        }
-    }
-
-    private void drawTableDataRow(RepeatingElementsTable table, int rowIndex, double x, double y, double w) {
-        RepeatingElementsTable.TableRow row = table.getRows().get(rowIndex);
-
-        // Row background
-        Color rowBg;
-        if (table == selectedTable && table.getSelectedRowIndex() == rowIndex) {
-            rowBg = TABLE_ROW_SELECTED;
-        } else if (table == hoveredTable && hoveredTableRowIndex == rowIndex) {
-            rowBg = TABLE_ROW_HOVER;
-        } else {
-            rowBg = (rowIndex % 2 == 0) ? TABLE_ROW_EVEN : TABLE_ROW_ODD;
-        }
-
-        gc.setFill(rowBg);
-        gc.fillRect(x + 1, y, w - 2, ROW_HEIGHT);
-
-        // Bottom border
-        gc.setStroke(ROW_SEPARATOR);
-        gc.setLineWidth(0.5);
-        gc.strokeLine(x + GRID_PADDING, y + ROW_HEIGHT, x + w - GRID_PADDING, y + ROW_HEIGHT);
-
-        // Cell values
-        gc.setFont(ROW_FONT);
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-
-        double colX = x + GRID_PADDING;
-        for (RepeatingElementsTable.TableColumn col : table.getColumns()) {
-            String colName = col.getName();
-            String value = row.getValue(colName);
-            boolean isComplex = row.hasComplexChild(colName);
-            boolean isExpanded = row.isColumnExpanded(colName);
-
-            double textStartX = colX;
-
-            // Draw expand/collapse indicator for complex cells
-            if (isComplex) {
-                double iconX = colX + 2;
-                double iconY = y + ROW_HEIGHT / 2;
-                double iconSize = 3;
-
-                // Draw expand/collapse arrow
-                gc.setStroke(Color.rgb(59, 130, 246));  // Blue
-                gc.setLineWidth(1.5);
-
-                if (isExpanded) {
-                    // Down arrow (expanded)
-                    gc.strokeLine(iconX, iconY - iconSize, iconX + iconSize, iconY);
-                    gc.strokeLine(iconX + iconSize, iconY, iconX + iconSize * 2, iconY - iconSize);
-                } else {
-                    // Right arrow (collapsed)
-                    gc.strokeLine(iconX, iconY - iconSize, iconX + iconSize, iconY);
-                    gc.strokeLine(iconX, iconY + iconSize, iconX + iconSize, iconY);
-                }
-
-                textStartX = colX + iconSize * 2 + 6;
-            }
-
-            // Color based on column type and value content
-            if (isComplex) {
-                // Complex element indicator - show in blue/link color with underline
-                gc.setFill(Color.rgb(59, 130, 246)); // Blue-500
-                gc.setFont(Font.font("System", FontWeight.NORMAL, 12));
-            } else if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
-                gc.setFill(TEXT_ATTRIBUTE_VALUE);
-                gc.setFont(ROW_FONT);
-            } else {
-                gc.setFill(TEXT_CONTENT);
-                gc.setFont(ROW_FONT);
-            }
-
-            // Truncate text based on available space
-            double availableWidth = col.getWidth() - (textStartX - colX) - GRID_PADDING;
-            gc.fillText(truncateText(value, availableWidth), textStartX, y + ROW_HEIGHT / 2);
 
             // Column separator
             colX += col.getWidth();

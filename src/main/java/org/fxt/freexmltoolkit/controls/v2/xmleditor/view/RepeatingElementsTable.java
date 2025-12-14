@@ -336,7 +336,7 @@ public class RepeatingElementsTable {
     // ==================== Layout Calculation ====================
 
     /**
-     * Calculates the height of this table, including any expanded child grids.
+     * Calculates the height of this table, including any expanded child grids inside cells.
      */
     public double calculateHeight() {
         if (!expanded) {
@@ -345,22 +345,34 @@ public class RepeatingElementsTable {
             // Header + column header
             double h = HEADER_HEIGHT + ROW_HEIGHT;
 
-            // Add height for each row + any expanded child grids
+            // Add height for each row (variable height due to expanded cells)
             for (TableRow row : rows) {
-                h += ROW_HEIGHT;  // The data row itself
-
-                // Add height for any expanded child grids in this row
-                for (String colName : row.getExpandedColumns()) {
-                    NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-                    if (childGrid != null) {
-                        h += childGrid.getHeight() + GRID_PADDING;
-                    }
-                }
+                double rowHeight = calculateRowHeight(row);
+                h += rowHeight;
             }
 
             this.height = h + GRID_PADDING;
         }
         return this.height;
+    }
+
+    /**
+     * Calculate the height of a single row, accounting for expanded child grids in cells.
+     * The row height is the maximum of all cell heights.
+     */
+    private double calculateRowHeight(TableRow row) {
+        double maxCellHeight = ROW_HEIGHT;
+
+        for (String colName : row.getExpandedColumns()) {
+            NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+            if (childGrid != null) {
+                // Cell height = text row + child grid + small padding
+                double cellHeight = ROW_HEIGHT + childGrid.getHeight() + 4;
+                maxCellHeight = Math.max(maxCellHeight, cellHeight);
+            }
+        }
+
+        return maxCellHeight;
     }
 
     /**
@@ -370,15 +382,8 @@ public class RepeatingElementsTable {
         double rowY = y + HEADER_HEIGHT + ROW_HEIGHT;  // After table header + column headers
 
         for (int i = 0; i < rowIndex && i < rows.size(); i++) {
-            rowY += ROW_HEIGHT;
-            // Add height for any expanded child grids in rows before this one
-            TableRow row = rows.get(i);
-            for (String colName : row.getExpandedColumns()) {
-                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-                if (childGrid != null) {
-                    rowY += childGrid.getHeight() + GRID_PADDING;
-                }
-            }
+            // Each row has variable height based on expanded cells
+            rowY += calculateRowHeight(rows.get(i));
         }
 
         return rowY;
@@ -395,23 +400,11 @@ public class RepeatingElementsTable {
         double currentY = y + HEADER_HEIGHT + ROW_HEIGHT;
 
         for (int i = 0; i < rows.size(); i++) {
-            double rowEndY = currentY + ROW_HEIGHT;
-            // Add expanded child grid heights
-            TableRow row = rows.get(i);
-            for (String colName : row.getExpandedColumns()) {
-                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-                if (childGrid != null) {
-                    rowEndY += childGrid.getHeight() + GRID_PADDING;
-                }
-            }
+            double rowHeight = calculateRowHeight(rows.get(i));
+            double rowEndY = currentY + rowHeight;
 
             if (py >= currentY && py < rowEndY) {
-                // Check if we're in the data row or in an expanded child grid
-                if (py < currentY + ROW_HEIGHT) {
-                    return i;  // In the data row itself
-                } else {
-                    return i;  // In an expanded area of this row
-                }
+                return i;
             }
             currentY = rowEndY;
         }
@@ -420,7 +413,7 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Checks if a point is within an expanded child grid area.
+     * Checks if a point is within an expanded child grid area (inside a cell).
      * Returns the child grid if found, null otherwise.
      */
     public NestedGridNode getChildGridAt(double px, double py) {
@@ -429,34 +422,32 @@ public class RepeatingElementsTable {
         double currentY = y + HEADER_HEIGHT + ROW_HEIGHT;
 
         for (TableRow row : rows) {
-            double dataRowEndY = currentY + ROW_HEIGHT;
+            double rowHeight = calculateRowHeight(row);
+            double rowEndY = currentY + rowHeight;
 
-            // Check if py is in the expanded area (below the data row)
-            if (py >= dataRowEndY) {
-                double expandedY = dataRowEndY;
-                for (String colName : row.getExpandedColumns()) {
-                    NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-                    if (childGrid != null) {
-                        double childEndY = expandedY + childGrid.getHeight() + GRID_PADDING;
-                        if (py >= expandedY && py < childEndY) {
-                            // Check X bounds too
-                            if (px >= childGrid.getX() && px <= childGrid.getX() + childGrid.getWidth()) {
+            // Check if py is within this row
+            if (py >= currentY && py < rowEndY) {
+                // Check if py is in the expanded cell area (below the text row)
+                if (py >= currentY + ROW_HEIGHT) {
+                    // Find which column the X coordinate is in
+                    double colX = x + GRID_PADDING;
+                    for (TableColumn col : columns) {
+                        String colName = col.getName();
+                        double colEndX = colX + col.getWidth();
+
+                        if (px >= colX && px < colEndX && row.isColumnExpanded(colName)) {
+                            NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+                            if (childGrid != null) {
                                 return childGrid;
                             }
                         }
-                        expandedY = childEndY;
+                        colX = colEndX;
                     }
                 }
+                return null;  // In the row but not in a child grid
             }
 
-            // Move to next row
-            currentY = dataRowEndY;
-            for (String colName : row.getExpandedColumns()) {
-                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-                if (childGrid != null) {
-                    currentY += childGrid.getHeight() + GRID_PADDING;
-                }
-            }
+            currentY = rowEndY;
         }
 
         return null;
@@ -534,6 +525,32 @@ public class RepeatingElementsTable {
             colX = nextX;
         }
         return -1;
+    }
+
+    /**
+     * Gets the X position of a column by name.
+     */
+    public double getColumnX(String columnName) {
+        double colX = x + GRID_PADDING;
+        for (TableColumn col : columns) {
+            if (col.getName().equals(columnName)) {
+                return colX;
+            }
+            colX += col.getWidth();
+        }
+        return x + GRID_PADDING;
+    }
+
+    /**
+     * Gets the width of a column by name.
+     */
+    public double getColumnWidth(String columnName) {
+        for (TableColumn col : columns) {
+            if (col.getName().equals(columnName)) {
+                return col.getWidth();
+            }
+        }
+        return MIN_COLUMN_WIDTH;
     }
 
     // ==================== Visibility ====================
