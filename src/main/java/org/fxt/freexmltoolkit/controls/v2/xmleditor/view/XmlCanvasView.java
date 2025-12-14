@@ -7,6 +7,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
@@ -99,6 +101,11 @@ public class XmlCanvasView extends Pane {
     private NestedGridNode editingNode = null;
     private int editingAttributeIndex = -1;
     private boolean editingTextContent = false;
+    private boolean editingElementName = false;
+
+    // ==================== Context Menu ====================
+
+    private XmlGridContextMenu contextMenu;
 
     // ==================== Colors ====================
 
@@ -201,6 +208,9 @@ public class XmlCanvasView extends Pane {
 
         // Listen for document changes
         context.addPropertyChangeListener("document", this::onDocumentChanged);
+
+        // Create context menu
+        contextMenu = new XmlGridContextMenu(context, this::refresh);
 
         // Initial render
         rebuildTree();
@@ -387,6 +397,24 @@ public class XmlCanvasView extends Pane {
             }
             e.consume();
         });
+
+        // Keyboard shortcuts
+        canvas.setFocusTraversable(true);
+        canvas.addEventHandler(KeyEvent.KEY_PRESSED, this::handleKeyPress);
+
+        // Request focus when clicked
+        canvas.setOnMousePressed(e -> {
+            if (!canvas.isFocused()) {
+                canvas.requestFocus();
+            }
+        });
+    }
+
+    private void handleKeyPress(KeyEvent event) {
+        XmlNode selected = getSelectedNode();
+        if (selected != null && contextMenu != null) {
+            contextMenu.handleKeyPress(event, selected);
+        }
     }
 
     private void handleMouseClick(MouseEvent event) {
@@ -394,6 +422,12 @@ public class XmlCanvasView extends Pane {
         double my = event.getY() + scrollOffsetY;
 
         if (rootNode == null) return;
+
+        // Handle right-click for context menu
+        if (event.getButton() == MouseButton.SECONDARY) {
+            handleContextMenu(event, mx, my);
+            return;
+        }
 
         // First check if clicking on a table
         RepeatingElementsTable hitTable = findTableAt(rootNode, mx, my);
@@ -414,8 +448,27 @@ public class XmlCanvasView extends Pane {
         // Clear table selection
         selectTable(null);
 
-        // Check for header click (expand/collapse)
+        // Double-click for editing - check attribute/text FIRST before header
+        if (event.getClickCount() == 2) {
+            int attrIndex = hitNode.getAttributeIndexAt(mx, my);
+            boolean textHit = hitNode.isTextContentHit(mx, my);
+
+            if (attrIndex >= 0) {
+                startEditingAttribute(hitNode, attrIndex);
+                return;
+            } else if (textHit) {
+                startEditingTextContent(hitNode);
+                return;
+            } else if (hitNode.isHeaderHit(mx, my)) {
+                // Double-click on header = edit element name
+                startEditingElementName(hitNode);
+                return;
+            }
+        }
+
+        // Check for header click (expand/collapse) - single click only
         if (hitNode.isHeaderHit(mx, my)) {
+            // Single click = expand/collapse
             if (hitNode.hasChildren()) {
                 hitNode.toggleExpanded();
                 layoutDirty = true;
@@ -427,21 +480,35 @@ public class XmlCanvasView extends Pane {
             return;
         }
 
-        // Double-click for editing
-        if (event.getClickCount() == 2) {
-            int attrIndex = hitNode.getAttributeIndexAt(mx, my);
-            boolean textHit = hitNode.isTextContentHit(mx, my);
-
-            if (attrIndex >= 0) {
-                startEditingAttribute(hitNode, attrIndex);
-            } else if (textHit) {
-                startEditingTextContent(hitNode);
-            }
-            return;
-        }
-
         // Single click for selection
         selectNode(hitNode);
+    }
+
+    private void handleContextMenu(MouseEvent event, double mx, double my) {
+        // Find node at click position
+        NestedGridNode hitNode = findNodeAt(rootNode, mx, my);
+
+        if (hitNode != null) {
+            selectNode(hitNode);
+            selectTable(null);
+
+            // Update selection in context
+            context.getSelectionModel().setSelectedNode(hitNode.getModelNode());
+
+            // Show context menu
+            contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), hitNode.getModelNode());
+        } else {
+            // Check for table
+            RepeatingElementsTable hitTable = findTableAt(rootNode, mx, my);
+            if (hitTable != null) {
+                int rowIndex = hitTable.getRowIndexAt(my);
+                if (rowIndex >= 0 && rowIndex < hitTable.getRows().size()) {
+                    XmlElement element = hitTable.getRows().get(rowIndex).getElement();
+                    context.getSelectionModel().setSelectedNode(element);
+                    contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), element);
+                }
+            }
+        }
     }
 
     private void handleTableClick(RepeatingElementsTable table, double mx, double my, int clickCount) {
@@ -1439,6 +1506,7 @@ public class XmlCanvasView extends Pane {
         editingNode = node;
         editingAttributeIndex = attrIndex;
         editingTextContent = false;
+        editingElementName = false;
 
         NestedGridNode.AttributeCell cell = node.getAttributeCells().get(attrIndex);
         String currentValue = cell.getValue();
@@ -1458,12 +1526,35 @@ public class XmlCanvasView extends Pane {
         editingNode = node;
         editingAttributeIndex = -1;
         editingTextContent = true;
+        editingElementName = false;
 
         String currentValue = node.getTextContent();
 
         double x = node.getX() + ATTR_NAME_WIDTH - scrollOffsetX;
         double y = node.getY() + HEADER_HEIGHT + node.getAttributeCells().size() * ROW_HEIGHT + 2 - scrollOffsetY;
         double width = node.getWidth() - ATTR_NAME_WIDTH - GRID_PADDING;
+
+        createEditField(currentValue, x, y, width);
+    }
+
+    private void startEditingElementName(NestedGridNode node) {
+        cancelEditing();
+
+        // Only elements can have their name edited
+        XmlNode modelNode = node.getModelNode();
+        if (!(modelNode instanceof XmlElement)) return;
+
+        editingNode = node;
+        editingAttributeIndex = -1;
+        editingTextContent = false;
+        editingElementName = true;
+
+        String currentValue = node.getElementName();
+
+        // Position the edit field in the header
+        double x = node.getX() + GRID_PADDING + 40 - scrollOffsetX;  // After expand icon
+        double y = node.getY() + 2 - scrollOffsetY;
+        double width = node.getWidth() - 60;
 
         createEditField(currentValue, x, y, width);
     }
@@ -1502,7 +1593,12 @@ public class XmlCanvasView extends Pane {
         String newValue = editField.getText();
         XmlNode modelNode = editingNode.getModelNode();
 
-        if (editingAttributeIndex >= 0) {
+        if (editingElementName) {
+            // Editing element name
+            if (modelNode instanceof XmlElement && !newValue.trim().isEmpty()) {
+                context.executeCommand(new RenameNodeCommand((XmlElement) modelNode, newValue.trim()));
+            }
+        } else if (editingAttributeIndex >= 0) {
             // Editing attribute
             NestedGridNode.AttributeCell cell = editingNode.getAttributeCells().get(editingAttributeIndex);
             if (modelNode instanceof XmlElement) {
@@ -1529,6 +1625,7 @@ public class XmlCanvasView extends Pane {
         editingNode = null;
         editingAttributeIndex = -1;
         editingTextContent = false;
+        editingElementName = false;
     }
 
     // ==================== Event Handlers ====================
