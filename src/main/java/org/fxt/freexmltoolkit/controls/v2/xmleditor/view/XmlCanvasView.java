@@ -460,8 +460,13 @@ public class XmlCanvasView extends Pane {
                 startEditingTextContent(hitNode);
                 return;
             } else if (hitNode.isHeaderHit(mx, my)) {
-                // Double-click on header = edit element name
-                startEditingElementName(hitNode);
+                // For leaf elements with inline text: edit text content instead of element name
+                if (hitNode.isLeafWithText() && hitNode.hasTextContent()) {
+                    startEditingTextContent(hitNode);
+                } else {
+                    // Double-click on header = edit element name
+                    startEditingElementName(hitNode);
+                }
                 return;
             }
         }
@@ -1530,9 +1535,22 @@ public class XmlCanvasView extends Pane {
 
         String currentValue = node.getTextContent();
 
-        double x = node.getX() + ATTR_NAME_WIDTH - scrollOffsetX;
-        double y = node.getY() + HEADER_HEIGHT + node.getAttributeCells().size() * ROW_HEIGHT + 2 - scrollOffsetY;
-        double width = node.getWidth() - ATTR_NAME_WIDTH - GRID_PADDING;
+        double x, y, width;
+
+        // For leaf elements with inline text, position in header after "elementName = "
+        if (node.isLeafWithText()) {
+            // Calculate position after element name and "=" sign
+            String elementName = node.getElementName();
+            double textOffset = GRID_PADDING + 20 + gc.getFont().getSize() * elementName.length() * 0.6 + 30; // Approximate width
+            x = node.getX() + textOffset - scrollOffsetX;
+            y = node.getY() + 2 - scrollOffsetY;
+            width = node.getWidth() - textOffset - GRID_PADDING;
+        } else {
+            // Standard text row below attributes
+            x = node.getX() + ATTR_NAME_WIDTH - scrollOffsetX;
+            y = node.getY() + HEADER_HEIGHT + node.getAttributeCells().size() * ROW_HEIGHT + 2 - scrollOffsetY;
+            width = node.getWidth() - ATTR_NAME_WIDTH - GRID_PADDING;
+        }
 
         createEditField(currentValue, x, y, width);
     }
