@@ -69,7 +69,7 @@ public class XmlCanvasView extends Pane {
 
     private static final double HEADER_HEIGHT = 28;
     private static final double ROW_HEIGHT = 24;
-    private static final double CHILDREN_HEADER_HEIGHT = 20;
+    private static final double CHILDREN_HEADER_HEIGHT = 0;  // No children header - saves screen space
     private static final double INDENT = 20;
     private static final double CHILD_SPACING = 8;
     private static final double GRID_PADDING = 8;
@@ -730,10 +730,19 @@ public class XmlCanvasView extends Pane {
             RepeatingElementsTable hitTable = findTableAt(rootNode, mx, my);
             if (hitTable != null) {
                 int rowIndex = hitTable.getRowIndexAt(my);
+                int colIndex = hitTable.getColumnIndexAt(mx);
                 if (rowIndex >= 0 && rowIndex < hitTable.getRows().size()) {
                     XmlElement element = hitTable.getRows().get(rowIndex).getElement();
                     context.getSelectionModel().setSelectedNode(element);
-                    contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), element);
+
+                    // Pass table cell context to context menu
+                    String columnName = null;
+                    if (colIndex >= 0 && colIndex < hitTable.getColumns().size()) {
+                        columnName = hitTable.getColumn(colIndex).getName();
+                    }
+
+                    contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), element,
+                            hitTable, rowIndex, columnName);
                 }
             }
         }
@@ -1225,10 +1234,10 @@ public class XmlCanvasView extends Pane {
             rowY += ROW_HEIGHT;
         }
 
-        // Children header
-        if (node.hasChildren()) {
-            drawChildrenHeader(node, x, rowY, w);
-        }
+        // Children header - REMOVED: No longer displayed to save screen space
+        // if (node.hasChildren()) {
+        //     drawChildrenHeader(node, x, rowY, w);
+        // }
     }
 
     private void drawGridHeader(NestedGridNode node, double x, double y, double w, boolean isCompactLeaf) {
@@ -1329,6 +1338,10 @@ public class XmlCanvasView extends Pane {
         gc.setLineWidth(0.5);
         gc.strokeLine(x + GRID_PADDING, y + ROW_HEIGHT, x + w - GRID_PADDING, y + ROW_HEIGHT);
 
+        // Use calculated column widths for proper alignment
+        double nameColWidth = node.getCalculatedNameColumnWidth();
+        double valueColWidth = node.getCalculatedValueColumnWidth();
+
         // Attribute name (@name)
         gc.setFont(ROW_FONT);
         gc.setFill(TEXT_ATTRIBUTE_NAME);
@@ -1336,10 +1349,10 @@ public class XmlCanvasView extends Pane {
         gc.setTextBaseline(VPos.CENTER);
         gc.fillText("@" + cell.getName(), x + GRID_PADDING, y + ROW_HEIGHT / 2);
 
-        // Attribute value
+        // Attribute value - no truncation needed if column width is calculated correctly
         gc.setFill(TEXT_ATTRIBUTE_VALUE);
-        gc.fillText(truncateText(cell.getValue(), w - ATTR_NAME_WIDTH - GRID_PADDING * 2),
-                    x + ATTR_NAME_WIDTH, y + ROW_HEIGHT / 2);
+        gc.fillText(truncateText(cell.getValue(), valueColWidth - GRID_PADDING),
+                    x + nameColWidth, y + ROW_HEIGHT / 2);
     }
 
     private void drawTextContentRow(NestedGridNode node, double x, double y, double w) {
@@ -1354,6 +1367,10 @@ public class XmlCanvasView extends Pane {
         gc.setLineWidth(0.5);
         gc.strokeLine(x + GRID_PADDING, y + ROW_HEIGHT, x + w - GRID_PADDING, y + ROW_HEIGHT);
 
+        // Use calculated column widths for proper alignment
+        double nameColWidth = node.getCalculatedNameColumnWidth();
+        double valueColWidth = node.getCalculatedValueColumnWidth();
+
         // Text label
         gc.setFont(ROW_FONT);
         gc.setFill(TEXT_SECONDARY);
@@ -1361,10 +1378,10 @@ public class XmlCanvasView extends Pane {
         gc.setTextBaseline(VPos.CENTER);
         gc.fillText("#text", x + GRID_PADDING, y + ROW_HEIGHT / 2);
 
-        // Text content
+        // Text content - no truncation needed if column width is calculated correctly
         gc.setFill(TEXT_CONTENT);
-        gc.fillText(truncateText(node.getTextContent(), w - ATTR_NAME_WIDTH - GRID_PADDING * 2),
-                    x + ATTR_NAME_WIDTH, y + ROW_HEIGHT / 2);
+        gc.fillText(truncateText(node.getTextContent(), valueColWidth - GRID_PADDING),
+                    x + nameColWidth, y + ROW_HEIGHT / 2);
     }
 
     private void drawChildrenHeader(NestedGridNode node, double x, double y, double w) {

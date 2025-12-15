@@ -30,7 +30,7 @@ public class NestedGridNode {
 
     public static final double HEADER_HEIGHT = 28;
     public static final double ROW_HEIGHT = 24;
-    public static final double CHILDREN_HEADER_HEIGHT = 20;
+    public static final double CHILDREN_HEADER_HEIGHT = 0;  // No children header - saves screen space
     public static final double INDENT = 20;
     public static final double CHILD_SPACING = 8;
     public static final double COMPACT_CHILD_SPACING = 4;  // Reduced spacing for compact leaf nodes
@@ -61,6 +61,8 @@ public class NestedGridNode {
     private double y;
     private double width;
     private double height;
+    private double calculatedNameColumnWidth;  // Dynamic width for attribute/child names
+    private double calculatedValueColumnWidth; // Dynamic width for attribute/child values
 
     // ==================== State ====================
 
@@ -373,8 +375,12 @@ public class NestedGridNode {
      * Calculates the width of this grid.
      */
     public double calculateWidth(double availableWidth) {
-        // Minimum width
-        double w = Math.max(MIN_GRID_WIDTH, availableWidth - depth * INDENT);
+        // First calculate column widths based on content
+        calculateColumnWidths();
+
+        // Minimum width based on content
+        double contentWidth = calculatedNameColumnWidth + calculatedValueColumnWidth + GRID_PADDING * 3;
+        double w = Math.max(MIN_GRID_WIDTH, Math.max(contentWidth, availableWidth - depth * INDENT));
 
         // Check children width
         if (expanded) {
@@ -393,6 +399,53 @@ public class NestedGridNode {
 
         this.width = w;
         return this.width;
+    }
+
+    /**
+     * Calculates optimal column widths for attribute names and values.
+     * This ensures all attribute names align at the longest name, and all values align properly.
+     */
+    private void calculateColumnWidths() {
+        double maxNameWidth = 0;
+        double maxValueWidth = 0;
+
+        // Check all attribute names and values
+        for (AttributeCell cell : attributeCells) {
+            // Attribute name with "@" prefix
+            String attrName = "@" + cell.getName();
+            double nameWidth = estimateTextWidth(attrName);
+            maxNameWidth = Math.max(maxNameWidth, nameWidth);
+
+            // Attribute value
+            double valueWidth = estimateTextWidth(cell.getValue());
+            maxValueWidth = Math.max(maxValueWidth, valueWidth);
+        }
+
+        // Check text content row if present
+        if (textContent != null && !textContent.isEmpty()) {
+            double labelWidth = estimateTextWidth("#text");
+            maxNameWidth = Math.max(maxNameWidth, labelWidth);
+
+            double textWidth = estimateTextWidth(textContent);
+            maxValueWidth = Math.max(maxValueWidth, textWidth);
+        }
+
+        // Add padding to calculated widths
+        calculatedNameColumnWidth = maxNameWidth + GRID_PADDING * 2;
+        calculatedValueColumnWidth = maxValueWidth + GRID_PADDING * 2;
+
+        // Ensure minimum widths
+        calculatedNameColumnWidth = Math.max(80, calculatedNameColumnWidth);
+        calculatedValueColumnWidth = Math.max(100, calculatedValueColumnWidth);
+    }
+
+    /**
+     * Estimates the width of text in pixels.
+     * Uses 7px per character as approximation (matches font size ~12px).
+     */
+    private double estimateTextWidth(String text) {
+        if (text == null || text.isEmpty()) return 0;
+        return text.length() * 7.0;
     }
 
     /**
@@ -505,6 +558,9 @@ public class NestedGridNode {
     public void setWidth(double width) { this.width = width; }
     public double getHeight() { return height; }
     public void setHeight(double height) { this.height = height; }
+
+    public double getCalculatedNameColumnWidth() { return calculatedNameColumnWidth; }
+    public double getCalculatedValueColumnWidth() { return calculatedValueColumnWidth; }
 
     public boolean isExpanded() { return expanded; }
     public void setExpanded(boolean expanded) {

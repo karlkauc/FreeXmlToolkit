@@ -2,6 +2,8 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -30,6 +32,11 @@ public class XmlGridContextMenu {
     private XmlElement clipboardElement;
     private boolean isCut;
 
+    // Table cell context (for grid operations)
+    private RepeatingElementsTable clickedTable;
+    private int clickedRowIndex = -1;
+    private String clickedColumnName;
+
     // Menu Items
     private MenuItem addElementItem;
     private MenuItem addAttributeItem;
@@ -42,6 +49,8 @@ public class XmlGridContextMenu {
     private MenuItem cutItem;
     private MenuItem pasteItem;
     private MenuItem pasteAsChildItem;
+    private MenuItem copyCellContentItem;
+    private MenuItem copyXPathItem;
     private MenuItem moveUpItem;
     private MenuItem moveDownItem;
     private MenuItem deleteItem;
@@ -119,6 +128,16 @@ public class XmlGridContextMenu {
         pasteAsChildItem.setOnAction(e -> pasteAsChild());
         pasteAsChildItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
+        copyCellContentItem = new MenuItem("Copy Cell Content");
+        copyCellContentItem.setGraphic(createIcon(BootstrapIcons.CLIPBOARD_DATA));
+        copyCellContentItem.setOnAction(e -> copyCellContent());
+        copyCellContentItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+
+        copyXPathItem = new MenuItem("Copy XPath");
+        copyXPathItem.setGraphic(createIcon(BootstrapIcons.DIAGRAM_3));
+        copyXPathItem.setOnAction(e -> copyXPath());
+        copyXPathItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+
         // === Move ===
         moveUpItem = new MenuItem("Move Up");
         moveUpItem.setGraphic(createIcon(BootstrapIcons.ARROW_UP_CIRCLE));
@@ -153,6 +172,8 @@ public class XmlGridContextMenu {
                 new SeparatorMenuItem(),
                 copyItem, cutItem, pasteItem, pasteAsChildItem,
                 new SeparatorMenuItem(),
+                copyCellContentItem, copyXPathItem,
+                new SeparatorMenuItem(),
                 moveUpItem, moveDownItem,
                 new SeparatorMenuItem(),
                 expandAllItem, collapseAllItem,
@@ -170,6 +191,22 @@ public class XmlGridContextMenu {
     }
 
     public void show(Node anchor, double screenX, double screenY, XmlNode selectedNode) {
+        // Clear table cell context for non-table nodes
+        clickedTable = null;
+        clickedRowIndex = -1;
+        clickedColumnName = null;
+
+        updateMenuState(selectedNode);
+        contextMenu.show(anchor, screenX, screenY);
+    }
+
+    public void show(Node anchor, double screenX, double screenY, XmlNode selectedNode,
+                     RepeatingElementsTable table, int rowIndex, String columnName) {
+        // Store table cell context
+        clickedTable = table;
+        clickedRowIndex = rowIndex;
+        clickedColumnName = columnName;
+
         updateMenuState(selectedNode);
         contextMenu.show(anchor, screenX, screenY);
     }
@@ -184,6 +221,17 @@ public class XmlGridContextMenu {
         boolean isRoot = node != null && node.getParent() instanceof XmlDocument;
         boolean canMove = isElement && !isRoot && node.getParent() != null;
         boolean hasClipboard = clipboardElement != null;
+        boolean hasTextContent = false;
+
+        if (isElement) {
+            XmlElement element = (XmlElement) node;
+            for (XmlNode child : element.getChildren()) {
+                if (child instanceof XmlText) {
+                    hasTextContent = true;
+                    break;
+                }
+            }
+        }
 
         addElementItem.setDisable(!isElement);
         addAttributeItem.setDisable(!isElement);
@@ -196,6 +244,8 @@ public class XmlGridContextMenu {
         cutItem.setDisable(!isElement || isRoot);
         pasteItem.setDisable(!hasClipboard || !isElement || isRoot);
         pasteAsChildItem.setDisable(!hasClipboard || !isElement);
+        copyCellContentItem.setDisable(!hasTextContent);
+        copyXPathItem.setDisable(!isElement);
         moveUpItem.setDisable(!canMove || isFirstChild(node));
         moveDownItem.setDisable(!canMove || isLastChild(node));
         deleteItem.setDisable(!hasSelection || isRoot);
@@ -386,6 +436,146 @@ public class XmlGridContextMenu {
         XmlCommand addCmd = new AddElementCommand(parentElement, toPaste);
         context.executeCommand(addCmd);
         refresh();
+    }
+
+    private void copyCellContent() {
+        // Check if we're in a table cell context
+        if (clickedTable != null && clickedRowIndex >= 0 && clickedColumnName != null) {
+            RepeatingElementsTable.TableRow row = clickedTable.getRows().get(clickedRowIndex);
+            String value = row.getValue(clickedColumnName);
+            if (value != null && !value.isEmpty()) {
+                copyToClipboard(value);
+            }
+            return;
+        }
+
+        // Otherwise, use regular node content
+        XmlNode selected = context.getSelectionModel().getSelectedNode();
+        if (selected == null) return;
+
+        String content = "";
+        if (selected instanceof XmlElement) {
+            XmlElement element = (XmlElement) selected;
+            // Get text content of the element
+            StringBuilder sb = new StringBuilder();
+            for (XmlNode child : element.getChildren()) {
+                if (child instanceof XmlText) {
+                    sb.append(((XmlText) child).getText());
+                }
+            }
+            content = sb.toString();
+        } else if (selected instanceof XmlText) {
+            content = ((XmlText) selected).getText();
+        }
+
+        if (!content.isEmpty()) {
+            copyToClipboard(content);
+        }
+    }
+
+    private void copyXPath() {
+        // Check if we're in a table cell context
+        if (clickedTable != null && clickedRowIndex >= 0 && clickedColumnName != null) {
+            // Build XPath for the specific cell
+            RepeatingElementsTable.TableRow row = clickedTable.getRows().get(clickedRowIndex);
+            XmlElement rowElement = row.getElement();
+
+            // Start with the row element's XPath
+            String baseXPath = buildXPath(rowElement);
+
+            // Check if the column represents an attribute or child element
+            RepeatingElementsTable.TableColumn col = clickedTable.getColumn(clickedColumnName);
+            if (col != null) {
+                if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
+                    // Attribute column
+                    baseXPath += "/@" + clickedColumnName;
+                } else if (col.getType() == RepeatingElementsTable.ColumnType.CHILD_ELEMENT) {
+                    // Child element column - find the actual child element
+                    for (XmlNode child : rowElement.getChildren()) {
+                        if (child instanceof XmlElement && ((XmlElement) child).getName().equals(clickedColumnName)) {
+                            baseXPath = buildXPath(child);
+                            break;
+                        }
+                    }
+                } else if (col.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT) {
+                    // Text content
+                    baseXPath += "/text()";
+                }
+            }
+
+            copyToClipboard(baseXPath);
+            return;
+        }
+
+        // Otherwise, use regular node XPath
+        XmlNode selected = context.getSelectionModel().getSelectedNode();
+        if (selected == null) return;
+
+        String xpath = buildXPath(selected);
+        copyToClipboard(xpath);
+    }
+
+    private String buildXPath(XmlNode node) {
+        if (node == null) return "";
+        if (node instanceof XmlDocument) return "";
+
+        StringBuilder xpath = new StringBuilder();
+        XmlNode current = node;
+
+        while (current != null && !(current instanceof XmlDocument)) {
+            if (current instanceof XmlElement) {
+                XmlElement element = (XmlElement) current;
+                String name = element.getName();
+
+                // Calculate position among siblings with same name
+                int position = 1;
+                if (current.getParent() != null) {
+                    List<XmlNode> siblings;
+                    if (current.getParent() instanceof XmlElement) {
+                        siblings = ((XmlElement) current.getParent()).getChildren();
+                    } else if (current.getParent() instanceof XmlDocument) {
+                        siblings = ((XmlDocument) current.getParent()).getChildren();
+                    } else {
+                        siblings = List.of();
+                    }
+
+                    // Count siblings with same name before this element
+                    int sameNameCount = 0;
+                    for (XmlNode sibling : siblings) {
+                        if (sibling instanceof XmlElement && ((XmlElement) sibling).getName().equals(name)) {
+                            sameNameCount++;
+                            if (sibling == current) {
+                                position = sameNameCount;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Only add [position] if there are multiple elements with same name
+                    long totalSameNameCount = siblings.stream()
+                            .filter(s -> s instanceof XmlElement && ((XmlElement) s).getName().equals(name))
+                            .count();
+
+                    if (totalSameNameCount > 1) {
+                        xpath.insert(0, "/" + name + "[" + position + "]");
+                    } else {
+                        xpath.insert(0, "/" + name);
+                    }
+                } else {
+                    xpath.insert(0, "/" + name);
+                }
+            }
+            current = current.getParent();
+        }
+
+        return xpath.length() > 0 ? xpath.toString() : "/";
+    }
+
+    private void copyToClipboard(String text) {
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(text);
+        clipboard.setContent(content);
     }
 
     private void moveElement(int direction) {

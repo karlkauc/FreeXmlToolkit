@@ -2224,8 +2224,8 @@ public class XmlEditor extends Tab {
             XmlCanvasView canvasView = new XmlCanvasView(xmlEditorContext);
             canvasView.expandAll();
 
-            // Set preferred size and allow growth
-            canvasView.setPrefSize(800, 600);
+            // Ensure canvas view fills available space
+            canvasView.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             VBox.setVgrow(canvasView, Priority.ALWAYS);
 
             // Create status bar
@@ -2239,11 +2239,13 @@ public class XmlEditor extends Tab {
 
             // Main content area (canvas with status bar)
             VBox contentBox = new VBox(canvasView, statusBar);
+            contentBox.setFillWidth(true);
             VBox.setVgrow(canvasView, Priority.ALWAYS);
+            VBox.setVgrow(contentBox, Priority.ALWAYS);
 
             // Wrap content in StackPane for toast overlay
             toastContainer.getChildren().add(contentBox);
-            toastContainer.setPadding(new Insets(3));
+            toastContainer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
             // No ScrollPane needed - XmlCanvasView has its own scrollbar
             this.graphic.setContent(toastContainer);
