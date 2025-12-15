@@ -777,7 +777,6 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "javafx.controls",
             "javafx.fxml",
             "javafx.graphics",
-            "javafx.media",
             "javafx.web",
             "javafx.swing"
         )
@@ -787,9 +786,11 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "--module-path", modulePath,
             "--add-modules", requiredModules.joinToString(","),
             "--output", runtimeDir.absolutePath,
-            "--compress=zip-6",
+            "--compress=zip-9",
             "--no-header-files",
-            "--no-man-pages"
+            "--no-man-pages",
+            "--strip-debug",
+            "--strip-native-commands"
         )
         
         doLast {
