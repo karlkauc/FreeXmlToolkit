@@ -347,6 +347,86 @@ public class RepeatingElementsTable {
         }
     }
 
+    /**
+     * Recalculates column widths considering expanded child grids inside cells.
+     * This should be called after a cell is expanded to ensure the column is wide enough
+     * to accommodate the nested content.
+     */
+    public void recalculateColumnWidthsWithExpandedCells() {
+        for (TableColumn col : columns) {
+            String colName = col.getName();
+            double maxWidth = col.getDisplayName().length() * 8 + CELL_PADDING * 2;
+
+            // Check text content width
+            for (TableRow row : rows) {
+                String value = row.getValue(colName);
+                double valueWidth = value.length() * 7 + CELL_PADDING * 2;
+                maxWidth = Math.max(maxWidth, valueWidth);
+
+                // Check expanded child grid width
+                if (row.isColumnExpanded(colName)) {
+                    NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
+                    if (childGrid != null) {
+                        // Calculate the width the child grid needs
+                        // Give it a generous initial width to calculate its natural size
+                        double childNaturalWidth = calculateChildGridNaturalWidth(childGrid);
+                        // Add padding for the cell
+                        double neededWidth = childNaturalWidth + 8;
+                        maxWidth = Math.max(maxWidth, neededWidth);
+                    }
+                }
+            }
+
+            // Apply constraints, but allow wider columns for expanded content
+            // Use a larger max width for columns with expanded cells
+            double maxAllowedWidth = hasExpandedCells(colName) ? 500 : MAX_COLUMN_WIDTH;
+            col.setWidth(Math.min(maxAllowedWidth, Math.max(MIN_COLUMN_WIDTH, maxWidth)));
+        }
+    }
+
+    /**
+     * Calculates the natural width a child grid needs to display properly.
+     * This recursively ensures all nested tables also recalculate their column widths.
+     */
+    private double calculateChildGridNaturalWidth(NestedGridNode childGrid) {
+        // First, recursively recalculate column widths for any tables in the child grid
+        recalculateNestedTableWidths(childGrid);
+
+        // Give it a large available width to calculate its natural size
+        double tempWidth = 1000;
+        childGrid.calculateWidth(tempWidth);
+        return childGrid.getWidth();
+    }
+
+    /**
+     * Recursively recalculates column widths for all tables in a nested grid.
+     */
+    private void recalculateNestedTableWidths(NestedGridNode node) {
+        if (node == null) return;
+
+        // Recalculate widths for all child tables
+        for (RepeatingElementsTable table : node.getRepeatingTables()) {
+            table.recalculateColumnWidthsWithExpandedCells();
+        }
+
+        // Recursively process child nodes
+        for (NestedGridNode child : node.getChildren()) {
+            recalculateNestedTableWidths(child);
+        }
+    }
+
+    /**
+     * Checks if a column has any expanded cells.
+     */
+    private boolean hasExpandedCells(String columnName) {
+        for (TableRow row : rows) {
+            if (row.isColumnExpanded(columnName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // ==================== Layout Calculation ====================
 
     /**
@@ -661,6 +741,9 @@ public class RepeatingElementsTable {
                 childGrid.setExpanded(true);
             }
         }
+
+        // Recalculate column widths to accommodate expanded content
+        recalculateColumnWidthsWithExpandedCells();
 
         pcs.firePropertyChange("cellExpansion", null, columnName);
         return true;
