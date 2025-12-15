@@ -7,6 +7,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.paint.Color;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.*;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
@@ -68,26 +69,26 @@ public class XmlGridContextMenu {
 
         // === Add Submenu ===
         Menu addMenu = new Menu("Add");
-        addMenu.setGraphic(createIcon(BootstrapIcons.PLUS_CIRCLE));
+        addMenu.setGraphic(createColoredIcon(BootstrapIcons.PLUS_CIRCLE, "#28a745")); // Green
 
         addElementItem = new MenuItem("Child Element");
-        addElementItem.setGraphic(createIcon(BootstrapIcons.CODE_SLASH));
+        addElementItem.setGraphic(createColoredIcon(BootstrapIcons.CODE_SLASH, "#28a745")); // Green
         addElementItem.setOnAction(e -> addChildElement());
 
         addAttributeItem = new MenuItem("Attribute");
-        addAttributeItem.setGraphic(createIcon(BootstrapIcons.AT));
+        addAttributeItem.setGraphic(createColoredIcon(BootstrapIcons.AT, "#ffc107")); // Yellow
         addAttributeItem.setOnAction(e -> addAttribute());
 
         addTextItem = new MenuItem("Text Content");
-        addTextItem.setGraphic(createIcon(BootstrapIcons.FONTS));
+        addTextItem.setGraphic(createColoredIcon(BootstrapIcons.FONTS, "#17a2b8")); // Teal
         addTextItem.setOnAction(e -> addTextContent());
 
         addSiblingBeforeItem = new MenuItem("Sibling Before");
-        addSiblingBeforeItem.setGraphic(createIcon(BootstrapIcons.ARROW_UP));
+        addSiblingBeforeItem.setGraphic(createColoredIcon(BootstrapIcons.ARROW_UP, "#28a745")); // Green
         addSiblingBeforeItem.setOnAction(e -> addSiblingElement(true));
 
         addSiblingAfterItem = new MenuItem("Sibling After");
-        addSiblingAfterItem.setGraphic(createIcon(BootstrapIcons.ARROW_DOWN));
+        addSiblingAfterItem.setGraphic(createColoredIcon(BootstrapIcons.ARROW_DOWN, "#28a745")); // Green
         addSiblingAfterItem.setOnAction(e -> addSiblingElement(false));
 
         addMenu.getItems().addAll(
@@ -98,69 +99,69 @@ public class XmlGridContextMenu {
 
         // === Edit Items ===
         renameItem = new MenuItem("Rename");
-        renameItem.setGraphic(createIcon(BootstrapIcons.PENCIL));
+        renameItem.setGraphic(createColoredIcon(BootstrapIcons.PENCIL, "#fd7e14")); // Orange
         renameItem.setOnAction(e -> renameElement());
         renameItem.setAccelerator(new KeyCodeCombination(KeyCode.F2));
 
         duplicateItem = new MenuItem("Duplicate");
-        duplicateItem.setGraphic(createIcon(BootstrapIcons.FILES));
+        duplicateItem.setGraphic(createColoredIcon(BootstrapIcons.FILES, "#20c997")); // Teal green
         duplicateItem.setOnAction(e -> duplicateElement());
         duplicateItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN));
 
         // === Clipboard ===
         copyItem = new MenuItem("Copy");
-        copyItem.setGraphic(createIcon(BootstrapIcons.CLIPBOARD));
+        copyItem.setGraphic(createColoredIcon(BootstrapIcons.CLIPBOARD, "#6c757d")); // Gray
         copyItem.setOnAction(e -> copyElement());
         copyItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
 
         cutItem = new MenuItem("Cut");
-        cutItem.setGraphic(createIcon(BootstrapIcons.SCISSORS));
+        cutItem.setGraphic(createColoredIcon(BootstrapIcons.SCISSORS, "#fd7e14")); // Orange
         cutItem.setOnAction(e -> cutElement());
         cutItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN));
 
         pasteItem = new MenuItem("Paste as Sibling");
-        pasteItem.setGraphic(createIcon(BootstrapIcons.CLIPBOARD_CHECK));
+        pasteItem.setGraphic(createColoredIcon(BootstrapIcons.CLIPBOARD_CHECK, "#6c757d")); // Gray
         pasteItem.setOnAction(e -> pasteAsSibling());
         pasteItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN));
 
         pasteAsChildItem = new MenuItem("Paste as Child");
-        pasteAsChildItem.setGraphic(createIcon(BootstrapIcons.CLIPBOARD_PLUS));
+        pasteAsChildItem.setGraphic(createColoredIcon(BootstrapIcons.CLIPBOARD_PLUS, "#6c757d")); // Gray
         pasteAsChildItem.setOnAction(e -> pasteAsChild());
         pasteAsChildItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyCellContentItem = new MenuItem("Copy Cell Content");
-        copyCellContentItem.setGraphic(createIcon(BootstrapIcons.CLIPBOARD_DATA));
+        copyCellContentItem.setGraphic(createColoredIcon(BootstrapIcons.CLIPBOARD_DATA, "#17a2b8")); // Teal
         copyCellContentItem.setOnAction(e -> copyCellContent());
         copyCellContentItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         copyXPathItem = new MenuItem("Copy XPath");
-        copyXPathItem.setGraphic(createIcon(BootstrapIcons.DIAGRAM_3));
+        copyXPathItem.setGraphic(createColoredIcon(BootstrapIcons.DIAGRAM_3, "#6f42c1")); // Purple
         copyXPathItem.setOnAction(e -> copyXPath());
         copyXPathItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
         // === Move ===
         moveUpItem = new MenuItem("Move Up");
-        moveUpItem.setGraphic(createIcon(BootstrapIcons.ARROW_UP_CIRCLE));
+        moveUpItem.setGraphic(createColoredIcon(BootstrapIcons.ARROW_UP_CIRCLE, "#6c757d")); // Gray
         moveUpItem.setOnAction(e -> moveElement(-1));
         moveUpItem.setAccelerator(new KeyCodeCombination(KeyCode.UP, KeyCombination.ALT_DOWN));
 
         moveDownItem = new MenuItem("Move Down");
-        moveDownItem.setGraphic(createIcon(BootstrapIcons.ARROW_DOWN_CIRCLE));
+        moveDownItem.setGraphic(createColoredIcon(BootstrapIcons.ARROW_DOWN_CIRCLE, "#6c757d")); // Gray
         moveDownItem.setOnAction(e -> moveElement(1));
         moveDownItem.setAccelerator(new KeyCodeCombination(KeyCode.DOWN, KeyCombination.ALT_DOWN));
 
         // === Expand/Collapse ===
         expandAllItem = new MenuItem("Expand All");
-        expandAllItem.setGraphic(createIcon(BootstrapIcons.ARROWS_EXPAND));
+        expandAllItem.setGraphic(createColoredIcon(BootstrapIcons.ARROWS_EXPAND, "#007bff")); // Blue
         expandAllItem.setOnAction(e -> expandAll());
 
         collapseAllItem = new MenuItem("Collapse All");
-        collapseAllItem.setGraphic(createIcon(BootstrapIcons.ARROWS_COLLAPSE));
+        collapseAllItem.setGraphic(createColoredIcon(BootstrapIcons.ARROWS_COLLAPSE, "#007bff")); // Blue
         collapseAllItem.setOnAction(e -> collapseAll());
 
         // === Delete ===
         deleteItem = new MenuItem("Delete");
-        deleteItem.setGraphic(createIcon(BootstrapIcons.TRASH));
+        deleteItem.setGraphic(createColoredIcon(BootstrapIcons.TRASH, "#dc3545")); // Red
         deleteItem.setOnAction(e -> deleteElement());
         deleteItem.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
 
@@ -181,12 +182,24 @@ public class XmlGridContextMenu {
                 deleteItem
         );
 
+        // Apply uniform font styling to match XSD Editor and other menus
+        menu.setStyle("-fx-font-family: 'Segoe UI', Arial, sans-serif;");
+
         return menu;
     }
 
-    private FontIcon createIcon(BootstrapIcons icon) {
+    /**
+     * Creates a colored FontIcon for menu items.
+     * Matches the style from XsdContextMenuFactory for consistent look & feel.
+     *
+     * @param icon the Bootstrap icon
+     * @param color the hex color code (e.g., "#28a745")
+     * @return the configured FontIcon
+     */
+    private FontIcon createColoredIcon(BootstrapIcons icon, String color) {
         FontIcon fontIcon = new FontIcon(icon);
-        fontIcon.setIconSize(14);
+        fontIcon.setIconColor(Color.web(color));
+        fontIcon.setIconSize(12);
         return fontIcon;
     }
 
@@ -223,6 +236,9 @@ public class XmlGridContextMenu {
         boolean hasClipboard = clipboardElement != null;
         boolean hasTextContent = false;
 
+        // Check if we're in a table cell context
+        boolean isInTableCell = clickedTable != null && clickedRowIndex >= 0 && clickedColumnName != null;
+
         if (isElement) {
             XmlElement element = (XmlElement) node;
             for (XmlNode child : element.getChildren()) {
@@ -244,7 +260,10 @@ public class XmlGridContextMenu {
         cutItem.setDisable(!isElement || isRoot);
         pasteItem.setDisable(!hasClipboard || !isElement || isRoot);
         pasteAsChildItem.setDisable(!hasClipboard || !isElement);
-        copyCellContentItem.setDisable(!hasTextContent);
+
+        // Copy Cell Content: Enable in table cell context OR if element has text content
+        copyCellContentItem.setDisable(!isInTableCell && !hasTextContent);
+
         copyXPathItem.setDisable(!isElement);
         moveUpItem.setDisable(!canMove || isFirstChild(node));
         moveDownItem.setDisable(!canMove || isLastChild(node));
@@ -442,9 +461,34 @@ public class XmlGridContextMenu {
         // Check if we're in a table cell context
         if (clickedTable != null && clickedRowIndex >= 0 && clickedColumnName != null) {
             RepeatingElementsTable.TableRow row = clickedTable.getRows().get(clickedRowIndex);
-            String value = row.getValue(clickedColumnName);
-            if (value != null && !value.isEmpty()) {
-                copyToClipboard(value);
+            RepeatingElementsTable.TableColumn col = clickedTable.getColumn(clickedColumnName);
+
+            String content = "";
+
+            if (col != null) {
+                if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
+                    // For attributes, use the stored value directly
+                    content = row.getValue(clickedColumnName);
+                } else if (col.getType() == RepeatingElementsTable.ColumnType.CHILD_ELEMENT) {
+                    // For child elements, extract actual text content from the element
+                    XmlElement rowElement = row.getElement();
+                    for (XmlNode child : rowElement.getChildren()) {
+                        if (child instanceof XmlElement && ((XmlElement) child).getName().equals(clickedColumnName)) {
+                            // Extract all text content from this child element
+                            StringBuilder sb = new StringBuilder();
+                            extractTextContent((XmlElement) child, sb);
+                            content = sb.toString().trim();
+                            break;
+                        }
+                    }
+                } else if (col.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT) {
+                    // Direct text content
+                    content = row.getValue(clickedColumnName);
+                }
+            }
+
+            if (!content.isEmpty()) {
+                copyToClipboard(content);
             }
             return;
         }
@@ -569,6 +613,24 @@ public class XmlGridContextMenu {
         }
 
         return xpath.length() > 0 ? xpath.toString() : "/";
+    }
+
+    /**
+     * Recursively extracts all text content from an element and its descendants.
+     */
+    private void extractTextContent(XmlElement element, StringBuilder sb) {
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlText) {
+                String text = ((XmlText) child).getText();
+                if (text != null && !text.trim().isEmpty()) {
+                    if (sb.length() > 0) sb.append(" ");
+                    sb.append(text.trim());
+                }
+            } else if (child instanceof XmlElement) {
+                // Recursively extract from child elements
+                extractTextContent((XmlElement) child, sb);
+            }
+        }
     }
 
     private void copyToClipboard(String text) {

@@ -713,9 +713,33 @@ public class XmlCanvasView extends Pane {
     }
 
     private void handleContextMenu(MouseEvent event, double mx, double my) {
-        // Find node at click position
-        NestedGridNode hitNode = findNodeAt(rootNode, mx, my);
+        // Check for table FIRST (tables have priority over regular nodes in grid view)
+        RepeatingElementsTable hitTable = findTableAt(rootNode, mx, my);
+        if (hitTable != null && hitTable.isExpanded()) {
+            int rowIndex = hitTable.getRowIndexAt(my);
+            int colIndex = hitTable.getColumnIndexAt(mx);
 
+            // Check if we're in the data area (not header)
+            if (rowIndex >= 0 && rowIndex < hitTable.getRows().size() && colIndex >= 0) {
+                XmlElement element = hitTable.getRows().get(rowIndex).getElement();
+                context.getSelectionModel().setSelectedNode(element);
+                selectTable(hitTable);
+                selectNode(null);
+
+                // Pass table cell context to context menu
+                String columnName = null;
+                if (colIndex < hitTable.getColumns().size()) {
+                    columnName = hitTable.getColumn(colIndex).getName();
+                }
+
+                contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), element,
+                        hitTable, rowIndex, columnName);
+                return;
+            }
+        }
+
+        // If no table cell was hit, check for regular node
+        NestedGridNode hitNode = findNodeAt(rootNode, mx, my);
         if (hitNode != null) {
             selectNode(hitNode);
             selectTable(null);
@@ -723,28 +747,8 @@ public class XmlCanvasView extends Pane {
             // Update selection in context
             context.getSelectionModel().setSelectedNode(hitNode.getModelNode());
 
-            // Show context menu
+            // Show context menu without table context
             contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), hitNode.getModelNode());
-        } else {
-            // Check for table
-            RepeatingElementsTable hitTable = findTableAt(rootNode, mx, my);
-            if (hitTable != null) {
-                int rowIndex = hitTable.getRowIndexAt(my);
-                int colIndex = hitTable.getColumnIndexAt(mx);
-                if (rowIndex >= 0 && rowIndex < hitTable.getRows().size()) {
-                    XmlElement element = hitTable.getRows().get(rowIndex).getElement();
-                    context.getSelectionModel().setSelectedNode(element);
-
-                    // Pass table cell context to context menu
-                    String columnName = null;
-                    if (colIndex >= 0 && colIndex < hitTable.getColumns().size()) {
-                        columnName = hitTable.getColumn(colIndex).getName();
-                    }
-
-                    contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), element,
-                            hitTable, rowIndex, columnName);
-                }
-            }
         }
     }
 
