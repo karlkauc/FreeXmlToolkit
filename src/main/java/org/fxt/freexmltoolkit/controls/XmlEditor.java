@@ -2228,13 +2228,25 @@ public class XmlEditor extends Tab {
             canvasView.setPrefSize(800, 600);
             VBox.setVgrow(canvasView, Priority.ALWAYS);
 
-            // Wrap in a container
-            VBox container = new VBox(canvasView);
+            // Create status bar
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlStatusBar statusBar =
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlStatusBar();
+            canvasView.setStatusBar(statusBar);
+
+            // Create container with StackPane for toast support
+            javafx.scene.layout.StackPane toastContainer = new javafx.scene.layout.StackPane();
+            canvasView.setToastContainer(toastContainer);
+
+            // Main content area (canvas with status bar)
+            VBox contentBox = new VBox(canvasView, statusBar);
             VBox.setVgrow(canvasView, Priority.ALWAYS);
-            container.setPadding(new Insets(3));
+
+            // Wrap content in StackPane for toast overlay
+            toastContainer.getChildren().add(contentBox);
+            toastContainer.setPadding(new Insets(3));
 
             // No ScrollPane needed - XmlCanvasView has its own scrollbar
-            this.graphic.setContent(container);
+            this.graphic.setContent(toastContainer);
 
             logger.info("V2 Graphic view (XmlCanvasView) loaded successfully");
         } catch (Exception e) {

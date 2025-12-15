@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
@@ -12,11 +16,13 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
+import javafx.util.Duration;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand;
@@ -106,6 +112,16 @@ public class XmlCanvasView extends Pane {
     // ==================== Context Menu ====================
 
     private XmlGridContextMenu contextMenu;
+
+    // ==================== Highlight State ====================
+
+    private NestedGridNode highlightedNode = null;
+    private static final Color HIGHLIGHT_COLOR = Color.rgb(254, 240, 138);  // Yellow highlight
+
+    // ==================== Status Bar & Toast ====================
+
+    private XmlStatusBar statusBar;
+    private StackPane toastContainer;
 
     // ==================== Colors ====================
 
@@ -411,10 +427,217 @@ public class XmlCanvasView extends Pane {
     }
 
     private void handleKeyPress(KeyEvent event) {
+        // If editing, don't handle navigation keys
+        if (editField != null) return;
+
         XmlNode selected = getSelectedNode();
+
+        // Context menu shortcuts (Delete, F2, Ctrl+C/X/V/D)
         if (selected != null && contextMenu != null) {
             contextMenu.handleKeyPress(event, selected);
         }
+
+        // Keyboard navigation
+        handleKeyNavigation(event);
+    }
+
+    /**
+     * Handle keyboard navigation between elements.
+     */
+    private void handleKeyNavigation(KeyEvent event) {
+        if (rootNode == null) return;
+
+        switch (event.getCode()) {
+            case UP -> {
+                selectPreviousSibling();
+                event.consume();
+            }
+            case DOWN -> {
+                selectNextSibling();
+                event.consume();
+            }
+            case LEFT -> {
+                if (selectedNode != null && selectedNode.isExpanded() && selectedNode.hasChildren()) {
+                    // Collapse if expanded
+                    selectedNode.setExpanded(false);
+                    layoutDirty = true;
+                    ensureLayout();
+                    updateScrollBars();
+                    render();
+                } else {
+                    // Select parent
+                    selectParent();
+                }
+                event.consume();
+            }
+            case RIGHT -> {
+                if (selectedNode != null && !selectedNode.isExpanded() && selectedNode.hasChildren()) {
+                    // Expand if collapsed
+                    selectedNode.setExpanded(true);
+                    layoutDirty = true;
+                    ensureLayout();
+                    updateScrollBars();
+                    render();
+                } else if (selectedNode != null && selectedNode.isExpanded() && selectedNode.hasChildren()) {
+                    // Select first child
+                    selectFirstChild();
+                }
+                event.consume();
+            }
+            case ENTER -> {
+                if (selectedNode != null) {
+                    // If has children, toggle expand
+                    if (selectedNode.hasChildren()) {
+                        selectedNode.toggleExpanded();
+                        layoutDirty = true;
+                        ensureLayout();
+                        updateScrollBars();
+                        render();
+                    } else {
+                        // Start editing
+                        startEditingElementName(selectedNode);
+                    }
+                }
+                event.consume();
+            }
+            case HOME -> {
+                selectFirstNode();
+                event.consume();
+            }
+            case END -> {
+                selectLastVisibleNode();
+                event.consume();
+            }
+            default -> { /* Not a navigation key */ }
+        }
+    }
+
+    /**
+     * Select the previous sibling or parent's previous sibling.
+     */
+    private void selectPreviousSibling() {
+        if (selectedNode == null) {
+            selectFirstNode();
+            return;
+        }
+
+        NestedGridNode parent = selectedNode.getParent();
+        if (parent == null) return;
+
+        java.util.List<NestedGridNode> siblings = parent.getChildren();
+        int index = siblings.indexOf(selectedNode);
+
+        if (index > 0) {
+            // Select previous sibling (or last expanded child of previous)
+            NestedGridNode prev = siblings.get(index - 1);
+            while (prev.isExpanded() && prev.hasChildren()) {
+                prev = prev.getChildren().get(prev.getChildren().size() - 1);
+            }
+            selectNode(prev);
+            ensureNodeVisible(prev);
+        } else {
+            // No previous sibling, select parent
+            if (parent != rootNode) {
+                selectNode(parent);
+                ensureNodeVisible(parent);
+            }
+        }
+    }
+
+    /**
+     * Select the next sibling or first child.
+     */
+    private void selectNextSibling() {
+        if (selectedNode == null) {
+            selectFirstNode();
+            return;
+        }
+
+        // If expanded and has children, select first child
+        if (selectedNode.isExpanded() && selectedNode.hasChildren()) {
+            NestedGridNode firstChild = selectedNode.getChildren().get(0);
+            selectNode(firstChild);
+            ensureNodeVisible(firstChild);
+            return;
+        }
+
+        // Find next sibling or parent's next sibling
+        NestedGridNode current = selectedNode;
+        while (current != null && current != rootNode) {
+            NestedGridNode parent = current.getParent();
+            if (parent == null) break;
+
+            java.util.List<NestedGridNode> siblings = parent.getChildren();
+            int index = siblings.indexOf(current);
+
+            if (index < siblings.size() - 1) {
+                NestedGridNode next = siblings.get(index + 1);
+                selectNode(next);
+                ensureNodeVisible(next);
+                return;
+            }
+
+            // Move up to parent to check its next sibling
+            current = parent;
+        }
+    }
+
+    /**
+     * Select the parent node.
+     */
+    private void selectParent() {
+        if (selectedNode == null) return;
+
+        NestedGridNode parent = selectedNode.getParent();
+        if (parent != null && parent != rootNode) {
+            selectNode(parent);
+            ensureNodeVisible(parent);
+        }
+    }
+
+    /**
+     * Select the first child of the current node.
+     */
+    private void selectFirstChild() {
+        if (selectedNode == null || !selectedNode.isExpanded() || !selectedNode.hasChildren()) return;
+
+        NestedGridNode firstChild = selectedNode.getChildren().get(0);
+        selectNode(firstChild);
+        ensureNodeVisible(firstChild);
+    }
+
+    /**
+     * Select the first visible node.
+     */
+    private void selectFirstNode() {
+        if (rootNode == null) return;
+
+        if (rootNode.getChildren().isEmpty()) {
+            selectNode(rootNode);
+        } else {
+            selectNode(rootNode.getChildren().get(0));
+        }
+        ensureNodeVisible(selectedNode);
+    }
+
+    /**
+     * Select the last visible node.
+     */
+    private void selectLastVisibleNode() {
+        if (rootNode == null) return;
+
+        NestedGridNode last = findLastVisibleNode(rootNode);
+        if (last != null) {
+            selectNode(last);
+            ensureNodeVisible(last);
+        }
+    }
+
+    private NestedGridNode findLastVisibleNode(NestedGridNode node) {
+        if (node.isExpanded() && node.hasChildren()) {
+            return findLastVisibleNode(node.getChildren().get(node.getChildren().size() - 1));
+        }
+        return node;
     }
 
     private void handleMouseClick(MouseEvent event) {
@@ -823,7 +1046,12 @@ public class XmlCanvasView extends Pane {
 
         if (selectedNode != null) {
             selectedNode.setSelected(true);
+            // Update selection model
+            context.getSelectionModel().setSelectedNode(node.getModelNode());
         }
+
+        // Update status bar
+        updateStatusBar();
 
         render();
     }
@@ -943,6 +1171,12 @@ public class XmlCanvasView extends Pane {
     }
 
     private void renderGrid(NestedGridNode node) {
+        // If skipOwnHeader is true, don't render this node's header/content
+        // Just let the children be rendered by renderGridRecursively
+        if (node.isSkipOwnHeader()) {
+            return;
+        }
+
         double x = node.getX();
         double y = node.getY();
         double w = node.getWidth();
@@ -953,7 +1187,9 @@ public class XmlCanvasView extends Pane {
 
         // Background based on depth
         Color bgColor = DEPTH_COLORS[node.getDepth() % DEPTH_COLORS.length];
-        if (node.isSelected()) {
+        if (node == highlightedNode) {
+            bgColor = HIGHLIGHT_COLOR;  // Yellow highlight for undo/redo feedback
+        } else if (node.isSelected()) {
             bgColor = SELECTED_BG;
         } else if (node.isHovered()) {
             bgColor = HOVERED_BG;
@@ -1651,6 +1887,151 @@ public class XmlCanvasView extends Pane {
     private void onDocumentChanged(PropertyChangeEvent evt) {
         cancelEditing();
         rebuildTree();
+    }
+
+    // ==================== Scroll-to-Selection ====================
+
+    /**
+     * Ensures the given node is visible in the viewport.
+     * Smoothly scrolls if the node is outside the visible area.
+     */
+    private void ensureNodeVisible(NestedGridNode node) {
+        if (node == null) return;
+
+        double nodeTop = node.getY();
+        double nodeBottom = nodeTop + node.getHeight();
+        double viewTop = scrollOffsetY;
+        double viewBottom = viewTop + canvas.getHeight();
+
+        if (nodeTop < viewTop) {
+            // Node is above viewport - scroll up
+            animateScrollTo(nodeTop - 20);  // 20px buffer
+        } else if (nodeBottom > viewBottom) {
+            // Node is below viewport - scroll down
+            animateScrollTo(nodeBottom - canvas.getHeight() + 20);
+        }
+    }
+
+    /**
+     * Smoothly animate scroll to target Y position.
+     */
+    private void animateScrollTo(double targetY) {
+        targetY = Math.max(0, Math.min(targetY, totalHeight - canvas.getHeight()));
+
+        Timeline timeline = new Timeline(
+            new KeyFrame(Duration.ZERO, new KeyValue(vScrollBar.valueProperty(), scrollOffsetY)),
+            new KeyFrame(Duration.millis(200), new KeyValue(vScrollBar.valueProperty(), targetY))
+        );
+        timeline.play();
+    }
+
+    // ==================== Highlight ====================
+
+    /**
+     * Flash highlight a node (used after undo/redo to show what changed).
+     */
+    public void flashHighlight(NestedGridNode node) {
+        if (node == null) return;
+
+        highlightedNode = node;
+        render();
+
+        // Clear highlight after 1.5 seconds
+        PauseTransition pause = new PauseTransition(Duration.millis(1500));
+        pause.setOnFinished(e -> {
+            highlightedNode = null;
+            render();
+        });
+        pause.play();
+    }
+
+    /**
+     * Flash highlight a node by its model node.
+     */
+    public void flashHighlightByModel(XmlNode modelNode) {
+        if (rootNode != null && modelNode != null) {
+            NestedGridNode found = rootNode.findByModel(modelNode);
+            if (found != null) {
+                ensureNodeVisible(found);
+                flashHighlight(found);
+            }
+        }
+    }
+
+    // ==================== Toast Notifications ====================
+
+    /**
+     * Show a toast notification.
+     */
+    public void showToast(String message, ToastNotification.Type type) {
+        if (toastContainer != null) {
+            ToastNotification.show(toastContainer, message, type);
+        } else {
+            // Fallback: show in canvas container
+            ToastNotification.show(canvasContainer, message, type);
+        }
+    }
+
+    /**
+     * Set the container for toast notifications.
+     */
+    public void setToastContainer(StackPane container) {
+        this.toastContainer = container;
+    }
+
+    // ==================== Status Bar ====================
+
+    /**
+     * Set the status bar to update.
+     */
+    public void setStatusBar(XmlStatusBar statusBar) {
+        this.statusBar = statusBar;
+        if (statusBar != null) {
+            statusBar.setOnBreadcrumbClick(this::navigateToNode);
+        }
+    }
+
+    /**
+     * Navigate to a node (used by breadcrumb clicks).
+     */
+    private void navigateToNode(XmlNode node) {
+        if (rootNode != null && node != null) {
+            NestedGridNode found = rootNode.findByModel(node);
+            if (found != null) {
+                selectNode(found);
+                ensureNodeVisible(found);
+            }
+        }
+    }
+
+    /**
+     * Update the status bar with current selection info.
+     */
+    private void updateStatusBar() {
+        if (statusBar == null) return;
+
+        // Update breadcrumb
+        XmlNode selected = getSelectedNode();
+        statusBar.updateBreadcrumb(selected);
+
+        // Update element count
+        int count = countElements(rootNode);
+        statusBar.updateElementCount(count);
+
+        // Update dirty flag
+        statusBar.setDirty(context.isDirty());
+    }
+
+    private int countElements(NestedGridNode node) {
+        if (node == null) return 0;
+        int count = 1;  // This node
+        for (NestedGridNode child : node.getChildren()) {
+            count += countElements(child);
+        }
+        for (RepeatingElementsTable table : node.getRepeatingTables()) {
+            count += table.getElementCount();
+        }
+        return count;
     }
 
     // ==================== Public API ====================

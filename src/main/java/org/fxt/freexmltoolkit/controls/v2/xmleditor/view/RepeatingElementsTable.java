@@ -154,8 +154,9 @@ public class RepeatingElementsTable {
             if (!expandedChildGrids.containsKey(columnName)) {
                 XmlElement childElement = complexChildren.get(columnName);
                 if (childElement != null) {
-                    // Use buildFromElement to create a fully populated grid with children
-                    NestedGridNode childGrid = NestedGridNode.buildFromElement(childElement, depth + 1);
+                    // Use buildChildrenOnly to show only the children (not the element itself,
+                    // since the column header already shows the element name)
+                    NestedGridNode childGrid = NestedGridNode.buildChildrenOnly(childElement, depth + 1);
                     expandedChildGrids.put(columnName, childGrid);
                 }
             }
@@ -284,15 +285,15 @@ public class RepeatingElementsTable {
     /**
      * Extracts text content from an element.
      * For leaf elements (only text), returns the text.
-     * For complex elements (with child elements), returns a summary like "{3 children}".
+     * For complex elements (with child elements), returns a summary showing child element names.
      */
     private String extractElementText(XmlElement element) {
         StringBuilder text = new StringBuilder();
-        int elementChildCount = 0;
+        List<String> childElementNames = new ArrayList<>();
 
         for (XmlNode child : element.getChildren()) {
-            if (child instanceof XmlElement) {
-                elementChildCount++;
+            if (child instanceof XmlElement childElement) {
+                childElementNames.add(childElement.getName());
             } else if (child instanceof XmlText) {
                 String t = ((XmlText) child).getText().trim();
                 if (!t.isEmpty()) {
@@ -302,14 +303,27 @@ public class RepeatingElementsTable {
             }
         }
 
-        // If it has element children, show a summary
-        if (elementChildCount > 0) {
+        // If it has element children, show element names
+        if (!childElementNames.isEmpty()) {
+            // Build summary showing element names (max 3, then "...")
+            StringBuilder summary = new StringBuilder();
+            int shown = 0;
+            for (String name : childElementNames) {
+                if (shown > 0) summary.append(", ");
+                if (shown >= 3) {
+                    summary.append("...");
+                    break;
+                }
+                summary.append("<").append(name).append(">");
+                shown++;
+            }
+
             if (text.length() > 0) {
-                // Mixed content: show text + indicator
-                return text.toString() + " {+" + elementChildCount + "}";
+                // Mixed content: show text + child summary
+                return text.toString() + " [" + summary + "]";
             } else {
-                // Only element children
-                return "{" + elementChildCount + (elementChildCount == 1 ? " child" : " children") + "}";
+                // Only element children - show as expandable
+                return summary.toString();
             }
         }
 

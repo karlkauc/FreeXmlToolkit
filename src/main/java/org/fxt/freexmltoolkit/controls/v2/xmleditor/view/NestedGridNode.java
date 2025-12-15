@@ -68,6 +68,7 @@ public class NestedGridNode {
     private boolean selected = false;
     private boolean hovered = false;
     private boolean headerHovered = false;
+    private boolean skipOwnHeader = false;  // If true, don't render own header (for inline children display)
 
     // ==================== Property Change Support ====================
 
@@ -224,6 +225,24 @@ public class NestedGridNode {
         return node;
     }
 
+    /**
+     * Builds a container NestedGridNode that only shows the children of an element,
+     * without showing the element itself. Used in table cells where the column header
+     * already shows the element name.
+     *
+     * @param element The element whose children should be displayed
+     * @param depth   The depth level for rendering
+     * @return A container node with only the children (no header for the element itself)
+     */
+    public static NestedGridNode buildChildrenOnly(XmlElement element, int depth) {
+        // Create a "virtual" container node that just holds children
+        NestedGridNode container = new NestedGridNode(element, null, depth);
+        container.setSkipOwnHeader(true);  // Flag to skip rendering own header
+        buildChildren(container, element.getChildren(), depth);
+        container.setExpanded(true);
+        return container;
+    }
+
     private static void buildChildren(NestedGridNode parent, List<XmlNode> children, int depth) {
         if (depth > MAX_DEPTH) return;
 
@@ -294,6 +313,21 @@ public class NestedGridNode {
      * Must be called bottom-up (children first).
      */
     public double calculateHeight() {
+        // If skipOwnHeader is true, only calculate children height (no own header/content)
+        if (skipOwnHeader) {
+            double childrenHeight = 0;
+            for (RepeatingElementsTable table : repeatingTables) {
+                table.calculateHeight();
+                childrenHeight += table.getHeight() + CHILD_SPACING;
+            }
+            for (NestedGridNode child : children) {
+                boolean isCompactLeaf = child.isLeafWithText && child.attributeCells.isEmpty();
+                childrenHeight += child.getHeight() + (isCompactLeaf ? COMPACT_CHILD_SPACING : CHILD_SPACING);
+            }
+            this.height = Math.max(childrenHeight, CHILD_SPACING);  // Minimum spacing
+            return this.height;
+        }
+
         // Leaf elements with only text: compact height (just header, minimal padding)
         if (isLeafWithText && attributeCells.isEmpty()) {
             this.height = HEADER_HEIGHT;
@@ -497,6 +531,11 @@ public class NestedGridNode {
     public boolean isHeaderHovered() { return headerHovered; }
     public void setHeaderHovered(boolean headerHovered) {
         this.headerHovered = headerHovered;
+    }
+
+    public boolean isSkipOwnHeader() { return skipOwnHeader; }
+    public void setSkipOwnHeader(boolean skipOwnHeader) {
+        this.skipOwnHeader = skipOwnHeader;
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
