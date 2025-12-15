@@ -399,6 +399,10 @@ public class NestedGridNode {
      * Returns the Y position where the content ends (before children).
      */
     public double getContentEndY() {
+        // If skipOwnHeader is true, there is no own content - return y position
+        if (skipOwnHeader) {
+            return y;
+        }
         double endY = y + HEADER_HEIGHT;
         endY += attributeCells.size() * ROW_HEIGHT;
         if (textContent != null && !textContent.isEmpty()) {
@@ -411,6 +415,10 @@ public class NestedGridNode {
      * Returns the Y position where children start.
      */
     public double getChildrenStartY() {
+        // If skipOwnHeader is true, children start directly at y position
+        if (skipOwnHeader) {
+            return y;
+        }
         return getContentEndY() + CHILDREN_HEADER_HEIGHT;
     }
 
