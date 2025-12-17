@@ -66,7 +66,7 @@ public class NestedGridNode {
 
     // ==================== State ====================
 
-    private boolean expanded = true;
+    private boolean expanded = false;  // Default collapsed - only root expands explicitly
     private boolean selected = false;
     private boolean hovered = false;
     private boolean headerHovered = false;
@@ -209,10 +209,34 @@ public class NestedGridNode {
 
     /**
      * Builds a nested grid tree from an XML document.
+     * The tree starts with the root element, not with the Document node.
+     * Only the root node is expanded; all children are collapsed by default.
      */
     public static NestedGridNode buildTree(XmlDocument document) {
-        NestedGridNode root = new NestedGridNode(document, null, 0);
-        buildChildren(root, document.getChildren(), 1);
+        // Find the root element (skip processing instructions, comments, etc.)
+        XmlElement rootElement = null;
+        for (XmlNode child : document.getChildren()) {
+            if (child instanceof XmlElement) {
+                rootElement = (XmlElement) child;
+                break;
+            }
+        }
+
+        // If no root element found, fall back to document node
+        if (rootElement == null) {
+            NestedGridNode root = new NestedGridNode(document, null, 0);
+            buildChildren(root, document.getChildren(), 1);
+            root.expanded = true;  // Only root is expanded
+            return root;
+        }
+
+        // Build tree starting from root element
+        NestedGridNode root = new NestedGridNode(rootElement, null, 0);
+        buildChildren(root, rootElement.getChildren(), 1);
+
+        // Only root is expanded - all children start collapsed (default)
+        root.expanded = true;
+
         return root;
     }
 
