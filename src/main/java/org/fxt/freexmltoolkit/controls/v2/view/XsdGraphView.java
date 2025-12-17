@@ -260,7 +260,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         currentSourceFileLabel.setStyle("-fx-padding: 5; -fx-text-fill: #0369a1; -fx-font-style: italic;");
         currentSourceFileLabel.setVisible(false);
 
-        Label infoLabel = new Label("XSD Editor V2 (Beta) - Graphical View");
+        Label infoLabel = new Label("XSD Editor V2 - Graphical View");
         infoLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-style: italic;");
 
         Region spacer = new Region();
