@@ -2224,6 +2224,18 @@ public class XmlEditor extends Tab {
             XmlCanvasView canvasView = new XmlCanvasView(xmlEditorContext);
             canvasView.expandAll();
 
+            // Sync changes back to text view
+            canvasView.setOnDocumentModified(xml -> {
+                if (xml != null && !xml.equals(codeArea.getText())) {
+                    int caretPos = codeArea.getCaretPosition();
+                    codeArea.replaceText(xml);
+                    // Try to restore caret position
+                    if (caretPos < xml.length()) {
+                        codeArea.moveTo(caretPos);
+                    }
+                }
+            });
+
             // Ensure canvas view fills available space
             canvasView.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             VBox.setVgrow(canvasView, Priority.ALWAYS);
@@ -2250,6 +2262,9 @@ public class XmlEditor extends Tab {
             // No ScrollPane needed - XmlCanvasView has its own scrollbar
             this.graphic.setContent(toastContainer);
 
+            // Connect V2 selection to existing sidebar
+            connectV2SelectionToSidebar(xmlEditorContext);
+
             logger.info("V2 Graphic view (XmlCanvasView) loaded successfully");
         } catch (Exception e) {
             logger.error("Error creating V2 graphic view: {}", e.getMessage(), e);
@@ -2271,6 +2286,205 @@ public class XmlEditor extends Tab {
 
         ScrollPane pane = new ScrollPane(vBox);
         this.graphic.setContent(pane);
+    }
+
+    /**
+     * Connects the V2 XmlEditorContext selection model to the existing sidebar.
+     * When a node is selected in the graphic view, the sidebar properties are updated.
+     *
+     * @param xmlEditorContext the V2 editor context to connect
+     */
+    private void connectV2SelectionToSidebar(XmlEditorContext xmlEditorContext) {
+        if (sidebarController == null) {
+            logger.warn("Cannot connect V2 selection to sidebar - sidebarController is null");
+            return;
+        }
+
+        // Listen to selection changes in the V2 SelectionModel
+        xmlEditorContext.getSelectionModel().addPropertyChangeListener("selectedNode", evt -> {
+            Object newValue = evt.getNewValue();
+            Platform.runLater(() -> updateSidebarFromV2Selection(newValue));
+        });
+
+        logger.debug("Connected V2 SelectionModel to sidebar");
+    }
+
+    /**
+     * Updates the sidebar with information from the V2 selected node.
+     *
+     * @param selectedNode the selected XmlNode (can be null)
+     */
+    private void updateSidebarFromV2Selection(Object selectedNode) {
+        if (sidebarController == null) {
+            return;
+        }
+
+        if (selectedNode == null) {
+            // Clear sidebar fields when nothing is selected
+            sidebarController.setElementName("");
+            sidebarController.setElementType("");
+            sidebarController.setDocumentation("");
+            sidebarController.setXPath("");
+            sidebarController.setExampleValues(List.of("No element selected"));
+            sidebarController.setPossibleChildElements(List.of("No element selected"));
+            return;
+        }
+
+        if (selectedNode instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element) {
+            // Update element name
+            String displayName = element.getNamespacePrefix() != null && !element.getNamespacePrefix().isEmpty()
+                    ? element.getNamespacePrefix() + ":" + element.getName()
+                    : element.getName();
+            sidebarController.setElementName(displayName);
+
+            // Build XPath for the selected element
+            String xpath = buildXPathForV2Element(element);
+            sidebarController.setXPath(xpath);
+
+            // Try to get XSD information if available
+            if (xsdDocumentationData != null) {
+                XsdExtendedElement xsdElement = findBestMatchingElement(xpath);
+                if (xsdElement != null) {
+                    sidebarController.setElementType(xsdElement.getElementType() != null ? xsdElement.getElementType() : "");
+                    sidebarController.setDocumentation(getDocumentationFromExtendedElement(xsdElement));
+
+                    // Set example values
+                    if (xsdElement.getExampleValues() != null && !xsdElement.getExampleValues().isEmpty()) {
+                        sidebarController.setExampleValues(xsdElement.getExampleValues());
+                    } else {
+                        sidebarController.setExampleValues(List.of("No example values available"));
+                    }
+
+                    // Set child elements
+                    if (xsdElement.getChildren() != null && !xsdElement.getChildren().isEmpty()) {
+                        sidebarController.setPossibleChildElements(xsdElement.getChildren());
+                    } else {
+                        sidebarController.setPossibleChildElements(List.of("No child elements defined"));
+                    }
+                } else {
+                    // No XSD info available
+                    sidebarController.setElementType("Unknown (no XSD)");
+                    sidebarController.setDocumentation("No XSD documentation available");
+                    sidebarController.setExampleValues(List.of("Link XSD for example values"));
+                    sidebarController.setPossibleChildElements(getV2ChildElementNames(element));
+                }
+            } else {
+                // No XSD linked
+                sidebarController.setElementType("Unknown (no XSD linked)");
+                sidebarController.setDocumentation("Link an XSD schema to see documentation");
+                sidebarController.setExampleValues(List.of("Link XSD for example values"));
+                sidebarController.setPossibleChildElements(getV2ChildElementNames(element));
+            }
+
+        } else if (selectedNode instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText textNode) {
+            sidebarController.setElementName("Text Node");
+            sidebarController.setElementType("Text");
+            sidebarController.setDocumentation("Text content: " + truncateText(textNode.getText(), 200));
+            sidebarController.setXPath("");
+            sidebarController.setExampleValues(List.of("N/A for text nodes"));
+            sidebarController.setPossibleChildElements(List.of("Text nodes have no children"));
+
+        } else if (selectedNode instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment commentNode) {
+            sidebarController.setElementName("Comment");
+            sidebarController.setElementType("Comment");
+            sidebarController.setDocumentation("Comment: " + truncateText(commentNode.getText(), 200));
+            sidebarController.setXPath("");
+            sidebarController.setExampleValues(List.of("N/A for comments"));
+            sidebarController.setPossibleChildElements(List.of("Comments have no children"));
+
+        } else {
+            // Generic XmlNode
+            sidebarController.setElementName("Node");
+            sidebarController.setElementType(selectedNode.getClass().getSimpleName());
+            sidebarController.setDocumentation("");
+            sidebarController.setXPath("");
+            sidebarController.setExampleValues(List.of());
+            sidebarController.setPossibleChildElements(List.of());
+        }
+    }
+
+    /**
+     * Builds an XPath expression for a V2 XmlElement.
+     *
+     * @param element the element to build XPath for
+     * @return the XPath expression
+     */
+    private String buildXPathForV2Element(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element) {
+        StringBuilder xpath = new StringBuilder();
+        List<String> pathParts = new ArrayList<>();
+
+        // Traverse up to root
+        org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode current = element;
+        while (current != null) {
+            if (current instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement elem) {
+                String name = elem.getNamespacePrefix() != null && !elem.getNamespacePrefix().isEmpty()
+                        ? elem.getNamespacePrefix() + ":" + elem.getName()
+                        : elem.getName();
+
+                // Calculate position among siblings with same name
+                int position = 1;
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode parent = elem.getParent();
+                if (parent instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement parentElem) {
+                    int sameNameCount = 0;
+                    for (org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode sibling : parentElem.getChildren()) {
+                        if (sibling instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement siblingElem) {
+                            if (siblingElem.getName().equals(elem.getName())) {
+                                sameNameCount++;
+                                if (sibling == elem) {
+                                    position = sameNameCount;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    // Only add position if there are multiple siblings with same name
+                    if (sameNameCount > 1) {
+                        name += "[" + position + "]";
+                    }
+                }
+
+                pathParts.add(0, name);
+            }
+            current = current.getParent();
+        }
+
+        xpath.append("/");
+        xpath.append(String.join("/", pathParts));
+        return xpath.toString();
+    }
+
+    /**
+     * Gets child element names from a V2 XmlElement.
+     *
+     * @param element the element
+     * @return list of child element names
+     */
+    private List<String> getV2ChildElementNames(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element) {
+        List<String> childNames = new ArrayList<>();
+        for (org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode child : element.getChildren()) {
+            if (child instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement childElem) {
+                String name = childElem.getNamespacePrefix() != null && !childElem.getNamespacePrefix().isEmpty()
+                        ? childElem.getNamespacePrefix() + ":" + childElem.getName()
+                        : childElem.getName();
+                if (!childNames.contains(name)) {
+                    childNames.add(name);
+                }
+            }
+        }
+        return childNames.isEmpty() ? List.of("No child elements") : childNames;
+    }
+
+    /**
+     * Truncates text to a maximum length.
+     */
+    private String truncateText(String text, int maxLength) {
+        if (text == null) {
+            return "";
+        }
+        if (text.length() <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength) + "...";
     }
 
     public XmlCodeEditor getXmlCodeEditor() {
