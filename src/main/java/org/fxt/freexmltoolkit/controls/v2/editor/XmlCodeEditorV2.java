@@ -54,6 +54,12 @@ public class XmlCodeEditorV2 extends VBox {
     // Folding control - can be disabled for single-line XML files
     private boolean foldingEnabled = true;
 
+    // Font size control
+    private static final int DEFAULT_FONT_SIZE = 11;
+    private static final int MIN_FONT_SIZE = 6;
+    private static final int MAX_FONT_SIZE = 72;
+    private int fontSize = DEFAULT_FONT_SIZE;
+
     /**
      * Creates a new XmlCodeEditorV2.
      *
@@ -83,6 +89,13 @@ public class XmlCodeEditorV2 extends VBox {
         this.intelliSenseEngine.initialize();
         this.editorContext.setIntelliSenseEngine(intelliSenseEngine);
         this.eventHandlerManager.setIntelliSenseEngine(intelliSenseEngine);
+
+        // Set font size callbacks
+        this.eventHandlerManager.setFontSizeCallbacks(
+                this::increaseFontSize,
+                this::decreaseFontSize,
+                this::resetFontSize
+        );
 
         // Initialize UI
         initializeUI();
@@ -404,6 +417,53 @@ public class XmlCodeEditorV2 extends VBox {
      */
     public boolean isFoldingEnabled() {
         return foldingEnabled;
+    }
+
+    // ==================== Font Size Control ====================
+
+    /**
+     * Increases the font size by 1 point.
+     */
+    public void increaseFontSize() {
+        if (fontSize < MAX_FONT_SIZE) {
+            setFontSize(fontSize + 1);
+        }
+    }
+
+    /**
+     * Decreases the font size by 1 point.
+     */
+    public void decreaseFontSize() {
+        if (fontSize > MIN_FONT_SIZE) {
+            setFontSize(fontSize - 1);
+        }
+    }
+
+    /**
+     * Resets the font size to the default value.
+     */
+    public void resetFontSize() {
+        setFontSize(DEFAULT_FONT_SIZE);
+    }
+
+    /**
+     * Sets the font size.
+     *
+     * @param size the font size in points
+     */
+    public void setFontSize(int size) {
+        this.fontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, size));
+        codeArea.setStyle("-fx-font-size: " + fontSize + "pt; -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;");
+        logger.debug("Font size changed to: {}pt", fontSize);
+    }
+
+    /**
+     * Gets the current font size.
+     *
+     * @return the font size in points
+     */
+    public int getFontSize() {
+        return fontSize;
     }
 
     @Override

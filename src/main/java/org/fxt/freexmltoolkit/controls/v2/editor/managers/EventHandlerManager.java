@@ -3,9 +3,11 @@ package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
@@ -29,6 +31,11 @@ public class EventHandlerManager {
     private javafx.scene.control.Tooltip hoverTooltip;
     private boolean ctrlPressed = false;
 
+    // Font size callbacks
+    private Runnable onIncreaseFontSize;
+    private Runnable onDecreaseFontSize;
+    private Runnable onResetFontSize;
+
     public EventHandlerManager(EditorContext editorContext) {
         this.editorContext = editorContext;
         this.codeArea = editorContext.getCodeArea();
@@ -43,11 +50,26 @@ public class EventHandlerManager {
     }
 
     /**
+     * Sets the font size callbacks for Ctrl+Scroll and keyboard shortcuts.
+     *
+     * @param onIncrease callback for increasing font size
+     * @param onDecrease callback for decreasing font size
+     * @param onReset    callback for resetting font size
+     */
+    public void setFontSizeCallbacks(Runnable onIncrease, Runnable onDecrease, Runnable onReset) {
+        this.onIncreaseFontSize = onIncrease;
+        this.onDecreaseFontSize = onDecrease;
+        this.onResetFontSize = onReset;
+        logger.debug("Font size callbacks set");
+    }
+
+    /**
      * Sets up all event handlers.
      */
     public void setupHandlers() {
         setupKeyboardHandlers();
         setupMouseHandlers();
+        setupScrollHandler();
         setupTextChangeHandlers();
         logger.debug("All event handlers setup");
     }
@@ -57,6 +79,37 @@ public class EventHandlerManager {
      */
     private void setupKeyboardHandlers() {
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            // Font size keyboard shortcuts (Ctrl+Plus, Ctrl+Minus, Ctrl+0)
+            if (event.isControlDown()) {
+                switch (event.getCode()) {
+                    case PLUS, ADD, EQUALS -> {
+                        if (onIncreaseFontSize != null) {
+                            onIncreaseFontSize.run();
+                            event.consume();
+                            return;
+                        }
+                    }
+                    case MINUS, SUBTRACT -> {
+                        if (onDecreaseFontSize != null) {
+                            onDecreaseFontSize.run();
+                            event.consume();
+                            return;
+                        }
+                    }
+                    case NUMPAD0, DIGIT0 -> {
+                        if (onResetFontSize != null) {
+                            onResetFontSize.run();
+                            event.consume();
+                            return;
+                        }
+                    }
+                    default -> {
+                        // Continue with IntelliSense handling
+                    }
+                }
+            }
+
+            // IntelliSense handling
             if (intelliSenseEngine != null) {
                 boolean consumed = intelliSenseEngine.getTriggerSystem().handleKeyPressed(event);
                 if (consumed) {
@@ -75,6 +128,29 @@ public class EventHandlerManager {
         });
 
         logger.debug("Keyboard handlers setup");
+    }
+
+    /**
+     * Sets up scroll event handler for Ctrl+Scroll font size control.
+     */
+    private void setupScrollHandler() {
+        codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (event.isControlDown()) {
+                if (event.getDeltaY() > 0) {
+                    // Scroll up = increase font size
+                    if (onIncreaseFontSize != null) {
+                        onIncreaseFontSize.run();
+                    }
+                } else if (event.getDeltaY() < 0) {
+                    // Scroll down = decrease font size
+                    if (onDecreaseFontSize != null) {
+                        onDecreaseFontSize.run();
+                    }
+                }
+                event.consume();
+            }
+        });
+        logger.debug("Scroll handler setup (Ctrl+Scroll for font size)");
     }
 
     /**

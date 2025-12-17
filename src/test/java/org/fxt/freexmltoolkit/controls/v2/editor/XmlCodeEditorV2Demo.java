@@ -4,6 +4,8 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
@@ -15,6 +17,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
  * - Syntax highlighting
  * - Code folding
  * - Status line
+ * - Font size control (Ctrl+Scroll, Ctrl+Plus/Minus, Ctrl+0)
  */
 public class XmlCodeEditorV2Demo extends Application {
 
@@ -107,7 +110,7 @@ public class XmlCodeEditorV2Demo extends Application {
         // Scene
         Scene scene = new Scene(root, 1000, 700);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("XmlCodeEditorV2 Demo - Line Numbers, Syntax Highlighting & Code Folding");
+        primaryStage.setTitle("XmlCodeEditorV2 Demo - Syntax Highlighting, Code Folding & Font Size (Ctrl+Scroll)");
         primaryStage.show();
     }
 
@@ -152,6 +155,28 @@ public class XmlCodeEditorV2Demo extends Application {
         });
         loadInvalidBtn.setStyle("-fx-background-color: #ffcccc;");
 
+        // Font size controls
+        Label fontSizeLabel = new Label("Font: " + editor.getFontSize() + "pt");
+        fontSizeLabel.setMinWidth(70);
+
+        Button fontIncrBtn = new Button("+");
+        fontIncrBtn.setOnAction(e -> {
+            editor.increaseFontSize();
+            fontSizeLabel.setText("Font: " + editor.getFontSize() + "pt");
+        });
+
+        Button fontDecrBtn = new Button("-");
+        fontDecrBtn.setOnAction(e -> {
+            editor.decreaseFontSize();
+            fontSizeLabel.setText("Font: " + editor.getFontSize() + "pt");
+        });
+
+        Button fontResetBtn = new Button("Reset");
+        fontResetBtn.setOnAction(e -> {
+            editor.resetFontSize();
+            fontSizeLabel.setText("Font: " + editor.getFontSize() + "pt");
+        });
+
         toolbar.getChildren().addAll(
                 foldAllBtn,
                 unfoldAllBtn,
@@ -159,7 +184,12 @@ public class XmlCodeEditorV2Demo extends Application {
                 validateBtn,
                 clearBtn,
                 loadSampleBtn,
-                loadInvalidBtn
+                loadInvalidBtn,
+                new Separator(javafx.geometry.Orientation.VERTICAL),
+                fontSizeLabel,
+                fontDecrBtn,
+                fontIncrBtn,
+                fontResetBtn
         );
 
         return toolbar;
