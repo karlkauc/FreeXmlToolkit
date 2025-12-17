@@ -68,9 +68,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private static final double ZOOM_STEP = 0.1;
     private Label zoomLabel;
 
-    // Include grouping mode
-    private IncludeGroupingMode includeGroupingMode = IncludeGroupingMode.FLAT;
-    private ComboBox<IncludeGroupingMode> includeGroupingModeComboBox;
+    // Source file indicator for include support
     private Label currentSourceFileLabel;
 
     // Drag & Drop state
@@ -257,25 +255,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         zoomLabel = new Label("100%");
         zoomLabel.setStyle("-fx-padding: 5; -fx-font-weight: bold;");
 
-        // Include grouping mode selector
-        Separator separator3 = new Separator();
-        separator3.setOrientation(javafx.geometry.Orientation.VERTICAL);
-
-        Label includeLabel = new Label("Include View:");
-        includeLabel.setStyle("-fx-padding: 5;");
-
-        includeGroupingModeComboBox = new ComboBox<>();
-        includeGroupingModeComboBox.getItems().addAll(IncludeGroupingMode.values());
-        includeGroupingModeComboBox.setValue(includeGroupingMode);
-        includeGroupingModeComboBox.setTooltip(new Tooltip("Select how nodes from xs:include files are displayed"));
-        includeGroupingModeComboBox.setOnAction(e -> {
-            includeGroupingMode = includeGroupingModeComboBox.getValue();
-            logger.debug("Include grouping mode changed to: {}", includeGroupingMode);
-            // Rebuild visual tree to apply new grouping mode
-            rebuildVisualTree();
-            redraw();
-        });
-
         // Source file indicator (shows current source file of selected node)
         currentSourceFileLabel = new Label("");
         currentSourceFileLabel.setStyle("-fx-padding: 5; -fx-text-fill: #0369a1; -fx-font-style: italic;");
@@ -291,8 +270,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 expandAllBtn, collapseAllBtn, fitBtn,
                 separator,
                 zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel,
-                separator3,
-                includeLabel, includeGroupingModeComboBox, currentSourceFileLabel,
+                currentSourceFileLabel,
                 spacer, infoLabel
         );
 
@@ -1727,32 +1705,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         } else {
             currentSourceFileLabel.setText("");
             currentSourceFileLabel.setVisible(false);
-        }
-    }
-
-    /**
-     * Gets the current include grouping mode.
-     *
-     * @return the current include grouping mode
-     */
-    public IncludeGroupingMode getIncludeGroupingMode() {
-        return includeGroupingMode;
-    }
-
-    /**
-     * Sets the include grouping mode and updates the UI.
-     *
-     * @param mode the new include grouping mode
-     */
-    public void setIncludeGroupingMode(IncludeGroupingMode mode) {
-        if (mode != null && mode != this.includeGroupingMode) {
-            this.includeGroupingMode = mode;
-            if (includeGroupingModeComboBox != null) {
-                includeGroupingModeComboBox.setValue(mode);
-            }
-            rebuildVisualTree();
-            redraw();
-            logger.info("Include grouping mode set to: {}", mode);
         }
     }
 }
