@@ -10,16 +10,11 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
@@ -28,7 +23,10 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetTextCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 
 import java.beans.PropertyChangeEvent;
 
@@ -109,9 +107,14 @@ public class XmlCanvasView extends Pane {
     private boolean editingTextContent = false;
     private boolean editingElementName = false;
 
+    // Table cell editing state
+    private RepeatingElementsTable editingTable = null;
+    private int editingTableRowIndex = -1;
+    private String editingTableColumnName = null;
+
     // ==================== Context Menu ====================
 
-    private XmlGridContextMenu contextMenu;
+    private final XmlGridContextMenu contextMenu;
 
     // ==================== Highlight State ====================
 
@@ -122,6 +125,10 @@ public class XmlCanvasView extends Pane {
 
     private XmlStatusBar statusBar;
     private StackPane toastContainer;
+
+    // ==================== Document Change Callback ====================
+
+    private java.util.function.Consumer<String> onDocumentModified;
 
     // ==================== Colors ====================
 
@@ -789,6 +796,12 @@ public class XmlCanvasView extends Pane {
                 ensureLayout();
                 updateScrollBars();
                 render();
+                return;
+            }
+
+            // Double-click for inline editing of simple cells
+            if (clickCount == 2 && col != null && !row.hasComplexChild(col.getName())) {
+                startEditingTableCell(table, rowIndex, col.getName());
                 return;
             }
 
@@ -1834,6 +1847,39 @@ public class XmlCanvasView extends Pane {
         createEditField(currentValue, x, y, width);
     }
 
+    private void startEditingTableCell(RepeatingElementsTable table, int rowIndex, String columnName) {
+        cancelEditing();
+
+        if (rowIndex < 0 || rowIndex >= table.getRows().size()) return;
+
+        RepeatingElementsTable.TableRow row = table.getRows().get(rowIndex);
+        RepeatingElementsTable.TableColumn col = null;
+        for (RepeatingElementsTable.TableColumn c : table.getColumns()) {
+            if (c.getName().equals(columnName)) {
+                col = c;
+                break;
+            }
+        }
+        if (col == null) return;
+
+        // Don't edit complex cells (they have children)
+        if (row.hasComplexChild(columnName)) return;
+
+        editingTable = table;
+        editingTableRowIndex = rowIndex;
+        editingTableColumnName = columnName;
+        editingNode = null;  // Clear node editing state
+
+        String currentValue = row.getValue(columnName);
+
+        // Calculate cell position
+        double cellX = table.getColumnX(columnName) - scrollOffsetX;
+        double cellY = table.getRowY(rowIndex) + 2 - scrollOffsetY;
+        double cellWidth = table.getColumnWidth(columnName) - 4;
+
+        createEditField(currentValue, cellX, cellY, cellWidth);
+    }
+
     private void createEditField(String currentValue, double x, double y, double width) {
         editField = new TextField(currentValue);
         editField.setLayoutX(x);
@@ -1860,12 +1906,28 @@ public class XmlCanvasView extends Pane {
     }
 
     private void commitEditing() {
-        if (editField == null || editingNode == null) {
+        if (editField == null) {
             cancelEditing();
             return;
         }
 
         String newValue = editField.getText();
+
+        // Handle table cell editing
+        if (editingTable != null && editingTableRowIndex >= 0 && editingTableColumnName != null) {
+            commitTableCellEditing(newValue);
+            cancelEditing();
+            rebuildTree();
+            notifyDocumentModified();
+            return;
+        }
+
+        // Handle node editing
+        if (editingNode == null) {
+            cancelEditing();
+            return;
+        }
+
         XmlNode modelNode = editingNode.getModelNode();
 
         if (editingElementName) {
@@ -1890,6 +1952,41 @@ public class XmlCanvasView extends Pane {
 
         cancelEditing();
         rebuildTree();
+        notifyDocumentModified();
+    }
+
+    private void commitTableCellEditing(String newValue) {
+        RepeatingElementsTable.TableRow row = editingTable.getRows().get(editingTableRowIndex);
+        XmlElement rowElement = row.getElement();
+
+        // Find the column type to determine how to save
+        RepeatingElementsTable.TableColumn col = null;
+        for (RepeatingElementsTable.TableColumn c : editingTable.getColumns()) {
+            if (c.getName().equals(editingTableColumnName)) {
+                col = c;
+                break;
+            }
+        }
+
+        if (col == null) return;
+
+        if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
+            // Edit attribute value
+            context.executeCommand(new SetAttributeCommand(rowElement, editingTableColumnName, newValue));
+        } else if (col.getType() == RepeatingElementsTable.ColumnType.CHILD_ELEMENT) {
+            // Edit child element text content
+            for (XmlNode child : rowElement.getChildren()) {
+                if (child instanceof XmlElement childElement) {
+                    if (childElement.getName().equals(editingTableColumnName)) {
+                        context.executeCommand(new SetElementTextCommand(childElement, newValue));
+                        break;
+                    }
+                }
+            }
+        } else if (col.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT) {
+            // Edit direct text content
+            context.executeCommand(new SetElementTextCommand(rowElement, newValue));
+        }
     }
 
     private void cancelEditing() {
@@ -1901,6 +1998,10 @@ public class XmlCanvasView extends Pane {
         editingAttributeIndex = -1;
         editingTextContent = false;
         editingElementName = false;
+        // Clear table editing state
+        editingTable = null;
+        editingTableRowIndex = -1;
+        editingTableColumnName = null;
     }
 
     // ==================== Event Handlers ====================
@@ -2013,6 +2114,26 @@ public class XmlCanvasView extends Pane {
     }
 
     /**
+     * Sets a callback that is called when the document is modified.
+     * The callback receives the serialized XML string.
+     *
+     * @param callback the callback to invoke on document changes
+     */
+    public void setOnDocumentModified(java.util.function.Consumer<String> callback) {
+        this.onDocumentModified = callback;
+    }
+
+    /**
+     * Notifies the callback that the document was modified.
+     */
+    private void notifyDocumentModified() {
+        if (onDocumentModified != null) {
+            String xml = context.serializeToString();
+            onDocumentModified.accept(xml);
+        }
+    }
+
+    /**
      * Navigate to a node (used by breadcrumb clicks).
      */
     private void navigateToNode(XmlNode node) {
@@ -2059,6 +2180,7 @@ public class XmlCanvasView extends Pane {
 
     public void refresh() {
         rebuildTree();
+        notifyDocumentModified();
     }
 
     public void expandAll() {
