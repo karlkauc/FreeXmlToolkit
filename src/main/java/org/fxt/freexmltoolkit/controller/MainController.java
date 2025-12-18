@@ -251,7 +251,7 @@ public class MainController implements Initializable {
         try {
             org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance().shutdown();
             logger.debug("XsltTransformationEngine shut down");
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.warn("Failed to shutdown XsltTransformationEngine: {}", e.getMessage());
         }
 
@@ -259,7 +259,7 @@ public class MainController implements Initializable {
         try {
             org.fxt.freexmltoolkit.service.XPathExecutionEngine.getInstance().shutdown();
             logger.debug("XPathExecutionEngine shut down");
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.warn("Failed to shutdown XPathExecutionEngine: {}", e.getMessage());
         }
 
@@ -267,7 +267,7 @@ public class MainController implements Initializable {
         try {
             org.fxt.freexmltoolkit.service.ThreadPoolManager.getInstance().shutdown();
             logger.debug("ThreadPoolManager shut down");
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.warn("Failed to shutdown ThreadPoolManager: {}", e.getMessage());
         }
 
