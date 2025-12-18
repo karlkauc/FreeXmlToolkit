@@ -48,8 +48,13 @@ public class AddElementCommand implements XmlCommand {
 
     @Override
     public boolean execute() {
-        if (parent instanceof XmlElement) {
-            XmlElement parentElement = (XmlElement) parent;
+        if (parent instanceof XmlElement parentElement) {
+
+            // Prevent mixed content: don't add element if parent has non-whitespace text content
+            if (parentElement.hasNonWhitespaceTextContent()) {
+                return false; // Reject operation to prevent mixed content
+            }
+
             if (index >= 0 && index <= parentElement.getChildCount()) {
                 parentElement.addChild(index, elementToAdd);
             } else {
@@ -57,9 +62,7 @@ public class AddElementCommand implements XmlCommand {
             }
             executed = true;
             return true;
-        } else if (parent instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument) {
-            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc =
-                    (org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument) parent;
+        } else if (parent instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc) {
             if (index >= 0 && index <= doc.getChildCount()) {
                 doc.addChild(index, elementToAdd);
             } else {
@@ -77,14 +80,11 @@ public class AddElementCommand implements XmlCommand {
             return false;
         }
 
-        if (parent instanceof XmlElement) {
-            XmlElement parentElement = (XmlElement) parent;
+        if (parent instanceof XmlElement parentElement) {
             parentElement.removeChild(elementToAdd);
             executed = false;
             return true;
-        } else if (parent instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument) {
-            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc =
-                    (org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument) parent;
+        } else if (parent instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc) {
             doc.removeChild(elementToAdd);
             executed = false;
             return true;

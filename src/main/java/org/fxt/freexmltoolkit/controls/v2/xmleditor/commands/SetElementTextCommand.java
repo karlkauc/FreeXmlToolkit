@@ -54,6 +54,11 @@ public class SetElementTextCommand implements XmlCommand {
 
     @Override
     public boolean execute() {
+        // Prevent mixed content: don't add text if element has child elements
+        if (newText != null && !newText.isEmpty() && element.hasElementChildren()) {
+            return false; // Reject operation to prevent mixed content
+        }
+
         // Remove old text nodes
         for (XmlText oldText : oldTextNodes) {
             element.removeChild(oldText);
@@ -103,11 +108,10 @@ public class SetElementTextCommand implements XmlCommand {
 
     @Override
     public boolean canMergeWith(XmlCommand other) {
-        if (!(other instanceof SetElementTextCommand)) {
+        if (!(other instanceof SetElementTextCommand otherCmd)) {
             return false;
         }
 
-        SetElementTextCommand otherCmd = (SetElementTextCommand) other;
         return this.element == otherCmd.element;
     }
 

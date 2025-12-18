@@ -3,14 +3,20 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.editor;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CommandManager;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.selection.SelectionModel;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlParser;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlSerializer;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFactory;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Central context for the XML Editor V2.
@@ -111,6 +117,16 @@ public class XmlEditorContext {
      * Whether the document has unsaved changes.
      */
     private boolean dirty = false;
+
+    /**
+     * Schema provider for XSD-aware editing (can be null).
+     */
+    private XmlSchemaProvider schemaProvider;
+
+    /**
+     * Widget factory for type-aware editing controls.
+     */
+    private TypeAwareWidgetFactory widgetFactory;
 
     // ==================== Constructor ====================
 
@@ -216,6 +232,42 @@ public class XmlEditorContext {
 
         pcs.firePropertyChange("document", oldDoc, this.document);
         pcs.firePropertyChange("filePath", oldPath, this.filePath);
+
+        // Detect mixed content elements and notify listeners
+        List<XmlElement> mixedContentElements = findMixedContentElements();
+        if (!mixedContentElements.isEmpty()) {
+            pcs.firePropertyChange("mixedContentDetected", null, mixedContentElements);
+        }
+    }
+
+    /**
+     * Finds all elements with mixed content (both text and child elements).
+     *
+     * @return list of elements with mixed content
+     */
+    public List<XmlElement> findMixedContentElements() {
+        List<XmlElement> mixedElements = new ArrayList<>();
+        XmlElement root = document.getRootElement();
+        if (root != null) {
+            findMixedContentRecursive(root, mixedElements);
+        }
+        return mixedElements;
+    }
+
+    /**
+     * Recursively finds elements with mixed content.
+     * Only considers non-whitespace text content as mixed content.
+     *
+     * @param element       the current element to check
+     * @param mixedElements the list to add mixed content elements to
+     */
+    private void findMixedContentRecursive(XmlElement element, List<XmlElement> mixedElements) {
+        if (element.hasNonWhitespaceTextContent() && element.hasElementChildren()) {
+            mixedElements.add(element);
+        }
+        for (XmlElement child : element.getChildElements()) {
+            findMixedContentRecursive(child, mixedElements);
+        }
     }
 
     /**
@@ -445,6 +497,87 @@ public class XmlEditorContext {
      */
     public void markAsDirty() {
         setDirty(true);
+    }
+
+    // ==================== Schema Support ====================
+
+    /**
+     * Sets the XSD schema for schema-aware editing.
+     *
+     * @param xsdData the XSD documentation data
+     */
+    public void setSchema(XsdDocumentationData xsdData) {
+        XsdSchemaAdapter adapter = new XsdSchemaAdapter();
+        adapter.setXsdDocumentationData(xsdData);
+        setSchemaProvider(adapter);
+    }
+
+    /**
+     * Sets the schema provider directly.
+     *
+     * @param schemaProvider the schema provider
+     */
+    public void setSchemaProvider(XmlSchemaProvider schemaProvider) {
+        XmlSchemaProvider oldProvider = this.schemaProvider;
+        this.schemaProvider = schemaProvider;
+        this.widgetFactory = new TypeAwareWidgetFactory(schemaProvider);
+        pcs.firePropertyChange("schemaProvider", oldProvider, schemaProvider);
+    }
+
+    /**
+     * Returns the schema provider.
+     *
+     * @return the schema provider, or null if no schema is set
+     */
+    public XmlSchemaProvider getSchemaProvider() {
+        return schemaProvider;
+    }
+
+    /**
+     * Checks if a schema is available for schema-aware editing.
+     *
+     * @return true if schema is available
+     */
+    public boolean hasSchema() {
+        return schemaProvider != null && schemaProvider.hasSchema();
+    }
+
+    /**
+     * Returns the type-aware widget factory.
+     *
+     * @return the widget factory
+     */
+    public TypeAwareWidgetFactory getWidgetFactory() {
+        if (widgetFactory == null) {
+            widgetFactory = new TypeAwareWidgetFactory(schemaProvider);
+        }
+        return widgetFactory;
+    }
+
+    /**
+     * Gets valid child element names for the given parent element.
+     *
+     * @param parentXPath the XPath of the parent element
+     * @return list of valid child element names
+     */
+    public List<String> getValidChildElements(String parentXPath) {
+        if (!hasSchema()) {
+            return new ArrayList<>();
+        }
+        return schemaProvider.getValidChildElements(parentXPath);
+    }
+
+    /**
+     * Gets valid attribute names for the given element.
+     *
+     * @param elementXPath the XPath of the element
+     * @return list of valid attribute names
+     */
+    public List<String> getValidAttributes(String elementXPath) {
+        if (!hasSchema()) {
+            return new ArrayList<>();
+        }
+        return schemaProvider.getValidAttributes(elementXPath);
     }
 
     // ==================== PropertyChangeSupport Methods ====================

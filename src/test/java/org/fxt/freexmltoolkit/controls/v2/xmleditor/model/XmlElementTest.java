@@ -1,7 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.model;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
@@ -255,7 +255,7 @@ class XmlElementTest {
         element.setTextContent("New text");
 
         assertEquals(1, element.getChildCount());
-        assertTrue(element.getChildren().get(0) instanceof XmlText);
+        assertInstanceOf(XmlText.class, element.getChildren().get(0));
         assertEquals("New text", element.getTextContent());
     }
 
@@ -285,6 +285,95 @@ class XmlElementTest {
         element.clearChildren();
         element.addChild(new XmlCData("cdata"));
         assertTrue(element.hasTextContent());
+    }
+
+    // ==================== hasNonWhitespaceTextContent Tests ====================
+
+    @Test
+    void testHasNonWhitespaceTextContent_Empty_ReturnsFalse() {
+        assertFalse(element.hasNonWhitespaceTextContent());
+    }
+
+    @Test
+    void testHasNonWhitespaceTextContent_WithText_ReturnsTrue() {
+        element.addChild(new XmlText("some text"));
+        assertTrue(element.hasNonWhitespaceTextContent());
+    }
+
+    @Test
+    void testHasNonWhitespaceTextContent_WithWhitespaceOnly_ReturnsFalse() {
+        element.addChild(new XmlText("   \n\t  "));
+        assertFalse(element.hasNonWhitespaceTextContent());
+    }
+
+    @Test
+    void testHasNonWhitespaceTextContent_WithEmptyText_ReturnsFalse() {
+        element.addChild(new XmlText(""));
+        assertFalse(element.hasNonWhitespaceTextContent());
+    }
+
+    @Test
+    void testHasNonWhitespaceTextContent_WithCData_ReturnsTrue() {
+        element.addChild(new XmlCData("content"));
+        assertTrue(element.hasNonWhitespaceTextContent());
+    }
+
+    @Test
+    void testHasNonWhitespaceTextContent_WithWhitespaceCData_ReturnsFalse() {
+        element.addChild(new XmlCData("   "));
+        assertFalse(element.hasNonWhitespaceTextContent());
+    }
+
+    @Test
+    void testHasNonWhitespaceTextContent_WithMixedWhitespaceAndText_ReturnsTrue() {
+        element.addChild(new XmlText("   "));
+        element.addChild(new XmlText("actual text"));
+        assertTrue(element.hasNonWhitespaceTextContent());
+    }
+
+    // ==================== hasElementChildren Tests (Mixed Content Prevention) ====================
+
+    @Test
+    void testHasElementChildren_Empty_ReturnsFalse() {
+        assertFalse(element.hasElementChildren());
+    }
+
+    @Test
+    void testHasElementChildren_WithOnlyText_ReturnsFalse() {
+        element.addChild(new XmlText("some text"));
+        assertFalse(element.hasElementChildren());
+    }
+
+    @Test
+    void testHasElementChildren_WithOnlyCData_ReturnsFalse() {
+        element.addChild(new XmlCData("cdata content"));
+        assertFalse(element.hasElementChildren());
+    }
+
+    @Test
+    void testHasElementChildren_WithOnlyComment_ReturnsFalse() {
+        element.addChild(new XmlComment("a comment"));
+        assertFalse(element.hasElementChildren());
+    }
+
+    @Test
+    void testHasElementChildren_WithChildren_ReturnsTrue() {
+        element.addChild(new XmlElement("child"));
+        assertTrue(element.hasElementChildren());
+    }
+
+    @Test
+    void testHasElementChildren_WithMixedContent_ReturnsTrue() {
+        element.addChild(new XmlText("text"));
+        element.addChild(new XmlElement("child"));
+        assertTrue(element.hasElementChildren());
+    }
+
+    @Test
+    void testHasElementChildren_MultipleChildren_ReturnsTrue() {
+        element.addChild(new XmlElement("child1"));
+        element.addChild(new XmlElement("child2"));
+        assertTrue(element.hasElementChildren());
     }
 
     // ==================== Child Elements Tests ====================

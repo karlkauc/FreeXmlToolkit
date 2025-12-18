@@ -2,8 +2,9 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.commands;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
-import org.junit.jupiter.api.Test;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -124,5 +125,68 @@ class AddElementCommandTest {
 
         assertNotNull(str);
         assertTrue(str.contains("Add"));
+    }
+
+    // ==================== Mixed Content Prevention Tests ====================
+
+    @Test
+    void testExecute_ParentHasTextContent_ReturnsFalse() {
+        // Setup: parent has non-whitespace text content
+        parent.addChild(new XmlText("some text"));
+
+        AddElementCommand cmd = new AddElementCommand(parent, child);
+        boolean success = cmd.execute();
+
+        // Should fail - cannot add element to parent with text content
+        assertFalse(success);
+        assertEquals(1, parent.getChildCount()); // Only the text node
+        assertInstanceOf(XmlText.class, parent.getChildren().get(0));
+    }
+
+    @Test
+    void testExecute_ParentHasNoTextContent_ReturnsTrue() {
+        // Setup: parent has no text content
+        AddElementCommand cmd = new AddElementCommand(parent, child);
+        boolean success = cmd.execute();
+
+        assertTrue(success);
+        assertEquals(1, parent.getChildCount());
+        assertEquals(child, parent.getChildren().get(0));
+    }
+
+    @Test
+    void testExecute_ParentHasExistingChildElements_ReturnsTrue() {
+        // Setup: parent already has child elements (no text)
+        parent.addChild(new XmlElement("existing"));
+
+        AddElementCommand cmd = new AddElementCommand(parent, child);
+        boolean success = cmd.execute();
+
+        assertTrue(success);
+        assertEquals(2, parent.getChildCount());
+    }
+
+    @Test
+    void testExecuteAtIndex_ParentHasTextContent_ReturnsFalse() {
+        // Setup: parent has non-whitespace text content
+        parent.addChild(new XmlText("some text"));
+
+        AddElementCommand cmd = new AddElementCommand(parent, child, 0);
+        boolean success = cmd.execute();
+
+        assertFalse(success);
+    }
+
+    @Test
+    void testExecute_ParentHasWhitespaceOnlyText_ReturnsTrue() {
+        // Setup: parent has whitespace-only text content (should be allowed)
+        parent.addChild(new XmlText("   \n\t  "));
+
+        AddElementCommand cmd = new AddElementCommand(parent, child);
+        boolean success = cmd.execute();
+
+        // Should succeed - whitespace-only text is not considered mixed content
+        assertTrue(success);
+        assertEquals(2, parent.getChildCount());
     }
 }

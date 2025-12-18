@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+import net.sf.saxon.s9api.XdmNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
@@ -17,15 +18,14 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 import org.fxt.freexmltoolkit.service.*;
 import org.kordamp.ikonli.javafx.FontIcon;
-import net.sf.saxon.s9api.XdmNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -91,6 +91,10 @@ public class XmlEditor extends Tab {
 
     // Cache for XSD documentation data to avoid reparsing
     private XsdDocumentationData xsdDocumentationData;
+
+    // Reference to the current XmlEditorContext used by the graphic view (V2)
+    // This is updated when xsdDocumentationData is loaded asynchronously
+    private XmlEditorContext currentGraphicViewContext;
 
     // Store original XML content for XPath queries (not modified by query results)
     private String originalXmlForXPath;
@@ -1897,6 +1901,16 @@ public class XmlEditor extends Tab {
                     logger.debug("V1: XSD integration data refreshed");
                 }
 
+                // Update the graphic view's schema if it's currently showing
+                if (currentGraphicViewContext != null && xsdDocumentationData != null) {
+                    Platform.runLater(() -> {
+                        currentGraphicViewContext.setSchema(xsdDocumentationData);
+                        logger.info("XSD schema updated on graphic view context with {} elements",
+                                xsdDocumentationData.getExtendedXsdElementMap() != null
+                                        ? xsdDocumentationData.getExtendedXsdElementMap().size() : 0);
+                    });
+                }
+
             } catch (Exception e) {
                 logger.debug("Error loading XSD documentation data: {}", e.getMessage());
                 this.xsdDocumentationData = null;
@@ -2220,6 +2234,19 @@ public class XmlEditor extends Tab {
                 return;
             }
 
+            // Store reference to context for later schema update (if XSD loads async)
+            this.currentGraphicViewContext = xmlEditorContext;
+
+            // Set schema for schema-aware editing if XSD is available
+            if (xsdDocumentationData != null) {
+                xmlEditorContext.setSchema(xsdDocumentationData);
+                logger.info("XSD schema set for graphical XML editor V2 with {} elements",
+                        xsdDocumentationData.getExtendedXsdElementMap() != null
+                                ? xsdDocumentationData.getExtendedXsdElementMap().size() : 0);
+            } else {
+                logger.info("No XSD documentation data available yet for graphical XML editor V2 - will be set when loaded");
+            }
+
             // Create XmlCanvasView with the context (XMLSpy Grid-style view)
             XmlCanvasView canvasView = new XmlCanvasView(xmlEditorContext);
             canvasView.expandAll();
@@ -2276,6 +2303,9 @@ public class XmlEditor extends Tab {
      * Shows a placeholder message in the graphic view.
      */
     private void showGraphicViewPlaceholder(String message) {
+        // Clear the reference to the graphic view context since we're showing a placeholder
+        this.currentGraphicViewContext = null;
+
         VBox vBox = new VBox();
         vBox.setPadding(new Insets(20));
 

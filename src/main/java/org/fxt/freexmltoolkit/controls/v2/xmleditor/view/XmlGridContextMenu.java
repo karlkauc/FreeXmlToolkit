@@ -1,19 +1,21 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
+import javafx.scene.input.*;
+import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.*;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -24,6 +26,8 @@ import java.util.Optional;
  * Context menu for XML Grid View with all editing operations.
  */
 public class XmlGridContextMenu {
+
+    private static final Logger logger = LogManager.getLogger(XmlGridContextMenu.class);
 
     private final XmlEditorContext context;
     private final ContextMenu contextMenu;
@@ -235,23 +239,21 @@ public class XmlGridContextMenu {
         boolean canMove = isElement && !isRoot && node.getParent() != null;
         boolean hasClipboard = clipboardElement != null;
         boolean hasTextContent = false;
+        boolean hasElementChildren = false;
 
         // Check if we're in a table cell context
         boolean isInTableCell = clickedTable != null && clickedRowIndex >= 0 && clickedColumnName != null;
 
         if (isElement) {
             XmlElement element = (XmlElement) node;
-            for (XmlNode child : element.getChildren()) {
-                if (child instanceof XmlText) {
-                    hasTextContent = true;
-                    break;
-                }
-            }
+            hasTextContent = element.hasNonWhitespaceTextContent();
+            hasElementChildren = element.hasElementChildren();
         }
 
-        addElementItem.setDisable(!isElement);
+        // Mutual exclusivity: cannot add child if has text, cannot add text if has children
+        addElementItem.setDisable(!isElement || hasTextContent);
         addAttributeItem.setDisable(!isElement);
-        addTextItem.setDisable(!isElement);
+        addTextItem.setDisable(!isElement || hasElementChildren);
         addSiblingBeforeItem.setDisable(!isElement || isRoot);
         addSiblingAfterItem.setDisable(!isElement || isRoot);
         renameItem.setDisable(!isElement);
@@ -259,7 +261,7 @@ public class XmlGridContextMenu {
         copyItem.setDisable(!isElement);
         cutItem.setDisable(!isElement || isRoot);
         pasteItem.setDisable(!hasClipboard || !isElement || isRoot);
-        pasteAsChildItem.setDisable(!hasClipboard || !isElement);
+        pasteAsChildItem.setDisable(!hasClipboard || !isElement || hasTextContent);
 
         // Copy Cell Content: Enable in table cell context OR if element has text content
         copyCellContentItem.setDisable(!isInTableCell && !hasTextContent);
@@ -300,12 +302,41 @@ public class XmlGridContextMenu {
 
     private void addChildElement() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement parent)) return;
 
-        String name = showInputDialog("Add Child Element", "Element name:", "newElement");
+        // Prevent mixed content: check for existing non-whitespace text content
+        if (parent.hasNonWhitespaceTextContent()) {
+            showWarningAlert("Cannot Add Child Element",
+                    "This element has text content. Remove the text content first before adding child elements.");
+            return;
+        }
+
+        String name;
+
+        // Check if schema is available for schema-based element selection
+        logger.debug("Adding child element - hasSchema: {}", context.hasSchema());
+        if (context.hasSchema()) {
+            String parentXPath = buildXPath(parent);
+            logger.debug("Parent XPath: {}", parentXPath);
+            List<String> validElements = context.getValidChildElements(parentXPath);
+            logger.debug("Valid child elements: {}", validElements);
+
+            if (validElements != null && !validElements.isEmpty()) {
+                // Show schema-based selection dialog
+                name = showSchemaBasedElementDialog(validElements, parentXPath);
+            } else {
+                // Schema available but no specific constraints - use free-text
+                logger.debug("Schema available but no constraints for parent: {}", parentXPath);
+                name = showInputDialog("Add Child Element", "Element name:", "newElement");
+            }
+        } else {
+            // No schema - use free-text input
+            logger.debug("No schema available, using free-text input");
+            name = showInputDialog("Add Child Element", "Element name:", "newElement");
+        }
+
         if (name == null || name.trim().isEmpty()) return;
 
-        XmlElement parent = (XmlElement) selected;
         XmlElement child = new XmlElement(name.trim());
 
         XmlCommand cmd = new AddElementCommand(parent, child);
@@ -313,30 +344,423 @@ public class XmlGridContextMenu {
         refresh();
     }
 
+    /**
+     * Shows a dialog for schema-based element selection.
+     * Displays valid child elements with optional documentation and cardinality.
+     */
+    private String showSchemaBasedElementDialog(List<String> validElements, String parentXPath) {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Add Child Element");
+        dialog.setHeaderText("Select an element to add:");
+
+        // Set dialog buttons
+        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        // Create the content
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        // ComboBox with valid elements
+        ComboBox<String> elementComboBox = new ComboBox<>(FXCollections.observableArrayList(validElements));
+        elementComboBox.setPromptText("Select element...");
+        elementComboBox.setPrefWidth(250);
+
+        // Pre-select first element
+        if (!validElements.isEmpty()) {
+            elementComboBox.getSelectionModel().selectFirst();
+        }
+
+        // Info label for documentation/cardinality
+        Label infoLabel = new Label();
+        infoLabel.setWrapText(true);
+        infoLabel.setMaxWidth(300);
+        infoLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
+
+        // Update info when selection changes
+        elementComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && context.hasSchema()) {
+                String childXPath = parentXPath + "/" + newVal;
+                Optional<XmlSchemaProvider.ElementTypeInfo> typeInfo =
+                        context.getSchemaProvider().getElementTypeInfo(childXPath);
+
+                if (typeInfo.isPresent()) {
+                    XmlSchemaProvider.ElementTypeInfo info = typeInfo.get();
+                    StringBuilder sb = new StringBuilder();
+
+                    // Add type info
+                    if (info.typeName() != null && !info.typeName().isEmpty()) {
+                        sb.append("Type: ").append(info.typeName());
+                    }
+
+                    // Add cardinality
+                    String cardinality = formatCardinality(info.minOccurs(), info.maxOccurs());
+                    if (cardinality != null && !cardinality.isEmpty()) {
+                        if (sb.length() > 0) sb.append("\n");
+                        sb.append("Cardinality: ").append(cardinality);
+                    }
+
+                    // Add documentation
+                    if (info.documentation() != null && !info.documentation().isEmpty()) {
+                        if (sb.length() > 0) sb.append("\n");
+                        sb.append(info.documentation());
+                    }
+
+                    infoLabel.setText(sb.toString());
+                } else {
+                    infoLabel.setText("");
+                }
+            }
+        });
+
+        // Trigger initial info update
+        if (!validElements.isEmpty()) {
+            elementComboBox.getSelectionModel().selectFirst();
+        }
+
+        // Option for custom element name (if schema allows any)
+        CheckBox customCheckBox = new CheckBox("Enter custom name");
+        TextField customField = new TextField();
+        customField.setPromptText("Custom element name...");
+        customField.setDisable(true);
+        customField.setPrefWidth(250);
+
+        customCheckBox.selectedProperty().addListener((obs, oldVal, isCustom) -> {
+            elementComboBox.setDisable(isCustom);
+            customField.setDisable(!isCustom);
+            if (isCustom) {
+                customField.requestFocus();
+            }
+        });
+
+        grid.add(new Label("Element:"), 0, 0);
+        grid.add(elementComboBox, 1, 0);
+        grid.add(infoLabel, 1, 1);
+        grid.add(customCheckBox, 0, 2, 2, 1);
+        grid.add(customField, 1, 3);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Enable/Disable add button based on selection
+        Node addButton = dialog.getDialogPane().lookupButton(addButtonType);
+        addButton.setDisable(validElements.isEmpty());
+
+        elementComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            addButton.setDisable(newVal == null && !customCheckBox.isSelected());
+        });
+
+        customField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (customCheckBox.isSelected()) {
+                addButton.setDisable(newVal == null || newVal.trim().isEmpty());
+            }
+        });
+
+        customCheckBox.selectedProperty().addListener((obs, oldVal, isCustom) -> {
+            if (isCustom) {
+                addButton.setDisable(customField.getText() == null || customField.getText().trim().isEmpty());
+            } else {
+                addButton.setDisable(elementComboBox.getSelectionModel().getSelectedItem() == null);
+            }
+        });
+
+        // Request focus on the combo box
+        dialog.setOnShown(e -> elementComboBox.requestFocus());
+
+        // Convert the result
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                if (customCheckBox.isSelected()) {
+                    return customField.getText();
+                }
+                return elementComboBox.getSelectionModel().getSelectedItem();
+            }
+            return null;
+        });
+
+        Optional<String> result = dialog.showAndWait();
+        return result.orElse(null);
+    }
+
+    /**
+     * Formats cardinality information for display.
+     *
+     * @param minOccursStr minOccurs value as string (e.g., "0", "1")
+     * @param maxOccursStr maxOccurs value as string (e.g., "1", "unbounded")
+     * @return formatted cardinality string
+     */
+    private String formatCardinality(String minOccursStr, String maxOccursStr) {
+        if (minOccursStr == null && maxOccursStr == null) {
+            return "";
+        }
+
+        int minOccurs = 1; // Default
+        int maxOccurs = 1; // Default
+
+        try {
+            if (minOccursStr != null && !minOccursStr.isEmpty()) {
+                minOccurs = Integer.parseInt(minOccursStr);
+            }
+        } catch (NumberFormatException e) {
+            minOccurs = 0;
+        }
+
+        try {
+            if (maxOccursStr != null && !maxOccursStr.isEmpty()) {
+                if ("unbounded".equalsIgnoreCase(maxOccursStr)) {
+                    maxOccurs = -1;
+                } else {
+                    maxOccurs = Integer.parseInt(maxOccursStr);
+                }
+            }
+        } catch (NumberFormatException e) {
+            maxOccurs = 1;
+        }
+
+        if (minOccurs == 1 && maxOccurs == 1) {
+            return "[1] (required)";
+        } else if (minOccurs == 0 && maxOccurs == 1) {
+            return "[0..1] (optional)";
+        } else if (minOccurs == 0 && maxOccurs == -1) {
+            return "[0..*] (optional, unbounded)";
+        } else if (minOccurs == 1 && maxOccurs == -1) {
+            return "[1..*] (required, unbounded)";
+        } else if (maxOccurs == -1) {
+            return "[" + minOccurs + "..*]";
+        } else {
+            return "[" + minOccurs + ".." + maxOccurs + "]";
+        }
+    }
+
     private void addAttribute() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement element)) return;
 
-        String name = showInputDialog("Add Attribute", "Attribute name:", "newAttribute");
+        String elementXPath = buildXPath(element);
+
+        String name;
+        String defaultValue = "";
+
+        // Check if schema is available for schema-based attribute selection
+        if (context.hasSchema()) {
+            List<String> validAttributes = context.getValidAttributes(elementXPath);
+
+            // Filter out already existing attributes
+            List<String> availableAttributes = validAttributes.stream()
+                    .filter(attr -> element.getAttribute(attr) == null)
+                    .toList();
+
+            if (!availableAttributes.isEmpty()) {
+                // Show schema-based selection dialog
+                AttributeDialogResult attrResult = showSchemaBasedAttributeDialog(availableAttributes, elementXPath);
+                if (attrResult == null) return;
+                name = attrResult.name();
+                defaultValue = attrResult.defaultValue() != null ? attrResult.defaultValue() : "";
+            } else if (!validAttributes.isEmpty()) {
+                // All valid attributes already exist
+                showWarningAlert("No Available Attributes",
+                        "All schema-defined attributes for this element are already present.");
+                return;
+            } else {
+                // Schema available but no specific constraints - use free-text
+                logger.debug("Schema available but no attribute constraints for element: {}", elementXPath);
+                name = showInputDialog("Add Attribute", "Attribute name:", "newAttribute");
+            }
+        } else {
+            // No schema - use free-text input
+            name = showInputDialog("Add Attribute", "Attribute name:", "newAttribute");
+        }
+
         if (name == null || name.trim().isEmpty()) return;
 
-        String value = showInputDialog("Add Attribute", "Attribute value:", "");
+        // Get the value (may already have a default from schema)
+        String value = showInputDialog("Add Attribute", "Attribute value for '" + name + "':", defaultValue);
         if (value == null) return;
 
-        XmlElement element = (XmlElement) selected;
         XmlCommand cmd = new SetAttributeCommand(element, name.trim(), value);
         context.executeCommand(cmd);
         refresh();
     }
 
+    /**
+     * Result record for attribute dialog.
+     */
+    private record AttributeDialogResult(String name, String defaultValue) {
+    }
+
+    /**
+     * Shows a dialog for schema-based attribute selection.
+     * Displays valid attributes with type info, required/optional status, and documentation.
+     */
+    private AttributeDialogResult showSchemaBasedAttributeDialog(List<String> validAttributes, String elementXPath) {
+        Dialog<AttributeDialogResult> dialog = new Dialog<>();
+        dialog.setTitle("Add Attribute");
+        dialog.setHeaderText("Select an attribute to add:");
+
+        // Set dialog buttons
+        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        // Create the content
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        // ComboBox with valid attributes
+        ComboBox<String> attributeComboBox = new ComboBox<>(FXCollections.observableArrayList(validAttributes));
+        attributeComboBox.setPromptText("Select attribute...");
+        attributeComboBox.setPrefWidth(250);
+
+        // Pre-select first attribute
+        if (!validAttributes.isEmpty()) {
+            attributeComboBox.getSelectionModel().selectFirst();
+        }
+
+        // Info label for documentation/type/required
+        Label infoLabel = new Label();
+        infoLabel.setWrapText(true);
+        infoLabel.setMaxWidth(300);
+        infoLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
+
+        // Store default values for later use
+        final String[] currentDefaultValue = {""};
+
+        // Update info when selection changes
+        attributeComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && context.hasSchema()) {
+                Optional<XmlSchemaProvider.AttributeTypeInfo> typeInfo =
+                        context.getSchemaProvider().getAttributeTypeInfo(elementXPath, newVal);
+
+                if (typeInfo.isPresent()) {
+                    XmlSchemaProvider.AttributeTypeInfo info = typeInfo.get();
+                    StringBuilder sb = new StringBuilder();
+
+                    // Add required/optional status
+                    String status = info.isRequired() ? "Required" : "Optional";
+                    sb.append("Status: ").append(status);
+
+                    // Add type info
+                    if (info.typeName() != null && !info.typeName().isEmpty()) {
+                        sb.append("\nType: ").append(info.typeName());
+                    }
+
+                    // Add default value info
+                    if (info.defaultValue() != null && !info.defaultValue().isEmpty()) {
+                        sb.append("\nDefault: ").append(info.defaultValue());
+                        currentDefaultValue[0] = info.defaultValue();
+                    } else {
+                        currentDefaultValue[0] = "";
+                    }
+
+                    // Add fixed value info
+                    if (info.fixedValue() != null && !info.fixedValue().isEmpty()) {
+                        sb.append("\nFixed: ").append(info.fixedValue());
+                        currentDefaultValue[0] = info.fixedValue();
+                    }
+
+                    // Add enumeration values
+                    if (info.enumerationValues() != null && !info.enumerationValues().isEmpty()) {
+                        sb.append("\nAllowed values: ").append(String.join(", ", info.enumerationValues()));
+                    }
+
+                    // Add documentation
+                    if (info.documentation() != null && !info.documentation().isEmpty()) {
+                        sb.append("\n").append(info.documentation());
+                    }
+
+                    infoLabel.setText(sb.toString());
+                } else {
+                    infoLabel.setText("");
+                    currentDefaultValue[0] = "";
+                }
+            }
+        });
+
+        // Trigger initial info update
+        if (!validAttributes.isEmpty()) {
+            attributeComboBox.getSelectionModel().selectFirst();
+        }
+
+        // Option for custom attribute name
+        CheckBox customCheckBox = new CheckBox("Enter custom name");
+        TextField customField = new TextField();
+        customField.setPromptText("Custom attribute name...");
+        customField.setDisable(true);
+        customField.setPrefWidth(250);
+
+        customCheckBox.selectedProperty().addListener((obs, oldVal, isCustom) -> {
+            attributeComboBox.setDisable(isCustom);
+            customField.setDisable(!isCustom);
+            if (isCustom) {
+                customField.requestFocus();
+                currentDefaultValue[0] = ""; // Clear default for custom attributes
+            }
+        });
+
+        grid.add(new Label("Attribute:"), 0, 0);
+        grid.add(attributeComboBox, 1, 0);
+        grid.add(infoLabel, 1, 1);
+        grid.add(customCheckBox, 0, 2, 2, 1);
+        grid.add(customField, 1, 3);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Enable/Disable add button based on selection
+        Node addButton = dialog.getDialogPane().lookupButton(addButtonType);
+        addButton.setDisable(validAttributes.isEmpty());
+
+        attributeComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            addButton.setDisable(newVal == null && !customCheckBox.isSelected());
+        });
+
+        customField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (customCheckBox.isSelected()) {
+                addButton.setDisable(newVal == null || newVal.trim().isEmpty());
+            }
+        });
+
+        customCheckBox.selectedProperty().addListener((obs, oldVal, isCustom) -> {
+            if (isCustom) {
+                addButton.setDisable(customField.getText() == null || customField.getText().trim().isEmpty());
+            } else {
+                addButton.setDisable(attributeComboBox.getSelectionModel().getSelectedItem() == null);
+            }
+        });
+
+        // Request focus on the combo box
+        dialog.setOnShown(e -> attributeComboBox.requestFocus());
+
+        // Convert the result
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                String selectedName = customCheckBox.isSelected()
+                        ? customField.getText()
+                        : attributeComboBox.getSelectionModel().getSelectedItem();
+                return new AttributeDialogResult(selectedName, currentDefaultValue[0]);
+            }
+            return null;
+        });
+
+        Optional<AttributeDialogResult> result = dialog.showAndWait();
+        return result.orElse(null);
+    }
+
     private void addTextContent() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement element)) return;
+
+        // Prevent mixed content: check for existing child elements
+        if (element.hasElementChildren()) {
+            showWarningAlert("Cannot Add Text Content",
+                    "This element has child elements. Remove all child elements first before adding text content.");
+            return;
+        }
 
         String text = showInputDialog("Add Text Content", "Text:", "");
         if (text == null) return;
 
-        XmlElement element = (XmlElement) selected;
         XmlCommand cmd = new SetElementTextCommand(element, text);
         context.executeCommand(cmd);
         refresh();
@@ -347,12 +771,11 @@ public class XmlGridContextMenu {
         if (!(selected instanceof XmlElement)) return;
 
         XmlNode parent = selected.getParent();
-        if (!(parent instanceof XmlElement)) return;
+        if (!(parent instanceof XmlElement parentElement)) return;
 
         String name = showInputDialog("Add Sibling Element", "Element name:", "newElement");
         if (name == null || name.trim().isEmpty()) return;
 
-        XmlElement parentElement = (XmlElement) parent;
         XmlElement sibling = new XmlElement(name.trim());
 
         int index = parentElement.getChildren().indexOf(selected);
@@ -365,9 +788,8 @@ public class XmlGridContextMenu {
 
     private void renameElement() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement element)) return;
 
-        XmlElement element = (XmlElement) selected;
         String newName = showInputDialog("Rename Element", "New name:", element.getName());
         if (newName == null || newName.trim().isEmpty()) return;
 
@@ -378,14 +800,12 @@ public class XmlGridContextMenu {
 
     private void duplicateElement() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement element)) return;
 
         XmlNode parent = selected.getParent();
-        if (!(parent instanceof XmlElement)) return;
+        if (!(parent instanceof XmlElement parentElement)) return;
 
-        XmlElement element = (XmlElement) selected;
         XmlElement copy = (XmlElement) element.deepCopy("");
-        XmlElement parentElement = (XmlElement) parent;
 
         int index = parentElement.getChildren().indexOf(selected) + 1;
         XmlCommand cmd = new AddElementCommand(parentElement, copy, index);
@@ -397,7 +817,7 @@ public class XmlGridContextMenu {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
         if (!(selected instanceof XmlElement)) return;
 
-        clipboardElement = (XmlElement) ((XmlElement) selected).deepCopy("");
+        clipboardElement = (XmlElement) selected.deepCopy("");
         isCut = false;
     }
 
@@ -416,9 +836,8 @@ public class XmlGridContextMenu {
         if (!(selected instanceof XmlElement)) return;
 
         XmlNode parent = selected.getParent();
-        if (!(parent instanceof XmlElement)) return;
+        if (!(parent instanceof XmlElement parentElement)) return;
 
-        XmlElement parentElement = (XmlElement) parent;
         XmlElement toPaste = isCut ? clipboardElement : (XmlElement) clipboardElement.deepCopy("");
 
         int index = parentElement.getChildren().indexOf(selected) + 1;
@@ -440,9 +859,15 @@ public class XmlGridContextMenu {
         if (clipboardElement == null) return;
 
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement parentElement)) return;
 
-        XmlElement parentElement = (XmlElement) selected;
+        // Prevent mixed content: check for existing non-whitespace text content
+        if (parentElement.hasNonWhitespaceTextContent()) {
+            showWarningAlert("Cannot Paste as Child",
+                    "This element has text content. Remove the text content first before pasting child elements.");
+            return;
+        }
+
         XmlElement toPaste = isCut ? clipboardElement : (XmlElement) clipboardElement.deepCopy("");
 
         if (isCut) {
@@ -498,8 +923,7 @@ public class XmlGridContextMenu {
         if (selected == null) return;
 
         String content = "";
-        if (selected instanceof XmlElement) {
-            XmlElement element = (XmlElement) selected;
+        if (selected instanceof XmlElement element) {
             // Get text content of the element
             StringBuilder sb = new StringBuilder();
             for (XmlNode child : element.getChildren()) {
@@ -567,8 +991,7 @@ public class XmlGridContextMenu {
         XmlNode current = node;
 
         while (current != null && !(current instanceof XmlDocument)) {
-            if (current instanceof XmlElement) {
-                XmlElement element = (XmlElement) current;
+            if (current instanceof XmlElement element) {
                 String name = element.getName();
 
                 // Calculate position among siblings with same name
@@ -645,16 +1068,15 @@ public class XmlGridContextMenu {
         if (!(selected instanceof XmlElement)) return;
 
         XmlNode parent = selected.getParent();
-        if (!(parent instanceof XmlElement)) return;
+        if (!(parent instanceof XmlElement parentElement)) return;
 
-        XmlElement parentElement = (XmlElement) parent;
         List<XmlNode> children = parentElement.getChildren();
         int currentIndex = children.indexOf(selected);
         int newIndex = currentIndex + direction;
 
         if (newIndex < 0 || newIndex >= children.size()) return;
 
-        XmlCommand cmd = new MoveNodeCommand((XmlElement) selected, parentElement, newIndex);
+        XmlCommand cmd = new MoveNodeCommand(selected, parentElement, newIndex);
         context.executeCommand(cmd);
         refresh();
     }
@@ -764,5 +1186,19 @@ public class XmlGridContextMenu {
 
     public boolean hasClipboard() {
         return clipboardElement != null;
+    }
+
+    /**
+     * Shows a warning alert dialog to inform the user about invalid operations.
+     *
+     * @param title   the alert title
+     * @param message the warning message
+     */
+    private void showWarningAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

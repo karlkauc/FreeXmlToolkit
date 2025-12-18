@@ -415,6 +415,44 @@ public class XmlElement extends XmlNode {
     }
 
     /**
+     * Checks if this element has non-whitespace text content.
+     * Used for mixed content validation - whitespace-only text is ignored.
+     *
+     * @return true if the element has at least one text child with non-whitespace content
+     */
+    public boolean hasNonWhitespaceTextContent() {
+        for (XmlNode child : children) {
+            if (child instanceof XmlText) {
+                String text = ((XmlText) child).getText();
+                if (text != null && !text.trim().isEmpty()) {
+                    return true;
+                }
+            } else if (child instanceof XmlCData) {
+                String text = ((XmlCData) child).getText();
+                if (text != null && !text.trim().isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if this element has any element children (not text, comments, etc.).
+     * Used to prevent mixed content (text + elements in the same node).
+     *
+     * @return true if at least one child is an XmlElement
+     */
+    public boolean hasElementChildren() {
+        for (XmlNode child : children) {
+            if (child instanceof XmlElement) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns all child elements (excludes text, comments, etc.).
      *
      * @return list of child elements
@@ -438,8 +476,7 @@ public class XmlElement extends XmlNode {
     public List<XmlElement> getChildElements(String name) {
         List<XmlElement> elements = new ArrayList<>();
         for (XmlNode child : children) {
-            if (child instanceof XmlElement) {
-                XmlElement element = (XmlElement) child;
+            if (child instanceof XmlElement element) {
                 if (element.getName().equals(name)) {
                     elements.add(element);
                 }
@@ -456,8 +493,7 @@ public class XmlElement extends XmlNode {
      */
     public XmlElement getChildElement(String name) {
         for (XmlNode child : children) {
-            if (child instanceof XmlElement) {
-                XmlElement element = (XmlElement) child;
+            if (child instanceof XmlElement element) {
                 if (element.getName().equals(name)) {
                     return element;
                 }
