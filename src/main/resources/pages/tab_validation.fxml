@@ -85,7 +85,7 @@
         </Button>
 
         <!-- Favorites Group -->
-        <Button fx:id="addToFavoritesBtn" text="Favorite" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>

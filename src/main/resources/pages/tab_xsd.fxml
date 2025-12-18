@@ -34,7 +34,7 @@
         <!-- File Operations -->
         <Button fx:id="toolbarNewFile" text="New" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarNewFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="New XSD File"/>
@@ -61,7 +61,7 @@
 
         <Button fx:id="toolbarSaveAs" text="Save As" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarSaveAs">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-arrow-down" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save As (Ctrl+Shift+S)"/>
@@ -139,7 +139,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Favorites & Recent -->
-        <Button fx:id="toolbarAddFavorite" text="Favorite" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarAddFavorite">
+        <Button fx:id="toolbarAddFavorite" text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarAddFavorite">
             <graphic>
                 <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>

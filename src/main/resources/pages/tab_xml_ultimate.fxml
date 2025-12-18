@@ -63,7 +63,7 @@
         <!-- Edit Operations Group -->
         <Button fx:id="undoBtn" text="Undo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#undo">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Undo (Ctrl+Z)"/>
@@ -72,7 +72,7 @@
 
         <Button fx:id="redoBtn" text="Redo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#redo">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Redo (Ctrl+Y)"/>
@@ -82,7 +82,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Favorites Group -->
-        <Button fx:id="addToFavoritesButton" text="Add Fav" contentDisplay="TOP" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
+        <Button fx:id="addToFavoritesButton" text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
             <graphic>
                 <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>

@@ -33,7 +33,7 @@
         <!-- File Operations Group -->
         <Button fx:id="createTemplateBtn" text="New" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#28a745"/>
+                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Create New Template"/>
@@ -42,7 +42,7 @@
 
         <Button fx:id="refreshTemplatesBtn" text="Refresh" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d"/>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Refresh Templates"/>
@@ -56,7 +56,7 @@
         <!-- Help -->
         <Button fx:id="helpBtn" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8"/>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>

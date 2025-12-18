@@ -41,7 +41,7 @@
 
         <Button fx:id="saveAsSchematronButton" text="Save As" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveAsSchematron">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-arrow-down" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save As... (Ctrl+Shift+S)"/>
@@ -63,7 +63,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Favorites Group -->
-        <Button fx:id="addToFavoritesBtn" text="Favorite" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>

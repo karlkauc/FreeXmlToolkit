@@ -33,7 +33,7 @@
         <!-- File Operations Group -->
         <Button fx:id="reloadBtn" text="Reload" contentDisplay="TOP" styleClass="toolbar-button" onAction="#checkFiles">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Reload/Transform Files (Ctrl+R)"/>
