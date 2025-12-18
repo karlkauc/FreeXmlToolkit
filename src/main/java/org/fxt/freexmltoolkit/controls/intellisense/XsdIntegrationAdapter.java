@@ -105,7 +105,8 @@ public class XsdIntegrationAdapter {
     }
 
     /**
-     * Get available elements for a given parent context
+     * Get available elements for a given parent context.
+     * Accepts both element name (e.g., "Person") and full XPath (e.g., "/Root/Person").
      */
     public List<String> getAvailableElements(String parentElement) {
         List<String> elements = new ArrayList<>();
@@ -117,18 +118,53 @@ public class XsdIntegrationAdapter {
 
         // Try parsed schema
         if (schemaDocument != null) {
-            elements.addAll(getElementsFromSchemaDocument(parentElement));
+            String elementName = extractElementName(parentElement);
+            elements.addAll(getElementsFromSchemaDocument(elementName));
         }
 
-        // Use cache if available
-        if (parentElement != null && childElementsCache.containsKey(parentElement)) {
-            elements.addAll(childElementsCache.get(parentElement));
+        // Use cache if available (cache uses element names, not full paths)
+        String elementName = extractElementName(parentElement);
+        if (elementName != null && childElementsCache.containsKey(elementName)) {
+            elements.addAll(childElementsCache.get(elementName));
         }
 
         // Remove duplicates but preserve XSD order (do NOT sort alphabetically)
         return elements.stream()
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Extracts the element name from a string that could be either a simple name or an XPath.
+     *
+     * @param elementOrPath either element name (e.g., "Person") or XPath (e.g., "/Root/Person")
+     * @return the element name without path or predicates
+     */
+    private String extractElementName(String elementOrPath) {
+        if (elementOrPath == null || elementOrPath.isEmpty()) {
+            return null;
+        }
+
+        // If it looks like an XPath (contains /), extract the last part
+        if (elementOrPath.contains("/")) {
+            String[] parts = elementOrPath.split("/");
+            for (int i = parts.length - 1; i >= 0; i--) {
+                String part = parts[i];
+                if (part != null && !part.isEmpty()) {
+                    // Remove predicates like [1]
+                    if (part.contains("[")) {
+                        part = part.substring(0, part.indexOf('['));
+                    }
+                    // Remove namespace prefix
+                    if (part.contains(":")) {
+                        part = part.substring(part.indexOf(':') + 1);
+                    }
+                    return part;
+                }
+            }
+        }
+
+        return elementOrPath;
     }
 
     /**
@@ -390,17 +426,49 @@ public class XsdIntegrationAdapter {
         }
 
         Map<String, XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
-        String parentPath = parentElement == null ? "/" : "/" + parentElement + "/";
+
+        // Build the parent path for searching
+        String parentPath;
+        if (parentElement == null || parentElement.isEmpty()) {
+            parentPath = "/";
+        } else if (parentElement.startsWith("/")) {
+            // Already a full XPath - use it directly, ensure it ends with /
+            parentPath = parentElement.endsWith("/") ? parentElement : parentElement + "/";
+        } else {
+            // Simple element name - create path prefix
+            parentPath = "/" + parentElement + "/";
+        }
 
         logger.debug("Searching for children of '{}' using parent path '{}'", parentElement, parentPath);
         logger.debug("Available XPaths in elementMap: {}", elementMap.size() > 10 ? "[" + elementMap.size() + " total]" : elementMap.keySet());
 
+        // First, try direct match with full parent path
         for (String xpath : elementMap.keySet()) {
             if (xpath.startsWith(parentPath) && !xpath.contains("@")) {
                 String remaining = xpath.substring(parentPath.length());
                 if (!remaining.contains("/")) {
-                    elements.add(remaining);
-                    logger.debug("Found direct child: '{}' from xpath '{}'", remaining, xpath);
+                    if (!elements.contains(remaining)) {
+                        elements.add(remaining);
+                        logger.debug("Found direct child: '{}' from xpath '{}'", remaining, xpath);
+                    }
+                }
+            }
+        }
+
+        // If no results found and it was a simple element name, try searching all paths ending with that element
+        if (elements.isEmpty() && parentElement != null && !parentElement.startsWith("/")) {
+            String searchSuffix = "/" + parentElement + "/";
+            for (String xpath : elementMap.keySet()) {
+                // Find paths that contain the element as a parent (e.g., "*/Person/*")
+                int idx = xpath.lastIndexOf(searchSuffix);
+                if (idx >= 0 && !xpath.contains("@")) {
+                    String remaining = xpath.substring(idx + searchSuffix.length());
+                    if (!remaining.contains("/") && !remaining.isEmpty()) {
+                        if (!elements.contains(remaining)) {
+                            elements.add(remaining);
+                            logger.debug("Found child '{}' via suffix search from xpath '{}'", remaining, xpath);
+                        }
+                    }
                 }
             }
         }

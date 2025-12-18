@@ -680,4 +680,68 @@ public class NestedGridNode {
         }
         return null;
     }
+
+    // ==================== Expand State Persistence ====================
+
+    /**
+     * Collects the expand state of all nodes in this tree.
+     * Uses the XmlNode reference as key since the model objects persist across rebuilds.
+     *
+     * @return Map of XmlNode to expanded state
+     */
+    public Map<XmlNode, Boolean> collectExpandState() {
+        Map<XmlNode, Boolean> state = new IdentityHashMap<>();
+        collectExpandStateRecursive(state);
+        return state;
+    }
+
+    private void collectExpandStateRecursive(Map<XmlNode, Boolean> state) {
+        state.put(modelNode, expanded);
+
+        for (NestedGridNode child : children) {
+            child.collectExpandStateRecursive(state);
+        }
+
+        // Also collect state from repeating tables
+        for (RepeatingElementsTable table : repeatingTables) {
+            // Store table expanded state using first element as key marker
+            if (!table.getRows().isEmpty()) {
+                // Use a special marker - we'll store table state with the first element
+                // This is a bit of a hack but works since tables are identified by their elements
+            }
+            // Collect state from nested grids inside table cells
+            for (RepeatingElementsTable.TableRow row : table.getRows()) {
+                for (NestedGridNode childGrid : row.getExpandedChildGrids().values()) {
+                    childGrid.collectExpandStateRecursive(state);
+                }
+            }
+        }
+    }
+
+    /**
+     * Restores the expand state of all nodes in this tree.
+     *
+     * @param state Map of XmlNode to expanded state collected previously
+     */
+    public void restoreExpandState(Map<XmlNode, Boolean> state) {
+        if (state == null || state.isEmpty()) {
+            return;
+        }
+        restoreExpandStateRecursive(state);
+    }
+
+    private void restoreExpandStateRecursive(Map<XmlNode, Boolean> state) {
+        Boolean wasExpanded = state.get(modelNode);
+        if (wasExpanded != null) {
+            this.expanded = wasExpanded;
+        }
+
+        for (NestedGridNode child : children) {
+            child.restoreExpandStateRecursive(state);
+        }
+
+        // Note: RepeatingElementsTable state is not restored here because
+        // the tables are recreated during buildChildren() with default state.
+        // This could be enhanced if needed.
+    }
 }

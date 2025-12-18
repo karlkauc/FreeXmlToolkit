@@ -8,9 +8,13 @@ import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.Node;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -27,8 +31,11 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFactory;
 
 import java.beans.PropertyChangeEvent;
+import java.util.Optional;
 
 /**
  * Nested Grid XML View - each element gets its own mini-grid.
@@ -46,6 +53,8 @@ import java.beans.PropertyChangeEvent;
  * @since 2.0
  */
 public class XmlCanvasView extends Pane {
+
+    private static final Logger logger = LogManager.getLogger(XmlCanvasView.class);
 
     // ==================== Context ====================
 
@@ -111,6 +120,10 @@ public class XmlCanvasView extends Pane {
     private RepeatingElementsTable editingTable = null;
     private int editingTableRowIndex = -1;
     private String editingTableColumnName = null;
+
+    // Type-aware widget editing
+    private TypeAwareWidgetFactory.EditWidget activeEditWidget = null;
+    private Node activeWidgetNode = null;
 
     // ==================== Context Menu ====================
 
@@ -231,6 +244,9 @@ public class XmlCanvasView extends Pane {
 
         // Listen for document changes
         context.addPropertyChangeListener("document", this::onDocumentChanged);
+
+        // Listen for mixed content detection
+        context.addPropertyChangeListener("mixedContentDetected", this::onMixedContentDetected);
 
         // Create context menu
         contextMenu = new XmlGridContextMenu(context, this::refresh);
@@ -1099,7 +1115,10 @@ public class XmlCanvasView extends Pane {
     // ==================== Tree Building ====================
 
     private void rebuildTree() {
+        // Collect expand state before rebuilding
+        java.util.Map<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode, Boolean> expandState = null;
         if (rootNode != null) {
+            expandState = rootNode.collectExpandState();
             rootNode.dispose();
         }
 
@@ -1114,6 +1133,13 @@ public class XmlCanvasView extends Pane {
         }
 
         rootNode = NestedGridNode.buildTree(doc);
+
+        // Restore expand state after rebuild
+        if (expandState != null && !expandState.isEmpty()) {
+            rootNode.restoreExpandState(expandState);
+            logger.debug("Restored expand state for {} nodes", expandState.size());
+        }
+
         layoutDirty = true;
         ensureLayout();
         updateScrollBars();
@@ -1771,6 +1797,32 @@ public class XmlCanvasView extends Pane {
         return text.substring(0, Math.max(0, maxChars - 3)) + "...";
     }
 
+    /**
+     * Builds the XPath for a node by traversing up to root.
+     *
+     * @param node the grid node
+     * @return the XPath string (e.g., "/Root/Child/Element")
+     */
+    private String getElementXPath(NestedGridNode node) {
+        if (node == null) return "";
+
+        StringBuilder path = new StringBuilder();
+        NestedGridNode current = node;
+
+        while (current != null) {
+            String name = current.getElementName();
+            if (name != null && !name.isEmpty()) {
+                if (path.length() > 0) {
+                    path.insert(0, "/");
+                }
+                path.insert(0, name);
+            }
+            current = current.getParent();
+        }
+
+        return "/" + path;
+    }
+
     // ==================== Inline Editing ====================
 
     private void startEditingAttribute(NestedGridNode node, int attrIndex) {
@@ -1790,7 +1842,11 @@ public class XmlCanvasView extends Pane {
         double y = node.getY() + HEADER_HEIGHT + attrIndex * ROW_HEIGHT + 2 - scrollOffsetY;
         double width = node.getWidth() - ATTR_NAME_WIDTH - GRID_PADDING;
 
-        createEditField(currentValue, x, y, width);
+        // Get XPath for schema lookup
+        String elementXPath = getElementXPath(node);
+        String attributeName = cell.getName();
+
+        createEditField(currentValue, x, y, width, elementXPath, attributeName);
     }
 
     private void startEditingTextContent(NestedGridNode node) {
@@ -1822,7 +1878,10 @@ public class XmlCanvasView extends Pane {
             width = node.getWidth() - ATTR_NAME_WIDTH - GRID_PADDING;
         }
 
-        createEditField(currentValue, x, y, width);
+        // Get XPath for schema lookup
+        String elementXPath = getElementXPath(node);
+
+        createEditField(currentValue, x, y, width, elementXPath, null);
     }
 
     private void startEditingElementName(NestedGridNode node) {
@@ -1881,12 +1940,95 @@ public class XmlCanvasView extends Pane {
     }
 
     private void createEditField(String currentValue, double x, double y, double width) {
+        createEditField(currentValue, x, y, width, null, null);
+    }
+
+    /**
+     * Creates a type-aware edit field using schema information if available.
+     *
+     * @param currentValue the current value
+     * @param x x position
+     * @param y y position
+     * @param width field width
+     * @param elementXPath the XPath of the element (for schema lookup)
+     * @param attributeName the attribute name (null for text content)
+     */
+    private void createEditField(String currentValue, double x, double y, double width,
+                                  String elementXPath, String attributeName) {
+        // Try to create type-aware widget if schema is available
+        if (context.hasSchema() && elementXPath != null) {
+            TypeAwareWidgetFactory factory = context.getWidgetFactory();
+
+            TypeAwareWidgetFactory.EditWidget widget;
+            if (attributeName != null) {
+                // Attribute editing
+                widget = factory.createAttributeWidget(elementXPath, attributeName, currentValue,
+                        newValue -> {
+                            // Commit editing when value changes (e.g., dropdown selection)
+                            javafx.application.Platform.runLater(this::commitEditing);
+                        });
+            } else {
+                // Element text content editing
+                widget = factory.createElementWidget(elementXPath, currentValue,
+                        newValue -> {
+                            // Commit editing when value changes (e.g., dropdown selection)
+                            javafx.application.Platform.runLater(this::commitEditing);
+                        });
+            }
+
+            if (widget != null) {
+                activeEditWidget = widget;
+                activeWidgetNode = widget.getNode();
+
+                // Position the widget
+                if (activeWidgetNode instanceof javafx.scene.layout.Region region) {
+                    region.setLayoutX(x);
+                    region.setLayoutY(y);
+                    region.setPrefWidth(width);
+                    region.setMaxHeight(ROW_HEIGHT);
+                } else {
+                    activeWidgetNode.setLayoutX(x);
+                    activeWidgetNode.setLayoutY(y);
+                }
+
+                // Handle Enter and Escape keys
+                activeWidgetNode.setOnKeyPressed(e -> {
+                    if (e.getCode() == KeyCode.ESCAPE) {
+                        cancelEditing();
+                    } else if (e.getCode() == KeyCode.ENTER) {
+                        commitEditing();
+                    }
+                });
+
+                canvasContainer.getChildren().add(activeWidgetNode);
+                widget.focus();
+
+                logger.debug("Created type-aware widget for {} (attribute: {})",
+                        elementXPath, attributeName);
+                return;
+            }
+        }
+
+        // Fallback to standard TextField
         editField = new TextField(currentValue);
         editField.setLayoutX(x);
         editField.setLayoutY(y);
         editField.setPrefWidth(width);
         editField.setPrefHeight(ROW_HEIGHT - 4);
         editField.setStyle("-fx-font-size: 12px; -fx-font-family: 'Segoe UI'; -fx-padding: 2 4;");
+
+        // Add documentation tooltip if available
+        if (context.hasSchema() && elementXPath != null) {
+            Optional<String> doc = attributeName != null
+                    ? context.getSchemaProvider().getAttributeDocumentation(elementXPath, attributeName)
+                    : context.getSchemaProvider().getElementDocumentation(elementXPath);
+            doc.ifPresent(docText -> {
+                Tooltip tooltip = new Tooltip(docText);
+                tooltip.setWrapText(true);
+                tooltip.setMaxWidth(300);
+                Tooltip.install(editField, tooltip);
+            });
+        }
 
         editField.setOnAction(e -> commitEditing());
         editField.setOnKeyPressed(e -> {
@@ -1906,12 +2048,16 @@ public class XmlCanvasView extends Pane {
     }
 
     private void commitEditing() {
-        if (editField == null) {
+        // Get value from either widget or text field
+        String newValue;
+        if (activeEditWidget != null) {
+            newValue = activeEditWidget.getValue();
+        } else if (editField != null) {
+            newValue = editField.getText();
+        } else {
             cancelEditing();
             return;
         }
-
-        String newValue = editField.getText();
 
         // Handle table cell editing
         if (editingTable != null && editingTableRowIndex >= 0 && editingTableColumnName != null) {
@@ -1994,6 +2140,12 @@ public class XmlCanvasView extends Pane {
             canvasContainer.getChildren().remove(editField);
             editField = null;
         }
+        // Clear type-aware widget
+        if (activeWidgetNode != null) {
+            canvasContainer.getChildren().remove(activeWidgetNode);
+            activeWidgetNode = null;
+            activeEditWidget = null;
+        }
         editingNode = null;
         editingAttributeIndex = -1;
         editingTextContent = false;
@@ -2009,6 +2161,40 @@ public class XmlCanvasView extends Pane {
     private void onDocumentChanged(PropertyChangeEvent evt) {
         cancelEditing();
         rebuildTree();
+    }
+
+    /**
+     * Handles mixed content detection event.
+     * Shows a warning dialog when the loaded document contains mixed content elements.
+     */
+    @SuppressWarnings("unchecked")
+    private void onMixedContentDetected(PropertyChangeEvent evt) {
+        java.util.List<XmlElement> mixedElements = (java.util.List<XmlElement>) evt.getNewValue();
+        if (mixedElements == null || mixedElements.isEmpty()) {
+            return;
+        }
+
+        // Run on JavaFX thread
+        javafx.application.Platform.runLater(() -> {
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+            alert.setTitle("Mixed Content Detected");
+            alert.setHeaderText("This XML contains " + mixedElements.size() + " element(s) with mixed content");
+
+            StringBuilder details = new StringBuilder();
+            details.append("Elements with both text and child elements were found:\n\n");
+            int count = 0;
+            for (XmlElement elem : mixedElements) {
+                if (count++ >= 5) {
+                    details.append("... and ").append(mixedElements.size() - 5).append(" more\n");
+                    break;
+                }
+                details.append("- <").append(elem.getName()).append(">\n");
+            }
+            details.append("\nThis may cause display issues. Consider removing either the text content or child elements to ensure valid XML structure.");
+
+            alert.setContentText(details.toString());
+            alert.showAndWait();
+        });
     }
 
     // ==================== Scroll-to-Selection ====================
