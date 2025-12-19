@@ -125,6 +125,9 @@ public class XmlCanvasView extends Pane {
     private TypeAwareWidgetFactory.EditWidget activeEditWidget = null;
     private Node activeWidgetNode = null;
 
+    // Guard to prevent double commits
+    private boolean isCommitting = false;
+
     // ==================== Context Menu ====================
 
     private final XmlGridContextMenu contextMenu;
@@ -2000,6 +2003,18 @@ public class XmlCanvasView extends Pane {
                     }
                 });
 
+                // Handle focus loss for widgets (like DatePicker)
+                activeWidgetNode.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+                    if (!isFocused && activeWidgetNode != null && !isCommitting) {
+                        // Small delay to allow for popup interactions
+                        javafx.application.Platform.runLater(() -> {
+                            if (activeWidgetNode != null && !activeWidgetNode.isFocused()) {
+                                commitEditing();
+                            }
+                        });
+                    }
+                });
+
                 canvasContainer.getChildren().add(activeWidgetNode);
                 widget.focus();
 
@@ -2048,57 +2063,67 @@ public class XmlCanvasView extends Pane {
     }
 
     private void commitEditing() {
-        // Get value from either widget or text field
-        String newValue;
-        if (activeEditWidget != null) {
-            newValue = activeEditWidget.getValue();
-        } else if (editField != null) {
-            newValue = editField.getText();
-        } else {
-            cancelEditing();
+        // Guard against double commits (can happen with DatePicker and other widgets)
+        if (isCommitting) {
             return;
         }
+        isCommitting = true;
 
-        // Handle table cell editing
-        if (editingTable != null && editingTableRowIndex >= 0 && editingTableColumnName != null) {
-            commitTableCellEditing(newValue);
+        try {
+            // Get value from either widget or text field
+            String newValue;
+            if (activeEditWidget != null) {
+                newValue = activeEditWidget.getValue();
+            } else if (editField != null) {
+                newValue = editField.getText();
+            } else {
+                cancelEditing();
+                return;
+            }
+
+            // Handle table cell editing
+            if (editingTable != null && editingTableRowIndex >= 0 && editingTableColumnName != null) {
+                commitTableCellEditing(newValue);
+                cancelEditing();
+                rebuildTree();
+                notifyDocumentModified();
+                return;
+            }
+
+            // Handle node editing
+            if (editingNode == null) {
+                cancelEditing();
+                return;
+            }
+
+            XmlNode modelNode = editingNode.getModelNode();
+
+            if (editingElementName) {
+                // Editing element name
+                if (modelNode instanceof XmlElement && !newValue.trim().isEmpty()) {
+                    context.executeCommand(new RenameNodeCommand((XmlElement) modelNode, newValue.trim()));
+                }
+            } else if (editingAttributeIndex >= 0) {
+                // Editing attribute
+                NestedGridNode.AttributeCell cell = editingNode.getAttributeCells().get(editingAttributeIndex);
+                if (modelNode instanceof XmlElement) {
+                    context.executeCommand(new SetAttributeCommand((XmlElement) modelNode, cell.getName(), newValue));
+                }
+            } else if (editingTextContent) {
+                // Editing text content
+                if (modelNode instanceof XmlElement) {
+                    context.executeCommand(new SetElementTextCommand((XmlElement) modelNode, newValue));
+                } else if (modelNode instanceof XmlText) {
+                    context.executeCommand(new SetTextCommand((XmlText) modelNode, newValue));
+                }
+            }
+
             cancelEditing();
             rebuildTree();
             notifyDocumentModified();
-            return;
+        } finally {
+            isCommitting = false;
         }
-
-        // Handle node editing
-        if (editingNode == null) {
-            cancelEditing();
-            return;
-        }
-
-        XmlNode modelNode = editingNode.getModelNode();
-
-        if (editingElementName) {
-            // Editing element name
-            if (modelNode instanceof XmlElement && !newValue.trim().isEmpty()) {
-                context.executeCommand(new RenameNodeCommand((XmlElement) modelNode, newValue.trim()));
-            }
-        } else if (editingAttributeIndex >= 0) {
-            // Editing attribute
-            NestedGridNode.AttributeCell cell = editingNode.getAttributeCells().get(editingAttributeIndex);
-            if (modelNode instanceof XmlElement) {
-                context.executeCommand(new SetAttributeCommand((XmlElement) modelNode, cell.getName(), newValue));
-            }
-        } else if (editingTextContent) {
-            // Editing text content
-            if (modelNode instanceof XmlElement) {
-                context.executeCommand(new SetElementTextCommand((XmlElement) modelNode, newValue));
-            } else if (modelNode instanceof XmlText) {
-                context.executeCommand(new SetTextCommand((XmlText) modelNode, newValue));
-            }
-        }
-
-        cancelEditing();
-        rebuildTree();
-        notifyDocumentModified();
     }
 
     private void commitTableCellEditing(String newValue) {
