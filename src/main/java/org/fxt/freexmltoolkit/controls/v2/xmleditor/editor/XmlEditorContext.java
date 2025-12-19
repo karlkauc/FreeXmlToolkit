@@ -8,6 +8,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlParser;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlSerializer;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFactory;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 
@@ -229,6 +230,9 @@ public class XmlEditorContext {
         commandManager.clear();
         selectionModel.clearSelection();
         setDirty(false);
+
+        // Clear column order cache when loading a new document
+        RepeatingElementsTable.clearColumnOrderCache();
 
         pcs.firePropertyChange("document", oldDoc, this.document);
         pcs.firePropertyChange("filePath", oldPath, this.filePath);

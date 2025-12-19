@@ -745,6 +745,26 @@ public class XmlCanvasView extends Pane {
             int rowIndex = hitTable.getRowIndexAt(my);
             int colIndex = hitTable.getColumnIndexAt(mx);
 
+            // Check if we're on a column header (for sorting context menu)
+            if (hitTable.isColumnHeaderHit(mx, my) && colIndex >= 0) {
+                selectTable(hitTable);
+                selectNode(null);
+
+                String columnName = null;
+                if (colIndex < hitTable.getColumns().size()) {
+                    columnName = hitTable.getColumn(colIndex).getName();
+                }
+
+                // Use first element as selection context for column header
+                if (!hitTable.getRows().isEmpty()) {
+                    XmlElement firstElement = hitTable.getRows().get(0).getElement();
+                    context.getSelectionModel().setSelectedNode(firstElement);
+                    contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), firstElement,
+                            hitTable, -1, columnName);
+                }
+                return;
+            }
+
             // Check if we're in the data area (not header)
             if (rowIndex >= 0 && rowIndex < hitTable.getRows().size() && colIndex >= 0) {
                 XmlElement element = hitTable.getRows().get(rowIndex).getElement();

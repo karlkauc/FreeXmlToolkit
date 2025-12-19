@@ -289,6 +289,7 @@ public class NestedGridNode {
         }
 
         // Create tables for repeating elements (2+ with same name)
+        // Maintain original order (order of first occurrence in XML)
         Set<String> groupedElementNames = new HashSet<>();
         for (Map.Entry<String, List<XmlElement>> entry : elementsByName.entrySet()) {
             if (entry.getValue().size() >= 2) {

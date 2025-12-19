@@ -43,6 +43,17 @@ public class RepeatingElementsTable {
     public static final double GRID_PADDING = 8;
     public static final double CELL_PADDING = 6;
 
+    // ==================== Column Order Cache ====================
+    // Caches the original column order per element name to maintain stability after sorting
+    private static final Map<String, List<String>> columnOrderCache = new HashMap<>();
+
+    /**
+     * Clears the column order cache. Call this when loading a new document.
+     */
+    public static void clearColumnOrderCache() {
+        columnOrderCache.clear();
+    }
+
     // ==================== Data ====================
 
     private final String elementName;
@@ -206,17 +217,56 @@ public class RepeatingElementsTable {
             }
         }
 
-        // Create columns: attributes first, then child elements, then text
-        for (String attrName : attributeNames) {
-            columns.add(new TableColumn(attrName, ColumnType.ATTRIBUTE));
-        }
+        // Check if we have a cached column order for this element type
+        List<String> cachedOrder = columnOrderCache.get(elementName);
 
-        for (String childName : childElementNames) {
-            columns.add(new TableColumn(childName, ColumnType.CHILD_ELEMENT));
-        }
+        if (cachedOrder != null) {
+            // Use cached order - add columns in the original order
+            for (String colName : cachedOrder) {
+                if (colName.startsWith("@") && attributeNames.contains(colName.substring(1))) {
+                    columns.add(new TableColumn(colName.substring(1), ColumnType.ATTRIBUTE));
+                } else if (colName.equals("#text") && hasDirectText) {
+                    columns.add(new TableColumn("#text", ColumnType.TEXT_CONTENT));
+                } else if (childElementNames.contains(colName)) {
+                    columns.add(new TableColumn(colName, ColumnType.CHILD_ELEMENT));
+                }
+            }
 
-        if (hasDirectText) {
-            columns.add(new TableColumn("#text", ColumnType.TEXT_CONTENT));
+            // Add any new columns that weren't in the cache (at the end)
+            for (String attrName : attributeNames) {
+                if (!cachedOrder.contains("@" + attrName)) {
+                    columns.add(new TableColumn(attrName, ColumnType.ATTRIBUTE));
+                }
+            }
+            for (String childName : childElementNames) {
+                if (!cachedOrder.contains(childName)) {
+                    columns.add(new TableColumn(childName, ColumnType.CHILD_ELEMENT));
+                }
+            }
+            if (hasDirectText && !cachedOrder.contains("#text")) {
+                columns.add(new TableColumn("#text", ColumnType.TEXT_CONTENT));
+            }
+        } else {
+            // First time - create columns in discovery order and cache the order
+            List<String> columnOrder = new ArrayList<>();
+
+            for (String attrName : attributeNames) {
+                columns.add(new TableColumn(attrName, ColumnType.ATTRIBUTE));
+                columnOrder.add("@" + attrName);
+            }
+
+            for (String childName : childElementNames) {
+                columns.add(new TableColumn(childName, ColumnType.CHILD_ELEMENT));
+                columnOrder.add(childName);
+            }
+
+            if (hasDirectText) {
+                columns.add(new TableColumn("#text", ColumnType.TEXT_CONTENT));
+                columnOrder.add("#text");
+            }
+
+            // Cache the column order for future rebuilds
+            columnOrderCache.put(elementName, columnOrder);
         }
     }
 
@@ -582,6 +632,16 @@ public class RepeatingElementsTable {
     }
 
     /**
+     * Tests if a point is inside the column headers row (below table header, above data rows).
+     * This is the row that shows column names like "@sku", "@qty", "name", etc.
+     */
+    public boolean isColumnHeaderHit(double px, double py) {
+        double columnHeaderY = y + HEADER_HEIGHT;
+        return px >= x && px <= x + width &&
+               py >= columnHeaderY && py <= columnHeaderY + ROW_HEIGHT;
+    }
+
+    /**
      * Tests if a point is inside this table.
      */
     public boolean containsPoint(double px, double py) {
@@ -777,6 +837,115 @@ public class RepeatingElementsTable {
 
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         pcs.removePropertyChangeListener(listener);
+    }
+
+    // ==================== Sorting Support ====================
+
+    /**
+     * Data types for smart sorting.
+     */
+    public enum ColumnDataType {
+        STRING,   // Alphabetical sort (case-insensitive)
+        NUMERIC,  // Numeric sort
+        DATE      // Date sort
+    }
+
+    /**
+     * Checks if a column is sortable.
+     * A column is sortable if none of its rows contain complex children for that column.
+     *
+     * @param columnName the column name to check
+     * @return true if the column can be sorted
+     */
+    public boolean isColumnSortable(String columnName) {
+        TableColumn col = getColumn(columnName);
+        if (col == null) return false;
+
+        // Attribute columns are always sortable (they are always simple values)
+        if (col.getType() == ColumnType.ATTRIBUTE) {
+            return true;
+        }
+
+        // TEXT_CONTENT is always sortable
+        if (col.getType() == ColumnType.TEXT_CONTENT) {
+            return true;
+        }
+
+        // For child element columns, check if any row has complex data
+        for (TableRow row : rows) {
+            if (row.hasComplexChild(columnName)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Detects the data type of values in a column for smart sorting.
+     * Analyzes all non-empty values to determine if they are numeric, date, or string.
+     *
+     * @param columnName the column to analyze
+     * @return the detected data type
+     */
+    public ColumnDataType detectColumnDataType(String columnName) {
+        List<String> values = rows.stream()
+                .map(row -> row.getValue(columnName))
+                .filter(v -> v != null && !v.trim().isEmpty())
+                .toList();
+
+        if (values.isEmpty()) {
+            return ColumnDataType.STRING;
+        }
+
+        // Try numeric - check if all values can be parsed as numbers
+        boolean allNumeric = values.stream().allMatch(v -> {
+            try {
+                // Handle common number formats (with commas, spaces, etc.)
+                String cleaned = v.replace(",", "").replace(" ", "").trim();
+                Double.parseDouble(cleaned);
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        });
+
+        if (allNumeric) {
+            return ColumnDataType.NUMERIC;
+        }
+
+        // Try date - check common date patterns
+        boolean allDates = values.stream().allMatch(this::looksLikeDate);
+        if (allDates) {
+            return ColumnDataType.DATE;
+        }
+
+        // Default to string
+        return ColumnDataType.STRING;
+    }
+
+    /**
+     * Checks if a string looks like a date.
+     * Supports common formats: ISO 8601, yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy
+     */
+    private boolean looksLikeDate(String value) {
+        if (value == null || value.trim().isEmpty()) return false;
+
+        String v = value.trim();
+
+        // ISO 8601: 2024-01-15 or 2024-01-15T10:30:00
+        if (v.matches("\\d{4}-\\d{2}-\\d{2}(T.*)?")) return true;
+
+        // European: 15.01.2024
+        if (v.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) return true;
+
+        // US format: 01/15/2024
+        if (v.matches("\\d{2}/\\d{2}/\\d{4}")) return true;
+
+        // Short formats: 2024-01, 01/2024
+        if (v.matches("\\d{4}-\\d{2}")) return true;
+        if (v.matches("\\d{2}/\\d{4}")) return true;
+
+        return false;
     }
 
     // ==================== Static Factory ====================

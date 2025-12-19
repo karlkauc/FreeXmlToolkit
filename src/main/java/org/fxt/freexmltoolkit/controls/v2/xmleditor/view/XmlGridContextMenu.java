@@ -62,6 +62,11 @@ public class XmlGridContextMenu {
     private MenuItem expandAllItem;
     private MenuItem collapseAllItem;
 
+    // Sort menu items
+    private Menu sortMenu;
+    private MenuItem sortAscendingItem;
+    private MenuItem sortDescendingItem;
+
     public XmlGridContextMenu(XmlEditorContext context, Runnable refreshCallback) {
         this.context = context;
         this.refreshCallback = refreshCallback;
@@ -163,6 +168,20 @@ public class XmlGridContextMenu {
         collapseAllItem.setGraphic(createColoredIcon(BootstrapIcons.ARROWS_COLLAPSE, "#007bff")); // Blue
         collapseAllItem.setOnAction(e -> collapseAll());
 
+        // === Sort (for table columns) ===
+        sortMenu = new Menu("Sort Column");
+        sortMenu.setGraphic(createColoredIcon(BootstrapIcons.SORT_DOWN, "#007bff")); // Blue
+
+        sortAscendingItem = new MenuItem("Sort Ascending");
+        sortAscendingItem.setGraphic(createColoredIcon(BootstrapIcons.SORT_UP, "#28a745")); // Green
+        sortAscendingItem.setOnAction(e -> sortColumn(true));
+
+        sortDescendingItem = new MenuItem("Sort Descending");
+        sortDescendingItem.setGraphic(createColoredIcon(BootstrapIcons.SORT_DOWN_ALT, "#dc3545")); // Red
+        sortDescendingItem.setOnAction(e -> sortColumn(false));
+
+        sortMenu.getItems().addAll(sortAscendingItem, sortDescendingItem);
+
         // === Delete ===
         deleteItem = new MenuItem("Delete");
         deleteItem.setGraphic(createColoredIcon(BootstrapIcons.TRASH, "#dc3545")); // Red
@@ -182,6 +201,8 @@ public class XmlGridContextMenu {
                 moveUpItem, moveDownItem,
                 new SeparatorMenuItem(),
                 expandAllItem, collapseAllItem,
+                new SeparatorMenuItem(),
+                sortMenu,
                 new SeparatorMenuItem(),
                 deleteItem
         );
@@ -270,6 +291,12 @@ public class XmlGridContextMenu {
         moveUpItem.setDisable(!canMove || isFirstChild(node));
         moveDownItem.setDisable(!canMove || isLastChild(node));
         deleteItem.setDisable(!hasSelection || isRoot);
+
+        // Sort menu: Visible when clicking on a sortable table column (either header or data cell)
+        // Note: clickedRowIndex can be -1 for column header clicks
+        boolean isInTableColumn = clickedTable != null && clickedColumnName != null;
+        boolean canSort = isInTableColumn && clickedTable.isColumnSortable(clickedColumnName);
+        sortMenu.setVisible(canSort);
     }
 
     private boolean isFirstChild(XmlNode node) {
@@ -1132,6 +1159,30 @@ public class XmlGridContextMenu {
 
         Optional<String> result = dialog.showAndWait();
         return result.orElse(null);
+    }
+
+    /**
+     * Sorts the table column by the clicked column.
+     *
+     * @param ascending true for ascending order, false for descending
+     */
+    private void sortColumn(boolean ascending) {
+        if (clickedTable == null || clickedColumnName == null) {
+            logger.warn("Sort column called without table context");
+            return;
+        }
+
+        if (!clickedTable.isColumnSortable(clickedColumnName)) {
+            showWarningAlert("Cannot Sort Column",
+                    "This column contains complex data and cannot be sorted.");
+            return;
+        }
+
+        logger.info("Sorting column '{}' {}", clickedColumnName, ascending ? "ascending" : "descending");
+
+        SortElementsCommand cmd = new SortElementsCommand(clickedTable, clickedColumnName, ascending);
+        context.executeCommand(cmd);
+        refresh();
     }
 
     private void refresh() {
