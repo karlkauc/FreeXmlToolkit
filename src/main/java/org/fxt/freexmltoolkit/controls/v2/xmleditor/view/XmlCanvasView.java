@@ -808,13 +808,31 @@ public class XmlCanvasView extends Pane {
 
             // Check if clicked on a complex cell
             if (col != null && row.hasComplexChild(col.getName())) {
-                // Toggle cell expansion
-                table.toggleCellExpansion(rowIndex, col.getName());
-                table.calculateHeight();
-                layoutDirty = true;
-                ensureLayout();
-                updateScrollBars();
-                render();
+                if (clickCount == 2) {
+                    // Double-click on complex cell: expand if not already, then enable editing of nested content
+                    if (!row.isColumnExpanded(col.getName())) {
+                        table.toggleCellExpansion(rowIndex, col.getName());
+                        table.calculateHeight();
+                        layoutDirty = true;
+                        ensureLayout();
+                        updateScrollBars();
+                    }
+                    // After expansion, try to start editing the first editable content in the nested grid
+                    NestedGridNode childGrid = row.getExpandedChildGrids().get(col.getName());
+                    if (childGrid != null) {
+                        // Find and select the first editable element in the nested grid
+                        startEditingFirstEditableInGrid(childGrid);
+                    }
+                    render();
+                } else {
+                    // Single-click: toggle cell expansion
+                    table.toggleCellExpansion(rowIndex, col.getName());
+                    table.calculateHeight();
+                    layoutDirty = true;
+                    ensureLayout();
+                    updateScrollBars();
+                    render();
+                }
                 return;
             }
 
@@ -901,6 +919,7 @@ public class XmlCanvasView extends Pane {
 
     /**
      * Handle click on a nested grid node - same behavior as main grid nodes.
+     * Supports both single-click (selection/expand) and double-click (editing).
      */
     private void handleNestedGridClick(NestedGridNode node, double mx, double my, int clickCount) {
         double localX = mx - node.getX();
@@ -910,6 +929,29 @@ public class XmlCanvasView extends Pane {
         boolean headerClick = localY <= NestedGridNode.HEADER_HEIGHT;
         boolean expandButtonClick = headerClick && localX <= 20;  // First 20px for expand/collapse button
 
+        // Double-click handling for editing - check attribute/text FIRST before header
+        if (clickCount == 2) {
+            int attrIndex = node.getAttributeIndexAt(mx, my);
+            boolean textHit = node.isTextContentHit(mx, my);
+
+            if (attrIndex >= 0) {
+                startEditingAttribute(node, attrIndex);
+                return;
+            } else if (textHit) {
+                startEditingTextContent(node);
+                return;
+            } else if (node.isHeaderHit(mx, my)) {
+                // For leaf elements with inline text: edit text content instead of element name
+                if (node.isLeafWithText() && node.hasTextContent()) {
+                    startEditingTextContent(node);
+                } else {
+                    // Double-click on header = edit element name
+                    startEditingElementName(node);
+                }
+                return;
+            }
+        }
+
         if (expandButtonClick && node.hasExpandableContent()) {
             // Toggle expand/collapse
             node.setExpanded(!node.isExpanded());
@@ -917,8 +959,17 @@ public class XmlCanvasView extends Pane {
             ensureLayout();
             updateScrollBars();
             render();
+        } else if (headerClick && clickCount == 1 && node.hasExpandableContent()) {
+            // Single click on header = expand/collapse
+            node.setExpanded(!node.isExpanded());
+            layoutDirty = true;
+            ensureLayout();
+            updateScrollBars();
+            selectNode(node);
+            selectTable(null);
+            render();
         } else {
-            // Header click or single click - select the node
+            // Single click - select the node
             selectNode(node);
             selectTable(null);
             render();
@@ -1907,6 +1958,100 @@ public class XmlCanvasView extends Pane {
         double width = node.getWidth() - 60;
 
         createEditField(currentValue, x, y, width);
+    }
+
+    /**
+     * Starts editing the first editable content in a nested grid.
+     * This is used when double-clicking on a complex cell in a table to enable
+     * immediate editing of the nested content, just like regular nested nodes.
+     *
+     * <p>Priority for editing:</p>
+     * <ol>
+     *   <li>If the node is a leaf with text content, edit the text</li>
+     *   <li>If the node has attributes, edit the first attribute</li>
+     *   <li>If the node has text content, edit the text</li>
+     *   <li>If the node has children, recursively find the first editable child</li>
+     * </ol>
+     *
+     * @param grid the nested grid node to start editing in
+     */
+    private void startEditingFirstEditableInGrid(NestedGridNode grid) {
+        if (grid == null) return;
+
+        // Ensure the grid is expanded
+        if (!grid.isExpanded() && grid.hasExpandableContent()) {
+            grid.setExpanded(true);
+            layoutDirty = true;
+            ensureLayout();
+        }
+
+        // Select this node first
+        selectNode(grid);
+        selectTable(null);
+
+        // Try to find the first editable content
+        NestedGridNode editableNode = findFirstEditableNode(grid);
+        if (editableNode != null) {
+            // Select the editable node
+            selectNode(editableNode);
+
+            // Start editing based on what's available
+            if (editableNode.isLeafWithText() && editableNode.hasTextContent()) {
+                startEditingTextContent(editableNode);
+            } else if (!editableNode.getAttributeCells().isEmpty()) {
+                startEditingAttribute(editableNode, 0);
+            } else if (editableNode.hasTextContent()) {
+                startEditingTextContent(editableNode);
+            }
+        }
+    }
+
+    /**
+     * Recursively finds the first node with editable content in a grid hierarchy.
+     *
+     * @param node the starting node
+     * @return the first editable node, or null if none found
+     */
+    private NestedGridNode findFirstEditableNode(NestedGridNode node) {
+        if (node == null) return null;
+
+        // Check if this node itself is editable
+        if (node.isLeafWithText() && node.hasTextContent()) {
+            return node;
+        }
+        if (!node.getAttributeCells().isEmpty()) {
+            return node;
+        }
+        if (node.hasTextContent()) {
+            return node;
+        }
+
+        // Check children if expanded
+        if (node.isExpanded()) {
+            for (NestedGridNode child : node.getChildren()) {
+                NestedGridNode editable = findFirstEditableNode(child);
+                if (editable != null) {
+                    return editable;
+                }
+            }
+
+            // Check tables for editable cells
+            for (RepeatingElementsTable table : node.getRepeatingTables()) {
+                if (table.isExpanded() && !table.getRows().isEmpty()) {
+                    // Check first row for simple (non-complex) cells
+                    RepeatingElementsTable.TableRow firstRow = table.getRows().get(0);
+                    for (RepeatingElementsTable.TableColumn col : table.getColumns()) {
+                        if (!firstRow.hasComplexChild(col.getName())) {
+                            // Found a simple editable cell - but we need a NestedGridNode
+                            // For now, just return null and let the user click on the specific cell
+                            return null;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     private void startEditingTableCell(RepeatingElementsTable table, int rowIndex, String columnName) {
