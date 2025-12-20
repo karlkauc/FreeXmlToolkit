@@ -154,6 +154,32 @@ public class IntelliSensePopup {
     }
 
     /**
+     * Updates the items in the popup without reopening it.
+     * Preserves selection if possible, otherwise selects first item.
+     * Hides popup if items are empty.
+     *
+     * @param items the new items to display
+     */
+    public void updateItems(List<CompletionItem> items) {
+        if (items == null || items.isEmpty()) {
+            hide();
+            return;
+        }
+
+        CompletionItem previousSelection = getSelectedItem();
+        listView.getItems().setAll(items);
+
+        // Try to preserve selection
+        if (previousSelection != null && items.contains(previousSelection)) {
+            listView.getSelectionModel().select(previousSelection);
+        } else {
+            listView.getSelectionModel().selectFirst();
+        }
+
+        logger.debug("Updated popup items: {} items", items.size());
+    }
+
+    /**
      * Selects the next item in the list.
      */
     public void selectNext() {

@@ -17,6 +17,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.ui.IntelliSensePop
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XmlDocumentElementExtractor;
 import org.fxmisc.richtext.CodeArea;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -49,6 +50,10 @@ public class XPathIntelliSenseEngine {
 
     // Track last trigger character for context
     private char lastTriggerChar = 0;
+
+    // Track popup state for filtering
+    private int popupStartPosition = -1;
+    private List<CompletionItem> allCompletions = new ArrayList<>();
 
     /**
      * Creates a new XPath IntelliSense engine.
@@ -138,10 +143,27 @@ public class XPathIntelliSenseEngine {
             // Check if a character was typed (not deleted)
             if (newText.length() > oldText.length()) {
                 char lastChar = newText.charAt(newText.length() - 1);
-                Platform.runLater(() -> triggerSystem.handleCharTyped(lastChar));
+
+                // If popup is showing, filter the completions
+                if (popup.isShowing() && popupStartPosition >= 0) {
+                    Platform.runLater(this::updatePopupFilter);
+                } else {
+                    // Otherwise, check for trigger characters
+                    Platform.runLater(() -> triggerSystem.handleCharTyped(lastChar));
+                }
             } else {
-                // Text deleted - hide popup
-                popup.hide();
+                // Text deleted
+                if (popup.isShowing() && popupStartPosition >= 0) {
+                    int caretPos = codeArea.getCaretPosition();
+                    // If caret is before popup start, close popup
+                    if (caretPos < popupStartPosition) {
+                        popup.hide();
+                        resetPopupState();
+                    } else {
+                        // Re-filter with shorter prefix
+                        Platform.runLater(this::updatePopupFilter);
+                    }
+                }
             }
         });
 
@@ -166,6 +188,7 @@ public class XPathIntelliSenseEngine {
                     }
                     case ESCAPE -> {
                         popup.hide();
+                        resetPopupState();
                         event.consume();
                     }
                 }
@@ -207,8 +230,13 @@ public class XPathIntelliSenseEngine {
 
         if (items.isEmpty()) {
             popup.hide();
+            resetPopupState();
             return;
         }
+
+        // Store popup state for filtering
+        popupStartPosition = context.getTokenStartPosition();
+        allCompletions = new ArrayList<>(items);
 
         // Show popup near caret
         showPopupAtCaret(items);
@@ -289,6 +317,7 @@ public class XPathIntelliSenseEngine {
 
         codeArea.moveTo(newCaretPos);
         popup.hide();
+        resetPopupState();
 
         logger.debug("Inserted completion: '{}' at position {}", insertText, replaceStart);
     }
@@ -329,6 +358,61 @@ public class XPathIntelliSenseEngine {
         }
 
         return insertText;
+    }
+
+    /**
+     * Filters completions by a prefix (case-insensitive).
+     * Matches if the label or insertText starts with the prefix.
+     *
+     * @param prefix the prefix to filter by
+     * @return filtered list of completions
+     */
+    List<CompletionItem> filterCompletions(String prefix) {
+        if (prefix == null || prefix.isEmpty()) {
+            return allCompletions;
+        }
+        String lowerPrefix = prefix.toLowerCase();
+        return allCompletions.stream()
+                .filter(item -> item.getLabel().toLowerCase().startsWith(lowerPrefix)
+                        || item.getInsertText().toLowerCase().startsWith(lowerPrefix))
+                .toList();
+    }
+
+    /**
+     * Resets popup tracking state.
+     */
+    private void resetPopupState() {
+        popupStartPosition = -1;
+        allCompletions.clear();
+    }
+
+    /**
+     * Updates the popup filter based on current typed prefix.
+     */
+    private void updatePopupFilter() {
+        if (popupStartPosition < 0 || allCompletions.isEmpty()) {
+            return;
+        }
+
+        String text = codeArea.getText();
+        int caretPos = codeArea.getCaretPosition();
+
+        // Extract the prefix typed since popup opened
+        if (caretPos >= popupStartPosition && popupStartPosition <= text.length()) {
+            String prefix = text.substring(popupStartPosition, Math.min(caretPos, text.length()));
+            List<CompletionItem> filtered = filterCompletions(prefix);
+
+            if (filtered.isEmpty()) {
+                // No matches - close popup
+                popup.hide();
+                resetPopupState();
+                logger.debug("No matches for prefix '{}', closing popup", prefix);
+            } else {
+                // Update popup with filtered items
+                popup.updateItems(filtered);
+                logger.debug("Filtered completions with prefix '{}': {} items", prefix, filtered.size());
+            }
+        }
     }
 
     /**
@@ -374,6 +458,7 @@ public class XPathIntelliSenseEngine {
      */
     public void hidePopup() {
         popup.hide();
+        resetPopupState();
     }
 
     /**
