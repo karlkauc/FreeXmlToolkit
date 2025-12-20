@@ -397,27 +397,30 @@ public class NestedGridNode {
     }
 
     /**
-     * Calculates the width of this grid.
+     * Calculates the width of this grid based on content.
+     * Width is not constrained by viewport to allow horizontal scrolling.
+     *
+     * @param minWidth minimum width hint (not a hard constraint)
      */
-    public double calculateWidth(double availableWidth) {
+    public double calculateWidth(double minWidth) {
         // First calculate column widths based on content
         calculateColumnWidths();
 
-        // Minimum width based on content
+        // Width based on content - use content width as base, not constrained by viewport
         double contentWidth = calculatedNameColumnWidth + calculatedValueColumnWidth + GRID_PADDING * 3;
-        double w = Math.max(MIN_GRID_WIDTH, Math.max(contentWidth, availableWidth - depth * INDENT));
+        double w = Math.max(MIN_GRID_WIDTH, contentWidth);
 
-        // Check children width
+        // Check children width - they may be wider
         if (expanded) {
             // Check repeating tables width
             for (RepeatingElementsTable table : repeatingTables) {
-                double tableWidth = table.calculateWidth(w - INDENT) + INDENT;
+                double tableWidth = table.calculateWidth(w) + INDENT;
                 w = Math.max(w, tableWidth);
             }
 
             // Check individual children width
             for (NestedGridNode child : children) {
-                double childWidth = child.calculateWidth(w - INDENT) + INDENT;
+                double childWidth = child.calculateWidth(w) + INDENT;
                 w = Math.max(w, childWidth);
             }
         }

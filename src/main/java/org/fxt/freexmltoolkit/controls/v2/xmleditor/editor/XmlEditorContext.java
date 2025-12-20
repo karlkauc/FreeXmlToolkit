@@ -231,8 +231,8 @@ public class XmlEditorContext {
         selectionModel.clearSelection();
         setDirty(false);
 
-        // Clear column order cache when loading a new document
-        RepeatingElementsTable.clearColumnOrderCache();
+        // Clear all table caches when loading a new document
+        RepeatingElementsTable.clearAllCaches();
 
         pcs.firePropertyChange("document", oldDoc, this.document);
         pcs.firePropertyChange("filePath", oldPath, this.filePath);

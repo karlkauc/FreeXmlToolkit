@@ -54,6 +54,38 @@ public class RepeatingElementsTable {
         columnOrderCache.clear();
     }
 
+    // ==================== Sort State Cache ====================
+    // Caches the sort state per element name to maintain indicator after rebuild
+    private static final Map<String, SortState> sortStateCache = new HashMap<>();
+
+    /**
+     * Stores sort state (column and direction) for persistence across rebuilds.
+     */
+    private static class SortState {
+        final String columnName;
+        final boolean ascending;
+
+        SortState(String columnName, boolean ascending) {
+            this.columnName = columnName;
+            this.ascending = ascending;
+        }
+    }
+
+    /**
+     * Clears the sort state cache. Call this when loading a new document.
+     */
+    public static void clearSortStateCache() {
+        sortStateCache.clear();
+    }
+
+    /**
+     * Clears all caches. Call this when loading a new document.
+     */
+    public static void clearAllCaches() {
+        columnOrderCache.clear();
+        sortStateCache.clear();
+    }
+
     // ==================== Data ====================
 
     private final String elementName;
@@ -192,6 +224,9 @@ public class RepeatingElementsTable {
         analyzeStructure();
         buildRows();
         calculateColumnWidths();
+
+        // Restore sort state from cache if previously sorted
+        restoreSortStateFromCache();
     }
 
     // ==================== Structure Analysis ====================
@@ -800,6 +835,14 @@ public class RepeatingElementsTable {
         boolean oldAscending = this.sortAscending;
         this.sortedColumnName = columnName;
         this.sortAscending = ascending;
+
+        // Persist to cache for survival across rebuilds
+        if (columnName != null) {
+            sortStateCache.put(elementName, new SortState(columnName, ascending));
+        } else {
+            sortStateCache.remove(elementName);
+        }
+
         pcs.firePropertyChange("sortState",
             oldColumn + ":" + oldAscending,
             columnName + ":" + ascending);
@@ -810,6 +853,18 @@ public class RepeatingElementsTable {
      */
     public void clearSortState() {
         setSortState(null, true);
+    }
+
+    /**
+     * Restores the sort state from the cache if available.
+     * Called during table construction.
+     */
+    private void restoreSortStateFromCache() {
+        SortState cached = sortStateCache.get(elementName);
+        if (cached != null) {
+            this.sortedColumnName = cached.columnName;
+            this.sortAscending = cached.ascending;
+        }
     }
 
     /**

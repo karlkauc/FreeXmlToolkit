@@ -425,16 +425,35 @@ public class XmlCanvasView extends Pane {
             }
         });
 
-        // Mouse wheel scrolling
+        // Mouse wheel scrolling (vertical and horizontal)
         canvas.addEventHandler(ScrollEvent.SCROLL, e -> {
-            if (totalHeight <= canvas.getHeight()) return;
+            boolean changed = false;
 
-            double delta = -e.getDeltaY();
-            double newOffset = Math.max(0, Math.min(scrollOffsetY + delta, totalHeight - canvas.getHeight()));
+            // Horizontal scrolling: Shift + scroll or trackpad horizontal gesture
+            if (e.isShiftDown() || Math.abs(e.getDeltaX()) > Math.abs(e.getDeltaY())) {
+                if (totalWidth > canvas.getWidth()) {
+                    double deltaX = e.isShiftDown() ? -e.getDeltaY() : -e.getDeltaX();
+                    double newOffsetX = Math.max(0, Math.min(scrollOffsetX + deltaX, totalWidth - canvas.getWidth()));
+                    if (newOffsetX != scrollOffsetX) {
+                        scrollOffsetX = newOffsetX;
+                        hScrollBar.setValue(scrollOffsetX);
+                        changed = true;
+                    }
+                }
+            } else {
+                // Vertical scrolling
+                if (totalHeight > canvas.getHeight()) {
+                    double deltaY = -e.getDeltaY();
+                    double newOffsetY = Math.max(0, Math.min(scrollOffsetY + deltaY, totalHeight - canvas.getHeight()));
+                    if (newOffsetY != scrollOffsetY) {
+                        scrollOffsetY = newOffsetY;
+                        vScrollBar.setValue(scrollOffsetY);
+                        changed = true;
+                    }
+                }
+            }
 
-            if (newOffset != scrollOffsetY) {
-                scrollOffsetY = newOffset;
-                vScrollBar.setValue(scrollOffsetY);
+            if (changed) {
                 render();
             }
             e.consume();
