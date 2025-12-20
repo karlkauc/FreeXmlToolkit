@@ -1838,9 +1838,21 @@ public class XmlCanvasView extends Pane {
         gc.setTextBaseline(VPos.CENTER);
 
         double colX = x + GRID_PADDING;
+        String sortedColumn = table.getSortedColumnName();
+
         for (RepeatingElementsTable.TableColumn col : table.getColumns()) {
-            gc.fillText(truncateText(col.getDisplayName(), col.getWidth() - GRID_PADDING * 2),
+            boolean isSorted = col.getName().equals(sortedColumn);
+            double sortIconWidth = isSorted ? 14 : 0;  // Space for sort arrow
+
+            // Draw column name (leave space for sort icon if sorted)
+            gc.setFill(isSorted ? TEXT_CONTENT : TEXT_SECONDARY);
+            gc.fillText(truncateText(col.getDisplayName(), col.getWidth() - GRID_PADDING * 2 - sortIconWidth),
                         colX, y + ROW_HEIGHT / 2);
+
+            // Draw sort indicator arrow if this column is sorted
+            if (isSorted) {
+                drawSortArrow(colX + col.getWidth() - GRID_PADDING - 10, y + ROW_HEIGHT / 2, table.isSortAscending());
+            }
 
             // Column separator
             colX += col.getWidth();
@@ -1848,6 +1860,33 @@ public class XmlCanvasView extends Pane {
             gc.setLineWidth(0.5);
             gc.strokeLine(colX, y, colX, y + ROW_HEIGHT);
         }
+    }
+
+    /**
+     * Draws a sort direction arrow (triangle).
+     *
+     * @param x         center X position
+     * @param y         center Y position
+     * @param ascending true for up arrow (ascending), false for down arrow (descending)
+     */
+    private void drawSortArrow(double x, double y, boolean ascending) {
+        gc.setFill(Color.rgb(59, 130, 246));  // Blue color for sort indicator
+
+        double arrowSize = 5;
+        double[] xPoints;
+        double[] yPoints;
+
+        if (ascending) {
+            // Up arrow (triangle pointing up)
+            xPoints = new double[]{x, x - arrowSize, x + arrowSize};
+            yPoints = new double[]{y - arrowSize, y + arrowSize, y + arrowSize};
+        } else {
+            // Down arrow (triangle pointing down)
+            xPoints = new double[]{x, x - arrowSize, x + arrowSize};
+            yPoints = new double[]{y + arrowSize, y - arrowSize, y - arrowSize};
+        }
+
+        gc.fillPolygon(xPoints, yPoints, 3);
     }
 
     // ==================== Helper Methods ====================

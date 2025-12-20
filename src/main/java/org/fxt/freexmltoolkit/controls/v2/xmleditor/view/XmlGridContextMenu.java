@@ -1182,6 +1182,10 @@ public class XmlGridContextMenu {
 
         SortElementsCommand cmd = new SortElementsCommand(clickedTable, clickedColumnName, ascending);
         context.executeCommand(cmd);
+
+        // Update sort state indicator on the table
+        clickedTable.setSortState(clickedColumnName, ascending);
+
         refresh();
     }
 

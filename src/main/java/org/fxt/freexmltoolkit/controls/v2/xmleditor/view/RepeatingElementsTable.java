@@ -79,6 +79,11 @@ public class RepeatingElementsTable {
     private int hoveredColumnIndex = -1;
     private int selectedRowIndex = -1;
 
+    // ==================== Sort State ====================
+
+    private String sortedColumnName = null;  // Column currently sorted by (null = none)
+    private boolean sortAscending = true;    // Sort direction (true = ascending, false = descending)
+
     // ==================== Property Change Support ====================
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -770,6 +775,51 @@ public class RepeatingElementsTable {
         int old = this.selectedRowIndex;
         this.selectedRowIndex = index;
         pcs.firePropertyChange("selectedRowIndex", old, index);
+    }
+
+    // ==================== Sort State Accessors ====================
+
+    /**
+     * Returns the name of the column currently sorted by, or null if not sorted.
+     */
+    public String getSortedColumnName() { return sortedColumnName; }
+
+    /**
+     * Returns true if sorting is ascending, false if descending.
+     */
+    public boolean isSortAscending() { return sortAscending; }
+
+    /**
+     * Sets the sort state for this table.
+     *
+     * @param columnName the column to sort by (null to clear sorting)
+     * @param ascending  true for ascending, false for descending
+     */
+    public void setSortState(String columnName, boolean ascending) {
+        String oldColumn = this.sortedColumnName;
+        boolean oldAscending = this.sortAscending;
+        this.sortedColumnName = columnName;
+        this.sortAscending = ascending;
+        pcs.firePropertyChange("sortState",
+            oldColumn + ":" + oldAscending,
+            columnName + ":" + ascending);
+    }
+
+    /**
+     * Clears the sort state.
+     */
+    public void clearSortState() {
+        setSortState(null, true);
+    }
+
+    /**
+     * Checks if the given column is the currently sorted column.
+     *
+     * @param columnName the column name to check
+     * @return true if this column is sorted
+     */
+    public boolean isSortedBy(String columnName) {
+        return columnName != null && columnName.equals(sortedColumnName);
     }
 
     public XmlElement getSelectedElement() {
