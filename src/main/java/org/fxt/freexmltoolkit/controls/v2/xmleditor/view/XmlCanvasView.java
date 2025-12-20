@@ -128,6 +128,36 @@ public class XmlCanvasView extends Pane {
     // Guard to prevent double commits
     private boolean isCommitting = false;
 
+    // ==================== Editing State Check Helpers ====================
+
+    /**
+     * Checks if a specific attribute of a node is currently being edited.
+     */
+    private boolean isEditingAttribute(NestedGridNode node, int attrIndex) {
+        return editingNode == node && editingAttributeIndex == attrIndex && !editingTextContent && !editingElementName;
+    }
+
+    /**
+     * Checks if the text content of a node is currently being edited.
+     */
+    private boolean isEditingTextContent(NestedGridNode node) {
+        return editingNode == node && editingTextContent;
+    }
+
+    /**
+     * Checks if the element name of a node is currently being edited.
+     */
+    private boolean isEditingElementName(NestedGridNode node) {
+        return editingNode == node && editingElementName;
+    }
+
+    /**
+     * Checks if the leaf text (inline text in header) of a node is currently being edited.
+     */
+    private boolean isEditingLeafText(NestedGridNode node) {
+        return editingNode == node && editingTextContent && node.isLeafWithText();
+    }
+
     // ==================== Context Menu ====================
 
     private final XmlGridContextMenu contextMenu;
@@ -463,17 +493,17 @@ public class XmlCanvasView extends Pane {
         canvas.setFocusTraversable(true);
         canvas.addEventHandler(KeyEvent.KEY_PRESSED, this::handleKeyPress);
 
-        // Request focus when clicked
+        // Request focus when clicked (but not if editing - edit field should keep focus)
         canvas.setOnMousePressed(e -> {
-            if (!canvas.isFocused()) {
+            if (!canvas.isFocused() && editField == null && activeWidgetNode == null) {
                 canvas.requestFocus();
             }
         });
     }
 
     private void handleKeyPress(KeyEvent event) {
-        // If editing, don't handle navigation keys
-        if (editField != null) return;
+        // If editing, don't handle navigation keys (let edit field handle them)
+        if (editField != null || activeWidgetNode != null) return;
 
         XmlNode selected = getSelectedNode();
 
@@ -1430,19 +1460,23 @@ public class XmlCanvasView extends Pane {
             double nameWidth = displayName.length() * 7 + 4;
             double textX = iconX + nameWidth;
 
-            // Draw equals sign
-            gc.setFill(TEXT_SECONDARY);
-            gc.fillText("=", textX, y + HEADER_HEIGHT / 2);
-            textX += 12;
+            // Draw equals sign and text value - skip if being edited (edit field replaces it)
+            if (!isEditingLeafText(node)) {
+                gc.setFill(TEXT_SECONDARY);
+                gc.fillText("=", textX, y + HEADER_HEIGHT / 2);
+                textX += 12;
 
-            // Draw text value (truncated if needed)
-            gc.setFill(TEXT_CONTENT);
-            gc.setFont(ROW_FONT);
-            double availableWidth = w - textX + x - GRID_PADDING - 10;
-            String textValue = "\"" + truncateText(node.getTextContent(), availableWidth - 20) + "\"";
-            gc.fillText(textValue, textX, y + HEADER_HEIGHT / 2);
+                // Draw text value - node width is calculated to fit content
+                gc.setFill(TEXT_CONTENT);
+                gc.setFont(ROW_FONT);
+                String textValue = "\"" + node.getTextContent() + "\"";
+                gc.fillText(textValue, textX, y + HEADER_HEIGHT / 2);
+            }
         } else {
-            gc.fillText(node.getElementName(), iconX, y + HEADER_HEIGHT / 2);
+            // Element name - skip if being edited (edit field replaces it)
+            if (!isEditingElementName(node)) {
+                gc.fillText(node.getElementName(), iconX, y + HEADER_HEIGHT / 2);
+            }
 
             // Children count (on right side)
             if (node.hasChildren()) {
@@ -1485,10 +1519,11 @@ public class XmlCanvasView extends Pane {
         gc.setTextBaseline(VPos.CENTER);
         gc.fillText("@" + cell.getName(), x + GRID_PADDING, y + ROW_HEIGHT / 2);
 
-        // Attribute value - no truncation needed if column width is calculated correctly
-        gc.setFill(TEXT_ATTRIBUTE_VALUE);
-        gc.fillText(truncateText(cell.getValue(), valueColWidth - GRID_PADDING),
-                    x + nameColWidth, y + ROW_HEIGHT / 2);
+        // Attribute value - skip drawing if this cell is being edited (edit field replaces it)
+        if (!isEditingAttribute(node, index)) {
+            gc.setFill(TEXT_ATTRIBUTE_VALUE);
+            gc.fillText(cell.getValue(), x + nameColWidth, y + ROW_HEIGHT / 2);
+        }
     }
 
     private void drawTextContentRow(NestedGridNode node, double x, double y, double w) {
@@ -1514,10 +1549,11 @@ public class XmlCanvasView extends Pane {
         gc.setTextBaseline(VPos.CENTER);
         gc.fillText("#text", x + GRID_PADDING, y + ROW_HEIGHT / 2);
 
-        // Text content - no truncation needed if column width is calculated correctly
-        gc.setFill(TEXT_CONTENT);
-        gc.fillText(truncateText(node.getTextContent(), valueColWidth - GRID_PADDING),
-                    x + nameColWidth, y + ROW_HEIGHT / 2);
+        // Text content - skip drawing if being edited (edit field replaces it)
+        if (!isEditingTextContent(node)) {
+            gc.setFill(TEXT_CONTENT);
+            gc.fillText(node.getTextContent(), x + nameColWidth, y + ROW_HEIGHT / 2);
+        }
     }
 
     private void drawChildrenHeader(NestedGridNode node, double x, double y, double w) {
@@ -2181,6 +2217,10 @@ public class XmlCanvasView extends Pane {
      */
     private void createEditField(String currentValue, double x, double y, double width,
                                   String elementXPath, String attributeName) {
+        // Calculate minimum width based on content to ensure full visibility
+        double contentBasedWidth = (currentValue != null ? currentValue.length() : 0) * 8 + 30;
+        double effectiveWidth = Math.max(width, Math.max(contentBasedWidth, 120));
+
         // Try to create type-aware widget if schema is available
         if (context.hasSchema() && elementXPath != null) {
             TypeAwareWidgetFactory factory = context.getWidgetFactory();
@@ -2206,12 +2246,21 @@ public class XmlCanvasView extends Pane {
                 activeEditWidget = widget;
                 activeWidgetNode = widget.getNode();
 
-                // Position the widget
+                // Determine minimum width based on widget type
+                double widgetMinWidth = effectiveWidth;
+                if (activeWidgetNode instanceof javafx.scene.control.DatePicker) {
+                    widgetMinWidth = Math.max(widgetMinWidth, 160);  // DatePicker needs more space
+                } else if (activeWidgetNode instanceof javafx.scene.control.ComboBox) {
+                    widgetMinWidth = Math.max(widgetMinWidth, 150);  // ComboBox needs more space
+                }
+
+                // Position and size the widget
                 if (activeWidgetNode instanceof javafx.scene.layout.Region region) {
                     region.setLayoutX(x);
                     region.setLayoutY(y);
-                    region.setPrefWidth(width);
-                    region.setMaxHeight(ROW_HEIGHT);
+                    region.setPrefWidth(widgetMinWidth);
+                    region.setMinWidth(widgetMinWidth);
+                    region.setPrefHeight(ROW_HEIGHT);
                 } else {
                     activeWidgetNode.setLayoutX(x);
                     activeWidgetNode.setLayoutY(y);
@@ -2247,13 +2296,14 @@ public class XmlCanvasView extends Pane {
             }
         }
 
-        // Fallback to standard TextField
+        // Fallback to standard TextField with content-based width
         editField = new TextField(currentValue);
         editField.setLayoutX(x);
         editField.setLayoutY(y);
-        editField.setPrefWidth(width);
-        editField.setPrefHeight(ROW_HEIGHT - 4);
-        editField.setStyle("-fx-font-size: 12px; -fx-font-family: 'Segoe UI'; -fx-padding: 2 4;");
+        editField.setPrefWidth(effectiveWidth);
+        editField.setMinWidth(effectiveWidth);
+        editField.setPrefHeight(ROW_HEIGHT);
+        editField.setStyle("-fx-font-size: 12px; -fx-font-family: 'Segoe UI'; -fx-padding: 2 6;");
 
         // Add documentation tooltip if available
         if (context.hasSchema() && elementXPath != null) {
@@ -2268,15 +2318,26 @@ public class XmlCanvasView extends Pane {
             });
         }
 
-        editField.setOnAction(e -> commitEditing());
+        editField.setOnAction(e -> commitEditing());  // ENTER key commits
         editField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 cancelEditing();
+                e.consume();
+            } else if (e.getCode() == KeyCode.ENTER) {
+                commitEditing();
+                e.consume();
             }
         });
+
+        // Handle focus loss with delay to avoid premature commits
         editField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (!isFocused && editField != null) {
-                commitEditing();
+            if (!isFocused && editField != null && !isCommitting) {
+                // Small delay to allow for focus transitions
+                javafx.application.Platform.runLater(() -> {
+                    if (editField != null && !editField.isFocused()) {
+                        commitEditing();
+                    }
+                });
             }
         });
 

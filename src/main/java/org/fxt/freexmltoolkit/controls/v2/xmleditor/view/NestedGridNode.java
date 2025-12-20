@@ -406,8 +406,21 @@ public class NestedGridNode {
         // First calculate column widths based on content
         calculateColumnWidths();
 
-        // Width based on content - use content width as base, not constrained by viewport
-        double contentWidth = calculatedNameColumnWidth + calculatedValueColumnWidth + GRID_PADDING * 3;
+        double contentWidth;
+
+        // For leaf nodes with text (displayed as "elementName = text"), calculate inline width
+        if (isLeafWithText && attributeCells.isEmpty()) {
+            // Format: [icon] elementName = "textContent"
+            double iconWidth = 20;  // Expand icon space
+            double nameWidth = estimateTextWidth(elementName);
+            double equalsWidth = 20;  // " = "
+            double textWidth = estimateTextWidth(textContent) + 14;  // +14 for quotes
+            contentWidth = iconWidth + nameWidth + equalsWidth + textWidth + GRID_PADDING * 2;
+        } else {
+            // Standard width calculation for nodes with attributes or children
+            contentWidth = calculatedNameColumnWidth + calculatedValueColumnWidth + GRID_PADDING * 3;
+        }
+
         double w = Math.max(MIN_GRID_WIDTH, contentWidth);
 
         // Check children width - they may be wider
