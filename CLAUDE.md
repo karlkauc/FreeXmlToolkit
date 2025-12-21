@@ -37,6 +37,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Gradle 8.x with Kotlin DSL (build.gradle.kts)
 - Test heap: 16GB max configured
 
+## Release Checklist
+
+When creating a new release, update the version in these locations:
+
+1. **build.gradle.kts** (line ~26): `version = "X.Y.Z"`
+2. **UpdateCheckServiceImpl.java**: Update `DEFAULT_VERSION` constant
+   - Location: `src/main/java/org/fxt/freexmltoolkit/service/UpdateCheckServiceImpl.java`
+   - This ensures IDE development doesn't show false update notifications
+
 ## Technology Stack
 
 **Core Technologies:**
