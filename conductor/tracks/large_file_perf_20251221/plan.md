@@ -1,6 +1,6 @@
 # Plan: Large File Performance Optimization and Stability
 
-## Phase 1: Background Validation Infrastructure
+## Phase 1: Background Validation Infrastructure [checkpoint: 3e5e3b5]
 - [x] Task: Write Tests - Background Validation Logic (c2dcccee)
 - [x] Task: Implement Background Validation in `XmlValidationManager` (c2dcccee)
 - [ ] Task: Write Tests - Progress Reporting
