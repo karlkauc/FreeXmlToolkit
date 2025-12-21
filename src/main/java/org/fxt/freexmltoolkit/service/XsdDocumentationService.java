@@ -93,6 +93,13 @@ public class XsdDocumentationService {
     private Map<String, Node> groupMap = new HashMap<>();
     private Map<String, Node> attributeGroupMap = new HashMap<>();
 
+    // Language configuration for documentation generation
+    private Set<String> discoveredLanguages = new LinkedHashSet<>();
+    private Set<String> includedLanguages = null; // null = all languages
+
+    // SVG documentation display configuration
+    private boolean showDocumentationInSvg = true; // Whether to show documentation in SVG diagrams
+
     // Thread-local storage for element reference nodes (to preserve cardinality attributes)
     private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
 
@@ -140,6 +147,53 @@ public class XsdDocumentationService {
         this.includeTypeDefinitionsInSourceCode = includeTypeDefinitionsInSourceCode;
     }
 
+    /**
+     * Returns all languages discovered during XSD parsing.
+     * Must be called after processXsd() has completed.
+     *
+     * @return An unmodifiable set of language codes (e.g., "en", "de", "default")
+     */
+    public Set<String> getDiscoveredLanguages() {
+        return Collections.unmodifiableSet(discoveredLanguages);
+    }
+
+    /**
+     * Sets the languages to include in documentation output.
+     * Pass null to include all languages.
+     *
+     * @param languages Set of language codes to include, or null for all
+     */
+    public void setIncludedLanguages(Set<String> languages) {
+        this.includedLanguages = languages != null ? new LinkedHashSet<>(languages) : null;
+    }
+
+    /**
+     * Returns the configured included languages.
+     *
+     * @return Set of included language codes, or null if all languages are included
+     */
+    public Set<String> getIncludedLanguages() {
+        return includedLanguages;
+    }
+
+    /**
+     * Sets whether documentation should be displayed in SVG diagrams.
+     *
+     * @param showDocumentation true to show documentation, false to hide it
+     */
+    public void setShowDocumentationInSvg(boolean showDocumentation) {
+        this.showDocumentationInSvg = showDocumentation;
+    }
+
+    /**
+     * Returns whether documentation is displayed in SVG diagrams.
+     *
+     * @return true if documentation is shown, false otherwise
+     */
+    public boolean isShowDocumentationInSvg() {
+        return showDocumentationInSvg;
+    }
+
     public void generateXsdDocumentation(File outputDirectory) throws Exception {
         logger.debug("Starting documentation generation...");
         processXsd(this.useMarkdownRenderer);
@@ -147,12 +201,14 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.setOutputDirectory(outputDirectory);
         xsdDocumentationHtmlService.setDocumentationData(xsdDocumentationData);
         xsdDocumentationHtmlService.setXsdDocumentationService(this);
+        xsdDocumentationHtmlService.setIncludedLanguages(this.includedLanguages);
 
         xsdDocumentationSvgService.setOutputDirectory(outputDirectory);
         xsdDocumentationSvgService.setDocumentationData(xsdDocumentationData);
 
         // The ImageService is now centrally initialized here so it's ready for pre-creation.
         xsdDocumentationHtmlService.xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
+        xsdDocumentationHtmlService.xsdDocumentationImageService.setShowDocumentation(this.showDocumentationInSvg);
 
         executeAndTrack("Copying resources", xsdDocumentationHtmlService::copyResources);
         executeAndTrack("Generating root page", xsdDocumentationHtmlService::generateRootPage);
@@ -1787,7 +1843,10 @@ public class XsdDocumentationService {
         // 1. Extract documentation
         for (Node docNode : getDirectChildElements(annotationNode, "documentation")) {
             String lang = getAttributeValue(docNode, "xml:lang", "default");
-            extendedElem.getDocumentations().add(new DocumentationInfo(lang, docNode.getTextContent()));
+            // Normalize language to lowercase for case-insensitive comparison
+            String normalizedLang = lang != null ? lang.toLowerCase() : "default";
+            discoveredLanguages.add(normalizedLang); // Track discovered language for UI configuration
+            extendedElem.getDocumentations().add(new DocumentationInfo(normalizedLang, docNode.getTextContent()));
         }
 
         // 2. Process AppInfo tags (for Javadoc and Altova examples)

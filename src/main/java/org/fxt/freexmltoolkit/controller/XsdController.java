@@ -44,6 +44,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.jetbrains.annotations.NotNull;
+import org.controlsfx.control.CheckComboBox;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -63,8 +64,10 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -318,6 +321,8 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private ChoiceBox<String> grafikFormat;
     @FXML
+    private CheckBox showDocumentationInSvg;
+    @FXML
     private VBox xsdPane;
     @FXML
     private ScrollPane progressScrollPane;
@@ -325,6 +330,22 @@ public class XsdController implements FavoritesParentController {
     private VBox progressContainer;
     @FXML
     private Button openDocFolder;
+
+    // --- Language configuration for documentation ---
+    @FXML
+    public Button scanLanguagesButton;
+    @FXML
+    public Label languageScanStatus;
+    @FXML
+    public HBox languageSelectionContainer;
+    @FXML
+    public HBox languageQuickActions;
+
+    // ControlsFX CheckComboBox for language selection (created programmatically)
+    private CheckComboBox<String> languageCheckComboBox;
+
+    // Track discovered languages from XSD
+    private Set<String> discoveredLanguages = new LinkedHashSet<>();
 
     // ======================================================================
     // Felder und Methoden für den "Generate Example Data" Tab
@@ -947,6 +968,9 @@ public class XsdController implements FavoritesParentController {
             xsdFilePath.setText(absolutePath);
             xsdForSampleDataPath.setText(absolutePath);
             xsdToFlattenPath.setText(absolutePath); // Also set for the Flatten tab
+
+            // Auto-scan for documentation languages when XSD file is loaded
+            scanForLanguages();
 
             // Show progress indicator and status text
             if (xsdDiagramProgress != null) {
@@ -2321,6 +2345,9 @@ public class XsdController implements FavoritesParentController {
     }
 
     private @NotNull Task<Void> getGenerationTask(File xsdFile, File outputDir) {
+        // Capture UI values before entering background thread
+        final Set<String> selectedLanguages = getSelectedLanguages();
+
         Task<Void> generationTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -2331,6 +2358,10 @@ public class XsdController implements FavoritesParentController {
                 docService.setXsdFilePath(xsdFile.getAbsolutePath());
                 docService.setUseMarkdownRenderer(useMarkdownRenderer.isSelected());
                 docService.setIncludeTypeDefinitionsInSourceCode(includeTypeDefinitionsInSourceCode.isSelected());
+                docService.setShowDocumentationInSvg(showDocumentationInSvg.isSelected());
+
+                // Set language filter for documentation output
+                docService.setIncludedLanguages(selectedLanguages);
 
                 // Note: JPG is not supported by the service, it will default to SVG.
                 String format = grafikFormat.getValue();
@@ -2381,6 +2412,153 @@ public class XsdController implements FavoritesParentController {
         if (selectedDirectory != null) {
             documentationOutputDirPath.setText(selectedDirectory.getAbsolutePath());
         }
+    }
+
+    // ======================================================================
+    // Language Configuration Methods for Documentation Generation
+    // ======================================================================
+
+    /**
+     * Scans the XSD file to discover available languages in documentation elements.
+     * This method runs the scan in a background thread to avoid UI blocking.
+     */
+    @FXML
+    public void scanForLanguages() {
+        String xsdPath = xsdFilePath.getText();
+        if (xsdPath == null || xsdPath.isBlank()) {
+            DialogHelper.showWarning("Scan Languages", "No XSD File",
+                    "Please select an XSD file first.");
+            return;
+        }
+
+        File xsdFile = new File(xsdPath);
+        if (!xsdFile.exists()) {
+            DialogHelper.showError("Scan Languages", "File Not Found",
+                    "The specified XSD file does not exist.");
+            return;
+        }
+
+        // Update status to show scanning is in progress
+        languageScanStatus.setText("Scanning...");
+        languageScanStatus.setStyle("-fx-text-fill: #4a90d9;");
+
+        // Run scan in background
+        Task<Set<String>> scanTask = new Task<>() {
+            @Override
+            protected Set<String> call() throws Exception {
+                XsdDocumentationService scanService = new XsdDocumentationService();
+                scanService.setXsdFilePath(xsdFile.getAbsolutePath());
+                scanService.processXsd(false); // Don't need markdown for scanning
+                return scanService.getDiscoveredLanguages();
+            }
+        };
+
+        scanTask.setOnSucceeded(event -> {
+            discoveredLanguages = new LinkedHashSet<>(scanTask.getValue());
+            updateLanguageUI(discoveredLanguages);
+        });
+
+        scanTask.setOnFailed(event -> {
+            DialogHelper.showError("Scan Languages", "Scan Failed",
+                    "Could not scan XSD file: " + scanTask.getException().getMessage());
+            languageScanStatus.setText("Scan failed");
+            languageScanStatus.setStyle("-fx-text-fill: #dc3545;");
+        });
+
+        executeTask(scanTask);
+    }
+
+    /**
+     * Updates the UI to show language selection options based on discovered languages.
+     *
+     * @param languages The set of discovered language codes
+     */
+    private void updateLanguageUI(Set<String> languages) {
+        if (languages == null || languages.isEmpty()) {
+            languageScanStatus.setText("No languages found in documentation");
+            languageScanStatus.setStyle("-fx-text-fill: #6c757d;");
+            languageSelectionContainer.setVisible(false);
+            languageSelectionContainer.setManaged(false);
+            languageQuickActions.setVisible(false);
+            languageQuickActions.setManaged(false);
+            return;
+        }
+
+        // Single language detected - no need for selection UI
+        if (languages.size() == 1) {
+            String singleLang = languages.iterator().next();
+            languageScanStatus.setText("1 language detected: " + singleLang + " (no filtering needed)");
+            languageScanStatus.setStyle("-fx-text-fill: #28a745;");
+            languageSelectionContainer.setVisible(false);
+            languageSelectionContainer.setManaged(false);
+            languageQuickActions.setVisible(false);
+            languageQuickActions.setManaged(false);
+            return;
+        }
+
+        // Multiple languages detected - show selection UI
+        languageScanStatus.setText(languages.size() + " language(s) detected: " + String.join(", ", languages));
+        languageScanStatus.setStyle("-fx-text-fill: #28a745;");
+
+        // Create or update CheckComboBox
+        if (languageCheckComboBox == null) {
+            languageCheckComboBox = new CheckComboBox<>();
+            languageCheckComboBox.setTitle("Select languages...");
+            languageCheckComboBox.setPrefWidth(250);
+            languageSelectionContainer.getChildren().add(languageCheckComboBox);
+        }
+
+        languageCheckComboBox.getItems().clear();
+        languageCheckComboBox.getItems().addAll(languages);
+
+        // Select all by default
+        languageCheckComboBox.getCheckModel().checkAll();
+
+        // Show UI elements
+        languageSelectionContainer.setVisible(true);
+        languageSelectionContainer.setManaged(true);
+        languageQuickActions.setVisible(true);
+        languageQuickActions.setManaged(true);
+    }
+
+    /**
+     * Selects all languages in the CheckComboBox.
+     */
+    @FXML
+    public void selectAllLanguages() {
+        if (languageCheckComboBox != null) {
+            languageCheckComboBox.getCheckModel().checkAll();
+        }
+    }
+
+    /**
+     * Deselects all languages in the CheckComboBox.
+     */
+    @FXML
+    public void deselectAllLanguages() {
+        if (languageCheckComboBox != null) {
+            languageCheckComboBox.getCheckModel().clearChecks();
+        }
+    }
+
+    /**
+     * Gets the currently selected languages for documentation.
+     *
+     * @return Set of selected language codes, or null if all languages should be included
+     */
+    private Set<String> getSelectedLanguages() {
+        if (languageCheckComboBox == null) {
+            return null; // No filter = include all
+        }
+
+        List<String> checkedItems = languageCheckComboBox.getCheckModel().getCheckedItems();
+
+        // If nothing selected or all selected, return null to include all
+        if (checkedItems.isEmpty() || checkedItems.size() == languageCheckComboBox.getItems().size()) {
+            return null;
+        }
+
+        return new LinkedHashSet<>(checkedItems);
     }
 
     /**

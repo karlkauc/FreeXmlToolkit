@@ -462,8 +462,42 @@
                     <ChoiceBox fx:id="grafikFormat" value="SVG" GridPane.columnIndex="1"
                                GridPane.rowIndex="8"/>
 
+                    <Label text="Show documentation in SVG" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
+                    <CheckBox fx:id="showDocumentationInSvg" selected="true" GridPane.columnIndex="1"
+                              GridPane.rowIndex="9">
+                        <tooltip>
+                            <Tooltip text="Show documentation of the root element below the SVG diagram"/>
+                        </tooltip>
+                    </CheckBox>
+
+                    <!-- Language Filter Configuration -->
+                    <Label text="Language Filter" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
+                    <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="10">
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Button fx:id="scanLanguagesButton" onAction="#scanForLanguages" text="Scan Languages">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-globe2" iconColor="#4a90d9"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Scan the XSD file to discover available documentation languages"/>
+                                </tooltip>
+                            </Button>
+                            <Label fx:id="languageScanStatus" text="Languages will be detected automatically"
+                                   style="-fx-text-fill: #6c757d;"/>
+                        </HBox>
+                        <HBox fx:id="languageSelectionContainer" spacing="10" alignment="CENTER_LEFT"
+                              visible="false" managed="false">
+                            <Label text="Include:"/>
+                            <!-- CheckComboBox added programmatically -->
+                        </HBox>
+                        <HBox fx:id="languageQuickActions" spacing="5" visible="false" managed="false">
+                            <Button onAction="#selectAllLanguages" text="Select All" styleClass="button-small"/>
+                            <Button onAction="#deselectAllLanguages" text="Deselect All" styleClass="button-small"/>
+                        </HBox>
+                    </VBox>
+
                     <Button onAction="#generateDocumentation" text="generate" GridPane.columnIndex="1"
-                            GridPane.rowIndex="9">
+                            GridPane.rowIndex="11">
                         <graphic>
                             <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill"/>
                         </graphic>
@@ -479,16 +513,18 @@
                         <ColumnConstraints/>
                     </columnConstraints>
                     <rowConstraints>
-                        <RowConstraints/>
-                        <RowConstraints minHeight="10.0" prefHeight="30.0"/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
+                        <RowConstraints/> <!-- Row 0: XSD File -->
+                        <RowConstraints minHeight="10.0" prefHeight="30.0"/> <!-- Row 1: XSD pane -->
+                        <RowConstraints/> <!-- Row 2: Output Folder -->
+                        <RowConstraints/> <!-- Row 3: Output Format -->
+                        <RowConstraints/> <!-- Row 4: Markdown -->
+                        <RowConstraints/> <!-- Row 5: Open after creation -->
+                        <RowConstraints/> <!-- Row 6: Example data -->
+                        <RowConstraints/> <!-- Row 7: Type definitions -->
+                        <RowConstraints/> <!-- Row 8: Grafik format -->
+                        <RowConstraints/> <!-- Row 9: Show documentation in SVG -->
+                        <RowConstraints minHeight="80.0"/> <!-- Row 10: Language Filter -->
+                        <RowConstraints/> <!-- Row 11: Generate button -->
                     </rowConstraints>
                 </GridPane>
                 <Label fx:id="statusText" styleClass="h3" text="Status..."/>

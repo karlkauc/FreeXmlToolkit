@@ -130,6 +130,30 @@ public class XsdDocumentationImageService {
     Map<String, XsdExtendedElement> extendedXsdElements;
 
     /**
+     * Flag to control whether documentation is displayed in the SVG diagram.
+     * When true (default), documentation from the root element is shown below the element box.
+     */
+    private boolean showDocumentation = true;
+
+    /**
+     * Sets whether documentation should be displayed in the SVG diagram.
+     *
+     * @param showDocumentation true to show documentation, false to hide it
+     */
+    public void setShowDocumentation(boolean showDocumentation) {
+        this.showDocumentation = showDocumentation;
+    }
+
+    /**
+     * Returns whether documentation is displayed in the SVG diagram.
+     *
+     * @return true if documentation is shown, false otherwise
+     */
+    public boolean isShowDocumentation() {
+        return showDocumentation;
+    }
+
+    /**
      * Constructs a new XsdDocumentationImageService with the given extended XSD elements.
      *
      * @param extendedXsdElements the extended XSD elements
@@ -333,8 +357,10 @@ public class XsdDocumentationImageService {
         // Calculate the actual total height of child elements
         double totalChildElementsHeight = calculateTotalChildElementsHeight(childElements);
 
-        // Calculate documentation height before positioning
-        double docHeightTotal = calculateDocumentationHeight(rootElement.getDocumentations(), rootElementWidth);
+        // Calculate documentation height before positioning (only if documentation should be shown)
+        double docHeightTotal = showDocumentation
+                ? calculateDocumentationHeight(rootElement.getDocumentations(), rootElementWidth)
+                : 0;
 
         // Center the root element vertically in the middle of child elements, but ensure it's not positioned above the top margin
         int rootStartX = margin * 2;
@@ -361,9 +387,11 @@ public class XsdDocumentationImageService {
         svgRoot.appendChild(leftRootLink);
         updateMaxRightEdge(maxRightEdge, rootStartX + boxPadding * 2 + rootElementWidth);
 
-        // Add documentation
-        generateModernDocumentationElement(document, rootElement.getDocumentations(),
-                rootElementWidth, rootElementHeight, rootStartX, rootStartY);
+        // Add documentation (only if showDocumentation is enabled)
+        if (showDocumentation) {
+            generateModernDocumentationElement(document, rootElement.getDocumentations(),
+                    rootElementWidth, rootElementHeight, rootStartX, rootStartY);
+        }
 
         // Symmetric positioning of child elements with more space for cardinality
         final double rightStartX = rootStartX + boxPadding * 2 + rootElementWidth + gapBetweenSides + 40;

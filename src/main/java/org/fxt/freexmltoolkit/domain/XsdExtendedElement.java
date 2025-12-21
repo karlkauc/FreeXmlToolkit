@@ -124,6 +124,7 @@ public class XsdExtendedElement implements Serializable {
 
     /**
      * Retrieves the language-specific documentation.
+     * Language codes are normalized to lowercase for case-insensitive handling.
      *
      * @return A map of language codes to documentation content.
      */
@@ -133,9 +134,47 @@ public class XsdExtendedElement implements Serializable {
         }
         return documentations.stream()
                 .collect(Collectors.toMap(
-                        doc -> doc.lang() != null ? doc.lang() : "default",
+                        doc -> doc.lang() != null ? doc.lang().toLowerCase() : "default",
                         doc -> useMarkdownRenderer ? renderer.render(parser.parse(doc.content())) : doc.content(),
                         (existing, replacement) -> existing // In case of duplicate langs, keep first
+                ));
+    }
+
+    /**
+     * Retrieves language-specific documentation filtered by the provided languages.
+     * Falls back to "default" language if selected languages are not available.
+     * Language comparison is case-insensitive ("en", "EN", "En" are treated as the same).
+     *
+     * @param includedLanguages Set of languages to include. If null or empty, returns all languages.
+     * @return A LinkedHashMap of language codes to documentation content (preserves order).
+     */
+    public Map<String, String> getFilteredLanguageDocumentation(Set<String> includedLanguages) {
+        if (documentations == null || documentations.isEmpty()) {
+            return Map.of();
+        }
+
+        // If no filter specified, return all languages
+        if (includedLanguages == null || includedLanguages.isEmpty()) {
+            return getLanguageDocumentation();
+        }
+
+        // Create lowercase set for case-insensitive comparison
+        Set<String> lowerCaseFilter = includedLanguages.stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+        // Filter documentation by included languages, always including "default" as fallback
+        return documentations.stream()
+                .filter(doc -> {
+                    String lang = doc.lang() != null ? doc.lang().toLowerCase() : "default";
+                    // Include if language is selected OR if it's "default" (fallback behavior)
+                    return lowerCaseFilter.contains(lang) || "default".equals(lang);
+                })
+                .collect(Collectors.toMap(
+                        doc -> doc.lang() != null ? doc.lang().toLowerCase() : "default",
+                        doc -> useMarkdownRenderer ? renderer.render(parser.parse(doc.content())) : doc.content(),
+                        (existing, replacement) -> existing, // In case of duplicate langs, keep first
+                        LinkedHashMap::new // Preserve insertion order
                 ));
     }
 

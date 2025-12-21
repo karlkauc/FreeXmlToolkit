@@ -80,6 +80,19 @@ public class XsdDocumentationHtmlService {
         this.xsdDocumentationData = xsdDocumentationData;
     }
 
+    // Language configuration for filtering documentation output
+    private Set<String> includedLanguages = null;
+
+    /**
+     * Sets the languages to include in documentation output.
+     * Pass null to include all languages.
+     *
+     * @param languages Set of language codes to include, or null for all
+     */
+    public void setIncludedLanguages(Set<String> languages) {
+        this.includedLanguages = languages;
+    }
+
     void generateRootPage() {
         generateSearchIndex();
 
@@ -317,7 +330,8 @@ public class XsdDocumentationHtmlService {
             context.setVariable("element", element);
 
             // Die fehlenden Variablen aus dem 'element'-Objekt auslesen und an das Template übergeben
-            context.setVariable("documentation", element.getLanguageDocumentation());
+            // Use filtered language documentation if language filter is configured
+            context.setVariable("documentation", element.getFilteredLanguageDocumentation(includedLanguages));
             context.setVariable("sampleData", element.getDisplaySampleData());
             context.setVariable("appInfos", element.getGenericAppInfos());
             context.setVariable("code", element.getSourceCode());
@@ -893,7 +907,18 @@ public class XsdDocumentationHtmlService {
 
     public String getChildDocumentation(String xpath) {
         XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
-        return (element != null) ? element.getDocumentationAsHtml() : "";
+        if (element == null) {
+            return "";
+        }
+
+        // Use filtered documentation and return first available language
+        Map<String, String> filteredDocs = element.getFilteredLanguageDocumentation(includedLanguages);
+        if (filteredDocs.isEmpty()) {
+            return "";
+        }
+
+        // Return first matching language's documentation for table display
+        return filteredDocs.values().iterator().next();
     }
 
     public boolean isChildTypeLinkable(String childXPath) {
