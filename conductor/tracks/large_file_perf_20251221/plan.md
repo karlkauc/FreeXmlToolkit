@@ -10,6 +10,6 @@
 ## Phase 2: Memory-Efficient Visual Tree Rendering
 - [x] Task: Write Tests - Virtualized Tree Rendering (853c82c6)
 - [ ] Task: Implement Lazy Loading in `XsdVisualTreeBuilder`
-- [ ] Task: Write Tests - Canvas View Performance
+- [~] Task: Write Tests - Canvas View Performance
 - [ ] Task: Optimize `XmlCanvasView` for Large Documents
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Memory-Efficient Visual Tree Rendering' (Protocol in workflow.md)
