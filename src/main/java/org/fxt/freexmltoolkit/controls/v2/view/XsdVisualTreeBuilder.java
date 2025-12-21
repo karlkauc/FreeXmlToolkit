@@ -803,6 +803,6 @@ public class XsdVisualTreeBuilder {
      */
     public Map<String, VisualNode> getNodeMap() {
         return nodeMap;
-    }}
+        }
 
 }
