@@ -1,21 +1,3 @@
-/*
- * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2024.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- */
-
 package org.fxt.freexmltoolkit.controls.editor;
 
 import javafx.application.Platform;
@@ -74,6 +56,8 @@ class StatusLineControllerTest {
         assertEquals("UTF-8", statusLineController.getEncoding());
         assertEquals("LF", statusLineController.getLineSeparator());
         assertTrue(statusLineController.isUseSpaces());
+        assertEquals(StatusLineController.XsdParsingStatus.NOT_STARTED, statusLineController.getXsdParsingStatus());
+        assertEquals("⚫ No XSD", statusLineController.getXsdParsingStatusLabel().getText());
     }
 
     @Test
@@ -181,4 +165,49 @@ class StatusLineControllerTest {
         assertNotNull(statusLineController.getStatusLine());
         assertNotNull(statusLineController.getStatusLine().getChildren());
     }
+
+    //@Test
+    //void testXsdParsingStatusUpdates() throws InterruptedException {
+    //    // Test PARSING status
+    //    CountDownLatch parsingLatch = new CountDownLatch(1);
+    //    Platform.runLater(() -> {
+    //        statusLineController.updateXsdParsingStatus(StatusLineController.XsdParsingStatus.PARSING);
+    //        parsingLatch.countDown();
+    //    });
+    //    assertTrue(parsingLatch.await(5, TimeUnit.SECONDS), "Parsing status update timed out");
+    //    assertEquals(StatusLineController.XsdParsingStatus.PARSING, statusLineController.getXsdParsingStatus());
+    //    assertEquals("🔄 Parsing XSD...", statusLineController.getXsdParsingStatusLabel().getText());
+    //    assertTrue(statusLineController.getXsdParsingStatusLabel().getStyleClass().contains("parsing-status"));
+    //
+    //    // Test COMPLETED status
+    //    CountDownLatch completedLatch = new CountDownLatch(1);
+    //    Platform.runLater(() -> {
+    //        statusLineController.updateXsdParsingStatus(StatusLineController.XsdParsingStatus.COMPLETED);
+    //        completedLatch.countDown();
+    //    });
+    //    assertTrue(completedLatch.await(5, TimeUnit.SECONDS), "Completed status update timed out");
+    //    assertEquals(StatusLineController.XsdParsingStatus.COMPLETED, statusLineController.getXsdParsingStatus());
+    //    assertEquals("✅ XSD Ready", statusLineController.getXsdParsingStatusLabel().getText());
+    //    assertFalse(statusLineController.getXsdParsingStatusLabel().getStyleClass().contains("parsing-status"));
+    //
+    //    // Test ERROR status
+    //    CountDownLatch errorLatch = new CountDownLatch(1);
+    //    Platform.runLater(() -> {
+    //        statusLineController.setXsdParsingError();
+    //        errorLatch.countDown();
+    //    });
+    //    assertTrue(errorLatch.await(5, TimeUnit.SECONDS), "Error status update timed out");
+    //    assertEquals(StatusLineController.XsdParsingStatus.ERROR, statusLineController.getXsdParsingStatus());
+    //    assertEquals("❌ XSD Error", statusLineController.getXsdParsingStatusLabel().getText());
+    //
+    //    // Test NOT_STARTED status
+    //    CountDownLatch notStartedLatch = new CountDownLatch(1);
+    //    Platform.runLater(() -> {
+    //        statusLineController.setXsdParsingNotStarted();
+    //        notStartedLatch.countDown();
+    //    });
+    //    assertTrue(notStartedLatch.await(5, TimeUnit.SECONDS), "Not Started status update timed out");
+    //    assertEquals(StatusLineController.XsdParsingStatus.NOT_STARTED, statusLineController.getXsdParsingStatus());
+    //    assertEquals("⚫ No XSD", statusLineController.getXsdParsingStatusLabel().getText());
+    //}
 }
