@@ -288,6 +288,13 @@ public class XmlCanvasView extends Pane {
         rebuildTree();
     }
 
+    private void onLayoutChanged() {
+        layoutDirty = true;
+        ensureLayout();
+        updateScrollBars();
+        render();
+    }
+
     // ==================== Layout ====================
 
     @Override
@@ -549,6 +556,9 @@ public class XmlCanvasView extends Pane {
                 if (selectedNode != null && !selectedNode.isExpanded() && selectedNode.hasChildren()) {
                     // Expand if collapsed
                     selectedNode.setExpanded(true);
+                    if (selectedNode.hasMoreChildren()) {
+                        selectedNode.loadMoreChildren();
+                    }
                     layoutDirty = true;
                     ensureLayout();
                     updateScrollBars();
@@ -564,6 +574,9 @@ public class XmlCanvasView extends Pane {
                     // If has children, toggle expand
                     if (selectedNode.hasChildren()) {
                         selectedNode.toggleExpanded();
+                        if (selectedNode.isExpanded() && selectedNode.hasMoreChildren()) {
+                            selectedNode.loadMoreChildren();
+                        }
                         layoutDirty = true;
                         ensureLayout();
                         updateScrollBars();
@@ -774,6 +787,9 @@ public class XmlCanvasView extends Pane {
             // Single click = expand/collapse
             if (hitNode.hasChildren()) {
                 hitNode.toggleExpanded();
+                if (hitNode.isExpanded() && hitNode.hasMoreChildren()) {
+                    hitNode.loadMoreChildren();
+                }
                 layoutDirty = true;
                 ensureLayout();
                 updateScrollBars();
@@ -1024,6 +1040,9 @@ public class XmlCanvasView extends Pane {
         if (expandButtonClick && node.hasExpandableContent()) {
             // Toggle expand/collapse
             node.setExpanded(!node.isExpanded());
+            if (node.isExpanded() && node.hasMoreChildren()) {
+                node.loadMoreChildren();
+            }
             layoutDirty = true;
             ensureLayout();
             updateScrollBars();
@@ -1031,6 +1050,9 @@ public class XmlCanvasView extends Pane {
         } else if (headerClick && clickCount == 1 && node.hasExpandableContent()) {
             // Single click on header = expand/collapse
             node.setExpanded(!node.isExpanded());
+            if (node.isExpanded() && node.hasMoreChildren()) {
+                node.loadMoreChildren();
+            }
             layoutDirty = true;
             ensureLayout();
             updateScrollBars();
@@ -1255,7 +1277,7 @@ public class XmlCanvasView extends Pane {
             return;
         }
 
-        rootNode = NestedGridNode.buildTree(doc);
+        rootNode = NestedGridNode.buildTree(doc, this::onLayoutChanged);
 
         // Restore expand state after rebuild
         if (expandState != null && !expandState.isEmpty()) {
@@ -1486,6 +1508,9 @@ public class XmlCanvasView extends Pane {
                     totalChildren += table.getElementCount();
                 }
                 String childCount = "(" + totalChildren + ")";
+                if (node.hasMoreChildren()) {
+                    childCount += " ...";
+                }
                 gc.setFont(SMALL_FONT);
                 gc.setFill(TEXT_SECONDARY);
                 gc.setTextAlign(TextAlignment.RIGHT);

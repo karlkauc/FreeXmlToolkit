@@ -54,7 +54,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Attribute columns should be sortable")
         void attributeColumnsShouldBeSortable() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             assertTrue(table.isColumnSortable("name"), "Attribute 'name' should be sortable");
             assertTrue(table.isColumnSortable("price"), "Attribute 'price' should be sortable");
@@ -63,7 +63,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Non-existent columns should not be sortable")
         void nonExistentColumnsShouldNotBeSortable() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             assertFalse(table.isColumnSortable("nonexistent"), "Non-existent column should not be sortable");
         }
@@ -76,7 +76,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Should detect numeric columns")
         void shouldDetectNumericColumns() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             assertEquals(RepeatingElementsTable.ColumnDataType.NUMERIC,
                     table.detectColumnDataType("price"),
@@ -86,7 +86,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Should detect string columns")
         void shouldDetectStringColumns() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             assertEquals(RepeatingElementsTable.ColumnDataType.STRING,
                     table.detectColumnDataType("name"),
@@ -110,7 +110,7 @@ class SortElementsCommandTest {
             parent.addChild(e2);
             dateElements.add(e2);
 
-            RepeatingElementsTable table = new RepeatingElementsTable("event", dateElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("event", dateElements, null, 0, () -> {});
 
             assertEquals(RepeatingElementsTable.ColumnDataType.DATE,
                     table.detectColumnDataType("date"),
@@ -125,7 +125,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Should sort by string column ascending")
         void shouldSortByStringColumnAscending() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             SortElementsCommand cmd = new SortElementsCommand(table, "name", true);
             boolean result = cmd.execute();
@@ -142,7 +142,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Should sort by string column descending")
         void shouldSortByStringColumnDescending() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             SortElementsCommand cmd = new SortElementsCommand(table, "name", false);
             boolean result = cmd.execute();
@@ -159,7 +159,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Should sort by numeric column ascending")
         void shouldSortByNumericColumnAscending() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             SortElementsCommand cmd = new SortElementsCommand(table, "price", true);
             boolean result = cmd.execute();
@@ -181,7 +181,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Should undo sorting and restore original order")
         void shouldUndoSorting() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             // Remember original order
             String originalFirst = ((XmlElement) parentElement.getChildren().get(0)).getAttribute("name");
@@ -206,7 +206,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Should not undo if not executed")
         void shouldNotUndoIfNotExecuted() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             SortElementsCommand cmd = new SortElementsCommand(table, "name", true);
             // Don't execute
@@ -223,7 +223,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Should return correct description for ascending sort")
         void shouldReturnAscendingDescription() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             SortElementsCommand cmd = new SortElementsCommand(table, "name", true);
 
@@ -234,7 +234,7 @@ class SortElementsCommandTest {
         @Test
         @DisplayName("Should return correct description for descending sort")
         void shouldReturnDescendingDescription() {
-            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, null, 0, () -> {});
 
             SortElementsCommand cmd = new SortElementsCommand(table, "price", false);
 

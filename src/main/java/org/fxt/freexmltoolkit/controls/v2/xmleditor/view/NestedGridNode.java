@@ -38,6 +38,7 @@ public class NestedGridNode {
     public static final double MIN_GRID_WIDTH = 200;
     public static final double ATTR_NAME_WIDTH = 120;
     public static final int MAX_DEPTH = 30;
+    public static final int MAX_INITIAL_CHILDREN = 50; // Max children to load initially
 
     // ==================== Model ====================
 
@@ -71,11 +72,14 @@ public class NestedGridNode {
     private boolean hovered = false;
     private boolean headerHovered = false;
     private boolean skipOwnHeader = false;  // If true, don't render own header (for inline children display)
+    private boolean hasMoreChildren = false; // Indicates if there are more children in the model not yet loaded
+    private int nextChildIndexToLoad = 0; // The index of the next child to load from the model's children list
 
     // ==================== Property Change Support ====================
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private PropertyChangeListener modelListener;
+    private final Runnable onLayoutChangedCallback;
 
     // ==================== Node Type Enum ====================
 
@@ -106,10 +110,11 @@ public class NestedGridNode {
 
     // ==================== Constructor ====================
 
-    public NestedGridNode(XmlNode modelNode, NestedGridNode parent, int depth) {
+    public NestedGridNode(XmlNode modelNode, NestedGridNode parent, int depth, Runnable onLayoutChangedCallback) {
         this.modelNode = modelNode;
         this.parent = parent;
         this.depth = depth;
+        this.onLayoutChangedCallback = onLayoutChangedCallback;
 
         updateFromModel();
         setupModelListener();
@@ -212,7 +217,7 @@ public class NestedGridNode {
      * The tree starts with the root element, not with the Document node.
      * Only the root node is expanded; all children are collapsed by default.
      */
-    public static NestedGridNode buildTree(XmlDocument document) {
+    public static NestedGridNode buildTree(XmlDocument document, Runnable onLayoutChangedCallback) {
         // Find the root element (skip processing instructions, comments, etc.)
         XmlElement rootElement = null;
         for (XmlNode child : document.getChildren()) {
@@ -224,15 +229,15 @@ public class NestedGridNode {
 
         // If no root element found, fall back to document node
         if (rootElement == null) {
-            NestedGridNode root = new NestedGridNode(document, null, 0);
-            buildChildren(root, document.getChildren(), 1);
+            NestedGridNode root = new NestedGridNode(document, null, 0, onLayoutChangedCallback);
+            buildChildren(root, document.getChildren(), 1, 0, MAX_INITIAL_CHILDREN, onLayoutChangedCallback);
             root.expanded = true;  // Only root is expanded
             return root;
         }
 
         // Build tree starting from root element
-        NestedGridNode root = new NestedGridNode(rootElement, null, 0);
-        buildChildren(root, rootElement.getChildren(), 1);
+        NestedGridNode root = new NestedGridNode(rootElement, null, 0, onLayoutChangedCallback);
+        buildChildren(root, rootElement.getChildren(), 1, 0, MAX_INITIAL_CHILDREN, onLayoutChangedCallback);
 
         // Only root is expanded - all children start collapsed (default)
         root.expanded = true;
@@ -244,9 +249,9 @@ public class NestedGridNode {
      * Builds a NestedGridNode from an XmlElement with all its children.
      * Used for creating child grids in expanded table cells.
      */
-    public static NestedGridNode buildFromElement(XmlElement element, int depth) {
-        NestedGridNode node = new NestedGridNode(element, null, depth);
-        buildChildren(node, element.getChildren(), depth + 1);
+    public static NestedGridNode buildFromElement(XmlElement element, int depth, Runnable onLayoutChangedCallback) {
+        NestedGridNode node = new NestedGridNode(element, null, depth, onLayoutChangedCallback);
+        buildChildren(node, element.getChildren(), depth + 1, 0, MAX_INITIAL_CHILDREN, onLayoutChangedCallback);
         node.setExpanded(true);  // Start expanded
         return node;
     }
@@ -260,17 +265,30 @@ public class NestedGridNode {
      * @param depth   The depth level for rendering
      * @return A container node with only the children (no header for the element itself)
      */
-    public static NestedGridNode buildChildrenOnly(XmlElement element, int depth) {
+    public static NestedGridNode buildChildrenOnly(XmlElement element, int depth, Runnable onLayoutChangedCallback) {
         // Create a "virtual" container node that just holds children
-        NestedGridNode container = new NestedGridNode(element, null, depth);
+        NestedGridNode container = new NestedGridNode(element, null, depth, onLayoutChangedCallback);
         container.setSkipOwnHeader(true);  // Flag to skip rendering own header
-        buildChildren(container, element.getChildren(), depth);
+        buildChildren(container, element.getChildren(), depth, 0, MAX_INITIAL_CHILDREN, onLayoutChangedCallback);
         container.setExpanded(true);
         return container;
     }
 
-    private static void buildChildren(NestedGridNode parent, List<XmlNode> children, int depth) {
+    private static void buildChildren(NestedGridNode parent, List<XmlNode> modelChildren, int depth, Runnable onLayoutChangedCallback) {
+        buildChildren(parent, modelChildren, depth, 0, MAX_INITIAL_CHILDREN, onLayoutChangedCallback);
+    }
+
+    private static void buildChildren(NestedGridNode parent, List<XmlNode> modelChildren, int depth, int loadOffset, int loadLimit, Runnable onLayoutChangedCallback) {
         if (depth > MAX_DEPTH) return;
+
+        // If this is the initial load, clear existing children and repeating tables.
+        // For subsequent loads (loadMoreChildren), children are appended.
+        if (loadOffset == 0) {
+            parent.children.clear();
+            parent.repeatingTables.clear(); // Clear tables too
+            parent.hasMoreChildren = false;
+            parent.nextChildIndexToLoad = 0;
+        }
 
         // If parent is a leaf element with only text content, don't add text children
         // The text is already displayed in the parent's header
@@ -278,58 +296,68 @@ public class NestedGridNode {
             return; // No children to add - text is shown inline
         }
 
-        // First, identify repeating elements (same name appearing 2+ times)
-        Map<String, List<XmlElement>> elementsByName = new LinkedHashMap<>();
-
-        for (XmlNode child : children) {
-            if (child instanceof XmlElement) {
-                XmlElement element = (XmlElement) child;
-                elementsByName.computeIfAbsent(element.getName(), k -> new ArrayList<>()).add(element);
-            }
+        // Only create tables on initial load, or if it's a new batch that includes the first repeating elements
+        if (loadOffset == 0) {
+            parent.repeatingTables.addAll(
+                RepeatingElementsTable.groupRepeatingElements(modelChildren, parent, depth, onLayoutChangedCallback).values()
+            );
         }
 
-        // Create tables for repeating elements (2+ with same name)
-        // Maintain original order (order of first occurrence in XML)
-        Set<String> groupedElementNames = new HashSet<>();
-        for (Map.Entry<String, List<XmlElement>> entry : elementsByName.entrySet()) {
-            if (entry.getValue().size() >= 2) {
-                RepeatingElementsTable table = new RepeatingElementsTable(
-                    entry.getKey(), entry.getValue(), parent, depth);
-                parent.repeatingTables.add(table);
-                groupedElementNames.add(entry.getKey());
+        // Collect names of elements that are part of repeating tables
+        Set<String> groupedElementNames = parent.repeatingTables.stream()
+            .map(RepeatingElementsTable::getElementName)
+            .collect(Collectors.toSet());
+
+        // Check if any element children exist in the full list
+        boolean hasElementChildrenInModel = modelChildren.stream().anyMatch(c -> c instanceof XmlElement);
+
+        int childrenAddedInThisCall = 0;
+        int currentModelIndex = loadOffset;
+
+        for (int i = loadOffset; i < modelChildren.size(); i++) {
+            if (childrenAddedInThisCall >= loadLimit) {
+                parent.hasMoreChildren = true;
+                parent.nextChildIndexToLoad = i;
+                break;
             }
-        }
 
-        // Check if there are any element children (not just text)
-        boolean hasElementChildren = !elementsByName.isEmpty();
+            XmlNode child = modelChildren.get(i);
 
-        // Add non-grouped elements as individual nodes
-        for (XmlNode child : children) {
             // Skip whitespace-only text nodes
             if (child instanceof XmlText) {
                 String text = ((XmlText) child).getText().trim();
                 if (text.isEmpty()) continue;
                 // Skip text nodes if parent has element children (mixed content)
                 // Text will be shown as #text row in parent, not as separate child
-                if (hasElementChildren) continue;
+                if (hasElementChildrenInModel) continue;
             }
 
-            // Skip elements that are in a repeating table
-            if (child instanceof XmlElement) {
-                XmlElement element = (XmlElement) child;
+            // Skip elements that are in a repeating table (already handled by RepeatingElementsTable)
+            if (child instanceof XmlElement element) {
                 if (groupedElementNames.contains(element.getName())) {
                     continue; // Already in a table
                 }
             }
 
-            NestedGridNode node = new NestedGridNode(child, parent, depth);
+            // Create and add NestedGridNode
+            NestedGridNode node = new NestedGridNode(child, parent, depth, onLayoutChangedCallback);
             parent.children.add(node);
+            childrenAddedInThisCall++;
 
-            // Recursively add children for elements
-            if (child instanceof XmlElement) {
-                XmlElement element = (XmlElement) child;
-                buildChildren(node, element.getChildren(), depth + 1);
+            // Recursively build children for this newly added node (always initial load for its children)
+            if (child instanceof XmlElement element) {
+                buildChildren(node, element.getChildren(), depth + 1, 0, MAX_INITIAL_CHILDREN, onLayoutChangedCallback);
             }
+
+            currentModelIndex = i + 1;
+        }
+
+        if (currentModelIndex < modelChildren.size()) {
+            parent.hasMoreChildren = true;
+            parent.nextChildIndexToLoad = currentModelIndex;
+        } else {
+            parent.hasMoreChildren = false;
+            parent.nextChildIndexToLoad = modelChildren.size();
         }
     }
 
@@ -579,7 +607,7 @@ public class NestedGridNode {
     public NestedGridNode getParent() { return parent; }
     public List<NestedGridNode> getChildren() { return children; }
     public List<RepeatingElementsTable> getRepeatingTables() { return repeatingTables; }
-    public boolean hasChildren() { return !children.isEmpty() || !repeatingTables.isEmpty(); }
+    public boolean hasChildren() { return !children.isEmpty() || !repeatingTables.isEmpty() || hasMoreChildren; }
     public boolean hasIndividualChildren() { return !children.isEmpty(); }
     public boolean hasRepeatingTables() { return !repeatingTables.isEmpty(); }
     public int getDepth() { return depth; }
@@ -643,12 +671,59 @@ public class NestedGridNode {
         this.skipOwnHeader = skipOwnHeader;
     }
 
+    public boolean hasMoreChildren() { return hasMoreChildren; }
+    public void setHasMoreChildren(boolean hasMoreChildren) {
+        this.hasMoreChildren = hasMoreChildren;
+    }
+
+    public int getNextChildIndexToLoad() { return nextChildIndexToLoad; }
+    public void setNextChildIndexToLoad(int nextChildIndexToLoad) {
+        this.nextChildIndexToLoad = nextChildIndexToLoad;
+    }
+
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(listener);
     }
 
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         pcs.removePropertyChangeListener(listener);
+    }
+
+    /**
+     * Loads additional children into this node.
+     * Starts from `nextChildIndexToLoad` and adds up to `MAX_INITIAL_CHILDREN` more.
+     */
+    public void loadMoreChildren() {
+        if (!hasMoreChildren) {
+            return;
+        }
+
+        // Get the model children from the modelNode
+        List<XmlNode> modelChildren = Collections.emptyList();
+        if (modelNode instanceof XmlElement element) {
+            modelChildren = element.getChildren();
+        } else if (modelNode instanceof XmlDocument document) {
+            modelChildren = document.getChildren();
+        }
+
+        int currentChildrenCount = children.size();
+        int childrenToAdd = Math.min(MAX_INITIAL_CHILDREN, modelChildren.size() - nextChildIndexToLoad);
+
+        // Build more children
+        buildChildren(this, modelChildren, this.depth + 1, nextChildIndexToLoad, childrenToAdd, onLayoutChangedCallback);
+
+        // Update state
+        nextChildIndexToLoad += childrenToAdd;
+        if (nextChildIndexToLoad >= modelChildren.size()) {
+            hasMoreChildren = false;
+        }
+
+        // Notify UI to re-layout and re-render
+        if (onLayoutChangedCallback != null) {
+            onLayoutChangedCallback.run();
+        }
+
+        pcs.firePropertyChange("childrenLoaded", currentChildrenCount, children.size());
     }
 
     /**

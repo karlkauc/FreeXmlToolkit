@@ -94,6 +94,7 @@ public class RepeatingElementsTable {
     private final List<TableRow> rows = new ArrayList<>();
     private final NestedGridNode parentNode;
     private final int depth;
+    private final Runnable onLayoutChangedCallback;
 
     // ==================== Layout ====================
 
@@ -198,13 +199,13 @@ public class RepeatingElementsTable {
         public boolean isExpanded() { return expanded; }
         public void setExpanded(boolean expanded) { this.expanded = expanded; }
 
-        public NestedGridNode getOrCreateChildGrid(String columnName, int depth) {
+        public NestedGridNode getOrCreateChildGrid(String columnName, int depth, Runnable onLayoutChangedCallback) {
             if (!expandedChildGrids.containsKey(columnName)) {
                 XmlElement childElement = complexChildren.get(columnName);
                 if (childElement != null) {
                     // Use buildChildrenOnly to show only the children (not the element itself,
                     // since the column header already shows the element name)
-                    NestedGridNode childGrid = NestedGridNode.buildChildrenOnly(childElement, depth + 1);
+                    NestedGridNode childGrid = NestedGridNode.buildChildrenOnly(childElement, depth + 1, onLayoutChangedCallback);
                     expandedChildGrids.put(columnName, childGrid);
                 }
             }
@@ -215,11 +216,12 @@ public class RepeatingElementsTable {
     // ==================== Constructor ====================
 
     public RepeatingElementsTable(String elementName, List<XmlElement> elements,
-                                   NestedGridNode parentNode, int depth) {
+                                   NestedGridNode parentNode, int depth, Runnable onLayoutChangedCallback) {
         this.elementName = elementName;
         this.elements = new ArrayList<>(elements);
         this.parentNode = parentNode;
         this.depth = depth;
+        this.onLayoutChangedCallback = onLayoutChangedCallback;
 
         analyzeStructure();
         buildRows();
@@ -900,7 +902,7 @@ public class RepeatingElementsTable {
 
         // If now expanded, create the child grid
         if (row.isColumnExpanded(columnName)) {
-            NestedGridNode childGrid = row.getOrCreateChildGrid(columnName, depth);
+            NestedGridNode childGrid = row.getOrCreateChildGrid(columnName, depth, onLayoutChangedCallback);
             if (childGrid != null) {
                 // Position will be set during layout
                 childGrid.setExpanded(true);
@@ -1064,7 +1066,7 @@ public class RepeatingElementsTable {
      * @return Map of element name to table (only for elements appearing 2+ times)
      */
     public static Map<String, RepeatingElementsTable> groupRepeatingElements(
-            List<XmlNode> children, NestedGridNode parentNode, int depth) {
+            List<XmlNode> children, NestedGridNode parentNode, int depth, Runnable onLayoutChangedCallback) {
 
         // Count elements by name
         Map<String, List<XmlElement>> elementsByName = new LinkedHashMap<>();
@@ -1083,7 +1085,7 @@ public class RepeatingElementsTable {
         for (Map.Entry<String, List<XmlElement>> entry : elementsByName.entrySet()) {
             if (entry.getValue().size() >= 2) {
                 tables.put(entry.getKey(),
-                    new RepeatingElementsTable(entry.getKey(), entry.getValue(), parentNode, depth));
+                    new RepeatingElementsTable(entry.getKey(), entry.getValue(), parentNode, depth, onLayoutChangedCallback));
             }
         }
 
