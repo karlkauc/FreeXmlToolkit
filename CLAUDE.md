@@ -692,3 +692,5 @@ Platform.runLater(() -> {
 stelle sicher, dass das icon auch exisistiert bevor du es verwendest.
 - alle texte welche dem user angezeigt werden (fehlermeldunge, etc.) sollen auf englisch sein
 - alle @FXML methoden in den controllern müssen public sein. das module system verhindert sonst in den jlink/jpackage release den zugriff auf die methoden.
+- performance bei der bearbeitung von files ist sehr wichtig. alle daten welche im hintergrund geladen werden können sollen im hintergrund geladen werden. 
+- usability ist mehr sehr wichtig. wenn ein element grafisch bearbeitet wrid (egal welches) soll bei einer änderung (zum beispiel dem ändern eines wertes) bei der übernahme der werte in das modell, die ansicht so bleiben wie sie vorher ist. es sollen alle knoten so darsgestellt werden wie vor der bearbeitung. also auch aufgeklappt sein, wenn sie vorher aufgeklappt waren. ich möchte mehrere aktionen hintereinander ausführen können, ohne im arbeitsfluss unterbrochen zu werden (zum beispiel durch erneutes öffnen der knoten bis zu der stelle wo ich vorher war)

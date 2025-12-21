@@ -32,6 +32,12 @@ public class StatusLineController {
     private final Label indentationLabel = new Label();
     private final Label documentInfoLabel = new Label("Ready");
     private final Label xsdParsingStatusLabel = new Label();
+    
+    // Public getter for testing
+    public Label getXsdParsingStatusLabel() {
+        return xsdParsingStatusLabel;
+    }
+
 
     // File properties for status line
     private String currentEncoding = "UTF-8";

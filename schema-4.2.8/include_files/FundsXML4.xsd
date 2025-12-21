@@ -1,0 +1,855 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2021 (x64) (http://www.altova.com) by Peter Raffelsberger (Private) -->
+<!-- edited with XMLSpy v2011 rel. 3 sp1 (x64) (http://www.altova.com) by Fabrice Puziak (Kneip) -->
+<!-- Mit XMLSpy v2014 rel. 2 sp1 (x64) (http://www.altova.com) von newmagic datensysteme gmbh (newmagic datensysteme gmbh) bearbeitet -->
+<xs:schema xmlns:altova="http://www.altova.com/xml-schema-extensions"
+           xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+           xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           vc:minVersion="1.1"
+           version="4.2.8">
+   <xs:include schemaLocation="FundsXML4_Core.xsd"/>
+   <xs:include schemaLocation="FundsXML4_CountrySpecificData.xsd"/>
+   <xs:include schemaLocation="FundsXML4_FundStaticData.xsd"/>
+   <xs:include schemaLocation="FundsXML4_FundDynamicData.xsd"/>
+   <xs:include schemaLocation="FundsXML4_ShareClassData.xsd"/>
+   <xs:include schemaLocation="FundsXML4_AssetMasterData.xsd"/>
+   <xs:include schemaLocation="FundsXML4_AssetMgmtCompDynData.xsd"/>
+   <xs:include schemaLocation="FundsXML4_RegulatoryReporting_EMIR.xsd"/>
+   <xs:include schemaLocation="FundsXML4_RegulatoryReporting_EMT.xsd"/>
+   <xs:include schemaLocation="FundsXML4_RegulatoryReporting_KIID.xsd"/>
+   <xs:include schemaLocation="FundsXML4_RegulatoryReporting_PRIIPS.xsd"/>
+   <xs:include schemaLocation="FundsXML4_RegulatoryReporting_SolvencyII.xsd"/>
+   <xs:include schemaLocation="FundsXML4_RegulatoryReporting_EFT.xsd"/>
+   <xs:include schemaLocation="FundsXML4_RegulatoryReporting_EET.xsd"/>
+   <xs:import namespace="http://www.w3.org/2000/09/xmldsig#"
+              schemaLocation="xmldsig-core-schema.xsd"/>
+   <xs:element name="FundsXML4">
+      <xs:annotation>
+         <xs:documentation>Root element of FundsXML 4.2.8</xs:documentation>
+      </xs:annotation>
+      <xs:complexType>
+         <xs:sequence>
+            <xs:element name="ControlData" type="ControlDataType">
+               <xs:annotation>
+                  <xs:documentation>Meta data of xml document (like unique id, date, data supplier, language, ...)</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="Funds">
+               <xs:annotation>
+                  <xs:documentation>List of funds, umbrellas, sicavs, portfolios ...</xs:documentation>
+               </xs:annotation>
+               <xs:complexType>
+                  <xs:sequence>
+                     <xs:element maxOccurs="unbounded" name="Fund" type="FundType">
+                        <xs:annotation>
+                           <xs:documentation>All single fund, umbrella, sicav, portfolio related data</xs:documentation>
+                        </xs:annotation>
+                        <xs:key name="benchmarkID">
+                           <xs:selector xpath="FundStaticData/Benchmarks/Benchmark"/>
+                           <xs:field xpath="BenchmarkID"/>
+                        </xs:key>
+                        <xs:keyref name="benchmarkDynamicRef" refer="benchmarkID">
+                           <xs:selector xpath="FundDynamicData/Benchmarks/Benchmark"/>
+                           <xs:field xpath="BenchmarkID"/>
+                        </xs:keyref>
+                     </xs:element>
+                  </xs:sequence>
+               </xs:complexType>
+            </xs:element>
+            <xs:element minOccurs="0"
+                        name="AssetMgmtCompanyDynData"
+                        type="AssetMgmtCompanyDynDataType">
+               <xs:annotation>
+                  <xs:documentation>Dynamic data of asset management companies</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="AssetMasterData" type="AssetMasterDataType">
+               <xs:annotation>
+                  <xs:documentation>Master data of securities, derivatives and all other portfolio assets</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="Documents" type="DocumentsType">
+               <xs:annotation>
+                  <xs:documentation>List of documents related to Fund / Subfunds / Share Classes (with link and/or content along with document attributes like type, format, language, ...)</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0"
+                        name="RegulatoryReportings"
+                        type="RegulatoryReportingsType">
+               <xs:annotation>
+                  <xs:documentation>Direct and indirect regulatory reporting</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0"
+                        name="CountrySpecificData"
+                        type="CountrySpecificDataType">
+               <xs:annotation>
+                  <xs:documentation>Country specific data on top level (as defined in 'FundsXML4_CountrySpecificData_xx.xsd')</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" ref="ds:Signature"/>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+   <xs:complexType name="SegmentStaticDataType">
+      <xs:annotation>
+         <xs:documentation xml:lang="en">All static data for Segments</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element minOccurs="0" name="InceptionDate" type="xs:date"/>
+         <xs:element minOccurs="0" name="LiquidationDate" type="xs:date"/>
+         <xs:element minOccurs="0" name="Manager" type="CompanyType"/>
+         <xs:element maxOccurs="unbounded" minOccurs="0" name="Description">
+            <xs:complexType>
+               <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                     <xs:attribute name="language" type="xs:language" use="required"/>
+                  </xs:extension>
+               </xs:simpleContent>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="CustomAttributes" type="AttributesType"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="SegmentDynamicDataType">
+      <xs:sequence>
+         <xs:element minOccurs="0" name="TotalAssetValues">
+            <xs:annotation>
+               <xs:documentation>Total NAV (volume) of fund</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded"
+                              name="TotalAssetValue"
+                              type="TotalAssetValueType"/>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="Portfolios">
+            <xs:annotation>
+               <xs:documentation>All portfolio related data</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="Portfolio" type="PortfolioType"/>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="DocumentType">
+      <xs:sequence>
+         <xs:element name="Type">
+            <xs:annotation>
+               <xs:documentation>Type of document</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:choice>
+                  <xs:element name="ListedType">
+                     <xs:annotation>
+                        <xs:documentation>Document Type with enumeration:
+AIFMD
+AnnualReport
+AuditReport
+Factsheet
+KID
+Prospectus
+PRIIPS-KID</xs:documentation>
+                     </xs:annotation>
+                     <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                           <xs:minLength value="3"/>
+                           <xs:maxLength value="12"/>
+                           <xs:enumeration value="AIFMD"/>
+                           <xs:enumeration value="AnnualReport"/>
+                           <xs:enumeration value="AuditReport"/>
+                           <xs:enumeration value="Factsheet"/>
+                           <xs:enumeration value="KID"/>
+                           <xs:enumeration value="Prospectus"/>
+                           <xs:enumeration value="PRIIPS-KID"/>
+                        </xs:restriction>
+                     </xs:simpleType>
+                  </xs:element>
+                  <xs:element name="UnlistedType">
+                     <xs:annotation>
+                        <xs:documentation>Description of other document types</xs:documentation>
+                     </xs:annotation>
+                     <xs:simpleType>
+                        <xs:restriction base="Text128Type">
+                           <xs:minLength value="1"/>
+                        </xs:restriction>
+                     </xs:simpleType>
+                  </xs:element>
+               </xs:choice>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="Version" type="Text64Type">
+            <xs:annotation>
+               <xs:documentation>Version of document</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Language" type="xs:language">
+            <xs:annotation>
+               <xs:documentation>Language of document</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="TranslationsAvailable" type="xs:boolean">
+            <xs:annotation>
+               <xs:documentation>Defines whether document is available in other languages as well</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="PublicationCountries">
+            <xs:annotation>
+               <xs:documentation>List of publication countries of document</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="Country" type="ISOCountryCodeType">
+                     <xs:annotation>
+                        <xs:documentation>Three letter ISO code of country</xs:documentation>
+                     </xs:annotation>
+                  </xs:element>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="Fund">
+            <xs:annotation>
+               <xs:documentation>Fund of document</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element name="Identifiers" type="IdentifiersType"/>
+                  <xs:element minOccurs="0" name="Name" type="Text256Type"/>
+                  <xs:element minOccurs="0" name="Currency" type="ISOCurrencyCodeType"/>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="Subfunds">
+            <xs:annotation>
+               <xs:documentation>Subfunds of document</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="Subfund">
+                     <xs:complexType>
+                        <xs:sequence>
+                           <xs:element name="Identifiers" type="IdentifiersType"/>
+                           <xs:element minOccurs="0" name="Name" type="Text256Type"/>
+                           <xs:element minOccurs="0" name="Currency" type="ISOCurrencyCodeType"/>
+                        </xs:sequence>
+                     </xs:complexType>
+                  </xs:element>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="ShareClasses">
+            <xs:annotation>
+               <xs:documentation>Share classes of document</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="ShareClass">
+                     <xs:complexType>
+                        <xs:sequence>
+                           <xs:element name="Identifiers" type="IdentifiersType"/>
+                           <xs:element minOccurs="0" name="Name" type="Text256Type"/>
+                           <xs:element minOccurs="0" name="Currency" type="ISOCurrencyCodeType"/>
+                        </xs:sequence>
+                     </xs:complexType>
+                  </xs:element>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="Name" type="Text256Type">
+            <xs:annotation>
+               <xs:documentation>Name of document</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="FileName" type="Text256Type">
+            <xs:annotation>
+               <xs:documentation>Name of file (including file extension)</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="ForPublicUsage" type="xs:boolean">
+            <xs:annotation>
+               <xs:documentation>Defines whether document can be published to the public</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="Restrictions" type="xs:string">
+            <xs:annotation>
+               <xs:documentation>Description of restrictions</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Format" type="Text256Type">
+            <xs:annotation>
+               <xs:documentation>Technical format of document:
+PDF, XML, Excel, Word, Image, ...</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="Signature">
+            <xs:annotation>
+               <xs:documentation>Defines whether signature is available:
+No, Digital, Scan</xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:enumeration value="No"/>
+                  <xs:enumeration value="Digital"/>
+                  <xs:enumeration value="Scan"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:element>
+         <xs:element minOccurs="0" name="CreationDate" type="xs:date">
+            <xs:annotation>
+               <xs:documentation>Date when document has been generated</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="ModificationDate" type="xs:date">
+            <xs:annotation>
+               <xs:documentation>Date of last change (e.g. for KID)</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="ExpirationDate" type="xs:date">
+            <xs:annotation>
+               <xs:documentation>Document is valid till this expiration date</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="DataSupplier" type="DataSupplierType">
+            <xs:annotation>
+               <xs:documentation>Data supplier of document</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="Attributes" type="AttributesType">
+            <xs:annotation>
+               <xs:documentation>Attributes of document (depending on type of document)</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="SizeInBytes" type="xs:positiveInteger">
+            <xs:annotation>
+               <xs:documentation>Size of document in bytes (exact size of binary data, estimated size in case of download)</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="DocumentURL" type="xs:anyURI">
+            <xs:annotation>
+               <xs:documentation>Link of document for downloading</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="BinaryData" type="xs:base64Binary">
+            <xs:annotation>
+               <xs:documentation>Document in xml base64Binary format</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="ControlDataType">
+      <xs:annotation>
+         <xs:documentation>Metadata for file delivery</xs:documentation>
+      </xs:annotation>
+      <xs:sequence>
+         <xs:element name="UniqueDocumentID" type="Text128Type">
+            <xs:annotation>
+               <xs:documentation>Document identifier (unique per data supplier)</xs:documentation>
+               <xs:appinfo>
+                  <altova:exampleValues>
+                     <altova:example value="20240830_0001"/>
+                  </altova:exampleValues>
+               </xs:appinfo>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="DocumentGenerated" type="xs:dateTime">
+            <xs:annotation>
+               <xs:documentation>Timestamp of document generation</xs:documentation>
+               <xs:appinfo>
+                  <altova:exampleValues>
+                     <altova:example value="2024-09-26T18:37:12.1559196+02:00"/>
+                  </altova:exampleValues>
+               </xs:appinfo>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="Version">
+            <xs:annotation>
+               <xs:documentation>FundsXML Schema Version (4.0.0, 4.0.1, 4.1.0, ...)</xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:enumeration value="4.0.0"/>
+                  <xs:enumeration value="4.0.1"/>
+                  <xs:enumeration value="4.1.0"/>
+                  <xs:enumeration value="4.1.1"/>
+                  <xs:enumeration value="4.1.2"/>
+                  <xs:enumeration value="4.1.3"/>
+                  <xs:enumeration value="4.1.4"/>
+                  <xs:enumeration value="4.1.5"/>
+                  <xs:enumeration value="4.1.6"/>
+                  <xs:enumeration value="4.1.7"/>
+                  <xs:enumeration value="4.1.8"/>
+                  <xs:enumeration value="4.1.9"/>
+                  <xs:enumeration value="4.1.10"/>
+                  <xs:enumeration value="4.1.11"/>
+                  <xs:enumeration value="4.2.0"/>
+                  <xs:enumeration value="4.2.1"/>
+                  <xs:enumeration value="4.2.2"/>
+                  <xs:enumeration value="4.2.3"/>
+                  <xs:enumeration value="4.2.4"/>
+                  <xs:enumeration value="4.2.5"/>
+                  <xs:enumeration value="4.2.6"/>
+                  <xs:enumeration value="4.2.7"/>
+                  <xs:enumeration value="4.2.8"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:element>
+         <xs:element name="ContentDate" type="xs:date">
+            <xs:annotation>
+               <xs:documentation>Main date for content, if not specified different within section</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="DataSupplier" type="DataSupplierType">
+            <xs:annotation>
+               <xs:documentation>Definition of data source (investment company, vendor, ...). Used only for information purpose.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="DataOperation">
+            <xs:annotation>
+               <xs:documentation>
+INITIAL: This refers to the first time data is delivered. It includes all the necessary information to set up or populate a system or database. 
+AMEND: This term is used when there are updates or changes to the existing data. An amendment might include corrections, additions, or modifications to the previously delivered data. It ensures that the data remains accurate and up-to-date.
+DELETE: This involves the removal of specific data from the system. It could be due to data being outdated, incorrect, or no longer needed. Deleting data helps in maintaining the relevance and efficiency of the database. DELETE requires a RelatedDocumentIDs that referes to the data delivery that should be deleted. 
+					</xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+               <xs:restriction base="xs:string">
+                  <xs:minLength value="5"/>
+                  <xs:maxLength value="7"/>
+                  <xs:enumeration value="INITIAL"/>
+                  <xs:enumeration value="AMEND"/>
+                  <xs:enumeration value="DELETE"/>
+               </xs:restriction>
+            </xs:simpleType>
+         </xs:element>
+         <xs:element minOccurs="0" name="RelatedDocumentIDs">
+            <xs:annotation>
+               <xs:documentation>Identifiers of related documents for non-initial data deliveries</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="RelatedDocumentID" type="Text128Type">
+                     <xs:annotation>
+                        <xs:appinfo>
+                           <altova:exampleValues>
+                              <altova:example value="20240830_0002"/>
+                           </altova:exampleValues>
+                        </xs:appinfo>
+                     </xs:annotation>
+                  </xs:element>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="Language" type="xs:language">
+            <xs:annotation>
+               <xs:documentation>ISO code of language with two characters. This is used as default if no other Language is specified.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="ModuleUsage">
+            <xs:annotation>
+               <xs:documentation>List of used schema modules. </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="Module">
+                     <xs:complexType>
+                        <xs:sequence>
+                           <xs:element name="Name">
+                              <xs:annotation>
+                                 <xs:documentation>Module name as listed in enumeration. Can be used to optimize imports.</xs:documentation>
+                              </xs:annotation>
+                              <xs:simpleType>
+                                 <xs:restriction base="xs:string">
+                                    <xs:enumeration value="AssetMasterData"/>
+                                    <xs:enumeration value="AssetMgmtCompDynData"/>
+                                    <xs:enumeration value="CountrySpecificData_AT"/>
+                                    <xs:enumeration value="CountrySpecificData_DE"/>
+                                    <xs:enumeration value="CountrySpecificData_DK"/>
+                                    <xs:enumeration value="CountrySpecificData_FR"/>
+                                    <xs:enumeration value="CountrySpecificData_LU"/>
+                                    <xs:enumeration value="CountrySpecificData_NL"/>
+                                    <xs:enumeration value="FundDynamicData"/>
+                                    <xs:enumeration value="FundStaticData"/>
+                                    <xs:enumeration value="PortfolioData"/>
+                                    <xs:enumeration value="RegulatoryReporting_EMIR"/>
+                                    <xs:enumeration value="RegulatoryReporting_EMT"/>
+                                    <xs:enumeration value="RegulatoryReporting_KIID"/>
+                                    <xs:enumeration value="RegulatoryReporting_PRIIPS"/>
+                                    <xs:enumeration value="RegulatoryReporting_SolvencyII"/>
+                                    <xs:enumeration value="ShareClassData"/>
+                                    <xs:enumeration value="TransactionData"/>
+                                 </xs:restriction>
+                              </xs:simpleType>
+                           </xs:element>
+                           <xs:element maxOccurs="unbounded"
+                                       minOccurs="0"
+                                       name="SubModule"
+                                       type="xs:string"/>
+                        </xs:sequence>
+                     </xs:complexType>
+                  </xs:element>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="CountrySpecificData">
+            <xs:annotation>
+               <xs:documentation>Country specific document data.</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element minOccurs="0" name="AT" type="CountrySpecificControlDataATType"/>
+                  <xs:element minOccurs="0" name="DE" type="CountrySpecificControlDataDEType"/>
+                  <xs:element minOccurs="0" name="DK" type="CountrySpecificControlDataDKType"/>
+                  <xs:element minOccurs="0" name="FR" type="CountrySpecificControlDataFRType"/>
+                  <xs:element minOccurs="0" name="LU" type="CountrySpecificControlDataLUType"/>
+                  <xs:element minOccurs="0" name="NL" type="CountrySpecificControlDataNLType"/>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="CustomAttributes" type="AttributesType">
+            <xs:annotation>
+               <xs:documentation>Additional information which does not fit into the nodes above</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="SegmentType">
+      <xs:sequence>
+         <xs:element name="Identifiers" type="IdentifiersType">
+            <xs:annotation>
+               <xs:documentation>Fund identifiers</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Name" type="Text500Type">
+            <xs:annotation>
+               <xs:documentation>Name of segment</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Currency" type="ISOCurrencyCodeType">
+            <xs:annotation>
+               <xs:documentation>Currency of segment</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="SegmentStaticData" type="SegmentStaticDataType">
+            <xs:annotation>
+               <xs:documentation>Inception, manager, description, ...</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0"
+                     name="SegmentDynamicData"
+                     type="SegmentDynamicDataType">
+            <xs:annotation>
+               <xs:documentation>Total asset values, portfolio data</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="ShareClasses">
+            <xs:annotation>
+               <xs:documentation>List of share classes of segment</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="ShareClass" type="ShareClassType">
+                     <xs:annotation>
+                        <xs:documentation>Static and dynamic data of a share class</xs:documentation>
+                     </xs:annotation>
+                  </xs:element>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="Segments">
+            <xs:annotation>
+               <xs:documentation>Data related to subsegments / subpockets of funds (typically managed by different fund managers)</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="Segment" type="SegmentType"/>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="RegulatoryReportingsType">
+      <xs:sequence>
+         <xs:element minOccurs="0" name="DirectReporting" type="DirectReportingType">
+            <xs:annotation>
+               <xs:documentation>Direct reporting according to European regulatory reporting frameworks</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="IndirectReporting" type="IndirectReportingType">
+            <xs:annotation>
+               <xs:documentation>Reporting data for investors</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="DirectReportingType">
+      <xs:sequence>
+         <xs:element minOccurs="0" name="EMIR" type="EMIRType">
+            <xs:annotation>
+               <xs:documentation>according to COMMISSION DELEGATED REGULATION (EU) No 148/2013
+of 19 December 2012
+supplementing Regulation (EU) No 648/2012 of the European Parliament and of the Council on OTC derivatives, central counterparties and trade repositories with regard to regulatory technical standards on the minimum details of the data to be reported to trade repositories</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="KIIDs" type="KIIDsType"/>
+         <xs:element minOccurs="0" name="EMT" type="EMTType">
+            <xs:annotation>
+               <xs:documentation>According to EUROPEAN MIFID TEMPLATE - EMT V1.0 as of 2017-08-03</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="EMT_V3" type="EMTType_V3">
+            <xs:annotation>
+               <xs:documentation>According to FinDatEx MiFID TEMPLATE V3.0 - EMT V3.0 as of 2019-11-25</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="EMT_V4" type="EMTType_V4">
+            <xs:annotation>
+               <xs:documentation>According to FinDatEx MiFID TEMPLATE - EMT V4.0 as of 2022-03-14</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="EMT_V4_1" type="EMTType_V41">
+            <xs:annotation>
+               <xs:documentation>According to FinDatEx MiFID TEMPLATE - EMT V4.1 as of 2023-03-07</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="EMT_V4_2" type="EMTType_V42">
+            <xs:annotation>
+               <xs:documentation>According to FinDatEx MiFID TEMPLATE - EMT V4.2 as of 2024-04-05</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="EFTs" type="EFTType">
+            <xs:annotation>
+               <xs:documentation>According to FinDatEx: EUROPEAN FEEDBACK TEMPLATE - EFT V1.0</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="EET1.0" type="EETsType">
+            <xs:annotation>
+               <xs:documentation>EUROPEAN ESG TEMPLATE - EET V1.0 2022-03-14</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="EET1.1" type="EETsType1.1">
+            <xs:annotation>
+               <xs:documentation>EUROPEAN ESG TEMPLATE - EET V1.1 </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="EET1.1.1" type="EETsType1.1.1">
+            <xs:annotation>
+               <xs:documentation>EUROPEAN ESG TEMPLATE - EET V1.1.1 </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="EET1.1.2" type="EETsType1.1.2">
+            <xs:annotation>
+               <xs:documentation>EUROPEAN ESG TEMPLATE - EET V1.1.2 </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="EET1.1.3" type="EETsType1.1.3">
+            <xs:annotation>
+               <xs:documentation>EUROPEAN ESG TEMPLATE - EET V1.1.3 </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="DocumentsType">
+      <xs:sequence>
+         <xs:element maxOccurs="unbounded" name="Document" type="DocumentType"/>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="FundType">
+      <xs:sequence>
+         <xs:element name="Identifiers" type="IdentifiersType">
+            <xs:annotation>
+               <xs:documentation>Identifiers of fund</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Names" type="NamesType">
+            <xs:annotation>
+               <xs:documentation>Names of fund</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Currency" type="ISOCurrencyCodeType">
+            <xs:annotation>
+               <xs:documentation>Main currency of fund (typically used by custodian for calculation of total NAV)</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="SingleFundFlag" type="xs:boolean">
+            <xs:annotation>
+               <xs:documentation>Defines whether this is a single fund or an umbrella like structure with subfunds</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="DataSupplier" type="DataSupplierType">
+            <xs:annotation>
+               <xs:documentation>Definition of data source (investment company, vendor, ...)</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="FundStaticData" type="FundStaticDataType">
+            <xs:annotation>
+               <xs:documentation>Main static data of fund (Fiscal Year, Custody, ...)</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="FundDynamicData" type="FundDynamicDataType">
+            <xs:annotation>
+               <xs:documentation>Dynamic data of fund (total values, holdings, transactions, breakdowns, ...)</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:choice minOccurs="0">
+            <xs:element name="SingleFund" type="SingleFundType">
+               <xs:annotation>
+                  <xs:documentation>Use this node for non-umbrella fund structures</xs:documentation>
+               </xs:annotation>
+            </xs:element>
+            <xs:element name="Subfunds">
+               <xs:annotation>
+                  <xs:documentation>Use this node for umbrella fund structures</xs:documentation>
+               </xs:annotation>
+               <xs:complexType>
+                  <xs:sequence>
+                     <xs:element maxOccurs="unbounded" name="Subfund" type="SubfundType">
+                        <xs:annotation>
+                           <xs:documentation>Static and dynamic data of a subfund</xs:documentation>
+                        </xs:annotation>
+                     </xs:element>
+                  </xs:sequence>
+               </xs:complexType>
+            </xs:element>
+         </xs:choice>
+         <xs:element minOccurs="0"
+                     name="CountrySpecificData"
+                     type="CountrySpecificFundDataType">
+            <xs:annotation>
+               <xs:documentation>Country specific data of fund (as defined in 'FundsXML4_CountrySpecificData_xx.xsd')</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="SubfundType">
+      <xs:sequence>
+         <xs:element name="Identifiers" type="IdentifiersType">
+            <xs:annotation>
+               <xs:documentation>Identifiers of subfund</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Names" type="NamesType">
+            <xs:annotation>
+               <xs:documentation>Names of subfund</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element name="Currency" type="ISOCurrencyCodeType">
+            <xs:annotation>
+               <xs:documentation>Currency of subfund</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="SubfundStaticData" type="SubfundStaticDataType">
+            <xs:annotation>
+               <xs:documentation>Static data of subfund (similar to static data of single fund)</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="SubfundDynamicData" type="FundDynamicDataType">
+            <xs:annotation>
+               <xs:documentation>Total asset values, portfolio data</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="ShareClasses">
+            <xs:annotation>
+               <xs:documentation>List of share classes of subfund</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="ShareClass" type="ShareClassType">
+                     <xs:annotation>
+                        <xs:documentation>Static and dynamic data of a share class</xs:documentation>
+                     </xs:annotation>
+                  </xs:element>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="Segments">
+            <xs:annotation>
+               <xs:documentation>Data related to segments/pockets of funds (typically managed by different fund managers)</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="Segment" type="SegmentType"/>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="SingleFundType">
+      <xs:sequence>
+         <xs:element minOccurs="0"
+                     name="SingleFundStaticData"
+                     type="SingleFundStaticDataType">
+            <xs:annotation>
+               <xs:documentation>Static data of single fund (similar to static data of subfund)</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="ShareClasses">
+            <xs:annotation>
+               <xs:documentation>List of share classes of single fund</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="ShareClass" type="ShareClassType">
+                     <xs:annotation>
+                        <xs:documentation>Static and dynamic data of a share class</xs:documentation>
+                     </xs:annotation>
+                  </xs:element>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+         <xs:element minOccurs="0" name="Segments">
+            <xs:annotation>
+               <xs:documentation>Data related to segments/pockets of funds (typically managed by different fund managers)</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element maxOccurs="unbounded" name="Segment" type="SegmentType"/>
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+   <xs:complexType name="IndirectReportingType">
+      <xs:sequence>
+         <xs:element minOccurs="0"
+                     name="TripartiteTemplateSolvencyII"
+                     type="TripartiteTemplateSolvencyIIType">
+            <xs:annotation>
+               <xs:documentation>Special enriched inventory for Solvency II. This XML implementation is compatible with the "Tripartite Template". It refers to version 4 dated 3/4/2018 of this "TPT V4" format.</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0"
+                     name="TripartiteTemplateSolvencyII_V5"
+                     type="TripartiteTemplateSolvencyIIType_V5">
+            <xs:annotation>
+               <xs:documentation>Special enriched inventory for Solvency II. This XML implementation is compatible with the "Tripartite Template". According to FinDatEx Version 5.0 Tripartite Template (TPT) for SII Asset Data reporting as of 2020-01-16</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0"
+                     name="TripartiteTemplateSolvencyII_V6"
+                     type="TripartiteTemplateSolvencyIIType_V6">
+            <xs:annotation>
+               <xs:documentation>Special enriched inventory for Solvency II. This XML implementation is compatible with the "Tripartite Template". According to FinDatEx Version 6.0 Tripartite Template (TPT) for SII Asset Data reporting as of 2022-03-14</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="PRIIPS" type="PRIIPSType">
+            <xs:annotation>
+               <xs:documentation>EPT 20170728 DRAFT  TEMPLATE 1.1 
+CEPT - 20170621  TEMPLATE 1.0</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="PRIIPS_V20" type="PRIIPSType_V20">
+            <xs:annotation>
+               <xs:documentation>EUROPEAN PRIIPs TEMPLATE - EPT V2.0 and EUROPEAN COMFORT PRIIPs TEMPLATE - CEPT  V2.0</xs:documentation>
+            </xs:annotation>
+         </xs:element>
+      </xs:sequence>
+   </xs:complexType>
+</xs:schema>

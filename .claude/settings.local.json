@@ -70,7 +70,9 @@
       "Bash(gh release:*)",
       "Bash(git tag:*)",
       "Bash(for cls in ErrorRecoveryManager MinimapView ModernXmlThemeManager UpdateNotificationDialog)",
-      "Bash(do echo \"=== $cls ===\")"
+      "Bash(do echo \"=== $cls ===\")",
+      "Bash(__NEW_LINE__ for cmd in /Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/commands/*.java)",
+      "Bash(do basename \"$cmd\" .java done)"
     ],
     "deny": []
   }
