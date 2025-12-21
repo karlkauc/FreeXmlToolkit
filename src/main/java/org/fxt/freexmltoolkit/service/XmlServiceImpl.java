@@ -234,15 +234,18 @@ public class XmlServiceImpl implements XmlService {
             this.cachedXsltFile = null;
         }
 
-        // output methode ermitteln!!
+        // Detect XSLT output method from xsl:output element
         try {
-            if (this.currentXsltFile != null) { // Ensure file is not null before trying to read
-                // Use Saxon to parse and evaluate XPath
+            if (this.currentXsltFile != null) {
                 net.sf.saxon.s9api.DocumentBuilder docBuilder = processor.newDocumentBuilder();
                 XdmNode doc = docBuilder.build(this.currentXsltFile);
 
-                final String expression = "/stylesheet/output/@method";
                 XPathCompiler xpathCompiler = processor.newXPathCompiler();
+                // Register XSLT namespace for namespace-aware XPath
+                xpathCompiler.declareNamespace("xsl", "http://www.w3.org/1999/XSL/Transform");
+
+                // Try namespace-prefixed expression first (standard XSLT files)
+                String expression = "/xsl:stylesheet/xsl:output/@method | /xsl:transform/xsl:output/@method";
                 XPathExecutable xpathExecutable = xpathCompiler.compile(expression);
                 XPathSelector xpathSelector = xpathExecutable.load();
                 xpathSelector.setContextItem(doc);
@@ -251,17 +254,31 @@ public class XmlServiceImpl implements XmlService {
 
                 if (result.size() > 0) {
                     String outputMethod = result.itemAt(0).getStringValue();
-                    logger.debug("Output Method: {}", outputMethod);
+                    logger.debug("Detected XSLT output method: {}", outputMethod);
                     this.xsltOutputMethod = outputMethod.trim().toLowerCase();
                 } else {
-                    this.xsltOutputMethod = null; // Reset if no method found
+                    // Fallback: try without namespace (for files with default namespace)
+                    String fallbackExpression = "/stylesheet/output/@method | /transform/output/@method";
+                    XPathExecutable fallbackExecutable = xpathCompiler.compile(fallbackExpression);
+                    XPathSelector fallbackSelector = fallbackExecutable.load();
+                    fallbackSelector.setContextItem(doc);
+                    XdmValue fallbackResult = fallbackSelector.evaluate();
+
+                    if (fallbackResult.size() > 0) {
+                        String outputMethod = fallbackResult.itemAt(0).getStringValue();
+                        logger.debug("Detected XSLT output method (fallback): {}", outputMethod);
+                        this.xsltOutputMethod = outputMethod.trim().toLowerCase();
+                    } else {
+                        logger.debug("No xsl:output/@method found in XSLT file");
+                        this.xsltOutputMethod = null;
+                    }
                 }
             } else {
-                this.xsltOutputMethod = null; // Reset if no XSLT file
+                this.xsltOutputMethod = null;
             }
         } catch (SaxonApiException e) {
-            logger.error("Could not detect output Method.");
-            logger.error(e.getMessage());
+            logger.error("Could not detect XSLT output method: {}", e.getMessage());
+            this.xsltOutputMethod = null;
         }
     }
 
