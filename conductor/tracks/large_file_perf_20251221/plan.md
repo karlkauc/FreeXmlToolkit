@@ -3,7 +3,7 @@
 ## Phase 1: Background Validation Infrastructure
 - [x] Task: Write Tests - Background Validation Logic (c2dcccee)
 - [x] Task: Implement Background Validation in `XmlValidationManager` (c2dcccee)
-- [ ] Task: Write Tests - Progress Reporting
+- [x] Task: Write Tests - Progress Reporting (a6bd0b8c)
 - [ ] Task: Implement Progress Indicators in `StatusLineController`
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Background Validation Infrastructure' (Protocol in workflow.md)
 
