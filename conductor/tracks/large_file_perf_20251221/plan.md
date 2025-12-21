@@ -1,0 +1,15 @@
+# Plan: Large File Performance Optimization and Stability
+
+## Phase 1: Background Validation Infrastructure
+- [ ] Task: Write Tests - Background Validation Logic
+- [ ] Task: Implement Background Validation in `XmlValidationManager`
+- [ ] Task: Write Tests - Progress Reporting
+- [ ] Task: Implement Progress Indicators in `StatusLineController`
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Background Validation Infrastructure' (Protocol in workflow.md)
+
+## Phase 2: Memory-Efficient Visual Tree Rendering
+- [ ] Task: Write Tests - Virtualized Tree Rendering
+- [ ] Task: Implement Lazy Loading in `XsdVisualTreeBuilder`
+- [ ] Task: Write Tests - Canvas View Performance
+- [ ] Task: Optimize `XmlCanvasView` for Large Documents
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Memory-Efficient Visual Tree Rendering' (Protocol in workflow.md)
