@@ -64,9 +64,10 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
     private static final String PROP_SKIPPED_VERSION = "update.skipped.version";
 
     /**
-     * Default version when not available from manifest
+     * Default version when not available from manifest.
+     * IMPORTANT: Keep this in sync with build.gradle.kts version when releasing!
      */
-    private static final String DEFAULT_VERSION = "1.0.0";
+    private static final String DEFAULT_VERSION = "1.1.0";
 
     // Lazy-initialized services to avoid circular dependency
     private PropertiesService propertiesService;
