@@ -4,7 +4,7 @@
 - [x] Task: Write Tests - Background Validation Logic (c2dcccee)
 - [x] Task: Implement Background Validation in `XmlValidationManager` (c2dcccee)
 - [ ] Task: Write Tests - Progress Reporting
-- [ ] Task: Implement Progress Indicators in `StatusLineController`
+- [x] Task: Implement Progress Indicators in `StatusLineController` (111d9b7f)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Background Validation Infrastructure' (Protocol in workflow.md)
 
 ## Phase 2: Memory-Efficient Visual Tree Rendering
