@@ -681,7 +681,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             if (newText != null && !newText.equals(oldText)) {
                 Platform.runLater(() -> {
                     try {
-                        codeAreaXpath.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText));
+                        codeAreaXpath.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter.computeHighlighting(newText));
                     } catch (Exception e) {
                         logger.debug("Error highlighting XPath: {}", e.getMessage());
                     }
@@ -705,7 +705,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             if (newText != null && !newText.equals(oldText)) {
                 Platform.runLater(() -> {
                     try {
-                        codeAreaXQuery.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText));
+                        codeAreaXQuery.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter.computeHighlighting(newText));
                     } catch (Exception e) {
                         logger.debug("Error highlighting XQuery: {}", e.getMessage());
                     }

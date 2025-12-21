@@ -145,33 +145,12 @@
                             <Label text="XML Editor Configuration"
                                    style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
 
-                            <!-- Editor Version Settings -->
+                            <!-- Editor Version Info -->
                             <VBox spacing="12" style="-fx-background-color: #e8f4e8; -fx-background-radius: 4px; -fx-padding: 16px;">
-                                <fx:define>
-                                    <ToggleGroup fx:id="xmlEditorVersion"/>
-                                </fx:define>
                                 <Label text="Editor Version"
                                        style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
-                                <VBox spacing="8">
-                                    <HBox spacing="10" alignment="CENTER_LEFT">
-                                        <RadioButton fx:id="xmlEditorV1" text="V1 Editor (Classic)">
-                                            <toggleGroup>
-                                                <fx:reference source="xmlEditorVersion"/>
-                                            </toggleGroup>
-                                        </RadioButton>
-                                        <Label text="- Stable, feature-complete" style="-fx-font-size: 10px; -fx-text-fill: #6c757d;"/>
-                                    </HBox>
-                                    <HBox spacing="10" alignment="CENTER_LEFT">
-                                        <RadioButton fx:id="xmlEditorV2" text="V2 Editor (Modern)">
-                                            <toggleGroup>
-                                                <fx:reference source="xmlEditorVersion"/>
-                                            </toggleGroup>
-                                        </RadioButton>
-                                        <Label text="- New architecture, experimental" style="-fx-font-size: 10px; -fx-text-fill: #6c757d;"/>
-                                    </HBox>
-                                </VBox>
-                                <Label text="Note: Changes take effect after reopening XML files"
-                                       style="-fx-font-size: 10px; -fx-text-fill: #e67e22; -fx-font-style: italic;"/>
+                                <Label text="Using V2 Editor (Modern Architecture)"
+                                       style="-fx-font-size: 11px; -fx-text-fill: #28a745;"/>
                             </VBox>
 
                             <!-- Formatting Settings -->

@@ -30,13 +30,19 @@ import org.testfx.framework.junit5.Start;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.Disabled;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for XmlIntelliSenseEngine to ensure it doesn't add unwanted spaces
  * to element content.
+ *
+ * @deprecated V1 IntelliSense tests - will be removed with V1 migration
  */
+@Deprecated(since = "2.0", forRemoval = true)
 @ExtendWith(ApplicationExtension.class)
+@Disabled("V1 IntelliSense tests disabled - will be removed in V1 to V2 migration")
 class XmlIntelliSenseEngineTest {
 
     private CodeArea codeArea;

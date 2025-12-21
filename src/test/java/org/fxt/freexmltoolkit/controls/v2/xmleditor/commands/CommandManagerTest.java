@@ -251,8 +251,9 @@ class CommandManagerTest {
 
     @Test
     void testExecuteNullCommand() {
-        boolean success = manager.executeCommand(null);
-        assertFalse(success);
+        assertThrows(IllegalArgumentException.class, () -> {
+            manager.executeCommand(null);
+        });
     }
 
     @Test

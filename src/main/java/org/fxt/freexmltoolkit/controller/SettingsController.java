@@ -159,12 +159,7 @@ public class SettingsController {
     @FXML
     CheckBox useSmallIcons;
 
-    // XML Editor Version Settings
-    @FXML
-    RadioButton xmlEditorV1, xmlEditorV2;
-
-    @FXML
-    ToggleGroup xmlEditorVersion;
+    // Note: XML Editor V1/V2 toggle removed - V2 is now the only editor
 
     @FXML
     Button clearCacheButton, openCacheFolderButton;
@@ -479,8 +474,7 @@ public class SettingsController {
             // Save toolbar icon size setting
             propertiesService.setUseSmallIcons(useSmallIcons.isSelected());
 
-            // Save XML Editor version setting
-            propertiesService.setXmlEditorUseV2(xmlEditorV2.isSelected());
+            // Note: XML Editor V1/V2 toggle removed - V2 is now the only editor
 
             // Save user information settings
             props.setProperty("user.name", userName.getText().trim());
@@ -680,13 +674,7 @@ public class SettingsController {
         boolean smallIcons = propertiesService.isUseSmallIcons();
         useSmallIcons.setSelected(smallIcons);
 
-        // Load XML Editor version setting
-        boolean useV2Editor = propertiesService.isXmlEditorUseV2();
-        if (useV2Editor) {
-            xmlEditorV2.setSelected(true);
-        } else {
-            xmlEditorV1.setSelected(true);
-        }
+        // Note: XML Editor V1/V2 toggle removed - V2 is now the only editor
 
         // Load user information settings
         userName.setText(props.getProperty("user.name", ""));

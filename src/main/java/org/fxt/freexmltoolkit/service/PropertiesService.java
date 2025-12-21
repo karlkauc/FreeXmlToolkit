@@ -264,17 +264,6 @@ public interface PropertiesService {
      */
     void setBackupDirectory(String path);
 
-    /**
-     * Gets whether to use XML Editor V2 instead of V1.
-     *
-     * @return true if V2 editor should be used, false for V1 (default: false)
-     */
-    boolean isXmlEditorUseV2();
-
-    /**
-     * Sets whether to use XML Editor V2 instead of V1.
-     *
-     * @param useV2 true to use V2 editor, false to use V1
-     */
-    void setXmlEditorUseV2(boolean useV2);
+    // Note: isXmlEditorUseV2() and setXmlEditorUseV2() have been removed.
+    // V2 is now the only editor - V1 has been deprecated and removed.
 }

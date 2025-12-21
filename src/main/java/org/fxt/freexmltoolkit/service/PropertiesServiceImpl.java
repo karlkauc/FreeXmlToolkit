@@ -98,7 +98,7 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("sendUsageStatistics", "false");
         properties.setProperty("usageDuration", "0");
         properties.setProperty("useSystemTempFolder", "true");
-        properties.setProperty("xml.editor.use.v2", "false"); // Feature flag for XmlCodeEditorV2
+        // Note: xml.editor.use.v2 property removed - V2 is now the only editor
         properties.setProperty("ui.use.small.icons", "false"); // Feature flag for small toolbar icons
         properties.setProperty("version", "20241209");
         properties.setProperty("manualProxy", "false");
@@ -440,15 +440,6 @@ public class PropertiesServiceImpl implements PropertiesService {
         }
     }
 
-    @Override
-    public boolean isXmlEditorUseV2() {
-        return Boolean.parseBoolean(properties.getProperty("xml.editor.use.v2", "false"));
-    }
-
-    @Override
-    public void setXmlEditorUseV2(boolean useV2) {
-        properties.setProperty("xml.editor.use.v2", String.valueOf(useV2));
-        saveProperties(properties);
-        logger.debug("Set XML editor use V2 to: {}", useV2);
-    }
+    // Note: isXmlEditorUseV2() and setXmlEditorUseV2() have been removed.
+    // V2 is now the only editor - V1 has been deprecated and removed.
 }

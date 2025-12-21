@@ -219,12 +219,15 @@ org.fxt.freexmltoolkit/
 │   ├── XsdController.java              # XSD visualization & docs
 │   ├── SchematronController.java       # Schematron validation
 │   └── controls/                       # Sub-controllers for reusable components
-├── controls/                            # Custom JavaFX components (V1)
+├── controls/                            # Custom JavaFX components
 │   ├── commands/                       # Legacy command pattern
 │   ├── dialogs/                        # Reusable dialogs
-│   ├── editor/                         # XML/XSD editor components
-│   └── intellisense/                   # IntelliSense/autocomplete engine
-├── controls/v2/                        # XSD Editor V2 (New Architecture)
+│   ├── editor/                         # XML/XSD editor components (deprecated V1)
+│   ├── intellisense/                   # IntelliSense/autocomplete engine (deprecated V1)
+│   ├── shared/                         # Shared utilities (XmlSyntaxHighlighter)
+│   ├── XmlEditor.java                  # XML tab component (uses V2 internally)
+│   └── XmlCodeEditor.java              # Deprecated V1 - only used by Schematron
+├── controls/v2/                        # XML/XSD Editor V2 (Primary Architecture)
 │   ├── model/                          # XSD domain model (38 classes)
 │   │   ├── XsdNode.java                # Base class for all XSD nodes
 │   │   ├── XsdElement.java             # Element nodes

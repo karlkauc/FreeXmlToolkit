@@ -44,7 +44,8 @@ import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
-import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
@@ -97,9 +98,9 @@ public class XsltDeveloperController implements FavoritesParentController {
     @FXML
     private StackPane xsltInputEditorPane;
 
-    // XmlCodeEditor instances for enhanced editing
-    private XmlCodeEditor xmlInputEditor;
-    private XmlCodeEditor xsltInputEditor;
+    // XmlCodeEditorV2 instances for enhanced editing
+    private XmlCodeEditorV2 xmlInputEditor;
+    private XmlCodeEditorV2 xsltInputEditor;
     
     @FXML
     private Button loadXmlBtn;
@@ -595,11 +596,11 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     private void initializeEditors() {
-        logger.info("Initializing XmlCodeEditor instances for XSLT Developer");
+        logger.info("Initializing XmlCodeEditorV2 instances for XSLT Developer");
 
         // Initialize XML Input Editor
         if (xmlInputEditorPane != null) {
-            xmlInputEditor = new XmlCodeEditor();
+            xmlInputEditor = XmlCodeEditorV2Factory.createWithoutSchema();
             xmlInputEditor.getCodeArea().replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    <!-- Enter or load your XML source document here -->\n</root>");
             xmlInputEditorPane.getChildren().add(xmlInputEditor);
             logger.debug("XML Input Editor initialized");
@@ -607,13 +608,13 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         // Initialize XSLT Input Editor
         if (xsltInputEditorPane != null) {
-            xsltInputEditor = new XmlCodeEditor();
+            xsltInputEditor = XmlCodeEditorV2Factory.createWithoutSchema();
             xsltInputEditor.getCodeArea().replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n    <!-- Enter or load your XSLT stylesheet here -->\n    <xsl:template match=\"/\">\n        <html>\n            <body>\n                <xsl:apply-templates/>\n            </body>\n        </html>\n    </xsl:template>\n</xsl:stylesheet>");
             xsltInputEditorPane.getChildren().add(xsltInputEditor);
             logger.debug("XSLT Input Editor initialized");
         }
 
-        logger.info("XmlCodeEditor instances initialized successfully");
+        logger.info("XmlCodeEditorV2 instances initialized successfully");
     }
 
     private void setupEventHandlers() {

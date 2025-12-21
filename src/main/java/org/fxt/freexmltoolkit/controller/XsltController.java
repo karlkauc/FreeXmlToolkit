@@ -488,7 +488,7 @@ public class XsltController {
 
     private void renderXML(String output) {
         renderText(output);
-        Platform.runLater(() -> codeArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(output)));
+        Platform.runLater(() -> codeArea.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter.computeHighlighting(output)));
     }
 
     private void renderText(String output) {

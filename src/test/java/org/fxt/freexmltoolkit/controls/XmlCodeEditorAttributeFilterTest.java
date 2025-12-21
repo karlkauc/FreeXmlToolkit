@@ -33,13 +33,19 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.Disabled;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test for verifying that attributes are filtered out from mandatory children generation
  * and that complex choice elements don't create unwanted nested structures.
+ *
+ * @deprecated V1 XmlCodeEditor tests - will be removed with V1 migration
  */
+@Deprecated(since = "2.0", forRemoval = true)
 @ExtendWith(ApplicationExtension.class)
+@Disabled("V1 XmlCodeEditor tests disabled - will be removed in V1 to V2 migration")
 class XmlCodeEditorAttributeFilterTest {
 
     private XmlCodeEditor xmlCodeEditor;

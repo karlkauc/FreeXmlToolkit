@@ -756,16 +756,6 @@ class UpdateCheckServiceTest {
         }
 
         @Override
-        public boolean isXmlEditorUseV2() {
-            return Boolean.parseBoolean(properties.getProperty("xml.editor.use.v2", "false"));
-        }
-
-        @Override
-        public void setXmlEditorUseV2(boolean useV2) {
-            properties.setProperty("xml.editor.use.v2", String.valueOf(useV2));
-        }
-
-        @Override
         public boolean isBackupUseSeparateDirectory() {
             return Boolean.parseBoolean(properties.getProperty("backup.use.separate.directory", "true"));
         }

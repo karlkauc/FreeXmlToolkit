@@ -55,11 +55,8 @@ import java.util.stream.Collectors;
 
 /**
  * XML Editor tab component.
- *
- * @deprecated This is a V1 editor class. V2 editors should be used instead.
- *             This class will be removed in a future version.
+ * Uses XmlCodeEditorV2 (the new V2 architecture).
  */
-@Deprecated(since = "2.0", forRemoval = true)
 public class XmlEditor extends Tab {
 
     public static final int MAX_SIZE_FOR_FORMATTING = 1024 * 1024 * 20;
@@ -68,10 +65,11 @@ public class XmlEditor extends Tab {
     private final Tab xml = new Tab("XML");
     private final Tab graphic = new Tab("Graphic");
 
-    // V1 or V2 editor - created based on feature flag
-    private final XmlCodeEditor xmlCodeEditor;
+    // V2 editor (V1 is deprecated and will be removed)
+    @Deprecated(since = "2.0", forRemoval = true)
+    private final XmlCodeEditor xmlCodeEditor = null; // Always null - V1 removed
     private final org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2 xmlCodeEditorV2;
-    private final boolean useV2Editor;
+    private final boolean useV2Editor = true; // Always true - V1 removed
     public final CodeArea codeArea;
 
 
@@ -112,9 +110,6 @@ public class XmlEditor extends Tab {
     private XmlEditorSidebarController sidebarController;
     private SplitPane splitPane;
 
-    // --- Graphic View Component ---
-    private XmlGraphicEditor currentGraphicEditor;
-
     // --- Folding Control ---
     // Can be disabled for single-line XML files to prevent performance issues
     private boolean foldingEnabled = true;
@@ -130,26 +125,11 @@ public class XmlEditor extends Tab {
         }
 
     public XmlEditor() {
-        // Check feature flag for V2 editor
-        PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
-        this.useV2Editor = propertiesService.isXmlEditorUseV2();
-        logger.info("XML Editor V2 flag from properties: {} (will use {})", useV2Editor, useV2Editor ? "V2" : "V1");
-
-        // Create V1 or V2 editor based on flag
-        if (useV2Editor) {
-            logger.info("🆕 Creating XmlCodeEditorV2 (NEW)");
-            this.xmlCodeEditor = null;
-            this.xmlCodeEditorV2 = org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory.createForXmlEditor(this);
-            this.codeArea = xmlCodeEditorV2.getCodeArea();
-            xmlCodeEditorV2.setDocumentUri("untitled:" + System.nanoTime() + ".xml");
-        } else {
-            logger.info("📝 Using XmlCodeEditor (V1 Legacy)");
-            this.xmlCodeEditor = new XmlCodeEditor();
-            this.xmlCodeEditorV2 = null;
-            this.codeArea = xmlCodeEditor.getCodeArea();
-            xmlCodeEditor.setDocumentUri("untitled:" + System.nanoTime() + ".xml");
-            xmlCodeEditor.setParentXmlEditor(this);
-        }
+        // Create V2 editor (V1 has been removed)
+        logger.info("Creating XmlCodeEditorV2");
+        this.xmlCodeEditorV2 = org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory.createForXmlEditor(this);
+        this.codeArea = xmlCodeEditorV2.getCodeArea();
+        xmlCodeEditorV2.setDocumentUri("untitled:" + System.nanoTime() + ".xml");
 
         init();
     }
@@ -222,8 +202,8 @@ public class XmlEditor extends Tab {
         setupHover();
         setupSearchAndReplace();
 
-        // Set XML tab content based on which editor version is used
-        xml.setContent(useV2Editor ? xmlCodeEditorV2 : xmlCodeEditor);
+        // Set XML tab content to V2 editor
+        xml.setContent(xmlCodeEditorV2);
         this.setText(DEFAULT_FILE_NAME);
         this.setClosable(true);
 
@@ -1505,7 +1485,7 @@ public class XmlEditor extends Tab {
 
     private void applyStyles() {
         if (codeArea.getText().length() >= MAX_SIZE_FOR_FORMATTING) return;
-        StyleSpans<Collection<String>> syntaxHighlighting = XmlCodeEditor.computeHighlighting(codeArea.getText());
+        StyleSpans<Collection<String>> syntaxHighlighting = org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter.computeHighlighting(codeArea.getText());
         codeArea.setStyleSpans(0, syntaxHighlighting);
     }
 
@@ -2177,39 +2157,10 @@ public class XmlEditor extends Tab {
 
     private void refreshGraphicView() {
         try {
-            if (useV2Editor) {
-                // V2 editor: Use XmlHybridView with XmlEditorContext
-                refreshGraphicViewV2();
-            } else if (document != null) {
-                // V1 editor: Use classic XmlGraphicEditor
-                refreshGraphicViewV1();
-            }
+            refreshGraphicViewV2();
         } catch (Exception e) {
             logger.error("Error refreshing graphic view: {}", e.getMessage(), e);
         }
-    }
-
-    /**
-     * Refreshes the graphic view using V1 XmlGraphicEditor.
-     */
-    private void refreshGraphicViewV1() {
-        VBox vBox = new VBox();
-        vBox.setPadding(new Insets(3));
-
-        currentGraphicEditor = new XmlGraphicEditor(document, this);
-        // Set sidebar controller for integration with XmlEditorSidebar functionality
-        if (sidebarController != null) {
-            currentGraphicEditor.setSidebarController(sidebarController);
-        }
-        // Integrate search functionality with parent container
-        currentGraphicEditor.integrateSearchWithContainer(vBox);
-
-        VBox.setVgrow(currentGraphicEditor, Priority.ALWAYS);
-        vBox.getChildren().add(currentGraphicEditor);
-
-        ScrollPane pane = new ScrollPane(vBox);
-        pane.setBackground(new Background(new BackgroundFill(Color.rgb(200, 200, 50, 0.5), new CornerRadii(5), new Insets(5))));
-        this.graphic.setContent(pane);
     }
 
     /**
@@ -2898,16 +2849,7 @@ public class XmlEditor extends Tab {
         try {
             logger.info("Navigating to XPath: {}", xpath);
 
-            // Try to navigate in the graphic view first
-            if (currentGraphicEditor != null) {
-                boolean graphicNavigationSuccess = currentGraphicEditor.navigateToNode(xpath, 0);
-                if (graphicNavigationSuccess) {
-                    logger.info("Successfully navigated to XPath in graphic view: {}", xpath);
-                    return;
-                }
-            }
-
-            // Fallback: try to find the element in the DOM and estimate line number
+            // Try to find the element in the DOM and estimate line number
             if (document != null) {
                 Node targetNode = findNodeByXPath(xpath);
                 if (targetNode != null) {

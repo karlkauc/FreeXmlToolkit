@@ -642,7 +642,7 @@ public class XsdController implements FavoritesParentController {
                     sourceCodeEditor.getCodeArea().replaceText(xsdContent);
                     // Apply syntax highlighting
                     sourceCodeEditor.getCodeArea().setStyleSpans(0,
-                            org.fxt.freexmltoolkit.controls.XmlCodeEditor.computeHighlighting(xsdContent));
+                            org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter.computeHighlighting(xsdContent));
                     logger.info("Synchronized V2 graphic model to text view ({} characters)", xsdContent.length());
                 }
             }
@@ -2509,7 +2509,7 @@ public class XsdController implements FavoritesParentController {
 
             ensureSampleDataTextAreaInitialized();
             sampleDataTextArea.replaceText(resultXml);
-            sampleDataTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(resultXml));
+            sampleDataTextArea.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter.computeHighlighting(resultXml));
             applyEditorSettings();
 
             // Update code folding regions after text is set
@@ -2714,7 +2714,7 @@ public class XsdController implements FavoritesParentController {
             // CHANGED: Apply highlighting for the flattenedXsdTextArea
             ensureFlattenedXsdTextAreaInitialized();
             flattenedXsdTextArea.replaceText(flattenedContent);
-            flattenedXsdTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(flattenedContent));
+            flattenedXsdTextArea.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter.computeHighlighting(flattenedContent));
             applyEditorSettings();
 
             flattenStatusLabel.setText("Successfully flattened and saved to: " + destinationFile.getAbsolutePath());
