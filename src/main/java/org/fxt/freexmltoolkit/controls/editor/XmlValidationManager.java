@@ -9,7 +9,9 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Manages XML validation and error highlighting for the CodeArea.
@@ -22,8 +24,8 @@ public class XmlValidationManager {
     private final CodeArea codeArea;
     private final ThreadPoolManager threadPoolManager;
 
-    // Validation task management
-    private Task<List<org.xml.sax.SAXParseException>> validationTask;
+    // Validation task management - now uses CompletableFuture
+    private CompletableFuture<List<org.xml.sax.SAXParseException>> currentValidationFuture;
 
     // Error state
     private final Map<Integer, String> currentErrors = new HashMap<>();
@@ -33,6 +35,9 @@ public class XmlValidationManager {
     // Callbacks
     private Consumer<Map<Integer, String>> errorCallback;
     private Runnable validationCompleteCallback;
+    
+    // UI Executor
+    private final Consumer<Runnable> uiExecutor;
 
     /**
      * Interface for providing validation services.
@@ -45,13 +50,27 @@ public class XmlValidationManager {
 
     /**
      * Constructor for XmlValidationManager.
+     * Uses Platform.runLater for UI updates by default.
      *
      * @param codeArea          The CodeArea to manage validation for
      * @param threadPoolManager Thread pool manager for background operations
      */
     public XmlValidationManager(CodeArea codeArea, ThreadPoolManager threadPoolManager) {
+        this(codeArea, threadPoolManager, Platform::runLater);
+    }
+
+    /**
+     * Constructor for XmlValidationManager with custom UI executor.
+     * Useful for testing.
+     *
+     * @param codeArea          The CodeArea to manage validation for
+     * @param threadPoolManager Thread pool manager for background operations
+     * @param uiExecutor        Executor for UI operations (e.g. Platform::runLater)
+     */
+    public XmlValidationManager(CodeArea codeArea, ThreadPoolManager threadPoolManager, Consumer<Runnable> uiExecutor) {
         this.codeArea = codeArea;
         this.threadPoolManager = threadPoolManager;
+        this.uiExecutor = uiExecutor;
         setupMouseEventHandlers();
     }
 
@@ -83,7 +102,8 @@ public class XmlValidationManager {
     }
 
     /**
-     * Performs live XML validation and applies error highlighting.
+     * Performs live XML validation using a CompletableFuture on a background thread.
+     * The result is then processed on the UI thread via the injected uiExecutor.
      *
      * @param text The text to validate
      */
@@ -91,60 +111,49 @@ public class XmlValidationManager {
         if (text == null || text.isEmpty()) {
             currentErrors.clear();
             if (errorCallback != null) {
-                errorCallback.accept(currentErrors);
+                uiExecutor.accept(() -> errorCallback.accept(currentErrors));
             }
             return;
         }
 
         // Cancel any running validation task
-        if (validationTask != null && validationTask.isRunning()) {
-            validationTask.cancel();
+        if (currentValidationFuture != null && !currentValidationFuture.isDone()) {
+            currentValidationFuture.cancel(true);
         }
 
-        // Create new background task for validation
-        validationTask = new Task<List<org.xml.sax.SAXParseException>>() {
-            @Override
-            protected List<org.xml.sax.SAXParseException> call() throws Exception {
-                if (isCancelled()) {
+        // Create a Supplier for the CPU-intensive validation work
+        Supplier<List<org.xml.sax.SAXParseException>> validationWork = () -> {
+            if (validationService != null) {
+                try {
+                    return validationService.validateText(text);
+                } catch (Exception e) {
+                    logger.debug("Validation error during live validation: {}", e.getMessage());
                     return new ArrayList<>();
                 }
-
-                // Use the provided validation service
-                if (validationService != null) {
-                    try {
-                        return validationService.validateText(text);
-                    } catch (Exception e) {
-                        logger.debug("Validation error during live validation: {}", e.getMessage());
-                        return new ArrayList<>();
-                    }
-                }
-                return new ArrayList<>();
             }
+            return new ArrayList<>();
         };
 
-        validationTask.setOnSucceeded(event -> {
-            List<org.xml.sax.SAXParseException> errors = validationTask.getValue();
-            if (errors != null) {
-                Platform.runLater(() -> {
+        // Submit the validation work to the thread pool
+        currentValidationFuture = threadPoolManager.executeCPUIntensive("live-validation-" + System.currentTimeMillis(), validationWork);
+
+        // Handle completion (success or failure) and dispatch UI updates via the uiExecutor
+        currentValidationFuture.whenCompleteAsync((errors, throwable) -> {
+            uiExecutor.accept(() -> {
+                if (currentValidationFuture.isCancelled()) {
+                    logger.debug("Live validation task was cancelled.");
+                    // No need to update UI with errors if cancelled
+                } else if (throwable != null) {
+                    logger.debug("Live validation task failed: {}", throwable.getMessage());
+                    // Clear existing errors if a new validation failed
+                    clearErrors();
+                } else if (errors != null) {
                     applyErrorHighlighting(errors);
                     if (validationCompleteCallback != null) {
                         validationCompleteCallback.run();
                     }
-                });
-            }
-        });
-
-        validationTask.setOnFailed(event -> {
-            logger.debug("Live validation task failed: {}", validationTask.getException().getMessage());
-        });
-
-        // Run the validation task using managed thread pool
-        threadPoolManager.executeCPUIntensive("live-validation-" + System.currentTimeMillis(), () -> {
-            Thread taskThread = new Thread(validationTask);
-            taskThread.setName("LiveValidation-" + System.currentTimeMillis());
-            taskThread.setDaemon(true);
-            taskThread.start();
-            return null;
+                }
+            });
         });
     }
 
@@ -234,11 +243,12 @@ public class XmlValidationManager {
     }
 
     /**
-     * Cancels any running validation task.
+     * Cancels any running validation future.
      */
     public void cancelValidation() {
-        if (validationTask != null && validationTask.isRunning()) {
-            validationTask.cancel();
+        if (currentValidationFuture != null && !currentValidationFuture.isDone()) {
+            currentValidationFuture.cancel(true);
+            currentValidationFuture = null; // Clear the future
         }
     }
 
