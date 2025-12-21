@@ -7,7 +7,7 @@
 - [x] Task: Implement Progress Indicators in `StatusLineController` (111d9b7f)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Background Validation Infrastructure' (Protocol in workflow.md)
 
-## Phase 2: Memory-Efficient Visual Tree Rendering
+## Phase 2: Memory-Efficient Visual Tree Rendering [checkpoint: 8ea1eec]
 - [x] Task: Write Tests - Virtualized Tree Rendering (853c82c6)
 - [ ] Task: Implement Lazy Loading in `XsdVisualTreeBuilder`
 - [x] Task: Write Tests - Canvas View Performance (e3e126aa)
