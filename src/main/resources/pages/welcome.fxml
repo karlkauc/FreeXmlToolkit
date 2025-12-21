@@ -22,169 +22,257 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
-<AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/11.0.14-internal"
+<AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.WelcomeController"
+            styleClass="dashboard-root"
             AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
             AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-    <children>
-        <VBox spacing="20.0" styleClass="my_container"
-              AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-              AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-            <children>
-                <!-- Header Area -->
-                <HBox VBox.vgrow="NEVER" alignment="CENTER">
-                    <Label styleClass="h1" text="Welcome to FreeXmlToolkit!"/>
-                </HBox>
-                <HBox fx:id="versionUpdate" managed="false" spacing="5.0" visible="false">
-                    <children>
-                        <Label text="An update is available! Please check here:"/>
-                        <Hyperlink onAction="#openUpdatePage" text="FreeXMLToolkit"/>
-                    </children>
-                </HBox>
-                <Separator/>
 
-                <!-- Main Features -->
-                <Label styleClass="h2" text="Main Features"/>
-                <GridPane hgap="20.0" vgap="20.0">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0"/>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0"/>
-                    </columnConstraints>
-
-                    <children>
-                        <!-- Feature: Advanced XML Editor -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                              onMouseClicked="#openXmlEditor" style="-fx-cursor: hand;">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#4f46e5" iconLiteral="bi-file-earmark-code" iconSize="24"/>
-                                    <Label styleClass="h3" text="XML Editor"/>
-                                </HBox>
-                                <Label text="Professional XML editing with IntelliSense auto-completion, XSD-aware suggestions, syntax highlighting, XPath/XQuery execution, and smart formatting."
-                                       wrapText="true"/>
-                            </children>
-                        </VBox>
-
-                        <!-- Feature: XSD Tools -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="0"
-                              onMouseClicked="#openXsdTools" style="-fx-cursor: hand;">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#16a34a" iconLiteral="bi-diagram-3" iconSize="24"/>
-                                    <Label styleClass="h3" text="XSD Tools"/>
-                                </HBox>
-                                <Label text="Visual XSD editor with drag-and-drop, HTML documentation generator, schema flattening, sample data generation, and interactive diagrams."
-                                       wrapText="true"/>
-                            </children>
-                        </VBox>
-
-                        <!-- Feature: Schematron Validation -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                              onMouseClicked="#openSchematron" style="-fx-cursor: hand;">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#be185d" iconLiteral="bi-shield-check" iconSize="24"/>
-                                    <Label styleClass="h3" text="Schematron Validation"/>
-                                </HBox>
-                                <Label text="Validate XML using Schematron business rules with detailed error reporting, custom assertions, and advanced constraint validation beyond XSD."
-                                       wrapText="true"/>
-                            </children>
-                        </VBox>
-
-                        <!-- XSLT Developer -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                              onMouseClicked="#openXsltDeveloper" style="-fx-cursor: hand;">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#0284c7" iconLiteral="bi-arrow-repeat" iconSize="24"/>
-                                    <Label styleClass="h3" text="XSLT 3.0 Developer"/>
-                                </HBox>
-                                <Label text="Transform XML documents with XSLT 3.0 support powered by Saxon HE, live preview, multiple output formats (HTML, XML, Text), and integrated debugging."
-                                       wrapText="true"/>
-                            </children>
-                        </VBox>
-
-                        <!-- FOP Processing -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="2"
-                              onMouseClicked="#openFop" style="-fx-cursor: hand;">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#ea580c" iconLiteral="bi-file-earmark-text" iconSize="24"/>
-                                    <Label styleClass="h3" text="PDF Generation"/>
-                                </HBox>
-                                <Label text="Create professional PDF documents from XML using Apache FOP with XSL-FO stylesheets, custom formatting, and embedded graphics support."
-                                       wrapText="true"/>
-                            </children>
-                        </VBox>
-
-                        <!-- XML Digital Signature -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2"
-                              onMouseClicked="#openSignature" style="-fx-cursor: hand;">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#7e22ce" iconLiteral="bi-patch-check-fill" iconSize="24"/>
-                                    <Label styleClass="h3" text="XML Digital Signature"/>
-                                </HBox>
-                                <Label text="Sign and verify XML documents using XML-DSig standards with certificate management, signature validation, and cryptographic security features."
-                                       wrapText="true"/>
-                            </children>
-                        </VBox>
-
-                        <!-- Schema Generator -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="3"
-                              onMouseClicked="#openSchemaGenerator" style="-fx-cursor: hand;">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#059669" iconLiteral="bi-stars" iconSize="24"/>
-                                    <Label styleClass="h3" text="Schema Generator"/>
-                                </HBox>
-                                <Label text="Automatically generate XSD schemas from XML sample files with intelligent type detection, structure analysis, and customizable output options."
-                                       wrapText="true"/>
-                            </children>
-                        </VBox>
-
-                        <!-- Help & Documentation -->
-                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="3"
-                              onMouseClicked="#openHelp" style="-fx-cursor: hand;">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#6366f1" iconLiteral="bi-question-circle" iconSize="24"/>
-                                    <Label styleClass="h3" text="Help &amp; Documentation"/>
-                                </HBox>
-                                <Label text="Comprehensive user guide, keyboard shortcuts reference, tips and tricks, and links to online resources for learning XML technologies."
-                                       wrapText="true"/>
-                            </children>
-                        </VBox>
-                    </children>
-                </GridPane>
-                <!-- Spacer to push footer to bottom -->
-                <Region VBox.vgrow="ALWAYS"/>
-
-                <!-- Footer with version and usage time -->
-                <Separator/>
-                <HBox alignment="CENTER" spacing="30.0" style="-fx-padding: 10 0 0 0;">
-                    <children>
-                        <HBox alignment="CENTER_LEFT" spacing="5.0">
-                            <children>
-                                <FontIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
-                                <Label fx:id="versionLabel" text="Version: loading..."
-                                       style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
-                            </children>
-                        </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="5.0">
-                            <children>
-                                <FontIcon iconLiteral="bi-clock" iconSize="14" iconColor="#6c757d"/>
-                                <Label fx:id="durationLabel" text="Total usage time: loading..."
-                                       style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
-                            </children>
-                        </HBox>
-                    </children>
-                </HBox>
-            </children>
+    <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED"
+                AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+                AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
+                styleClass="dashboard-scroll">
+        <VBox spacing="24" styleClass="dashboard-container">
             <padding>
-                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+                <Insets bottom="24" left="24" right="24" top="24"/>
             </padding>
+
+            <!-- Update Notification -->
+            <HBox fx:id="versionUpdate" managed="false" visible="false" spacing="8" alignment="CENTER_LEFT"
+                  styleClass="update-notification">
+                <padding>
+                    <Insets bottom="12" left="16" right="16" top="12"/>
+                </padding>
+                <FontIcon iconLiteral="bi-info-circle-fill" iconSize="16" iconColor="#0ea5e9"/>
+                <Label text="An update is available!" style="-fx-font-weight: bold;"/>
+                <Hyperlink fx:id="updateLink" onAction="#openUpdatePage" text="Download latest version"/>
+            </HBox>
+
+            <!-- Welcome Header -->
+            <VBox spacing="4">
+                <Label fx:id="welcomeLabel" text="Welcome back, Developer" styleClass="dashboard-title"/>
+                <Label text="Pick up where you left off or start a new project." styleClass="dashboard-subtitle"/>
+            </VBox>
+
+            <!-- Action Cards Row 1 -->
+            <HBox spacing="16" VBox.vgrow="NEVER">
+                <!-- New XML File Card -->
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
+                      onMouseClicked="#createNewXmlFile" style="-fx-cursor: hand;">
+                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #dbeafe;">
+                        <FontIcon iconLiteral="bi-plus" iconSize="24" iconColor="#2563eb"/>
+                    </StackPane>
+                    <Label text="New XML File" styleClass="action-card-title"/>
+                    <Label text="Create a blank XML document." styleClass="action-card-description" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
+                        <Label text="Create File" styleClass="action-link-text"/>
+                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                    </HBox>
+                </VBox>
+
+                <!-- XSD Schema Editor Card -->
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
+                      onMouseClicked="#openXsdTools" style="-fx-cursor: hand;">
+                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #f3e8ff;">
+                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="24" iconColor="#9333ea"/>
+                    </StackPane>
+                    <Label text="XSD Schema Editor" styleClass="action-card-title"/>
+                    <Label text="Design schemas visually or via code." styleClass="action-card-description" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
+                        <Label text="Open Editor" styleClass="action-link-text"/>
+                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Validate Document Card -->
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
+                      onMouseClicked="#openValidation" style="-fx-cursor: hand;">
+                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #dcfce7;">
+                        <FontIcon iconLiteral="bi-file-earmark-check" iconSize="24" iconColor="#16a34a"/>
+                    </StackPane>
+                    <Label text="Validate Document" styleClass="action-card-title"/>
+                    <Label text="Validate against XSD or DTD." styleClass="action-card-description" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
+                        <Label text="Run Validation" styleClass="action-link-text"/>
+                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                    </HBox>
+                </VBox>
+
+                <!-- XSLT Developer Card -->
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
+                      onMouseClicked="#openXsltDeveloper" style="-fx-cursor: hand;">
+                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #fef3c7;">
+                        <FontIcon iconLiteral="bi-arrow-repeat" iconSize="24" iconColor="#d97706"/>
+                    </StackPane>
+                    <Label text="XSLT Developer" styleClass="action-card-title"/>
+                    <Label text="Transform XML with XSLT." styleClass="action-card-description" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
+                        <Label text="Open XSLT" styleClass="action-link-text"/>
+                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                    </HBox>
+                </VBox>
+            </HBox>
+
+            <!-- Action Cards Row 2 -->
+            <HBox spacing="16" VBox.vgrow="NEVER">
+                <!-- Schematron Card -->
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
+                      onMouseClicked="#openSchematron" style="-fx-cursor: hand;">
+                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #fce7f3;">
+                        <FontIcon iconLiteral="bi-shield-check" iconSize="24" iconColor="#be185d"/>
+                    </StackPane>
+                    <Label text="Schematron" styleClass="action-card-title"/>
+                    <Label text="Validate with business rules." styleClass="action-card-description" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
+                        <Label text="Open Schematron" styleClass="action-link-text"/>
+                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Schema Generator Card -->
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
+                      onMouseClicked="#openSchemaGenerator" style="-fx-cursor: hand;">
+                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #cffafe;">
+                        <FontIcon iconLiteral="bi-diagram-3" iconSize="24" iconColor="#0891b2"/>
+                    </StackPane>
+                    <Label text="Schema Generator" styleClass="action-card-title"/>
+                    <Label text="Generate XSD from XML." styleClass="action-card-description" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
+                        <Label text="Generate Schema" styleClass="action-link-text"/>
+                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                    </HBox>
+                </VBox>
+
+                <!-- PDF Generation Card -->
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
+                      onMouseClicked="#openFop" style="-fx-cursor: hand;">
+                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #ede9fe;">
+                        <FontIcon iconLiteral="bi-printer" iconSize="24" iconColor="#7c3aed"/>
+                    </StackPane>
+                    <Label text="PDF Generation" styleClass="action-card-title"/>
+                    <Label text="Generate PDFs with Apache FOP." styleClass="action-card-description" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
+                        <Label text="Open FOP" styleClass="action-link-text"/>
+                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                    </HBox>
+                </VBox>
+
+                <!-- XML Digital Signature Card -->
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
+                      onMouseClicked="#openSignature" style="-fx-cursor: hand;">
+                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #fef9c3;">
+                        <FontIcon iconLiteral="bi-key" iconSize="24" iconColor="#ca8a04"/>
+                    </StackPane>
+                    <Label text="XML Signature" styleClass="action-card-title"/>
+                    <Label text="Sign and verify XML documents." styleClass="action-card-description" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
+                        <Label text="Open Signature" styleClass="action-link-text"/>
+                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                    </HBox>
+                </VBox>
+            </HBox>
+
+            <!-- Main Content Area: Recent Projects + System Updates -->
+            <HBox spacing="24" VBox.vgrow="ALWAYS">
+                <!-- Recent Projects (Left, 2/3 width) -->
+                <VBox HBox.hgrow="ALWAYS" spacing="0" styleClass="recent-projects-card" minWidth="400">
+                    <!-- Header -->
+                    <HBox alignment="CENTER_LEFT" spacing="8" styleClass="recent-projects-header">
+                        <FontIcon iconLiteral="bi-file-earmark-text" iconSize="18" iconColor="#6b7280"/>
+                        <Label text="Recent Projects" styleClass="section-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Hyperlink text="View all" onAction="#openRecentFilesDialog"/>
+                    </HBox>
+
+                    <!-- Drag & Drop Area -->
+                    <VBox fx:id="dragDropArea" alignment="CENTER" spacing="8" styleClass="drag-drop-area">
+                        <FontIcon iconLiteral="bi-cloud-arrow-up" iconSize="20" iconColor="#9ca3af"/>
+                        <Label text="Drag &amp; drop files here to open quickly" styleClass="drag-drop-text"/>
+                    </VBox>
+
+                    <!-- Recent Files Grid -->
+                    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="recent-files-scroll"
+                                minHeight="150" maxHeight="250" hbarPolicy="NEVER">
+                        <FlowPane fx:id="recentFilesGrid" hgap="12" vgap="12" styleClass="recent-files-grid">
+                            <padding>
+                                <Insets bottom="12" left="12" right="12" top="12"/>
+                            </padding>
+                        </FlowPane>
+                    </ScrollPane>
+
+                    <!-- Empty State Placeholder -->
+                    <VBox fx:id="emptyFilesPlaceholder" alignment="CENTER" spacing="8"
+                          managed="false" visible="false" minHeight="150">
+                        <FontIcon iconLiteral="bi-folder2-open" iconSize="32" iconColor="#9ca3af"/>
+                        <Label text="No recent files" styleClass="placeholder-text"/>
+                    </VBox>
+                </VBox>
+
+                <!-- Right Sidebar (1/3 width) -->
+                <VBox spacing="24" minWidth="280" maxWidth="320">
+                    <!-- System Updates Section -->
+                    <VBox styleClass="system-updates-card" spacing="12">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="System Updates" styleClass="section-title"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="versionBadge" text="v2.0" styleClass="version-badge"/>
+                        </HBox>
+
+                        <VBox spacing="8">
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <StackPane styleClass="update-check-icon">
+                                    <FontIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
+                                </StackPane>
+                                <Label text="Enhanced XSD Visual Designer" styleClass="update-item-text"/>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <StackPane styleClass="update-check-icon">
+                                    <FontIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
+                                </StackPane>
+                                <Label text="Real-time Validation Engine" styleClass="update-item-text"/>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <StackPane styleClass="update-check-icon">
+                                    <FontIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
+                                </StackPane>
+                                <Label text="Interactive IntelliSense" styleClass="update-item-text"/>
+                            </HBox>
+                        </VBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="4" styleClass="changelog-link">
+                            <Hyperlink text="Read Changelog" onAction="#openChangelog"/>
+                            <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Spacer -->
+                    <Region VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </HBox>
+
+            <!-- Footer -->
+            <Separator/>
+            <HBox alignment="CENTER" spacing="30">
+                <HBox alignment="CENTER_LEFT" spacing="5">
+                    <FontIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
+                    <Label fx:id="versionLabel" text="Version: loading..."
+                           style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+                </HBox>
+                <HBox alignment="CENTER_LEFT" spacing="5">
+                    <FontIcon iconLiteral="bi-clock" iconSize="14" iconColor="#6c757d"/>
+                    <Label fx:id="durationLabel" text="Total usage time: loading..."
+                           style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+                </HBox>
+            </HBox>
         </VBox>
-    </children>
+    </ScrollPane>
 </AnchorPane>

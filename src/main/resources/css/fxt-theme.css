@@ -1146,3 +1146,239 @@
     -fx-border-color: #c0c0c0;
     -fx-padding: 2 4 2 4;
 }
+
+/* ==========================================================================
+ * DASHBOARD / WELCOME PAGE STYLES
+ * Modern dashboard layout based on Figma design
+ * ========================================================================== */
+
+/* Dashboard Root & Container */
+.dashboard-root {
+    -fx-background-color: #f9fafb;
+}
+
+.dashboard-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.dashboard-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.dashboard-container {
+    -fx-background-color: transparent;
+}
+
+/* Dashboard Title */
+.dashboard-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.dashboard-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6b7280;
+}
+
+/* Update Notification Banner */
+.update-notification {
+    -fx-background-color: #e0f2fe;
+    -fx-border-color: #0ea5e9;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+/* Action Cards */
+.action-card {
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 16px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0, 0, 1);
+}
+
+.action-card:hover {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #cbd5e1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 6, 0, 0, 2);
+}
+
+.action-card-icon-wrapper {
+    -fx-min-width: 48px;
+    -fx-max-width: 48px;
+    -fx-min-height: 48px;
+    -fx-max-height: 48px;
+    -fx-background-radius: 8px;
+    -fx-alignment: center;
+}
+
+.action-card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.action-card-description {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6b7280;
+}
+
+.action-card-link {
+    -fx-padding: 4 0 0 0;
+}
+
+.action-link-text {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2563eb;
+}
+
+/* Section Title */
+.section-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+/* Recent Projects Card */
+.recent-projects-card {
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0, 0, 1);
+}
+
+.recent-projects-header {
+    -fx-padding: 16px;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* Drag & Drop Area */
+.drag-drop-area {
+    -fx-padding: 24px;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-style: dashed;
+    -fx-background-color: #fafafa;
+}
+
+.drag-drop-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #9ca3af;
+}
+
+/* Recent Files Table */
+.recent-files-table {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.recent-files-table .column-header-background {
+    -fx-background-color: #f9fafb;
+}
+
+.recent-files-table .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #e5e7eb transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 12 8 12;
+}
+
+.recent-files-table .column-header .label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #6b7280;
+    -fx-text-transform: uppercase;
+}
+
+.recent-files-table .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #f3f4f6 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.recent-files-table .table-row-cell:hover {
+    -fx-background-color: #f9fafb;
+}
+
+.recent-files-table .table-row-cell:selected {
+    -fx-background-color: #eff6ff;
+}
+
+.recent-files-table .table-cell {
+    -fx-padding: 12px;
+    -fx-font-size: 13px;
+    -fx-text-fill: #374151;
+}
+
+.placeholder-text {
+    -fx-text-fill: #9ca3af;
+    -fx-font-style: italic;
+}
+
+/* Quick Tools Cards */
+.quick-tool-card {
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 16px;
+    -fx-min-height: 80px;
+}
+
+.quick-tool-card:hover {
+    -fx-border-color: #93c5fd;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 0, 2);
+}
+
+.quick-tool-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #374151;
+}
+
+/* System Updates Card */
+.system-updates-card {
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 16px;
+}
+
+.version-badge {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #2563eb;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 4px;
+}
+
+.update-check-icon {
+    -fx-min-width: 20px;
+    -fx-max-width: 20px;
+    -fx-min-height: 20px;
+    -fx-max-height: 20px;
+    -fx-background-color: #dcfce7;
+    -fx-background-radius: 10px;
+    -fx-alignment: center;
+}
+
+.update-item-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #374151;
+}
+
+.changelog-link {
+    -fx-padding: 8 0 0 0;
+}
