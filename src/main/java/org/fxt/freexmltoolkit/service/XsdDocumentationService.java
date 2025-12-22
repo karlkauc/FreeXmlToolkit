@@ -1226,7 +1226,23 @@ public class XsdDocumentationService {
                         extendedElem.setElementType("(anonymous)");
                     }
                 } else {
-                    extendedElem.setElementType("(anonymous)");
+                    // Check for simpleContent with extension (e.g., xs:simpleContent > xs:extension base="xs:float")
+                    Node simpleContent = getDirectChildElement(typeDefinitionNode, "simpleContent");
+                    if (simpleContent != null) {
+                        Node extension = getDirectChildElement(simpleContent, "extension");
+                        if (extension != null) {
+                            String baseType = getAttributeValue(extension, "base");
+                            if (baseType != null && !baseType.isEmpty()) {
+                                extendedElem.setElementType(baseType);
+                            } else {
+                                extendedElem.setElementType("(anonymous)");
+                            }
+                        } else {
+                            extendedElem.setElementType("(anonymous)");
+                        }
+                    } else {
+                        extendedElem.setElementType("(anonymous)");
+                    }
                 }
             }
         }

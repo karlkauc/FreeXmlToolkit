@@ -74,8 +74,19 @@ public class XsdSampleDataGenerator {
         }
 
         // For complex types with child elements, don't generate text content
-        if (elementType == null || element.hasChildren()) {
+        // UNLESS all children are attributes (start with @) - that indicates simpleContent with extension
+        if (elementType == null) {
             return "";
+        }
+
+        if (element.hasChildren()) {
+            // Check if all children are attributes (start with @)
+            // If so, this is likely simpleContent with extension - we should generate text content
+            boolean hasNonAttributeChildren = element.getChildren().stream()
+                    .anyMatch(child -> !child.contains("/@"));
+            if (hasNonAttributeChildren) {
+                return "";
+            }
         }
 
         String finalType = elementType.substring(elementType.lastIndexOf(":") + 1);
@@ -287,43 +298,40 @@ public class XsdSampleDataGenerator {
      */
     private String generateFallbackForPattern(String pattern, int targetLength) {
         // Extract character class from pattern if possible
-        // Common patterns: [A-Z]*, [A-Z0-9]*, [a-zA-Z]+, etc.
-        if (pattern.contains("[A-Z]") && pattern.contains("[0-9]") || pattern.contains("[A-Z0-9]")) {
-            // Alphanumeric
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < targetLength; i++) {
-                if (ThreadLocalRandom.current().nextBoolean()) {
-                    sb.append((char) ('A' + ThreadLocalRandom.current().nextInt(26)));
-                } else {
-                    sb.append((char) ('0' + ThreadLocalRandom.current().nextInt(10)));
-                }
-            }
-            return sb.toString();
-        } else if (pattern.contains("[A-Z]")) {
-            // Uppercase letters only
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < targetLength; i++) {
-                sb.append((char) ('A' + ThreadLocalRandom.current().nextInt(26)));
-            }
-            return sb.toString();
-        } else if (pattern.contains("[a-z]")) {
-            // Lowercase letters only
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < targetLength; i++) {
-                sb.append((char) ('a' + ThreadLocalRandom.current().nextInt(26)));
-            }
-            return sb.toString();
-        } else if (pattern.contains("[0-9]")) {
-            // Digits only
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < targetLength; i++) {
-                sb.append((char) ('0' + ThreadLocalRandom.current().nextInt(10)));
-            }
-            return sb.toString();
-        }
+        // Common patterns: [A-Z]*, [A-Z0-9]*, [a-zA-Z]+, [A-Z\-\s]*, etc.
 
-        // Generic fallback: repeat 'X'
-        return "X".repeat(targetLength);
+        // Check what characters are allowed in the pattern
+        boolean hasUppercase = pattern.contains("[A-Z]") || pattern.contains("A-Z");
+        boolean hasLowercase = pattern.contains("[a-z]") || pattern.contains("a-z");
+        boolean hasDigits = pattern.contains("[0-9]") || pattern.contains("0-9");
+        // Hyphen in character class is escaped as \- or placed at start/end like [-A-Z] or [A-Z-]
+        boolean hasHyphen = pattern.contains("\\-") || pattern.matches(".*\\[[-].*") || pattern.matches(".*[-]\\].*");
+        boolean hasWhitespace = pattern.contains("\\s");
+        // Dot as literal is escaped as \. (unescaped . means any character)
+        boolean hasDot = pattern.contains("\\.");
+        boolean hasComma = pattern.contains(",");
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < targetLength; i++) {
+            // Build a list of possible characters based on the pattern
+            StringBuilder charOptions = new StringBuilder();
+            if (hasUppercase) charOptions.append("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+            if (hasLowercase) charOptions.append("abcdefghijklmnopqrstuvwxyz");
+            if (hasDigits) charOptions.append("0123456789");
+            if (hasHyphen) charOptions.append("-");
+            if (hasDot) charOptions.append(".");
+            if (hasComma) charOptions.append(",");
+            // Note: we avoid whitespace in generated content as it can cause issues
+
+            if (charOptions.isEmpty()) {
+                // Default to uppercase if pattern not recognized
+                charOptions.append("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+            }
+
+            int randomIndex = ThreadLocalRandom.current().nextInt(charOptions.length());
+            sb.append(charOptions.charAt(randomIndex));
+        }
+        return sb.toString();
     }
 
     /**
