@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -34,12 +33,13 @@ public class XsdSampleDataGenerator {
      * Represents a segment of a regex pattern for structure-aware generation.
      */
     private record PatternSegment(
-        String characterClass,  // e.g., "a-zA-Z0-9"
-        boolean isLiteral,      // true if this is a literal character
-        String literalValue,    // the literal character (if isLiteral=true)
-        int minRepeat,          // minimum repetitions (1 for +, 0 for *)
-        int maxRepeat           // maximum repetitions (-1 for unlimited)
-    ) {}
+            String characterClass,  // e.g., "a-zA-Z0-9"
+            boolean isLiteral,      // true if this is a literal character
+            String literalValue,    // the literal character (if isLiteral=true)
+            int minRepeat,          // minimum repetitions (1 for +, 0 for *)
+            int maxRepeat           // maximum repetitions (-1 for unlimited)
+    ) {
+    }
 
     /**
      * Holds the resolved type information: base XML type and merged restrictions.
@@ -377,8 +377,7 @@ public class XsdSampleDataGenerator {
     private boolean isValidResult(String result, int minLen, int maxLen, java.util.regex.Pattern regexPattern) {
         if (result == null) return false;
         if (result.length() < minLen || result.length() > maxLen) return false;
-        if (regexPattern != null && !regexPattern.matcher(result).matches()) return false;
-        return true;
+        return regexPattern == null || regexPattern.matcher(result).matches();
     }
 
     /**
@@ -428,7 +427,7 @@ public class XsdSampleDataGenerator {
                 char escaped = pattern.charAt(i + 1);
                 // \s, \d, \w are character class shorthands
                 if (escaped == 's' || escaped == 'd' || escaped == 'w' ||
-                    escaped == 'S' || escaped == 'D' || escaped == 'W') {
+                        escaped == 'S' || escaped == 'D' || escaped == 'W') {
                     int[] repeatInfo = parseQuantifier(pattern, i + 2);
                     segments.add(new PatternSegment(String.valueOf(escaped), false, null, repeatInfo[0], repeatInfo[1]));
                     i = repeatInfo[2];
@@ -487,6 +486,7 @@ public class XsdSampleDataGenerator {
 
     /**
      * Parses a quantifier after a pattern element.
+     *
      * @return int[3] = {minRepeat, maxRepeat, newIndex}
      */
     private int[] parseQuantifier(String pattern, int index) {
@@ -517,8 +517,8 @@ public class XsdSampleDataGenerator {
         try {
             int min = Integer.parseInt(parts[0].trim());
             int max = parts.length > 1 && !parts[1].trim().isEmpty()
-                ? Integer.parseInt(parts[1].trim())
-                : min;
+                    ? Integer.parseInt(parts[1].trim())
+                    : min;
             return new int[]{min, Math.min(max, 50), end + 1}; // Cap at 50
         } catch (NumberFormatException e) {
             return new int[]{1, 1, end + 1};
@@ -540,8 +540,8 @@ public class XsdSampleDataGenerator {
                 int count = segment.minRepeat();
                 if (segment.maxRepeat() > segment.minRepeat()) {
                     count = ThreadLocalRandom.current().nextInt(
-                        segment.minRepeat(),
-                        Math.min(segment.maxRepeat() + 1, segment.minRepeat() + 10)
+                            segment.minRepeat(),
+                            Math.min(segment.maxRepeat() + 1, segment.minRepeat() + 10)
                     );
                 }
 
@@ -556,11 +556,11 @@ public class XsdSampleDataGenerator {
         if (output.length() < targetLength) {
             // Pad with characters from first non-literal segment
             String padChars = segments.stream()
-                .filter(s -> !s.isLiteral())
-                .map(s -> expandCharacterClass(s.characterClass()))
-                .filter(s -> !s.isEmpty())
-                .findFirst()
-                .orElse("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+                    .filter(s -> !s.isLiteral())
+                    .map(s -> expandCharacterClass(s.characterClass()))
+                    .filter(s -> !s.isEmpty())
+                    .findFirst()
+                    .orElse("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
             StringBuilder padded = new StringBuilder(output);
             while (padded.length() < targetLength && !padChars.isEmpty()) {
@@ -890,10 +890,7 @@ public class XsdSampleDataGenerator {
         for (String enumValue : enumerations) {
             try {
                 BigDecimal numValue = new BigDecimal(enumValue);
-                boolean valid = true;
-                if (finalMin != null && numValue.compareTo(finalMin) < 0) {
-                    valid = false;
-                }
+                boolean valid = finalMin == null || numValue.compareTo(finalMin) >= 0;
                 if (finalMax != null && numValue.compareTo(finalMax) > 0) {
                     valid = false;
                 }

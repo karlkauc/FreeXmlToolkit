@@ -2,8 +2,8 @@ package org.fxt.freexmltoolkit.service;
 
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
@@ -547,7 +547,7 @@ class XsdSampleDataGeneratorTest {
         facets.put("pattern", Collections.singletonList("[_\\-a-zA-Z0-9\\.\\+]+@[a-zA-Z0-9]([\\.\\-a-zA-Z0-9]*[a-zA-Z0-9])*"));
 
         XsdExtendedElement.RestrictionInfo restriction =
-            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+                new XsdExtendedElement.RestrictionInfo("xs:string", facets);
         element.setRestrictionInfo(restriction);
 
         // Act
@@ -569,7 +569,7 @@ class XsdSampleDataGeneratorTest {
         facets.put("pattern", Collections.singletonList("[a-z]+/[a-z]+/[0-9]+"));
 
         XsdExtendedElement.RestrictionInfo restriction =
-            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+                new XsdExtendedElement.RestrictionInfo("xs:string", facets);
         element.setRestrictionInfo(restriction);
 
         // Act
@@ -594,7 +594,7 @@ class XsdSampleDataGeneratorTest {
         facets.put("pattern", Collections.singletonList("[0-9]{2}-[0-9]{7}"));
 
         XsdExtendedElement.RestrictionInfo restriction =
-            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+                new XsdExtendedElement.RestrictionInfo("xs:string", facets);
         element.setRestrictionInfo(restriction);
 
         // Act
@@ -616,7 +616,7 @@ class XsdSampleDataGeneratorTest {
         facets.put("pattern", Collections.singletonList("[A-Z]+_[0-9]+_[a-z]+"));
 
         XsdExtendedElement.RestrictionInfo restriction =
-            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+                new XsdExtendedElement.RestrictionInfo("xs:string", facets);
         element.setRestrictionInfo(restriction);
 
         // Act
@@ -642,7 +642,7 @@ class XsdSampleDataGeneratorTest {
         facets.put("length", Collections.singletonList("20"));
 
         XsdExtendedElement.RestrictionInfo restriction =
-            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+                new XsdExtendedElement.RestrictionInfo("xs:string", facets);
         element.setRestrictionInfo(restriction);
 
         // Act
@@ -664,7 +664,7 @@ class XsdSampleDataGeneratorTest {
         facets.put("pattern", Collections.singletonList("[0-9]+\\.[0-9]+\\.[0-9]+"));
 
         XsdExtendedElement.RestrictionInfo restriction =
-            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+                new XsdExtendedElement.RestrictionInfo("xs:string", facets);
         element.setRestrictionInfo(restriction);
 
         // Act
@@ -688,7 +688,7 @@ class XsdSampleDataGeneratorTest {
         facets.put("pattern", Collections.singletonList("[A-Z0-9]+"));
 
         XsdExtendedElement.RestrictionInfo restriction =
-            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+                new XsdExtendedElement.RestrictionInfo("xs:string", facets);
         element.setRestrictionInfo(restriction);
 
         // Act
@@ -712,7 +712,7 @@ class XsdSampleDataGeneratorTest {
         facets.put("pattern", Collections.singletonList("[0-9]{2}:[0-9]{2}"));
 
         XsdExtendedElement.RestrictionInfo restriction =
-            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+                new XsdExtendedElement.RestrictionInfo("xs:string", facets);
         element.setRestrictionInfo(restriction);
 
         // Act
@@ -734,7 +734,7 @@ class XsdSampleDataGeneratorTest {
         facets.put("pattern", Collections.singletonList("[A-Z]{3}"));
 
         XsdExtendedElement.RestrictionInfo restriction =
-            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+                new XsdExtendedElement.RestrictionInfo("xs:string", facets);
         element.setRestrictionInfo(restriction);
 
         // Act
