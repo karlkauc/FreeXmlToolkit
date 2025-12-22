@@ -5054,9 +5054,46 @@ public class XsdController implements FavoritesParentController {
         }
     }
 
+    /**
+     * Shows help dialog with XSD Editor features and keyboard shortcuts.
+     */
     @FXML
-    private void handleToolbarHelp() {
-        logger.info("Toolbar: Help clicked - no action");
+    public void handleToolbarHelp() {
+        var features = java.util.List.of(
+                new String[]{"bi-diagram-2", "Graphic View", "Visual XSD editor with interactive schema design - supports V1 and V2 editors"},
+                new String[]{"bi-collection", "Type Library", "Browse and analyze all ComplexTypes and SimpleTypes in your schema"},
+                new String[]{"bi-pencil-square", "Type Editor", "Edit ComplexTypes graphically and SimpleTypes with specialized panels"},
+                new String[]{"bi-card-text", "Text View", "Raw XSD source code editing with syntax highlighting"},
+                new String[]{"bi-clipboard-data", "Schema Analysis", "Statistics, constraints, validation, and quality checks for your schema"},
+                new String[]{"win10-notebook", "Documentation", "Generate comprehensive HTML documentation from XSD files"},
+                new String[]{"bi-keyboard", "Sample Generator", "Generate sample XML data conforming to your XSD schema"},
+                new String[]{"bi-layers-half", "Schema Flattener", "Merge XSD includes into a single self-contained file"}
+        );
+
+        var shortcuts = java.util.List.of(
+                new String[]{"Ctrl+S", "Save current file"},
+                new String[]{"Ctrl+Shift+S", "Save As"},
+                new String[]{"Ctrl+R", "Reload file from disk"},
+                new String[]{"Ctrl+W", "Close current file"},
+                new String[]{"F5", "Validate XSD Schema"},
+                new String[]{"Ctrl+Z / Ctrl+Y", "Undo / Redo"},
+                new String[]{"Ctrl+F", "Find and Replace"},
+                new String[]{"Ctrl+Alt+F", "Format / Pretty Print"},
+                new String[]{"Ctrl+D", "Add to Favorites"},
+                new String[]{"Ctrl+1 / 2 / 3", "Switch between Graphic / Type Library / Text View"},
+                new String[]{"F1", "Show this help dialog"}
+        );
+
+        var helpDialog = DialogHelper.createHelpDialog(
+                "XSD Editor - Help",
+                "XSD Schema Editor",
+                "Create, edit, and analyze XML Schema Definition files with a visual editor, type library, and documentation generator.",
+                "bi-file-earmark-code",
+                DialogHelper.HeaderTheme.PRIMARY,
+                features,
+                shortcuts
+        );
+        helpDialog.showAndWait();
     }
 
     /**
