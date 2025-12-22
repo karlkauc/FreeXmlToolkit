@@ -1507,16 +1507,48 @@ public class XsdDocumentationService {
 
     /**
      * Validates the generated XML against the XSD schema.
+     * Automatically detects XSD 1.1 schemas and uses appropriate validation.
      * @param xmlContent The XML content to validate
      * @return Validation result with success status and any error messages
      */
     public ValidationResult validateXmlAgainstSchema(String xmlContent) {
         try {
-            // Create schema factory
-            SchemaFactory factory = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            // Determine if schema requires XSD 1.1
+            boolean requiresXsd11 = isXsd11Schema();
+
+            // Create appropriate schema factory
+            SchemaFactory factory;
+            if (requiresXsd11) {
+                // Use Xerces XSD 1.1 factory
+                factory = new org.apache.xerces.jaxp.validation.XMLSchema11Factory();
+                logger.debug("Using XSD 1.1 schema factory for validation");
+            } else {
+                factory = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                logger.debug("Using XSD 1.0 schema factory for validation");
+            }
+
+            // Set up resource resolver for imports/includes
+            File schemaFile = new File(xsdFilePath);
+            File schemaDir = schemaFile.getParentFile();
+            factory.setResourceResolver(new org.w3c.dom.ls.LSResourceResolver() {
+                @Override
+                public org.w3c.dom.ls.LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI) {
+                    if (systemId != null && schemaDir != null) {
+                        File resolvedFile = new File(schemaDir, systemId);
+                        if (resolvedFile.exists()) {
+                            try {
+                                return new LSInputImpl(publicId, systemId, resolvedFile);
+                            } catch (Exception e) {
+                                logger.debug("Could not resolve resource: {}", systemId);
+                            }
+                        }
+                    }
+                    return null;
+                }
+            });
 
             // Load the schema
-            Source schemaSource = new StreamSource(new File(xsdFilePath));
+            Source schemaSource = new StreamSource(schemaFile);
             Schema schema = factory.newSchema(schemaSource);
 
             // Create validator
@@ -2538,6 +2570,103 @@ public class XsdDocumentationService {
             }
             throw e; // Re-throw the exception after reporting
         }
+    }
+
+    // --- Schema Version Detection ---
+
+    /**
+     * Checks if the loaded schema requires XSD 1.1.
+     * Looks for vc:minVersion="1.1" attribute on the schema element.
+     */
+    private boolean isXsd11Schema() {
+        if (doc == null) return false;
+        Element root = doc.getDocumentElement();
+        if (root == null) return false;
+
+        // Check for vc:minVersion attribute
+        String minVersion = root.getAttributeNS("http://www.w3.org/2007/XMLSchema-versioning", "minVersion");
+        if ("1.1".equals(minVersion)) {
+            return true;
+        }
+
+        // Also check without namespace (some schemas use it without proper namespace)
+        minVersion = root.getAttribute("vc:minVersion");
+        return "1.1".equals(minVersion);
+    }
+
+    /**
+     * Simple LSInput implementation for resource resolution.
+     */
+    private static class LSInputImpl implements org.w3c.dom.ls.LSInput {
+        private final String publicId;
+        private final String systemId;
+        private final File file;
+
+        public LSInputImpl(String publicId, String systemId, File file) {
+            this.publicId = publicId;
+            this.systemId = systemId;
+            this.file = file;
+        }
+
+        @Override
+        public java.io.Reader getCharacterStream() {
+            try {
+                return new java.io.FileReader(file);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        @Override
+        public void setCharacterStream(java.io.Reader characterStream) {}
+
+        @Override
+        public java.io.InputStream getByteStream() {
+            try {
+                return new java.io.FileInputStream(file);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        @Override
+        public void setByteStream(java.io.InputStream byteStream) {}
+
+        @Override
+        public String getStringData() { return null; }
+
+        @Override
+        public void setStringData(String stringData) {}
+
+        @Override
+        public String getSystemId() { return systemId; }
+
+        @Override
+        public void setSystemId(String systemId) {}
+
+        @Override
+        public String getPublicId() { return publicId; }
+
+        @Override
+        public void setPublicId(String publicId) {}
+
+        @Override
+        public String getBaseURI() { return file.toURI().toString(); }
+
+        @Override
+        public void setBaseURI(String baseURI) {}
+
+        @Override
+        public String getEncoding() { return "UTF-8"; }
+
+        @Override
+        public void setEncoding(String encoding) {}
+
+        @Override
+        public boolean getCertifiedText() { return false; }
+
+        @Override
+        public void setCertifiedText(boolean certifiedText) {}
     }
 
     // --- General DOM/String Helper Methods ---

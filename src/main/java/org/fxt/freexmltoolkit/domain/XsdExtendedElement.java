@@ -311,11 +311,21 @@ public class XsdExtendedElement implements Serializable {
 
     public boolean isMandatory() {
         if (this.currentNode == null) return false;
-        String minOccurs = getAttributeValue(currentNode, "minOccurs");
+
         // Default for element is "1", for attribute it's based on "use"
-        if (elementName.startsWith("@")) {
+        if (elementName != null && elementName.startsWith("@")) {
             String use = getAttributeValue(currentNode, "use");
             return "required".equals(use);
+        }
+
+        // For element references, minOccurs is on the cardinalityNode (the ref node), not on currentNode
+        // Check cardinalityNode first, then fall back to currentNode
+        String minOccurs = null;
+        if (cardinalityNode != null) {
+            minOccurs = getAttributeValue(cardinalityNode, "minOccurs");
+        }
+        if (minOccurs == null) {
+            minOccurs = getAttributeValue(currentNode, "minOccurs");
         }
 
         // Check if minOccurs > 0 (not just equals 1)
