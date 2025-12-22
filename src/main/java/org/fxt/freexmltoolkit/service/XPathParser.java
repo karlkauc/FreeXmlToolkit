@@ -139,9 +139,7 @@ public class XPathParser {
             }
 
             XPathComponent component = parseXPathComponent(part.trim());
-            if (component != null) {
-                components.add(component);
-            }
+            components.add(component);
         }
 
         return components;
@@ -367,112 +365,5 @@ public class XPathParser {
             }
         }
         return false;
-    }
-
-    /**
-     * Gets or creates an element at a specific position among siblings
-     */
-    public Element getOrCreateElementAtPosition(Document doc, Element parent, String elementName, int position) {
-        List<Element> siblings = new ArrayList<>();
-        NodeList children = parent.getChildNodes();
-
-        // Collect all sibling elements with the same name
-        for (int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE &&
-                    child.getNodeName().equals(elementName)) {
-                siblings.add((Element) child);
-            }
-        }
-
-        // Create missing elements if needed
-        while (siblings.size() < position) {
-            Element newElement = doc.createElement(elementName);
-            parent.appendChild(newElement);
-            siblings.add(newElement);
-        }
-
-        return siblings.get(position - 1);
-    }
-
-    /**
-     * Extracts position from XPath component like "element[2]"
-     */
-    public int extractPosition(String xpathComponent) {
-        Matcher matcher = ELEMENT_PATTERN.matcher(xpathComponent);
-        if (matcher.matches()) {
-            String positionStr = matcher.group(3);
-            if (positionStr != null) {
-                try {
-                    return Integer.parseInt(positionStr);
-                } catch (NumberFormatException e) {
-                    logger.warn("Invalid position in XPath component: {}", xpathComponent);
-                }
-            }
-        }
-        return 1; // Default position
-    }
-
-    /**
-     * Extracts element name from XPath component, removing position predicate
-     */
-    public String extractElementName(String xpathComponent) {
-        Matcher matcher = ELEMENT_PATTERN.matcher(xpathComponent);
-        if (matcher.matches()) {
-            return matcher.group(1);
-        }
-        return xpathComponent;
-    }
-
-    /**
-     * Checks if XPath component represents an attribute
-     */
-    public boolean isAttribute(String xpathComponent) {
-        return xpathComponent.startsWith("@");
-    }
-
-    /**
-     * Checks if XPath component represents a text node
-     */
-    public boolean isTextNode(String xpathComponent) {
-        return "text()".equals(xpathComponent);
-    }
-
-    /**
-     * Checks if XPath component represents a comment
-     */
-    public boolean isComment(String xpathComponent) {
-        return "comment()".equals(xpathComponent);
-    }
-
-    /**
-     * Checks if XPath component represents CDATA
-     */
-    public boolean isCData(String xpathComponent) {
-        return "cdata()".equals(xpathComponent);
-    }
-
-    /**
-     * Validates XPath syntax
-     */
-    public boolean isValidXPath(String xpath) {
-        try {
-            if (xpath == null || xpath.trim().isEmpty()) {
-                return false;
-            }
-
-            // Basic validation
-            if (!xpath.startsWith("/")) {
-                return false;
-            }
-
-            // Try to parse it
-            List<XPathComponent> components = parseXPath(xpath);
-            return !components.isEmpty();
-
-        } catch (Exception e) {
-            logger.debug("Invalid XPath: {}", xpath, e);
-            return false;
-        }
     }
 }

@@ -390,7 +390,7 @@ public class XsdSampleDataGenerator {
 
         // If parsing found literal characters, use structure-aware generation
         boolean hasLiterals = segments.stream().anyMatch(PatternSegment::isLiteral);
-        if (hasLiterals && !segments.isEmpty()) {
+        if (hasLiterals) {
             return generateFromSegments(segments, targetLength);
         }
 
@@ -815,7 +815,7 @@ public class XsdSampleDataGenerator {
 
         // Ensure totalDigits is respected (including decimal places)
         if (totalDigits > 0) {
-            randomValue = constrainToTotalDigits(randomValue, totalDigits, fractionDigits >= 0 ? fractionDigits : 0);
+            randomValue = constrainToTotalDigits(randomValue, totalDigits, Math.max(fractionDigits, 0));
         }
 
         return randomValue;
@@ -960,11 +960,9 @@ public class XsdSampleDataGenerator {
 
         // Override/add facets from secondary (element-level restrictions)
         if (secondary.facets() != null) {
-            for (Map.Entry<String, List<String>> entry : secondary.facets().entrySet()) {
-                // For enumerations and patterns, we might want to intersect rather than replace
-                // For now, element-level restrictions override type-level
-                mergedFacets.put(entry.getKey(), entry.getValue());
-            }
+            // For enumerations and patterns, we might want to intersect rather than replace
+            // For now, element-level restrictions override type-level
+            mergedFacets.putAll(secondary.facets());
         }
 
         return new RestrictionInfo(mergedBase, mergedFacets);
