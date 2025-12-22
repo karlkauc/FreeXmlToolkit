@@ -246,12 +246,22 @@ public class XsdSampleDataGenerator {
 
     /**
      * Generates a string using Generex with length hints, with retry logic.
+     * Validates that the generated string actually matches the pattern.
      */
     private String generateWithLengthHint(Generex generex, int minLen, int maxLen, String pattern) {
+        // Compile pattern for validation (XML Schema patterns are implicitly anchored)
+        java.util.regex.Pattern regexPattern;
+        try {
+            regexPattern = java.util.regex.Pattern.compile("^" + pattern + "$");
+        } catch (Exception e) {
+            logger.debug("Could not compile pattern '{}' for validation: {}", pattern, e.getMessage());
+            regexPattern = null;
+        }
+
         // Try using Generex's random(min, max) if the pattern supports it
         try {
             String result = generex.random(minLen, maxLen);
-            if (result != null && result.length() >= minLen && result.length() <= maxLen) {
+            if (isValidResult(result, minLen, maxLen, regexPattern)) {
                 return result;
             }
         } catch (Exception e) {
@@ -259,38 +269,27 @@ public class XsdSampleDataGenerator {
             logger.debug("Generex random(min, max) failed for pattern '{}': {}", pattern, e.getMessage());
         }
 
-        // Fallback: try generating multiple times and pick one with valid length
+        // Fallback: try generating multiple times and pick one with valid length AND pattern match
         for (int attempt = 0; attempt < MAX_PATTERN_GENERATION_ATTEMPTS; attempt++) {
             String result = generex.random();
-            if (result != null && result.length() >= minLen && result.length() <= maxLen) {
+            if (isValidResult(result, minLen, maxLen, regexPattern)) {
                 return result;
             }
         }
 
-        // Last resort: generate and adjust
-        String result = generex.random();
-        if (result == null || result.isEmpty()) {
-            // Pattern might match empty string (e.g., [A-Z]*)
-            // Generate a minimum-length string manually
-            return generateFallbackForPattern(pattern, minLen);
-        }
+        // Last resort: use fallback generator which is pattern-aware
+        logger.debug("Generex failed to produce valid output for pattern '{}', using fallback generator", pattern);
+        return generateFallbackForPattern(pattern, minLen);
+    }
 
-        // Truncate if too long
-        if (result.length() > maxLen) {
-            return result.substring(0, maxLen);
-        }
-
-        // Pad if too short (only if pattern allows)
-        if (result.length() < minLen) {
-            // Try to repeat the generated content
-            StringBuilder sb = new StringBuilder(result);
-            while (sb.length() < minLen && !result.isEmpty()) {
-                sb.append(result.charAt(sb.length() % result.length()));
-            }
-            return sb.toString();
-        }
-
-        return result;
+    /**
+     * Validates if a generated result meets length and pattern requirements.
+     */
+    private boolean isValidResult(String result, int minLen, int maxLen, java.util.regex.Pattern regexPattern) {
+        if (result == null) return false;
+        if (result.length() < minLen || result.length() > maxLen) return false;
+        if (regexPattern != null && !regexPattern.matcher(result).matches()) return false;
+        return true;
     }
 
     /**
