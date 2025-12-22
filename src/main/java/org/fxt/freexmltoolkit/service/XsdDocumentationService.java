@@ -26,6 +26,7 @@ import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
+import org.jspecify.annotations.NonNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -1167,73 +1168,6 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Generates a sample value for an element based on its XSD type and available example values.
-     *
-     * @param elementName The name of the element
-     * @param type        The XSD type of the element (e.g., "xs:string", "xs:int", etc.)
-     * @return A sample value or null if no value can be generated
-     */
-    public String generateSampleValue(String elementName, String type) {
-        try {
-            // First, try to get example values from XSD annotations
-            if (xsdDocumentationData != null && xsdDocumentationData.getExtendedXsdElementMap() != null) {
-                // Look for element by name in the extended element map
-                for (XsdExtendedElement element : xsdDocumentationData.getExtendedXsdElementMap().values()) {
-                    if (elementName.equals(element.getElementName()) || (element.getCurrentXpath() != null && element.getCurrentXpath().endsWith("/" + elementName))) {
-                        List<String> exampleValues = element.getExampleValues();
-                        if (exampleValues != null && !exampleValues.isEmpty()) {
-                            // Return first available example value
-                            return exampleValues.get(0);
-                        }
-                    }
-                }
-            }
-
-            // Fallback to type-based sample values
-            if (type == null || type.isEmpty()) {
-                return "sample text";
-            }
-
-            // Normalize type name (remove namespace prefix)
-            String normalizedType = type;
-            if (type.contains(":")) {
-                normalizedType = type.substring(type.lastIndexOf(":") + 1);
-            }
-
-            return switch (normalizedType.toLowerCase()) {
-                case "string", "normalizedstring", "token" -> "Sample text";
-                case "int", "integer", "positiveinteger", "nonpositiveinteger",
-                     "negativeinteger", "nonnegativeinteger", "long", "short", "byte" -> "123";
-                case "decimal", "float", "double" -> "99.99";
-                case "boolean" -> "true";
-                case "date" -> java.time.LocalDate.now().toString();
-                case "datetime", "timestamp" -> java.time.LocalDateTime.now().toString();
-                case "time" -> java.time.LocalTime.now().toString();
-                case "anyuri", "uri", "url" -> "https://example.com";
-                case "email" -> "example@example.com";
-                case "base64binary" -> "U2FtcGxlIGRhdGE=";
-                case "hexbinary" -> "48656C6C6F";
-                case "duration" -> "P1D";
-                case "gday" -> "---15";
-                case "gmonth" -> "--12";
-                case "gmonthday" -> "--12-15";
-                case "gyear" -> String.valueOf(java.time.Year.now().getValue());
-                case "gyearmonth" -> java.time.YearMonth.now().toString();
-                default -> {
-                    // Check if it's a custom type that might have restrictions
-                    logger.debug("Unknown type '{}' for element '{}', using default sample", type, elementName);
-                    yield "sample value";
-                }
-            };
-
-        } catch (Exception e) {
-            logger.debug("Error generating sample value for element '{}' with type '{}': {}",
-                    elementName, type, e.getMessage());
-            return "sample value";
-        }
-    }
-
-    /**
      * Processes all schemas including xs:include and xs:import elements.
      * This method downloads remote schemas and processes local includes.
      */
@@ -1271,7 +1205,7 @@ public class XsdDocumentationService {
                 Element includeElement = (Element) includeNodes.item(i);
                 String location = includeElement.getAttribute("schemaLocation");
 
-                if (location != null && !location.isEmpty()) {
+                if (!location.isEmpty()) {
                     Path includedFile = baseDirectory.resolve(location);
                     if (Files.exists(includedFile)) {
                         logger.debug("Found local include: {}", includedFile);
@@ -1320,7 +1254,7 @@ public class XsdDocumentationService {
                     } catch (Exception e) {
                         logger.error("Failed to download or process remote schema: {}", location, e);
                     }
-                } else if (location != null && !location.isEmpty()) {
+                } else if (!location.isEmpty()) {
                     // Handle local imports
                     Path importedFile = baseDirectory.resolve(location);
                     if (Files.exists(importedFile)) {
@@ -2002,7 +1936,7 @@ public class XsdDocumentationService {
             String message
     ) {
         @Override
-        public String toString() {
+        public @NonNull String toString() {
             return String.format("[%s] Line %d, Column %d: %s", severity, lineNumber, columnNumber, message);
         }
     }
@@ -2428,7 +2362,7 @@ public class XsdDocumentationService {
      * @return true if the reference is to an external namespace that should be skipped
      */
     private boolean isExternalNamespaceReference(String ref) {
-        if (ref == null || ref.isEmpty() || !ref.contains(":")) {
+        if (ref == null || !ref.contains(":")) {
             return false;
         }
 
@@ -2592,7 +2526,7 @@ public class XsdDocumentationService {
                 for (int i = 0; i < includeNodes.getLength(); i++) {
                     Element includeElement = (Element) includeNodes.item(i);
                     String location = includeElement.getAttribute("schemaLocation");
-                    if (location != null && !location.isEmpty()) {
+                    if (!location.isEmpty()) {
                         Path includedFile = baseDirectory.resolve(location);
                         if (Files.exists(includedFile)) {
                             filesToProcess.add(includedFile);
@@ -2603,7 +2537,7 @@ public class XsdDocumentationService {
                 for (int i = 0; i < importNodes.getLength(); i++) {
                     Element importElement = (Element) importNodes.item(i);
                     String location = importElement.getAttribute("schemaLocation");
-                    if (location != null && !location.isEmpty() && !isRemote(location)) {
+                    if (!location.isEmpty() && !isRemote(location)) {
                         Path importedFile = baseDirectory.resolve(location);
                         if (Files.exists(importedFile)) {
                             filesToProcess.add(importedFile);
@@ -3517,13 +3451,12 @@ public class XsdDocumentationService {
             logger.debug("Including type definition for '{}' in source code", cleanTypeName);
 
             // Combine the base source code with the type definition
-            String combinedSource = "<!-- Element Definition -->\n" +
+
+            return "<!-- Element Definition -->\n" +
                     baseSourceCode +
                     "\n\n" +
                     "<!-- Referenced Type Definition: " + cleanTypeName + " -->\n" +
                     typeSourceCode;
-
-            return combinedSource;
         }
 
         logger.debug("No global type definition found for: {}", cleanTypeName);

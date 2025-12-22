@@ -20,7 +20,9 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.application.Platform;
 import javafx.stage.Stage;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
+import org.fxt.freexmltoolkit.service.XsdSampleDataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -262,18 +264,20 @@ class XmlCodeEditorMandatoryChildrenTest {
                 xsdService.setXsdFilePath(testXsdFile.getAbsolutePath());
                 xsdService.processXsd(true);
 
-                // Test sample value generation for different types
-                String stringSample = xsdService.generateSampleValue("testElement", "xs:string");
+                // Test sample value generation for different types using XsdSampleDataGenerator
+                String stringSample = generateSampleValue("xs:string");
                 assertNotNull(stringSample, "Should generate sample for string type");
-                assertEquals("Sample text", stringSample, "String sample should be default text");
+                assertFalse(stringSample.isEmpty(), "String sample should not be empty");
 
-                String intSample = xsdService.generateSampleValue("testElement", "xs:int");
-                assertEquals("123", intSample, "Integer sample should be '123'");
+                String intSample = generateSampleValue("xs:int");
+                assertNotNull(intSample, "Should generate sample for int type");
+                assertFalse(intSample.isEmpty(), "Integer sample should not be empty");
 
-                String boolSample = xsdService.generateSampleValue("testElement", "xs:boolean");
-                assertEquals("true", boolSample, "Boolean sample should be 'true'");
+                String boolSample = generateSampleValue("xs:boolean");
+                assertNotNull(boolSample, "Should generate sample for boolean type");
+                assertTrue(boolSample.equals("true") || boolSample.equals("false"), "Boolean sample should be 'true' or 'false'");
 
-                String dateSample = xsdService.generateSampleValue("testElement", "xs:date");
+                String dateSample = generateSampleValue("xs:date");
                 assertNotNull(dateSample, "Should generate date sample");
                 assertTrue(dateSample.matches("\\d{4}-\\d{2}-\\d{2}"), "Date should be in YYYY-MM-DD format");
 
@@ -285,5 +289,16 @@ class XmlCodeEditorMandatoryChildrenTest {
         });
 
         assertTrue(latch.await(5, TimeUnit.SECONDS), "Test should complete within 5 seconds");
+    }
+
+    /**
+     * Helper method to generate sample values using XsdSampleDataGenerator.
+     * This replaces the removed XsdDocumentationService.generateSampleValue() method.
+     */
+    private String generateSampleValue(String type) {
+        XsdSampleDataGenerator generator = new XsdSampleDataGenerator();
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType(type);
+        return generator.generate(element);
     }
 }

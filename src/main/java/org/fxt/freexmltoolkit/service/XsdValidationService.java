@@ -56,7 +56,6 @@ public class XsdValidationService {
 
     // Performance settings
     private static final int LARGE_FILE_THRESHOLD = 50000; // 50KB
-    private static final int VALIDATION_CHUNK_SIZE = 10000; // 10KB chunks
 
     // Schema discovery patterns
     private static final Pattern XSD_SCHEMA_LOCATION_PATTERN = Pattern.compile(
@@ -75,27 +74,24 @@ public class XsdValidationService {
     // Unified XSD parsing service
     private final XsdParsingService xsdParsingService;
 
-    private XsdValidationService() {
-        initializeCommonSchemas();
-        this.xsdParsingService = new XsdParsingServiceImpl();
-        logger.info("XSD Validation Service initialized with caching enabled");
-    }
-
     /**
-     * Gets the XSD parsing service used by this validation service.
+     * Returns the singleton instance of XsdValidationService.
      *
-     * @return the XSD parsing service
+     * @return The singleton instance
      */
-    public XsdParsingService getXsdParsingService() {
-        return xsdParsingService;
-    }
-
     public static synchronized XsdValidationService getInstance() {
         if (instance == null) {
             instance = new XsdValidationService();
         }
         return instance;
     }
+
+    private XsdValidationService() {
+        initializeCommonSchemas();
+        this.xsdParsingService = new XsdParsingServiceImpl();
+        logger.info("XSD Validation Service initialized with caching enabled");
+    }
+
 
     /**
      * Initialize common schema mappings
