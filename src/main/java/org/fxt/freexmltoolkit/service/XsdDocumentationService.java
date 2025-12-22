@@ -71,7 +71,7 @@ public class XsdDocumentationService {
     int counter;
     boolean parallelProcessing = true;
 
-    public enum ImageOutputMethod {SVG, PNG}
+    public enum ImageOutputMethod {SVG, PNG, JPG}
 
     public ImageOutputMethod imageOutputMethod = ImageOutputMethod.SVG;
     Boolean useMarkdownRenderer = true;
@@ -96,6 +96,7 @@ public class XsdDocumentationService {
     // Language configuration for documentation generation
     private Set<String> discoveredLanguages = new LinkedHashSet<>();
     private Set<String> includedLanguages = null; // null = all languages
+    private String fallbackLanguage = null; // Fallback language when "default" is not available
 
     // SVG documentation display configuration
     private boolean showDocumentationInSvg = true; // Whether to show documentation in SVG diagrams
@@ -177,6 +178,24 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Sets the fallback language to use when "default" (no language tag) documentation is not available.
+     *
+     * @param language The language code to use as fallback (e.g., "en", "de"), or null for no fallback
+     */
+    public void setFallbackLanguage(String language) {
+        this.fallbackLanguage = language;
+    }
+
+    /**
+     * Returns the configured fallback language.
+     *
+     * @return The fallback language code, or null if no fallback is configured
+     */
+    public String getFallbackLanguage() {
+        return fallbackLanguage;
+    }
+
+    /**
      * Sets whether documentation should be displayed in SVG diagrams.
      *
      * @param showDocumentation true to show documentation, false to hide it
@@ -226,6 +245,59 @@ public class XsdDocumentationService {
             executeAndTrack("Generating detail pages for complex types", xsdDocumentationHtmlService::generateComplexTypePages);
             executeAndTrack("Generating detail pages for simple types", xsdDocumentationHtmlService::generateSimpleTypePages);
             executeAndTrack("Generating detail pages for elements", xsdDocumentationHtmlService::generateDetailPages);
+        }
+
+        // Generate languages.json for JavaScript-based language switching
+        executeAndTrack("Generating languages.json", () -> generateLanguagesJson(outputDirectory));
+    }
+
+    /**
+     * Generates languages.json file containing all discovered documentation languages.
+     * This file is used by the JavaScript language switcher for on-the-fly language switching.
+     *
+     * @param outputDirectory The output directory where languages.json will be created
+     */
+    private void generateLanguagesJson(File outputDirectory) {
+        try {
+            // Build the JSON content
+            StringBuilder json = new StringBuilder();
+            json.append("{\n");
+            json.append("  \"available\": [");
+
+            // Always include "default" first
+            List<String> sortedLanguages = new ArrayList<>();
+            sortedLanguages.add("default");
+
+            // Add other discovered languages sorted alphabetically
+            discoveredLanguages.stream()
+                    .filter(lang -> !"default".equalsIgnoreCase(lang))
+                    .sorted()
+                    .forEach(sortedLanguages::add);
+
+            for (int i = 0; i < sortedLanguages.size(); i++) {
+                if (i > 0) json.append(", ");
+                json.append("\"").append(sortedLanguages.get(i)).append("\"");
+            }
+
+            json.append("],\n");
+            json.append("  \"default\": \"default\",\n");
+
+            // Add fallback language setting
+            if (fallbackLanguage != null && !fallbackLanguage.isBlank()) {
+                json.append("  \"fallback\": \"").append(fallbackLanguage).append("\"\n");
+            } else {
+                json.append("  \"fallback\": null\n");
+            }
+
+            json.append("}\n");
+
+            // Write to file
+            Path languagesJsonPath = outputDirectory.toPath().resolve("languages.json");
+            Files.writeString(languagesJsonPath, json.toString(), StandardCharsets.UTF_8);
+
+            logger.debug("Generated languages.json with {} languages, fallback: {}", sortedLanguages.size(), fallbackLanguage);
+        } catch (IOException e) {
+            logger.error("Failed to generate languages.json", e);
         }
     }
 

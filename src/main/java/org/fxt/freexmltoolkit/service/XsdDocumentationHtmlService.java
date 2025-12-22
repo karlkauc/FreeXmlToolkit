@@ -329,9 +329,9 @@ public class XsdDocumentationHtmlService {
             context.setVariable("this", this); // Wichtig, damit this.* im Template funktioniert
             context.setVariable("element", element);
 
-            // Die fehlenden Variablen aus dem 'element'-Objekt auslesen und an das Template übergeben
-            // Use filtered language documentation if language filter is configured
-            context.setVariable("documentation", element.getFilteredLanguageDocumentation(includedLanguages));
+            // Pass ALL documentation for multi-language support with on-the-fly switching
+            // The template will render each language with data-lang attribute
+            context.setVariable("documentation", element.getAllLanguageDocumentation());
             context.setVariable("sampleData", element.getDisplaySampleData());
             context.setVariable("appInfos", element.getGenericAppInfos());
             context.setVariable("code", element.getSourceCode());
@@ -372,6 +372,12 @@ public class XsdDocumentationHtmlService {
             if (xsdDocService.imageOutputMethod == XsdDocumentationService.ImageOutputMethod.SVG) {
                 // Gibt den rohen SVG-String direkt zurück
                 return xsdDocumentationImageService.generateSvgString(element);
+            } else if (xsdDocService.imageOutputMethod == XsdDocumentationService.ImageOutputMethod.JPG) {
+                // Generiert eine JPG-Datei und gibt den relativen Pfad zurück
+                String relativePath = ASSETS_PATH + "/" + element.getPageName().replace(".html", ".jpg");
+                File outputFile = new File(outputDirectory, relativePath);
+                xsdDocumentationImageService.generateJpegImage(element, outputFile);
+                return relativePath; // z.B. "assets/MyElement_hash.jpg"
             } else {
                 // Generiert eine PNG-Datei und gibt den relativen Pfad zurück
                 String relativePath = ASSETS_PATH + "/" + element.getPageName().replace(".html", ".png");
@@ -538,6 +544,7 @@ public class XsdDocumentationHtmlService {
             copyAssets("/xsdDocumentation/assets/prism.css", outputDirectory);
             copyAssets("/xsdDocumentation/assets/freexmltoolkit-docs.css", outputDirectory);
             copyAssets("/xsdDocumentation/assets/search.js", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/language-switcher.js", outputDirectory);
             copyAssets("/xsdDocumentation/assets/logo.png", outputDirectory);
             copyAssets("/xsdDocumentation/assets/Roboto-Regular.ttf", outputDirectory);
             copyAssets("/xsdDocumentation/assets/Inter.ttf", outputDirectory);
@@ -911,14 +918,17 @@ public class XsdDocumentationHtmlService {
             return "";
         }
 
-        // Use filtered documentation and return first available language
-        Map<String, String> filteredDocs = element.getFilteredLanguageDocumentation(includedLanguages);
-        if (filteredDocs.isEmpty()) {
+        // Get all documentation for multi-language support
+        Map<String, String> allDocs = element.getAllLanguageDocumentation();
+        if (allDocs.isEmpty()) {
             return "";
         }
 
-        // Return first matching language's documentation for table display
-        return filteredDocs.values().iterator().next();
+        // For table cells, prefer "default" language, fallback to first available
+        if (allDocs.containsKey("default")) {
+            return allDocs.get("default");
+        }
+        return allDocs.values().iterator().next();
     }
 
     public boolean isChildTypeLinkable(String childXPath) {

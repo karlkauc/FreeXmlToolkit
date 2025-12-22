@@ -22,6 +22,7 @@ import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.image.JPEGTranscoder;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,6 +62,26 @@ public class XsdDocumentationImageService {
             // This is a serious configuration error that should stop the application.
             throw new IllegalStateException("Failed to create thread-local Transformer", e);
         }
+    });
+
+    // A ThreadLocal that provides a reusable PNGTranscoder instance for each thread.
+    // This significantly improves PNG generation performance by avoiding repeated transcoder creation.
+    private static final ThreadLocal<PNGTranscoder> pngTranscoderThreadLocal = ThreadLocal.withInitial(() -> {
+        PNGTranscoder transcoder = new PNGTranscoder();
+        // Configure transcoder with default settings
+        transcoder.addTranscodingHint(PNGTranscoder.KEY_FORCE_TRANSPARENT_WHITE, false);
+        transcoder.addTranscodingHint(PNGTranscoder.KEY_BACKGROUND_COLOR, Color.WHITE);
+        return transcoder;
+    });
+
+    // A ThreadLocal that provides a reusable JPEGTranscoder instance for each thread.
+    // This significantly improves JPG generation performance by avoiding repeated transcoder creation.
+    private static final ThreadLocal<JPEGTranscoder> jpegTranscoderThreadLocal = ThreadLocal.withInitial(() -> {
+        JPEGTranscoder transcoder = new JPEGTranscoder();
+        // Configure transcoder with default settings - high quality JPEG
+        transcoder.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, 0.95f);
+        transcoder.addTranscodingHint(JPEGTranscoder.KEY_BACKGROUND_COLOR, Color.WHITE);
+        return transcoder;
     });
 
     // Modern spacing and layout parameters
@@ -196,18 +217,15 @@ public class XsdDocumentationImageService {
             // 2. Optimize SVG for PNG rendering (remove CSS styles, disable interactive elements)
             Document pngOptimizedSvg = optimizeSvgForPngRendering(svgDocument);
 
-            // 3. Initialize PNG transcoder
-            PNGTranscoder transcoder = new PNGTranscoder();
-
-            // Configure transcoder for better compatibility
-            transcoder.addTranscodingHint(PNGTranscoder.KEY_FORCE_TRANSPARENT_WHITE, false);
-            transcoder.addTranscodingHint(PNGTranscoder.KEY_BACKGROUND_COLOR, Color.WHITE);
+            // 3. Get thread-local PNG transcoder (reused for performance)
+            PNGTranscoder transcoder = pngTranscoderThreadLocal.get();
 
             // 4. Create input for transcoder directly from optimized DOM document
             TranscoderInput input = new TranscoderInput(pngOptimizedSvg);
 
             // 5. Safely manage resources with try-with-resources
-            try (OutputStream outputStream = new FileOutputStream(file)) {
+            // Use BufferedOutputStream for better I/O performance
+            try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file), 65536)) {
                 TranscoderOutput output = new TranscoderOutput(outputStream);
 
                 // 6. Perform conversion
@@ -219,6 +237,58 @@ public class XsdDocumentationImageService {
 
         } catch (IOException | TranscoderException e) {
             logger.error("Failed to generate image for file '{}'", file.getAbsolutePath(), e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Generates a JPG image directly from the DOM representation of the XSD element.
+     * This version is more efficient and avoids serialization warnings by passing the
+     * DOM document directly to the transcoder.
+     *
+     * @param rootElement the root XSD element to generate the diagram from
+     * @param file        the file to save the generated image (should have a .jpg extension)
+     * @return the file path of the generated image, or null on failure
+     */
+    public String generateJpegImage(XsdExtendedElement rootElement, File file) {
+        try {
+            // Check for null element first
+            if (rootElement == null) {
+                logger.warn("Root element is null. Cannot generate JPEG image.");
+                return null;
+            }
+
+            // 1. Generate SVG DOM document as before
+            Document svgDocument = generateSvgDocument(rootElement);
+            if (svgDocument.getDocumentElement() == null || !svgDocument.getDocumentElement().hasChildNodes()) {
+                logger.warn("Generated SVG for {} is empty, skipping JPEG image creation.", rootElement.getCurrentXpath());
+                return null;
+            }
+
+            // 2. Optimize SVG for raster rendering (remove CSS styles, disable interactive elements)
+            Document optimizedSvg = optimizeSvgForPngRendering(svgDocument);
+
+            // 3. Get thread-local JPEG transcoder (reused for performance)
+            JPEGTranscoder transcoder = jpegTranscoderThreadLocal.get();
+
+            // 4. Create input for transcoder directly from optimized DOM document
+            TranscoderInput input = new TranscoderInput(optimizedSvg);
+
+            // 5. Safely manage resources with try-with-resources
+            // Use BufferedOutputStream for better I/O performance
+            try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file), 65536)) {
+                TranscoderOutput output = new TranscoderOutput(outputStream);
+
+                // 6. Perform conversion
+                transcoder.transcode(input, output);
+            }
+
+            logger.debug("Successfully created JPEG image: {}", file.getAbsolutePath());
+            return file.getAbsolutePath();
+
+        } catch (IOException | TranscoderException e) {
+            logger.error("Failed to generate JPEG image for file '{}'", file.getAbsolutePath(), e);
         }
 
         return null;
@@ -986,6 +1056,9 @@ public class XsdDocumentationImageService {
             // Remove hover effects and transitions
             removeHoverEffects(optimizedSvg);
 
+            // Simplify font-families to be compatible with Apache Batik
+            simplifyFontFamiliesForBatik(optimizedSvg);
+
             // Ensure all elements have explicit styling instead of CSS classes
             applyExplicitStyles(optimizedSvg);
 
@@ -995,6 +1068,65 @@ public class XsdDocumentationImageService {
             logger.warn("Failed to optimize SVG for PNG rendering, using original: {}", e.getMessage(), e);
             return originalSvg;
         }
+    }
+
+    /**
+     * Simplifies font-family attributes to be compatible with Apache Batik's CSS parser.
+     * Batik cannot handle modern CSS font stacks like '-apple-system' or 'BlinkMacSystemFont'.
+     */
+    private void simplifyFontFamiliesForBatik(Document svg) {
+        Element root = svg.getDocumentElement();
+        if (root == null) return;
+
+        // Simple, Batik-compatible font family
+        final String batikSafeFontFamily = "Arial, Helvetica, sans-serif";
+
+        // Process all text elements
+        NodeList textElements = root.getElementsByTagNameNS(svgNS, "text");
+        for (int i = 0; i < textElements.getLength(); i++) {
+            Element textElement = (Element) textElements.item(i);
+            String fontFamily = textElement.getAttribute("font-family");
+            if (fontFamily != null && !fontFamily.isEmpty()) {
+                // Replace complex font stack with simple one
+                if (fontFamily.contains("-apple-system") || fontFamily.contains("BlinkMacSystemFont") ||
+                        fontFamily.contains("Inter") || fontFamily.contains("Segoe UI")) {
+                    textElement.setAttribute("font-family", batikSafeFontFamily);
+                }
+            }
+        }
+
+        // Process all tspan elements (nested text)
+        NodeList tspanElements = root.getElementsByTagNameNS(svgNS, "tspan");
+        for (int i = 0; i < tspanElements.getLength(); i++) {
+            Element tspanElement = (Element) tspanElements.item(i);
+            String fontFamily = tspanElement.getAttribute("font-family");
+            if (fontFamily != null && !fontFamily.isEmpty()) {
+                if (fontFamily.contains("-apple-system") || fontFamily.contains("BlinkMacSystemFont") ||
+                        fontFamily.contains("Inter") || fontFamily.contains("Segoe UI")) {
+                    tspanElement.setAttribute("font-family", batikSafeFontFamily);
+                }
+            }
+        }
+
+        // Also check style elements for embedded CSS with problematic fonts
+        NodeList styleElements = root.getElementsByTagNameNS(svgNS, "style");
+        for (int i = 0; i < styleElements.getLength(); i++) {
+            Element styleElement = (Element) styleElements.item(i);
+            String cssContent = styleElement.getTextContent();
+            if (cssContent != null && (cssContent.contains("-apple-system") ||
+                    cssContent.contains("BlinkMacSystemFont") || cssContent.contains("'Inter'"))) {
+                // Replace problematic font references in CSS
+                cssContent = cssContent.replaceAll(
+                        "'Inter',\\s*-apple-system,\\s*BlinkMacSystemFont,\\s*'Segoe UI',\\s*'Helvetica Neue',\\s*Arial,\\s*sans-serif",
+                        batikSafeFontFamily);
+                cssContent = cssContent.replaceAll(
+                        "-apple-system,\\s*BlinkMacSystemFont,\\s*'Segoe UI',\\s*'Helvetica Neue',\\s*Arial,\\s*sans-serif",
+                        batikSafeFontFamily);
+                styleElement.setTextContent(cssContent);
+            }
+        }
+
+        logger.debug("Simplified font-families for Batik compatibility");
     }
 
     /**

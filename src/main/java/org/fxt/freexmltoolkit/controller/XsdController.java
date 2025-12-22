@@ -2,10 +2,14 @@ package org.fxt.freexmltoolkit.controller;
 
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.SimpleFileServer;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.util.Duration;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -330,6 +334,15 @@ public class XsdController implements FavoritesParentController {
     private VBox progressContainer;
     @FXML
     private Button openDocFolder;
+    @FXML
+    private HBox statusMessageContainer;
+
+    // Track the last generated documentation folder for the "Open Folder" button
+    private File lastGeneratedDocFolder;
+
+    // --- Timer for documentation generation progress ---
+    private Timeline documentationTimer;
+    private long documentationStartTime;
 
     // --- Language configuration for documentation ---
     @FXML
@@ -340,6 +353,10 @@ public class XsdController implements FavoritesParentController {
     public HBox languageSelectionContainer;
     @FXML
     public HBox languageQuickActions;
+    @FXML
+    public HBox fallbackLanguageContainer;
+    @FXML
+    public ComboBox<String> fallbackLanguageComboBox;
 
     // ControlsFX CheckComboBox for language selection (created programmatically)
     private CheckComboBox<String> languageCheckComboBox;
@@ -365,6 +382,10 @@ public class XsdController implements FavoritesParentController {
     private VBox taskStatusBar;
     @FXML
     private VBox taskContainer;
+    @FXML
+    private Label taskTimerLabel;
+    @FXML
+    private ProgressIndicator taskProgressIndicator;
 
     private final static Logger logger = LogManager.getLogger(XsdController.class);
 
@@ -2334,9 +2355,22 @@ public class XsdController implements FavoritesParentController {
 
         // 2. Prepare UI for background task
         progressScrollPane.setVisible(true);
+        progressScrollPane.setManaged(true);
         progressContainer.getChildren().clear();
-        openDocFolder.setDisable(true);
+
+        // Hide the status message container while generating
+        if (statusMessageContainer != null) {
+            statusMessageContainer.setVisible(false);
+            statusMessageContainer.setManaged(false);
+        }
+
+        if (openDocFolder != null) {
+            openDocFolder.setDisable(true);
+        }
         statusText.setText("Starting documentation generation...");
+
+        // Start the elapsed time timer
+        startDocumentationTimer();
 
         Task<Void> generationTask = getGenerationTask(xsdFile, outputDir);
 
@@ -2347,6 +2381,7 @@ public class XsdController implements FavoritesParentController {
     private @NotNull Task<Void> getGenerationTask(File xsdFile, File outputDir) {
         // Capture UI values before entering background thread
         final Set<String> selectedLanguages = getSelectedLanguages();
+        final String fallbackLanguage = getSelectedFallbackLanguage();
 
         Task<Void> generationTask = new Task<>() {
             @Override
@@ -2363,10 +2398,15 @@ public class XsdController implements FavoritesParentController {
                 // Set language filter for documentation output
                 docService.setIncludedLanguages(selectedLanguages);
 
-                // Note: JPG is not supported by the service, it will default to SVG.
+                // Set fallback language for cases when no default documentation exists
+                docService.setFallbackLanguage(fallbackLanguage);
+
+                // Set the image output format based on user selection
                 String format = grafikFormat.getValue();
                 if ("PNG".equalsIgnoreCase(format)) {
                     docService.setMethod(XsdDocumentationService.ImageOutputMethod.PNG);
+                } else if ("JPG".equalsIgnoreCase(format)) {
+                    docService.setMethod(XsdDocumentationService.ImageOutputMethod.JPG);
                 } else { // Default to SVG
                     docService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
                 }
@@ -2481,10 +2521,12 @@ public class XsdController implements FavoritesParentController {
             languageSelectionContainer.setManaged(false);
             languageQuickActions.setVisible(false);
             languageQuickActions.setManaged(false);
+            fallbackLanguageContainer.setVisible(false);
+            fallbackLanguageContainer.setManaged(false);
             return;
         }
 
-        // Single language detected - no need for selection UI
+        // Single language detected - no need for selection UI but show fallback option
         if (languages.size() == 1) {
             String singleLang = languages.iterator().next();
             languageScanStatus.setText("1 language detected: " + singleLang + " (no filtering needed)");
@@ -2493,6 +2535,8 @@ public class XsdController implements FavoritesParentController {
             languageSelectionContainer.setManaged(false);
             languageQuickActions.setVisible(false);
             languageQuickActions.setManaged(false);
+            // Still show fallback option if the single language is not "default"
+            updateFallbackLanguageUI(languages);
             return;
         }
 
@@ -2519,6 +2563,59 @@ public class XsdController implements FavoritesParentController {
         languageSelectionContainer.setManaged(true);
         languageQuickActions.setVisible(true);
         languageQuickActions.setManaged(true);
+
+        // Update fallback language UI
+        updateFallbackLanguageUI(languages);
+    }
+
+    /**
+     * Updates the fallback language ComboBox with available languages.
+     * The fallback language is used when "default" (no language tag) documentation is not available.
+     *
+     * @param languages The set of discovered language codes
+     */
+    private void updateFallbackLanguageUI(Set<String> languages) {
+        // Get non-default languages for fallback selection
+        List<String> fallbackOptions = languages.stream()
+                .filter(lang -> !"default".equalsIgnoreCase(lang))
+                .sorted()
+                .toList();
+
+        if (fallbackOptions.isEmpty()) {
+            // Only "default" language exists, no need for fallback
+            fallbackLanguageContainer.setVisible(false);
+            fallbackLanguageContainer.setManaged(false);
+            return;
+        }
+
+        // Populate the fallback ComboBox
+        fallbackLanguageComboBox.getItems().clear();
+        fallbackLanguageComboBox.getItems().add("(none)"); // Option to not use a fallback
+        fallbackLanguageComboBox.getItems().addAll(fallbackOptions);
+
+        // Set default selection to the first available language
+        if (!fallbackOptions.isEmpty()) {
+            fallbackLanguageComboBox.setValue(fallbackOptions.get(0));
+        } else {
+            fallbackLanguageComboBox.setValue("(none)");
+        }
+
+        // Show the fallback language container
+        fallbackLanguageContainer.setVisible(true);
+        fallbackLanguageContainer.setManaged(true);
+    }
+
+    /**
+     * Gets the selected fallback language, or null if "(none)" is selected.
+     *
+     * @return The selected fallback language code, or null
+     */
+    public String getSelectedFallbackLanguage() {
+        if (fallbackLanguageComboBox == null || fallbackLanguageComboBox.getValue() == null) {
+            return null;
+        }
+        String selected = fallbackLanguageComboBox.getValue();
+        return "(none)".equals(selected) ? null : selected;
     }
 
     /**
@@ -2566,12 +2663,52 @@ public class XsdController implements FavoritesParentController {
      * @param outputDir The directory where the documentation was created.
      */
     private void handleDocumentationSuccess(File outputDir) {
-        statusText.setText("Documentation generated successfully in " + outputDir.getAbsolutePath());
-        openDocFolder.setDisable(false);
-        openDocFolder.setOnAction(e -> openFolderInExplorer(outputDir));
+        // Stop the timer
+        stopDocumentationTimer();
+
+        // Store the output directory for the "Open Folder" button
+        lastGeneratedDocFolder = outputDir;
+
+        // Hide the progress scroll pane
+        progressScrollPane.setVisible(false);
+        progressScrollPane.setManaged(false);
+
+        // Update status message with elapsed time
+        String elapsedTime = formatElapsedTime(System.currentTimeMillis() - documentationStartTime);
+        statusText.setText("Documentation generated successfully in " + elapsedTime + " - " + outputDir.getAbsolutePath());
+
+        // Show the status message container with success styling
+        if (statusMessageContainer != null) {
+            // Reset to success style (green)
+            statusMessageContainer.setStyle("-fx-background-color: #d4edda; -fx-background-radius: 8; " +
+                    "-fx-padding: 15; -fx-border-radius: 8; -fx-border-color: #c3e6cb; -fx-border-width: 1;");
+            statusMessageContainer.setVisible(true);
+            statusMessageContainer.setManaged(true);
+        }
+
+        // Show and enable the open folder button
+        if (openDocFolder != null) {
+            openDocFolder.setVisible(true);
+            openDocFolder.setManaged(true);
+            openDocFolder.setDisable(false);
+        }
 
         if (openFileAfterCreation.isSelected()) {
             startDocServerAndShowPreview(outputDir);
+        }
+    }
+
+    /**
+     * Opens the generated documentation folder in the system file explorer.
+     * This method is called from the "Open Folder" button in the status message.
+     */
+    @FXML
+    public void openGeneratedDocFolder() {
+        if (lastGeneratedDocFolder != null && lastGeneratedDocFolder.exists()) {
+            openFolderInExplorer(lastGeneratedDocFolder);
+        } else {
+            DialogHelper.showWarning("Open Folder", "No Folder Available",
+                    "No documentation has been generated yet, or the folder no longer exists.");
         }
     }
 
@@ -2604,13 +2741,113 @@ public class XsdController implements FavoritesParentController {
      * @param e The exception that occurred.
      */
     private void handleDocumentationFailure(Throwable e) {
+        // Stop the timer
+        stopDocumentationTimer();
+
         progressScrollPane.setVisible(false);
+        progressScrollPane.setManaged(false);
         logger.error("Failed to generate documentation.", e);
-        statusText.setText("Error generating documentation.");
+
+        // Show error state in status message container
+        if (statusMessageContainer != null) {
+            statusText.setText("Error generating documentation: " + e.getMessage());
+            // Style for error state (red background)
+            statusMessageContainer.setStyle("-fx-background-color: #f8d7da; -fx-background-radius: 8; " +
+                    "-fx-padding: 15; -fx-border-radius: 8; -fx-border-color: #f5c6cb; -fx-border-width: 1;");
+            statusMessageContainer.setVisible(true);
+            statusMessageContainer.setManaged(true);
+        }
+
+        // Hide the open folder button on error
+        if (openDocFolder != null) {
+            openDocFolder.setVisible(false);
+            openDocFolder.setManaged(false);
+        }
+
         if (e instanceof Exception) {
             DialogHelper.showException("Generate Documentation", "Failed to Generate Documentation", (Exception) e);
         } else {
             DialogHelper.showError("Generate Documentation", "Error", e.getMessage());
+        }
+    }
+
+    /**
+     * Starts the documentation generation timer.
+     * Displays the timer in the Background Task status bar at the bottom of the screen.
+     */
+    private void startDocumentationTimer() {
+        // Stop any existing timer
+        stopDocumentationTimer();
+
+        // Record start time
+        documentationStartTime = System.currentTimeMillis();
+
+        // Show the task status bar with progress indicator
+        taskStatusBar.setVisible(true);
+        taskStatusBar.setManaged(true);
+        if (taskProgressIndicator != null) {
+            taskProgressIndicator.setVisible(true);
+        }
+
+        // Initialize the timer label
+        if (taskTimerLabel != null) {
+            taskTimerLabel.setText("00:00");
+        }
+
+        // Create the timeline to update every second
+        documentationTimer = new Timeline(
+                new KeyFrame(Duration.seconds(1), event -> updateTimerDisplay())
+        );
+        documentationTimer.setCycleCount(Animation.INDEFINITE);
+        documentationTimer.play();
+    }
+
+    /**
+     * Updates the timer display with the current elapsed time.
+     */
+    private void updateTimerDisplay() {
+        if (taskTimerLabel != null) {
+            long elapsedMillis = System.currentTimeMillis() - documentationStartTime;
+            taskTimerLabel.setText(formatElapsedTime(elapsedMillis));
+        }
+    }
+
+    /**
+     * Stops the documentation generation timer.
+     */
+    private void stopDocumentationTimer() {
+        if (documentationTimer != null) {
+            documentationTimer.stop();
+            documentationTimer = null;
+        }
+
+        // Hide the progress indicator
+        if (taskProgressIndicator != null) {
+            taskProgressIndicator.setVisible(false);
+        }
+
+        // Hide the task status bar only if there are no other tasks
+        if (taskContainer != null && taskContainer.getChildren().isEmpty()) {
+            taskStatusBar.setVisible(false);
+            taskStatusBar.setManaged(false);
+        }
+    }
+
+    /**
+     * Formats elapsed time in milliseconds to MM:SS or HH:MM:SS format.
+     * @param elapsedMillis elapsed time in milliseconds
+     * @return formatted time string
+     */
+    private String formatElapsedTime(long elapsedMillis) {
+        long totalSeconds = elapsedMillis / 1000;
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+
+        if (hours > 0) {
+            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        } else {
+            return String.format("%02d:%02d", minutes, seconds);
         }
     }
 
