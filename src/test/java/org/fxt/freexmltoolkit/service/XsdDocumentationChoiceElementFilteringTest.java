@@ -161,14 +161,14 @@ class XsdDocumentationChoiceElementFilteringTest {
         assertEquals("CHOICE", htmlService.getChildCompositorType(subfundsXpath),
                 "Subfunds should be detected as part of a CHOICE");
 
-        // Name should not be part of a compositor (it's directly in the sequence)
+        // Name is inside a SEQUENCE compositor
         String nameXpath = flattenedChildren.stream()
                 .filter(xpath -> xpath.contains("Name"))
                 .findFirst()
                 .orElse(null);
         assertNotNull(nameXpath, "Name should be in flattened children");
-        assertNull(htmlService.getChildCompositorType(nameXpath),
-                "Name should not be part of a compositor");
+        assertEquals("SEQUENCE", htmlService.getChildCompositorType(nameXpath),
+                "Name should be detected as part of a SEQUENCE");
     }
 
     @Test

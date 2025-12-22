@@ -163,11 +163,12 @@ public class XsdExtendedElement implements Serializable {
                 .map(String::toLowerCase)
                 .collect(Collectors.toSet());
 
-        // Strictly filter documentation by included languages only
+        // Filter documentation by included languages, always including "default" as fallback
         return documentations.stream()
                 .filter(doc -> {
                     String lang = doc.lang() != null ? doc.lang().toLowerCase() : "default";
-                    return lowerCaseFilter.contains(lang);
+                    // Include if it matches the filter OR if it's the "default" language (fallback)
+                    return lowerCaseFilter.contains(lang) || "default".equals(lang);
                 })
                 .collect(Collectors.toMap(
                         doc -> doc.lang() != null ? doc.lang().toLowerCase() : "default",

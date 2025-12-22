@@ -75,13 +75,13 @@ class XmlEditorFeaturesTest {
     @Test
     void testIntelliSenseIntegration() {
         Platform.runLater(() -> {
-            // Test that IntelliSense functionality is available
-            assertNotNull(xmlEditor.getXmlCodeEditor());
-            assertNotNull(xmlEditor.getXmlCodeEditor().getCodeArea());
+            // Test that IntelliSense functionality is available (V2 editor is now active by default)
+            assertNotNull(xmlEditor.getXmlCodeEditorV2());
+            assertNotNull(xmlEditor.getXmlCodeEditorV2().getCodeArea());
 
             // Test that the CodeArea supports the required functionality
-            xmlEditor.getXmlCodeEditor().getCodeArea().replaceText("<test>");
-            assertEquals("<test>", xmlEditor.getXmlCodeEditor().getCodeArea().getText());
+            xmlEditor.getXmlCodeEditorV2().getCodeArea().replaceText("<test>");
+            assertEquals("<test>", xmlEditor.getXmlCodeEditorV2().getCodeArea().getText());
         });
     }
 

@@ -604,12 +604,21 @@ public class XsdDocumentationService {
 
                 if (targetElement != null && targetElement.hasChildren()) {
                     // Found the element, now extract its mandatory children using the correct XPath context
-                    for (String childXPath : targetElement.getChildren()) {
-                        XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+                    // Flatten any SEQUENCE/CHOICE/ALL containers to get actual child elements
+                    List<XsdExtendedElement> flattenedChildren = flattenContainerChildren(targetElement);
+
+                    for (XsdExtendedElement childElement : flattenedChildren) {
                         if (childElement != null && childElement.isMandatory()) {
                             // Skip attributes (elements starting with @)
                             if (childElement.getElementName().startsWith("@")) {
-                                logger.debug("Skipping attribute: {} (xpath={})", childElement.getElementName(), childXPath);
+                                logger.debug("Skipping attribute: {}", childElement.getElementName());
+                                continue;
+                            }
+
+                            // Skip container elements - they are structural, not actual XML elements
+                            String childName = childElement.getElementName();
+                            if (childName.startsWith("SEQUENCE") || childName.startsWith("CHOICE") || childName.startsWith("ALL")) {
+                                logger.debug("Skipping container element: {}", childName);
                                 continue;
                             }
 
@@ -621,8 +630,8 @@ public class XsdDocumentationService {
                                     new ArrayList<>() // No nested children - just create empty elements
                             );
                             mandatoryChildren.add(childInfo);
-                            logger.debug("Added mandatory child from processed data: {} (xpath={}, isAttribute=false)",
-                                    childElement.getElementName(), childXPath);
+                            logger.debug("Added mandatory child from processed data: {} (isAttribute=false)",
+                                    childElement.getElementName());
                         }
                     }
                     if (!mandatoryChildren.isEmpty()) {
@@ -665,6 +674,44 @@ public class XsdDocumentationService {
         }
 
         return mandatoryChildren;
+    }
+
+    /**
+     * Flattens container children (SEQUENCE, CHOICE, ALL) to get actual element children.
+     * Container elements are structural and should not appear as actual XML elements.
+     *
+     * @param parentElement The parent element whose children should be flattened
+     * @return List of actual child elements (not containers)
+     */
+    private List<XsdExtendedElement> flattenContainerChildren(XsdExtendedElement parentElement) {
+        List<XsdExtendedElement> result = new ArrayList<>();
+
+        if (parentElement == null || !parentElement.hasChildren()) {
+            return result;
+        }
+
+        for (String childXPath : parentElement.getChildren()) {
+            XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+            if (childElement == null) {
+                continue;
+            }
+
+            String childName = childElement.getElementName();
+            if (childName == null) {
+                continue;
+            }
+
+            // Check if this is a container element (SEQUENCE, CHOICE, ALL)
+            if (childName.startsWith("SEQUENCE") || childName.startsWith("CHOICE") || childName.startsWith("ALL")) {
+                // Recursively flatten container children
+                result.addAll(flattenContainerChildren(childElement));
+            } else {
+                // Regular element - add it directly
+                result.add(childElement);
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -830,35 +877,43 @@ public class XsdDocumentationService {
                     XsdExtendedElement element = entry.getValue();
                     if (cleanElementName.equals(element.getElementName()) && element.hasChildren()) {
                         // Found the element, now extract all its children (mandatory and optional)
-                        for (String childXPath : element.getChildren()) {
-                            XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
-                            if (childElement != null) { // Include all children, not just mandatory
-                                // Check if this child has its own children
-                                List<MandatoryChildInfo> nestedChildren = getAllChildElements(childElement.getElementName());
+                        // Flatten any SEQUENCE/CHOICE/ALL containers to get actual child elements
+                        List<XsdExtendedElement> flattenedChildren = flattenContainerChildren(element);
 
-                                // Parse minOccurs from current node if available
-                                int minOccurs = 1; // Default
-                                if (childElement.getCurrentNode() != null) {
-                                    String minOccursStr = getAttributeValue(childElement.getCurrentNode(), "minOccurs", "1");
-                                    try {
-                                        minOccurs = Integer.parseInt(minOccursStr);
-                                    } catch (NumberFormatException e) {
-                                        minOccurs = 1;
-                                    }
-                                }
+                        for (XsdExtendedElement childElement : flattenedChildren) {
+                            if (childElement == null) continue;
 
-                                MandatoryChildInfo childInfo = new MandatoryChildInfo(
-                                        childElement.getElementName().startsWith("@")
-                                                ? childElement.getElementName().substring(1) // Remove @ for attributes
-                                                : childElement.getElementName(),
-                                        minOccurs,
-                                        1, // Default maxOccurs
-                                        nestedChildren
-                                );
-                                allChildren.add(childInfo);
-                                logger.debug("Added child from processed data: {} (minOccurs={}, hasChildren={})",
-                                        childElement.getElementName(), minOccurs, !nestedChildren.isEmpty());
+                            String childName = childElement.getElementName();
+                            // Skip container elements - they are structural, not actual XML elements
+                            if (childName != null && (childName.startsWith("SEQUENCE") || childName.startsWith("CHOICE") || childName.startsWith("ALL"))) {
+                                continue;
                             }
+
+                            // Check if this child has its own children
+                            List<MandatoryChildInfo> nestedChildren = getAllChildElements(childElement.getElementName());
+
+                            // Parse minOccurs from current node if available
+                            int minOccurs = 1; // Default
+                            if (childElement.getCurrentNode() != null) {
+                                String minOccursStr = getAttributeValue(childElement.getCurrentNode(), "minOccurs", "1");
+                                try {
+                                    minOccurs = Integer.parseInt(minOccursStr);
+                                } catch (NumberFormatException e) {
+                                    minOccurs = 1;
+                                }
+                            }
+
+                            MandatoryChildInfo childInfo = new MandatoryChildInfo(
+                                    childElement.getElementName().startsWith("@")
+                                            ? childElement.getElementName().substring(1) // Remove @ for attributes
+                                            : childElement.getElementName(),
+                                    minOccurs,
+                                    1, // Default maxOccurs
+                                    nestedChildren
+                            );
+                            allChildren.add(childInfo);
+                            logger.debug("Added child from processed data: {} (minOccurs={}, hasChildren={})",
+                                    childElement.getElementName(), minOccurs, !nestedChildren.isEmpty());
                         }
                         if (!allChildren.isEmpty()) {
                             logger.debug("Found {} child elements for element '{}' using processed data",
@@ -2088,8 +2143,51 @@ public class XsdDocumentationService {
                     .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
                     .toList();
             if (!choiceOptions.isEmpty()) {
-                XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
-                buildXmlElementContent(sb, selected, mandatoryOnly, maxOccurrences, indentLevel);
+                // Get minOccurs and maxOccurs from the CHOICE element
+                Node choiceNode = element.getCurrentNode();
+                String minOccursStr = getAttributeValue(choiceNode, "minOccurs", "1");
+                String maxOccursStr = getAttributeValue(choiceNode, "maxOccurs", "1");
+
+                int minOccurs;
+                int choiceMaxOccurs;
+                try {
+                    minOccurs = Integer.parseInt(minOccursStr);
+                } catch (NumberFormatException e) {
+                    minOccurs = 1;
+                }
+                if ("unbounded".equalsIgnoreCase(maxOccursStr)) {
+                    choiceMaxOccurs = maxOccurrences;
+                } else {
+                    try {
+                        choiceMaxOccurs = Math.min(Integer.parseInt(maxOccursStr), maxOccurrences);
+                    } catch (NumberFormatException e) {
+                        choiceMaxOccurs = 1;
+                    }
+                }
+
+                // Skip optional choices in mandatory-only mode
+                if (mandatoryOnly && minOccurs == 0) {
+                    return;
+                }
+
+                // Calculate repeat count based on mode
+                int repeatCount;
+                if (mandatoryOnly) {
+                    repeatCount = minOccurs;
+                } else {
+                    int effectiveMax = Math.min(choiceMaxOccurs, maxOccurrences);
+                    if (minOccurs >= effectiveMax) {
+                        repeatCount = effectiveMax;
+                    } else {
+                        repeatCount = minOccurs + random.nextInt(effectiveMax - minOccurs + 1);
+                    }
+                }
+
+                // Generate the appropriate number of selections from the choice
+                for (int i = 0; i < repeatCount; i++) {
+                    XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
+                    buildXmlElementContent(sb, selected, mandatoryOnly, maxOccurrences, indentLevel);
+                }
             }
             return;
         }
@@ -2230,12 +2328,22 @@ public class XsdDocumentationService {
                     continue;
                 }
 
-                // For CHOICE: select exactly ONE option (XSD choice means pick one alternative)
+                // For CHOICE: select exactly ONE option per occurrence (XSD choice means pick one alternative)
                 // minOccurs/maxOccurs on the choice refers to how many times the whole choice
                 // can appear, not how many options to select from within a single choice
-                int repeatCount = 1;
-                if (!mandatoryOnly && maxOccurs > 1) {
-                    repeatCount = Math.min(maxOccurs, maxOccurrences);
+                int repeatCount;
+                if (mandatoryOnly) {
+                    // In mandatory mode, generate exactly minOccurs times
+                    repeatCount = minOccurs;
+                } else {
+                    // In non-mandatory mode, generate between minOccurs and maxOccurs
+                    // Use a random value in that range, but cap at maxOccurrences
+                    int effectiveMax = Math.min(maxOccurs, maxOccurrences);
+                    if (minOccurs >= effectiveMax) {
+                        repeatCount = effectiveMax;
+                    } else {
+                        repeatCount = minOccurs + random.nextInt(effectiveMax - minOccurs + 1);
+                    }
                 }
 
                 // Randomly select ONE element from the choice options

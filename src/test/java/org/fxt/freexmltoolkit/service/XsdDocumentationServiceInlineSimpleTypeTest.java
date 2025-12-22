@@ -89,8 +89,11 @@ public class XsdDocumentationServiceInlineSimpleTypeTest {
         service.processXsd(false);
 
         // Assert: Verify Version element has base type instead of "(anonymous)"
-        XsdExtendedElement versionElement = service.xsdDocumentationData.getExtendedXsdElementMap()
-                .get("/TestRoot/Version");
+        // Note: XPath may include SEQUENCE container, so find by element name
+        XsdExtendedElement versionElement = service.xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> "Version".equals(e.getElementName()))
+                .findFirst()
+                .orElse(null);
 
         assertNotNull(versionElement, "Version element should be processed");
         assertNotNull(versionElement.getElementType(), "Version element should have a type");
@@ -122,8 +125,11 @@ public class XsdDocumentationServiceInlineSimpleTypeTest {
         service.processXsd(false);
 
         // Assert: Verify Count element has base type instead of "(anonymous)"
-        XsdExtendedElement countElement = service.xsdDocumentationData.getExtendedXsdElementMap()
-                .get("/TestRoot/Count");
+        // Note: XPath may include SEQUENCE container, so find by element name
+        XsdExtendedElement countElement = service.xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> "Count".equals(e.getElementName()))
+                .findFirst()
+                .orElse(null);
 
         assertNotNull(countElement, "Count element should be processed");
         assertNotNull(countElement.getElementType(), "Count element should have a type");
@@ -177,8 +183,11 @@ public class XsdDocumentationServiceInlineSimpleTypeTest {
         service.processXsd(false);
 
         // Assert: Verify ComplexElement still shows as "(anonymous)" for complex types
-        XsdExtendedElement complexElement = service.xsdDocumentationData.getExtendedXsdElementMap()
-                .get("/TestRoot/ComplexElement");
+        // Note: XPath may include SEQUENCE container, so find by element name
+        XsdExtendedElement complexElement = service.xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> "ComplexElement".equals(e.getElementName()))
+                .findFirst()
+                .orElse(null);
 
         assertNotNull(complexElement, "ComplexElement should be processed");
         assertNotNull(complexElement.getElementType(), "ComplexElement should have a type");

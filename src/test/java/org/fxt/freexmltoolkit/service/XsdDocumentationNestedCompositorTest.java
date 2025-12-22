@@ -98,19 +98,28 @@ class XsdDocumentationNestedCompositorTest {
         });
         System.out.println("============================");
 
-        // Then - Verify structure contains CHOICE (SEQUENCE at type level is not represented as element)
+        // Then - Verify structure contains CHOICE and SEQUENCE
         boolean hasChoice = extendedElementMap.values().stream()
                 .anyMatch(e -> e.getElementName() != null && e.getElementName().startsWith("CHOICE"));
+        boolean hasSequence = extendedElementMap.values().stream()
+                .anyMatch(e -> e.getElementName() != null && e.getElementName().startsWith("SEQUENCE"));
 
         assertTrue(hasChoice, "Element map should contain CHOICE compositor");
+        assertTrue(hasSequence, "Element map should contain SEQUENCE compositor");
 
-        // Verify that Fund has the expected children
+        // Verify that Fund has a SEQUENCE child (which contains the actual elements)
         var fundElement = extendedElementMap.get("/Fund");
         assertNotNull(fundElement);
-        assertEquals(3, fundElement.getChildren().size(), "Fund should have 3 children (Name, FundDynamicData, CHOICE)");
+        assertEquals(1, fundElement.getChildren().size(), "Fund should have 1 child (SEQUENCE)");
+
+        // The SEQUENCE should have 3 children (Name, FundDynamicData, CHOICE)
+        String sequenceXPath = fundElement.getChildren().get(0);
+        var sequenceElement = extendedElementMap.get(sequenceXPath);
+        assertNotNull(sequenceElement, "SEQUENCE element should exist");
+        assertEquals(3, sequenceElement.getChildren().size(), "SEQUENCE should have 3 children (Name, FundDynamicData, CHOICE)");
 
         System.out.println("\n===== Compositor Structure Test Passed =====");
-        System.out.println("Element map contains CHOICE compositor and Fund has correct children");
+        System.out.println("Element map contains SEQUENCE and CHOICE compositors with correct hierarchy");
     }
 
     @Test
@@ -119,20 +128,30 @@ class XsdDocumentationNestedCompositorTest {
         var fundElement = service.xsdDocumentationData.getExtendedXsdElementMap().get("/Fund");
         assertNotNull(fundElement);
 
-        // When - Get the children
+        // When - Get the children (Fund has a SEQUENCE child)
         var children = fundElement.getChildren();
         assertNotNull(children, "Fund should have children");
-        assertEquals(3, children.size(), "Fund should have 3 children");
+        assertEquals(1, children.size(), "Fund should have 1 child (SEQUENCE)");
 
-        // Then - Children should include CHOICE (SEQUENCE at type level is not represented)
-        var choiceChild = children.stream()
+        // Get the SEQUENCE element
+        var sequenceElement = service.xsdDocumentationData.getExtendedXsdElementMap().get(children.get(0));
+        assertNotNull(sequenceElement, "SEQUENCE element should exist");
+        assertTrue(sequenceElement.getElementName().startsWith("SEQUENCE"), "First child should be SEQUENCE");
+
+        // The SEQUENCE should have 3 children (Name, FundDynamicData, CHOICE)
+        var sequenceChildren = sequenceElement.getChildren();
+        assertNotNull(sequenceChildren, "SEQUENCE should have children");
+        assertEquals(3, sequenceChildren.size(), "SEQUENCE should have 3 children (Name, FundDynamicData, CHOICE)");
+
+        // Then - Find CHOICE within SEQUENCE children
+        var choiceChild = sequenceChildren.stream()
                 .map(xpath -> service.xsdDocumentationData.getExtendedXsdElementMap().get(xpath))
                 .filter(child -> child != null && child.getElementName() != null
                         && child.getElementName().startsWith("CHOICE"))
                 .findFirst()
                 .orElse(null);
 
-        assertNotNull(choiceChild, "Fund should have a CHOICE child");
+        assertNotNull(choiceChild, "SEQUENCE should have a CHOICE child");
 
         // The CHOICE should have children: SingleFund and Subfunds
         var choiceChildren = choiceChild.getChildren();
@@ -151,7 +170,7 @@ class XsdDocumentationNestedCompositorTest {
         assertTrue(hasSubfunds, "CHOICE should have Subfunds child");
 
         System.out.println("\n===== Nested Compositor Hierarchy Test Passed =====");
-        System.out.println("CHOICE with SingleFund and Subfunds is correctly nested within Fund");
+        System.out.println("CHOICE with SingleFund and Subfunds is correctly nested within Fund/SEQUENCE");
     }
 
     @Test

@@ -29,8 +29,11 @@ class XsdAppInfoAnnotationsTest {
         var xsdDocumentationData = service.xsdDocumentationData;
 
         // Assert - Check TransactionID element
-        XsdExtendedElement transactionIdElement = xsdDocumentationData.getExtendedXsdElementMap()
-                .get("/Transaction/TransactionID");
+        // Note: XPath may include SEQUENCE container, so find by element name
+        XsdExtendedElement transactionIdElement = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> "TransactionID".equals(e.getElementName()))
+                .findFirst()
+                .orElse(null);
         assertNotNull(transactionIdElement, "TransactionID element should be found");
 
         XsdDocInfo transactionIdDocInfo = transactionIdElement.getXsdDocInfo();
@@ -56,8 +59,11 @@ class XsdAppInfoAnnotationsTest {
                 "TransactionID should not be deprecated");
 
         // Assert - Check CancellationFlag element
-        XsdExtendedElement cancellationFlagElement = xsdDocumentationData.getExtendedXsdElementMap()
-                .get("/Transaction/CancellationFlag");
+        // Note: XPath may include SEQUENCE container, so find by element name
+        XsdExtendedElement cancellationFlagElement = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> "CancellationFlag".equals(e.getElementName()))
+                .findFirst()
+                .orElse(null);
         assertNotNull(cancellationFlagElement, "CancellationFlag element should be found");
 
         XsdDocInfo cancellationFlagDocInfo = cancellationFlagElement.getXsdDocInfo();
