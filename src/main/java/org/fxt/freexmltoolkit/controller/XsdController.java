@@ -1801,11 +1801,19 @@ public class XsdController implements FavoritesParentController {
 
     @FXML
     private void saveXsdFile() {
-        // Require V2 editor or text content
-        boolean hasEditor = (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null);
+        // If in text tab, sync text content to V2 model before saving
+        if (tabPane.getSelectionModel().getSelectedItem() == textTab) {
+            syncTextToGraphic();
+        }
 
-        if (!hasEditor) {
-            logger.debug("Cannot save: no editor available");
+        boolean hasEditor = (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null);
+        boolean hasTextContent = sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null
+                && sourceCodeEditor.getCodeArea().getText() != null
+                && !sourceCodeEditor.getCodeArea().getText().trim().isEmpty();
+
+        // Allow save if we have either V2 editor OR text content
+        if (!hasEditor && !hasTextContent) {
+            logger.debug("Cannot save: no editor or text content available");
             return;
         }
 
@@ -1821,17 +1829,21 @@ public class XsdController implements FavoritesParentController {
     }
 
     /**
-     * Save As functionality - prompts user to select a new file location
+     * Save As functionality - prompts user to select a new file location.
+     * Syncs text content to V2 model if in Text View before saving.
      */
     @FXML
     private void saveXsdFileAs() {
+        // If in text tab, sync text content to V2 model before saving
+        if (tabPane.getSelectionModel().getSelectedItem() == textTab) {
+            syncTextToGraphic();
+        }
+
         // Check if we have any XSD content to save
         boolean hasContent = currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null &&
                 currentGraphViewV2.getEditorContext().getSchema() != null;
 
-        // Check V2 editor
-
-        // Check text editor
+        // Check text editor as fallback
         if (!hasContent && sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
             String textContent = sourceCodeEditor.getCodeArea().getText();
             if (textContent != null && !textContent.trim().isEmpty()) {
@@ -1882,10 +1894,16 @@ public class XsdController implements FavoritesParentController {
     }
 
     /**
-     * Common save logic for both Save and Save As
+     * Common save logic for both Save and Save As.
+     * Handles saving from both Text View (syncs text to model first) and Graphic View.
      */
     private void saveXsdToFile(File file) {
         try {
+            // If in text tab, ensure text content is synced to V2 model before saving
+            if (tabPane.getSelectionModel().getSelectedItem() == textTab) {
+                syncTextToGraphic();
+            }
+
             // Priority 1: Use V2 editor if available (visual graph editor)
             if (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null) {
                 org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext =
