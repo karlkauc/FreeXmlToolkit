@@ -1399,6 +1399,51 @@ public class XsdDocumentationService {
     private void processComplexContent(Node contentNode, String parentXPath, int level, Set<Node> visitedOnPath) {
         String localName = contentNode.getLocalName();
 
+        // Handle the case where contentNode itself is a choice/sequence/all
+        // This happens when an inline complexType has a direct compositor as its content
+        if ("choice".equals(localName) || "sequence".equals(localName) || "all".equals(localName)) {
+            // Create a wrapper element for this compositor
+            String containerName = localName.toUpperCase();
+            String containerXPath = parentXPath + "/" + containerName + "_" + counter;
+
+            // Create and register the container element
+            XsdExtendedElement containerElem = new XsdExtendedElement();
+            containerElem.setElementName(containerName);
+            containerElem.setCurrentXpath(containerXPath);
+            containerElem.setParentXpath(parentXPath);
+            containerElem.setLevel(level);
+            containerElem.setCounter(counter);
+            containerElem.setCurrentNode(contentNode);
+            containerElem.setElementType("(container)");
+
+            // Add container as child of parent
+            if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
+                List<String> parentChildren = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren();
+                if (!parentChildren.contains(containerXPath)) {
+                    parentChildren.add(containerXPath);
+                }
+            }
+            xsdDocumentationData.getExtendedXsdElementMap().put(containerXPath, containerElem);
+
+            // Process children of this compositor with the container as their parent
+            for (Node child : getDirectChildElements(contentNode)) {
+                String childName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
+                String childLocalName = child.getLocalName();
+
+                if ("element".equals(childLocalName)) {
+                    String childXPath = containerXPath + "/" + childName;
+                    traverseNode(child, childXPath, containerXPath, level + 1, visitedOnPath);
+                } else if ("sequence".equals(childLocalName) || "choice".equals(childLocalName) || "all".equals(childLocalName)) {
+                    // Nested compositor
+                    processComplexContent(child, containerXPath, level + 1, visitedOnPath);
+                } else if ("attribute".equals(childLocalName)) {
+                    String childXPath = parentXPath + "/@" + childName; // Attributes go on parent, not container
+                    traverseNode(child, childXPath, parentXPath, level + 1, visitedOnPath);
+                }
+            }
+            return; // Done processing this compositor
+        }
+
         // Handle extension
         if ("extension".equals(localName)) {
             String baseType = getAttributeValue(contentNode, "base");
@@ -1664,8 +1709,36 @@ public class XsdDocumentationService {
         if (element == null || (mandatoryOnly && !element.isMandatory())) {
             return;
         }
-        if (element.getElementName().startsWith("@")) {
+        String elementName = element.getElementName();
+        if (elementName == null || elementName.startsWith("@")) {
             return; // Attributes are handled by their parent
+        }
+
+        // Handle container elements (SEQUENCE, CHOICE, ALL) - output their children, not the container itself
+        if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
+            // For SEQUENCE and ALL, just process all children
+            List<XsdExtendedElement> containerChildren = element.getChildren().stream()
+                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> !e.getElementName().startsWith("@"))
+                    .toList();
+            for (XsdExtendedElement child : containerChildren) {
+                buildXmlElement(sb, child, mandatoryOnly, maxOccurrences, indentLevel);
+            }
+            return;
+        }
+        if (elementName.startsWith("CHOICE")) {
+            // For CHOICE, randomly select one option
+            List<XsdExtendedElement> choiceOptions = element.getChildren().stream()
+                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> !e.getElementName().startsWith("@"))
+                    .toList();
+            if (!choiceOptions.isEmpty()) {
+                XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
+                buildXmlElement(sb, selected, mandatoryOnly, maxOccurrences, indentLevel);
+            }
+            return;
         }
 
         String maxOccurs = getAttributeValue(element.getCurrentNode(), "maxOccurs", "1");
@@ -1737,8 +1810,35 @@ public class XsdDocumentationService {
         if (element == null || (mandatoryOnly && !element.isMandatory())) {
             return;
         }
-        if (element.getElementName().startsWith("@")) {
+        String elementName = element.getElementName();
+        if (elementName == null || elementName.startsWith("@")) {
             return; // Attributes are handled by their parent
+        }
+
+        // Handle container elements (SEQUENCE, CHOICE, ALL) - these are structural, not actual XML elements
+        // Process their children instead of outputting the container itself
+        if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
+            List<XsdExtendedElement> containerChildren = element.getChildren().stream()
+                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
+                    .toList();
+            for (XsdExtendedElement child : containerChildren) {
+                buildXmlElementContent(sb, child, mandatoryOnly, maxOccurrences, indentLevel);
+            }
+            return;
+        }
+        if (elementName.startsWith("CHOICE")) {
+            List<XsdExtendedElement> choiceOptions = element.getChildren().stream()
+                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
+                    .toList();
+            if (!choiceOptions.isEmpty()) {
+                XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
+                buildXmlElementContent(sb, selected, mandatoryOnly, maxOccurrences, indentLevel);
+            }
+            return;
         }
 
         String maxOccurs = getAttributeValue(element.getCurrentNode(), "maxOccurs", "1");
@@ -1816,8 +1916,27 @@ public class XsdDocumentationService {
     private void processChildElementsForGeneration(StringBuilder sb, List<XsdExtendedElement> childElements,
                                                    boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
         for (XsdExtendedElement childElement : childElements) {
+            String elementName = childElement.getElementName();
+            if (elementName == null) continue;
+
+            // Check if this child is a SEQUENCE or ALL container (structural, not actual XML elements)
+            if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
+                // SEQUENCE and ALL are structural containers - just output all their children
+                // without outputting the container element itself
+                List<XsdExtendedElement> containerChildren = childElement.getChildren().stream()
+                        .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                        .filter(Objects::nonNull)
+                        .filter(e -> !e.getElementName().startsWith("@"))
+                        .toList();
+
+                if (!containerChildren.isEmpty()) {
+                    logger.debug("Processing {} container with {} children", elementName, containerChildren.size());
+                    // Recursively process children (they may contain nested CHOICE/SEQUENCE)
+                    processChildElementsForGeneration(sb, containerChildren, mandatoryOnly, maxOccurrences, indentLevel);
+                }
+            }
             // Check if this child is a CHOICE container
-            if (childElement.getElementName() != null && childElement.getElementName().startsWith("CHOICE")) {
+            else if (elementName.startsWith("CHOICE")) {
                 // Get the choice's cardinality
                 Node choiceNode = childElement.getCurrentNode();
                 String minOccursStr = getAttributeValue(choiceNode, "minOccurs", "1");
@@ -1858,29 +1977,29 @@ public class XsdDocumentationService {
                     continue;
                 }
 
-                // Determine how many elements to select from the choice
-                // Use minOccurs as the count, but cap it at the available options
-                int selectCount = Math.max(1, Math.min(minOccurs, choiceOptions.size()));
-
-                // If not mandatory-only mode, we might select more based on maxOccurs
-                if (!mandatoryOnly && maxOccurs > selectCount) {
-                    // Randomly decide how many to select (between minOccurs and maxOccurs)
-                    selectCount = minOccurs + random.nextInt(Math.min(maxOccurs - minOccurs + 1, choiceOptions.size() - selectCount + 1));
+                // For CHOICE: select exactly ONE option (XSD choice means pick one alternative)
+                // minOccurs/maxOccurs on the choice refers to how many times the whole choice
+                // can appear, not how many options to select from within a single choice
+                int repeatCount = 1;
+                if (!mandatoryOnly && maxOccurs > 1) {
+                    repeatCount = Math.min(maxOccurs, maxOccurrences);
                 }
 
-                // Randomly select elements from the choice
-                List<XsdExtendedElement> selectedOptions = new ArrayList<>(choiceOptions);
-                Collections.shuffle(selectedOptions, new Random(random.nextLong()));
+                // Randomly select ONE element from the choice options
+                XsdExtendedElement selectedOption = choiceOptions.get(random.nextInt(choiceOptions.size()));
+                logger.debug("Selected element '{}' from CHOICE (1 of {} options)",
+                        selectedOption.getElementName(), choiceOptions.size());
 
-                // Generate XML for the selected options
-                for (int i = 0; i < selectCount && i < selectedOptions.size(); i++) {
-                    XsdExtendedElement selected = selectedOptions.get(i);
-                    logger.debug("Selected element '{}' from CHOICE (option {} of {})",
-                            selected.getElementName(), i + 1, selectCount);
-                    buildXmlElementContent(sb, selected, mandatoryOnly, maxOccurrences, indentLevel);
+                // Generate XML for the selected option (may repeat if choice has maxOccurs > 1)
+                for (int i = 0; i < repeatCount; i++) {
+                    // For repeated choices, re-select to potentially get different options
+                    if (i > 0) {
+                        selectedOption = choiceOptions.get(random.nextInt(choiceOptions.size()));
+                    }
+                    buildXmlElementContent(sb, selectedOption, mandatoryOnly, maxOccurrences, indentLevel);
                 }
             } else {
-                // Not a CHOICE element, process normally
+                // Not a container element, process normally
                 buildXmlElementContent(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel);
             }
         }

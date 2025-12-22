@@ -122,7 +122,7 @@ public class XsdSampleDataGenerator {
             }
 
             // Numeric types using the helper method
-            case "decimal" -> {
+            case "decimal", "positivedecimals", "amounttype", "fundamounttype" -> {
                 BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("1.00"), new BigDecimal("1000.00"));
                 yield DatatypeConverter.printDecimal(randomDecimal.setScale(2, RoundingMode.HALF_UP));
             }
