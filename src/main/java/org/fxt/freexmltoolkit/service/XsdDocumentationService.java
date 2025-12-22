@@ -1433,7 +1433,8 @@ public class XsdDocumentationService {
         String targetNamespace = xsdDocumentationData.getTargetNamespace();
         String schemaLocationUri = new File(xsdFilePath).toURI().toString();
 
-        String rootName = rootElements.getFirst().getElementName();
+        XsdExtendedElement rootElement = rootElements.getFirst();
+        String rootName = rootElement.getElementName();
         xmlBuilder.append("<").append(rootName)
                  .append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
 
@@ -1451,10 +1452,37 @@ public class XsdDocumentationService {
                      .append("\"");
         }
 
+        // Add root element attributes (those children starting with @)
+        List<XsdExtendedElement> rootAttributes = rootElement.getChildren().stream()
+                .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                .filter(Objects::nonNull)
+                .filter(e -> e.getElementName().startsWith("@"))
+                .toList();
+
+        for (XsdExtendedElement attr : rootAttributes) {
+            // Include attribute if mandatory, or if it has a fixed/default value
+            String fixedOrDefault = getAttributeValue(attr.getCurrentNode(), "fixed",
+                    getAttributeValue(attr.getCurrentNode(), "default", null));
+            if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) continue;
+            String attrName = attr.getElementName().substring(1); // Remove @ prefix
+            String attrValue = (fixedOrDefault != null)
+                    ? fixedOrDefault
+                    : (attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
+            xmlBuilder.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
+        }
+
         xmlBuilder.append(">\n");
 
-        // Build the content without the root element tags
-        buildXmlElementContent(xmlBuilder, rootElements.getFirst(), mandatoryOnly, maxOccurrences, 1);
+        // Build the content without the root element tags (only child elements, not attributes)
+        List<XsdExtendedElement> rootChildElements = rootElement.getChildren().stream()
+                .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                .filter(Objects::nonNull)
+                .filter(e -> !e.getElementName().startsWith("@"))
+                .toList();
+
+        for (XsdExtendedElement child : rootChildElements) {
+            buildXmlElementContent(xmlBuilder, child, mandatoryOnly, maxOccurrences, 1);
+        }
 
         xmlBuilder.append("</").append(rootName).append(">\n");
         
