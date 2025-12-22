@@ -9,10 +9,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.util.Duration;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.input.KeyEvent;
@@ -23,31 +20,30 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.controlsfx.control.CheckComboBox;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog;
 import org.fxt.freexmltoolkit.controls.intellisense.XmlCodeFoldingManager;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
-import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
 import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
 import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
-import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
 import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
-import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.jetbrains.annotations.NotNull;
-import org.controlsfx.control.CheckComboBox;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -67,12 +63,7 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -379,13 +370,28 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private Button validateGeneratedXmlButton;
     @FXML
-    private HBox sampleDataValidationResultPanel;
+    private VBox sampleDataValidationResultPanel;
     @FXML
     private FontIcon sampleDataValidationIcon;
     @FXML
     private Label sampleDataValidationTitle;
     @FXML
     private Label sampleDataValidationMessage;
+    @FXML
+    private TableView<XsdDocumentationService.ValidationError> validationErrorsTable;
+    @FXML
+    private TableColumn<XsdDocumentationService.ValidationError, Integer> errorLineColumn;
+    @FXML
+    private TableColumn<XsdDocumentationService.ValidationError, Integer> errorColumnColumn;
+    @FXML
+    private TableColumn<XsdDocumentationService.ValidationError, String> errorSeverityColumn;
+    @FXML
+    private TableColumn<XsdDocumentationService.ValidationError, String> errorMessageColumn;
+    @FXML
+    private Button exportValidationErrorsButton;
+
+    // Store current validation errors for export
+    private final List<XsdDocumentationService.ValidationError> currentValidationErrors = new ArrayList<>();
 
     @FXML
     private VBox taskStatusBar;
@@ -452,6 +458,9 @@ public class XsdController implements FavoritesParentController {
 
         // Initialize type editor
         initializeTypeEditor();
+
+        // Initialize validation errors table
+        initializeValidationErrorsTable();
 
         // Initialize type library (lazy loading on tab selection)
         initializeTypeLibrary();
@@ -2956,23 +2965,32 @@ public class XsdController implements FavoritesParentController {
                     String message = result.message().isEmpty() ?
                         "The generated XML is valid according to the XSD schema." :
                         "Valid with notes: " + result.message();
-                    showValidationResult(true, "Validation Successful", message);
+                    showValidationResult(true, "Validation Successful", message, result.errors());
                     if (!result.message().isEmpty()) {
                         logger.info("Validation warnings: " + result.message());
                     }
                 } else {
                     statusText.setText("Sample XML generated but validation failed.");
-                    logger.warn("XML validation failed: " + result.message());
-                    // Show validation result in the panel
-                    showValidationResult(false, "Validation Failed", result.message());
-                    // Also show validation error in a dialog for immediate attention
-                    Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("XML Validation Warning");
-                        alert.setHeaderText("Generated XML does not fully conform to the XSD schema");
-                        alert.setContentText("The generated XML may have validation issues:\n\n" + result.message());
-                        alert.showAndWait();
-                    });
+                    int errorCount = result.errors().size();
+                    logger.warn("XML validation failed: {} errors", errorCount);
+                    // Show validation result in the panel with errors table
+                    String summaryMessage = errorCount > 0 ?
+                            String.format("%d error(s) found. See details below.", errorCount) :
+                            result.message();
+                    showValidationResult(false, "Validation Failed", summaryMessage, result.errors());
+                    // Also show validation error in a dialog for immediate attention (only if many errors)
+                    if (errorCount > 0) {
+                        Platform.runLater(() -> {
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setTitle("XML Validation Warning");
+                            alert.setHeaderText("Generated XML does not fully conform to the XSD schema");
+                            alert.setContentText(String.format(
+                                    "The generated XML has %d validation error(s).\n\n" +
+                                            "See the details in the Validation Errors table below the editor.",
+                                    errorCount));
+                            alert.showAndWait();
+                        });
+                    }
                 }
             });
 
@@ -3074,11 +3092,15 @@ public class XsdController implements FavoritesParentController {
                 String message = result.message().isEmpty() ?
                     "The XML content is valid according to the XSD schema." :
                     "Valid with notes: " + result.message();
-                showValidationResult(true, "Validation Successful", message);
+                showValidationResult(true, "Validation Successful", message, result.errors());
                 logger.info("XML validation successful");
             } else {
-                showValidationResult(false, "Validation Failed", result.message());
-                logger.warn("XML validation failed: " + result.message());
+                int errorCount = result.errors().size();
+                String summaryMessage = errorCount > 0 ?
+                        String.format("%d error(s) found. See details below.", errorCount) :
+                        result.message();
+                showValidationResult(false, "Validation Failed", summaryMessage, result.errors());
+                logger.warn("XML validation failed: {} errors", errorCount);
             }
         });
 
@@ -3093,18 +3115,48 @@ public class XsdController implements FavoritesParentController {
     }
 
     /**
-     * Shows the validation result in the panel.
+     * Shows the validation result in the panel (without detailed errors).
+     */
+    private void showValidationResult(boolean isValid, String title, String message) {
+        showValidationResult(isValid, title, message, List.of());
+    }
+
+    /**
+     * Shows the validation result in the panel with detailed errors.
      * @param isValid true if validation was successful
      * @param title the title to display
      * @param message the detailed message
+     * @param errors list of validation errors to display in the table
      */
-    private void showValidationResult(boolean isValid, String title, String message) {
+    private void showValidationResult(boolean isValid, String title, String message,
+                                      List<XsdDocumentationService.ValidationError> errors) {
         Platform.runLater(() -> {
             sampleDataValidationResultPanel.setVisible(true);
             sampleDataValidationResultPanel.setManaged(true);
 
             sampleDataValidationTitle.setText(title);
             sampleDataValidationMessage.setText(message);
+
+            // Store errors for export
+            currentValidationErrors.clear();
+            currentValidationErrors.addAll(errors);
+
+            // Update the errors table
+            if (validationErrorsTable != null) {
+                validationErrorsTable.getItems().clear();
+                validationErrorsTable.getItems().addAll(errors);
+
+                // Show/hide table based on whether there are errors
+                boolean hasErrors = !errors.isEmpty();
+                validationErrorsTable.setVisible(hasErrors);
+                validationErrorsTable.setManaged(hasErrors);
+            }
+
+            // Show/hide export button based on whether there are errors
+            if (exportValidationErrorsButton != null) {
+                exportValidationErrorsButton.setVisible(!errors.isEmpty());
+                exportValidationErrorsButton.setManaged(!errors.isEmpty());
+            }
 
             if (isValid) {
                 sampleDataValidationResultPanel.setStyle(
@@ -3133,6 +3185,180 @@ public class XsdController implements FavoritesParentController {
     public void closeSampleDataValidationPanel() {
         sampleDataValidationResultPanel.setVisible(false);
         sampleDataValidationResultPanel.setManaged(false);
+        // Clear the errors table when closing
+        if (validationErrorsTable != null) {
+            validationErrorsTable.getItems().clear();
+        }
+        currentValidationErrors.clear();
+    }
+
+    /**
+     * Initializes the validation errors TableView with cell value factories.
+     */
+    private void initializeValidationErrorsTable() {
+        if (validationErrorsTable == null) {
+            return;
+        }
+
+        // Set up cell value factories for each column
+        if (errorLineColumn != null) {
+            errorLineColumn.setCellValueFactory(cellData ->
+                    new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().lineNumber()).asObject());
+            errorLineColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
+        }
+
+        if (errorColumnColumn != null) {
+            errorColumnColumn.setCellValueFactory(cellData ->
+                    new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().columnNumber()).asObject());
+            errorColumnColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
+        }
+
+        if (errorSeverityColumn != null) {
+            errorSeverityColumn.setCellValueFactory(cellData ->
+                    new javafx.beans.property.SimpleStringProperty(cellData.getValue().severity()));
+            // Add cell factory for severity coloring
+            errorSeverityColumn.setCellFactory(column -> new javafx.scene.control.TableCell<>() {
+                @Override
+                protected void updateItem(String severity, boolean empty) {
+                    super.updateItem(severity, empty);
+                    if (empty || severity == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(severity);
+                        switch (severity) {
+                            case "Fatal Error" -> setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                            case "Error" -> setStyle("-fx-text-fill: #dc3545;");
+                            case "Warning" -> setStyle("-fx-text-fill: #ffc107;");
+                            default -> setStyle("");
+                        }
+                    }
+                }
+            });
+        }
+
+        if (errorMessageColumn != null) {
+            errorMessageColumn.setCellValueFactory(cellData ->
+                    new javafx.beans.property.SimpleStringProperty(cellData.getValue().message()));
+            // Enable text wrapping for long messages
+            errorMessageColumn.setCellFactory(column -> new javafx.scene.control.TableCell<>() {
+                @Override
+                protected void updateItem(String message, boolean empty) {
+                    super.updateItem(message, empty);
+                    if (empty || message == null) {
+                        setText(null);
+                        setTooltip(null);
+                    } else {
+                        setText(message);
+                        // Add tooltip for long messages
+                        if (message.length() > 80) {
+                            setTooltip(new javafx.scene.control.Tooltip(message));
+                        }
+                    }
+                }
+            });
+        }
+
+        // Enable row selection for copying
+        validationErrorsTable.getSelectionModel().setSelectionMode(javafx.scene.control.SelectionMode.MULTIPLE);
+    }
+
+    /**
+     * Exports the validation errors to a CSV file.
+     */
+    @FXML
+    public void exportValidationErrors() {
+        if (currentValidationErrors == null || currentValidationErrors.isEmpty()) {
+            showAlert(Alert.AlertType.INFORMATION, "No Errors", "There are no validation errors to export.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Validation Errors");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv"),
+                new FileChooser.ExtensionFilter("Text Files", "*.txt"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+        fileChooser.setInitialFileName("validation_errors.csv");
+
+        File file = fileChooser.showSaveDialog(tabPane.getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+
+        try {
+            String extension = file.getName().toLowerCase();
+            if (extension.endsWith(".csv")) {
+                exportErrorsToCsv(file);
+            } else {
+                exportErrorsToText(file);
+            }
+            showAlert(Alert.AlertType.INFORMATION, "Export Successful",
+                    "Validation errors have been exported to:\n" + file.getAbsolutePath());
+            logger.info("Exported {} validation errors to: {}", currentValidationErrors.size(), file.getAbsolutePath());
+        } catch (Exception e) {
+            logger.error("Failed to export validation errors", e);
+            showAlert(Alert.AlertType.ERROR, "Export Failed",
+                    "Could not export validation errors: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Exports validation errors to a CSV file.
+     */
+    private void exportErrorsToCsv(File file) throws java.io.IOException {
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.FileWriter(file))) {
+            // Write CSV header
+            writer.println("Line,Column,Severity,Message");
+
+            // Write error rows
+            for (XsdDocumentationService.ValidationError error : currentValidationErrors) {
+                writer.printf("%d,%d,%s,\"%s\"%n",
+                        error.lineNumber(),
+                        error.columnNumber(),
+                        escapeCsvField(error.severity()),
+                        escapeCsvField(error.message())
+                );
+            }
+        }
+    }
+
+    /**
+     * Exports validation errors to a text file.
+     */
+    private void exportErrorsToText(File file) throws java.io.IOException {
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.FileWriter(file))) {
+            writer.println("=== Validation Errors Report ===");
+            writer.println("Generated: " + java.time.LocalDateTime.now().format(
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            writer.println("Total Errors: " + currentValidationErrors.size());
+            writer.println();
+            writer.println("─".repeat(80));
+
+            int index = 1;
+            for (XsdDocumentationService.ValidationError error : currentValidationErrors) {
+                writer.printf("%d. [%s] Line %d, Column %d%n",
+                        index++,
+                        error.severity(),
+                        error.lineNumber(),
+                        error.columnNumber()
+                );
+                writer.println("   " + error.message());
+                writer.println();
+            }
+        }
+    }
+
+    /**
+     * Escapes a field for CSV format (handles quotes and commas).
+     */
+    private String escapeCsvField(String field) {
+        if (field == null) {
+            return "";
+        }
+        // Escape double quotes by doubling them
+        return field.replace("\"", "\"\"");
     }
 
     // ... (Rest der Klasse, z.B. Task-Management, etc.)

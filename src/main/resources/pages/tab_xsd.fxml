@@ -695,21 +695,47 @@
                 </VBox>
 
                 <!-- Validation Result Panel -->
-                <HBox fx:id="sampleDataValidationResultPanel" spacing="10" alignment="CENTER_LEFT"
-                      visible="false" managed="false"
-                      style="-fx-padding: 10; -fx-background-radius: 6;">
-                    <FontIcon fx:id="sampleDataValidationIcon" iconSize="18"/>
-                    <VBox spacing="3" HBox.hgrow="ALWAYS">
-                        <Label fx:id="sampleDataValidationTitle" style="-fx-font-weight: bold;"/>
-                        <Label fx:id="sampleDataValidationMessage" wrapText="true" style="-fx-font-size: 12px;"/>
-                    </VBox>
-                    <Button fx:id="sampleDataValidationCloseButton" onAction="#closeSampleDataValidationPanel"
-                            style="-fx-background-color: transparent; -fx-padding: 0;">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-x" iconSize="14"/>
-                        </graphic>
-                    </Button>
-                </HBox>
+                <VBox fx:id="sampleDataValidationResultPanel" spacing="8" visible="false" managed="false"
+                      style="-fx-padding: 10; -fx-background-radius: 6; -fx-border-radius: 6;">
+                    <!-- Header with summary -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <FontIcon fx:id="sampleDataValidationIcon" iconSize="18"/>
+                        <VBox spacing="2" HBox.hgrow="ALWAYS">
+                            <Label fx:id="sampleDataValidationTitle" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="sampleDataValidationMessage" wrapText="true" style="-fx-font-size: 12px;"/>
+                        </VBox>
+                        <HBox spacing="5" alignment="CENTER_RIGHT">
+                            <Button fx:id="exportValidationErrorsButton" onAction="#exportValidationErrors"
+                                    text="Export" style="-fx-font-size: 11px;">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-download" iconSize="12"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Export validation errors to file"/>
+                                </tooltip>
+                            </Button>
+                            <Button onAction="#closeSampleDataValidationPanel"
+                                    style="-fx-background-color: transparent; -fx-padding: 2;">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-x" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+                    </HBox>
+                    <!-- Error Table -->
+                    <TableView fx:id="validationErrorsTable" prefHeight="150" maxHeight="200"
+                               style="-fx-font-size: 11px;">
+                        <columns>
+                            <TableColumn fx:id="errorLineColumn" text="Line" prefWidth="50" minWidth="40"/>
+                            <TableColumn fx:id="errorColumnColumn" text="Col" prefWidth="40" minWidth="35"/>
+                            <TableColumn fx:id="errorSeverityColumn" text="Severity" prefWidth="70" minWidth="60"/>
+                            <TableColumn fx:id="errorMessageColumn" text="Message" prefWidth="500" minWidth="200"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="No validation errors"/>
+                        </placeholder>
+                    </TableView>
+                </VBox>
 
                 <StackPane VBox.vgrow="ALWAYS">
                     <!-- RichTextFX: VirtualizedScrollPane für Scrollbalken -->
