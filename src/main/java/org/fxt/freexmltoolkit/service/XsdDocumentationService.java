@@ -2579,8 +2579,22 @@ public class XsdDocumentationService {
      * Looks for vc:minVersion="1.1" attribute on the schema element.
      */
     private boolean isXsd11Schema() {
-        if (doc == null) return false;
-        Element root = doc.getDocumentElement();
+        // If doc is not loaded yet, try to parse the schema file to check version
+        Document schemaDoc = doc;
+        if (schemaDoc == null && xsdFilePath != null) {
+            try {
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                factory.setNamespaceAware(true);
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                schemaDoc = builder.parse(new File(xsdFilePath));
+            } catch (Exception e) {
+                logger.debug("Could not parse schema file to check version: {}", e.getMessage());
+                return false;
+            }
+        }
+
+        if (schemaDoc == null) return false;
+        Element root = schemaDoc.getDocumentElement();
         if (root == null) return false;
 
         // Check for vc:minVersion attribute
