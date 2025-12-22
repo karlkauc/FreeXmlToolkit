@@ -531,4 +531,218 @@ class XsdSampleDataGeneratorTest {
         assertNotNull(result);
         assertFalse(result.isEmpty());
     }
+
+    // =====================================================
+    // Tests for Pattern-Structure-Aware Fallback Generation
+    // =====================================================
+
+    @Test
+    @DisplayName("Should generate email-like pattern with @ literal")
+    void testGenerateEmailPatternWithAtLiteral() {
+        // Arrange - Email pattern from FundsXML4.xsd
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+
+        Map<String, List<String>> facets = new HashMap<>();
+        facets.put("pattern", Collections.singletonList("[_\\-a-zA-Z0-9\\.\\+]+@[a-zA-Z0-9]([\\.\\-a-zA-Z0-9]*[a-zA-Z0-9])*"));
+
+        XsdExtendedElement.RestrictionInfo restriction =
+            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+        element.setRestrictionInfo(restriction);
+
+        // Act
+        String result = generator.generate(element);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.contains("@"), "Generated email pattern should contain @ symbol: " + result);
+    }
+
+    @Test
+    @DisplayName("Should generate pattern with literal slash character")
+    void testGeneratePatternWithSlashLiteral() {
+        // Arrange - URL-like pattern
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+
+        Map<String, List<String>> facets = new HashMap<>();
+        facets.put("pattern", Collections.singletonList("[a-z]+/[a-z]+/[0-9]+"));
+
+        XsdExtendedElement.RestrictionInfo restriction =
+            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+        element.setRestrictionInfo(restriction);
+
+        // Act
+        String result = generator.generate(element);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.contains("/"), "Generated pattern should contain / character: " + result);
+        // Should have format like abc/def/123
+        String[] parts = result.split("/");
+        assertTrue(parts.length >= 2, "Should have multiple parts separated by /: " + result);
+    }
+
+    @Test
+    @DisplayName("Should generate pattern with multiple literal characters")
+    void testGeneratePatternWithMultipleLiterals() {
+        // Arrange - Pattern like phone number: +XX-XXXXXXX
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+
+        Map<String, List<String>> facets = new HashMap<>();
+        facets.put("pattern", Collections.singletonList("[0-9]{2}-[0-9]{7}"));
+
+        XsdExtendedElement.RestrictionInfo restriction =
+            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+        element.setRestrictionInfo(restriction);
+
+        // Act
+        String result = generator.generate(element);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.contains("-"), "Generated pattern should contain - character: " + result);
+    }
+
+    @Test
+    @DisplayName("Should preserve literal underscore in pattern")
+    void testGeneratePatternWithUnderscoreLiteral() {
+        // Arrange - Pattern with underscore separator
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+
+        Map<String, List<String>> facets = new HashMap<>();
+        facets.put("pattern", Collections.singletonList("[A-Z]+_[0-9]+_[a-z]+"));
+
+        XsdExtendedElement.RestrictionInfo restriction =
+            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+        element.setRestrictionInfo(restriction);
+
+        // Act
+        String result = generator.generate(element);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.contains("_"), "Generated pattern should contain _ character: " + result);
+        // Should have at least 2 underscores
+        long underscoreCount = result.chars().filter(ch -> ch == '_').count();
+        assertTrue(underscoreCount >= 2, "Should have at least 2 underscores: " + result);
+    }
+
+    @Test
+    @DisplayName("Should handle LEI-like pattern with exact quantifiers")
+    void testGenerateLEILikePattern() {
+        // Arrange - LEI pattern: 18 alphanumeric + 2 digits
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+
+        Map<String, List<String>> facets = new HashMap<>();
+        facets.put("pattern", Collections.singletonList("[0-9a-zA-Z]{18}[0-9]{2}"));
+        facets.put("length", Collections.singletonList("20"));
+
+        XsdExtendedElement.RestrictionInfo restriction =
+            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+        element.setRestrictionInfo(restriction);
+
+        // Act
+        String result = generator.generate(element);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(20, result.length(), "LEI should be exactly 20 characters: " + result);
+    }
+
+    @Test
+    @DisplayName("Should handle pattern with dot as separator (escaped)")
+    void testGeneratePatternWithEscapedDot() {
+        // Arrange - Pattern like version number: X.Y.Z
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+
+        Map<String, List<String>> facets = new HashMap<>();
+        facets.put("pattern", Collections.singletonList("[0-9]+\\.[0-9]+\\.[0-9]+"));
+
+        XsdExtendedElement.RestrictionInfo restriction =
+            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+        element.setRestrictionInfo(restriction);
+
+        // Act
+        String result = generator.generate(element);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.contains("."), "Generated pattern should contain . character: " + result);
+        long dotCount = result.chars().filter(ch -> ch == '.').count();
+        assertTrue(dotCount >= 2, "Should have at least 2 dots for version pattern: " + result);
+    }
+
+    @Test
+    @DisplayName("Should handle simple alphanumeric pattern without literals")
+    void testGenerateSimplePatternNoLiterals() {
+        // Arrange - Simple pattern without any literals
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+
+        Map<String, List<String>> facets = new HashMap<>();
+        facets.put("pattern", Collections.singletonList("[A-Z0-9]+"));
+
+        XsdExtendedElement.RestrictionInfo restriction =
+            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+        element.setRestrictionInfo(restriction);
+
+        // Act
+        String result = generator.generate(element);
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        // Should only contain uppercase letters and digits
+        assertTrue(result.matches("[A-Z0-9]+"), "Should match alphanumeric pattern: " + result);
+    }
+
+    @Test
+    @DisplayName("Should handle pattern with colon literal")
+    void testGeneratePatternWithColonLiteral() {
+        // Arrange - Pattern like time: HH:MM
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+
+        Map<String, List<String>> facets = new HashMap<>();
+        facets.put("pattern", Collections.singletonList("[0-9]{2}:[0-9]{2}"));
+
+        XsdExtendedElement.RestrictionInfo restriction =
+            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+        element.setRestrictionInfo(restriction);
+
+        // Act
+        String result = generator.generate(element);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.contains(":"), "Generated pattern should contain : character: " + result);
+    }
+
+    @Test
+    @DisplayName("Should handle currency code pattern [A-Z]{3}")
+    void testGenerateCurrencyCodePattern() {
+        // Arrange - Currency code pattern
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementType("xs:string");
+
+        Map<String, List<String>> facets = new HashMap<>();
+        facets.put("pattern", Collections.singletonList("[A-Z]{3}"));
+
+        XsdExtendedElement.RestrictionInfo restriction =
+            new XsdExtendedElement.RestrictionInfo("xs:string", facets);
+        element.setRestrictionInfo(restriction);
+
+        // Act
+        String result = generator.generate(element);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(3, result.length(), "Currency code should be 3 characters");
+        assertTrue(result.matches("[A-Z]{3}"), "Should match currency code pattern: " + result);
+    }
 }

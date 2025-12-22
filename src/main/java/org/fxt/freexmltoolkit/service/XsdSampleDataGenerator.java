@@ -31,6 +31,17 @@ public class XsdSampleDataGenerator {
     private static final int MAX_PATTERN_GENERATION_ATTEMPTS = 10;
 
     /**
+     * Represents a segment of a regex pattern for structure-aware generation.
+     */
+    private record PatternSegment(
+        String characterClass,  // e.g., "a-zA-Z0-9"
+        boolean isLiteral,      // true if this is a literal character
+        String literalValue,    // the literal character (if isLiteral=true)
+        int minRepeat,          // minimum repetitions (1 for +, 0 for *)
+        int maxRepeat           // maximum repetitions (-1 for unlimited)
+    ) {}
+
+    /**
      * Holds the resolved type information: base XML type and merged restrictions.
      */
     public record ResolvedType(String baseType, RestrictionInfo mergedRestriction) {}
@@ -311,8 +322,9 @@ public class XsdSampleDataGenerator {
                 return generateWithLengthHint(generex, 1, maxLength, patternValue);
             }
 
-            // No length restrictions, generate with reasonable default
-            return generex.random();
+            // No length restrictions - still use validation and fallback logic
+            // Use 1-50 as reasonable default range
+            return generateWithLengthHint(generex, 1, 50, patternValue);
 
         } catch (Exception e) {
             logger.warn("Could not generate sample from pattern '{}' for element '{}'. Falling back. Error: {}",
@@ -370,9 +382,255 @@ public class XsdSampleDataGenerator {
     }
 
     /**
-     * Generates a fallback string for patterns that might produce empty or too-short strings.
+     * Generates a fallback string for patterns that Generex cannot handle.
+     * Now parses pattern structure to detect and preserve literal characters.
      */
     private String generateFallbackForPattern(String pattern, int targetLength) {
+        // Try to parse the pattern structure
+        List<PatternSegment> segments = parsePatternStructure(pattern);
+
+        // If parsing found literal characters, use structure-aware generation
+        boolean hasLiterals = segments.stream().anyMatch(PatternSegment::isLiteral);
+        if (hasLiterals && !segments.isEmpty()) {
+            return generateFromSegments(segments, targetLength);
+        }
+
+        // Fallback to simple character class extraction (original behavior)
+        return generateSimpleFallback(pattern, targetLength);
+    }
+
+    /**
+     * Parses a regex pattern into segments, identifying literal characters
+     * and character class segments.
+     *
+     * @param pattern The regex pattern to parse
+     * @return List of pattern segments in order
+     */
+    private List<PatternSegment> parsePatternStructure(String pattern) {
+        List<PatternSegment> segments = new ArrayList<>();
+        int i = 0;
+
+        while (i < pattern.length()) {
+            char c = pattern.charAt(i);
+
+            // Character class: [...]
+            if (c == '[') {
+                int end = findClosingBracket(pattern, i);
+                String charClass = pattern.substring(i + 1, end);
+
+                // Check for quantifier after ]
+                int[] repeatInfo = parseQuantifier(pattern, end + 1);
+                segments.add(new PatternSegment(charClass, false, null, repeatInfo[0], repeatInfo[1]));
+                i = repeatInfo[2]; // Move past quantifier
+            }
+            // Escaped character: \x
+            else if (c == '\\' && i + 1 < pattern.length()) {
+                char escaped = pattern.charAt(i + 1);
+                // \s, \d, \w are character class shorthands
+                if (escaped == 's' || escaped == 'd' || escaped == 'w' ||
+                    escaped == 'S' || escaped == 'D' || escaped == 'W') {
+                    int[] repeatInfo = parseQuantifier(pattern, i + 2);
+                    segments.add(new PatternSegment(String.valueOf(escaped), false, null, repeatInfo[0], repeatInfo[1]));
+                    i = repeatInfo[2];
+                } else {
+                    // Escaped literal (like \@, \., \-)
+                    segments.add(new PatternSegment(null, true, String.valueOf(escaped), 1, 1));
+                    i += 2;
+                }
+            }
+            // Grouping: (...) - skip but process contents
+            else if (c == '(' || c == ')') {
+                i++;
+            }
+            // Quantifiers without preceding element (skip)
+            else if (c == '*' || c == '+' || c == '?' || c == '{') {
+                i++;
+                // Skip digits and closing brace for {n,m}
+                while (i < pattern.length() && (Character.isDigit(pattern.charAt(i)) || pattern.charAt(i) == ',' || pattern.charAt(i) == '}')) {
+                    i++;
+                }
+            }
+            // Literal character (like @, /, -)
+            else if (!isRegexMetachar(c)) {
+                segments.add(new PatternSegment(null, true, String.valueOf(c), 1, 1));
+                i++;
+            }
+            // Other metacharacters (skip)
+            else {
+                i++;
+            }
+        }
+
+        return segments;
+    }
+
+    /**
+     * Checks if the character is a regex metacharacter.
+     */
+    private boolean isRegexMetachar(char c) {
+        return "^$.*+?{}[]()|\\\n".indexOf(c) >= 0;
+    }
+
+    /**
+     * Finds the closing bracket for a character class.
+     */
+    private int findClosingBracket(String pattern, int start) {
+        for (int i = start + 1; i < pattern.length(); i++) {
+            if (pattern.charAt(i) == '\\' && i + 1 < pattern.length()) {
+                i++; // Skip escaped character
+            } else if (pattern.charAt(i) == ']') {
+                return i;
+            }
+        }
+        return pattern.length() - 1;
+    }
+
+    /**
+     * Parses a quantifier after a pattern element.
+     * @return int[3] = {minRepeat, maxRepeat, newIndex}
+     */
+    private int[] parseQuantifier(String pattern, int index) {
+        if (index >= pattern.length()) {
+            return new int[]{1, 1, index}; // Default: exactly 1
+        }
+
+        char c = pattern.charAt(index);
+        return switch (c) {
+            case '*' -> new int[]{0, 10, index + 1};  // 0 to many (cap at 10)
+            case '+' -> new int[]{1, 10, index + 1};  // 1 to many (cap at 10)
+            case '?' -> new int[]{0, 1, index + 1};   // 0 or 1
+            case '{' -> parseExplicitQuantifier(pattern, index);
+            default -> new int[]{1, 1, index};        // No quantifier = exactly 1
+        };
+    }
+
+    /**
+     * Parses an explicit quantifier like {3} or {2,5}.
+     */
+    private int[] parseExplicitQuantifier(String pattern, int start) {
+        int end = pattern.indexOf('}', start);
+        if (end < 0) return new int[]{1, 1, start};
+
+        String content = pattern.substring(start + 1, end);
+        String[] parts = content.split(",");
+
+        try {
+            int min = Integer.parseInt(parts[0].trim());
+            int max = parts.length > 1 && !parts[1].trim().isEmpty()
+                ? Integer.parseInt(parts[1].trim())
+                : min;
+            return new int[]{min, Math.min(max, 50), end + 1}; // Cap at 50
+        } catch (NumberFormatException e) {
+            return new int[]{1, 1, end + 1};
+        }
+    }
+
+    /**
+     * Generates a string from parsed pattern segments.
+     */
+    private String generateFromSegments(List<PatternSegment> segments, int targetLength) {
+        StringBuilder result = new StringBuilder();
+
+        for (PatternSegment segment : segments) {
+            if (segment.isLiteral()) {
+                result.append(segment.literalValue());
+            } else {
+                // Generate content for character class
+                String chars = expandCharacterClass(segment.characterClass());
+                int count = segment.minRepeat();
+                if (segment.maxRepeat() > segment.minRepeat()) {
+                    count = ThreadLocalRandom.current().nextInt(
+                        segment.minRepeat(),
+                        Math.min(segment.maxRepeat() + 1, segment.minRepeat() + 10)
+                    );
+                }
+
+                for (int i = 0; i < count && !chars.isEmpty(); i++) {
+                    result.append(chars.charAt(ThreadLocalRandom.current().nextInt(chars.length())));
+                }
+            }
+        }
+
+        // Adjust length if needed
+        String output = result.toString();
+        if (output.length() < targetLength) {
+            // Pad with characters from first non-literal segment
+            String padChars = segments.stream()
+                .filter(s -> !s.isLiteral())
+                .map(s -> expandCharacterClass(s.characterClass()))
+                .filter(s -> !s.isEmpty())
+                .findFirst()
+                .orElse("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+            StringBuilder padded = new StringBuilder(output);
+            while (padded.length() < targetLength && !padChars.isEmpty()) {
+                padded.append(padChars.charAt(ThreadLocalRandom.current().nextInt(padChars.length())));
+            }
+            output = padded.toString();
+        }
+
+        return output;
+    }
+
+    /**
+     * Expands a character class string to all allowed characters.
+     */
+    private String expandCharacterClass(String charClass) {
+        if (charClass == null) return "";
+
+        StringBuilder chars = new StringBuilder();
+
+        // Handle shorthand classes
+        if (charClass.equals("d") || charClass.equals("\\d")) {
+            return "0123456789";
+        }
+        if (charClass.equals("w") || charClass.equals("\\w")) {
+            return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_";
+        }
+        if (charClass.equals("s") || charClass.equals("\\s")) {
+            return " ";
+        }
+
+        // Parse ranges like A-Z, 0-9
+        int i = 0;
+        while (i < charClass.length()) {
+            char c = charClass.charAt(i);
+
+            // Escaped character
+            if (c == '\\' && i + 1 < charClass.length()) {
+                char next = charClass.charAt(i + 1);
+                if (next == '-' || next == '.' || next == '+' || next == '_') {
+                    chars.append(next);
+                }
+                i += 2;
+                continue;
+            }
+
+            // Range like A-Z (but not at start or end where - is literal)
+            if (i + 2 < charClass.length() && charClass.charAt(i + 1) == '-' && i > 0) {
+                char start = c;
+                char end = charClass.charAt(i + 2);
+                for (char ch = start; ch <= end; ch++) {
+                    chars.append(ch);
+                }
+                i += 3;
+                continue;
+            }
+
+            // Single character (hyphen at start/end is literal)
+            if (c != '-' || i == 0 || i == charClass.length() - 1) {
+                chars.append(c);
+            }
+            i++;
+        }
+
+        return chars.toString();
+    }
+
+    /**
+     * Original simple fallback for patterns without detected structure.
+     */
+    private String generateSimpleFallback(String pattern, int targetLength) {
         // Extract character class from pattern if possible
         // Common patterns: [A-Z]*, [A-Z0-9]*, [a-zA-Z]+, [A-Z\-\s]*, etc.
 
@@ -382,7 +640,6 @@ public class XsdSampleDataGenerator {
         boolean hasDigits = pattern.contains("[0-9]") || pattern.contains("0-9");
         // Hyphen in character class is escaped as \- or placed at start/end like [-A-Z] or [A-Z-]
         boolean hasHyphen = pattern.contains("\\-") || pattern.matches(".*\\[[-].*") || pattern.matches(".*[-]\\].*");
-        boolean hasWhitespace = pattern.contains("\\s");
         // Dot as literal is escaped as \. (unescaped . means any character)
         boolean hasDot = pattern.contains("\\.");
         boolean hasComma = pattern.contains(",");
