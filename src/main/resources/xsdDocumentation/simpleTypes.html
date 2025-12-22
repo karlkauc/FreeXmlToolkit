@@ -63,7 +63,17 @@
                      class="absolute hidden w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg z-20 max-h-96 overflow-y-auto">
                 </div>
             </div>
-            <div class="hidden md:block">
+            <!-- Right navigation group (Language Switcher + GitHub Link) -->
+            <div class="hidden md:flex items-center space-x-4">
+                <!-- Language Switcher -->
+                <div class="flex items-center space-x-2">
+                    <label for="lang-switcher-nav" class="text-sm text-slate-600">Language:</label>
+                    <select id="lang-switcher-nav"
+                            class="lang-switcher text-sm border border-slate-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                        <option value="default">Default (no lang)</option>
+                    </select>
+                </div>
+                <!-- GitHub Link -->
                 <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank" class="flex items-center space-x-2 text-slate-700 font-bold">
                     <img src="assets/logo.png" alt="logo" class="h-8 w-8"/>
                     <span>FreeXmlToolKit</span>
@@ -115,5 +125,6 @@
 
 <script src="assets/prism.js" defer></script>
 <script src="assets/search.js" defer></script>
+<script src="assets/language-switcher.js" defer></script>
 </body>
 </html>

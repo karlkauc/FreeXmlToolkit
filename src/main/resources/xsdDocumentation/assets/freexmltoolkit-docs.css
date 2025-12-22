@@ -1124,3 +1124,57 @@
     }
   }
 }
+
+/* Custom styles for Language Switcher */
+.lang-hidden {
+    display: none !important;
+}
+
+.lang-visible {
+    display: block !important;
+}
+
+/* Language label styling */
+.doc-lang-label {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* Language-specific colors for labels */
+.doc-content[data-lang="en"] .doc-lang-label {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.doc-content[data-lang="de"] .doc-lang-label {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+.doc-content[data-lang="fr"] .doc-lang-label {
+    background-color: #fce4ec;
+    color: #c2185b;
+}
+
+.doc-content[data-lang="es"] .doc-lang-label {
+    background-color: #fff8e1;
+    color: #f9a825;
+}
+
+.doc-content[data-lang="it"] .doc-lang-label {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+/* Documentation section styling */
+.documentation-section .doc-content {
+    transition: opacity 0.2s ease-in-out;
+}
+
+.documentation-section .doc-content[hidden] {
+    display: none;
+}

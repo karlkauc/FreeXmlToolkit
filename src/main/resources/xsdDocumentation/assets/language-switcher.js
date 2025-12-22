@@ -10,7 +10,7 @@
  * - Documentation elements should have data-lang attribute
  */
 
-(function() {
+(function () {
     'use strict';
 
     const STORAGE_KEY = 'xsdDocLang';
@@ -54,12 +54,12 @@
         storeLanguage(lang);
 
         // Find all documentation sections
-        document.querySelectorAll('.documentation-section').forEach(function(section) {
+        document.querySelectorAll('.documentation-section').forEach(function (section) {
             var allDocs = section.querySelectorAll('.doc-content');
             var found = false;
 
             // Hide all, show selected language
-            allDocs.forEach(function(doc) {
+            allDocs.forEach(function (doc) {
                 if (doc.dataset.lang === lang) {
                     doc.hidden = false;
                     doc.classList.remove('lang-hidden');
@@ -93,12 +93,12 @@
         });
 
         // Update all language switcher dropdowns on the page
-        document.querySelectorAll('.lang-switcher').forEach(function(switcher) {
+        document.querySelectorAll('.lang-switcher').forEach(function (switcher) {
             switcher.value = lang;
         });
 
         // Update active state in language buttons (if using button-style switcher)
-        document.querySelectorAll('.lang-btn').forEach(function(btn) {
+        document.querySelectorAll('.lang-btn').forEach(function (btn) {
             if (btn.dataset.lang === lang) {
                 btn.classList.add('active');
             } else {
@@ -123,7 +123,7 @@
         switcher.appendChild(defaultOption);
 
         // Add other languages
-        languages.forEach(function(lang) {
+        languages.forEach(function (lang) {
             if (lang !== 'default') {
                 var option = document.createElement('option');
                 option.value = lang;
@@ -153,24 +153,24 @@
         }
 
         fetch(jsonPath)
-            .then(function(response) {
+            .then(function (response) {
                 if (!response.ok) {
                     throw new Error('languages.json not found');
                 }
                 return response.json();
             })
-            .then(function(data) {
+            .then(function (data) {
                 // Store the configured fallback language
                 if (data.fallback && data.fallback !== 'null') {
                     configuredFallbackLang = data.fallback;
                 }
                 callback(data.available || ['default']);
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.warn('Could not load languages.json, scanning page for languages:', error.message);
                 // Fallback: scan the page for available languages
                 var languages = new Set(['default']);
-                document.querySelectorAll('[data-lang]').forEach(function(el) {
+                document.querySelectorAll('[data-lang]').forEach(function (el) {
                     languages.add(el.dataset.lang);
                 });
                 callback(Array.from(languages).sort());
@@ -193,13 +193,13 @@
         var switchers = document.querySelectorAll('.lang-switcher');
 
         // Load available languages (this also loads the fallback configuration)
-        loadAvailableLanguages(function(languages) {
+        loadAvailableLanguages(function (languages) {
             // Populate all switchers
-            switchers.forEach(function(switcher) {
+            switchers.forEach(function (switcher) {
                 populateLanguageSwitcher(switcher, languages);
 
                 // Add change event listener
-                switcher.addEventListener('change', function(e) {
+                switcher.addEventListener('change', function (e) {
                     switchLanguage(e.target.value);
                 });
             });

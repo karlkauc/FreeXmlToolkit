@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
@@ -197,12 +198,25 @@ public class XsdContextMenuFactory {
     private ContextMenu createAttributeMenu(VisualNode node) {
         ContextMenu menu = new ContextMenu();
 
+        // Check if attribute references a custom SimpleType
+        boolean hasSimpleTypeReference = hasAttributeSimpleTypeReference(node);
+
+        if (hasSimpleTypeReference) {
+            menu.getItems().add(
+                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", "#17a2b8",
+                            () -> handleEditReferencedAttributeSimpleType(node))
+            );
+            menu.getItems().add(new SeparatorMenuItem());
+        }
+
         menu.getItems().addAll(
-                createMenuItem("Change Type", () -> logger.info("Change type of attribute {}", node.getLabel())),
-                createMenuItem("Rename", () -> handleRename(node)),
-                createMenuItem("Toggle Required/Optional", () -> logger.info("Toggle required/optional for {}", node.getLabel())),
+                createMenuItem("Change Type", "bi-arrow-left-right", "#007bff",
+                        () -> logger.info("Change type of attribute {}", node.getLabel())),
+                createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
+                createMenuItem("Toggle Required/Optional", "bi-toggle-on", "#6c757d",
+                        () -> logger.info("Toggle required/optional for {}", node.getLabel())),
                 new SeparatorMenuItem(),
-                createMenuItem("Delete", () -> handleDelete(node))
+                createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
         );
 
         return menu;
@@ -876,6 +890,25 @@ public class XsdContextMenuFactory {
     }
 
     /**
+     * Checks if an attribute node references a SimpleType.
+     *
+     * @param node the attribute node to check
+     * @return true if attribute references a SimpleType
+     */
+    private boolean hasAttributeSimpleTypeReference(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof XsdAttribute attribute) {
+            String typeName = attribute.getType();
+            if (typeName != null && !typeName.isEmpty() && !typeName.startsWith("xs:")) {
+                // Attribute references a custom type - check if it's a SimpleType
+                XsdSimpleType simpleType = findSimpleTypeInSchema(typeName);
+                return simpleType != null;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Handles opening the ComplexType that an element references.
      *
      * @param node the element node
@@ -950,6 +983,43 @@ public class XsdContextMenuFactory {
     }
 
     /**
+     * Handles opening the SimpleType that an attribute references.
+     *
+     * @param node the attribute node
+     */
+    private void handleEditReferencedAttributeSimpleType(VisualNode node) {
+        logger.info("handleEditReferencedAttributeSimpleType called for node: {}", node.getLabel());
+
+        Object modelObject = node.getModelObject();
+        logger.debug("Model object type: {}", modelObject != null ? modelObject.getClass().getSimpleName() : "null");
+
+        if (modelObject instanceof XsdAttribute attribute) {
+            String typeName = attribute.getType();
+            logger.info("Attribute '{}' has type attribute: '{}'", node.getLabel(), typeName);
+
+            if (typeName != null && !typeName.isEmpty()) {
+                // Find the SimpleType in the schema
+                XsdSimpleType simpleType = findSimpleTypeInSchema(typeName);
+
+                if (simpleType != null) {
+                    if (openSimpleTypeEditorCallback != null) {
+                        logger.info("Opening referenced SimpleType '{}' in Type Editor", typeName);
+                        openSimpleTypeEditorCallback.accept(simpleType);
+                    } else {
+                        logger.error("Cannot open Type Editor - openSimpleTypeEditorCallback is NOT SET!");
+                    }
+                } else {
+                    logger.warn("Referenced type '{}' not found or is not a SimpleType", typeName);
+                }
+            } else {
+                logger.warn("Attribute '{}' has no type attribute or empty type", node.getLabel());
+            }
+        } else {
+            logger.warn("Model object is not an XsdAttribute: {}", modelObject);
+        }
+    }
+
+    /**
      * Finds a ComplexType by name in the schema.
      * Handles namespace prefixes (e.g., "tns:MyType" matches "MyType").
      *
@@ -990,7 +1060,7 @@ public class XsdContextMenuFactory {
                 localTypeName,
                 editorContext.getSchema().getChildren().stream()
                     .filter(c -> c instanceof XsdComplexType)
-                    .map(c -> ((XsdComplexType) c).getName())
+                    .map(c -> c.getName())
                     .toList());
         return null;
     }
@@ -1036,7 +1106,7 @@ public class XsdContextMenuFactory {
                 localTypeName,
                 editorContext.getSchema().getChildren().stream()
                     .filter(c -> c instanceof XsdSimpleType)
-                    .map(c -> ((XsdSimpleType) c).getName())
+                    .map(c -> c.getName())
                     .toList());
         return null;
     }
