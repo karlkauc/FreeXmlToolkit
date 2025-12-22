@@ -266,4 +266,43 @@ public interface PropertiesService {
 
     // Note: isXmlEditorUseV2() and setXmlEditorUseV2() have been removed.
     // V2 is now the only editor - V1 has been deprecated and removed.
+
+    // Temp folder settings
+
+    /**
+     * Gets the temp folder path for storing temporary files like XSLT output.
+     * If useSystemTempFolder is true, returns system temp directory.
+     * Otherwise returns the custom temp folder from settings.
+     *
+     * @return the temp folder path
+     */
+    String getTempFolder();
+
+    /**
+     * Gets whether to use the system temp folder or a custom one.
+     *
+     * @return true if using system temp folder, false for custom
+     */
+    boolean isUseSystemTempFolder();
+
+    /**
+     * Sets whether to use the system temp folder.
+     *
+     * @param useSystem true to use system temp folder, false for custom
+     */
+    void setUseSystemTempFolder(boolean useSystem);
+
+    /**
+     * Gets the custom temp folder path.
+     *
+     * @return the custom temp folder path
+     */
+    String getCustomTempFolder();
+
+    /**
+     * Sets the custom temp folder path.
+     *
+     * @param path the custom temp folder path
+     */
+    void setCustomTempFolder(String path);
 }

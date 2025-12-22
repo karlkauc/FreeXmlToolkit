@@ -442,4 +442,40 @@ public class PropertiesServiceImpl implements PropertiesService {
 
     // Note: isXmlEditorUseV2() and setXmlEditorUseV2() have been removed.
     // V2 is now the only editor - V1 has been deprecated and removed.
+
+    // Temp folder settings implementation
+
+    @Override
+    public String getTempFolder() {
+        if (isUseSystemTempFolder()) {
+            return System.getProperty("java.io.tmpdir");
+        }
+        return getCustomTempFolder();
+    }
+
+    @Override
+    public boolean isUseSystemTempFolder() {
+        return Boolean.parseBoolean(properties.getProperty("useSystemTempFolder", "true"));
+    }
+
+    @Override
+    public void setUseSystemTempFolder(boolean useSystem) {
+        properties.setProperty("useSystemTempFolder", String.valueOf(useSystem));
+        saveProperties(properties);
+        logger.debug("Set use system temp folder to: {}", useSystem);
+    }
+
+    @Override
+    public String getCustomTempFolder() {
+        return properties.getProperty("customTempFolder", System.getProperty("java.io.tmpdir"));
+    }
+
+    @Override
+    public void setCustomTempFolder(String path) {
+        if (path != null && !path.isBlank()) {
+            properties.setProperty("customTempFolder", path);
+            saveProperties(properties);
+            logger.debug("Set custom temp folder to: {}", path);
+        }
+    }
 }

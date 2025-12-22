@@ -497,11 +497,14 @@ public class XsltController {
     }
 
     private void renderHTML(String output) {
-        File outputDir = new File("output");
+        // Use temp folder from settings instead of hardcoded "output" directory
+        String tempFolder = propertiesService.getTempFolder();
+        File outputDir = new File(tempFolder, "FreeXmlToolkit-xslt-output");
         String outputFileName = outputDir.getAbsolutePath() + File.separator + "output.html";
 
         try {
             Files.createDirectories(outputDir.toPath());
+            logger.debug("Using output directory: {}", outputDir.getAbsolutePath());
 
             Files.copy(
                     Objects.requireNonNull(getClass().getResourceAsStream("/scss/prism.css")),
