@@ -52,8 +52,10 @@ public class ComplexTypeEditorTab extends AbstractTypeEditorTab {
 
         // Setup close callback (Phase 6)
         editorView.setOnCloseCallback(() -> {
-            // Request tab close (will trigger the close handler in TypeEditorTabManager)
-            getTabPane().getTabs().remove(this);
+            // Fire tab close request event - this will trigger the onCloseRequest handler
+            // in TypeEditorTabManager, which handles unsaved changes and removes from tracking map
+            javafx.event.Event closeEvent = new javafx.event.Event(javafx.scene.control.Tab.TAB_CLOSE_REQUEST_EVENT);
+            javafx.event.Event.fireEvent(this, closeEvent);
         });
 
         logger.debug("ComplexTypeEditorTab initialized for type: {}", complexType.getName());
