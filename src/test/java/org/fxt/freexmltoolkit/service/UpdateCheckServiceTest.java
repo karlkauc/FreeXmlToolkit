@@ -774,6 +774,38 @@ class UpdateCheckServiceTest {
         public void setBackupDirectory(String path) {
             properties.setProperty("backup.directory", path);
         }
+
+        @Override
+        public String getCustomTempFolder() {
+            return properties.getProperty("custom.temp.folder", null);
+        }
+
+        @Override
+        public void setCustomTempFolder(String path) {
+            if (path == null || path.isBlank()) {
+                properties.remove("custom.temp.folder");
+            } else {
+                properties.setProperty("custom.temp.folder", path);
+            }
+        }
+
+        @Override
+        public boolean isUseSystemTempFolder() {
+            return Boolean.parseBoolean(properties.getProperty("use.system.temp.folder", "true"));
+        }
+
+        @Override
+        public void setUseSystemTempFolder(boolean useSystem) {
+            properties.setProperty("use.system.temp.folder", String.valueOf(useSystem));
+        }
+
+        @Override
+        public String getTempFolder() {
+            if (isUseSystemTempFolder()) {
+                return System.getProperty("java.io.tmpdir");
+            }
+            return getCustomTempFolder() != null ? getCustomTempFolder() : System.getProperty("java.io.tmpdir");
+        }
     }
 
     /**

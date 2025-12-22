@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -91,14 +92,14 @@ public class XsdSampleDataGenerator {
             case "idref", "idrefs" -> "ref_example";
             case "anyuri" -> "http://example.com/sample";
 
-            // Float and Double types
+            // Float and Double types - use Locale.US to ensure dot decimal separator
             case "float" -> {
                 BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("0.01"), new BigDecimal("999.99"));
-                yield String.format("%.2f", randomDecimal.floatValue());
+                yield String.format(Locale.US, "%.2f", randomDecimal.floatValue());
             }
             case "double" -> {
                 BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("0.01"), new BigDecimal("9999.99"));
-                yield String.format("%.4f", randomDecimal.doubleValue());
+                yield String.format(Locale.US, "%.4f", randomDecimal.doubleValue());
             }
 
             // Numeric types using the helper method
