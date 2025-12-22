@@ -29,7 +29,6 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
-import org.fxt.freexmltoolkit.controller.dialogs.XsdOverviewDialogController;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog;
 import org.fxt.freexmltoolkit.controls.intellisense.XmlCodeFoldingManager;
@@ -514,14 +513,6 @@ public class XsdController implements FavoritesParentController {
 
         // Initialize toolbar recent files menu
         Platform.runLater(this::initializeRecentFilesMenu);
-
-        // Show overview dialog on startup if preference is enabled
-        Platform.runLater(() -> {
-            if (XsdOverviewDialogController.shouldShowOnStartup()) {
-                // Delay slightly to ensure the window is fully loaded
-                Platform.runLater(this::showOverviewDialog);
-            }
-        });
 
         // Set up drag and drop for XSD files
         setupDragAndDrop();
@@ -4349,12 +4340,11 @@ public class XsdController implements FavoritesParentController {
     }
 
     // ======================================================================
-    // Public API methods for XSD Overview Dialog
+    // Public API methods
     // ======================================================================
 
     /**
      * Public API for creating a new XSD file.
-     * Called from XsdOverviewDialog.
      */
     public void handleCreateNewXsdFile() {
         createNewXsdFile();
@@ -4362,7 +4352,6 @@ public class XsdController implements FavoritesParentController {
 
     /**
      * Public API for opening the XSD file chooser dialog.
-     * Called from XsdOverviewDialog.
      */
     public void handleOpenXsdFileChooser() {
         File file = openXsdFileChooser();
@@ -4373,7 +4362,6 @@ public class XsdController implements FavoritesParentController {
 
     /**
      * Public API for toggling the favorites panel.
-     * Called from toolbar and XsdOverviewDialog.
      */
     public void handleShowFavorites() {
         // Make sure we're on the graphic tab
@@ -4453,12 +4441,6 @@ public class XsdController implements FavoritesParentController {
                                 logger.debug("Switched to Flatten Schema tab via Ctrl+7");
                             }
                         }
-                        case H -> {
-                            // Ctrl+H: Show overview/help dialog
-                            showOverviewDialog();
-                            event.consume();
-                            logger.debug("Showing overview dialog via Ctrl+H");
-                        }
                         case R -> {
                             // Ctrl+R: Reload file
                             handleToolbarReload();
@@ -4490,55 +4472,11 @@ public class XsdController implements FavoritesParentController {
                         event.consume();
                         logger.debug("Format triggered via Ctrl+Alt+F");
                     }
-                } else if (event.getCode() == javafx.scene.input.KeyCode.F1) {
-                    // F1: Show overview/help dialog
-                    showOverviewDialog();
-                    event.consume();
-                    logger.debug("Showing overview dialog via F1");
                 }
             });
 
-            logger.info("Tab navigation shortcuts initialized (Ctrl+1-7, Ctrl+H, Ctrl+R, Ctrl+W, Ctrl+Alt+F, Ctrl+Shift+R, F1)");
+            logger.info("Tab navigation shortcuts initialized (Ctrl+1-7, Ctrl+R, Ctrl+W, Ctrl+Alt+F, Ctrl+Shift+R)");
         });
-    }
-
-    /**
-     * Show the XSD Overview Dialog.
-     * Can be called from keyboard shortcuts or menu items.
-     */
-    private void showOverviewDialog() {
-        try {
-            // Load the FXML
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/dialogs/XsdOverviewDialog.fxml"));
-            Parent root = loader.load();
-
-            // Get the controller and set this XsdController
-            XsdOverviewDialogController controller = loader.getController();
-            controller.setXsdController(this);
-
-            // Create and configure the dialog stage
-            Stage dialogStage = new Stage();
-            dialogStage.setTitle("XSD Toolkit Overview");
-            dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-            if (tabPane.getScene() != null && tabPane.getScene().getWindow() != null) {
-                dialogStage.initOwner(tabPane.getScene().getWindow());
-            }
-
-            // Set the dialog stage in the controller
-            controller.setDialogStage(dialogStage);
-
-            // Create and show the scene
-            javafx.scene.Scene dialogScene = new javafx.scene.Scene(root);
-            dialogStage.setScene(dialogScene);
-            dialogStage.setResizable(true);
-            dialogStage.showAndWait();
-
-            logger.info("XSD Overview Dialog shown");
-
-        } catch (Exception e) {
-            logger.error("Error showing XSD Overview Dialog", e);
-            DialogHelper.showError("Error", "", "Could not show overview dialog: " + e.getMessage());
-        }
     }
 
     // ======================================================================
@@ -4751,8 +4689,7 @@ public class XsdController implements FavoritesParentController {
 
     @FXML
     private void handleToolbarHelp() {
-        logger.info("Toolbar: Help clicked");
-        showOverviewDialog();
+        logger.info("Toolbar: Help clicked - no action");
     }
 
     /**
