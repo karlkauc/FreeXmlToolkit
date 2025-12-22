@@ -639,4 +639,80 @@ public class XsdExtendedElement implements Serializable {
     public void setUseMarkdownRenderer(Boolean useMarkdownRenderer) {
         this.useMarkdownRenderer = useMarkdownRenderer;
     }
+
+    /**
+     * Extracts the base type from a simpleContent extension if present.
+     * This is used for elements like FXRate that have simpleContent with extension
+     * where the text content is a decimal value but the type is not directly visible.
+     *
+     * <p>Example XSD structure:</p>
+     * <pre>{@code
+     * <xs:element name="FXRate">
+     *   <xs:complexType>
+     *     <xs:simpleContent>
+     *       <xs:extension base="xs:decimal">
+     *         <xs:attribute name="fromCcy" type="CurrencyCodeType"/>
+     *       </xs:extension>
+     *     </xs:simpleContent>
+     *   </xs:complexType>
+     * </xs:element>
+     * }</pre>
+     *
+     * @return The base type from simpleContent extension (e.g., "xs:decimal"), or null if not applicable.
+     */
+    public String getSimpleContentExtensionBase() {
+        if (currentNode == null) {
+            return null;
+        }
+
+        // Look for inline complexType > simpleContent > extension
+        Node complexType = getDirectChildElement(currentNode, "complexType");
+        if (complexType == null) {
+            return null;
+        }
+
+        Node simpleContent = getDirectChildElement(complexType, "simpleContent");
+        if (simpleContent == null) {
+            return null;
+        }
+
+        Node extension = getDirectChildElement(simpleContent, "extension");
+        if (extension == null) {
+            return null;
+        }
+
+        return getAttributeValue(extension, "base");
+    }
+
+    /**
+     * Gets the first direct child element with the specified local name.
+     * This method only looks at immediate children, not descendants.
+     *
+     * @param parent The parent node to search in.
+     * @param localName The local name of the child element (without namespace prefix).
+     * @return The first matching child element, or null if not found.
+     */
+    private Node getDirectChildElement(Node parent, String localName) {
+        if (parent == null) {
+            return null;
+        }
+
+        var children = parent.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                String childLocalName = child.getLocalName();
+                if (childLocalName == null) {
+                    // Fallback for non-namespace-aware parsing
+                    String nodeName = child.getNodeName();
+                    int colonPos = nodeName.indexOf(':');
+                    childLocalName = colonPos >= 0 ? nodeName.substring(colonPos + 1) : nodeName;
+                }
+                if (localName.equals(childLocalName)) {
+                    return child;
+                }
+            }
+        }
+        return null;
+    }
 }

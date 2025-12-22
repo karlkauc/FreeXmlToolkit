@@ -1213,8 +1213,26 @@ public class XsdDocumentationService {
             extendedElem.setElementType("(container)");
         } else {
             if (typeName != null) {
-                // Named type reference
-                extendedElem.setElementType(typeName);
+                // Named type reference - but also check if it's a complexType with simpleContent extension
+                // to expose the base type (e.g., FXRateType extends xs:decimal)
+                String resolvedType = typeName;
+                if (typeDefinitionNode != null && "complexType".equals(typeDefinitionNode.getLocalName())) {
+                    Node simpleContent = getDirectChildElement(typeDefinitionNode, "simpleContent");
+                    if (simpleContent != null) {
+                        Node extension = getDirectChildElement(simpleContent, "extension");
+                        if (extension != null) {
+                            String baseType = getAttributeValue(extension, "base");
+                            if (baseType != null && !baseType.isEmpty()) {
+                                // Use the base type (e.g., xs:decimal) for sample data generation
+                                // since the generator needs the primitive type, not the named type
+                                resolvedType = baseType;
+                                logger.debug("Resolved named type '{}' to base type '{}' via simpleContent extension",
+                                        typeName, baseType);
+                            }
+                        }
+                    }
+                }
+                extendedElem.setElementType(resolvedType);
             } else if (typeDefinitionNode != null) {
                 // Inline type definition - check if it's a simple type with restriction
                 Node restrictionNode = findRestriction(node, typeDefinitionNode);
@@ -1555,7 +1573,7 @@ public class XsdDocumentationService {
             Validator validator = schema.newValidator();
 
             // Create error handler to collect validation errors
-            StringBuilder errorMessages = new StringBuilder();
+            List<ValidationError> errors = new ArrayList<>();
             final int[] errorCount = {0};
             final int[] warningCount = {0};
 
@@ -1563,22 +1581,34 @@ public class XsdDocumentationService {
                 @Override
                 public void warning(org.xml.sax.SAXParseException exception) {
                     warningCount[0]++;
-                    errorMessages.append("Warning [Line ").append(exception.getLineNumber())
-                        .append("]: ").append(exception.getMessage()).append("\n");
+                    errors.add(new ValidationError(
+                            exception.getLineNumber(),
+                            exception.getColumnNumber(),
+                            "Warning",
+                            exception.getMessage()
+                    ));
                 }
 
                 @Override
                 public void error(org.xml.sax.SAXParseException exception) {
                     errorCount[0]++;
-                    errorMessages.append("Error [Line ").append(exception.getLineNumber())
-                        .append("]: ").append(exception.getMessage()).append("\n");
+                    errors.add(new ValidationError(
+                            exception.getLineNumber(),
+                            exception.getColumnNumber(),
+                            "Error",
+                            exception.getMessage()
+                    ));
                 }
 
                 @Override
                 public void fatalError(org.xml.sax.SAXParseException exception) {
                     errorCount[0]++;
-                    errorMessages.append("Fatal Error [Line ").append(exception.getLineNumber())
-                        .append("]: ").append(exception.getMessage()).append("\n");
+                    errors.add(new ValidationError(
+                            exception.getLineNumber(),
+                            exception.getColumnNumber(),
+                            "Fatal Error",
+                            exception.getMessage()
+                    ));
                 }
             });
 
@@ -1588,25 +1618,46 @@ public class XsdDocumentationService {
 
             // Determine if validation passed (no errors, warnings are OK)
             boolean isValid = errorCount[0] == 0;
-            String message = errorMessages.toString();
+            String message;
 
             if (isValid && warningCount[0] > 0) {
-                message = warningCount[0] + " warning(s) found:\n" + message;
+                message = warningCount[0] + " warning(s) found";
             } else if (!isValid) {
-                message = errorCount[0] + " error(s) found:\n" + message;
+                message = errorCount[0] + " error(s) found";
+            } else {
+                message = "Validation successful";
             }
 
-            return new ValidationResult(isValid, message);
+            return new ValidationResult(isValid, message, errors);
 
         } catch (Exception e) {
-            return new ValidationResult(false, "Validation failed: " + e.getMessage());
+            return new ValidationResult(false, "Validation failed: " + e.getMessage(),
+                    List.of(new ValidationError(0, 0, "Fatal Error", e.getMessage())));
         }
     }
 
     /**
-         * Result of XML validation against XSD schema.
-         */
-        public record ValidationResult(boolean isValid, String message) {
+     * Result of XML validation against XSD schema.
+     */
+    public record ValidationResult(boolean isValid, String message, List<ValidationError> errors) {
+        public ValidationResult(boolean isValid, String message) {
+            this(isValid, message, List.of());
+        }
+    }
+
+    /**
+     * Represents a single validation error with details.
+     */
+    public record ValidationError(
+            int lineNumber,
+            int columnNumber,
+            String severity,  // "Error", "Warning", "Fatal Error"
+            String message
+    ) {
+        @Override
+        public String toString() {
+            return String.format("[%s] Line %d, Column %d: %s", severity, lineNumber, columnNumber, message);
+        }
     }
 
     private void buildXmlElement(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
@@ -2422,6 +2473,19 @@ public class XsdDocumentationService {
         // The map is now initialized for lists
         Map<String, List<String>> facets = new LinkedHashMap<>();
 
+        // First, inherit facets from the base type if it's a named type (not primitive)
+        if (base != null && !base.startsWith("xs:") && !base.startsWith("xsd:")) {
+            RestrictionInfo inheritedFacets = getInheritedFacets(base);
+            if (inheritedFacets != null && inheritedFacets.facets() != null) {
+                facets.putAll(inheritedFacets.facets());
+                // Update the base to the ultimate primitive type if available
+                if (inheritedFacets.base() != null) {
+                    base = inheritedFacets.base();
+                }
+            }
+        }
+
+        // Then, parse direct child facets (these override inherited facets)
         for (Node facetNode : getDirectChildElements(restrictionNode)) {
             String facetName = facetNode.getLocalName();
             if (!"annotation".equals(facetName)) {
@@ -2432,6 +2496,56 @@ public class XsdDocumentationService {
             }
         }
         return new RestrictionInfo(base, facets);
+    }
+
+    /**
+     * Gets inherited facets from a named type by following the type chain.
+     * This handles cases like a restriction with base="LEICodeType" where the actual
+     * pattern facet is defined in the LEICodeType simpleType.
+     *
+     * @param typeName The name of the type to get inherited facets from.
+     * @return RestrictionInfo with the ultimate base type and all inherited facets.
+     */
+    private RestrictionInfo getInheritedFacets(String typeName) {
+        if (typeName == null || typeName.isEmpty()) {
+            return null;
+        }
+
+        String cleanTypeName = stripNamespace(typeName);
+        Node typeNode = simpleTypeMap.get(cleanTypeName);
+        if (typeNode == null) {
+            return null;
+        }
+
+        // Find restriction in the simpleType
+        Node restriction = getDirectChildElement(typeNode, "restriction");
+        if (restriction == null) {
+            return null;
+        }
+
+        // Recursively get base type's facets (for chains like Type1 -> Type2 -> xs:string)
+        String baseType = getAttributeValue(restriction, "base");
+        Map<String, List<String>> facets = new LinkedHashMap<>();
+
+        // First get inherited facets from the base type
+        if (baseType != null && !baseType.startsWith("xs:") && !baseType.startsWith("xsd:")) {
+            RestrictionInfo inherited = getInheritedFacets(baseType);
+            if (inherited != null && inherited.facets() != null) {
+                facets.putAll(inherited.facets());
+                baseType = inherited.base(); // Use the ultimate primitive type
+            }
+        }
+
+        // Then add this type's direct facets (override inherited)
+        for (Node facetNode : getDirectChildElements(restriction)) {
+            String facetName = facetNode.getLocalName();
+            if (!"annotation".equals(facetName)) {
+                facets.computeIfAbsent(facetName, k -> new ArrayList<>())
+                        .add(getAttributeValue(facetNode, "value"));
+            }
+        }
+
+        return new RestrictionInfo(baseType, facets);
     }
 
     private Node findTypeDefinition(Node elementNode, String typeName) {
