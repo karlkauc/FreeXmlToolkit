@@ -468,9 +468,24 @@
                             <VBox spacing="6">
                                 <Label text="Output Format:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
                                 <HBox spacing="20" alignment="CENTER_LEFT">
-                                    <RadioButton fx:id="outputFormatHtml" selected="true" text="HTML"/>
-                                    <RadioButton disable="true" text="Word"/>
-                                    <RadioButton disable="true" text="PDF"/>
+                                    <fx:define>
+                                        <ToggleGroup fx:id="outputFormatGroup"/>
+                                    </fx:define>
+                                    <RadioButton fx:id="outputFormatHtml" selected="true" text="HTML" toggleGroup="$outputFormatGroup">
+                                        <tooltip>
+                                            <Tooltip text="Generate HTML documentation with navigation and search"/>
+                                        </tooltip>
+                                    </RadioButton>
+                                    <RadioButton fx:id="outputFormatWord" text="Word" toggleGroup="$outputFormatGroup">
+                                        <tooltip>
+                                            <Tooltip text="Generate Microsoft Word (.docx) document"/>
+                                        </tooltip>
+                                    </RadioButton>
+                                    <RadioButton fx:id="outputFormatPdf" text="PDF" toggleGroup="$outputFormatGroup">
+                                        <tooltip>
+                                            <Tooltip text="Generate PDF document using Apache FOP"/>
+                                        </tooltip>
+                                    </RadioButton>
                                 </HBox>
                             </VBox>
 

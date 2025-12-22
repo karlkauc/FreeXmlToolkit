@@ -34,6 +34,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.DocumentationOutputFormat;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
@@ -316,6 +317,14 @@ public class XsdController implements FavoritesParentController {
     private ChoiceBox<String> grafikFormat;
     @FXML
     private CheckBox showDocumentationInSvg;
+    @FXML
+    private RadioButton outputFormatHtml;
+    @FXML
+    private RadioButton outputFormatWord;
+    @FXML
+    private RadioButton outputFormatPdf;
+    @FXML
+    private ToggleGroup outputFormatGroup;
     @FXML
     private VBox xsdPane;
     @FXML
@@ -2352,36 +2361,93 @@ public class XsdController implements FavoritesParentController {
     // ======================================================================
     @FXML
     private void generateDocumentation() {
-        // 1. Validate inputs
+        // 1. Validate XSD input
         String xsdPath = xsdFilePath.getText();
-        String outputPath = documentationOutputDirPath.getText();
 
         if (xsdPath == null || xsdPath.isBlank()) {
             DialogHelper.showError("Generate Documentation", "Missing XSD File", "Please provide a source XSD file.");
             return;
         }
-        if (outputPath == null || outputPath.isBlank()) {
-            DialogHelper.showError("Generate Documentation", "Missing Output Directory", "Please select an output directory.");
-            return;
-        }
 
         File xsdFile = new File(xsdPath);
-        File outputDir = new File(outputPath);
-
         if (!xsdFile.exists()) {
             DialogHelper.showError("Generate Documentation", "XSD File Not Found", "The specified XSD file does not exist: " + xsdPath);
             return;
         }
-        if (!outputDir.exists() && !outputDir.mkdirs()) {
-            DialogHelper.showError("Generate Documentation", "Cannot Create Directory", "Could not create the output directory: " + outputPath);
-            return;
-        }
-        if (!outputDir.isDirectory()) {
-            DialogHelper.showError("Generate Documentation", "Invalid Output Path", "The specified output path is not a directory: " + outputPath);
-            return;
+
+        // 2. Determine output format
+        DocumentationOutputFormat outputFormat = getSelectedOutputFormat();
+
+        // 3. Validate output path based on format
+        String outputPath = documentationOutputDirPath.getText();
+        File outputTarget;
+
+        if (outputFormat == DocumentationOutputFormat.HTML) {
+            // HTML needs a directory
+            if (outputPath == null || outputPath.isBlank()) {
+                DialogHelper.showError("Generate Documentation", "Missing Output Directory", "Please select an output directory.");
+                return;
+            }
+            outputTarget = new File(outputPath);
+            if (!outputTarget.exists() && !outputTarget.mkdirs()) {
+                DialogHelper.showError("Generate Documentation", "Cannot Create Directory", "Could not create the output directory: " + outputPath);
+                return;
+            }
+            if (!outputTarget.isDirectory()) {
+                DialogHelper.showError("Generate Documentation", "Invalid Output Path", "The specified output path is not a directory: " + outputPath);
+                return;
+            }
+        } else {
+            // Word/PDF need a file path - prompt for file if not provided
+            if (outputPath == null || outputPath.isBlank()) {
+                // Open file chooser for Word/PDF
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Save " + outputFormat.getDisplayName());
+
+                String schemaName = xsdFile.getName().replace(".xsd", "");
+                fileChooser.setInitialFileName(schemaName + "." + outputFormat.getFileExtension());
+
+                if (outputFormat == DocumentationOutputFormat.WORD) {
+                    fileChooser.getExtensionFilters().add(
+                            new FileChooser.ExtensionFilter("Word Documents", "*.docx"));
+                } else {
+                    fileChooser.getExtensionFilters().add(
+                            new FileChooser.ExtensionFilter("PDF Documents", "*.pdf"));
+                }
+
+                // Set initial directory
+                String lastDirString = propertiesService.getLastOpenDirectory();
+                if (lastDirString != null) {
+                    File lastDir = new File(lastDirString);
+                    if (lastDir.exists() && lastDir.isDirectory()) {
+                        fileChooser.setInitialDirectory(lastDir);
+                    }
+                }
+
+                File selectedFile = fileChooser.showSaveDialog(tabPane.getScene().getWindow());
+                if (selectedFile == null) {
+                    return; // User cancelled
+                }
+                outputTarget = selectedFile;
+                documentationOutputDirPath.setText(selectedFile.getAbsolutePath());
+            } else {
+                outputTarget = new File(outputPath);
+                // Ensure correct extension
+                if (!outputPath.endsWith("." + outputFormat.getFileExtension())) {
+                    outputTarget = new File(outputPath + "." + outputFormat.getFileExtension());
+                }
+            }
+
+            // Ensure parent directory exists
+            File parentDir = outputTarget.getParentFile();
+            if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
+                DialogHelper.showError("Generate Documentation", "Cannot Create Directory",
+                        "Could not create the output directory: " + parentDir.getAbsolutePath());
+                return;
+            }
         }
 
-        // 2. Prepare UI for background task
+        // 4. Prepare UI for background task
         progressScrollPane.setVisible(true);
         progressScrollPane.setManaged(true);
         progressContainer.getChildren().clear();
@@ -2395,33 +2461,49 @@ public class XsdController implements FavoritesParentController {
         if (openDocFolder != null) {
             openDocFolder.setDisable(true);
         }
-        statusText.setText("Starting documentation generation...");
+        statusText.setText("Generating " + outputFormat.getDisplayName() + "...");
 
         // Start the elapsed time timer
         startDocumentationTimer();
 
-        Task<Void> generationTask = getGenerationTask(xsdFile, outputDir);
-
-        // 4. Start the task
+        // 5. Create and execute task
+        Task<Void> generationTask = getGenerationTask(xsdFile, outputTarget, outputFormat);
         executeTask(generationTask);
     }
 
-    private @NotNull Task<Void> getGenerationTask(File xsdFile, File outputDir) {
+    /**
+     * Returns the currently selected output format from the radio buttons.
+     */
+    private DocumentationOutputFormat getSelectedOutputFormat() {
+        if (outputFormatWord != null && outputFormatWord.isSelected()) {
+            return DocumentationOutputFormat.WORD;
+        } else if (outputFormatPdf != null && outputFormatPdf.isSelected()) {
+            return DocumentationOutputFormat.PDF;
+        }
+        return DocumentationOutputFormat.HTML; // Default
+    }
+
+    private @NotNull Task<Void> getGenerationTask(File xsdFile, File outputTarget, DocumentationOutputFormat outputFormat) {
         // Capture UI values before entering background thread
         final Set<String> selectedLanguages = getSelectedLanguages();
         final String fallbackLanguage = getSelectedFallbackLanguage();
+        final boolean useMarkdown = useMarkdownRenderer.isSelected();
+        final boolean includeTypeDefs = includeTypeDefinitionsInSourceCode.isSelected();
+        final boolean showDocInSvg = showDocumentationInSvg.isSelected();
+        final String imageFormat = grafikFormat.getValue();
 
         Task<Void> generationTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                updateMessage("Generating Documentation...");
+                updateMessage("Generating " + outputFormat.getDisplayName() + "...");
+
                 XsdDocumentationService docService = new XsdDocumentationService();
 
                 // Set options from UI
                 docService.setXsdFilePath(xsdFile.getAbsolutePath());
-                docService.setUseMarkdownRenderer(useMarkdownRenderer.isSelected());
-                docService.setIncludeTypeDefinitionsInSourceCode(includeTypeDefinitionsInSourceCode.isSelected());
-                docService.setShowDocumentationInSvg(showDocumentationInSvg.isSelected());
+                docService.setUseMarkdownRenderer(useMarkdown);
+                docService.setIncludeTypeDefinitionsInSourceCode(includeTypeDefs);
+                docService.setShowDocumentationInSvg(showDocInSvg);
 
                 // Set language filter for documentation output
                 docService.setIncludedLanguages(selectedLanguages);
@@ -2430,33 +2512,60 @@ public class XsdController implements FavoritesParentController {
                 docService.setFallbackLanguage(fallbackLanguage);
 
                 // Set the image output format based on user selection
-                String format = grafikFormat.getValue();
-                if ("PNG".equalsIgnoreCase(format)) {
+                if ("PNG".equalsIgnoreCase(imageFormat)) {
                     docService.setMethod(XsdDocumentationService.ImageOutputMethod.PNG);
-                } else if ("JPG".equalsIgnoreCase(format)) {
+                } else if ("JPG".equalsIgnoreCase(imageFormat)) {
                     docService.setMethod(XsdDocumentationService.ImageOutputMethod.JPG);
                 } else { // Default to SVG
                     docService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
                 }
 
                 // Set up progress listener to update UI from background thread
-                docService.setProgressListener(progressUpdate -> Platform.runLater(() -> {
+                TaskProgressListener progressListener = progressUpdate -> Platform.runLater(() -> {
                     String message = String.format("[%s] %s", progressUpdate.status(), progressUpdate.taskName());
                     if (progressUpdate.status() == TaskProgressListener.ProgressUpdate.Status.FINISHED) {
                         message += " (took " + progressUpdate.durationMillis() + "ms)";
                     }
                     progressContainer.getChildren().add(new Label(message));
                     progressScrollPane.setVvalue(1.0); // Auto-scroll to bottom
-                }));
+                });
+                docService.setProgressListener(progressListener);
 
-                // This is the main long-running operation
-                docService.generateXsdDocumentation(outputDir);
+                // Generate documentation based on selected format
+                switch (outputFormat) {
+                    case HTML -> docService.generateXsdDocumentation(outputTarget);
+                    case WORD -> {
+                        // First process the XSD to get the data
+                        docService.processXsd(useMarkdown);
+                        XsdDocumentationWordService wordService = new XsdDocumentationWordService();
+                        wordService.setProgressListener(progressListener);
+                        wordService.setIncludedLanguages(selectedLanguages);
+                        // Create the image service for embedding diagrams
+                        XsdDocumentationImageService imageService = new XsdDocumentationImageService(
+                                docService.xsdDocumentationData.getExtendedXsdElementMap());
+                        imageService.setShowDocumentation(showDocInSvg);
+                        wordService.setImageService(imageService);
+                        wordService.generateWordDocumentation(outputTarget, docService.xsdDocumentationData);
+                    }
+                    case PDF -> {
+                        // First process the XSD to get the data
+                        docService.processXsd(useMarkdown);
+                        XsdDocumentationPdfService pdfService = new XsdDocumentationPdfService();
+                        pdfService.setProgressListener(progressListener);
+                        pdfService.setIncludedLanguages(selectedLanguages);
+                        XsdDocumentationImageService imageService = new XsdDocumentationImageService(
+                                docService.xsdDocumentationData.getExtendedXsdElementMap());
+                        imageService.setShowDocumentation(showDocInSvg);
+                        pdfService.setImageService(imageService);
+                        pdfService.generatePdfDocumentation(outputTarget, docService.xsdDocumentationData);
+                    }
+                }
                 return null;
             }
         };
 
-        // 3. Define what happens on success or failure
-        generationTask.setOnSucceeded(event -> handleDocumentationSuccess(outputDir));
+        // Define what happens on success or failure
+        generationTask.setOnSucceeded(event -> handleDocumentationSuccess(outputTarget, outputFormat));
         generationTask.setOnFailed(event -> handleDocumentationFailure(generationTask.getException()));
         return generationTask;
     }
@@ -2690,12 +2799,13 @@ public class XsdController implements FavoritesParentController {
      * Handles UI updates after the documentation has been successfully generated.
      * @param outputDir The directory where the documentation was created.
      */
-    private void handleDocumentationSuccess(File outputDir) {
+    private void handleDocumentationSuccess(File outputTarget, DocumentationOutputFormat format) {
         // Stop the timer
         stopDocumentationTimer();
 
-        // Store the output directory for the "Open Folder" button
-        lastGeneratedDocFolder = outputDir;
+        // Store the output location for the "Open Folder" button
+        lastGeneratedDocFolder = format == DocumentationOutputFormat.HTML ?
+                outputTarget : outputTarget.getParentFile();
 
         // Hide the progress scroll pane
         progressScrollPane.setVisible(false);
@@ -2703,7 +2813,8 @@ public class XsdController implements FavoritesParentController {
 
         // Update status message with elapsed time
         String elapsedTime = formatElapsedTime(System.currentTimeMillis() - documentationStartTime);
-        statusText.setText("Documentation generated successfully in " + elapsedTime + " - " + outputDir.getAbsolutePath());
+        String formatName = format.getDisplayName();
+        statusText.setText(formatName + " generated successfully in " + elapsedTime + " - " + outputTarget.getAbsolutePath());
 
         // Show the status message container with success styling
         if (statusMessageContainer != null) {
@@ -2719,10 +2830,34 @@ public class XsdController implements FavoritesParentController {
             openDocFolder.setVisible(true);
             openDocFolder.setManaged(true);
             openDocFolder.setDisable(false);
+            // Change button text based on format
+            if (format == DocumentationOutputFormat.HTML) {
+                openDocFolder.setText("Open Folder");
+            } else {
+                openDocFolder.setText("Open File");
+            }
         }
 
         if (openFileAfterCreation.isSelected()) {
-            startDocServerAndShowPreview(outputDir);
+            if (format == DocumentationOutputFormat.HTML) {
+                startDocServerAndShowPreview(outputTarget);
+            } else {
+                // For Word/PDF, open the file with the default application
+                openFileWithDefaultApplication(outputTarget);
+            }
+        }
+    }
+
+    /**
+     * Opens a file with the system's default application.
+     */
+    private void openFileWithDefaultApplication(File file) {
+        try {
+            java.awt.Desktop.getDesktop().open(file);
+        } catch (IOException e) {
+            logger.error("Failed to open file: {}", file.getAbsolutePath(), e);
+            DialogHelper.showError("Open File", "Cannot Open File",
+                    "Failed to open the file with the default application: " + e.getMessage());
         }
     }
 
