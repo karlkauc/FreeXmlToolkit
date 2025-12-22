@@ -675,13 +675,41 @@
                             <RowConstraints/>
                         </rowConstraints>
                     </GridPane>
-                    <Button fx:id="generateSampleDataButton" onAction="#generateSampleDataAction"
-                            text="Generate Sample XML" disable="true">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button fx:id="generateSampleDataButton" onAction="#generateSampleDataAction"
+                                text="Generate Sample XML" disable="true">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="validateGeneratedXmlButton" onAction="#validateGeneratedXmlAction"
+                                text="Validate XML" disable="true">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Validate the generated XML against the XSD schema"/>
+                            </tooltip>
+                        </Button>
+                    </HBox>
+                </VBox>
+
+                <!-- Validation Result Panel -->
+                <HBox fx:id="sampleDataValidationResultPanel" spacing="10" alignment="CENTER_LEFT"
+                      visible="false" managed="false"
+                      style="-fx-padding: 10; -fx-background-radius: 6;">
+                    <FontIcon fx:id="sampleDataValidationIcon" iconSize="18"/>
+                    <VBox spacing="3" HBox.hgrow="ALWAYS">
+                        <Label fx:id="sampleDataValidationTitle" style="-fx-font-weight: bold;"/>
+                        <Label fx:id="sampleDataValidationMessage" wrapText="true" style="-fx-font-size: 12px;"/>
+                    </VBox>
+                    <Button fx:id="sampleDataValidationCloseButton" onAction="#closeSampleDataValidationPanel"
+                            style="-fx-background-color: transparent; -fx-padding: 0;">
                         <graphic>
-                            <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
+                            <FontIcon iconLiteral="bi-x" iconSize="14"/>
                         </graphic>
                     </Button>
-                </VBox>
+                </HBox>
 
                 <StackPane VBox.vgrow="ALWAYS">
                     <!-- RichTextFX: VirtualizedScrollPane für Scrollbalken -->

@@ -376,6 +376,16 @@ public class XsdController implements FavoritesParentController {
     private Spinner<Integer> maxOccurrencesSpinner;
     @FXML
     private CodeArea sampleDataTextArea;
+    @FXML
+    private Button validateGeneratedXmlButton;
+    @FXML
+    private HBox sampleDataValidationResultPanel;
+    @FXML
+    private FontIcon sampleDataValidationIcon;
+    @FXML
+    private Label sampleDataValidationTitle;
+    @FXML
+    private Label sampleDataValidationMessage;
 
     @FXML
     private VBox taskStatusBar;
@@ -2918,6 +2928,11 @@ public class XsdController implements FavoritesParentController {
             sampleDataTextArea.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter.computeHighlighting(resultXml));
             applyEditorSettings();
 
+            // Enable the validate button now that XML is available
+            if (validateGeneratedXmlButton != null) {
+                validateGeneratedXmlButton.setDisable(false);
+            }
+
             // Update code folding regions after text is set
             if (sampleDataCodeFoldingManager != null) {
                 sampleDataCodeFoldingManager.updateFoldingRegions(resultXml);
@@ -2938,13 +2953,19 @@ public class XsdController implements FavoritesParentController {
                 XsdDocumentationService.ValidationResult result = validationTask.getValue();
                 if (result.isValid()) {
                     statusText.setText("Sample XML generated and validated successfully.");
+                    String message = result.message().isEmpty() ?
+                        "The generated XML is valid according to the XSD schema." :
+                        "Valid with notes: " + result.message();
+                    showValidationResult(true, "Validation Successful", message);
                     if (!result.message().isEmpty()) {
                         logger.info("Validation warnings: " + result.message());
                     }
                 } else {
                     statusText.setText("Sample XML generated but validation failed.");
                     logger.warn("XML validation failed: " + result.message());
-                    // Show validation error in a dialog
+                    // Show validation result in the panel
+                    showValidationResult(false, "Validation Failed", result.message());
+                    // Also show validation error in a dialog for immediate attention
                     Platform.runLater(() -> {
                         Alert alert = new Alert(Alert.AlertType.WARNING);
                         alert.setTitle("XML Validation Warning");
@@ -3010,6 +3031,108 @@ public class XsdController implements FavoritesParentController {
         });
 
         executeTask(saveTask);
+    }
+
+    /**
+     * Validates the generated sample XML against the XSD schema.
+     * Shows the validation result in a panel below the XML editor.
+     */
+    @FXML
+    public void validateGeneratedXmlAction() {
+        String xsdPath = xsdForSampleDataPath.getText();
+        if (xsdPath == null || xsdPath.isBlank()) {
+            showValidationResult(false, "No XSD File", "Please load an XSD source file first.");
+            return;
+        }
+
+        File xsdFile = new File(xsdPath);
+        if (!xsdFile.exists()) {
+            showValidationResult(false, "XSD File Not Found", "The specified XSD file does not exist: " + xsdPath);
+            return;
+        }
+
+        String xmlContent = sampleDataTextArea.getText();
+        if (xmlContent == null || xmlContent.isBlank()) {
+            showValidationResult(false, "No XML Content", "Please generate sample XML first before validating.");
+            return;
+        }
+
+        // Perform validation in background
+        Task<XsdDocumentationService.ValidationResult> validationTask = new Task<>() {
+            @Override
+            protected XsdDocumentationService.ValidationResult call() throws Exception {
+                updateMessage("Validating XML against schema...");
+                XsdDocumentationService docService = new XsdDocumentationService();
+                docService.setXsdFilePath(xsdFile.getAbsolutePath());
+                return docService.validateXmlAgainstSchema(xmlContent);
+            }
+        };
+
+        validationTask.setOnSucceeded(event -> {
+            XsdDocumentationService.ValidationResult result = validationTask.getValue();
+            if (result.isValid()) {
+                String message = result.message().isEmpty() ?
+                    "The XML content is valid according to the XSD schema." :
+                    "Valid with notes: " + result.message();
+                showValidationResult(true, "Validation Successful", message);
+                logger.info("XML validation successful");
+            } else {
+                showValidationResult(false, "Validation Failed", result.message());
+                logger.warn("XML validation failed: " + result.message());
+            }
+        });
+
+        validationTask.setOnFailed(event -> {
+            Throwable e = validationTask.getException();
+            logger.error("Validation task failed", e);
+            showValidationResult(false, "Validation Error",
+                "Could not perform validation: " + (e != null ? e.getMessage() : "Unknown error"));
+        });
+
+        executorService.submit(validationTask);
+    }
+
+    /**
+     * Shows the validation result in the panel.
+     * @param isValid true if validation was successful
+     * @param title the title to display
+     * @param message the detailed message
+     */
+    private void showValidationResult(boolean isValid, String title, String message) {
+        Platform.runLater(() -> {
+            sampleDataValidationResultPanel.setVisible(true);
+            sampleDataValidationResultPanel.setManaged(true);
+
+            sampleDataValidationTitle.setText(title);
+            sampleDataValidationMessage.setText(message);
+
+            if (isValid) {
+                sampleDataValidationResultPanel.setStyle(
+                    "-fx-padding: 10; -fx-background-radius: 6; " +
+                    "-fx-background-color: #d4edda; -fx-border-color: #c3e6cb; -fx-border-radius: 6;");
+                sampleDataValidationIcon.setIconLiteral("bi-check-circle-fill");
+                sampleDataValidationIcon.setIconColor(javafx.scene.paint.Color.web("#28a745"));
+                sampleDataValidationTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #155724;");
+                sampleDataValidationMessage.setStyle("-fx-font-size: 12px; -fx-text-fill: #155724;");
+            } else {
+                sampleDataValidationResultPanel.setStyle(
+                    "-fx-padding: 10; -fx-background-radius: 6; " +
+                    "-fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; -fx-border-radius: 6;");
+                sampleDataValidationIcon.setIconLiteral("bi-exclamation-triangle-fill");
+                sampleDataValidationIcon.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
+                sampleDataValidationTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #721c24;");
+                sampleDataValidationMessage.setStyle("-fx-font-size: 12px; -fx-text-fill: #721c24;");
+            }
+        });
+    }
+
+    /**
+     * Closes the sample data validation result panel.
+     */
+    @FXML
+    public void closeSampleDataValidationPanel() {
+        sampleDataValidationResultPanel.setVisible(false);
+        sampleDataValidationResultPanel.setManaged(false);
     }
 
     // ... (Rest der Klasse, z.B. Task-Management, etc.)
