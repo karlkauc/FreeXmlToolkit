@@ -16,6 +16,9 @@ import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Main view for editing a SimpleType.
  * Shows tabbed panels: General, Restriction, List, Union, Annotation
@@ -45,6 +48,11 @@ public class SimpleTypeEditorView extends BorderPane {
     // Restriction Panel Components
     private ComboBox<String> baseTypeCombo;
     private FacetsPanel facetsPanel;
+
+    // Enumerations, Patterns, Assertions Lists
+    private ListView<String> enumerationsListView;
+    private ListView<String> patternsListView;
+    private ListView<String> assertionsListView;
 
     /**
      * Creates a new SimpleType editor view.
@@ -321,18 +329,21 @@ public class SimpleTypeEditorView extends BorderPane {
 
     /**
      * Creates the Restriction panel.
-     * Real implementation with FacetsPanel integration.
+     * Real implementation with FacetsPanel integration and tabs for Enumerations, Patterns, Assertions.
      */
     private VBox createRestrictionPanel() {
-        VBox panel = new VBox(15);
-        panel.setPadding(new Insets(20));
+        VBox panel = new VBox(10);
+        panel.setPadding(new Insets(10));
 
         Label title = new Label("Restriction");
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
         // Base Type selector
+        HBox baseTypeBox = new HBox(10);
+        baseTypeBox.setAlignment(Pos.CENTER_LEFT);
         Label baseLabel = new Label("Base Type:");
         baseTypeCombo = new ComboBox<>();
+        baseTypeCombo.setPrefWidth(200);
 
         // Populate with common XSD built-in types
         baseTypeCombo.getItems().addAll(
@@ -361,33 +372,621 @@ public class SimpleTypeEditorView extends BorderPane {
             handleBaseTypeChange(newVal);
         });
 
-        // FacetsPanel integration
-        Label facetsLabel = new Label("Facets:");
-        facetsLabel.setStyle("-fx-font-weight: bold;");
+        baseTypeBox.getChildren().addAll(baseLabel, baseTypeCombo);
 
+        // Create TabPane for Facets, Enumerations, Patterns, Assertions
+        TabPane restrictionTabPane = new TabPane();
+        restrictionTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+
+        // Tab 1: Facets
+        Tab facetsTab = new Tab("Facets");
+        facetsTab.setGraphic(new FontIcon("bi-funnel"));
         facetsPanel = new FacetsPanel(editorContext);
-
-        // Load current restriction into FacetsPanel
         if (currentRestriction != null) {
             facetsPanel.setRestriction(currentRestriction);
             logger.debug("Loaded restriction with base '{}' and {} facets",
                     currentRestriction.getBase(), currentRestriction.getFacets().size());
-        } else {
-            logger.debug("No restriction found in SimpleType, FacetsPanel disabled");
         }
+        facetsTab.setContent(facetsPanel);
 
-        VBox.setVgrow(facetsPanel, Priority.ALWAYS);
+        // Tab 2: Enumerations
+        Tab enumerationsTab = createEnumerationsTab(currentRestriction);
+
+        // Tab 3: Patterns
+        Tab patternsTab = createPatternsTab(currentRestriction);
+
+        // Tab 4: Assertions
+        Tab assertionsTab = createAssertionsTab(currentRestriction);
+
+        restrictionTabPane.getTabs().addAll(facetsTab, enumerationsTab, patternsTab, assertionsTab);
+        VBox.setVgrow(restrictionTabPane, Priority.ALWAYS);
 
         panel.getChildren().addAll(
                 title,
-                new Label(""),
-                baseLabel, baseTypeCombo,
-                new Label(""),
-                facetsLabel,
-                facetsPanel
+                baseTypeBox,
+                new Separator(),
+                restrictionTabPane
         );
 
         return panel;
+    }
+
+    /**
+     * Creates the Enumerations tab.
+     *
+     * @param restriction the current restriction (may be null)
+     * @return the Enumerations tab
+     */
+    private Tab createEnumerationsTab(XsdRestriction restriction) {
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+
+        // Title and description
+        Label titleLabel = new Label("Enumeration Values");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+        Label descLabel = new Label("Define a list of allowed values for this type (e.g., 'red', 'green', 'blue')");
+        descLabel.setWrapText(true);
+        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+
+        // Enumerations list
+        enumerationsListView = new ListView<>();
+        enumerationsListView.setPrefHeight(200);
+        enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
+        VBox.setVgrow(enumerationsListView, Priority.ALWAYS);
+
+        // Load existing enumerations
+        if (restriction != null) {
+            loadEnumerationsFromRestriction(restriction);
+        }
+
+        // Add/Remove buttons
+        HBox buttonBox = new HBox(10);
+        Button addEnumBtn = new Button("Add");
+        addEnumBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        Button editEnumBtn = new Button("Edit");
+        editEnumBtn.setGraphic(new FontIcon("bi-pencil"));
+        editEnumBtn.setDisable(true);
+        Button removeEnumBtn = new Button("Remove");
+        removeEnumBtn.setGraphic(new FontIcon("bi-trash"));
+        removeEnumBtn.setDisable(true);
+
+        // Enable/disable buttons based on selection
+        enumerationsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            boolean hasSelection = newVal != null;
+            editEnumBtn.setDisable(!hasSelection);
+            removeEnumBtn.setDisable(!hasSelection);
+        });
+
+        // Add button action
+        addEnumBtn.setOnAction(e -> handleAddEnumeration());
+
+        // Edit button action
+        editEnumBtn.setOnAction(e -> handleEditEnumeration());
+
+        // Remove button action
+        removeEnumBtn.setOnAction(e -> handleRemoveEnumeration());
+
+        buttonBox.getChildren().addAll(addEnumBtn, editEnumBtn, removeEnumBtn);
+
+        vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), enumerationsListView, buttonBox);
+
+        Tab tab = new Tab("Enumerations", vbox);
+        tab.setGraphic(new FontIcon("bi-list-ul"));
+        return tab;
+    }
+
+    /**
+     * Creates the Patterns tab.
+     *
+     * @param restriction the current restriction (may be null)
+     * @return the Patterns tab
+     */
+    private Tab createPatternsTab(XsdRestriction restriction) {
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+
+        // Title and description
+        Label titleLabel = new Label("Regular Expression Patterns");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+        Label descLabel = new Label("Define regex patterns that values must match (e.g., [0-9]{3}-[0-9]{2}-[0-9]{4})");
+        descLabel.setWrapText(true);
+        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+
+        // Patterns list
+        patternsListView = new ListView<>();
+        patternsListView.setPrefHeight(200);
+        patternsListView.setPlaceholder(new Label("No patterns defined"));
+        VBox.setVgrow(patternsListView, Priority.ALWAYS);
+
+        // Load existing patterns
+        if (restriction != null) {
+            loadPatternsFromRestriction(restriction);
+        }
+
+        // Add/Remove buttons
+        HBox buttonBox = new HBox(10);
+        Button addPatternBtn = new Button("Add");
+        addPatternBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        Button editPatternBtn = new Button("Edit");
+        editPatternBtn.setGraphic(new FontIcon("bi-pencil"));
+        editPatternBtn.setDisable(true);
+        Button removePatternBtn = new Button("Remove");
+        removePatternBtn.setGraphic(new FontIcon("bi-trash"));
+        removePatternBtn.setDisable(true);
+
+        // Enable/disable buttons based on selection
+        patternsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            boolean hasSelection = newVal != null;
+            editPatternBtn.setDisable(!hasSelection);
+            removePatternBtn.setDisable(!hasSelection);
+        });
+
+        // Button actions
+        addPatternBtn.setOnAction(e -> handleAddPattern());
+        editPatternBtn.setOnAction(e -> handleEditPattern());
+        removePatternBtn.setOnAction(e -> handleRemovePattern());
+
+        buttonBox.getChildren().addAll(addPatternBtn, editPatternBtn, removePatternBtn);
+
+        vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), patternsListView, buttonBox);
+
+        Tab tab = new Tab("Patterns", vbox);
+        tab.setGraphic(new FontIcon("bi-braces"));
+        return tab;
+    }
+
+    /**
+     * Creates the Assertions tab (XSD 1.1 feature).
+     *
+     * @param restriction the current restriction (may be null)
+     * @return the Assertions tab
+     */
+    private Tab createAssertionsTab(XsdRestriction restriction) {
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+
+        // Title and description
+        Label titleLabel = new Label("XSD 1.1 Assertions");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+        Label descLabel = new Label("XPath-based assertions for complex validation rules (XSD 1.1 feature)");
+        descLabel.setWrapText(true);
+        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+
+        // Assertions list
+        assertionsListView = new ListView<>();
+        assertionsListView.setPrefHeight(200);
+        assertionsListView.setPlaceholder(new Label("No assertions defined (requires XSD 1.1)"));
+        VBox.setVgrow(assertionsListView, Priority.ALWAYS);
+
+        // Load existing assertions
+        if (restriction != null) {
+            loadAssertionsFromRestriction(restriction);
+        }
+
+        // Add/Remove buttons
+        HBox buttonBox = new HBox(10);
+        Button addAssertBtn = new Button("Add");
+        addAssertBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        Button editAssertBtn = new Button("Edit");
+        editAssertBtn.setGraphic(new FontIcon("bi-pencil"));
+        editAssertBtn.setDisable(true);
+        Button removeAssertBtn = new Button("Remove");
+        removeAssertBtn.setGraphic(new FontIcon("bi-trash"));
+        removeAssertBtn.setDisable(true);
+
+        // Enable/disable buttons based on selection
+        assertionsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            boolean hasSelection = newVal != null;
+            editAssertBtn.setDisable(!hasSelection);
+            removeAssertBtn.setDisable(!hasSelection);
+        });
+
+        // Button actions
+        addAssertBtn.setOnAction(e -> handleAddAssertion());
+        editAssertBtn.setOnAction(e -> handleEditAssertion());
+        removeAssertBtn.setOnAction(e -> handleRemoveAssertion());
+
+        buttonBox.getChildren().addAll(addAssertBtn, editAssertBtn, removeAssertBtn);
+
+        // Info note about XSD 1.1
+        Label infoLabel = new Label("Note: Assertions are an XSD 1.1 feature and may not be supported by all validators");
+        infoLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-size: 10px; -fx-font-style: italic;");
+        infoLabel.setWrapText(true);
+
+        vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), assertionsListView, buttonBox, infoLabel);
+
+        Tab tab = new Tab("Assertions", vbox);
+        tab.setGraphic(new FontIcon("bi-check2-square"));
+        return tab;
+    }
+
+    // ========== Load methods ==========
+
+    /**
+     * Loads enumerations from a restriction into the ListView.
+     */
+    private void loadEnumerationsFromRestriction(XsdRestriction restriction) {
+        enumerationsListView.getItems().clear();
+        for (XsdFacet facet : restriction.getFacets()) {
+            if (facet.getFacetType() == XsdFacetType.ENUMERATION) {
+                enumerationsListView.getItems().add(facet.getValue());
+            }
+        }
+        logger.debug("Loaded {} enumerations from restriction", enumerationsListView.getItems().size());
+    }
+
+    /**
+     * Loads patterns from a restriction into the ListView.
+     */
+    private void loadPatternsFromRestriction(XsdRestriction restriction) {
+        patternsListView.getItems().clear();
+        for (XsdFacet facet : restriction.getFacets()) {
+            if (facet.getFacetType() == XsdFacetType.PATTERN) {
+                patternsListView.getItems().add(facet.getValue());
+            }
+        }
+        logger.debug("Loaded {} patterns from restriction", patternsListView.getItems().size());
+    }
+
+    /**
+     * Loads assertions from a restriction into the ListView.
+     */
+    private void loadAssertionsFromRestriction(XsdRestriction restriction) {
+        assertionsListView.getItems().clear();
+        for (XsdFacet facet : restriction.getFacets()) {
+            if (facet.getFacetType() == XsdFacetType.ASSERTION) {
+                assertionsListView.getItems().add(facet.getValue());
+            }
+        }
+        logger.debug("Loaded {} assertions from restriction", assertionsListView.getItems().size());
+    }
+
+    // ========== Enumeration handlers ==========
+
+    /**
+     * Handles adding a new enumeration value.
+     */
+    private void handleAddEnumeration() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add Enumeration");
+        dialog.setHeaderText("Add Enumeration Value");
+        dialog.setContentText("Enter value:");
+
+        dialog.showAndWait().ifPresent(value -> {
+            if (value != null && !value.trim().isEmpty()) {
+                String trimmedValue = value.trim();
+
+                // Get or create restriction
+                XsdRestriction restriction = getOrCreateRestriction();
+                if (restriction != null) {
+                    // Create new facet
+                    XsdFacet facet = new XsdFacet(XsdFacetType.ENUMERATION, trimmedValue);
+                    restriction.addFacet(facet);
+
+                    // Update ListView
+                    enumerationsListView.getItems().add(trimmedValue);
+
+                    // Trigger change callback
+                    if (onChangeCallback != null) {
+                        onChangeCallback.run();
+                    }
+
+                    logger.info("Added enumeration value: {}", trimmedValue);
+                }
+            }
+        });
+    }
+
+    /**
+     * Handles editing an enumeration value.
+     */
+    private void handleEditEnumeration() {
+        String selected = enumerationsListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog(selected);
+        dialog.setTitle("Edit Enumeration");
+        dialog.setHeaderText("Edit Enumeration Value");
+        dialog.setContentText("Enter new value:");
+
+        dialog.showAndWait().ifPresent(newValue -> {
+            if (newValue != null && !newValue.trim().isEmpty() && !newValue.equals(selected)) {
+                String trimmedValue = newValue.trim();
+
+                XsdRestriction restriction = findRestrictionInSimpleType();
+                if (restriction != null) {
+                    // Find and update the facet
+                    for (XsdFacet facet : restriction.getFacets()) {
+                        if (facet.getFacetType() == XsdFacetType.ENUMERATION && selected.equals(facet.getValue())) {
+                            facet.setValue(trimmedValue);
+                            break;
+                        }
+                    }
+
+                    // Update ListView
+                    int index = enumerationsListView.getItems().indexOf(selected);
+                    if (index >= 0) {
+                        enumerationsListView.getItems().set(index, trimmedValue);
+                    }
+
+                    // Trigger change callback
+                    if (onChangeCallback != null) {
+                        onChangeCallback.run();
+                    }
+
+                    logger.info("Edited enumeration value: {} -> {}", selected, trimmedValue);
+                }
+            }
+        });
+    }
+
+    /**
+     * Handles removing an enumeration value.
+     */
+    private void handleRemoveEnumeration() {
+        String selected = enumerationsListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        XsdRestriction restriction = findRestrictionInSimpleType();
+        if (restriction != null) {
+            // Find and remove the facet
+            XsdFacet toRemove = null;
+            for (XsdFacet facet : restriction.getFacets()) {
+                if (facet.getFacetType() == XsdFacetType.ENUMERATION && selected.equals(facet.getValue())) {
+                    toRemove = facet;
+                    break;
+                }
+            }
+            if (toRemove != null) {
+                restriction.removeFacet(toRemove);
+            }
+
+            // Update ListView
+            enumerationsListView.getItems().remove(selected);
+
+            // Trigger change callback
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+
+            logger.info("Removed enumeration value: {}", selected);
+        }
+    }
+
+    // ========== Pattern handlers ==========
+
+    /**
+     * Handles adding a new pattern.
+     */
+    private void handleAddPattern() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add Pattern");
+        dialog.setHeaderText("Add Regex Pattern");
+        dialog.setContentText("Enter pattern:");
+
+        dialog.showAndWait().ifPresent(value -> {
+            if (value != null && !value.trim().isEmpty()) {
+                String trimmedValue = value.trim();
+
+                XsdRestriction restriction = getOrCreateRestriction();
+                if (restriction != null) {
+                    XsdFacet facet = new XsdFacet(XsdFacetType.PATTERN, trimmedValue);
+                    restriction.addFacet(facet);
+
+                    patternsListView.getItems().add(trimmedValue);
+
+                    if (onChangeCallback != null) {
+                        onChangeCallback.run();
+                    }
+
+                    logger.info("Added pattern: {}", trimmedValue);
+                }
+            }
+        });
+    }
+
+    /**
+     * Handles editing a pattern.
+     */
+    private void handleEditPattern() {
+        String selected = patternsListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog(selected);
+        dialog.setTitle("Edit Pattern");
+        dialog.setHeaderText("Edit Regex Pattern");
+        dialog.setContentText("Enter new pattern:");
+
+        dialog.showAndWait().ifPresent(newValue -> {
+            if (newValue != null && !newValue.trim().isEmpty() && !newValue.equals(selected)) {
+                String trimmedValue = newValue.trim();
+
+                XsdRestriction restriction = findRestrictionInSimpleType();
+                if (restriction != null) {
+                    for (XsdFacet facet : restriction.getFacets()) {
+                        if (facet.getFacetType() == XsdFacetType.PATTERN && selected.equals(facet.getValue())) {
+                            facet.setValue(trimmedValue);
+                            break;
+                        }
+                    }
+
+                    int index = patternsListView.getItems().indexOf(selected);
+                    if (index >= 0) {
+                        patternsListView.getItems().set(index, trimmedValue);
+                    }
+
+                    if (onChangeCallback != null) {
+                        onChangeCallback.run();
+                    }
+
+                    logger.info("Edited pattern: {} -> {}", selected, trimmedValue);
+                }
+            }
+        });
+    }
+
+    /**
+     * Handles removing a pattern.
+     */
+    private void handleRemovePattern() {
+        String selected = patternsListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        XsdRestriction restriction = findRestrictionInSimpleType();
+        if (restriction != null) {
+            XsdFacet toRemove = null;
+            for (XsdFacet facet : restriction.getFacets()) {
+                if (facet.getFacetType() == XsdFacetType.PATTERN && selected.equals(facet.getValue())) {
+                    toRemove = facet;
+                    break;
+                }
+            }
+            if (toRemove != null) {
+                restriction.removeFacet(toRemove);
+            }
+
+            patternsListView.getItems().remove(selected);
+
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+
+            logger.info("Removed pattern: {}", selected);
+        }
+    }
+
+    // ========== Assertion handlers ==========
+
+    /**
+     * Handles adding a new assertion.
+     */
+    private void handleAddAssertion() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add Assertion");
+        dialog.setHeaderText("Add XPath Assertion");
+        dialog.setContentText("Enter XPath expression:");
+
+        dialog.showAndWait().ifPresent(value -> {
+            if (value != null && !value.trim().isEmpty()) {
+                String trimmedValue = value.trim();
+
+                XsdRestriction restriction = getOrCreateRestriction();
+                if (restriction != null) {
+                    XsdFacet facet = new XsdFacet(XsdFacetType.ASSERTION, trimmedValue);
+                    restriction.addFacet(facet);
+
+                    assertionsListView.getItems().add(trimmedValue);
+
+                    if (onChangeCallback != null) {
+                        onChangeCallback.run();
+                    }
+
+                    logger.info("Added assertion: {}", trimmedValue);
+                }
+            }
+        });
+    }
+
+    /**
+     * Handles editing an assertion.
+     */
+    private void handleEditAssertion() {
+        String selected = assertionsListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog(selected);
+        dialog.setTitle("Edit Assertion");
+        dialog.setHeaderText("Edit XPath Assertion");
+        dialog.setContentText("Enter new XPath expression:");
+
+        dialog.showAndWait().ifPresent(newValue -> {
+            if (newValue != null && !newValue.trim().isEmpty() && !newValue.equals(selected)) {
+                String trimmedValue = newValue.trim();
+
+                XsdRestriction restriction = findRestrictionInSimpleType();
+                if (restriction != null) {
+                    for (XsdFacet facet : restriction.getFacets()) {
+                        if (facet.getFacetType() == XsdFacetType.ASSERTION && selected.equals(facet.getValue())) {
+                            facet.setValue(trimmedValue);
+                            break;
+                        }
+                    }
+
+                    int index = assertionsListView.getItems().indexOf(selected);
+                    if (index >= 0) {
+                        assertionsListView.getItems().set(index, trimmedValue);
+                    }
+
+                    if (onChangeCallback != null) {
+                        onChangeCallback.run();
+                    }
+
+                    logger.info("Edited assertion: {} -> {}", selected, trimmedValue);
+                }
+            }
+        });
+    }
+
+    /**
+     * Handles removing an assertion.
+     */
+    private void handleRemoveAssertion() {
+        String selected = assertionsListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        XsdRestriction restriction = findRestrictionInSimpleType();
+        if (restriction != null) {
+            XsdFacet toRemove = null;
+            for (XsdFacet facet : restriction.getFacets()) {
+                if (facet.getFacetType() == XsdFacetType.ASSERTION && selected.equals(facet.getValue())) {
+                    toRemove = facet;
+                    break;
+                }
+            }
+            if (toRemove != null) {
+                restriction.removeFacet(toRemove);
+            }
+
+            assertionsListView.getItems().remove(selected);
+
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+
+            logger.info("Removed assertion: {}", selected);
+        }
+    }
+
+    /**
+     * Gets or creates a restriction for the SimpleType.
+     *
+     * @return the restriction, or null if creation fails
+     */
+    private XsdRestriction getOrCreateRestriction() {
+        XsdRestriction restriction = findRestrictionInSimpleType();
+        if (restriction == null) {
+            // Create new restriction with current base type
+            String baseType = baseTypeCombo.getValue();
+            if (baseType == null || baseType.isEmpty()) {
+                baseType = "xs:string";
+            }
+            restriction = new XsdRestriction(baseType);
+            simpleType.addChild(restriction);
+            logger.info("Created new restriction with base '{}'", baseType);
+        }
+        return restriction;
     }
 
     /**
