@@ -5,6 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,6 +13,8 @@ import org.fxt.freexmltoolkit.controls.v2.editor.VirtualSchemaFactory;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView;
+import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Main view for editing a ComplexType in the graphic editor.
@@ -58,6 +61,10 @@ public class ComplexTypeEditorView extends BorderPane {
             logger.info("Initializing ComplexTypeEditorView for type: {}", complexType.getName());
             logger.debug("ComplexType '{}' has {} children", complexType.getName(), complexType.getChildren().size());
 
+            // Create top toolbar with name field
+            ToolBar topToolbar = createTopToolbar();
+            setTop(topToolbar);
+
             // Create virtual schema for this ComplexType (pass mainSchema for type resolution)
             virtualSchema = VirtualSchemaFactory.createVirtualSchemaForComplexType(complexType, mainSchema);
             logger.info("Virtual schema created with {} children", virtualSchema.getChildren().size());
@@ -86,6 +93,94 @@ public class ComplexTypeEditorView extends BorderPane {
             Label errorLabel = new Label("Error loading type editor: " + e.getMessage());
             errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 14px;");
             setCenter(new VBox(20, errorLabel));
+        }
+    }
+
+    /**
+     * Creates the top toolbar with name field and other controls.
+     */
+    private ToolBar createTopToolbar() {
+        ToolBar toolbar = new ToolBar();
+
+        // Name label and field
+        Label nameLabel = new Label("Name:");
+        nameLabel.setStyle("-fx-font-weight: bold;");
+
+        TextField nameField = new TextField(complexType.getName());
+        nameField.setPrefWidth(250);
+        nameField.setPromptText("Type name");
+        nameField.setTooltip(new Tooltip("The name of this ComplexType"));
+
+        // Listen to name changes
+        nameField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (wasFocused && !isNowFocused) {
+                // Lost focus - save the change
+                handleNameChange(nameField.getText());
+            }
+        });
+
+        // Also handle Enter key
+        nameField.setOnAction(e -> handleNameChange(nameField.getText()));
+
+        // Abstract checkbox
+        CheckBox abstractCheck = new CheckBox("Abstract");
+        abstractCheck.setSelected(complexType.isAbstract());
+        abstractCheck.setTooltip(new Tooltip("Abstract types cannot be used directly"));
+        abstractCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            complexType.setAbstract(newVal);
+            logger.info("ComplexType abstract changed to: {}", newVal);
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+        });
+
+        // Mixed checkbox
+        CheckBox mixedCheck = new CheckBox("Mixed");
+        mixedCheck.setSelected(complexType.isMixed());
+        mixedCheck.setTooltip(new Tooltip("Mixed content allows text between elements"));
+        mixedCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            complexType.setMixed(newVal);
+            logger.info("ComplexType mixed changed to: {}", newVal);
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
+        });
+
+        // Close button
+        Button closeBtn = new Button("Close");
+        closeBtn.setGraphic(new FontIcon(BootstrapIcons.X_CIRCLE));
+        closeBtn.setTooltip(new Tooltip("Close editor (Esc)"));
+        closeBtn.setOnAction(e -> {
+            if (onCloseCallback != null) {
+                onCloseCallback.run();
+            }
+        });
+
+        toolbar.getItems().addAll(
+                nameLabel, nameField,
+                new Separator(),
+                abstractCheck,
+                mixedCheck,
+                new Separator(),
+                closeBtn
+        );
+
+        return toolbar;
+    }
+
+    /**
+     * Handles name change for the ComplexType.
+     */
+    private void handleNameChange(String newName) {
+        if (newName != null && !newName.trim().isEmpty() && !newName.equals(complexType.getName())) {
+            String oldName = complexType.getName();
+            complexType.setName(newName.trim());
+            logger.info("ComplexType name changed: {} -> {}", oldName, newName.trim());
+
+            // Trigger change callback
+            if (onChangeCallback != null) {
+                onChangeCallback.run();
+            }
         }
     }
 

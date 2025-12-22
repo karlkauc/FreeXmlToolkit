@@ -282,12 +282,44 @@ public class SimpleTypeEditorView extends BorderPane {
         grid.setHgap(10);
         grid.setVgap(10);
 
-        // Name field (read-only - name cannot be changed for existing types)
+        // Name field - editable
         Label nameLabel = new Label("Name:");
         TextField nameField = new TextField(simpleType.getName());
-        nameField.setEditable(false);
-        nameField.setStyle("-fx-background-color: #f0f0f0;");
-        nameField.setTooltip(new Tooltip("Type name cannot be changed after creation"));
+        nameField.setPromptText("Type name");
+        nameField.setTooltip(new Tooltip("The name of this SimpleType"));
+
+        // Listen to name changes
+        nameField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (wasFocused && !isNowFocused) {
+                // Lost focus - save the change
+                String newName = nameField.getText();
+                if (newName != null && !newName.trim().isEmpty() && !newName.equals(simpleType.getName())) {
+                    String oldName = simpleType.getName();
+                    simpleType.setName(newName.trim());
+                    logger.info("SimpleType name changed: {} -> {}", oldName, newName.trim());
+
+                    // Trigger change callback
+                    if (onChangeCallback != null) {
+                        onChangeCallback.run();
+                    }
+                }
+            }
+        });
+
+        // Also handle Enter key
+        nameField.setOnAction(e -> {
+            String newName = nameField.getText();
+            if (newName != null && !newName.trim().isEmpty() && !newName.equals(simpleType.getName())) {
+                String oldName = simpleType.getName();
+                simpleType.setName(newName.trim());
+                logger.info("SimpleType name changed: {} -> {}", oldName, newName.trim());
+
+                // Trigger change callback
+                if (onChangeCallback != null) {
+                    onChangeCallback.run();
+                }
+            }
+        });
 
         grid.add(nameLabel, 0, 0);
         grid.add(nameField, 1, 0);
