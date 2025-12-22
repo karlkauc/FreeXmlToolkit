@@ -74,8 +74,18 @@
                     <!-- Search results will be injected here -->
                 </div>
             </div>
-            <!-- Right navigation group (GitHub Link) -->
-            <div class="hidden md:block">
+            <!-- Right navigation group (Language Switcher + GitHub Link) -->
+            <div class="hidden md:flex items-center space-x-4">
+                <!-- Language Switcher -->
+                <div class="flex items-center space-x-2">
+                    <label for="lang-switcher-nav" class="text-sm text-slate-600">Language:</label>
+                    <select id="lang-switcher-nav"
+                            class="lang-switcher text-sm border border-slate-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                        <option value="default">Default (no lang)</option>
+                        <!-- Options populated dynamically by language-switcher.js -->
+                    </select>
+                </div>
+                <!-- GitHub Link -->
                 <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
                    class="flex items-center space-x-2 text-slate-700 font-bold">
                     <img src="../assets/logo.png" alt="logo" class="h-8 w-8"/>
@@ -138,7 +148,7 @@
             <section>
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">Diagram</h2>
                 <div class="p-4 border border-slate-200 rounded-lg bg-slate-50 overflow-x-auto">
-                    <!-- Thymeleaf switch to differentiate between SVG and PNG -->
+                    <!-- Thymeleaf switch to differentiate between SVG, PNG and JPG -->
                     <div th:switch="${diagramType}">
                         <!-- Case 1: If the type is 'SVG', insert the SVG code directly -->
                         <div th:case="'SVG'" th:utext="${diagramContent}">
@@ -148,17 +158,28 @@
                         <div th:case="'PNG'" style="float:left;">
                             <img th:src="${'../' + diagramContent}" alt="Diagram of the element" class="mx-auto"/>
                         </div>
+                        <!-- Case 3: If the type is 'JPG', create a normal image tag -->
+                        <div th:case="'JPG'" style="float:left;">
+                            <img th:src="${'../' + diagramContent}" alt="Diagram of the element" class="mx-auto"/>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Section: Documentation -->
-            <section th:if="${documentation != null and not #maps.isEmpty(documentation)}">
+            <!-- Section: Documentation (Multi-Language Support) -->
+            <section th:if="${documentation != null and not #maps.isEmpty(documentation)}"
+                     class="documentation-section">
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">Documentation</h2>
                 <div class="bg-slate-100/75 p-4 rounded-md space-y-2">
-                    <div th:each="doc: ${documentation}">
-                        <strong th:if="${doc.key != 'default'}" class="text-slate-700 block"
-                                th:utext="${doc.key}">KEY</strong>
+                    <!-- Each language as separate div with data-lang attribute -->
+                    <div th:each="doc: ${documentation}"
+                         class="doc-content"
+                         th:attr="data-lang=${doc.key}"
+                         th:hidden="${doc.key != 'default'}">
+                        <strong th:if="${doc.key != 'default'}"
+                                class="doc-lang-label inline-block px-2 py-0.5 rounded text-xs font-semibold mb-2"
+                                th:classappend="${doc.key == 'en' ? 'bg-blue-100 text-blue-800' : (doc.key == 'de' ? 'bg-amber-100 text-amber-800' : (doc.key == 'fr' ? 'bg-pink-100 text-pink-800' : 'bg-slate-200 text-slate-700'))}"
+                                th:text="${#strings.toUpperCase(doc.key)}">LANG</strong>
                         <p class="text-slate-600" th:utext="${doc.value}">VALUE</p>
                     </div>
                 </div>
@@ -649,6 +670,7 @@
 <!-- Load scripts at the end -->
 <script src="../assets/prism.js"></script>
 <script src="../assets/search.js" defer></script>
+<script src="../assets/language-switcher.js" defer></script>
 
 <!-- JavaScript for the copy functionality -->
 <script>
