@@ -454,12 +454,30 @@ public class SettingsController {
             props.setProperty("ui.theme", darkTheme.isSelected() ? "dark" : "light");
             props.setProperty("ui.xml.font.size", xmlFontSize.getValue().toString());
 
+            // Auto-sync XML editor theme with dark/light mode
+            String currentXmlTheme = xmlThemeComboBox.getSelectionModel().getSelectedItem();
+            ModernXmlThemeManager themeManager = ModernXmlThemeManager.getInstance();
+
+            if (currentXmlTheme != null) {
+                ModernXmlThemeManager.XmlHighlightTheme currentTheme = themeManager.getThemeByDisplayName(currentXmlTheme);
+
+                if (darkTheme.isSelected() && currentTheme != null && !currentTheme.isDark()) {
+                    // User switched to dark mode but has a light XML theme - switch to Modern Dark
+                    xmlThemeComboBox.getSelectionModel().select("Modern Dark");
+                    logger.info("Auto-switched XML editor theme to 'Modern Dark' to match dark mode");
+                } else if (lightTheme.isSelected() && currentTheme != null && currentTheme.isDark()) {
+                    // User switched to light mode but has a dark XML theme - switch to Modern Light
+                    xmlThemeComboBox.getSelectionModel().select("Modern Light");
+                    logger.info("Auto-switched XML editor theme to 'Modern Light' to match light mode");
+                }
+            }
+
             // Save XML editor theme
             String selectedTheme = xmlThemeComboBox.getSelectionModel().getSelectedItem();
             if (selectedTheme != null) {
                 props.setProperty("xml.editor.theme", selectedTheme);
                 // Apply the theme immediately
-                ModernXmlThemeManager.getInstance().setCurrentThemeByDisplayName(selectedTheme);
+                themeManager.setCurrentThemeByDisplayName(selectedTheme);
             }
 
             // Save XML parser type
@@ -487,6 +505,12 @@ public class SettingsController {
             if (parentController != null) {
                 parentController.refreshToolbarIcons();
                 logger.debug("Applied toolbar icon size changes immediately");
+            }
+
+            // Apply theme changes immediately
+            if (parentController != null) {
+                parentController.applyTheme();
+                logger.debug("Applied theme changes immediately");
             }
 
             // Show success message

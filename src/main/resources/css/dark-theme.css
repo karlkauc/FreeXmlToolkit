@@ -14,100 +14,88 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
+ * DARK THEME - VS Code Dark+ inspired color scheme
  */
+
+/* =================================================================
+   XML Syntax Highlighting (Dark Mode)
+   ================================================================= */
 .tagmark {
-  -fx-fill: rgb(0, 0, 255);
+  -fx-fill: #569cd6;  /* Blue for XML tags */
 }
 
 .anytag {
-  -fx-fill: rgb(128, 0, 0);
+  -fx-fill: #4ec9b0;  /* Teal for elements */
 }
 
 .paren {
-  -fx-fill: firebrick;
+  -fx-fill: #d4d4d4;  /* Light gray for brackets */
   -fx-font-weight: bold;
 }
 
 .attribute {
-  -fx-fill: darkviolet;
+  -fx-fill: #9cdcfe;  /* Light blue for attributes */
 }
 
 .avalue {
-  -fx-fill: black;
+  -fx-fill: #ce9178;  /* Orange/brown for attribute values */
 }
 
 .enumeration-content {
-    -fx-fill: #ff0000;
-    -fx-font-weight: bold;
-    -fx-background-color: #ffff00;
+  -fx-fill: #dcdcaa;  /* Yellow for enumerations */
+  -fx-font-weight: bold;
+  -fx-background-color: #3d3d00;
 }
 
 .comment {
-  -fx-fill: teal;
+  -fx-fill: #6a9955;  /* Green for comments */
 }
 
-/* line Number */
+/* Line Numbers */
 .lineno {
-  -fx-background-color: #e3e3e3;
+  -fx-background-color: #1e1e1e;
+  -fx-text-fill: #858585;
 }
 
-/* defaults */
+/* Code Area Defaults */
 .code-area {
   -fx-font-family: monospace;
+  -fx-background-color: #1e1e1e;
 }
 
-/*
- * Style für den TreeTableView im FileExplorer, um Plus/Minus-Symbole anzuzeigen.
- */
-/*
- * Richtet die Spaltenüberschriften linksbündig aus.
- */
+/* =================================================================
+   TreeTableView - File Explorer (Dark Mode)
+   ================================================================= */
 .tree-table-view .column-header .label {
   -fx-alignment: center-left;
+  -fx-text-fill: #d4d4d4;
 }
 
-/*
- * Schritt 1: Standardmäßig ist der Pfeil unsichtbar.
- * Er wird für alle aufklappbaren Knoten gerendert, aber wir verstecken ihn.
- */
 .tree-table-view .tree-disclosure-node .arrow {
   -fx-background-color: transparent;
-  -fx-shape: " "; /* Leere Form, um sicherzugehen, dass nichts gezeichnet wird */
+  -fx-shape: " ";
 }
 
-/*
- * Schritt 2: NUR für Zellen mit unserer speziellen Klasse .has-subdirectories
- * machen wir das Symbol sichtbar und stylen es.
- */
 .tree-table-view .tree-table-row-cell.has-subdirectories .tree-disclosure-node .arrow {
-    -fx-background-color: #24292f; /* Direkte Farbe ohne CSS-Lookup */
-  -fx-padding: 4px; /* Abstand wiederherstellen */
+  -fx-background-color: #d4d4d4;
+  -fx-padding: 4px;
 }
 
-/*
- * Schritt 3: Wir definieren das Minus-Symbol für aufgeklappte Zeilen,
- * die unsere Klasse haben.
- */
 .tree-table-view .tree-table-row-cell.has-subdirectories:expanded .tree-disclosure-node .arrow {
-  /* Wir zeichnen eine einfache horizontale Linie. */
   -fx-shape: "M 0 3.5 L 8 3.5 L 8 4.5 L 0 4.5 Z";
 }
 
-/*
- * Schritt 4: Wir definieren das Plus-Symbol für geschlossene Zeilen,
- * die unsere Klasse haben.
- */
 .tree-table-view .tree-table-row-cell.has-subdirectories:not(:expanded) .tree-disclosure-node .arrow {
-  /* Wir zeichnen ein Kreuz. */
   -fx-shape: "M 0 3.5 L 8 3.5 L 8 4.5 L 0 4.5 Z M 3.5 0 L 4.5 0 L 4.5 8 L 3.5 8 Z";
 }
 
 /* =================================================================
-   Modernes, professionelles Theme für das FreeXMLToolkit
+   Typography (Dark Mode)
    ================================================================= */
 .h1 {
   -fx-font-family: Roboto;
   -fx-font-size: 4em;
+  -fx-text-fill: #e1e1e1;
 }
 
 .h2 {
@@ -115,50 +103,53 @@
   -fx-font-weight: bold;
   -fx-font-size: 1.5em;
   -fx-padding: 0 0 5px 0;
+  -fx-text-fill: #e1e1e1;
 }
 
 .h3 {
   -fx-font-family: Roboto;
   -fx-font-weight: bold;
   -fx-font-size: 1.1em;
+  -fx-text-fill: #d4d4d4;
 }
 
 .bottom_line {
-  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2A9D8F 0%, #264653 100%);
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #1a6b63 0%, #1a3038 100%);
   -fx-pref-height: 20;
   -fx-max-height: 20;
   -fx-min-height: 20;
 }
 
 .menu_box {
-  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #fdeec5 0%, #fc9040 100%);
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #4a3c1e 0%, #7a4820 100%);
   -fx-pref-width: 150;
   -fx-font-weight: bold;
+  -fx-text-fill: #e1e1e1;
 }
 
 /* =================================================================
-   Allgemeine Steuerelemente
+   General Controls (Dark Mode)
    ================================================================= */
 .button {
-  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #ffffff, #f0f2f5);
-  -fx-text-fill: #24292f;
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3c3c3c, #2d2d30);
+  -fx-text-fill: #d4d4d4;
   -fx-padding: 5px 15px;
   -fx-font-weight: bold;
   -fx-cursor: hand;
-  -fx-border-color: #d0d7de;
+  -fx-border-color: #4a4a4a;
   -fx-border-width: 1px;
   -fx-background-radius: 4px;
   -fx-border-radius: 6px;
 }
 
 .button:hover {
-  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #ffffff, #e9ecef);
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #4a4a4a, #3c3c3c);
 }
 
 .button:pressed {
-  -fx-background-color: #e9ecef;
-  -fx-background-insets: 1 0 0 0; /* Simuliert das Hineindrücken */
-  -fx-padding: 6px 15px 4px 15px; /* Verschiebt den Text um 1px nach unten */
+  -fx-background-color: #2d2d30;
+  -fx-background-insets: 1 0 0 0;
+  -fx-padding: 6px 15px 4px 15px;
 }
 
 .menu_button {
@@ -167,7 +158,7 @@
   -fx-pref-width: 200;
   -fx-max-width: 200;
   -fx-alignment: baseline-left;
-  -fx-text-fill: #24292f;
+  -fx-text-fill: #d4d4d4;
   -fx-padding: 5px 15px;
   -fx-font-weight: bold;
   -fx-background-color: transparent;
@@ -175,72 +166,76 @@
 }
 
 .menu_button:hover {
-  -fx-background-color: #e9ecef;
+  -fx-background-color: #3c3c3c;
 }
 
 .menu_button:pressed {
-  -fx-background-color: #e9ecef;
+  -fx-background-color: #3c3c3c;
 }
 
 .button:default {
-  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2b8aff, #0969da);
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3794ff, #1177bb);
   -fx-text-fill: white;
-  -fx-border-color: #0550ae; /* Dunklerer Blauton für den Rand */
+  -fx-border-color: #0d5a8f;
 }
 
 .button:default:hover {
-  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3c9aff, #0a5ccb);
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #4aa3ff, #1988cc);
 }
 
 .button:default:pressed {
-  -fx-background-color: #0a5ccb;
+  -fx-background-color: #1177bb;
   -fx-background-insets: 1 0 0 0;
   -fx-padding: 6px 15px 4px 15px;
 }
 
 .label {
-  -fx-text-fill: #24292f;
+  -fx-text-fill: #d4d4d4;
 }
 
 .text-field, .text-area {
-  -fx-background-color: #ffffff;
+  -fx-background-color: #3c3c3c;
+  -fx-text-fill: #d4d4d4;
   -fx-background-insets: 0;
   -fx-background-radius: 6px;
-  -fx-prompt-text-fill: #8c959f;
+  -fx-prompt-text-fill: #6a6a6a;
+  -fx-border-color: #4a4a4a;
+  -fx-border-width: 1px;
+  -fx-border-radius: 6px;
 }
 
 .text-field:focused, .text-area:focused {
-  -fx-border-color: #0969da;
-  -fx-effect: dropshadow(gaussian, rgba(9, 105, 218, 0.3), 5, 0, 0, 0);
+  -fx-border-color: #3794ff;
+  -fx-effect: dropshadow(gaussian, rgba(55, 148, 255, 0.3), 5, 0, 0, 0);
 }
 
 .code-area {
-  -fx-background-color: #ffffff;
+  -fx-background-color: #1e1e1e;
 }
 
 .code-area .paragraph-box:has-caret {
-  -fx-background-color: #f6f8fa;
+  -fx-background-color: #2a2a2a;
 }
 
 /* =================================================================
-   Welcome Page
+   Welcome Page (Dark Mode)
    ================================================================= */
 .my_container {
-  -fx-background-color: #f5f5f5;
+  -fx-background-color: #1e1e1e;
 }
 
 .feature-box {
-  -fx-background-color: #ffffff;
-  -fx-border-color: #e1e4e8;
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
   -fx-border-width: 1px;
   -fx-border-radius: 6px;
   -fx-background-radius: 6px;
   -fx-padding: 15px;
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 5, 0, 0, 1);
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 5, 0, 0, 1);
 }
 
 /* =================================================================
-   Tab-Pane (für den Editor)
+   Tab-Pane (Dark Mode)
    ================================================================= */
 .tab-pane {
   -fx-tab-min-height: 20px;
@@ -248,7 +243,7 @@
 }
 
 .tab-pane .tab-header-area {
-  -fx-background-color: #f6f8fa;
+  -fx-background-color: #252526;
   -fx-padding: 0 0 0 5px;
 }
 
@@ -261,54 +256,54 @@
 }
 
 .tab-pane .tab:hover {
-  -fx-background-color: #e9ecef;
+  -fx-background-color: #3c3c3c;
 }
 
 .tab-pane .tab:selected {
-  -fx-background-color: #f5f5f5;
-  -fx-border-color: #0969da;
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3794ff;
   -fx-font-weight: bold;
 }
 
 .tab-pane .tab:selected .tab-label {
-  -fx-text-fill: #24292f;
+  -fx-text-fill: #e1e1e1;
 }
 
 .tab-pane .tab .tab-label {
-  -fx-text-fill: #57606a;
+  -fx-text-fill: #9d9d9d;
   -fx-font-smoothing-type: gray;
   -fx-font-size: 1.2em;
 }
 
 .tab-pane > .tab-content-area {
-  -fx-background-color: #f5f5f5;
+  -fx-background-color: #1e1e1e;
   -fx-padding: 0;
 }
 
 /* =================================================================
-   Listen und Bäume (TreeView, ListView)
+   Lists and Trees (Dark Mode)
    ================================================================= */
 .tree-cell, .list-cell {
   -fx-padding: 8px 12px;
   -fx-background-color: transparent;
-  -fx-text-fill: #24292f;
+  -fx-text-fill: #d4d4d4;
 }
 
 .tree-cell:hover, .list-cell:hover {
-  -fx-background-color: #e9ecef;
+  -fx-background-color: #2a2d2e;
 }
 
 .tree-cell:selected, .list-cell:selected {
-  -fx-background-color: #0969da;
+  -fx-background-color: #094771;
   -fx-text-fill: white;
 }
 
 .tree-cell:selected:focused, .list-cell:selected:focused {
-  -fx-background-color: #0969da;
+  -fx-background-color: #094771;
 }
 
 .tree-cell > .tree-disclosure-node > .arrow {
-  -fx-background-color: #57606a;
+  -fx-background-color: #9d9d9d;
 }
 
 .tree-cell:selected > .tree-disclosure-node > .arrow {
@@ -316,26 +311,26 @@
 }
 
 /* =================================================================
-   Menüs (MenuBar, ContextMenu)
+   Menus (Dark Mode)
    ================================================================= */
 .menu-bar {
-  -fx-background-color: #f5f5f5;
+  -fx-background-color: #252526;
   -fx-border-width: 0 0 1px 0;
-  -fx-border-color: #e1e4e8;
+  -fx-border-color: #3c3c3c;
   -fx-padding: 2px 5px;
 }
 
 .menu-button:hover, .menu-button:focused, .menu-button:showing {
-  -fx-background-color: #e9ecef;
+  -fx-background-color: #3c3c3c;
 }
 
 .context-menu {
-  -fx-background-color: #f5f5f5;
+  -fx-background-color: #252526;
   -fx-background-insets: 0;
   -fx-padding: 5px;
-  -fx-border-color: #d0d7de;
+  -fx-border-color: #4a4a4a;
   -fx-border-radius: 6px;
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 10, 0, 0, 2);
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0, 0, 2);
 }
 
 .menu-item {
@@ -343,7 +338,7 @@
 }
 
 .menu-item:focused {
-  -fx-background-color: #0969da;
+  -fx-background-color: #094771;
 }
 
 .menu-item:focused .label {
@@ -351,60 +346,76 @@
 }
 
 /* =================================================================
-   Scroll- und Split-Panes
+   Scroll and Split Panes (Dark Mode)
    ================================================================= */
 .scroll-pane {
   -fx-background-color: transparent;
 }
 
+.scroll-pane > .viewport {
+  -fx-background-color: #1e1e1e;
+}
+
 .scroll-bar:vertical, .scroll-bar:horizontal {
-  -fx-background-color: transparent;
+  -fx-background-color: #1e1e1e;
 }
 
 .scroll-bar .thumb {
-    -fx-background-color: #c1c1c1; /* Explizite Farbe hinzugefügt, um Endlosschleife zu verhindern */
+  -fx-background-color: #5a5a5a;
   -fx-background-insets: 2px;
   -fx-background-radius: 8px;
 }
 
 .scroll-bar .thumb:hover {
-    -fx-background-color: #a8a8a8;
+  -fx-background-color: #6a6a6a;
+}
+
+.scroll-bar .track {
+  -fx-background-color: #2d2d30;
+}
+
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+  -fx-background-color: #2d2d30;
+}
+
+.split-pane {
+  -fx-background-color: #1e1e1e;
 }
 
 .split-pane:horizontal > .split-pane-divider {
   -fx-border-color: transparent;
-  -fx-background-color: #e1e4e8;
+  -fx-background-color: #3c3c3c;
   -fx-padding: 0 1px;
 }
 
 .split-pane:vertical > .split-pane-divider {
   -fx-border-color: transparent;
-  -fx-background-color: #e1e4e8;
+  -fx-background-color: #3c3c3c;
   -fx-padding: 1px 0;
 }
 
 /* =================================================================
-   Karten-Layout (für Formulare und gruppierte Inhalte)
+   Cards (Dark Mode)
    ================================================================= */
 .card {
-  -fx-background-color: #f5f5f5;
-  -fx-border-color: #e1e4e8;
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
   -fx-border-width: 1px;
   -fx-border-radius: 6px;
   -fx-background-radius: 6px;
   -fx-padding: 20px;
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 2);
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 2);
 }
 
 .card-title {
   -fx-font-size: 1.2em;
   -fx-font-weight: bold;
-  -fx-text-fill: #24292f;
+  -fx-text-fill: #e1e1e1;
   -fx-padding: 0 0 10px 0;
 }
 
 /* =================================================================
-   Modernes Layout für die XML-Baumansicht (XmlGraphicEditor)
+   XML Tree View (Dark Mode)
    ================================================================= */
 .simple-node-element {
   -fx-padding: 0 0 0 5px;
@@ -412,7 +423,7 @@
 
 .children-container {
   -fx-padding: 2px 0 2px 20px;
-  -fx-border-color: #e1e4e8 transparent transparent transparent;
+  -fx-border-color: #3c3c3c transparent transparent transparent;
   -fx-border-width: 1px;
   -fx-border-style: solid;
   -fx-spacing: 4px;
@@ -426,18 +437,18 @@
 }
 
 .element-box:hover {
-  -fx-background-color: #e9ecef;
+  -fx-background-color: #2a2d2e;
 }
 
 .node-label-complex {
   -fx-font-size: 1.05em;
   -fx-font-weight: bold;
-  -fx-text-fill: #24292f;
+  -fx-text-fill: #d4d4d4;
 }
 
 .node-count-label {
   -fx-font-size: 0.9em;
-  -fx-text-fill: #57606a;
+  -fx-text-fill: #9d9d9d;
   -fx-padding: 0 0 0 5px;
 }
 
@@ -452,7 +463,7 @@
 }
 
 .tree-toggle-button:hover {
-  -fx-background-color: #e9ecef;
+  -fx-background-color: #3c3c3c;
 }
 
 .tree-toggle-button .icon {
@@ -460,11 +471,11 @@
   -fx-min-height: 8px;
   -fx-max-width: 8px;
   -fx-max-height: 8px;
-  -fx-background-color: #57606a;
+  -fx-background-color: #9d9d9d;
 }
 
 .tree-toggle-button:hover .icon {
-  -fx-background-color: #24292f;
+  -fx-background-color: #d4d4d4;
 }
 
 .icon.toggle-expand {
@@ -476,9 +487,9 @@
 }
 
 .xml-tree-text {
-  -fx-background-color: #f5f5f5;
+  -fx-background-color: #252526;
   -fx-padding: 8px;
-  -fx-border-color: #e1e4e8;
+  -fx-border-color: #3c3c3c;
   -fx-border-width: 1px;
   -fx-border-radius: 6px;
   -fx-background-radius: 6px;
@@ -488,23 +499,23 @@
 
 .node-name-box, .attribute-box {
   -fx-alignment: center-left;
-  -fx-text-fill: #57606a;
+  -fx-text-fill: #9d9d9d;
   -fx-font-weight: bold;
 }
 
 .attribute-box .label {
-  -fx-text-fill: #0550ae;
+  -fx-text-fill: #9cdcfe;
 }
 
 .node-value-box, .attribute-value-box {
   -fx-alignment: center-left;
-  -fx-text-fill: #24292f;
+  -fx-text-fill: #ce9178;
   -fx-background-radius: 4px;
   -fx-padding: 2px 5px;
 }
 
 .node-value-box:hover, .attribute-value-box:hover {
-  -fx-background-color: #0969da;
+  -fx-background-color: #094771;
   -fx-cursor: hand;
 }
 
@@ -518,31 +529,31 @@
   -fx-max-width: 20px;
   -fx-background-color: transparent;
   -fx-cursor: hand;
-  -fx-border-color: transparent #e1e4e8 transparent transparent;
+  -fx-border-color: transparent #3c3c3c transparent transparent;
   -fx-border-width: 1px;
   -fx-border-style: solid;
 }
 
 .collapse-bar:hover {
-  -fx-background-color: #e9ecef;
+  -fx-background-color: #2a2d2e;
 }
 
 .xml-tree-comment {
-  -fx-text-fill: #8c959f;
+  -fx-text-fill: #6a9955;
   -fx-font-style: italic;
-    -fx-padding: 5px 10px;
-    -fx-background-color: #f8f9fa;
-    -fx-background-radius: 4px;
-    -fx-border-radius: 4px;
+  -fx-padding: 5px 10px;
+  -fx-background-color: #2a2d2e;
+  -fx-background-radius: 4px;
+  -fx-border-radius: 4px;
 }
 
 /* =================================================================
-   XML Code Editor - Erweiterungen
+   Tables (Dark Mode)
    ================================================================= */
 .table-grid {
   -fx-hgap: 1px;
   -fx-vgap: 1px;
-  -fx-background-color: #e1e4e8;
+  -fx-background-color: #3c3c3c;
   -fx-border-width: 1px;
   -fx-border-style: solid;
   -fx-border-radius: 6px;
@@ -551,31 +562,59 @@
 }
 
 .table-header {
-  -fx-background-color: #f6f8fa;
+  -fx-background-color: #2d2d30;
   -fx-font-weight: bold;
   -fx-padding: 6px 8px;
-  -fx-text-fill: #24292f;
+  -fx-text-fill: #d4d4d4;
   -fx-alignment: center-left;
 }
 
 .table-cell {
-  -fx-background-color: #ffffff;
+  -fx-background-color: #1e1e1e;
   -fx-padding: 6px 8px;
   -fx-alignment: center-left;
+  -fx-text-fill: #d4d4d4;
 }
 
 .table-cell:hover {
-  -fx-background-color: #f6f8fa;
+  -fx-background-color: #2a2d2e;
 }
 
+.table-view {
+  -fx-background-color: #1e1e1e;
+  -fx-table-header-border-color: #3c3c3c;
+}
+
+.table-view .column-header {
+  -fx-background-color: #2d2d30;
+}
+
+.table-view .column-header .label {
+  -fx-text-fill: #d4d4d4;
+}
+
+.table-view .table-row-cell {
+  -fx-background-color: #1e1e1e;
+}
+
+.table-view .table-row-cell:odd {
+  -fx-background-color: #252526;
+}
+
+.table-view .table-row-cell:selected {
+  -fx-background-color: #094771;
+}
+
+/* Search Highlight */
 .search-highlight {
-  -fx-fill: black;
-  -fx-background-color: #ffdd00;
+  -fx-fill: #e1e1e1;
+  -fx-background-color: #613214;
 }
 
+/* Diagnostics */
 .diagnostic-error {
   -fx-underline: true;
-  -fx-stroke: red;
+  -fx-stroke: #f14c4c;
   -fx-stroke-type: outside;
   -fx-stroke-width: 1;
   -fx-stroke-dash-array: 1 2;
@@ -583,8 +622,165 @@
 
 .diagnostic-warning {
   -fx-underline: true;
-  -fx-stroke: orange;
+  -fx-stroke: #dcdcaa;
   -fx-stroke-type: outside;
   -fx-stroke-width: 1;
   -fx-stroke-dash-array: 1 2;
+}
+
+/* =================================================================
+   Additional Dark Mode Overrides
+   ================================================================= */
+
+/* CheckBox and RadioButton */
+.check-box {
+  -fx-text-fill: #d4d4d4;
+}
+
+.check-box .box {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+}
+
+.check-box:selected .box {
+  -fx-background-color: #3794ff;
+}
+
+.radio-button {
+  -fx-text-fill: #d4d4d4;
+}
+
+.radio-button .radio {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+}
+
+.radio-button:selected .radio {
+  -fx-background-color: #3794ff;
+}
+
+/* ComboBox */
+.combo-box {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+}
+
+.combo-box .list-cell {
+  -fx-background-color: #3c3c3c;
+  -fx-text-fill: #d4d4d4;
+}
+
+.combo-box-popup .list-view {
+  -fx-background-color: #252526;
+}
+
+.combo-box-popup .list-view .list-cell {
+  -fx-background-color: #252526;
+  -fx-text-fill: #d4d4d4;
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+  -fx-background-color: #3c3c3c;
+}
+
+.combo-box-popup .list-view .list-cell:selected {
+  -fx-background-color: #094771;
+  -fx-text-fill: white;
+}
+
+/* Spinner */
+.spinner {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+}
+
+.spinner .text-field {
+  -fx-background-color: #3c3c3c;
+  -fx-text-fill: #d4d4d4;
+}
+
+.spinner .increment-arrow-button, .spinner .decrement-arrow-button {
+  -fx-background-color: #4a4a4a;
+}
+
+.spinner .increment-arrow-button:hover, .spinner .decrement-arrow-button:hover {
+  -fx-background-color: #5a5a5a;
+}
+
+/* Tooltip */
+.tooltip {
+  -fx-background-color: #252526;
+  -fx-text-fill: #d4d4d4;
+  -fx-border-color: #4a4a4a;
+  -fx-border-width: 1px;
+}
+
+/* Progress Bar */
+.progress-bar .track {
+  -fx-background-color: #3c3c3c;
+}
+
+.progress-bar .bar {
+  -fx-background-color: #3794ff;
+}
+
+/* Dialog Pane */
+.dialog-pane {
+  -fx-background-color: #252526;
+}
+
+.dialog-pane .header-panel {
+  -fx-background-color: #2d2d30;
+}
+
+.dialog-pane .content {
+  -fx-background-color: #252526;
+}
+
+/* Titled Pane */
+.titled-pane > .title {
+  -fx-background-color: #2d2d30;
+  -fx-text-fill: #d4d4d4;
+}
+
+.titled-pane > .content {
+  -fx-background-color: #252526;
+}
+
+/* Accordion */
+.accordion .titled-pane > .title {
+  -fx-background-color: #2d2d30;
+}
+
+/* Hyperlink */
+.hyperlink {
+  -fx-text-fill: #3794ff;
+}
+
+.hyperlink:hover {
+  -fx-text-fill: #4aa3ff;
+}
+
+/* Menu */
+.menu {
+  -fx-background-color: #252526;
+}
+
+.menu .label {
+  -fx-text-fill: #d4d4d4;
+}
+
+.menu:hover, .menu:focused, .menu:showing {
+  -fx-background-color: #3c3c3c;
+}
+
+/* General backgrounds for panels */
+.anchor-pane, .border-pane, .grid-pane, .h-box, .v-box, .stack-pane, .flow-pane, .tile-pane {
+  -fx-background-color: #1e1e1e;
+}
+
+/* Separator */
+.separator .line {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #3c3c3c;
 }
