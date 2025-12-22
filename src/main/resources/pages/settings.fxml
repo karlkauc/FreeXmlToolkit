@@ -39,10 +39,152 @@
         </VBox>
 
         <!-- Settings TabPane -->
-        <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" 
+        <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS"
                  style="-fx-background-color: #ffffff; -fx-border-color: #e0e8ff; -fx-border-width: 1px; -fx-border-radius: 6px;">
 
-            <!-- Tab 1: Network & Proxy -->
+            <!-- Tab 1: Interface & Files -->
+            <Tab text="Interface &amp; Files" closable="false">
+                <graphic>
+                    <FontIcon iconLiteral="bi-palette" iconSize="16" iconColor="#4a90e2"/>
+                </graphic>
+                <content>
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                        <VBox style="-fx-padding: 20px; -fx-background-color: #ffffff;" spacing="20">
+                            <Label text="Interface &amp; File Configuration"
+                                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+
+                            <!-- User Information Section (moved to top) -->
+                            <VBox spacing="12" style="-fx-background-color: #f5f0ff; -fx-background-radius: 4px; -fx-padding: 16px;">
+                                <Label text="User Information (optional)"
+                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                <Label text="This information is used for document metadata and signatures"
+                                       style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
+                                <GridPane hgap="12" vgap="10">
+                                    <Label text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="userName" promptText="Your name" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                                    <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="userEmail" promptText="your.email@example.com" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                                    <Label text="Company:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <TextField fx:id="userCompany" promptText="Your company" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+                            </VBox>
+
+                            <!-- User Interface Settings -->
+                            <VBox spacing="12" style="-fx-background-color: #f0f8ff; -fx-background-radius: 4px; -fx-padding: 16px;">
+                                <Label text="User Interface"
+                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                <GridPane hgap="12" vgap="10">
+                                    <Label text="Theme:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                        <RadioButton fx:id="lightTheme" mnemonicParsing="false" text="Light Mode">
+                                            <toggleGroup>
+                                                <ToggleGroup fx:id="theme"/>
+                                            </toggleGroup>
+                                        </RadioButton>
+                                        <RadioButton fx:id="darkTheme" mnemonicParsing="false" text="Dark Mode" toggleGroup="$theme"/>
+                                    </VBox>
+
+                                    <Label text="Default XML Font Size:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <Spinner fx:id="xmlFontSize" editable="true" initialValue="12" min="8" max="24" prefWidth="100"
+                                             GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                                    <Label text="XML Editor Theme:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <ComboBox fx:id="xmlThemeComboBox" prefWidth="200" GridPane.columnIndex="1"
+                                              GridPane.rowIndex="2"/>
+
+                                    <Label text="Toolbar Icons:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                    <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                        <CheckBox fx:id="useSmallIcons" text="Use small icons (more screen space)"/>
+                                        <Label text="Toolbar buttons will show icons only without text labels"
+                                               style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
+                                    </VBox>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+                            </VBox>
+
+                            <!-- File & Folder Settings -->
+                            <VBox spacing="12" style="-fx-background-color: #fff8dc; -fx-background-radius: 4px; -fx-padding: 16px;">
+                                <Label text="Temporary Folder Configuration"
+                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                <VBox spacing="8">
+                                    <RadioButton fx:id="useSystemTempFolder" text="Use System Temp Folder">
+                                        <toggleGroup>
+                                            <ToggleGroup fx:id="tempFolder"/>
+                                        </toggleGroup>
+                                    </RadioButton>
+                                    <RadioButton fx:id="useCustomTempFolder" text="Use Custom Temp Folder:"
+                                                 toggleGroup="$tempFolder"/>
+                                    <HBox spacing="8" alignment="CENTER_LEFT">
+                                        <TextField fx:id="customTempFolder" promptText="C:/temp" HBox.hgrow="ALWAYS"
+                                                   style="-fx-background-color: white; -fx-border-color: #4a90e2; -fx-border-radius: 4px; -fx-background-radius: 4px;"/>
+                                        <Button onAction="#selectCustomTempFolder" text="Browse..."
+                                                style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;"/>
+                                    </HBox>
+                                </VBox>
+                            </VBox>
+
+                            <!-- Usage Statistics & Cache Settings -->
+                            <VBox spacing="12"
+                                  style="-fx-background-color: #f0fff0; -fx-background-radius: 4px; -fx-padding: 16px;">
+                                <Label text="Usage Statistics &amp; Cache"
+                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                <VBox spacing="8">
+                                    <CheckBox fx:id="sendUsageStatistics" text="Send anonymous usage statistics"/>
+                                    <Label text="Help improve the application by sharing anonymous usage data"
+                                           style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
+                                </VBox>
+
+                                <!-- Cache Information -->
+                                <VBox spacing="6"
+                                      style="-fx-background-color: #e8f5e9; -fx-background-radius: 4px; -fx-padding: 12px;">
+                                    <HBox spacing="8" alignment="CENTER_LEFT">
+                                        <FontIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#28a745"/>
+                                        <Label text="Cache Folder:"
+                                               style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                    </HBox>
+                                    <Label fx:id="cachePathLabel" text="Loading..."
+                                           style="-fx-font-size: 11px; -fx-text-fill: #495057; -fx-font-family: monospace; -fx-wrap-text: true;"/>
+                                    <HBox spacing="12" alignment="CENTER_LEFT">
+                                        <Label fx:id="cacheSizeLabel" text="Cache size: calculating..."
+                                               style="-fx-font-size: 11px; -fx-text-fill: #6c757d;"/>
+                                    </HBox>
+                                </VBox>
+
+                                <HBox spacing="12" alignment="CENTER_LEFT">
+                                    <Button fx:id="clearCacheButton" mnemonicParsing="false" onAction="#clearCache"
+                                            text="Clear Local Cache"
+                                            style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                                        </graphic>
+                                    </Button>
+                                    <Button fx:id="openCacheFolderButton" mnemonicParsing="false"
+                                            onAction="#openCacheFolder"
+                                            text="Open Folder"
+                                            style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                        </graphic>
+                                    </Button>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </ScrollPane>
+                </content>
+            </Tab>
+
+            <!-- Tab 2: Network & Proxy -->
             <Tab text="Network &amp; Proxy" closable="false">
                 <graphic>
                     <FontIcon iconLiteral="bi-hdd-network" iconSize="16" iconColor="#4a90e2"/>
@@ -52,7 +194,7 @@
                         <VBox style="-fx-padding: 20px; -fx-background-color: #ffffff;" spacing="20">
                             <Label text="Network &amp; Proxy Configuration"
                                    style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
-                            
+
                             <!-- Proxy Configuration -->
                             <VBox spacing="8">
                                 <RadioButton fx:id="noProxy" mnemonicParsing="false" text="No Proxy">
@@ -65,7 +207,7 @@
                                 <RadioButton fx:id="manualProxy" mnemonicParsing="false"
                                              text="Manual proxy configuration" toggleGroup="$proxy"/>
                             </VBox>
-                            
+
                             <!-- Manual Proxy Configuration -->
                             <GridPane hgap="12" vgap="10"
                                       style="-fx-background-color: #f0f8ff; -fx-background-radius: 4px; -fx-padding: 16px;">
@@ -94,7 +236,7 @@
                                     <ColumnConstraints hgrow="ALWAYS"/>
                                 </columnConstraints>
                             </GridPane>
-                            
+
                             <!-- SSL Settings -->
                             <VBox spacing="8" style="-fx-background-color: #fff8dc; -fx-background-radius: 4px; -fx-padding: 16px;">
                                 <Label text="SSL Certificate Settings"
@@ -134,7 +276,7 @@
                 </content>
             </Tab>
 
-            <!-- Tab 2: XML Editor -->
+            <!-- Tab 3: XML Editor -->
             <Tab text="XML Editor" closable="false">
                 <graphic>
                     <FontIcon iconLiteral="bi-code-slash" iconSize="16" iconColor="#4a90e2"/>
@@ -145,14 +287,6 @@
                             <Label text="XML Editor Configuration"
                                    style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
 
-                            <!-- Editor Version Info -->
-                            <VBox spacing="12" style="-fx-background-color: #e8f4e8; -fx-background-radius: 4px; -fx-padding: 16px;">
-                                <Label text="Editor Version"
-                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
-                                <Label text="Using V2 Editor (Modern Architecture)"
-                                       style="-fx-font-size: 11px; -fx-text-fill: #28a745;"/>
-                            </VBox>
-
                             <!-- Formatting Settings -->
                             <VBox spacing="12" style="-fx-background-color: #f0f8ff; -fx-background-radius: 4px; -fx-padding: 16px;">
                                 <Label text="Formatting Settings"
@@ -161,13 +295,13 @@
                                     <Label text="XML Indent Spaces:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                                     <Spinner fx:id="xmlIndentSpaces" editable="true" initialValue="4" min="1" max="10"
                                              prefWidth="100" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                                    
+
                                     <CheckBox fx:id="autoFormatXmlAfterLoading" text="Autoformat XML after loading"
                                               GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2"/>
-                                    
+
                                     <CheckBox fx:id="schematronPrettyPrintOnLoad" text="Autoformat Schematron files after loading"
                                               GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2"/>
-                                    
+
                                     <columnConstraints>
                                         <ColumnConstraints hgrow="NEVER" minWidth="200.0"/>
                                         <ColumnConstraints hgrow="ALWAYS"/>
@@ -183,11 +317,11 @@
                                     <Label text="XSD Validation Parser:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                                     <ComboBox fx:id="xmlParserComboBox" prefWidth="250" GridPane.columnIndex="1"
                                               GridPane.rowIndex="0"/>
-                                    
+
                                     <Label text="Note: XSLT and XQuery operations always use Saxon"
                                            GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2"
                                            style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
-                                    
+
                                     <columnConstraints>
                                         <ColumnConstraints hgrow="NEVER" minWidth="200.0"/>
                                         <ColumnConstraints hgrow="ALWAYS"/>
@@ -209,7 +343,7 @@
                 </content>
             </Tab>
 
-            <!-- Tab 3: XSD Editor -->
+            <!-- Tab 4: XSD Editor -->
             <Tab text="XSD Editor" closable="false">
                 <graphic>
                     <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#4a90e2"/>
@@ -301,148 +435,6 @@
                                 </VBox>
                                 <Label text="Note: xs:import and xs:include are always serialized first, followed by global elements"
                                        style="-fx-font-size: 10px; -fx-text-fill: #495057; -fx-font-style: italic; -fx-padding: 8 0 0 0;"/>
-                            </VBox>
-                        </VBox>
-                    </ScrollPane>
-                </content>
-            </Tab>
-
-            <!-- Tab 4: Interface & Files -->
-            <Tab text="Interface &amp; Files" closable="false">
-                <graphic>
-                    <FontIcon iconLiteral="bi-palette" iconSize="16" iconColor="#4a90e2"/>
-                </graphic>
-                <content>
-                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
-                        <VBox style="-fx-padding: 20px; -fx-background-color: #ffffff;" spacing="20">
-                            <Label text="Interface &amp; File Configuration"
-                                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
-
-                            <!-- User Interface Settings -->
-                            <VBox spacing="12" style="-fx-background-color: #f0f8ff; -fx-background-radius: 4px; -fx-padding: 16px;">
-                                <Label text="User Interface"
-                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
-                                <GridPane hgap="12" vgap="10">
-                                    <Label text="Theme:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                                    <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                        <RadioButton fx:id="lightTheme" mnemonicParsing="false" text="Light Mode">
-                                            <toggleGroup>
-                                                <ToggleGroup fx:id="theme"/>
-                                            </toggleGroup>
-                                        </RadioButton>
-                                        <RadioButton fx:id="darkTheme" mnemonicParsing="false" text="Dark Mode" toggleGroup="$theme"/>
-                                    </VBox>
-
-                                    <Label text="Default XML Font Size:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                                    <Spinner fx:id="xmlFontSize" editable="true" initialValue="12" min="8" max="24" prefWidth="100"
-                                             GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-
-                                    <Label text="XML Editor Theme:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                                    <ComboBox fx:id="xmlThemeComboBox" prefWidth="200" GridPane.columnIndex="1"
-                                              GridPane.rowIndex="2"/>
-
-                                    <Label text="Toolbar Icons:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-                                    <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                                        <CheckBox fx:id="useSmallIcons" text="Use small icons (more screen space)"/>
-                                        <Label text="Toolbar buttons will show icons only without text labels"
-                                               style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
-                                    </VBox>
-
-                                    <columnConstraints>
-                                        <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
-                                        <ColumnConstraints hgrow="ALWAYS"/>
-                                    </columnConstraints>
-                                </GridPane>
-                            </VBox>
-
-                            <!-- User Information Section -->
-                            <VBox spacing="12" style="-fx-background-color: #f5f0ff; -fx-background-radius: 4px; -fx-padding: 16px;">
-                                <Label text="User Information (optional)"
-                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
-                                <Label text="This information is used for document metadata and signatures"
-                                       style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
-                                <GridPane hgap="12" vgap="10">
-                                    <Label text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                                    <TextField fx:id="userName" promptText="Your name" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-
-                                    <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                                    <TextField fx:id="userEmail" promptText="your.email@example.com" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-
-                                    <Label text="Company:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                                    <TextField fx:id="userCompany" promptText="Your company" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-
-                                    <columnConstraints>
-                                        <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
-                                        <ColumnConstraints hgrow="ALWAYS"/>
-                                    </columnConstraints>
-                                </GridPane>
-                            </VBox>
-
-                            <!-- File & Folder Settings -->
-                            <VBox spacing="12" style="-fx-background-color: #fff8dc; -fx-background-radius: 4px; -fx-padding: 16px;">
-                                <Label text="Temporary Folder Configuration"
-                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
-                                <VBox spacing="8">
-                                    <RadioButton fx:id="useSystemTempFolder" text="Use System Temp Folder">
-                                        <toggleGroup>
-                                            <ToggleGroup fx:id="tempFolder"/>
-                                        </toggleGroup>
-                                    </RadioButton>
-                                    <RadioButton fx:id="useCustomTempFolder" text="Use Custom Temp Folder:"
-                                                 toggleGroup="$tempFolder"/>
-                                    <HBox spacing="8" alignment="CENTER_LEFT">
-                                        <TextField fx:id="customTempFolder" promptText="C:/temp" HBox.hgrow="ALWAYS"
-                                                   style="-fx-background-color: white; -fx-border-color: #4a90e2; -fx-border-radius: 4px; -fx-background-radius: 4px;"/>
-                                        <Button onAction="#selectCustomTempFolder" text="Browse..."
-                                                style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;"/>
-                                    </HBox>
-                                </VBox>
-                            </VBox>
-
-                            <!-- Usage Statistics & Cache Settings -->
-                            <VBox spacing="12"
-                                  style="-fx-background-color: #f0fff0; -fx-background-radius: 4px; -fx-padding: 16px;">
-                                <Label text="Usage Statistics &amp; Cache"
-                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
-                                <VBox spacing="8">
-                                    <CheckBox fx:id="sendUsageStatistics" text="Send anonymous usage statistics"/>
-                                    <Label text="Help improve the application by sharing anonymous usage data"
-                                           style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
-                                </VBox>
-
-                                <!-- Cache Information -->
-                                <VBox spacing="6"
-                                      style="-fx-background-color: #e8f5e9; -fx-background-radius: 4px; -fx-padding: 12px;">
-                                    <HBox spacing="8" alignment="CENTER_LEFT">
-                                        <FontIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#28a745"/>
-                                        <Label text="Cache Folder:"
-                                               style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
-                                    </HBox>
-                                    <Label fx:id="cachePathLabel" text="Loading..."
-                                           style="-fx-font-size: 11px; -fx-text-fill: #495057; -fx-font-family: monospace; -fx-wrap-text: true;"/>
-                                    <HBox spacing="12" alignment="CENTER_LEFT">
-                                        <Label fx:id="cacheSizeLabel" text="Cache size: calculating..."
-                                               style="-fx-font-size: 11px; -fx-text-fill: #6c757d;"/>
-                                    </HBox>
-                                </VBox>
-
-                                <HBox spacing="12" alignment="CENTER_LEFT">
-                                    <Button fx:id="clearCacheButton" mnemonicParsing="false" onAction="#clearCache"
-                                            text="Clear Local Cache"
-                                            style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-trash" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                    <Button fx:id="openCacheFolderButton" mnemonicParsing="false"
-                                            onAction="#openCacheFolder"
-                                            text="Open Folder"
-                                            style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                </HBox>
                             </VBox>
                         </VBox>
                     </ScrollPane>

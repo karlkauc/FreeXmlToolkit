@@ -185,11 +185,9 @@ public class MainController implements Initializable {
 
 
     private void updateMemoryUsage() {
-        // Get version from manifest or use default
-        String appVersion = getClass().getPackage().getImplementationVersion();
-        if (appVersion == null || appVersion.isEmpty()) {
-            appVersion = "1.0.0"; // Fallback version
-        }
+        // Get version from UpdateCheckService (which has the correct fallback version)
+        UpdateCheckService updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
+        String appVersion = updateCheckService != null ? updateCheckService.getCurrentVersion() : "1.1.0";
 
         long used = runtime.totalMemory() - runtime.freeMemory();
         long max = runtime.maxMemory();
