@@ -1470,39 +1470,58 @@ public class XsdDocumentationService {
         try {
             // Create schema factory
             SchemaFactory factory = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            
+
             // Load the schema
             Source schemaSource = new StreamSource(new File(xsdFilePath));
             Schema schema = factory.newSchema(schemaSource);
-            
+
             // Create validator
             Validator validator = schema.newValidator();
-            
+
             // Create error handler to collect validation errors
             StringBuilder errorMessages = new StringBuilder();
+            final int[] errorCount = {0};
+            final int[] warningCount = {0};
+
             validator.setErrorHandler(new org.xml.sax.ErrorHandler() {
                 @Override
                 public void warning(org.xml.sax.SAXParseException exception) {
-                    errorMessages.append("Warning: ").append(exception.getMessage()).append("\n");
+                    warningCount[0]++;
+                    errorMessages.append("Warning [Line ").append(exception.getLineNumber())
+                        .append("]: ").append(exception.getMessage()).append("\n");
                 }
-                
+
                 @Override
                 public void error(org.xml.sax.SAXParseException exception) {
-                    errorMessages.append("Error: ").append(exception.getMessage()).append("\n");
+                    errorCount[0]++;
+                    errorMessages.append("Error [Line ").append(exception.getLineNumber())
+                        .append("]: ").append(exception.getMessage()).append("\n");
                 }
-                
+
                 @Override
                 public void fatalError(org.xml.sax.SAXParseException exception) {
-                    errorMessages.append("Fatal Error: ").append(exception.getMessage()).append("\n");
+                    errorCount[0]++;
+                    errorMessages.append("Fatal Error [Line ").append(exception.getLineNumber())
+                        .append("]: ").append(exception.getMessage()).append("\n");
                 }
             });
-            
+
             // Validate the XML
             Source xmlSource = new StreamSource(new StringReader(xmlContent));
             validator.validate(xmlSource);
-            
-            return new ValidationResult(true, errorMessages.toString());
-            
+
+            // Determine if validation passed (no errors, warnings are OK)
+            boolean isValid = errorCount[0] == 0;
+            String message = errorMessages.toString();
+
+            if (isValid && warningCount[0] > 0) {
+                message = warningCount[0] + " warning(s) found:\n" + message;
+            } else if (!isValid) {
+                message = errorCount[0] + " error(s) found:\n" + message;
+            }
+
+            return new ValidationResult(isValid, message);
+
         } catch (Exception e) {
             return new ValidationResult(false, "Validation failed: " + e.getMessage());
         }
