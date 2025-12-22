@@ -434,6 +434,7 @@ public class XsdQualityExporter {
             case CONSTRAINT_CONFLICT -> "Constraint Conflict";
             case INCONSISTENT_DEFINITION -> "Inconsistent Definition";
             case DUPLICATE_DEFINITION -> "Duplicate Definition";
+            case DUPLICATE_ELEMENT_IN_CONTAINER -> "Duplicate Element in Container";
         };
     }
 

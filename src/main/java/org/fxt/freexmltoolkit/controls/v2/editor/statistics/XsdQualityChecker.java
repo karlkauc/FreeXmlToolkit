@@ -35,7 +35,8 @@ public class XsdQualityChecker {
         DEPRECATED,
         CONSTRAINT_CONFLICT,
         INCONSISTENT_DEFINITION,
-        DUPLICATE_DEFINITION
+        DUPLICATE_DEFINITION,
+        DUPLICATE_ELEMENT_IN_CONTAINER
     }
 
     /**
@@ -150,6 +151,17 @@ public class XsdQualityChecker {
         }
 
         /**
+         * Creates a duplicate element in container issue (same element name appears multiple times in sequence/choice/all).
+         * This is a schema error as it creates ambiguous element ordering.
+         */
+        public static QualityIssue duplicateElementInContainerIssue(String message, String suggestion,
+                                                                     List<String> affected, XsdNode containerNode) {
+            String xpath = containerNode != null ? containerNode.getXPath() : null;
+            Path sourceFile = getSourceFileFromNode(containerNode);
+            return new QualityIssue(IssueCategory.DUPLICATE_ELEMENT_IN_CONTAINER, IssueSeverity.ERROR, message, suggestion, affected, containerNode, xpath, sourceFile);
+        }
+
+        /**
          * Gets the source file name for display (without full path).
          */
         public String getSourceFileName() {
@@ -259,6 +271,9 @@ public class XsdQualityChecker {
 
         // Check for duplicate definitions (different name, same content)
         checkDuplicateDefinitions(issues);
+
+        // Check for duplicate elements within containers (sequence/choice/all) - schema error
+        checkDuplicateElementsInContainers(issues);
 
         // Calculate naming distribution
         Map<NamingConvention, Integer> namingDistribution = new EnumMap<>(NamingConvention.class);
@@ -898,6 +913,130 @@ public class XsdQualityChecker {
         for (XsdNode child : node.getChildren()) {
             collectAllComparableNodes(child, result, visitedIds);
         }
+    }
+
+    // ========== Duplicate Elements in Container Check ==========
+
+    /**
+     * Checks for duplicate element definitions within the same container (sequence, choice, all).
+     * Having the same element name appear multiple times within a single container is a schema error
+     * that causes validation ambiguity (e.g., UCITSExistingPerformanceFees appearing twice in a sequence).
+     */
+    private void checkDuplicateElementsInContainers(List<QualityIssue> issues) {
+        Set<String> visitedIds = new HashSet<>();
+        checkDuplicateElementsInContainersRecursive(schema, issues, visitedIds);
+
+        // Also check imported schemas
+        for (Map.Entry<String, XsdSchema> entry : schema.getImportedSchemas().entrySet()) {
+            checkDuplicateElementsInContainersRecursive(entry.getValue(), issues, visitedIds);
+        }
+    }
+
+    /**
+     * Recursively traverses the schema looking for containers with duplicate element names.
+     */
+    private void checkDuplicateElementsInContainersRecursive(XsdNode node, List<QualityIssue> issues,
+                                                              Set<String> visitedIds) {
+        if (node == null) return;
+
+        String nodeId = node.getId();
+        if (nodeId != null && visitedIds.contains(nodeId)) return;
+        if (nodeId != null) visitedIds.add(nodeId);
+
+        // Check if this node is a container (sequence, choice, all)
+        if (node instanceof XsdSequence || node instanceof XsdChoice || node instanceof XsdAll) {
+            checkContainerForDuplicates(node, issues);
+        }
+
+        // Recurse to children
+        for (XsdNode child : node.getChildren()) {
+            checkDuplicateElementsInContainersRecursive(child, issues, visitedIds);
+        }
+    }
+
+    /**
+     * Checks a single container node for duplicate element names among its direct children.
+     */
+    private void checkContainerForDuplicates(XsdNode container, List<QualityIssue> issues) {
+        Map<String, List<XsdNode>> elementsByName = new HashMap<>();
+
+        // Collect direct child elements by name
+        for (XsdNode child : container.getChildren()) {
+            if (child instanceof XsdElement element) {
+                String elementName = element.getName();
+                if (elementName != null && !elementName.isBlank()) {
+                    elementsByName.computeIfAbsent(elementName, k -> new ArrayList<>()).add(element);
+                }
+            }
+        }
+
+        // Report duplicates
+        for (Map.Entry<String, List<XsdNode>> entry : elementsByName.entrySet()) {
+            List<XsdNode> elements = entry.getValue();
+            if (elements.size() > 1) {
+                String elementName = entry.getKey();
+                String containerType = container.getNodeType().name().toLowerCase();
+
+                List<String> affected = new ArrayList<>();
+                affected.add("Element '" + elementName + "' appears " + elements.size() + " times");
+
+                // Add XPaths of duplicate occurrences
+                for (XsdNode elem : elements) {
+                    String xpath = elem.getXPath();
+                    if (xpath != null) {
+                        affected.add("  - " + xpath);
+                    }
+                }
+
+                // Get parent context for better error message
+                String parentContext = getContainerParentContext(container);
+
+                issues.add(QualityIssue.duplicateElementInContainerIssue(
+                        "Duplicate element '" + elementName + "' in " + containerType + parentContext,
+                        "Remove one of the duplicate element definitions or rename one to create distinct elements. " +
+                                "Duplicate elements in a " + containerType + " cause validation ambiguity.",
+                        affected,
+                        container
+                ));
+            }
+        }
+    }
+
+    /**
+     * Gets contextual information about the container's parent for better error messages.
+     */
+    private String getContainerParentContext(XsdNode container) {
+        XsdNode parent = container.getParent();
+        if (parent == null) return "";
+
+        StringBuilder context = new StringBuilder();
+        context.append(" within ");
+
+        // Traverse up to find meaningful parent context
+        while (parent != null) {
+            if (parent instanceof XsdComplexType complexType) {
+                String name = complexType.getName();
+                if (name != null && !name.isBlank()) {
+                    context.append("complexType '").append(name).append("'");
+                    return context.toString();
+                }
+            } else if (parent instanceof XsdElement element) {
+                String name = element.getName();
+                if (name != null && !name.isBlank()) {
+                    context.append("element '").append(name).append("'");
+                    return context.toString();
+                }
+            } else if (parent instanceof XsdGroup group) {
+                String name = group.getName();
+                if (name != null && !name.isBlank()) {
+                    context.append("group '").append(name).append("'");
+                    return context.toString();
+                }
+            }
+            parent = parent.getParent();
+        }
+
+        return "";
     }
 
     // ========== Readable Structure Generation ==========

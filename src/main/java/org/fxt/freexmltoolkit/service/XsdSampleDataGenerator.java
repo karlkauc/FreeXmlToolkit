@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,6 +29,36 @@ public class XsdSampleDataGenerator {
     private static final Logger logger = LogManager.getLogger(XsdSampleDataGenerator.class);
     private static final int MAX_RECURSION_DEPTH = 10;
     private static final int MAX_PATTERN_GENERATION_ATTEMPTS = 10;
+
+    /**
+     * Holds the resolved type information: base XML type and merged restrictions.
+     */
+    public record ResolvedType(String baseType, RestrictionInfo mergedRestriction) {}
+
+    /**
+     * Functional interface for type resolution.
+     * Implementations should resolve a named type to its base XML type,
+     * collecting all restrictions along the type hierarchy.
+     */
+    @FunctionalInterface
+    public interface TypeResolver {
+        /**
+         * Resolves a type name to its base XML type with merged restrictions.
+         * @param typeName The type name to resolve (e.g., "FundAmountType")
+         * @return ResolvedType with base type (e.g., "xs:decimal") and merged facets, or null if not found
+         */
+        ResolvedType resolve(String typeName);
+    }
+
+    private TypeResolver typeResolver;
+
+    /**
+     * Sets the type resolver for resolving named types to base XML types.
+     * @param resolver The type resolver implementation
+     */
+    public void setTypeResolver(TypeResolver resolver) {
+        this.typeResolver = resolver;
+    }
 
     /**
      * Public method to start data generation for an element.
@@ -51,11 +82,16 @@ public class XsdSampleDataGenerator {
         RestrictionInfo restriction = element.getRestrictionInfo();
 
         // Priority 2: Enumerations (selection lists)
+        // Filter by minInclusive/maxInclusive if present (some XSDs have conflicting constraints)
         if (restriction != null && restriction.facets().containsKey("enumeration")) {
             List<String> enumerations = restriction.facets().get("enumeration");
             if (enumerations != null && !enumerations.isEmpty()) {
-                int randomIndex = ThreadLocalRandom.current().nextInt(enumerations.size());
-                return enumerations.get(randomIndex);
+                List<String> validEnums = filterEnumerationsByConstraints(enumerations, restriction);
+                if (!validEnums.isEmpty()) {
+                    int randomIndex = ThreadLocalRandom.current().nextInt(validEnums.size());
+                    return validEnums.get(randomIndex);
+                }
+                // If no valid values after filtering, fall through to type-based generation
             }
         }
 
@@ -97,57 +133,90 @@ public class XsdSampleDataGenerator {
             }
         }
 
-        String finalType = elementType.substring(elementType.lastIndexOf(":") + 1);
+        // Try to resolve named types to base XML types using the type resolver
+        String resolvedType = elementType;
+        RestrictionInfo effectiveRestriction = restriction;
+
+        if (typeResolver != null && !isBaseXmlType(elementType)) {
+            ResolvedType resolved = typeResolver.resolve(elementType);
+            if (resolved != null && resolved.baseType() != null) {
+                resolvedType = resolved.baseType();
+                // Merge restrictions: type hierarchy restrictions take precedence, element restrictions override
+                effectiveRestriction = mergeRestrictions(resolved.mergedRestriction(), restriction);
+                logger.debug("Resolved type '{}' to base type '{}' for element '{}'",
+                        elementType, resolvedType, element.getElementName());
+            }
+        }
+
+        // Re-check for enumerations after type resolution (type may define them)
+        if (effectiveRestriction != null && effectiveRestriction.facets().containsKey("enumeration")) {
+            List<String> enumerations = effectiveRestriction.facets().get("enumeration");
+            if (enumerations != null && !enumerations.isEmpty()) {
+                int randomIndex = ThreadLocalRandom.current().nextInt(enumerations.size());
+                return enumerations.get(randomIndex);
+            }
+        }
+
+        // Re-check for patterns after type resolution (type may define them)
+        if (effectiveRestriction != null && effectiveRestriction.facets().containsKey("pattern")) {
+            String result = generateFromPatternWithLengthRestrictions(effectiveRestriction, element.getElementName());
+            if (result != null) {
+                return result;
+            }
+        }
+
+        String finalType = resolvedType.substring(resolvedType.lastIndexOf(":") + 1);
 
         return switch (finalType.toLowerCase()) {
             // String types
-            case "string", "token", "normalizedstring", "name" -> generateStringSample(restriction);
+            case "string", "token", "normalizedstring", "name" -> generateStringSample(effectiveRestriction);
             case "language" -> "en-US";
             case "ncname" -> "exampleName1";
 
             // NMTOKEN and ID types - these need valid values, not empty strings
-            case "nmtoken", "nmtokens" -> generateNmToken(restriction);
-            case "id" -> "id_" + UUID.randomUUID().toString().substring(0, 8);
-            case "idref", "idrefs" -> "ref_example";
+            case "nmtoken", "nmtokens" -> generateNmToken(effectiveRestriction);
+            // Use a fixed ID that can be referenced by IDREFs
+            case "id" -> "id_generated";
+            case "idref", "idrefs" -> "id_generated";
             case "anyuri" -> "http://example.com/sample";
 
             // Float and Double types - use Locale.US to ensure dot decimal separator
             case "float" -> {
-                BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("0.01"), new BigDecimal("999.99"));
+                BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("0.01"), new BigDecimal("999.99"));
                 yield String.format(Locale.US, "%.2f", randomDecimal.floatValue());
             }
             case "double" -> {
-                BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("0.01"), new BigDecimal("9999.99"));
+                BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("0.01"), new BigDecimal("9999.99"));
                 yield String.format(Locale.US, "%.4f", randomDecimal.doubleValue());
             }
 
             // Numeric types using the helper method
-            case "decimal", "positivedecimals", "amounttype", "fundamounttype" -> {
-                BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("1.00"), new BigDecimal("1000.00"));
+            case "decimal" -> {
+                BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("1.00"), new BigDecimal("1000.00"));
                 yield DatatypeConverter.printDecimal(randomDecimal.setScale(2, RoundingMode.HALF_UP));
             }
             case "integer", "positiveinteger", "nonnegativeinteger" -> {
-                BigDecimal randomDecimal = generateNumberInRange(restriction, BigDecimal.ONE, new BigDecimal("10000"));
+                BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, BigDecimal.ONE, new BigDecimal("10000"));
                 yield DatatypeConverter.printInteger(randomDecimal.toBigInteger());
             }
             case "negativeinteger", "nonpositiveinteger" -> {
-                BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("-10000"), BigDecimal.valueOf(-1));
+                BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("-10000"), BigDecimal.valueOf(-1));
                 yield DatatypeConverter.printInteger(randomDecimal.toBigInteger());
             }
             case "long", "unsignedlong" -> {
-                BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("10000"), new BigDecimal("50000"));
+                BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("10000"), new BigDecimal("50000"));
                 yield DatatypeConverter.printLong(randomDecimal.longValue());
             }
             case "int", "unsignedint" -> {
-                BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("100"), new BigDecimal("5000"));
+                BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, new BigDecimal("100"), new BigDecimal("5000"));
                 yield DatatypeConverter.printInt(randomDecimal.intValue());
             }
             case "short", "unsignedshort" -> {
-                BigDecimal randomDecimal = generateNumberInRange(restriction, BigDecimal.ONE, new BigDecimal("100"));
+                BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, BigDecimal.ONE, new BigDecimal("100"));
                 yield DatatypeConverter.printShort(randomDecimal.shortValue());
             }
             case "byte", "unsignedbyte" -> {
-                BigDecimal randomDecimal = generateNumberInRange(restriction, BigDecimal.ZERO, new BigDecimal("127"));
+                BigDecimal randomDecimal = generateNumberInRange(effectiveRestriction, BigDecimal.ZERO, new BigDecimal("127"));
                 yield DatatypeConverter.printByte(randomDecimal.byteValue());
             }
 
@@ -625,8 +694,201 @@ public class XsdSampleDataGenerator {
             return min;
         }
 
+        // Apply totalDigits constraint if present
+        int totalDigits = -1;
+        int fractionDigits = -1;
+        if (restriction != null) {
+            Map<String, List<String>> facets = restriction.facets();
+            if (facets.containsKey("totalDigits")) {
+                try {
+                    totalDigits = Integer.parseInt(facets.get("totalDigits").getFirst());
+                } catch (NumberFormatException e) { /* ignore */ }
+            }
+            if (facets.containsKey("fractionDigits")) {
+                try {
+                    fractionDigits = Integer.parseInt(facets.get("fractionDigits").getFirst());
+                } catch (NumberFormatException e) { /* ignore */ }
+            }
+        }
+
+        // Constrain max based on totalDigits
+        if (totalDigits > 0) {
+            // Maximum value with totalDigits (e.g., 3 digits -> max 999)
+            BigDecimal maxByDigits = BigDecimal.TEN.pow(totalDigits).subtract(BigDecimal.ONE);
+            if (max.compareTo(maxByDigits) > 0) {
+                max = maxByDigits;
+            }
+            // Ensure min doesn't exceed the max
+            if (min.compareTo(max) > 0) {
+                min = max;
+            }
+        }
+
         BigDecimal range = max.subtract(min);
         BigDecimal randomValue = min.add(range.multiply(BigDecimal.valueOf(Math.random())));
+
+        // Apply fractionDigits constraint
+        if (fractionDigits >= 0) {
+            randomValue = randomValue.setScale(fractionDigits, RoundingMode.HALF_UP);
+        }
+
+        // Ensure totalDigits is respected (including decimal places)
+        if (totalDigits > 0) {
+            randomValue = constrainToTotalDigits(randomValue, totalDigits, fractionDigits >= 0 ? fractionDigits : 0);
+        }
+
         return randomValue;
+    }
+
+    /**
+     * Constrains a BigDecimal to have at most the specified total number of digits.
+     */
+    private BigDecimal constrainToTotalDigits(BigDecimal value, int totalDigits, int fractionDigits) {
+        String strValue = value.abs().toPlainString();
+        String[] parts = strValue.split("\\.");
+        int intDigits = parts[0].length();
+        int fracDigits = parts.length > 1 ? parts[1].length() : 0;
+
+        if (intDigits + fracDigits > totalDigits) {
+            // Need to reduce - prioritize keeping integer part
+            int allowedFrac = Math.max(0, totalDigits - intDigits);
+            if (allowedFrac < fracDigits) {
+                value = value.setScale(allowedFrac, RoundingMode.DOWN);
+            }
+            // If still too many digits, reduce integer part
+            strValue = value.abs().toPlainString();
+            parts = strValue.split("\\.");
+            intDigits = parts[0].length();
+            fracDigits = parts.length > 1 ? parts[1].length() : 0;
+            if (intDigits + fracDigits > totalDigits) {
+                // Truncate to max allowed value
+                BigDecimal maxAllowed = BigDecimal.TEN.pow(totalDigits - fracDigits).subtract(BigDecimal.ONE);
+                if (fracDigits > 0) {
+                    maxAllowed = maxAllowed.add(BigDecimal.ONE.subtract(BigDecimal.ONE.scaleByPowerOfTen(-fracDigits)));
+                }
+                value = value.signum() < 0 ? maxAllowed.negate() : maxAllowed;
+            }
+        }
+        return value;
+    }
+
+    /**
+     * Filters enumeration values by minInclusive/maxInclusive constraints.
+     * Some XSD schemas define enumerations that conflict with min/max constraints.
+     */
+    private List<String> filterEnumerationsByConstraints(List<String> enumerations, RestrictionInfo restriction) {
+        if (restriction == null) {
+            return enumerations;
+        }
+
+        Map<String, List<String>> facets = restriction.facets();
+        BigDecimal minInclusive = null;
+        BigDecimal maxInclusive = null;
+
+        if (facets.containsKey("minInclusive")) {
+            try {
+                minInclusive = new BigDecimal(facets.get("minInclusive").getFirst());
+            } catch (NumberFormatException e) { /* not numeric */ }
+        }
+        if (facets.containsKey("maxInclusive")) {
+            try {
+                maxInclusive = new BigDecimal(facets.get("maxInclusive").getFirst());
+            } catch (NumberFormatException e) { /* not numeric */ }
+        }
+
+        // If no numeric constraints, return all enumerations
+        if (minInclusive == null && maxInclusive == null) {
+            return enumerations;
+        }
+
+        // Filter numeric enumerations
+        List<String> filtered = new ArrayList<>();
+        final BigDecimal finalMin = minInclusive;
+        final BigDecimal finalMax = maxInclusive;
+
+        for (String enumValue : enumerations) {
+            try {
+                BigDecimal numValue = new BigDecimal(enumValue);
+                boolean valid = true;
+                if (finalMin != null && numValue.compareTo(finalMin) < 0) {
+                    valid = false;
+                }
+                if (finalMax != null && numValue.compareTo(finalMax) > 0) {
+                    valid = false;
+                }
+                if (valid) {
+                    filtered.add(enumValue);
+                }
+            } catch (NumberFormatException e) {
+                // Non-numeric enumeration - include it (constraint doesn't apply)
+                filtered.add(enumValue);
+            }
+        }
+
+        return filtered;
+    }
+
+    /**
+     * Checks if the given type is a base XML Schema type (xs:* or xsd:*).
+     * @param typeName The type name to check
+     * @return true if it's a base XML type, false otherwise
+     */
+    private boolean isBaseXmlType(String typeName) {
+        if (typeName == null) return false;
+
+        // Remove namespace prefix for comparison
+        String localName = typeName.contains(":")
+            ? typeName.substring(typeName.lastIndexOf(":") + 1)
+            : typeName;
+
+        // List of all XML Schema built-in types
+        return switch (localName.toLowerCase()) {
+            case "string", "normalizedstring", "token", "language", "nmtoken", "nmtokens",
+                 "name", "ncname", "id", "idref", "idrefs", "entity", "entities",
+                 "integer", "nonnegativeinteger", "positiveinteger", "nonpositiveinteger", "negativeinteger",
+                 "long", "int", "short", "byte",
+                 "unsignedlong", "unsignedint", "unsignedshort", "unsignedbyte",
+                 "decimal", "float", "double",
+                 "boolean",
+                 "date", "time", "datetime", "duration", "gyear", "gmonth", "gday", "gyearmonth", "gmonthday",
+                 "base64binary", "hexbinary",
+                 "anyuri", "qname", "notation",
+                 "anysimpletype", "anytype" -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Merges two RestrictionInfo objects. The primary restriction takes precedence,
+     * but facets from secondary are included if not present in primary.
+     * @param primary The primary restriction (from type hierarchy)
+     * @param secondary The secondary restriction (from element)
+     * @return Merged RestrictionInfo
+     */
+    private RestrictionInfo mergeRestrictions(RestrictionInfo primary, RestrictionInfo secondary) {
+        if (primary == null) return secondary;
+        if (secondary == null) return primary;
+
+        // Start with primary base type (from resolved type hierarchy)
+        String mergedBase = primary.base() != null ? primary.base() : secondary.base();
+
+        // Merge facets: secondary (element) overrides primary (type hierarchy)
+        Map<String, List<String>> mergedFacets = new java.util.HashMap<>();
+
+        // Add all facets from primary (type hierarchy)
+        if (primary.facets() != null) {
+            mergedFacets.putAll(primary.facets());
+        }
+
+        // Override/add facets from secondary (element-level restrictions)
+        if (secondary.facets() != null) {
+            for (Map.Entry<String, List<String>> entry : secondary.facets().entrySet()) {
+                // For enumerations and patterns, we might want to intersect rather than replace
+                // For now, element-level restrictions override type-level
+                mergedFacets.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return new RestrictionInfo(mergedBase, mergedFacets);
     }
 }

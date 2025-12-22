@@ -629,4 +629,153 @@ class XsdQualityCheckerTest {
                     "Duplicate detection should be INFO severity (not ERROR)");
         }
     }
+
+    // ========== Duplicate Element in Container Tests ==========
+
+    @Nested
+    @DisplayName("Duplicate Element in Container Detection")
+    class DuplicateElementInContainerTests {
+
+        @Test
+        @DisplayName("should detect duplicate element names in sequence")
+        void testDetectsDuplicateInSequence() {
+            // This simulates the FundsXML4 bug where UCITSExistingPerformanceFees appears twice
+            XsdComplexType complexType = new XsdComplexType("FundFeesType");
+            XsdSequence sequence = new XsdSequence();
+
+            XsdElement elem1 = new XsdElement("UCITSExistingPerformanceFees");
+            elem1.setType("YesNoType");
+            sequence.addChild(elem1);
+
+            XsdElement elem2 = new XsdElement("UCITSExistingPerformanceFees"); // Duplicate!
+            elem2.setType("YesNoType");
+            sequence.addChild(elem2);
+
+            XsdElement elem3 = new XsdElement("UCITSPerformanceFees");
+            elem3.setType("xs:decimal");
+            sequence.addChild(elem3);
+
+            complexType.addChild(sequence);
+            schema.addChild(complexType);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.DUPLICATE_ELEMENT_IN_CONTAINER);
+            assertEquals(1, issues.size(), "Should detect exactly one duplicate element issue");
+
+            QualityIssue issue = issues.get(0);
+            assertEquals(IssueSeverity.ERROR, issue.severity(), "Duplicate element in container should be ERROR");
+            assertTrue(issue.message().contains("UCITSExistingPerformanceFees"),
+                    "Message should contain the duplicate element name");
+            assertTrue(issue.message().contains("sequence"),
+                    "Message should mention the container type");
+        }
+
+        @Test
+        @DisplayName("should detect duplicate element names in choice")
+        void testDetectsDuplicateInChoice() {
+            XsdComplexType complexType = new XsdComplexType("PaymentType");
+            XsdChoice choice = new XsdChoice();
+
+            XsdElement elem1 = new XsdElement("CreditCard");
+            elem1.setType("xs:string");
+            choice.addChild(elem1);
+
+            XsdElement elem2 = new XsdElement("CreditCard"); // Duplicate!
+            elem2.setType("xs:string");
+            choice.addChild(elem2);
+
+            complexType.addChild(choice);
+            schema.addChild(complexType);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.DUPLICATE_ELEMENT_IN_CONTAINER);
+            assertEquals(1, issues.size(), "Should detect duplicate in choice");
+            assertTrue(issues.get(0).message().contains("choice"));
+        }
+
+        @Test
+        @DisplayName("should not report unique elements as duplicates")
+        void testUniqueElementsNotReported() {
+            XsdComplexType complexType = new XsdComplexType("PersonType");
+            XsdSequence sequence = new XsdSequence();
+
+            XsdElement firstName = new XsdElement("FirstName");
+            firstName.setType("xs:string");
+            sequence.addChild(firstName);
+
+            XsdElement lastName = new XsdElement("LastName");
+            lastName.setType("xs:string");
+            sequence.addChild(lastName);
+
+            XsdElement age = new XsdElement("Age");
+            age.setType("xs:int");
+            sequence.addChild(age);
+
+            complexType.addChild(sequence);
+            schema.addChild(complexType);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.DUPLICATE_ELEMENT_IN_CONTAINER);
+            assertTrue(issues.isEmpty(), "Should not report unique elements as duplicates");
+        }
+
+        @Test
+        @DisplayName("should include parent context in error message")
+        void testIncludesParentContext() {
+            XsdComplexType complexType = new XsdComplexType("OrderType");
+            XsdSequence sequence = new XsdSequence();
+
+            XsdElement elem1 = new XsdElement("ItemCode");
+            elem1.setType("xs:string");
+            sequence.addChild(elem1);
+
+            XsdElement elem2 = new XsdElement("ItemCode"); // Duplicate
+            elem2.setType("xs:string");
+            sequence.addChild(elem2);
+
+            complexType.addChild(sequence);
+            schema.addChild(complexType);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.DUPLICATE_ELEMENT_IN_CONTAINER);
+            assertEquals(1, issues.size());
+
+            QualityIssue issue = issues.get(0);
+            assertTrue(issue.message().contains("OrderType"),
+                    "Error message should include the parent complexType name");
+        }
+
+        @Test
+        @DisplayName("should detect multiple different duplicate groups")
+        void testMultipleDuplicateGroups() {
+            XsdComplexType complexType = new XsdComplexType("TestType");
+            XsdSequence sequence = new XsdSequence();
+
+            // First duplicate group
+            sequence.addChild(new XsdElement("FieldA"));
+            sequence.addChild(new XsdElement("FieldA")); // Duplicate
+
+            // Second duplicate group
+            sequence.addChild(new XsdElement("FieldB"));
+            sequence.addChild(new XsdElement("FieldB")); // Duplicate
+            sequence.addChild(new XsdElement("FieldB")); // Triple!
+
+            complexType.addChild(sequence);
+            schema.addChild(complexType);
+
+            XsdQualityChecker checker = new XsdQualityChecker(schema);
+            QualityResult result = checker.check();
+
+            List<QualityIssue> issues = result.getIssuesByCategory(IssueCategory.DUPLICATE_ELEMENT_IN_CONTAINER);
+            assertEquals(2, issues.size(), "Should detect two duplicate groups");
+        }
+    }
 }

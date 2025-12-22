@@ -318,6 +318,10 @@ public class XsdDocumentationService {
         // Populate XsdDocumentationData
         populateDocumentationData();
 
+        // Configure the sample data generator with type resolver BEFORE traversal
+        // so that sample data generation can resolve named types to base XML types
+        configureTypeResolver();
+
         // Start traversal from global elements
         counter = 0;
         for (Node globalElement : xsdDocumentationData.getGlobalElements()) {
@@ -327,6 +331,242 @@ public class XsdDocumentationService {
 
         // Build the type usage map after traversal
         buildTypeUsageMap();
+    }
+
+    /**
+     * Configures the XsdSampleDataGenerator with a type resolver that resolves
+     * named types to base XML types, collecting all restrictions along the way.
+     */
+    private void configureTypeResolver() {
+        xsdSampleDataGenerator.setTypeResolver(typeName -> resolveTypeToBase(typeName, new HashSet<>()));
+    }
+
+    /**
+     * Resolves a type name recursively to its base XML Schema type,
+     * collecting all restrictions and facets along the type hierarchy.
+     *
+     * @param typeName The type name to resolve (e.g., "FundAmountType")
+     * @param visited Set of already visited types to prevent infinite loops
+     * @return ResolvedType with base type and merged restrictions, or null if not found
+     */
+    private XsdSampleDataGenerator.ResolvedType resolveTypeToBase(String typeName, Set<String> visited) {
+        if (typeName == null || typeName.isBlank()) {
+            return null;
+        }
+
+        // Normalize type name (remove namespace prefix for lookup)
+        String localTypeName = typeName.contains(":")
+            ? typeName.substring(typeName.lastIndexOf(":") + 1)
+            : typeName;
+
+        // Check for base XML types - these are the terminal cases
+        if (isBaseXmlType(localTypeName)) {
+            return new XsdSampleDataGenerator.ResolvedType(typeName, null);
+        }
+
+        // Prevent infinite loops in circular type references
+        if (visited.contains(localTypeName)) {
+            logger.debug("Circular type reference detected for type: {}", typeName);
+            return null;
+        }
+        visited.add(localTypeName);
+
+        // Look up the type in simpleTypeMap
+        Node typeNode = simpleTypeMap.get(localTypeName);
+        if (typeNode != null) {
+            return resolveSimpleType(typeNode, visited);
+        }
+
+        // Look up the type in complexTypeMap
+        typeNode = complexTypeMap.get(localTypeName);
+        if (typeNode != null) {
+            return resolveComplexType(typeNode, visited);
+        }
+
+        // Type not found in schema
+        logger.debug("Type '{}' not found in schema, cannot resolve", typeName);
+        return null;
+    }
+
+    /**
+     * Resolves a simpleType node to its base type with restrictions.
+     */
+    private XsdSampleDataGenerator.ResolvedType resolveSimpleType(Node typeNode, Set<String> visited) {
+        // Look for restriction element
+        Node restriction = getDirectChildElement(typeNode, "restriction");
+        if (restriction != null) {
+            String baseType = getAttributeValue(restriction, "base");
+            Map<String, List<String>> facets = extractFacetsFromRestriction(restriction);
+
+            // Recursively resolve the base type
+            XsdSampleDataGenerator.ResolvedType baseResolved = resolveTypeToBase(baseType, visited);
+            if (baseResolved != null) {
+                // Merge facets: current facets override inherited ones
+                Map<String, List<String>> mergedFacets = new HashMap<>();
+                if (baseResolved.mergedRestriction() != null && baseResolved.mergedRestriction().facets() != null) {
+                    mergedFacets.putAll(baseResolved.mergedRestriction().facets());
+                }
+                mergedFacets.putAll(facets);
+
+                return new XsdSampleDataGenerator.ResolvedType(
+                    baseResolved.baseType(),
+                    new XsdExtendedElement.RestrictionInfo(baseResolved.baseType(), mergedFacets)
+                );
+            }
+
+            // Base type is a base XML type, return with current facets
+            return new XsdSampleDataGenerator.ResolvedType(
+                baseType,
+                new XsdExtendedElement.RestrictionInfo(baseType, facets)
+            );
+        }
+
+        // Look for list element
+        Node listNode = getDirectChildElement(typeNode, "list");
+        if (listNode != null) {
+            String itemType = getAttributeValue(listNode, "itemType");
+            if (itemType != null) {
+                XsdSampleDataGenerator.ResolvedType itemResolved = resolveTypeToBase(itemType, visited);
+                return itemResolved; // Return the item type's resolution
+            }
+        }
+
+        // Look for union element
+        Node unionNode = getDirectChildElement(typeNode, "union");
+        if (unionNode != null) {
+            String memberTypes = getAttributeValue(unionNode, "memberTypes");
+            if (memberTypes != null && !memberTypes.isBlank()) {
+                // Use the first member type
+                String firstMember = memberTypes.split("\\s+")[0];
+                return resolveTypeToBase(firstMember, visited);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolves a complexType node to its base type (for simpleContent extensions).
+     */
+    private XsdSampleDataGenerator.ResolvedType resolveComplexType(Node typeNode, Set<String> visited) {
+        // Look for simpleContent element
+        Node simpleContent = getDirectChildElement(typeNode, "simpleContent");
+        if (simpleContent != null) {
+            // Check for extension
+            Node extension = getDirectChildElement(simpleContent, "extension");
+            if (extension != null) {
+                String baseType = getAttributeValue(extension, "base");
+                return resolveTypeToBase(baseType, visited);
+            }
+
+            // Check for restriction
+            Node restriction = getDirectChildElement(simpleContent, "restriction");
+            if (restriction != null) {
+                String baseType = getAttributeValue(restriction, "base");
+                Map<String, List<String>> facets = extractFacetsFromRestriction(restriction);
+
+                XsdSampleDataGenerator.ResolvedType baseResolved = resolveTypeToBase(baseType, visited);
+                if (baseResolved != null) {
+                    Map<String, List<String>> mergedFacets = new HashMap<>();
+                    if (baseResolved.mergedRestriction() != null && baseResolved.mergedRestriction().facets() != null) {
+                        mergedFacets.putAll(baseResolved.mergedRestriction().facets());
+                    }
+                    mergedFacets.putAll(facets);
+
+                    return new XsdSampleDataGenerator.ResolvedType(
+                        baseResolved.baseType(),
+                        new XsdExtendedElement.RestrictionInfo(baseResolved.baseType(), mergedFacets)
+                    );
+                }
+
+                return new XsdSampleDataGenerator.ResolvedType(
+                    baseType,
+                    new XsdExtendedElement.RestrictionInfo(baseType, facets)
+                );
+            }
+        }
+
+        // Look for complexContent element
+        Node complexContent = getDirectChildElement(typeNode, "complexContent");
+        if (complexContent != null) {
+            // Check for extension or restriction
+            Node extension = getDirectChildElement(complexContent, "extension");
+            if (extension != null) {
+                String baseType = getAttributeValue(extension, "base");
+                return resolveTypeToBase(baseType, visited);
+            }
+
+            Node restriction = getDirectChildElement(complexContent, "restriction");
+            if (restriction != null) {
+                String baseType = getAttributeValue(restriction, "base");
+                return resolveTypeToBase(baseType, visited);
+            }
+        }
+
+        // Complex type without simpleContent - cannot generate text content
+        return null;
+    }
+
+    /**
+     * Extracts facets from a restriction element.
+     */
+    private Map<String, List<String>> extractFacetsFromRestriction(Node restriction) {
+        Map<String, List<String>> facets = new HashMap<>();
+
+        NodeList children = restriction.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) continue;
+
+            String localName = child.getLocalName();
+            if (localName == null) continue;
+
+            // These are facet elements
+            switch (localName) {
+                case "enumeration", "pattern" -> {
+                    String value = getAttributeValue(child, "value");
+                    if (value != null) {
+                        facets.computeIfAbsent(localName, k -> new ArrayList<>()).add(value);
+                    }
+                }
+                case "minLength", "maxLength", "length",
+                     "minInclusive", "maxInclusive", "minExclusive", "maxExclusive",
+                     "totalDigits", "fractionDigits", "whiteSpace" -> {
+                    String value = getAttributeValue(child, "value");
+                    if (value != null) {
+                        facets.put(localName, List.of(value));
+                    }
+                }
+            }
+        }
+
+        return facets;
+    }
+
+    /**
+     * Checks if the given type name is a base XML Schema type.
+     */
+    private boolean isBaseXmlType(String typeName) {
+        if (typeName == null) return false;
+
+        String localName = typeName.contains(":")
+            ? typeName.substring(typeName.lastIndexOf(":") + 1)
+            : typeName;
+
+        return switch (localName.toLowerCase()) {
+            case "string", "normalizedstring", "token", "language", "nmtoken", "nmtokens",
+                 "name", "ncname", "id", "idref", "idrefs", "entity", "entities",
+                 "integer", "nonnegativeinteger", "positiveinteger", "nonpositiveinteger", "negativeinteger",
+                 "long", "int", "short", "byte",
+                 "unsignedlong", "unsignedint", "unsignedshort", "unsignedbyte",
+                 "decimal", "float", "double",
+                 "boolean",
+                 "date", "time", "datetime", "duration", "gyear", "gmonth", "gday", "gyearmonth", "gmonthday",
+                 "base64binary", "hexbinary",
+                 "anyuri", "qname", "notation",
+                 "anysimpletype", "anytype" -> true;
+            default -> false;
+        };
     }
 
     /**
@@ -1122,6 +1362,13 @@ public class XsdDocumentationService {
             // Handle references (ref="...")
             String ref = getAttributeValue(node, "ref");
             if (ref != null && !ref.isEmpty()) {
+                // Skip elements from external namespaces that can't be properly generated as sample data
+                // These typically require special handling (e.g., ds:Signature from XML Digital Signature)
+                if (ref.contains(":") && isExternalNamespaceReference(ref)) {
+                    logger.debug("Skipping external namespace reference: {}", ref);
+                    return;
+                }
+
                 Node referencedNode = findReferencedNode(node.getLocalName(), ref);
                 if (referencedNode != null) {
                     // Store the reference node to preserve cardinality attributes (minOccurs/maxOccurs)
@@ -1815,6 +2062,12 @@ public class XsdDocumentationService {
             return; // Attributes are handled by their parent
         }
 
+        // Skip optional container elements that would be empty
+        // This prevents generating elements like <BreakDowns></BreakDowns> when there are no children
+        if (!element.isMandatory() && wouldProduceEmptyContainer(element, mandatoryOnly, indentLevel)) {
+            return;
+        }
+
         // Handle container elements (SEQUENCE, CHOICE, ALL) - these are structural, not actual XML elements
         // Process their children instead of outputting the container itself
         if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
@@ -2003,6 +2256,102 @@ public class XsdDocumentationService {
                 buildXmlElementContent(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel);
             }
         }
+    }
+
+    /**
+     * Checks if an element would produce an empty container (no text content and no child elements).
+     * This is used to skip optional elements that would result in invalid XML like <BreakDowns></BreakDowns>.
+     *
+     * @param element The element to check
+     * @param mandatoryOnly Whether only mandatory children should be considered
+     * @param indentLevel Current recursion depth
+     * @return true if the element would be empty, false otherwise
+     */
+    private boolean wouldProduceEmptyContainer(XsdExtendedElement element, boolean mandatoryOnly, int indentLevel) {
+        // Check if element has sample data (text content)
+        String sampleData = element.getDisplaySampleData();
+        if (sampleData != null && !sampleData.isEmpty()) {
+            return false; // Has text content, not empty
+        }
+
+        // Check if element has any children that would be generated
+        List<XsdExtendedElement> childElements = element.getChildren().stream()
+                .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                .filter(Objects::nonNull)
+                .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
+                .toList();
+
+        if (childElements.isEmpty()) {
+            // No non-attribute children - check if it has attributes (which make it non-empty)
+            boolean hasAttributes = element.getChildren().stream()
+                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                    .filter(Objects::nonNull)
+                    .anyMatch(e -> e.getElementName() != null && e.getElementName().startsWith("@"));
+            return !hasAttributes;
+        }
+
+        // Check if any child would actually be rendered
+        for (XsdExtendedElement child : childElements) {
+            String childName = child.getElementName();
+            if (childName == null) continue;
+
+            // Handle structural containers
+            if (childName.startsWith("SEQUENCE") || childName.startsWith("ALL") || childName.startsWith("CHOICE")) {
+                // Recursively check container children
+                if (!wouldProduceEmptyContainer(child, mandatoryOnly, indentLevel + 1)) {
+                    return false;
+                }
+            } else if (!mandatoryOnly || child.isMandatory()) {
+                // Non-container element that would be rendered
+                return false;
+            }
+        }
+
+        // All checks passed - element would be empty
+        return true;
+    }
+
+    /**
+     * Checks if a reference points to an external namespace that shouldn't be generated as sample data.
+     * External namespace references (like ds:Signature from XML Digital Signature) require special handling
+     * and typically reference schemas that are imported but not included in the current document.
+     *
+     * @param ref The element reference (e.g., "ds:Signature", "tns:Element")
+     * @return true if the reference is to an external namespace that should be skipped
+     */
+    private boolean isExternalNamespaceReference(String ref) {
+        if (ref == null || ref.isEmpty() || !ref.contains(":")) {
+            return false;
+        }
+
+        String prefix = ref.substring(0, ref.indexOf(":"));
+
+        // Check if this prefix maps to an external namespace (not the target namespace)
+        // Common external namespace prefixes that should be skipped:
+        // - ds: XML Digital Signature (http://www.w3.org/2000/09/xmldsig#)
+        // - xenc: XML Encryption
+        // - saml: SAML assertions
+        // - wsse: WS-Security
+        Set<String> externalPrefixes = Set.of("ds", "dsig", "xenc", "saml", "wsse", "wsu", "soap", "xsi");
+        if (externalPrefixes.contains(prefix)) {
+            return true;
+        }
+
+        // Also check if we have namespace information from the schema
+        if (xsdDocumentationData != null && xsdDocumentationData.getNamespaces() != null) {
+            Map<String, String> namespaces = xsdDocumentationData.getNamespaces();
+            String targetNs = xsdDocumentationData.getTargetNamespace();
+            String prefixNs = namespaces.get(prefix);
+
+            // If the prefix maps to a namespace different from the target namespace,
+            // and it's not the XSD namespace itself, it's likely external
+            if (prefixNs != null && targetNs != null && !prefixNs.equals(targetNs)
+                    && !prefixNs.equals(NS_URI)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // --- XML/DOM Processing Helper Methods ---

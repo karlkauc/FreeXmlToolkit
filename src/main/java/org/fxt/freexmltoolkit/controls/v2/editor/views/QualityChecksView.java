@@ -560,6 +560,10 @@ public class QualityChecksView extends BorderPane {
                 icon.setIconLiteral("bi-files");
                 icon.setIconColor(Color.DODGERBLUE);
             }
+            case DUPLICATE_ELEMENT_IN_CONTAINER -> {
+                icon.setIconLiteral("bi-exclamation-triangle-fill");
+                icon.setIconColor(Color.RED);
+            }
         }
 
         return icon;
@@ -576,6 +580,7 @@ public class QualityChecksView extends BorderPane {
             case CONSTRAINT_CONFLICT -> "Constraint Conflict";
             case INCONSISTENT_DEFINITION -> "Inconsistent Definition";
             case DUPLICATE_DEFINITION -> "Duplicate Definition";
+            case DUPLICATE_ELEMENT_IN_CONTAINER -> "Duplicate Element";
         };
     }
 
