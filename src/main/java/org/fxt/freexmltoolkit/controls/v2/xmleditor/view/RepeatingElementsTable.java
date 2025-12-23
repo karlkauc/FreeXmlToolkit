@@ -235,81 +235,218 @@ public class RepeatingElementsTable {
 
     /**
      * Analyzes all elements to determine columns.
-     * Columns come from: attributes + first-level child elements
+     * Columns come from: attributes + first-level child elements.
+     *
+     * <p>Column order is determined by merging the document order from all elements.
+     * When different elements have different children, the unified column order
+     * respects the relative position of each column within each element.</p>
+     *
+     * <p>Example: If Element1 has [A, C, D] and Element2 has [A, B, C, D, E],
+     * the merged order will be [A, B, C, D, E] because B appears before C in Element2.</p>
      */
     private void analyzeStructure() {
-        Set<String> attributeNames = new LinkedHashSet<>();
-        Set<String> childElementNames = new LinkedHashSet<>();
+        // Collect all unique column names for validation
+        Set<String> allAttributeNames = new LinkedHashSet<>();
+        Set<String> allChildElementNames = new LinkedHashSet<>();
         boolean hasDirectText = false;
 
-        for (XmlElement element : elements) {
-            // Collect attributes
-            attributeNames.addAll(element.getAttributes().keySet());
+        // Also build per-element column order lists for merging
+        List<List<String>> perElementOrders = new ArrayList<>();
 
-            // Collect first-level child element names
+        for (XmlElement element : elements) {
+            List<String> elementColumnOrder = new ArrayList<>();
+
+            // Collect attributes (in document order)
+            for (String attrName : element.getAttributes().keySet()) {
+                allAttributeNames.add(attrName);
+                elementColumnOrder.add("@" + attrName);
+            }
+
+            // Collect first-level child element names (in document order)
             for (XmlNode child : element.getChildren()) {
                 if (child instanceof XmlElement) {
-                    childElementNames.add(((XmlElement) child).getName());
+                    String childName = ((XmlElement) child).getName();
+                    allChildElementNames.add(childName);
+                    // Only add first occurrence of each child name per element
+                    if (!elementColumnOrder.contains(childName)) {
+                        elementColumnOrder.add(childName);
+                    }
                 } else if (child instanceof XmlText) {
                     String text = ((XmlText) child).getText().trim();
                     if (!text.isEmpty()) {
                         hasDirectText = true;
+                        // Add text marker if not already present
+                        if (!elementColumnOrder.contains("#text")) {
+                            elementColumnOrder.add("#text");
+                        }
                     }
                 }
             }
+
+            perElementOrders.add(elementColumnOrder);
         }
 
         // Check if we have a cached column order for this element type
         List<String> cachedOrder = columnOrderCache.get(elementName);
 
+        // Merge all element orders into a unified order respecting document order
+        List<String> mergedOrder = mergeColumnOrders(perElementOrders);
+
         if (cachedOrder != null) {
-            // Use cached order - add columns in the original order
-            for (String colName : cachedOrder) {
-                if (colName.startsWith("@") && attributeNames.contains(colName.substring(1))) {
+            // Use cached order for known columns, but insert new columns at correct positions
+            List<String> finalOrder = mergeCachedWithNew(cachedOrder, mergedOrder);
+
+            for (String colName : finalOrder) {
+                if (colName.startsWith("@") && allAttributeNames.contains(colName.substring(1))) {
                     columns.add(new TableColumn(colName.substring(1), ColumnType.ATTRIBUTE));
                 } else if (colName.equals("#text") && hasDirectText) {
                     columns.add(new TableColumn("#text", ColumnType.TEXT_CONTENT));
-                } else if (childElementNames.contains(colName)) {
+                } else if (allChildElementNames.contains(colName)) {
                     columns.add(new TableColumn(colName, ColumnType.CHILD_ELEMENT));
                 }
             }
 
-            // Add any new columns that weren't in the cache (at the end)
-            for (String attrName : attributeNames) {
-                if (!cachedOrder.contains("@" + attrName)) {
-                    columns.add(new TableColumn(attrName, ColumnType.ATTRIBUTE));
-                }
-            }
-            for (String childName : childElementNames) {
-                if (!cachedOrder.contains(childName)) {
-                    columns.add(new TableColumn(childName, ColumnType.CHILD_ELEMENT));
-                }
-            }
-            if (hasDirectText && !cachedOrder.contains("#text")) {
-                columns.add(new TableColumn("#text", ColumnType.TEXT_CONTENT));
-            }
+            // Update cache with the new merged order
+            columnOrderCache.put(elementName, finalOrder);
         } else {
-            // First time - create columns in discovery order and cache the order
-            List<String> columnOrder = new ArrayList<>();
-
-            for (String attrName : attributeNames) {
-                columns.add(new TableColumn(attrName, ColumnType.ATTRIBUTE));
-                columnOrder.add("@" + attrName);
-            }
-
-            for (String childName : childElementNames) {
-                columns.add(new TableColumn(childName, ColumnType.CHILD_ELEMENT));
-                columnOrder.add(childName);
-            }
-
-            if (hasDirectText) {
-                columns.add(new TableColumn("#text", ColumnType.TEXT_CONTENT));
-                columnOrder.add("#text");
+            // First time - use merged order and cache it
+            for (String colName : mergedOrder) {
+                if (colName.startsWith("@") && allAttributeNames.contains(colName.substring(1))) {
+                    columns.add(new TableColumn(colName.substring(1), ColumnType.ATTRIBUTE));
+                } else if (colName.equals("#text") && hasDirectText) {
+                    columns.add(new TableColumn("#text", ColumnType.TEXT_CONTENT));
+                } else if (allChildElementNames.contains(colName)) {
+                    columns.add(new TableColumn(colName, ColumnType.CHILD_ELEMENT));
+                }
             }
 
             // Cache the column order for future rebuilds
-            columnOrderCache.put(elementName, columnOrder);
+            columnOrderCache.put(elementName, mergedOrder);
         }
+    }
+
+    /**
+     * Merges column orders from multiple elements into a single unified order.
+     *
+     * <p>The algorithm respects the relative order of columns within each element.
+     * When a new column is encountered, it is inserted at a position that maintains
+     * its relative order to columns that are already in the merged list.</p>
+     *
+     * @param perElementOrders list of column orders, one per element
+     * @return unified column order respecting document order from all elements
+     */
+    private List<String> mergeColumnOrders(List<List<String>> perElementOrders) {
+        List<String> merged = new ArrayList<>();
+
+        for (List<String> elementOrder : perElementOrders) {
+            int insertPosition = 0;
+
+            for (String colName : elementOrder) {
+                int existingIndex = merged.indexOf(colName);
+
+                if (existingIndex >= 0) {
+                    // Column already exists - update insert position to after it
+                    insertPosition = existingIndex + 1;
+                } else {
+                    // New column - find the best position to insert it
+                    // Look for the next column in this element's order that's already in merged
+                    int bestPosition = findBestInsertPosition(merged, elementOrder, colName, insertPosition);
+                    merged.add(bestPosition, colName);
+                    insertPosition = bestPosition + 1;
+                }
+            }
+        }
+
+        return merged;
+    }
+
+    /**
+     * Finds the best position to insert a new column in the merged list.
+     *
+     * <p>This looks at the columns that come after the new column in the element's
+     * order and finds where they are in the merged list. The new column should be
+     * inserted before the first of these columns.</p>
+     *
+     * @param merged the current merged column list
+     * @param elementOrder the column order from the current element
+     * @param colName the column to insert
+     * @param minPosition the minimum position (must be >= this)
+     * @return the best position to insert the column
+     */
+    private int findBestInsertPosition(List<String> merged, List<String> elementOrder,
+                                        String colName, int minPosition) {
+        int colIndex = elementOrder.indexOf(colName);
+
+        // Look for subsequent columns in the element order that already exist in merged
+        for (int i = colIndex + 1; i < elementOrder.size(); i++) {
+            String laterCol = elementOrder.get(i);
+            int laterIndex = merged.indexOf(laterCol);
+            if (laterIndex >= 0 && laterIndex >= minPosition) {
+                // Found a later column - insert before it
+                return laterIndex;
+            }
+        }
+
+        // No later columns found - append at end (but at least at minPosition)
+        return Math.max(minPosition, merged.size());
+    }
+
+    /**
+     * Merges a cached column order with a newly computed order.
+     *
+     * <p>This preserves the cached order for existing columns (important for
+     * maintaining sort stability) while inserting new columns at their
+     * correct positions based on document order.</p>
+     *
+     * @param cachedOrder the previously cached column order
+     * @param newOrder the newly computed order from current elements
+     * @return merged order with new columns inserted at correct positions
+     */
+    private List<String> mergeCachedWithNew(List<String> cachedOrder, List<String> newOrder) {
+        List<String> result = new ArrayList<>(cachedOrder);
+
+        for (String colName : newOrder) {
+            if (!result.contains(colName)) {
+                // New column - find correct position based on newOrder
+                int insertPos = findInsertPositionFromNewOrder(result, newOrder, colName);
+                result.add(insertPos, colName);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Finds where to insert a new column based on its position in the new order.
+     *
+     * @param result the current result list
+     * @param newOrder the new order to use as reference
+     * @param colName the column to insert
+     * @return position to insert at
+     */
+    private int findInsertPositionFromNewOrder(List<String> result, List<String> newOrder, String colName) {
+        int colIndex = newOrder.indexOf(colName);
+
+        // Look for the first column after colName (in newOrder) that exists in result
+        for (int i = colIndex + 1; i < newOrder.size(); i++) {
+            String laterCol = newOrder.get(i);
+            int laterIndex = result.indexOf(laterCol);
+            if (laterIndex >= 0) {
+                return laterIndex;
+            }
+        }
+
+        // Look for the last column before colName (in newOrder) that exists in result
+        for (int i = colIndex - 1; i >= 0; i--) {
+            String earlierCol = newOrder.get(i);
+            int earlierIndex = result.indexOf(earlierCol);
+            if (earlierIndex >= 0) {
+                return earlierIndex + 1;
+            }
+        }
+
+        // No reference points - append at end
+        return result.size();
     }
 
     /**
