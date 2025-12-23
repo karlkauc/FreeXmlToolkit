@@ -324,6 +324,8 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private CheckBox includeTypeDefinitionsInSourceCode;
     @FXML
+    private CheckBox generateSvgOverviewPage;
+    @FXML
     private ChoiceBox<String> grafikFormat;
     @FXML
     private CheckBox showDocumentationInSvg;
@@ -2408,14 +2410,15 @@ public class XsdController implements FavoritesParentController {
                 return;
             }
         } else {
-            // Word/PDF need a file path - prompt for file if not provided
+            // Word/PDF need a file path
+            String schemaName = xsdFile.getName().replace(".xsd", "");
+            String expectedExtension = "." + outputFormat.getFileExtension();
+
             if (outputPath == null || outputPath.isBlank()) {
-                // Open file chooser for Word/PDF
+                // No output path provided - open file chooser
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Save " + outputFormat.getDisplayName());
-
-                String schemaName = xsdFile.getName().replace(".xsd", "");
-                fileChooser.setInitialFileName(schemaName + "." + outputFormat.getFileExtension());
+                fileChooser.setInitialFileName(schemaName + expectedExtension);
 
                 if (outputFormat == DocumentationOutputFormat.WORD) {
                     fileChooser.getExtensionFilters().add(
@@ -2441,10 +2444,45 @@ public class XsdController implements FavoritesParentController {
                 outputTarget = selectedFile;
                 documentationOutputDirPath.setText(selectedFile.getAbsolutePath());
             } else {
-                outputTarget = new File(outputPath);
-                // Ensure correct extension
-                if (!outputPath.endsWith("." + outputFormat.getFileExtension())) {
-                    outputTarget = new File(outputPath + "." + outputFormat.getFileExtension());
+                File outputFile = new File(outputPath);
+
+                if (outputFile.isDirectory()) {
+                    // Directory selected - auto-generate filename inside it
+                    outputTarget = new File(outputFile, schemaName + expectedExtension);
+                    documentationOutputDirPath.setText(outputTarget.getAbsolutePath());
+                } else if (outputPath.endsWith(expectedExtension)) {
+                    // Already a file with correct extension
+                    outputTarget = outputFile;
+                } else if (outputPath.endsWith(".pdf") || outputPath.endsWith(".docx")) {
+                    // Wrong extension for selected format - open file chooser
+                    FileChooser fileChooser = new FileChooser();
+                    fileChooser.setTitle("Save " + outputFormat.getDisplayName());
+                    fileChooser.setInitialFileName(schemaName + expectedExtension);
+
+                    if (outputFormat == DocumentationOutputFormat.WORD) {
+                        fileChooser.getExtensionFilters().add(
+                                new FileChooser.ExtensionFilter("Word Documents", "*.docx"));
+                    } else {
+                        fileChooser.getExtensionFilters().add(
+                                new FileChooser.ExtensionFilter("PDF Documents", "*.pdf"));
+                    }
+
+                    // Set initial directory from current file path
+                    File parentDir = outputFile.getParentFile();
+                    if (parentDir != null && parentDir.exists() && parentDir.isDirectory()) {
+                        fileChooser.setInitialDirectory(parentDir);
+                    }
+
+                    File selectedFile = fileChooser.showSaveDialog(tabPane.getScene().getWindow());
+                    if (selectedFile == null) {
+                        return; // User cancelled
+                    }
+                    outputTarget = selectedFile;
+                    documentationOutputDirPath.setText(selectedFile.getAbsolutePath());
+                } else {
+                    // Append correct extension
+                    outputTarget = new File(outputPath + expectedExtension);
+                    documentationOutputDirPath.setText(outputTarget.getAbsolutePath());
                 }
             }
 
@@ -2500,6 +2538,7 @@ public class XsdController implements FavoritesParentController {
         final boolean useMarkdown = useMarkdownRenderer.isSelected();
         final boolean includeTypeDefs = includeTypeDefinitionsInSourceCode.isSelected();
         final boolean showDocInSvg = showDocumentationInSvg.isSelected();
+        final boolean generateSvgOverview = generateSvgOverviewPage.isSelected();
         final String imageFormat = grafikFormat.getValue();
 
         Task<Void> generationTask = new Task<>() {
@@ -2514,6 +2553,7 @@ public class XsdController implements FavoritesParentController {
                 docService.setUseMarkdownRenderer(useMarkdown);
                 docService.setIncludeTypeDefinitionsInSourceCode(includeTypeDefs);
                 docService.setShowDocumentationInSvg(showDocInSvg);
+                docService.setGenerateSvgOverviewPage(generateSvgOverview);
 
                 // Set language filter for documentation output
                 docService.setIncludedLanguages(selectedLanguages);

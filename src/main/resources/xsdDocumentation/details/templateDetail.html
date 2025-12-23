@@ -57,6 +57,8 @@
                 <a href="../dataDictionary.html"
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
+                <a href="../schema-svg.html"
+                   class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">SVG</a>
             </div>
             <!-- Search Bar -->
             <div class="relative flex-1 max-w-md mx-4">
@@ -297,10 +299,10 @@
                             <td class="px-4 py-3 font-mono">
                                 <div class="flex items-center gap-2">
                                     <a th:href="${this.getPageName(childXpath)}"
-                                       th:title="${childXpath}"
+                                       th:title="${this.getCleanXPath(childXpath)}"
                                        class="text-sky-600 hover:text-sky-800 hover:underline">
-                                        <span th:with="pathParts=${#strings.arraySplit(childXpath, '/')}"
-                                              th:text="${(#arrays.length(pathParts) > 3) ? ('/' + pathParts[1] + '/.../' + pathParts[#arrays.length(pathParts) - 1]) : childXpath}">
+                                        <span th:with="cleanXpath=${this.getCleanXPath(childXpath)}, pathParts=${#strings.arraySplit(cleanXpath, '/')}"
+                                              th:text="${(#arrays.length(pathParts) > 3) ? ('/' + pathParts[1] + '/.../' + pathParts[#arrays.length(pathParts) - 1]) : cleanXpath}">
                                         </span>
                                     </a>
                                     <!-- Compositor badge -->

@@ -102,9 +102,10 @@ public class XsdDocumentationHtmlService {
         }
 
         // Die Liste der globalen Elemente aus der Map aller Elemente filtern.
-        // Globale Elemente sind solche auf Level 0.
+        // Globale Elemente sind solche auf Level 0 und keine Container-Elemente.
         List<XsdExtendedElement> globalElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                 .filter(e -> e.getLevel() == 0)
+                .filter(this::isNotContainerElement)
                 .sorted((e1, e2) -> {
                     boolean e1IsNative = e1.getSourceNamespace() == null;
                     boolean e2IsNative = e2.getSourceNamespace() == null;
@@ -1074,6 +1075,50 @@ public class XsdDocumentationHtmlService {
 
         // Join with "/" to create XPath
         return "/" + String.join("/", pathParts);
+    }
+
+    /**
+     * Returns the XPath without container elements (CHOICE, SEQUENCE, ALL) for a given raw XPath string.
+     * This overload is used in templates where only the xpath string is available.
+     *
+     * @param xpath The raw XPath string that may contain container elements
+     * @return The XPath string without container elements
+     */
+    public String getCleanXPath(String xpath) {
+        if (xpath == null || xpath.isEmpty()) {
+            return "";
+        }
+        XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        if (element == null) {
+            // Fallback: try to clean the xpath string directly by removing container segments
+            return cleanXPathString(xpath);
+        }
+        return getCleanXPath(element);
+    }
+
+    /**
+     * Cleans an XPath string by removing container element segments (CHOICE_*, SEQUENCE_*, ALL_*).
+     * This is a fallback for when the element is not found in the map.
+     *
+     * @param xpath The raw XPath string
+     * @return The cleaned XPath string
+     */
+    private String cleanXPathString(String xpath) {
+        if (xpath == null || xpath.isEmpty()) {
+            return "";
+        }
+        // Split the path and filter out container segments
+        String[] parts = xpath.split("/");
+        List<String> cleanParts = new ArrayList<>();
+        for (String part : parts) {
+            if (!part.isEmpty() &&
+                !part.startsWith("CHOICE") &&
+                !part.startsWith("SEQUENCE") &&
+                !part.startsWith("ALL")) {
+                cleanParts.add(part);
+            }
+        }
+        return "/" + String.join("/", cleanParts);
     }
 
     /**

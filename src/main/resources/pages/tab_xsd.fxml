@@ -534,6 +534,11 @@
                             <CheckBox fx:id="openFileAfterCreation" selected="true" text="Open file after creation"/>
                             <CheckBox fx:id="createExampleData" selected="true" text="Create example data if missing"/>
                             <CheckBox fx:id="includeTypeDefinitionsInSourceCode" selected="true" text="Include type definitions in source code"/>
+                            <CheckBox fx:id="generateSvgOverviewPage" selected="true" text="Generate SVG overview page">
+                                <tooltip>
+                                    <Tooltip text="Generate an interactive SVG page showing the complete schema structure"/>
+                                </tooltip>
+                            </CheckBox>
                         </VBox>
 
                         <!-- Language Settings Card -->

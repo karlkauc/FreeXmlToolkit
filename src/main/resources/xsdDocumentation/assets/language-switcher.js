@@ -136,6 +136,11 @@
         switcher.value = getStoredLanguage();
     }
 
+    // Whether to show the language switcher (determined from languages.json)
+    var shouldShowSwitcher = true;
+    // Whether to show the SVG page link (determined from languages.json)
+    var shouldShowSvgPage = true;
+
     /**
      * Load available languages and configuration from languages.json
      * @param {function} callback - Callback function receiving the languages array
@@ -164,6 +169,10 @@
                 if (data.fallback && data.fallback !== 'null') {
                     configuredFallbackLang = data.fallback;
                 }
+                // Store whether to show the language switcher
+                shouldShowSwitcher = data.showSwitcher !== false;
+                // Store whether to show the SVG page link
+                shouldShowSvgPage = data.showSvgPage !== false;
                 callback(data.available || ['default']);
             })
             .catch(function (error) {
@@ -173,8 +182,21 @@
                 document.querySelectorAll('[data-lang]').forEach(function (el) {
                     languages.add(el.dataset.lang);
                 });
-                callback(Array.from(languages).sort());
+                var langArray = Array.from(languages).sort();
+                // If only 'default' language found, hide the switcher
+                shouldShowSwitcher = langArray.length > 1;
+                callback(langArray);
             });
+    }
+
+    /**
+     * Hide the SVG page link in the navigation if SVG page was not generated
+     */
+    function hideSvgPageLink() {
+        // Find all links to schema-svg.html and hide them
+        document.querySelectorAll('a[href*="schema-svg.html"]').forEach(function (link) {
+            link.style.display = 'none';
+        });
     }
 
     /**
@@ -194,6 +216,28 @@
 
         // Load available languages (this also loads the fallback configuration)
         loadAvailableLanguages(function (languages) {
+            // Hide SVG page link if not generated
+            if (!shouldShowSvgPage) {
+                hideSvgPageLink();
+            }
+
+            // Check if we should show the language switcher
+            if (!shouldShowSwitcher) {
+                // Hide all language switcher containers (the parent div with label)
+                switchers.forEach(function (switcher) {
+                    var container = switcher.closest('.flex.items-center.space-x-2');
+                    if (container) {
+                        container.style.display = 'none';
+                    } else {
+                        // Fallback: hide just the switcher if container not found
+                        switcher.style.display = 'none';
+                    }
+                });
+                // Still apply default language for any existing documentation
+                switchLanguage('default');
+                return;
+            }
+
             // Populate all switchers
             switchers.forEach(function (switcher) {
                 populateLanguageSwitcher(switcher, languages);

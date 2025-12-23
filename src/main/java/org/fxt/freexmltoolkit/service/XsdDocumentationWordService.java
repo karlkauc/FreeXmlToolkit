@@ -458,13 +458,14 @@ public class XsdDocumentationWordService {
             return;
         }
 
-        // Sort elements by XPath
+        // Sort elements by clean XPath and filter out container elements
         List<XsdExtendedElement> sortedElements = new ArrayList<>(elementMap.values());
-        sortedElements.sort(Comparator.comparing(XsdExtendedElement::getCurrentXpath));
+        // Filter out container elements (SEQUENCE, CHOICE, ALL) - they are internal structures
+        sortedElements.removeIf(this::isContainerElement);
+        sortedElements.sort(Comparator.comparing(this::getCleanXPath));
 
-        // Create table for ALL elements
         int totalElements = sortedElements.size();
-        logger.info("Creating Word data dictionary with {} elements", totalElements);
+        logger.info("Creating Word data dictionary with {} elements (excluding container elements)", totalElements);
 
         XWPFTable dictTable = document.createTable(totalElements + 1, 4);
         setTableStyle(dictTable);
@@ -481,7 +482,8 @@ public class XsdDocumentationWordService {
         for (int i = 0; i < totalElements; i++) {
             XsdExtendedElement element = sortedElements.get(i);
 
-            String path = element.getCurrentXpath();
+            // Use clean XPath without container elements
+            String path = getCleanXPath(element);
             String type = element.getElementType() != null ? element.getElementType() : "-";
             String cardinality = getCardinality(element);
             String description = getFirstDocumentation(element);
@@ -695,13 +697,18 @@ public class XsdDocumentationWordService {
                     if (facetNode instanceof Element facetElement) {
                         String facetName = facetElement.getLocalName();
                         if (facetName != null && !facetName.equals("annotation")) {
-                            facets.add(facetName);
+                            String facetValue = facetElement.getAttribute("value");
+                            if (facetValue != null && !facetValue.isEmpty()) {
+                                facets.add(facetName + ": " + facetValue);
+                            } else {
+                                facets.add(facetName);
+                            }
                         }
                     }
                 }
             }
         }
-        return facets.isEmpty() ? "-" : String.join(", ", facets.stream().distinct().toList());
+        return facets.isEmpty() ? "-" : String.join(", ", facets);
     }
 
     private int getTypeUsageCount(String typeName) {
@@ -756,6 +763,45 @@ public class XsdDocumentationWordService {
             return minOccurs + "..*";
         }
         return minOccurs + ".." + maxOccurs;
+    }
+
+    /**
+     * Checks if an element is a compositor container (CHOICE, SEQUENCE, ALL).
+     * These container elements are internal structures and should not appear in Word documentation.
+     */
+    private boolean isContainerElement(XsdExtendedElement element) {
+        if (element == null || element.getElementName() == null) {
+            return false;
+        }
+        String elementName = element.getElementName();
+        return elementName.startsWith("CHOICE") ||
+               elementName.startsWith("SEQUENCE") ||
+               elementName.startsWith("ALL");
+    }
+
+    /**
+     * Returns the XPath of an element without container elements (CHOICE, SEQUENCE, ALL).
+     * This produces a clean XPath for display in documentation.
+     */
+    private String getCleanXPath(XsdExtendedElement element) {
+        if (element == null) {
+            return "";
+        }
+
+        List<String> pathParts = new ArrayList<>();
+        XsdExtendedElement current = element;
+
+        // Traverse up the hierarchy and collect only non-container elements
+        while (current != null) {
+            if (!isContainerElement(current)) {
+                pathParts.add(0, current.getElementName());
+            }
+            String parentXpath = current.getParentXpath();
+            current = (parentXpath != null) ?
+                    documentationData.getExtendedXsdElementMap().get(parentXpath) : null;
+        }
+
+        return "/" + String.join("/", pathParts);
     }
 
     /**

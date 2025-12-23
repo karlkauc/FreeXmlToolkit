@@ -1,66 +1,46 @@
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) Karl Kauc 2024.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>XSD Schema Diagram - <span th:text="${filename}">Schema</span></title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="'Schema Diagram - ' + ${filename}">XSD Schema Diagram</title>
+
+    <!-- Generated Tailwind CSS -->
+    <link href="assets/freexmltoolkit-docs.css" rel="stylesheet">
+    <!-- PrismJS for Syntax Highlighting -->
+    <link href="assets/prism.css" rel="stylesheet"/>
+
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-        }
-
-        .header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 10px 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 18px;
-        }
-
-        .header .info {
-            font-size: 12px;
-            opacity: 0.8;
-            margin-top: 5px;
-        }
-
-        .controls {
+        #svg-container {
+            width: 100%;
+            height: calc(100vh - 280px);
+            min-height: 500px;
+            overflow: hidden;
             background-color: white;
-            padding: 10px 20px;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            gap: 10px;
-            align-items: center;
+            border-radius: 0.75rem;
         }
 
-        .controls button {
-            padding: 5px 10px;
-            border: 1px solid #ccc;
-            background-color: white;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .controls button:hover {
-            background-color: #f0f0f0;
-        }
-
-        .controls .legend {
-            display: flex;
-            gap: 15px;
-            margin-left: auto;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
+        #svg-container svg {
+            width: 100%;
+            height: 100%;
         }
 
         .legend-color {
@@ -69,18 +49,6 @@
             border-radius: 3px;
             border: 1px solid #333;
         }
-        
-        #container {
-            width: 100%;
-            height: calc(100vh - 120px);
-            overflow: hidden;
-            background-color: white;
-        }
-
-        #container svg {
-            width: 100%;
-            height: 100%;
-        }
 
         .zoom-info {
             position: fixed;
@@ -88,71 +56,192 @@
             right: 20px;
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 10px 15px;
+            border-radius: 8px;
             font-size: 12px;
+            z-index: 50;
         }
     </style>
 </head>
-<body>
-<div class="header">
-    <h1>XSD Schema Diagram</h1>
-    <div class="info">
-        File: <span th:text="${filename}">Schema</span> |
-        Version: <span th:text="${version}">1.0</span> |
-        Target Namespace: <span th:text="${targetNamespace}">http://example.com</span> |
-        Generated: <span th:text="${#dates.format(#dates.createNow(), 'yyyy-MM-dd HH:mm')}">2025-01-01</span>
+<body class="font-sans text-slate-800" data-root-path="." data-search-index-path="search_index.json">
+
+<!-- Modern navigation with shadow and clear spacing -->
+<nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <!-- Left navigation group -->
+            <div class="hidden md:flex items-baseline space-x-6">
+                <a href="index.html"
+                   class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Home</a>
+                <a href="complexTypes.html"
+                   class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Complex
+                    Types</a>
+                <a href="simpleTypes.html"
+                   class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Simple
+                    Types</a>
+                <a href="dataDictionary.html"
+                   class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
+                    Dictionary</a>
+                <a href="schema-svg.html"
+                   class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
+                   aria-current="page">SVG</a>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="relative flex-1 max-w-md mx-4">
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3" aria-hidden="true">
+                    <svg class="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                              d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <input type="search" id="search-input" placeholder="Loading search index..." disabled
+                       class="w-full pl-3 pr-10 py-2 text-sm leading-tight text-slate-700 border border-slate-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-50 disabled:cursor-not-allowed">
+                <div id="search-results"
+                     class="absolute hidden w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg z-20 max-h-96 overflow-y-auto">
+                    <!-- Search results will be injected here -->
+                </div>
+            </div>
+
+            <!-- Right navigation group (Language Switcher + GitHub Link) -->
+            <div class="hidden md:flex items-center space-x-4">
+                <!-- Language Switcher -->
+                <div class="flex items-center space-x-2">
+                    <label for="lang-switcher-nav" class="text-sm text-slate-600">Language:</label>
+                    <select id="lang-switcher-nav"
+                            class="lang-switcher text-sm border border-slate-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                        <option value="default">Default (no lang)</option>
+                    </select>
+                </div>
+                <!-- GitHub Link -->
+                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
+                   class="flex items-center space-x-2 text-slate-700 font-bold">
+                    <img src="assets/logo.png" alt="logo" class="h-8 w-8"/>
+                    <span>FreeXmlToolKit</span>
+                </a>
+            </div>
+        </div>
     </div>
-</div>
+</nav>
 
-<div class="controls">
-    <button onclick="resetZoom()">Reset Zoom</button>
-    <button onclick="fitToScreen()">Fit to Screen</button>
-    <button onclick="exportSVG()">Export SVG</button>
+<!-- Main content -->
+<main class="container mx-auto px-4 py-8 md:py-12">
 
-    <div class="legend">
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: #4A90E2;"></div>
-            <span>Root Elements</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: #7ED321;"></div>
-            <span>Elements</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: #F5A623;"></div>
-            <span>Attributes</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: #9013FE;"></div>
-            <span>Complex Types</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: #50E3C2;"></div>
-            <span>Simple Types</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: #4CAF50;"></div>
-            <span>Mandatory</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: #FF6B6B;"></div>
-            <span>Optional</span>
+    <!-- Header card -->
+    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 mb-6">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 mb-2">Schema Diagram</h1>
+                <p class="text-slate-600">Interactive visualization of the complete XSD schema structure.</p>
+            </div>
+            <div class="text-sm text-slate-500 space-y-1">
+                <div><span class="font-medium">File:</span> <span th:text="${filename}">Schema.xsd</span></div>
+                <div><span class="font-medium">Version:</span> <span th:text="${version != null ? version : 'N/A'}">1.0</span></div>
+                <div><span class="font-medium">Namespace:</span> <span th:text="${targetNamespace != null ? targetNamespace : 'N/A'}"
+                                                                       class="font-mono text-xs">http://example.com</span>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="container">
-    <div th:utext="${svgContent}"></div>
-</div>
+    <!-- Controls bar -->
+    <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200 mb-6">
+        <div class="flex flex-wrap items-center gap-4">
+            <!-- Zoom controls -->
+            <div class="flex items-center gap-2">
+                <button onclick="resetZoom()"
+                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Reset Zoom
+                </button>
+                <button onclick="fitToScreen()"
+                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                    </svg>
+                    Fit to Screen
+                </button>
+                <button onclick="exportSVG()"
+                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export SVG
+                </button>
+            </div>
 
+            <!-- Legend -->
+            <div class="flex flex-wrap items-center gap-4 ml-auto text-sm">
+                <div class="flex items-center gap-1.5">
+                    <div class="legend-color" style="background-color: #4A90E2;"></div>
+                    <span class="text-slate-600">Root</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="legend-color" style="background-color: #4a90e2;"></div>
+                    <span class="text-slate-600">Elements</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="legend-color" style="background-color: #d4a147;"></div>
+                    <span class="text-slate-600">Attributes</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="legend-color" style="background-color: #6c757d;"></div>
+                    <span class="text-slate-600">Sequence</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="legend-color" style="background-color: #ff8c00;"></div>
+                    <span class="text-slate-600">Choice</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-4 h-4 rounded-full bg-green-500 border border-slate-300"></div>
+                    <span class="text-slate-600">Mandatory</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-4 h-4 rounded-full bg-red-400 border border-slate-300"></div>
+                    <span class="text-slate-600">Optional</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SVG Container -->
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+        <div id="svg-container">
+            <div th:utext="${svgContent}"></div>
+        </div>
+    </div>
+
+    <!-- Navigation button back to overview -->
+    <div class="mt-8">
+        <a href="index.html"
+           class="inline-flex items-center bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-2">
+                <path fill-rule="evenodd"
+                      d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                      clip-rule="evenodd"/>
+            </svg>
+            Back to Overview
+        </a>
+    </div>
+</main>
+
+<!-- Zoom info overlay -->
 <div class="zoom-info" id="zoomInfo">
     Zoom: 100% | Use mouse wheel to zoom, drag to pan
 </div>
 
 <script>
     let currentZoom = 1;
-    let svgElement = document.querySelector('#container svg');
+    let svgElement = document.querySelector('#svg-container svg');
 
     function updateZoomInfo() {
         document.getElementById('zoomInfo').innerHTML =
@@ -169,7 +258,7 @@
 
     function fitToScreen() {
         if (svgElement) {
-            const container = document.getElementById('container');
+            const container = document.getElementById('svg-container');
             const containerRect = container.getBoundingClientRect();
             const svgWidth = parseInt(svgElement.getAttribute('width'));
             const svgHeight = parseInt(svgElement.getAttribute('height'));
@@ -180,10 +269,10 @@
 
             const newWidth = svgWidth / scale;
             const newHeight = svgHeight / scale;
-            const offsetX = (containerRect.width - newWidth) / 2;
-            const offsetY = (containerRect.height - newHeight) / 2;
+            const offsetX = (newWidth - svgWidth) / 2;
+            const offsetY = (newHeight - svgHeight) / 2;
 
-            svgElement.setAttribute('viewBox', `${offsetX} ${offsetY} ${newWidth} ${newHeight}`);
+            svgElement.setAttribute('viewBox', `${-offsetX} ${-offsetY} ${newWidth} ${newHeight}`);
             currentZoom = scale;
             updateZoomInfo();
         }
@@ -203,21 +292,31 @@
     }
 
     // Override the zoom event to update zoom info
-    const originalWheelHandler = svgElement.onwheel;
-    svgElement.addEventListener('wheel', function (e) {
-        setTimeout(() => {
-            // Calculate current zoom level from viewBox
-            const viewBox = svgElement.getAttribute('viewBox').split(' ');
-            const originalWidth = parseInt(svgElement.getAttribute('width'));
-            const currentWidth = parseFloat(viewBox[2]);
-            currentZoom = originalWidth / currentWidth;
-            updateZoomInfo();
-        }, 10);
-    });
+    if (svgElement) {
+        svgElement.addEventListener('wheel', function (e) {
+            setTimeout(() => {
+                // Calculate current zoom level from viewBox
+                const viewBox = svgElement.getAttribute('viewBox').split(' ');
+                const originalWidth = parseInt(svgElement.getAttribute('width'));
+                const currentWidth = parseFloat(viewBox[2]);
+                currentZoom = originalWidth / currentWidth;
+                updateZoomInfo();
+            }, 10);
+        });
+    }
 
     // Initialize
-    updateZoomInfo();
-    fitToScreen();
+    document.addEventListener('DOMContentLoaded', function () {
+        svgElement = document.querySelector('#svg-container svg');
+        if (svgElement) {
+            updateZoomInfo();
+            fitToScreen();
+        }
+    });
 </script>
+
+<script src="assets/search.js" defer></script>
+<script src="assets/language-switcher.js" defer></script>
+
 </body>
 </html>

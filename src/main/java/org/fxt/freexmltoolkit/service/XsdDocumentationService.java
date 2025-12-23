@@ -101,6 +101,7 @@ public class XsdDocumentationService {
 
     // SVG documentation display configuration
     private boolean showDocumentationInSvg = true; // Whether to show documentation in SVG diagrams
+    private boolean generateSvgOverviewPage = true; // Whether to generate the schema-svg.html overview page
 
     // Thread-local storage for element reference nodes (to preserve cardinality attributes)
     private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
@@ -147,6 +148,17 @@ public class XsdDocumentationService {
 
     public void setIncludeTypeDefinitionsInSourceCode(Boolean includeTypeDefinitionsInSourceCode) {
         this.includeTypeDefinitionsInSourceCode = includeTypeDefinitionsInSourceCode;
+    }
+
+    /**
+     * Sets whether to generate the SVG overview page (schema-svg.html).
+     * When disabled, no SVG overview page is generated and the SVG link
+     * is hidden in the navigation of all HTML pages.
+     *
+     * @param generateSvgOverviewPage true to generate the SVG page (default), false to skip it
+     */
+    public void setGenerateSvgOverviewPage(boolean generateSvgOverviewPage) {
+        this.generateSvgOverviewPage = generateSvgOverviewPage;
     }
 
     /**
@@ -232,7 +244,9 @@ public class XsdDocumentationService {
 
         executeAndTrack("Copying resources", xsdDocumentationHtmlService::copyResources);
         executeAndTrack("Generating root page", xsdDocumentationHtmlService::generateRootPage);
-        executeAndTrack("Generating SVG page", xsdDocumentationSvgService::generateSvgPage);
+        if (generateSvgOverviewPage) {
+            executeAndTrack("Generating SVG page", xsdDocumentationSvgService::generateSvgPage);
+        }
         executeAndTrack("Generating list of complex types", xsdDocumentationHtmlService::generateComplexTypesListPage);
         executeAndTrack("Generating list of simple types", xsdDocumentationHtmlService::generateSimpleTypesListPage);
         executeAndTrack("Generating data dictionary", xsdDocumentationHtmlService::generateDataDictionaryPage);
@@ -282,6 +296,13 @@ public class XsdDocumentationService {
 
             json.append("],\n");
             json.append("  \"default\": \"default\",\n");
+
+            // Add showSwitcher flag - only show language dropdown when multiple languages exist
+            boolean hasMultipleLanguages = sortedLanguages.size() > 1;
+            json.append("  \"showSwitcher\": ").append(hasMultipleLanguages).append(",\n");
+
+            // Add showSvgPage flag - whether the SVG overview page was generated
+            json.append("  \"showSvgPage\": ").append(generateSvgOverviewPage).append(",\n");
 
             // Add fallback language setting
             if (fallbackLanguage != null && !fallbackLanguage.isBlank()) {
@@ -2552,9 +2573,11 @@ public class XsdDocumentationService {
 
     private void buildTypeUsageMap() {
         logger.debug("Building type usage index for faster lookups...");
+        // Group elements by type name WITHOUT namespace prefix for proper lookup
+        // (type attribute may be "tns:PersonType" but lookup uses just "PersonType")
         Map<String, List<XsdExtendedElement>> typeUsageMap = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                 .filter(element -> element.getElementType() != null && !element.getElementType().isEmpty())
-                .collect(Collectors.groupingBy(XsdExtendedElement::getElementType));
+                .collect(Collectors.groupingBy(element -> stripNamespace(element.getElementType())));
 
         typeUsageMap.values().parallelStream()
                 .forEach(list -> list.sort(Comparator.comparing(XsdExtendedElement::getCurrentXpath)));
