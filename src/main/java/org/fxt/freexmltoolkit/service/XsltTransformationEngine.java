@@ -12,11 +12,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Advanced XSLT 3.0 Transformation Engine with Saxon integration.
- * Provides professional XSLT development capabilities including:
+ * Advanced XSLT 3.0 and XQuery 3.1 Transformation Engine with Saxon integration.
+ * Provides professional transformation development capabilities including:
  * - XSLT 3.0 support with streaming
+ * - XQuery 3.1 support for data querying and transformation
  * - Interactive debugging and profiling
  * - Multiple output formats (HTML, XML, JSON, Text)
  * - Template matching visualization
@@ -42,6 +45,7 @@ public class XsltTransformationEngine {
 
     // Caching and performance
     private final Map<String, XsltExecutable> compiledStylesheets = new ConcurrentHashMap<>();
+    private final Map<String, XQueryExecutable> compiledXQueries = new ConcurrentHashMap<>();
     private final Map<String, TransformationProfile> profileCache = new ConcurrentHashMap<>();
     private final long cacheTimeout = 300000; // 5 minutes
 
@@ -237,6 +241,160 @@ public class XsltTransformationEngine {
         }
     }
 
+    // ========== XQuery Transformation Methods ==========
+
+    /**
+     * Execute XQuery against XML content with full profiling.
+     * Supports XQuery 3.1 features via Saxon.
+     *
+     * @param xmlContent   The XML source document (can be null for XQuery that doesn't require input)
+     * @param xqueryContent The XQuery script to execute
+     * @param externalVariables External variables to pass to the XQuery
+     * @param outputFormat The desired output format
+     * @return The transformation result with output and profiling data
+     */
+    public XsltTransformationResult transformXQuery(String xmlContent, String xqueryContent,
+                                                     Map<String, Object> externalVariables, OutputFormat outputFormat) {
+        long startTime = System.currentTimeMillis();
+
+        try {
+            logger.debug("Starting XQuery transformation with {} output format", outputFormat);
+
+            // Compile XQuery
+            XQueryCompiler xqueryCompiler = saxonProcessor.newXQueryCompiler();
+
+            // Detect output method from XQuery declare option statements
+            OutputFormat effectiveFormat = detectXQueryOutputFormat(xqueryContent, outputFormat);
+
+            String cacheKey = "xquery_" + xqueryContent.hashCode();
+            XQueryExecutable executable = compiledXQueries.get(cacheKey);
+
+            if (executable == null) {
+                logger.debug("Compiling XQuery script");
+                executable = xqueryCompiler.compile(xqueryContent);
+                compiledXQueries.put(cacheKey, executable);
+                cleanupXQueryCache();
+            } else {
+                logger.debug("Using cached XQuery executable");
+            }
+
+            // Create evaluator
+            XQueryEvaluator evaluator = executable.load();
+
+            // Set external variables
+            if (externalVariables != null && !externalVariables.isEmpty()) {
+                for (Map.Entry<String, Object> entry : externalVariables.entrySet()) {
+                    QName varName = new QName(entry.getKey());
+                    XdmValue varValue = convertToXdmValue(entry.getValue());
+                    evaluator.setExternalVariable(varName, varValue);
+                }
+            }
+
+            // Set context item (input XML) if provided
+            if (xmlContent != null && !xmlContent.trim().isEmpty()) {
+                XdmNode sourceDoc = parseXmlDocument(xmlContent);
+                evaluator.setContextItem(sourceDoc);
+            }
+
+            // Execute XQuery and serialize result
+            StringWriter outputWriter = new StringWriter();
+            Serializer serializer = saxonProcessor.newSerializer(outputWriter);
+            configureSerializer(serializer, effectiveFormat);
+
+            // Transform with profiling
+            TransformationProfile profile = new TransformationProfile();
+            profile.startTransformation();
+
+            evaluator.run(serializer);
+
+            profile.endTransformation();
+            profile.setOutputSize(outputWriter.toString().length());
+
+            // Create successful result
+            XsltTransformationResult result = XsltTransformationResult.success(
+                    outputWriter.toString(), effectiveFormat, profile);
+
+            result.setExecutionTime(System.currentTimeMillis() - startTime);
+
+            logger.debug("XQuery transformation completed in {}ms, output size: {} characters",
+                    result.getExecutionTime(), result.getOutputContent().length());
+
+            return result;
+
+        } catch (SaxonApiException e) {
+            logger.error("XQuery transformation failed: {}", e.getMessage(), e);
+            return XsltTransformationResult.error("XQuery execution failed: " + e.getMessage());
+
+        } catch (Exception e) {
+            logger.error("Unexpected error during XQuery transformation", e);
+            return XsltTransformationResult.error("Unexpected error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Quick XQuery transformation with default settings
+     */
+    public XsltTransformationResult quickXQueryTransform(String xmlContent, String xqueryContent) {
+        return transformXQuery(xmlContent, xqueryContent, new HashMap<>(), OutputFormat.XML);
+    }
+
+    /**
+     * Validate XQuery syntax without executing it.
+     *
+     * @param xqueryContent The XQuery script to validate
+     * @return Validation result message
+     */
+    public String validateXQuery(String xqueryContent) {
+        try {
+            XQueryCompiler xqueryCompiler = saxonProcessor.newXQueryCompiler();
+            xqueryCompiler.compile(xqueryContent);
+            return "XQuery is valid and compiles successfully.";
+        } catch (SaxonApiException e) {
+            return "XQuery validation failed: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Detect output format from XQuery declare option statements.
+     * Looks for patterns like: declare option output:method "html";
+     */
+    private OutputFormat detectXQueryOutputFormat(String xqueryContent, OutputFormat defaultFormat) {
+        if (xqueryContent == null) return defaultFormat;
+
+        // Pattern to match: declare option output:method "html/xml/text/json";
+        Pattern methodPattern = Pattern.compile(
+                "declare\\s+option\\s+output:method\\s+[\"']([^\"']+)[\"']",
+                Pattern.CASE_INSENSITIVE);
+
+        Matcher matcher = methodPattern.matcher(xqueryContent);
+        if (matcher.find()) {
+            String method = matcher.group(1).toLowerCase();
+            return switch (method) {
+                case "html" -> OutputFormat.HTML;
+                case "xhtml" -> OutputFormat.XHTML;
+                case "text" -> OutputFormat.TEXT;
+                case "json" -> OutputFormat.JSON;
+                default -> OutputFormat.XML;
+            };
+        }
+
+        return defaultFormat;
+    }
+
+    /**
+     * Cleanup XQuery cache when it exceeds the limit
+     */
+    private void cleanupXQueryCache() {
+        if (compiledXQueries.size() > 100) {
+            Iterator<String> iterator = compiledXQueries.keySet().iterator();
+            for (int i = 0; i < 20 && iterator.hasNext(); i++) {
+                iterator.next();
+                iterator.remove();
+            }
+            logger.debug("XQuery cache cleanup performed");
+        }
+    }
+
     // ========== Stylesheet Compilation and Caching ==========
 
     private XsltExecutable compileStylesheet(String xsltContent, TransformationContext context) {
@@ -398,12 +556,13 @@ public class XsltTransformationEngine {
     }
 
     /**
-     * Clear all cached stylesheets
+     * Clear all cached stylesheets and XQueries
      */
     public void clearCache() {
         compiledStylesheets.clear();
+        compiledXQueries.clear();
         profileCache.clear();
-        logger.info("XSLT cache cleared");
+        logger.info("XSLT and XQuery cache cleared");
     }
 
     /**
@@ -412,8 +571,10 @@ public class XsltTransformationEngine {
     public TransformationStatistics getStatistics() {
         TransformationStatistics stats = new TransformationStatistics();
         stats.setCachedStylesheets(compiledStylesheets.size());
+        stats.setCachedXQueries(compiledXQueries.size());
         stats.setProfiledTransformations(profileCache.size());
         stats.setXsltVersion("3.0");
+        stats.setXqueryVersion("3.1");
         stats.setSaxonVersion(saxonProcessor.getSaxonProductVersion());
         return stats;
     }
@@ -504,8 +665,10 @@ public class XsltTransformationEngine {
      */
     public static class TransformationStatistics {
         private int cachedStylesheets;
+        private int cachedXQueries;
         private int profiledTransformations;
         private String xsltVersion;
+        private String xqueryVersion;
         private String saxonVersion;
 
         // Getters and Setters
@@ -515,6 +678,14 @@ public class XsltTransformationEngine {
 
         public void setCachedStylesheets(int cachedStylesheets) {
             this.cachedStylesheets = cachedStylesheets;
+        }
+
+        public int getCachedXQueries() {
+            return cachedXQueries;
+        }
+
+        public void setCachedXQueries(int cachedXQueries) {
+            this.cachedXQueries = cachedXQueries;
         }
 
         public int getProfiledTransformations() {
@@ -531,6 +702,14 @@ public class XsltTransformationEngine {
 
         public void setXsltVersion(String xsltVersion) {
             this.xsltVersion = xsltVersion;
+        }
+
+        public String getXqueryVersion() {
+            return xqueryVersion;
+        }
+
+        public void setXqueryVersion(String xqueryVersion) {
+            this.xqueryVersion = xqueryVersion;
         }
 
         public String getSaxonVersion() {

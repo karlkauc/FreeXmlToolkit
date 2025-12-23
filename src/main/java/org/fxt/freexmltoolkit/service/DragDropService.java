@@ -42,17 +42,22 @@ public class DragDropService {
     public static final List<String> XML_EXTENSIONS = List.of(".xml");
     public static final List<String> XSD_EXTENSIONS = List.of(".xsd");
     public static final List<String> XSLT_EXTENSIONS = List.of(".xsl", ".xslt");
+    public static final List<String> XQUERY_EXTENSIONS = List.of(".xq", ".xquery", ".xqm");
     public static final List<String> SCHEMATRON_EXTENSIONS = List.of(".sch", ".schematron");
     public static final List<String> KEYSTORE_EXTENSIONS = List.of(".jks", ".keystore", ".p12", ".pfx");
     public static final List<String> WSDL_EXTENSIONS = List.of(".wsdl");
 
     // Combined extension lists for convenience
     public static final List<String> ALL_XML_RELATED = Stream.of(
-            XML_EXTENSIONS, XSD_EXTENSIONS, XSLT_EXTENSIONS, SCHEMATRON_EXTENSIONS, WSDL_EXTENSIONS
+            XML_EXTENSIONS, XSD_EXTENSIONS, XSLT_EXTENSIONS, XQUERY_EXTENSIONS, SCHEMATRON_EXTENSIONS, WSDL_EXTENSIONS
     ).flatMap(List::stream).toList();
 
     public static final List<String> XML_AND_XSLT = Stream.of(
             XML_EXTENSIONS, XSLT_EXTENSIONS
+    ).flatMap(List::stream).toList();
+
+    public static final List<String> XML_AND_XSLT_AND_XQUERY = Stream.of(
+            XML_EXTENSIONS, XSLT_EXTENSIONS, XQUERY_EXTENSIONS
     ).flatMap(List::stream).toList();
 
     public static final List<String> XML_AND_SCHEMATRON = Stream.of(
@@ -153,6 +158,8 @@ public class DragDropService {
             return FileType.SCHEMATRON;
         } else if (matchesExtension(file, XSLT_EXTENSIONS)) {
             return FileType.XSLT;
+        } else if (matchesExtension(file, XQUERY_EXTENSIONS)) {
+            return FileType.XQUERY;
         } else if (matchesExtension(file, WSDL_EXTENSIONS)) {
             return FileType.WSDL;
         } else if (matchesExtension(file, KEYSTORE_EXTENSIONS)) {
@@ -170,6 +177,7 @@ public class DragDropService {
         XML,
         XSD,
         XSLT,
+        XQUERY,
         SCHEMATRON,
         WSDL,
         KEYSTORE,

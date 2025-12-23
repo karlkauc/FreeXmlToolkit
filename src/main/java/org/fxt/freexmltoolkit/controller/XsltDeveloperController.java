@@ -97,10 +97,17 @@ public class XsltDeveloperController implements FavoritesParentController {
     private StackPane xmlInputEditorPane;
     @FXML
     private StackPane xsltInputEditorPane;
+    @FXML
+    private StackPane xqueryInputEditorPane;
+    @FXML
+    private Tab xsltStylesheetTab;
+    @FXML
+    private Tab xqueryScriptTab;
 
     // XmlCodeEditorV2 instances for enhanced editing
     private XmlCodeEditorV2 xmlInputEditor;
     private XmlCodeEditorV2 xsltInputEditor;
+    private XmlCodeEditorV2 xqueryInputEditor;
     
     @FXML
     private Button loadXmlBtn;
@@ -213,6 +220,8 @@ public class XsltDeveloperController implements FavoritesParentController {
     @FXML
     private Button emptyStateLoadXsltButton;
     @FXML
+    private Button emptyStateLoadXQueryButton;
+    @FXML
     private Button helpBtn;
 
     // State Management
@@ -220,6 +229,7 @@ public class XsltDeveloperController implements FavoritesParentController {
     private final Map<String, String> currentParameters = new HashMap<>();
     private File currentXmlFile;
     private File currentXsltFile;
+    private File currentXQueryFile;
 
     @FXML
     private void initialize() {
@@ -251,18 +261,20 @@ public class XsltDeveloperController implements FavoritesParentController {
         }
 
         // Set up drag and drop on both the empty state pane and content pane
+        // Accept XML, XSLT, and XQuery files
         if (emptyStatePane != null) {
-            DragDropService.setupDragDrop(emptyStatePane, DragDropService.XML_AND_XSLT, this::handleDroppedFiles);
+            DragDropService.setupDragDrop(emptyStatePane, DragDropService.XML_AND_XSLT_AND_XQUERY, this::handleDroppedFiles);
         }
         if (contentPane != null) {
-            DragDropService.setupDragDrop(contentPane, DragDropService.XML_AND_XSLT, this::handleDroppedFiles);
+            DragDropService.setupDragDrop(contentPane, DragDropService.XML_AND_XSLT_AND_XQUERY, this::handleDroppedFiles);
         }
         logger.debug("Drag and drop initialized for XSLT Developer controller");
     }
 
     /**
      * Handle files dropped on the XSLT Developer controller.
-     * Routes XML files to the XML input and XSLT files to the stylesheet input.
+     * Routes XML files to the XML input, XSLT files to the stylesheet input,
+     * and XQuery files to the XQuery script input.
      *
      * @param files the dropped files
      */
@@ -276,6 +288,12 @@ public class XsltDeveloperController implements FavoritesParentController {
                 loadXsltFileInternal(file);
                 if (inputTabPane != null) {
                     inputTabPane.getSelectionModel().select(1); // Switch to XSLT tab
+                }
+            } else if (fileType == DragDropService.FileType.XQUERY) {
+                // Load as XQuery script
+                loadXQueryFileInternal(file);
+                if (inputTabPane != null && xqueryScriptTab != null) {
+                    inputTabPane.getSelectionModel().select(xqueryScriptTab); // Switch to XQuery tab
                 }
             } else if (fileType == DragDropService.FileType.XML) {
                 // Load as XML input
@@ -384,6 +402,9 @@ public class XsltDeveloperController implements FavoritesParentController {
         }
         if (emptyStateLoadXsltButton != null) {
             emptyStateLoadXsltButton.setOnAction(e -> loadXsltFile());
+        }
+        if (emptyStateLoadXQueryButton != null) {
+            emptyStateLoadXQueryButton.setOnAction(e -> loadXQueryFile());
         }
 
         logger.debug("Empty state initialized");
@@ -614,6 +635,14 @@ public class XsltDeveloperController implements FavoritesParentController {
             logger.debug("XSLT Input Editor initialized");
         }
 
+        // Initialize XQuery Input Editor
+        if (xqueryInputEditorPane != null) {
+            xqueryInputEditor = XmlCodeEditorV2Factory.createWithoutSchema();
+            xqueryInputEditor.getCodeArea().replaceText("xquery version \"3.1\";\n\n(: Enter or load your XQuery script here :)\n(: The context item (.) refers to the XML Source document :)\n\nfor $item in //element\nreturn $item");
+            xqueryInputEditorPane.getChildren().add(xqueryInputEditor);
+            logger.debug("XQuery Input Editor initialized");
+        }
+
         logger.info("XmlCodeEditorV2 instances initialized successfully");
     }
 
@@ -642,6 +671,14 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         if (xsltInputEditor != null) {
             xsltInputEditor.getCodeArea().textProperty().addListener((obs, oldText, newText) -> {
+                if (liveTransformToggle != null && liveTransformToggle.isSelected()) {
+                    performTransformation();
+                }
+            });
+        }
+
+        if (xqueryInputEditor != null) {
+            xqueryInputEditor.getCodeArea().textProperty().addListener((obs, oldText, newText) -> {
                 if (liveTransformToggle != null && liveTransformToggle.isSelected()) {
                     performTransformation();
                 }
@@ -772,7 +809,27 @@ public class XsltDeveloperController implements FavoritesParentController {
         performTransformation();
     }
 
+    /**
+     * Checks if XQuery mode is active based on the selected input tab.
+     * @return true if the XQuery Script tab is selected
+     */
+    private boolean isXQueryMode() {
+        if (inputTabPane != null && xqueryScriptTab != null) {
+            Tab selectedTab = inputTabPane.getSelectionModel().getSelectedItem();
+            return selectedTab == xqueryScriptTab;
+        }
+        return false;
+    }
+
     private void performTransformation() {
+        if (isXQueryMode()) {
+            performXQueryTransformation();
+        } else {
+            performXsltTransformation();
+        }
+    }
+
+    private void performXsltTransformation() {
         String xmlContent = xmlInputEditor != null ? xmlInputEditor.getCodeArea().getText().trim() : "";
         String xsltContent = xsltInputEditor != null ? xsltInputEditor.getCodeArea().getText().trim() : "";
 
@@ -797,7 +854,7 @@ public class XsltDeveloperController implements FavoritesParentController {
             protected void succeeded() {
                 Platform.runLater(() -> {
                     lastResult = getValue();
-                    displayTransformationResults(lastResult);
+                    displayTransformationResults(lastResult, "XSLT");
                     logger.debug("XSLT transformation completed in {}ms", lastResult.getTransformationTime());
                 });
             }
@@ -827,7 +884,63 @@ public class XsltDeveloperController implements FavoritesParentController {
         executorService.submit(transformTask);
     }
 
-    private void displayTransformationResults(XsltTransformationResult result) {
+    private void performXQueryTransformation() {
+        String xmlContent = xmlInputEditor != null ? xmlInputEditor.getCodeArea().getText().trim() : "";
+        String xqueryContent = xqueryInputEditor != null ? xqueryInputEditor.getCodeArea().getText().trim() : "";
+
+        if (xqueryContent.isEmpty()) {
+            if (!liveTransformToggle.isSelected()) {
+                showAlert("Input Required", "Please provide an XQuery script.");
+            }
+            return;
+        }
+
+        Task<XsltTransformationResult> transformTask = new Task<>() {
+            @Override
+            protected XsltTransformationResult call() throws Exception {
+                String outputFormat = outputFormatCombo != null ? outputFormatCombo.getValue() : "XML";
+                XsltTransformationEngine.OutputFormat format = XsltTransformationEngine.OutputFormat.valueOf(outputFormat.toUpperCase());
+
+                // XQuery can work without XML input (for standalone queries)
+                String effectiveXml = xmlContent.isEmpty() ? null : xmlContent;
+                return xsltEngine.transformXQuery(effectiveXml, xqueryContent, new HashMap<>(), format);
+            }
+
+            @Override
+            protected void succeeded() {
+                Platform.runLater(() -> {
+                    lastResult = getValue();
+                    displayTransformationResults(lastResult, "XQuery");
+                    logger.debug("XQuery transformation completed in {}ms", lastResult.getTransformationTime());
+                });
+            }
+
+            @Override
+            protected void failed() {
+                Platform.runLater(() -> {
+                    logger.error("XQuery transformation failed", getException());
+
+                    if (!liveTransformToggle.isSelected()) {
+                        showAlert("Transformation Error", "XQuery execution failed: " + getException().getMessage());
+                    } else {
+                        // For live transform, just show error in result area
+                        if (transformationResultArea != null) {
+                            transformationResultArea.setText("XQuery Error: " + getException().getMessage());
+                        }
+                    }
+
+                    // Add error to messages list
+                    if (messagesListView != null) {
+                        messagesListView.getItems().add("ERROR: " + getException().getMessage());
+                    }
+                });
+            }
+        };
+
+        executorService.submit(transformTask);
+    }
+
+    private void displayTransformationResults(XsltTransformationResult result, String transformationType) {
         // Display transformation result
         if (transformationResultArea != null) {
             transformationResultArea.setText(result.getOutputContent());
@@ -841,7 +954,8 @@ public class XsltDeveloperController implements FavoritesParentController {
         // Update result statistics
         if (resultStatsLabel != null) {
             resultStatsLabel.setText(String.format(
-                    "Transformation completed in %dms | Output size: %d chars | Format: %s",
+                    "%s completed in %dms | Output size: %d chars | Format: %s",
+                    transformationType,
                     result.getTransformationTime(),
                     result.getOutputSize(),
                     result.getOutputFormat()
@@ -849,13 +963,13 @@ public class XsltDeveloperController implements FavoritesParentController {
         }
 
         // Update performance metrics
-        updatePerformanceMetrics(result);
+        updatePerformanceMetrics(result, transformationType);
 
         // Update features used (if available)
-        updateFeaturesUsed(result);
+        updateFeaturesUsed(result, transformationType);
     }
 
-    private void updatePerformanceMetrics(XsltTransformationResult result) {
+    private void updatePerformanceMetrics(XsltTransformationResult result, String transformationType) {
         if (executionTimeLabel != null)
             executionTimeLabel.setText(result.getTransformationTime() + "ms");
         if (compilationTimeLabel != null)
@@ -867,28 +981,37 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         // Performance report
         if (performanceReportArea != null) {
-            String xsltVersion = xsltVersionCombo != null ? xsltVersionCombo.getValue() : "XSLT 3.0";
-            String report = "XSLT Transformation Performance Report\n" +
+            String version = "XSLT".equals(transformationType) ?
+                    (xsltVersionCombo != null ? xsltVersionCombo.getValue() : "XSLT 3.0") :
+                    "XQuery 3.1";
+            String report = transformationType + " Transformation Performance Report\n" +
                     "=====================================\n\n" +
                     "Execution Time: " + result.getTransformationTime() + "ms\n" +
                     "Output Format: " + result.getOutputFormat() + "\n" +
                     "Output Size: " + result.getOutputSize() + " characters\n" +
-                    "XSLT Version: " + xsltVersion + "\n";
+                    "Version: " + version + "\n";
 
             performanceReportArea.setText(report);
         }
     }
 
-    private void updateFeaturesUsed(XsltTransformationResult result) {
+    private void updateFeaturesUsed(XsltTransformationResult result, String transformationType) {
         if (featuresListView != null) {
-            // This is a placeholder - in a real implementation, we'd extract
-            // XSLT features from the stylesheet analysis
             featuresListView.getItems().clear();
-            featuresListView.getItems().addAll(
-                    "XSLT Templates",
-                    "XPath Expressions",
-                    "Output Method: " + result.getOutputFormat()
-            );
+            if ("XQuery".equals(transformationType)) {
+                featuresListView.getItems().addAll(
+                        "XQuery 3.1",
+                        "FLWOR Expressions",
+                        "XPath 3.1",
+                        "Output Method: " + result.getOutputFormat()
+                );
+            } else {
+                featuresListView.getItems().addAll(
+                        "XSLT Templates",
+                        "XPath Expressions",
+                        "Output Method: " + result.getOutputFormat()
+                );
+            }
         }
     }
 
@@ -1160,6 +1283,295 @@ public class XsltDeveloperController implements FavoritesParentController {
                 logger.error("Failed to save XSLT file", e);
                 showAlert("Save Error", "Failed to save XSLT file: " + e.getMessage());
             }
+        }
+    }
+
+    // ========== XQuery File Operations ==========
+
+    @FXML
+    public void loadXQueryFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Load XQuery Script");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("XQuery Files", "*.xq", "*.xquery", "*.xqm"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+
+        File file = fileChooser.showOpenDialog(transformBtn.getScene().getWindow());
+        if (file != null) {
+            loadXQueryFileInternal(file);
+            // Show content when file is loaded
+            showContent();
+        }
+    }
+
+    /**
+     * Internal method to load an XQuery file.
+     */
+    private void loadXQueryFileInternal(File file) {
+        try {
+            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            if (xqueryInputEditor != null) {
+                xqueryInputEditor.getCodeArea().replaceText(content);
+            }
+            currentXQueryFile = file;
+            logger.debug("Loaded XQuery file: {}", file.getAbsolutePath());
+
+            // Switch to XQuery tab
+            if (inputTabPane != null && xqueryScriptTab != null) {
+                inputTabPane.getSelectionModel().select(xqueryScriptTab);
+            }
+        } catch (IOException e) {
+            logger.error("Failed to load XQuery file", e);
+            showAlert("Load Error", "Failed to load XQuery file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Load an XQuery file from an external source (e.g., drag and drop, MainController routing).
+     *
+     * @param file the XQuery file to load
+     */
+    public void loadXQueryFileExternal(File file) {
+        if (file != null && file.exists()) {
+            loadXQueryFileInternal(file);
+            showContent();
+        }
+    }
+
+    @FXML
+    public void saveXQueryFile() {
+        if (xqueryInputEditor == null || xqueryInputEditor.getCodeArea().getText().isEmpty()) {
+            showAlert("No Content", "No XQuery content to save.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save XQuery Script");
+        fileChooser.setInitialFileName(currentXQueryFile != null ? currentXQueryFile.getName() : "query.xq");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("XQuery Files", "*.xq", "*.xquery"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+
+        File file = fileChooser.showSaveDialog(transformBtn.getScene().getWindow());
+        if (file != null) {
+            try {
+                String xqueryContent = xqueryInputEditor.getCodeArea().getText();
+                Files.write(file.toPath(), xqueryContent.getBytes(StandardCharsets.UTF_8));
+                currentXQueryFile = file;
+                showInfo("Save Successful", "XQuery saved to: " + file.getAbsolutePath());
+                logger.info("XQuery saved to: {}", file.getAbsolutePath());
+            } catch (IOException e) {
+                logger.error("Failed to save XQuery file", e);
+                showAlert("Save Error", "Failed to save XQuery file: " + e.getMessage());
+            }
+        }
+    }
+
+    @FXML
+    public void validateXQuery() {
+        if (xqueryInputEditor == null || xqueryInputEditor.getCodeArea().getText().trim().isEmpty()) {
+            showAlert("No Content", "No XQuery content to validate.");
+            return;
+        }
+
+        String xqueryContent = xqueryInputEditor.getCodeArea().getText();
+
+        Task<String> validationTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                return xsltEngine.validateXQuery(xqueryContent);
+            }
+        };
+
+        validationTask.setOnSucceeded(e -> {
+            Platform.runLater(() -> {
+                String result = validationTask.getValue();
+                if (messagesListView != null) {
+                    messagesListView.getItems().add("XQuery Validation: " + result);
+                }
+
+                if (result.contains("valid and compiles")) {
+                    showInfo("Validation Result", result);
+                } else {
+                    showAlert("Validation Result", result);
+                }
+            });
+        });
+
+        validationTask.setOnFailed(e -> {
+            Platform.runLater(() -> {
+                logger.error("XQuery validation failed", validationTask.getException());
+                showAlert("Validation Error", "Failed to validate XQuery: " + validationTask.getException().getMessage());
+            });
+        });
+
+        executorService.submit(validationTask);
+    }
+
+    // ========== XQuery Example Templates ==========
+
+    @FXML
+    public void insertXQueryExampleSimple() {
+        String example = """
+                xquery version "3.1";
+
+                (: Simple XQuery Example :)
+                (: Returns all elements matching a path :)
+
+                for $item in //element
+                return $item
+                """;
+        insertXQueryExample(example);
+    }
+
+    @FXML
+    public void insertXQueryExampleFlwor() {
+        String example = """
+                xquery version "3.1";
+
+                (: FLWOR Expression Example :)
+                (: For-Let-Where-Order by-Return :)
+
+                for $item in //item
+                let $name := $item/name/text()
+                let $value := $item/value/text()
+                where xs:decimal($value) > 100
+                order by $name ascending
+                return
+                    <result>
+                        <name>{$name}</name>
+                        <value>{$value}</value>
+                    </result>
+                """;
+        insertXQueryExample(example);
+    }
+
+    @FXML
+    public void insertXQueryExampleHtmlReport() {
+        String example = """
+                xquery version "3.1";
+
+                declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
+                declare option output:method "html";
+                declare option output:html-version "5";
+
+                (: HTML Report Example :)
+                (: Generates a styled HTML report from XML data :)
+
+                let $items := //item
+                return
+                <html>
+                    <head>
+                        <title>Data Report</title>
+                        <style>
+                            body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                            table {{ border-collapse: collapse; width: 100%; }}
+                            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+                            th {{ background-color: #4CAF50; color: white; }}
+                            tr:nth-child(even) {{ background-color: #f2f2f2; }}
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Data Report</h1>
+                        <p>Generated: {current-dateTime()}</p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {
+                                for $item in $items
+                                return
+                                    <tr>
+                                        <td>{$item/name/text()}</td>
+                                        <td>{$item/value/text()}</td>
+                                    </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </body>
+                </html>
+                """;
+        insertXQueryExample(example);
+    }
+
+    @FXML
+    public void insertXQueryExampleDqCheck() {
+        String example = """
+                xquery version "3.1";
+
+                declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
+                declare option output:method "html";
+                declare option output:html-version "5";
+
+                (: Data Quality Check Example :)
+                (: Validates data completeness and consistency :)
+
+                let $doc := /
+                let $issues := (
+                    (: Check for missing required fields :)
+                    for $item in $doc//item[not(name) or not(value)]
+                    return map { "type": "missing_field", "id": string($item/@id), "message": "Missing name or value" },
+
+                    (: Check for empty values :)
+                    for $item in $doc//item[normalize-space(name) = '' or normalize-space(value) = '']
+                    return map { "type": "empty_value", "id": string($item/@id), "message": "Empty name or value" }
+                )
+
+                return
+                <html>
+                    <head>
+                        <title>Data Quality Report</title>
+                        <style>
+                            body {{ font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }}
+                            .summary {{ background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }}
+                            .issue {{ background: #fff3cd; padding: 10px; margin: 5px 0; border-radius: 4px; }}
+                            .pass {{ background: #d4edda; padding: 20px; border-radius: 8px; }}
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Data Quality Report</h1>
+                        <div class="summary">
+                            <p>Total Records: {count($doc//item)}</p>
+                            <p>Issues Found: {count($issues)}</p>
+                        </div>
+                        {
+                            if (count($issues) > 0) then
+                                <div>
+                                    <h2>Issues</h2>
+                                    {
+                                        for $issue in $issues
+                                        return
+                                            <div class="issue">
+                                                <strong>{$issue?type}</strong>: {$issue?message}
+                                                (ID: {$issue?id})
+                                            </div>
+                                    }
+                                </div>
+                            else
+                                <div class="pass">
+                                    <strong>All checks passed!</strong> No data quality issues found.
+                                </div>
+                        }
+                    </body>
+                </html>
+                """;
+        insertXQueryExample(example);
+    }
+
+    private void insertXQueryExample(String example) {
+        if (xqueryInputEditor != null) {
+            xqueryInputEditor.getCodeArea().replaceText(example);
+            // Switch to XQuery tab
+            if (inputTabPane != null && xqueryScriptTab != null) {
+                inputTabPane.getSelectionModel().select(xqueryScriptTab);
+            }
+            showContent();
         }
     }
 
