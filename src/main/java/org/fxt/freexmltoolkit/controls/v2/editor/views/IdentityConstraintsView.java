@@ -243,7 +243,7 @@ public class IdentityConstraintsView extends BorderPane {
                 icon.setIconColor(Color.DARKGREEN);
             }
             case "Unique" -> {
-                icon.setIconLiteral("bi-fingerprint");
+                icon.setIconLiteral("bi-hash");
                 icon.setIconColor(Color.DARKORANGE);
             }
             case "Assert" -> {
