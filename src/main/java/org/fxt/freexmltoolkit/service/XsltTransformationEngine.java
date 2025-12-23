@@ -395,6 +395,198 @@ public class XsltTransformationEngine {
         }
     }
 
+    // ========== Batch XQuery Transformation ==========
+
+    /**
+     * Execute XQuery against multiple XML files using Saxon's collection() function.
+     * The XQuery can use collection() to access all provided files.
+     *
+     * @param xmlFiles          List of XML files to process
+     * @param xqueryContent     The XQuery script (can use collection() to access files)
+     * @param externalVariables External variables to pass to XQuery
+     * @param outputFormat      Desired output format
+     * @return BatchTransformationResult with combined and per-file results
+     */
+    public BatchTransformationResult transformXQueryBatch(
+            List<java.io.File> xmlFiles,
+            String xqueryContent,
+            Map<String, Object> externalVariables,
+            OutputFormat outputFormat) {
+
+        long startTime = System.currentTimeMillis();
+        BatchTransformationResult result = new BatchTransformationResult();
+        result.setTotalFiles(xmlFiles.size());
+        result.setOutputFormat(outputFormat);
+
+        if (xmlFiles == null || xmlFiles.isEmpty()) {
+            result.setSuccess(false);
+            result.setErrorMessage("No XML files provided for batch processing");
+            return result;
+        }
+
+        if (xqueryContent == null || xqueryContent.isBlank()) {
+            result.setSuccess(false);
+            result.setErrorMessage("XQuery content is empty");
+            return result;
+        }
+
+        try {
+            // Detect output format from XQuery declarations
+            OutputFormat effectiveFormat = detectXQueryOutputFormat(xqueryContent, outputFormat);
+
+            // Configure the collection finder to provide our files
+            XmlFileCollectionResolver collectionResolver = new XmlFileCollectionResolver(xmlFiles);
+
+            // Set the collection finder on the processor's configuration
+            // This is required for collection() to work in XQuery
+            saxonProcessor.getUnderlyingConfiguration().setCollectionFinder(collectionResolver);
+
+            // Also set the default collection URI
+            saxonProcessor.getUnderlyingConfiguration().setDefaultCollection(
+                    XmlFileCollectionResolver.DEFAULT_COLLECTION_URI);
+
+            // Create XQuery compiler
+            XQueryCompiler xqueryCompiler = saxonProcessor.newXQueryCompiler();
+
+            // Set base URI for resolving relative paths
+            if (!xmlFiles.isEmpty()) {
+                java.io.File firstFile = xmlFiles.get(0);
+                xqueryCompiler.setBaseURI(firstFile.getParentFile().toURI());
+            }
+
+            // Compile the XQuery
+            XQueryExecutable executable = xqueryCompiler.compile(xqueryContent);
+            XQueryEvaluator evaluator = executable.load();
+
+            // Set external variables
+            if (externalVariables != null) {
+                for (Map.Entry<String, Object> entry : externalVariables.entrySet()) {
+                    evaluator.setExternalVariable(
+                            new net.sf.saxon.s9api.QName(entry.getKey()),
+                            new XdmAtomicValue(entry.getValue().toString()));
+                }
+            }
+
+            // Execute the XQuery and get the result
+            XdmValue xdmResult = evaluator.evaluate();
+
+            // Serialize the result
+            java.io.StringWriter output = new java.io.StringWriter();
+            Serializer serializer = saxonProcessor.newSerializer(output);
+            serializer.setOutputProperty(Serializer.Property.METHOD, effectiveFormat.getSaxonMethod());
+            serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
+            serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION,
+                    effectiveFormat == OutputFormat.XML ? "no" : "yes");
+
+            if (effectiveFormat == OutputFormat.HTML || effectiveFormat == OutputFormat.XHTML) {
+                serializer.setOutputProperty(Serializer.Property.HTML_VERSION, "5");
+            }
+
+            // Serialize each item in the result
+            serializer.serializeXdmValue(xdmResult);
+
+            String combinedOutput = output.toString();
+            result.setCombinedOutput(combinedOutput);
+            result.setSuccess(true);
+            result.setSuccessCount(xmlFiles.size());
+
+            logger.info("Batch XQuery transformation completed: {} files processed", xmlFiles.size());
+
+        } catch (SaxonApiException e) {
+            logger.error("Batch XQuery transformation failed: {}", e.getMessage(), e);
+            result.setSuccess(false);
+            result.setErrorMessage("XQuery execution failed: " + e.getMessage());
+
+        } catch (Exception e) {
+            logger.error("Unexpected error during batch XQuery transformation", e);
+            result.setSuccess(false);
+            result.setErrorMessage("Unexpected error: " + e.getMessage());
+        }
+
+        result.setTotalExecutionTime(System.currentTimeMillis() - startTime);
+        return result;
+    }
+
+    /**
+     * Execute XQuery against each file individually and collect per-file results.
+     * Useful when you want separate output for each file.
+     *
+     * @param xmlFiles          List of XML files to process
+     * @param xqueryContent     The XQuery script (uses context item, not collection())
+     * @param externalVariables External variables to pass to XQuery
+     * @param outputFormat      Desired output format
+     * @return BatchTransformationResult with per-file results
+     */
+    public BatchTransformationResult transformXQueryPerFile(
+            List<java.io.File> xmlFiles,
+            String xqueryContent,
+            Map<String, Object> externalVariables,
+            OutputFormat outputFormat) {
+
+        long startTime = System.currentTimeMillis();
+        BatchTransformationResult result = new BatchTransformationResult();
+        result.setTotalFiles(xmlFiles.size());
+        result.setOutputFormat(outputFormat);
+
+        if (xmlFiles == null || xmlFiles.isEmpty()) {
+            result.setSuccess(false);
+            result.setErrorMessage("No XML files provided for batch processing");
+            return result;
+        }
+
+        StringBuilder combinedOutput = new StringBuilder();
+        combinedOutput.append("<batch-results>\n");
+
+        for (java.io.File file : xmlFiles) {
+            long fileStartTime = System.currentTimeMillis();
+
+            try {
+                String xmlContent = java.nio.file.Files.readString(file.toPath());
+                XsltTransformationResult fileResult = transformXQuery(
+                        xmlContent, xqueryContent, externalVariables, outputFormat);
+
+                long fileTime = System.currentTimeMillis() - fileStartTime;
+
+                if (fileResult.isSuccess()) {
+                    result.addFileResult(file, fileResult.getOutputContent(), fileTime);
+                    combinedOutput.append("  <file name=\"").append(file.getName()).append("\">\n");
+                    combinedOutput.append("    ").append(fileResult.getOutputContent().replace("\n", "\n    ")).append("\n");
+                    combinedOutput.append("  </file>\n");
+                } else {
+                    result.addFileError(file, fileResult.getErrorMessage());
+                    combinedOutput.append("  <file name=\"").append(file.getName()).append("\" error=\"true\">\n");
+                    combinedOutput.append("    <error>").append(escapeXml(fileResult.getErrorMessage())).append("</error>\n");
+                    combinedOutput.append("  </file>\n");
+                }
+
+            } catch (java.io.IOException e) {
+                result.addFileError(file, "Failed to read file: " + e.getMessage());
+                combinedOutput.append("  <file name=\"").append(file.getName()).append("\" error=\"true\">\n");
+                combinedOutput.append("    <error>Failed to read: ").append(escapeXml(e.getMessage())).append("</error>\n");
+                combinedOutput.append("  </file>\n");
+            }
+        }
+
+        combinedOutput.append("</batch-results>");
+        result.setCombinedOutput(combinedOutput.toString());
+        result.setSuccess(result.getErrorCount() == 0);
+        result.setTotalExecutionTime(System.currentTimeMillis() - startTime);
+
+        logger.info("Per-file XQuery transformation completed: {} success, {} errors",
+                result.getSuccessCount(), result.getErrorCount());
+
+        return result;
+    }
+
+    private String escapeXml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
+    }
+
     // ========== Stylesheet Compilation and Caching ==========
 
     private XsltExecutable compileStylesheet(String xsltContent, TransformationContext context) {

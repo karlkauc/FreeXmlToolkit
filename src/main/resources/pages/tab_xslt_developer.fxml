@@ -140,23 +140,108 @@
                         <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                     <VBox spacing="8">
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="XML Input Document" styleClass="section-header"/>
+                        <!-- Mode Toggle: Single File vs Multi-File -->
+                        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="mode-toggle-bar">
+                            <fx:define>
+                                <ToggleGroup fx:id="xmlInputModeGroup"/>
+                            </fx:define>
+                            <RadioButton fx:id="singleFileMode" text="Single File" toggleGroup="$xmlInputModeGroup"
+                                         selected="true" onAction="#switchXmlInputMode">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-file-earmark" iconSize="14"/>
+                                </graphic>
+                            </RadioButton>
+                            <RadioButton fx:id="multiFileMode" text="Multiple Files (Batch)" toggleGroup="$xmlInputModeGroup"
+                                         onAction="#switchXmlInputMode">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-files" iconSize="14"/>
+                                </graphic>
+                            </RadioButton>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Button fx:id="innerLoadXmlBtn" text="Open" styleClass="btn-outline" onAction="#loadXmlFile">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
-                                </graphic>
-                            </Button>
-                            <Button fx:id="innerValidateXmlBtn" text="Validate" styleClass="btn-warning"
-                                    onAction="#validateXml">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
-                                </graphic>
-                            </Button>
+                            <Label fx:id="xmlModeStatusLabel" text="" styleClass="mode-status"/>
                         </HBox>
 
-                        <StackPane fx:id="xmlInputEditorPane" VBox.vgrow="ALWAYS" minHeight="200"/>
+                        <!-- StackPane to switch between single and multi-file modes -->
+                        <StackPane VBox.vgrow="ALWAYS">
+                            <!-- Single File Mode (existing functionality) -->
+                            <VBox fx:id="singleFilePane" spacing="8" visible="true" managed="true">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="XML Input Document" styleClass="section-header"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Button fx:id="innerLoadXmlBtn" text="Open" styleClass="btn-outline" onAction="#loadXmlFile">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                        </graphic>
+                                    </Button>
+                                    <Button fx:id="innerValidateXmlBtn" text="Validate" styleClass="btn-warning"
+                                            onAction="#validateXml">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
+                                        </graphic>
+                                    </Button>
+                                </HBox>
+
+                                <StackPane fx:id="xmlInputEditorPane" VBox.vgrow="ALWAYS" minHeight="200"/>
+                            </VBox>
+
+                            <!-- Multi-File Mode (new batch functionality) -->
+                            <VBox fx:id="multiFilePane" spacing="8" visible="false" managed="false">
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <Button fx:id="addXmlFilesBtn" text="Add Files" styleClass="btn-outline" onAction="#addXmlFiles">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="14" iconColor="#28a745"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Select multiple XML files"/>
+                                        </tooltip>
+                                    </Button>
+                                    <Button fx:id="addXmlDirectoryBtn" text="Add Directory" styleClass="btn-outline" onAction="#addXmlDirectory">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-folder-plus" iconSize="14" iconColor="#007bff"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Add all XML files from a directory"/>
+                                        </tooltip>
+                                    </Button>
+                                    <Separator orientation="VERTICAL"/>
+                                    <Button fx:id="removeSelectedFilesBtn" text="Remove" styleClass="btn-outline" onAction="#removeSelectedFiles">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-trash" iconSize="14" iconColor="#dc3545"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Remove selected files"/>
+                                        </tooltip>
+                                    </Button>
+                                    <Button fx:id="clearAllFilesBtn" text="Clear All" styleClass="btn-outline" onAction="#clearAllFiles">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-x-circle" iconSize="14" iconColor="#6c757d"/>
+                                        </graphic>
+                                    </Button>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <CheckBox fx:id="selectAllFilesCheckbox" text="Select All" selected="true" onAction="#toggleSelectAllFiles"/>
+                                    <Label fx:id="fileCountLabel" text="0 files" styleClass="file-count-label"/>
+                                </HBox>
+
+                                <!-- File List TableView -->
+                                <TableView fx:id="xmlFilesTable" VBox.vgrow="ALWAYS"
+                                           styleClass="xml-files-table">
+                                    <columns>
+                                        <TableColumn fx:id="selectColumn" text="" prefWidth="30" maxWidth="40" minWidth="30"/>
+                                        <TableColumn fx:id="fileNameColumn" text="File Name" prefWidth="250" minWidth="150"/>
+                                        <TableColumn fx:id="fileSizeColumn" text="Size" prefWidth="80" minWidth="60"/>
+                                        <TableColumn fx:id="fileStatusColumn" text="Status" prefWidth="100" minWidth="80"/>
+                                    </columns>
+                                    <placeholder>
+                                        <VBox spacing="10" alignment="CENTER">
+                                            <FontIcon iconLiteral="bi-files" iconSize="48" iconColor="#adb5bd"/>
+                                            <Label text="No XML files added" style="-fx-text-fill: #6c757d;"/>
+                                            <Label text="Use 'Add Files' or 'Add Directory' to select files for batch processing"
+                                                   style="-fx-text-fill: #adb5bd; -fx-font-size: 11px;" wrapText="true" textAlignment="CENTER"/>
+                                        </VBox>
+                                    </placeholder>
+                                </TableView>
+                            </VBox>
+                        </StackPane>
                     </VBox>
                 </Tab>
 
@@ -299,6 +384,38 @@
                         <FontIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                     <VBox spacing="8">
+                        <!-- Batch Result Controls (visible only in multi-file mode) -->
+                        <HBox fx:id="batchResultControls" alignment="CENTER_LEFT" spacing="15"
+                              visible="false" managed="false" styleClass="batch-result-controls">
+                            <fx:define>
+                                <ToggleGroup fx:id="resultViewModeGroup"/>
+                            </fx:define>
+                            <RadioButton fx:id="combinedResultMode" text="Combined" toggleGroup="$resultViewModeGroup"
+                                         selected="true" onAction="#switchResultViewMode">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-collection" iconSize="14"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Show combined output from all files"/>
+                                </tooltip>
+                            </RadioButton>
+                            <RadioButton fx:id="perFileResultMode" text="Per File" toggleGroup="$resultViewModeGroup"
+                                         onAction="#switchResultViewMode">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-file-earmark-text" iconSize="14"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Show results for each file individually"/>
+                                </tooltip>
+                            </RadioButton>
+                            <Separator orientation="VERTICAL"/>
+                            <Label text="File:" styleClass="section-label"/>
+                            <ComboBox fx:id="fileResultSelector" prefWidth="200" promptText="Select file..."
+                                      onAction="#onFileResultSelected" disable="true"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="batchStatsLabel" text="" styleClass="batch-stats"/>
+                        </HBox>
+
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <Label fx:id="resultStatsLabel" text="" styleClass="result-stats"/>
                             <Region HBox.hgrow="ALWAYS"/>
@@ -316,6 +433,15 @@
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Save Result (Ctrl+Alt+S)"/>
+                                </tooltip>
+                            </Button>
+                            <Button fx:id="saveAllResultsBtn" text="Save All" styleClass="btn-outline"
+                                    onAction="#saveAllBatchResults" visible="false" managed="false">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-download" iconSize="14"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Save all batch results to files"/>
                                 </tooltip>
                             </Button>
                         </HBox>

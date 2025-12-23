@@ -53,15 +53,19 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
+import javafx.stage.DirectoryChooser;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Controller for the Advanced XSLT Developer - Revolutionary Feature #2
@@ -224,6 +228,46 @@ public class XsltDeveloperController implements FavoritesParentController {
     @FXML
     private Button helpBtn;
 
+    // Multi-File Mode UI Components
+    @FXML
+    private RadioButton singleFileMode;
+    @FXML
+    private RadioButton multiFileMode;
+    @FXML
+    private VBox singleFilePane;
+    @FXML
+    private VBox multiFilePane;
+    @FXML
+    private TableView<XmlFileEntry> xmlFilesTable;
+    @FXML
+    private TableColumn<XmlFileEntry, Boolean> selectColumn;
+    @FXML
+    private TableColumn<XmlFileEntry, String> fileNameColumn;
+    @FXML
+    private TableColumn<XmlFileEntry, String> fileSizeColumn;
+    @FXML
+    private TableColumn<XmlFileEntry, String> fileStatusColumn;
+    @FXML
+    private Label fileCountLabel;
+    @FXML
+    private Label xmlModeStatusLabel;
+    @FXML
+    private CheckBox selectAllFilesCheckbox;
+
+    // Batch Result Controls
+    @FXML
+    private HBox batchResultControls;
+    @FXML
+    private RadioButton combinedResultMode;
+    @FXML
+    private RadioButton perFileResultMode;
+    @FXML
+    private ComboBox<String> fileResultSelector;
+    @FXML
+    private Label batchStatsLabel;
+    @FXML
+    private Button saveAllResultsBtn;
+
     // State Management
     private XsltTransformationResult lastResult;
     private final Map<String, String> currentParameters = new HashMap<>();
@@ -231,12 +275,17 @@ public class XsltDeveloperController implements FavoritesParentController {
     private File currentXsltFile;
     private File currentXQueryFile;
 
+    // Multi-File State Management
+    private final ObservableList<XmlFileEntry> selectedXmlFiles = FXCollections.observableArrayList();
+    private BatchTransformationResult lastBatchResult;
+
     @FXML
     private void initialize() {
         logger.info("Initializing Advanced XSLT Developer Controller - Revolutionary Feature #2");
 
         initializeUI();
         initializeEditors();
+        initializeMultiFileTable();
         setupEventHandlers();
         setDefaultValues();
         setupFavorites();
@@ -885,6 +934,12 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     private void performXQueryTransformation() {
+        // Check if we should use batch mode
+        if (isMultiFileMode()) {
+            performBatchXQueryTransformation();
+            return;
+        }
+
         String xmlContent = xmlInputEditor != null ? xmlInputEditor.getCodeArea().getText().trim() : "";
         String xqueryContent = xqueryInputEditor != null ? xqueryInputEditor.getCodeArea().getText().trim() : "";
 
@@ -1572,6 +1627,464 @@ public class XsltDeveloperController implements FavoritesParentController {
                 inputTabPane.getSelectionModel().select(xqueryScriptTab);
             }
             showContent();
+        }
+    }
+
+    // ========== Multi-File Batch Processing ==========
+
+    /**
+     * Initialize the multi-file TableView with columns and bindings.
+     */
+    private void initializeMultiFileTable() {
+        if (xmlFilesTable == null) {
+            logger.debug("Multi-file table not available in FXML");
+            return;
+        }
+
+        // Configure select column with checkboxes
+        if (selectColumn != null) {
+            selectColumn.setCellValueFactory(cellData -> cellData.getValue().selectedProperty());
+            selectColumn.setCellFactory(col -> new javafx.scene.control.cell.CheckBoxTableCell<>());
+        }
+
+        // Configure file name column
+        if (fileNameColumn != null) {
+            fileNameColumn.setCellValueFactory(cellData ->
+                    new javafx.beans.property.SimpleStringProperty(cellData.getValue().getFileName()));
+        }
+
+        // Configure file size column
+        if (fileSizeColumn != null) {
+            fileSizeColumn.setCellValueFactory(cellData ->
+                    new javafx.beans.property.SimpleStringProperty(cellData.getValue().getFormattedSize()));
+        }
+
+        // Configure status column
+        if (fileStatusColumn != null) {
+            fileStatusColumn.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
+            fileStatusColumn.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        // Color-code status
+                        switch (item) {
+                            case "Success" -> setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
+                            case "Error" -> setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                            case "Processing..." -> setStyle("-fx-text-fill: #007bff; -fx-font-style: italic;");
+                            default -> setStyle("-fx-text-fill: #6c757d;");
+                        }
+                    }
+                }
+            });
+        }
+
+        // Bind table to observable list
+        xmlFilesTable.setItems(selectedXmlFiles);
+        xmlFilesTable.setEditable(true);
+
+        logger.debug("Multi-file table initialized");
+    }
+
+    /**
+     * Switch between single file and multi-file XML input modes.
+     */
+    @FXML
+    public void switchXmlInputMode() {
+        boolean isMultiMode = multiFileMode != null && multiFileMode.isSelected();
+
+        if (singleFilePane != null) {
+            singleFilePane.setVisible(!isMultiMode);
+            singleFilePane.setManaged(!isMultiMode);
+        }
+
+        if (multiFilePane != null) {
+            multiFilePane.setVisible(isMultiMode);
+            multiFilePane.setManaged(isMultiMode);
+        }
+
+        // Update status label
+        if (xmlModeStatusLabel != null) {
+            xmlModeStatusLabel.setText(isMultiMode ? "Batch Mode" : "");
+        }
+
+        // Show/hide batch result controls based on mode
+        updateBatchControlsVisibility(isMultiMode);
+
+        logger.debug("Switched to {} mode", isMultiMode ? "multi-file" : "single-file");
+    }
+
+    /**
+     * Update visibility of batch-specific result controls.
+     */
+    private void updateBatchControlsVisibility(boolean batchMode) {
+        if (batchResultControls != null) {
+            batchResultControls.setVisible(batchMode);
+            batchResultControls.setManaged(batchMode);
+        }
+        if (saveAllResultsBtn != null) {
+            saveAllResultsBtn.setVisible(batchMode);
+            saveAllResultsBtn.setManaged(batchMode);
+        }
+    }
+
+    /**
+     * Open file chooser to select multiple XML files.
+     */
+    @FXML
+    public void addXmlFiles() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select XML Files for Batch Processing");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("XML Files", "*.xml"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+
+        List<File> files = fileChooser.showOpenMultipleDialog(
+                xmlFilesTable != null ? xmlFilesTable.getScene().getWindow() : null);
+
+        if (files != null && !files.isEmpty()) {
+            for (File file : files) {
+                // Avoid duplicates
+                boolean alreadyExists = selectedXmlFiles.stream()
+                        .anyMatch(entry -> entry.getFile().equals(file));
+                if (!alreadyExists) {
+                    selectedXmlFiles.add(new XmlFileEntry(file));
+                }
+            }
+            updateFileCountLabel();
+            showContent();
+            logger.info("Added {} XML files for batch processing", files.size());
+        }
+    }
+
+    /**
+     * Open directory chooser to add all XML files from a directory.
+     */
+    @FXML
+    public void addXmlDirectory() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Directory with XML Files");
+
+        File directory = directoryChooser.showDialog(
+                xmlFilesTable != null ? xmlFilesTable.getScene().getWindow() : null);
+
+        if (directory != null && directory.isDirectory()) {
+            File[] xmlFiles = directory.listFiles((dir, name) ->
+                    name.toLowerCase().endsWith(".xml"));
+
+            if (xmlFiles != null && xmlFiles.length > 0) {
+                int addedCount = 0;
+                for (File file : xmlFiles) {
+                    boolean alreadyExists = selectedXmlFiles.stream()
+                            .anyMatch(entry -> entry.getFile().equals(file));
+                    if (!alreadyExists) {
+                        selectedXmlFiles.add(new XmlFileEntry(file));
+                        addedCount++;
+                    }
+                }
+                updateFileCountLabel();
+                showContent();
+                logger.info("Added {} XML files from directory: {}", addedCount, directory.getAbsolutePath());
+            } else {
+                showAlert("No XML Files", "No XML files found in the selected directory.");
+            }
+        }
+    }
+
+    /**
+     * Remove selected files from the batch list.
+     */
+    @FXML
+    public void removeSelectedFiles() {
+        List<XmlFileEntry> toRemove = selectedXmlFiles.stream()
+                .filter(XmlFileEntry::isSelected)
+                .collect(Collectors.toList());
+
+        if (!toRemove.isEmpty()) {
+            selectedXmlFiles.removeAll(toRemove);
+            updateFileCountLabel();
+            logger.debug("Removed {} files from batch list", toRemove.size());
+        }
+    }
+
+    /**
+     * Clear all files from the batch list.
+     */
+    @FXML
+    public void clearAllFiles() {
+        selectedXmlFiles.clear();
+        updateFileCountLabel();
+        lastBatchResult = null;
+
+        // Reset batch result display
+        if (batchStatsLabel != null) {
+            batchStatsLabel.setText("");
+        }
+        if (fileResultSelector != null) {
+            fileResultSelector.getItems().clear();
+        }
+
+        logger.debug("Cleared all files from batch list");
+    }
+
+    /**
+     * Toggle selection of all files.
+     */
+    @FXML
+    public void toggleSelectAllFiles() {
+        boolean selectAll = selectAllFilesCheckbox != null && selectAllFilesCheckbox.isSelected();
+        for (XmlFileEntry entry : selectedXmlFiles) {
+            entry.setSelected(selectAll);
+        }
+    }
+
+    /**
+     * Update the file count label.
+     */
+    private void updateFileCountLabel() {
+        if (fileCountLabel != null) {
+            int count = selectedXmlFiles.size();
+            long selectedCount = selectedXmlFiles.stream().filter(XmlFileEntry::isSelected).count();
+            fileCountLabel.setText(count + " file" + (count != 1 ? "s" : "") +
+                    (selectedCount < count ? " (" + selectedCount + " selected)" : ""));
+        }
+    }
+
+    /**
+     * Check if we are in multi-file mode.
+     */
+    private boolean isMultiFileMode() {
+        return multiFileMode != null && multiFileMode.isSelected() && !selectedXmlFiles.isEmpty();
+    }
+
+    /**
+     * Get list of selected files for batch processing.
+     */
+    private List<File> getSelectedFilesForBatch() {
+        return selectedXmlFiles.stream()
+                .filter(XmlFileEntry::isSelected)
+                .map(XmlFileEntry::getFile)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Perform batch XQuery transformation over multiple files.
+     */
+    private void performBatchXQueryTransformation() {
+        String xqueryContent = xqueryInputEditor != null ? xqueryInputEditor.getCodeArea().getText().trim() : "";
+
+        if (xqueryContent.isEmpty()) {
+            showAlert("Input Required", "Please provide an XQuery script.");
+            return;
+        }
+
+        List<File> files = getSelectedFilesForBatch();
+        if (files.isEmpty()) {
+            showAlert("No Files Selected", "Please select at least one XML file for batch processing.");
+            return;
+        }
+
+        // Reset file statuses
+        for (XmlFileEntry entry : selectedXmlFiles) {
+            if (entry.isSelected()) {
+                entry.markProcessing();
+            }
+        }
+
+        Task<BatchTransformationResult> batchTask = new Task<>() {
+            @Override
+            protected BatchTransformationResult call() throws Exception {
+                String outputFormat = outputFormatCombo != null ? outputFormatCombo.getValue() : "XML";
+                XsltTransformationEngine.OutputFormat format =
+                        XsltTransformationEngine.OutputFormat.valueOf(outputFormat.toUpperCase());
+
+                // Use collection-based batch processing
+                return xsltEngine.transformXQueryBatch(files, xqueryContent, new HashMap<>(), format);
+            }
+        };
+
+        batchTask.setOnSucceeded(e -> {
+            Platform.runLater(() -> {
+                lastBatchResult = batchTask.getValue();
+                displayBatchResults(lastBatchResult);
+
+                // Update file entry statuses
+                for (XmlFileEntry entry : selectedXmlFiles) {
+                    if (entry.isSelected()) {
+                        if (lastBatchResult.isFileSuccess(entry.getFile())) {
+                            entry.markSuccess(lastBatchResult.getFileResult(entry.getFile()));
+                        } else if (lastBatchResult.isFileError(entry.getFile())) {
+                            entry.markError(lastBatchResult.getFileError(entry.getFile()));
+                        }
+                    }
+                }
+
+                logger.info("Batch XQuery transformation completed: {} files processed in {}ms",
+                        lastBatchResult.getTotalFiles(), lastBatchResult.getTotalExecutionTime());
+            });
+        });
+
+        batchTask.setOnFailed(e -> {
+            Platform.runLater(() -> {
+                logger.error("Batch XQuery transformation failed", batchTask.getException());
+                showAlert("Batch Transformation Error",
+                        "Batch XQuery execution failed: " + batchTask.getException().getMessage());
+
+                // Mark all as error
+                for (XmlFileEntry entry : selectedXmlFiles) {
+                    if (entry.isSelected()) {
+                        entry.markError("Batch failed: " + batchTask.getException().getMessage());
+                    }
+                }
+            });
+        });
+
+        executorService.submit(batchTask);
+    }
+
+    /**
+     * Display batch transformation results.
+     */
+    private void displayBatchResults(BatchTransformationResult result) {
+        // Show batch result controls
+        updateBatchControlsVisibility(true);
+
+        // Display combined output by default
+        if (transformationResultArea != null && result.getCombinedOutput() != null) {
+            transformationResultArea.setText(result.getCombinedOutput());
+        }
+
+        // Update batch stats label
+        if (batchStatsLabel != null) {
+            batchStatsLabel.setText(String.format(
+                    "%d/%d successful | %d errors | %dms total",
+                    result.getSuccessCount(),
+                    result.getTotalFiles(),
+                    result.getErrorCount(),
+                    result.getTotalExecutionTime()
+            ));
+        }
+
+        // Populate file selector for per-file results
+        if (fileResultSelector != null) {
+            fileResultSelector.getItems().clear();
+            for (File file : result.getPerFileResults().keySet()) {
+                fileResultSelector.getItems().add(file.getName());
+            }
+            fileResultSelector.setDisable(false);
+        }
+
+        // Update general result stats
+        if (resultStatsLabel != null) {
+            resultStatsLabel.setText(String.format(
+                    "Batch XQuery completed | %d files | Output: %d chars",
+                    result.getTotalFiles(),
+                    result.getCombinedOutput() != null ? result.getCombinedOutput().length() : 0
+            ));
+        }
+
+        // Update performance report
+        if (performanceReportArea != null) {
+            performanceReportArea.setText(result.getSummaryText());
+        }
+
+        // Update preview if HTML output
+        if (previewWebView != null && "HTML".equals(outputFormatCombo.getValue()) && result.getCombinedOutput() != null) {
+            previewWebView.getEngine().loadContent(result.getCombinedOutput());
+        }
+    }
+
+    /**
+     * Switch between combined and per-file result view.
+     */
+    @FXML
+    public void switchResultViewMode() {
+        if (lastBatchResult == null) return;
+
+        boolean perFileMode = perFileResultMode != null && perFileResultMode.isSelected();
+
+        if (fileResultSelector != null) {
+            fileResultSelector.setDisable(!perFileMode);
+        }
+
+        if (!perFileMode) {
+            // Show combined output
+            if (transformationResultArea != null && lastBatchResult.getCombinedOutput() != null) {
+                transformationResultArea.setText(lastBatchResult.getCombinedOutput());
+            }
+        } else {
+            // Show per-file result (if a file is selected)
+            onFileResultSelected();
+        }
+    }
+
+    /**
+     * Handle file selection in per-file result mode.
+     */
+    @FXML
+    public void onFileResultSelected() {
+        if (lastBatchResult == null || fileResultSelector == null) return;
+
+        String selectedFileName = fileResultSelector.getValue();
+        if (selectedFileName != null) {
+            // Find the matching file result
+            for (Map.Entry<File, String> entry : lastBatchResult.getPerFileResults().entrySet()) {
+                if (entry.getKey().getName().equals(selectedFileName)) {
+                    if (transformationResultArea != null) {
+                        transformationResultArea.setText(entry.getValue());
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Save all batch results to individual files.
+     */
+    @FXML
+    public void saveAllBatchResults() {
+        if (lastBatchResult == null || lastBatchResult.getPerFileResults().isEmpty()) {
+            showAlert("No Results", "No batch results to save.");
+            return;
+        }
+
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Output Directory for Batch Results");
+
+        File outputDir = directoryChooser.showDialog(
+                saveAllResultsBtn != null ? saveAllResultsBtn.getScene().getWindow() : null);
+
+        if (outputDir != null && outputDir.isDirectory()) {
+            String extension = getOutputExtension();
+            int savedCount = 0;
+            int errorCount = 0;
+
+            for (Map.Entry<File, String> entry : lastBatchResult.getPerFileResults().entrySet()) {
+                String baseName = entry.getKey().getName().replaceFirst("\\.[^.]+$", "");
+                File outputFile = new File(outputDir, baseName + "_result." + extension);
+
+                try {
+                    Files.write(outputFile.toPath(), entry.getValue().getBytes(StandardCharsets.UTF_8));
+                    savedCount++;
+                } catch (IOException e) {
+                    logger.error("Failed to save result for {}: {}", entry.getKey().getName(), e.getMessage());
+                    errorCount++;
+                }
+            }
+
+            if (errorCount == 0) {
+                showInfo("Save Complete", String.format("Saved %d result files to: %s",
+                        savedCount, outputDir.getAbsolutePath()));
+            } else {
+                showAlert("Save Partial", String.format("Saved %d files, %d errors. Check log for details.",
+                        savedCount, errorCount));
+            }
         }
     }
 
