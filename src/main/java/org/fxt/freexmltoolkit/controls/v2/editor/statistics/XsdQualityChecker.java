@@ -698,13 +698,38 @@ public class XsdQualityChecker {
                 String name = entry.getKey();
                 List<String> affected = new ArrayList<>();
                 XsdNode firstNode = null;
+                int variantNum = 1;
 
-                for (List<XsdNode> group : bySignature.values()) {
-                    for (XsdNode node : group) {
-                        String xpath = node.getXPath();
-                        affected.add(xpath != null ? xpath : node.getName());
-                        if (firstNode == null) firstNode = node;
+                // Build detailed variant descriptions
+                for (Map.Entry<String, List<XsdNode>> variantEntry : bySignature.entrySet()) {
+                    List<XsdNode> variantNodes = variantEntry.getValue();
+                    if (!variantNodes.isEmpty()) {
+                        XsdNode representativeNode = variantNodes.get(0);
+                        if (firstNode == null) firstNode = representativeNode;
+
+                        // Add variant header with structure description
+                        affected.add("=== Variant " + variantNum + " (" + variantNodes.size() + " occurrence" + (variantNodes.size() > 1 ? "s" : "") + ") ===");
+
+                        // Generate and add readable structure for this variant
+                        String structure = generateReadableStructure(representativeNode);
+                        affected.add(structure);
+
+                        // Add locations for this variant
+                        affected.add("--- Locations ---");
+                        for (XsdNode node : variantNodes) {
+                            String xpath = node.getXPath();
+                            affected.add("  " + (xpath != null ? xpath : node.getName()));
+                        }
+                        affected.add(""); // Empty line between variants
+                        variantNum++;
                     }
+                }
+
+                // Generate difference summary
+                String diffSummary = generateVariantDifferenceSummary(bySignature);
+                if (!diffSummary.isEmpty()) {
+                    affected.add("=== Key Differences ===");
+                    affected.add(diffSummary);
                 }
 
                 issues.add(QualityIssue.inconsistentDefinitionIssue(
@@ -784,6 +809,32 @@ public class XsdQualityChecker {
             String type = element.getType();
             if (type != null && !type.isBlank()) {
                 sig.append(":type=").append(type);
+            }
+        }
+
+        // Add type and use for attributes - IMPORTANT: This distinguishes attributes with different types
+        if (node instanceof XsdAttribute attribute) {
+            String type = attribute.getType();
+            if (type != null && !type.isBlank()) {
+                sig.append(":type=").append(type);
+            }
+            String use = attribute.getUse();
+            if (use != null && !use.isBlank()) {
+                sig.append(":use=").append(use);
+            }
+            String ref = attribute.getRef();
+            if (ref != null && !ref.isBlank()) {
+                sig.append(":ref=").append(ref);
+            }
+        }
+
+        // Add mixed and abstract for complex types
+        if (node instanceof XsdComplexType complexType) {
+            if (complexType.isMixed()) {
+                sig.append(":mixed=true");
+            }
+            if (complexType.isAbstract()) {
+                sig.append(":abstract=true");
             }
         }
 
@@ -1172,5 +1223,194 @@ public class XsdQualityChecker {
             case ASSERTION -> "assertion";
             case EXPLICIT_TIMEZONE -> "explicitTimezone";
         };
+    }
+
+    /**
+     * Generates a summary of key differences between variants.
+     * Compares structural characteristics to highlight what makes each variant unique.
+     */
+    private String generateVariantDifferenceSummary(Map<String, List<XsdNode>> bySignature) {
+        if (bySignature.size() < 2) return "";
+
+        StringBuilder sb = new StringBuilder();
+        List<VariantInfo> variants = new ArrayList<>();
+        int variantNum = 1;
+
+        // Collect info about each variant
+        for (List<XsdNode> nodes : bySignature.values()) {
+            if (!nodes.isEmpty()) {
+                XsdNode node = nodes.get(0);
+                variants.add(new VariantInfo(variantNum++, node));
+            }
+        }
+
+        // Compare variants pairwise
+        for (int i = 0; i < variants.size(); i++) {
+            for (int j = i + 1; j < variants.size(); j++) {
+                VariantInfo v1 = variants.get(i);
+                VariantInfo v2 = variants.get(j);
+                List<String> differences = compareVariants(v1, v2);
+
+                if (!differences.isEmpty()) {
+                    sb.append("Variant ").append(v1.number).append(" vs Variant ").append(v2.number).append(":\n");
+                    for (String diff : differences) {
+                        sb.append("  - ").append(diff).append("\n");
+                    }
+                }
+            }
+        }
+
+        return sb.toString().trim();
+    }
+
+    /**
+     * Compares two variants and returns a list of differences.
+     */
+    private List<String> compareVariants(VariantInfo v1, VariantInfo v2) {
+        List<String> differences = new ArrayList<>();
+
+        // Compare content model (simpleContent, complexContent, mixed)
+        boolean v1HasSimpleContent = hasChildOfType(v1.node, XsdNodeType.SIMPLE_CONTENT);
+        boolean v2HasSimpleContent = hasChildOfType(v2.node, XsdNodeType.SIMPLE_CONTENT);
+        boolean v1HasComplexContent = hasChildOfType(v1.node, XsdNodeType.COMPLEX_CONTENT);
+        boolean v2HasComplexContent = hasChildOfType(v2.node, XsdNodeType.COMPLEX_CONTENT);
+
+        if (v1HasSimpleContent != v2HasSimpleContent) {
+            differences.add("Variant " + v1.number + (v1HasSimpleContent ? " uses simpleContent" : " does not use simpleContent") +
+                           ", Variant " + v2.number + (v2HasSimpleContent ? " uses simpleContent" : " does not use simpleContent"));
+        }
+
+        if (v1HasComplexContent != v2HasComplexContent) {
+            differences.add("Variant " + v1.number + (v1HasComplexContent ? " uses complexContent" : " does not use complexContent") +
+                           ", Variant " + v2.number + (v2HasComplexContent ? " uses complexContent" : " does not use complexContent"));
+        }
+
+        // Compare mixed attribute for complexType
+        if (v1.node instanceof XsdComplexType ct1 && v2.node instanceof XsdComplexType ct2) {
+            if (ct1.isMixed() != ct2.isMixed()) {
+                differences.add("Variant " + v1.number + (ct1.isMixed() ? " has mixed=\"true\"" : " has mixed=\"false\" (or unset)") +
+                               ", Variant " + v2.number + (ct2.isMixed() ? " has mixed=\"true\"" : " has mixed=\"false\" (or unset)"));
+            }
+        }
+
+        // Check for complexType child with mixed attribute
+        XsdComplexType ct1 = findComplexTypeChild(v1.node);
+        XsdComplexType ct2 = findComplexTypeChild(v2.node);
+        if (ct1 != null && ct2 != null) {
+            if (ct1.isMixed() != ct2.isMixed()) {
+                differences.add("Variant " + v1.number + " complexType " + (ct1.isMixed() ? "has mixed=\"true\"" : "has no mixed attribute") +
+                               ", Variant " + v2.number + " complexType " + (ct2.isMixed() ? "has mixed=\"true\"" : "has no mixed attribute"));
+            }
+        }
+
+        // Compare compositor types (sequence, choice, all)
+        boolean v1HasSequence = hasChildOfType(v1.node, XsdNodeType.SEQUENCE);
+        boolean v2HasSequence = hasChildOfType(v2.node, XsdNodeType.SEQUENCE);
+        boolean v1HasChoice = hasChildOfType(v1.node, XsdNodeType.CHOICE);
+        boolean v2HasChoice = hasChildOfType(v2.node, XsdNodeType.CHOICE);
+
+        if (v1HasSequence != v2HasSequence || v1HasChoice != v2HasChoice) {
+            String v1Compositor = v1HasSequence ? "sequence" : (v1HasChoice ? "choice" : "none/other");
+            String v2Compositor = v2HasSequence ? "sequence" : (v2HasChoice ? "choice" : "none/other");
+            if (!v1Compositor.equals(v2Compositor)) {
+                differences.add("Different compositors: Variant " + v1.number + " uses " + v1Compositor +
+                               ", Variant " + v2.number + " uses " + v2Compositor);
+            }
+        }
+
+        // Compare child element count
+        int v1ChildElements = countChildElements(v1.node);
+        int v2ChildElements = countChildElements(v2.node);
+        if (v1ChildElements != v2ChildElements) {
+            differences.add("Different child element count: Variant " + v1.number + " has " + v1ChildElements +
+                           " child element(s), Variant " + v2.number + " has " + v2ChildElements);
+        }
+
+        // Compare attribute count
+        int v1Attributes = countAttributes(v1.node);
+        int v2Attributes = countAttributes(v2.node);
+        if (v1Attributes != v2Attributes) {
+            differences.add("Different attribute count: Variant " + v1.number + " has " + v1Attributes +
+                           " attribute(s), Variant " + v2.number + " has " + v2Attributes);
+        }
+
+        // Compare type reference vs inline definition
+        if (v1.node instanceof XsdElement e1 && v2.node instanceof XsdElement e2) {
+            String t1 = e1.getType();
+            String t2 = e2.getType();
+            boolean v1HasTypeRef = t1 != null && !t1.isBlank();
+            boolean v2HasTypeRef = t2 != null && !t2.isBlank();
+
+            if (v1HasTypeRef != v2HasTypeRef) {
+                differences.add("Variant " + v1.number + (v1HasTypeRef ? " references type \"" + t1 + "\"" : " uses inline definition") +
+                               ", Variant " + v2.number + (v2HasTypeRef ? " references type \"" + t2 + "\"" : " uses inline definition"));
+            } else if (v1HasTypeRef && !t1.equals(t2)) {
+                differences.add("Different type references: Variant " + v1.number + " uses \"" + t1 +
+                               "\", Variant " + v2.number + " uses \"" + t2 + "\"");
+            }
+        }
+
+        return differences;
+    }
+
+    /**
+     * Checks if a node has a direct or nested child of the specified type.
+     */
+    private boolean hasChildOfType(XsdNode node, XsdNodeType type) {
+        for (XsdNode child : node.getChildren()) {
+            if (child.getNodeType() == type) return true;
+            // Check nested children (e.g., complexType inside element)
+            if (hasChildOfType(child, type)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Finds a ComplexType child node.
+     */
+    private XsdComplexType findComplexTypeChild(XsdNode node) {
+        for (XsdNode child : node.getChildren()) {
+            if (child instanceof XsdComplexType ct) return ct;
+            XsdComplexType nested = findComplexTypeChild(child);
+            if (nested != null) return nested;
+        }
+        return null;
+    }
+
+    /**
+     * Counts the number of child elements (including nested ones).
+     */
+    private int countChildElements(XsdNode node) {
+        int count = 0;
+        for (XsdNode child : node.getChildren()) {
+            if (child.getNodeType() == XsdNodeType.ELEMENT) count++;
+            count += countChildElements(child);
+        }
+        return count;
+    }
+
+    /**
+     * Counts the number of attributes (including nested ones).
+     */
+    private int countAttributes(XsdNode node) {
+        int count = 0;
+        for (XsdNode child : node.getChildren()) {
+            if (child.getNodeType() == XsdNodeType.ATTRIBUTE) count++;
+            count += countAttributes(child);
+        }
+        return count;
+    }
+
+    /**
+     * Helper class to store variant information.
+     */
+    private static class VariantInfo {
+        final int number;
+        final XsdNode node;
+
+        VariantInfo(int number, XsdNode node) {
+            this.number = number;
+            this.node = node;
+        }
     }
 }

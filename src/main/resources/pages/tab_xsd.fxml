@@ -157,6 +157,15 @@
             </tooltip>
         </Button>
 
+        <Button fx:id="toolbarXPathQuery" text="XPath" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarXPathQuery">
+            <graphic>
+                <FontIcon iconLiteral="bi-braces" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle XPath/XQuery Panel (Ctrl+Q)"/>
+            </tooltip>
+        </Button>
+
         <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
@@ -337,38 +346,48 @@
                 <center>
                     <SplitPane fx:id="textTabSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
                         <items>
-                            <!-- Main content area -->
-                            <StackPane style="-fx-background-color: #f8f9fa;">
-                                <children>
-                                    <VBox fx:id="noFileLoadedPaneText" alignment="CENTER" spacing="20.0">
+                            <!-- Main content area with vertical split for XPath panel -->
+                            <SplitPane fx:id="textContentSplitPane" orientation="VERTICAL" dividerPositions="1.0">
+                                <items>
+                                    <!-- Source code editor area -->
+                                    <StackPane style="-fx-background-color: #f8f9fa;">
                                         <children>
-                                            <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
-                                                      iconSize="64"/>
-                                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
-                                                   text="No XSD file loaded"/>
-                                            <Label style="-fx-text-fill: #6c757d;"
-                                                   text="Please load an XSD file to see the source code."/>
-                                            <HBox alignment="CENTER" spacing="10">
-                                                <Button onAction="#createNewXsdFile" styleClass="button"
-                                                        text="New XSD File">
-                                                    <graphic>
-                                                        <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
-                                                    </graphic>
-                                                </Button>
-                                                <Button onAction="#openXsdFileChooser" styleClass="button, :default"
-                                                        text="Load XSD File">
-                                                    <graphic>
-                                                        <FontIcon iconLiteral="bi-folder2-open"/>
-                                                    </graphic>
-                                                </Button>
-                                            </HBox>
+                                            <VBox fx:id="noFileLoadedPaneText" alignment="CENTER" spacing="20.0">
+                                                <children>
+                                                    <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                                                              iconSize="64"/>
+                                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                                           text="No XSD file loaded"/>
+                                                    <Label style="-fx-text-fill: #6c757d;"
+                                                           text="Please load an XSD file to see the source code."/>
+                                                    <HBox alignment="CENTER" spacing="10">
+                                                        <Button onAction="#createNewXsdFile" styleClass="button"
+                                                                text="New XSD File">
+                                                            <graphic>
+                                                                <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
+                                                            </graphic>
+                                                        </Button>
+                                                        <Button onAction="#openXsdFileChooser" styleClass="button, :default"
+                                                                text="Load XSD File">
+                                                            <graphic>
+                                                                <FontIcon iconLiteral="bi-folder2-open"/>
+                                                            </graphic>
+                                                        </Button>
+                                                    </HBox>
+                                                </children>
+                                            </VBox>
+                                            <XmlCodeEditor fx:id="sourceCodeEditor" managed="false" visible="false"/>
+                                            <ProgressIndicator fx:id="textProgress" maxHeight="80" maxWidth="80"
+                                                               visible="false"/>
                                         </children>
+                                    </StackPane>
+
+                                    <!-- XPath/XQuery Query Panel (initially hidden, added programmatically) -->
+                                    <VBox fx:id="xpathQueryPanel" managed="false" visible="false"
+                                          style="-fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0;">
                                     </VBox>
-                                    <XmlCodeEditor fx:id="sourceCodeEditor" managed="false" visible="false"/>
-                                    <ProgressIndicator fx:id="textProgress" maxHeight="80" maxWidth="80"
-                                                       visible="false"/>
-                                </children>
-                            </StackPane>
+                                </items>
+                            </SplitPane>
 
                             <!-- Favorites Panel -->
                             <fx:include fx:id="favoritesPanel" source="controls/FavoritesPanel.fxml"/>

@@ -52,5 +52,10 @@ public enum CompletionItemType {
     /**
      * XPath node test (e.g., node(), text(), comment()).
      */
-    XPATH_NODE_TEST
+    XPATH_NODE_TEST,
+
+    /**
+     * XSD type (e.g., complexType, simpleType definitions).
+     */
+    TYPE
 }

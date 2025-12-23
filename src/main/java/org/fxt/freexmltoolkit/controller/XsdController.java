@@ -276,9 +276,19 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private SplitPane textTabSplitPane;
     @FXML
+    private SplitPane textContentSplitPane;
+    @FXML
+    private VBox xpathQueryPanel;
+    @FXML
+    private Button toolbarXPathQuery;
+    @FXML
     private VBox favoritesPanel;
     @FXML
     private FavoritesPanelController favoritesPanelController;
+
+    // XPath/XQuery Query Panel
+    private org.fxt.freexmltoolkit.controls.XsdXPathQueryPanel xpathPanel;
+    private boolean xpathPanelInitialized = false;
 
     // Fields for the graphic tab favorites system
     @FXML
@@ -3693,6 +3703,7 @@ public class XsdController implements FavoritesParentController {
      */
     public void shutdown() {
         stopDocServer();
+        disposeXPathPanel();
 
         logger.info("Shutting down XsdController's ExecutorService...");
         executorService.shutdown();
@@ -4955,6 +4966,12 @@ public class XsdController implements FavoritesParentController {
                             event.consume();
                             logger.debug("Close triggered via Ctrl+W");
                         }
+                        case Q -> {
+                            // Ctrl+Q: Toggle XPath/XQuery panel
+                            handleToolbarXPathQuery();
+                            event.consume();
+                            logger.debug("XPath panel toggled via Ctrl+Q");
+                        }
                     }
                 } else if (event.isControlDown() && event.isShiftDown() && !event.isAltDown()) {
                     // Ctrl+Shift shortcuts
@@ -5162,6 +5179,116 @@ public class XsdController implements FavoritesParentController {
         handleShowFavorites();
     }
 
+    /**
+     * Handles the XPath/XQuery panel toggle button in the toolbar.
+     * Switches to text tab if not already there and toggles the panel visibility.
+     */
+    @FXML
+    public void handleToolbarXPathQuery() {
+        logger.info("Toolbar: XPath Query clicked");
+
+        // Switch to Text View tab if not already there
+        if (tabPane != null && tabPane.getSelectionModel().getSelectedItem() != textTab) {
+            tabPane.getSelectionModel().select(textTab);
+        }
+
+        // Toggle the XPath panel
+        toggleXPathPanel(!isXPathPanelVisible());
+    }
+
+    /**
+     * Initializes the XPath/XQuery query panel lazily on first use.
+     */
+    private void initializeXPathPanel() {
+        if (xpathPanelInitialized) {
+            return;
+        }
+
+        try {
+            xpathPanel = new org.fxt.freexmltoolkit.controls.XsdXPathQueryPanel();
+            xpathPanel.setXsdContentSupplier(this::getXsdSourceContent);
+            xpathPanel.setOnCloseRequested(() -> toggleXPathPanel(false));
+
+            xpathQueryPanel.getChildren().add(xpathPanel);
+            javafx.scene.layout.VBox.setVgrow(xpathPanel, javafx.scene.layout.Priority.ALWAYS);
+
+            xpathPanelInitialized = true;
+            logger.info("XPath query panel initialized for XSD editor");
+        } catch (Exception e) {
+            logger.error("Failed to initialize XPath panel: {}", e.getMessage(), e);
+            DialogHelper.showError("XPath Panel Error",
+                    "Failed to initialize XPath/XQuery panel",
+                    e.getMessage());
+        }
+    }
+
+    /**
+     * Gets the current XSD source content from the text editor.
+     *
+     * @return the XSD content, or null if no content available
+     */
+    private String getXsdSourceContent() {
+        if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+            return sourceCodeEditor.getCodeArea().getText();
+        }
+        return null;
+    }
+
+    /**
+     * Toggles the XPath/XQuery panel visibility.
+     *
+     * @param show true to show the panel, false to hide it
+     */
+    private void toggleXPathPanel(boolean show) {
+        // Initialize on first use
+        if (show && !xpathPanelInitialized) {
+            initializeXPathPanel();
+        }
+
+        // Update visibility
+        xpathQueryPanel.setVisible(show);
+        xpathQueryPanel.setManaged(show);
+
+        // Adjust split pane divider
+        if (textContentSplitPane != null) {
+            if (show) {
+                textContentSplitPane.setDividerPositions(0.65);
+            } else {
+                textContentSplitPane.setDividerPositions(1.0);
+            }
+        }
+
+        // Update toolbar button style
+        if (toolbarXPathQuery != null) {
+            if (show) {
+                toolbarXPathQuery.setStyle("-fx-background-color: #e7e7e7;");
+            } else {
+                toolbarXPathQuery.setStyle("");
+            }
+        }
+
+        logger.debug("XPath panel visibility: {}", show);
+    }
+
+    /**
+     * Returns whether the XPath panel is currently visible.
+     *
+     * @return true if the panel is visible
+     */
+    private boolean isXPathPanelVisible() {
+        return xpathQueryPanel != null && xpathQueryPanel.isVisible();
+    }
+
+    /**
+     * Disposes the XPath panel when the controller is closed.
+     */
+    private void disposeXPathPanel() {
+        if (xpathPanel != null) {
+            xpathPanel.dispose();
+            xpathPanel = null;
+            xpathPanelInitialized = false;
+        }
+    }
 
     /**
      * Opens the schema analysis tab.

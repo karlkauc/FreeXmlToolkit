@@ -316,7 +316,7 @@ public class IntelliSenseEngine {
             case SNIPPET -> new InsertionResult(insertText, insertText.length());
             // XPath/XQuery types - handled by XPathIntelliSenseEngine, pass through here
             case XPATH_FUNCTION, XPATH_AXIS, XPATH_OPERATOR, XPATH_VARIABLE,
-                 XQUERY_KEYWORD, XPATH_NODE_TEST -> new InsertionResult(insertText, insertText.length());
+                 XQUERY_KEYWORD, XPATH_NODE_TEST, TYPE -> new InsertionResult(insertText, insertText.length());
         };
     }
 
