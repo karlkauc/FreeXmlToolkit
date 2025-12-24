@@ -66,7 +66,7 @@ Edit your XML files with professional tools:
 | **Find & Replace** | Search and replace text in your documents |
 | **Code Folding** | Collapse sections to focus on what matters |
 
-Learn more: [XML Editor Guide](xml-controller.md) | [Editor Features](xml-editor-features.md)
+Learn more: [XML Editor Guide](xml-editor.md) | [Editor Features](xml-editor-features.md)
 
 ### XSD Schema Tools
 
@@ -79,7 +79,7 @@ Work with XML Schema files:
 | **Sample XML Generator** | Generate valid sample XML files |
 | **Schema Flattening** | Combine multiple schema files into one |
 
-Learn more: [XSD Tools Guide](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md)
+Learn more: [XSD Tools Guide](xsd-tools.md) | [XSD Validation](xsd-validation.md)
 
 ### XSLT Transformation
 
@@ -92,7 +92,7 @@ Convert XML into other formats:
 | **Modern XSLT Support** | Uses the latest XSLT 3.0 standard |
 | **Multi-File Batch Processing** | Process multiple XML files with one XQuery using `collection()` |
 
-Learn more: [XSLT Guide](xslt-controller.md)
+Learn more: [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md)
 
 ### PDF Generation
 
@@ -103,7 +103,7 @@ Create professional PDF documents:
 | **XSL-FO Support** | Use XSL-FO stylesheets for formatting |
 | **High-Quality Output** | Professional PDF generation |
 
-Learn more: [PDF Generation Guide](fop-controller.md)
+Learn more: [PDF Generation Guide](pdf-generator.md)
 
 ### Digital Signatures
 
@@ -115,7 +115,7 @@ Sign and verify XML documents:
 | **Sign Documents** | Add digital signatures to XML files |
 | **Verify Signatures** | Check if signed documents are valid |
 
-Learn more: [Digital Signatures Guide](signature-controller.md)
+Learn more: [Digital Signatures Guide](digital-signatures.md)
 
 ### Schematron Validation
 
@@ -176,16 +176,17 @@ The application includes example files in the `examples/` folder to help you get
 
 ### Feature Guides
 
-| Page | Description |
-|------|-------------|
-| [XML Editor](xml-controller.md) | How to edit XML files |
-| [XML Editor Features](xml-editor-features.md) | Detailed editor features |
-| [XSD Tools](xsd-controller.md) | Working with XML schemas |
-| [XSD Validation](xsd-validation-controller.md) | Validating XML against schemas |
-| [XSLT Transformation](xslt-controller.md) | Converting XML to other formats |
-| [PDF Generator](fop-controller.md) | Creating PDF documents |
-| [Digital Signatures](signature-controller.md) | Signing XML documents |
-| [Schematron Support](schematron-support.md) | Business rule validation |
+| Page                                          | Description                              |
+|-----------------------------------------------|------------------------------------------|
+| [XML Editor](xml-editor.md)                   | How to edit XML files                    |
+| [XML Editor Features](xml-editor-features.md) | Detailed editor features                 |
+| [XSD Tools](xsd-tools.md)                     | Working with XML schemas                 |
+| [XSD Validation](xsd-validation.md)           | Validating XML against schemas           |
+| [XSLT Viewer](xslt-viewer.md)                 | Quick XSLT transformations               |
+| [XSLT Developer](xslt-developer.md)           | Full XSLT/XQuery development environment |
+| [PDF Generator](pdf-generator.md)             | Creating PDF documents                   |
+| [Digital Signatures](digital-signatures.md)   | Signing XML documents                    |
+| [Schematron Support](schematron-support.md)   | Business rule validation                 |
 
 ### Productivity Tools
 
@@ -215,7 +216,8 @@ The application includes example files in the `examples/` folder to help you get
 
 ## Quick Links
 
-**Editors:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [PDF/FOP](fop-controller.md) | [Signatures](signature-controller.md)
+**Editors:
+** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [PDF/FOP](pdf-generator.md) | [Signatures](digital-signatures.md)
 
 **Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
 

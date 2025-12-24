@@ -160,8 +160,8 @@ FXT-Background-1, FXT-Background-2 // Background threads
 
 ```java
 ThreadPoolStats {
-    tasksSubmitted: 1247,
-    tasksCompleted: 1245,
+    1247,
+            tasksCompleted: 1245,
     tasksFailed: 2,
     runningTasks: 3,
     averageExecutionTimeMs: 45
@@ -268,4 +268,5 @@ ThreadPoolManager.getInstance().executeUI("ui-update", () -> {
 |----------|------|------|
 | [Templates](template-management.md) | [Home](index.md) | [Technology Stack](technology-stack.md) |
 
-**All Pages:** [XML Editor](xml-controller.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-controller.md) | [XSD Validation](xsd-validation-controller.md) | [XSLT](xslt-controller.md) | [FOP/PDF](fop-controller.md) | [Signatures](signature-controller.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:
+** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT](xslt-viewer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
