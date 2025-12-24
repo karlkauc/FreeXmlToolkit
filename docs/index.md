@@ -1,6 +1,6 @@
 # FreeXmlToolkit Documentation
 
-> **Last Updated:** November 2025 | **Version:** 1.0.0
+> **Last Updated:** December 2025 | **Version:** 1.1.0
 
 ## Welcome
 
@@ -90,6 +90,7 @@ Convert XML into other formats:
 | **Multi-Format Output** | Generate XML, HTML, Text, or JSON |
 | **Live Preview** | See results as you work |
 | **Modern XSLT Support** | Uses the latest XSLT 3.0 standard |
+| **Multi-File Batch Processing** | Process multiple XML files with one XQuery using `collection()` |
 
 Learn more: [XSLT Guide](xslt-controller.md)
 
