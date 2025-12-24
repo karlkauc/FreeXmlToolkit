@@ -662,6 +662,22 @@ Platform.runLater(() -> {
   - User-friendly alerts
   - Graceful degradation
 
+## Common Mistakes to Avoid
+
+- **Invalid Icons:** Never use `bi-database` icon (does not exist). Always validate icons against https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html before using them.
+- **XSD Infinite Loops:** In XSD schemas, child nodes can have the parent node's type. Always check for circular references when processing XSD to prevent infinite loops.
+- **FXML Controller Methods:** All `@FXML` annotated methods in controllers MUST be `public`. The module system prevents access to non-public methods in jlink/jpackage releases.
+- **Icon References:** Before committing code with `bi-*` icons or `FontIcon` references, validate that all icons exist.
+
+## Project-Specific Patterns
+
+- **XSLT/XQuery Engine:** Use Saxon HE 12.9 for all XSLT 3.0, XPath 3.1, and XQuery 3.1 processing
+- **XML Validation:** Use Xerces 2.12.2 (exist-db fork) for XSD 1.1 validation support
+- **UI Framework:** JavaFX 24.0.1 with AtlantaFX theme for modern styling
+- **Icons:** Ikonli Bootstrap Icons - always verify icon existence before use
+- **Async Operations:** Use `Platform.runLater()` for UI updates from background threads
+- **Background Tasks:** Use `FxtGui.executorService` or `ThreadPoolManager` for background operations
+
 ## Known Limitations
 
 **Schema Support:**
@@ -689,20 +705,13 @@ Platform.runLater(() -> {
 **Factory:** `controls/v2/model/XsdNodeFactory.java`
 **Facets:** `controls/v2/editor/panels/FacetsPanel.java`
 
+## Performance Requirements
 
-# Important
+- **Background Loading:** All data that can be loaded in the background MUST be loaded asynchronously. Never block the UI thread.
+- **Lazy Loading:** Load data on-demand where possible to improve startup time.
 
-- Always create unit tests for new features.
-- Always check if no current implementation is broken.
-- insert comments and javadoc in english.
-- refactor classes automatically
-    - split classes that are too big automatically into smaller classes
-    - delete unused code automatically. make sure no production code breaks.
-    - avoid reflections if possible
-- in einem XSD Schema können Kind Knoten den Type des Eltern Knoten haben. Stelle bei der Verarbeitung von XSD immer sicher, dass es zu keiner Endlosschleife kommt.
-- überprüfe die ikonli bootstrap icons unter https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
-stelle sicher, dass das icon auch exisistiert bevor du es verwendest.
-- alle texte welche dem user angezeigt werden (fehlermeldunge, etc.) sollen auf englisch sein
-- alle @FXML methoden in den controllern müssen public sein. das module system verhindert sonst in den jlink/jpackage release den zugriff auf die methoden.
-- performance bei der bearbeitung von files ist sehr wichtig. alle daten welche im hintergrund geladen werden können sollen im hintergrund geladen werden. 
-- usability ist mehr sehr wichtig. wenn ein element grafisch bearbeitet wrid (egal welches) soll bei einer änderung (zum beispiel dem ändern eines wertes) bei der übernahme der werte in das modell, die ansicht so bleiben wie sie vorher ist. es sollen alle knoten so darsgestellt werden wie vor der bearbeitung. also auch aufgeklappt sein, wenn sie vorher aufgeklappt waren. ich möchte mehrere aktionen hintereinander ausführen können, ohne im arbeitsfluss unterbrochen zu werden (zum beispiel durch erneutes öffnen der knoten bis zu der stelle wo ich vorher war)
+## Usability Requirements
+
+- **Preserve View State:** When editing elements graphically, the view state MUST be preserved after changes. All expanded/collapsed nodes should remain in their previous state.
+- **Workflow Continuity:** Users must be able to perform multiple actions in sequence without interruption (e.g., no need to re-expand nodes to return to previous location).
+- **All User-Facing Text in English:** Error messages, dialogs, labels, and all UI text must be in English.
