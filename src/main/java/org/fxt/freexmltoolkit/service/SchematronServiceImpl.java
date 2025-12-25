@@ -8,11 +8,13 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
+import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +27,7 @@ public class SchematronServiceImpl implements SchematronService {
 
     private static final Logger logger = LogManager.getLogger(SchematronServiceImpl.class);
     private static final Processor SAXON_PROCESSOR = new Processor(false);
-    private static final XsltCompiler XSLT_COMPILER = SAXON_PROCESSOR.newXsltCompiler();
+    private static final XsltCompiler XSLT_COMPILER;
 
     // Cache for compiled Schematron stylesheets
     private final Map<File, XsltExecutable> compiledSchematronCache = new ConcurrentHashMap<>();
@@ -37,8 +39,40 @@ public class SchematronServiceImpl implements SchematronService {
             "/schematron/iso_svrl_for_xslt2.xsl"
     };
 
+    static {
+        XSLT_COMPILER = SAXON_PROCESSOR.newXsltCompiler();
+        // Set a URIResolver that can resolve classpath resources
+        XSLT_COMPILER.setURIResolver(new ClasspathURIResolver());
+    }
+
     public SchematronServiceImpl() {
         // Constructor
+    }
+
+    /**
+     * URIResolver that resolves resources from the classpath.
+     * This is needed because the Schematron skeleton XSL files use relative imports.
+     */
+    private static class ClasspathURIResolver implements URIResolver {
+        @Override
+        public Source resolve(String href, String base) {
+            try {
+                // Try to resolve relative to the schematron folder on classpath
+                String resourcePath = "/schematron/" + href;
+                URL resourceUrl = SchematronServiceImpl.class.getResource(resourcePath);
+                if (resourceUrl != null) {
+                    StreamSource source = new StreamSource(resourceUrl.openStream());
+                    source.setSystemId(resourceUrl.toExternalForm());
+                    return source;
+                }
+
+                // Fall back to default resolution
+                return null;
+            } catch (Exception e) {
+                logger.debug("Could not resolve URI {} from classpath: {}", href, e.getMessage());
+                return null;
+            }
+        }
     }
 
     @Override
@@ -107,7 +141,13 @@ public class SchematronServiceImpl implements SchematronService {
                 if (skeletonStream == null) {
                     throw new SchematronLoadException("Cannot find Schematron skeleton on classpath: " + skeletonPath);
                 }
-                XsltExecutable skeleton = XSLT_COMPILER.compile(new StreamSource(skeletonStream));
+                // Create StreamSource with system ID for proper relative URI resolution
+                URL skeletonUrl = SchematronServiceImpl.class.getResource(skeletonPath);
+                StreamSource skeletonSource = new StreamSource(skeletonStream);
+                if (skeletonUrl != null) {
+                    skeletonSource.setSystemId(skeletonUrl.toExternalForm());
+                }
+                XsltExecutable skeleton = XSLT_COMPILER.compile(skeletonSource);
                 XsltTransformer transformer = skeleton.load();
                 transformer.setInitialContextNode(currentResult);
                 XdmDestination resultDestination = new XdmDestination();
@@ -117,7 +157,7 @@ public class SchematronServiceImpl implements SchematronService {
             } catch (SchematronLoadException e) {
                 throw e;
             } catch (Exception e) {
-                throw new SchematronLoadException("Failed to apply Schematron skeleton " + skeletonPath + 
+                throw new SchematronLoadException("Failed to apply Schematron skeleton " + skeletonPath +
                         ". Reason: " + e.getMessage(), e);
             }
         }

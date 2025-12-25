@@ -19,8 +19,10 @@ class XsdVisualTreeBuilderFundTest {
     @Test
     @DisplayName("Fund element with type reference should have visual children from resolved type")
     void testFundElementWithTypeReference() throws Exception {
-        // Load the test schema
-        File xsdFile = new File("test-fund-simple.xsd");
+        // Load the test schema from test resources
+        java.net.URL resourceUrl = getClass().getClassLoader().getResource("demo-xsd/test-fund-simple.xsd");
+        assertNotNull(resourceUrl, "Test file demo-xsd/test-fund-simple.xsd should exist in test resources");
+        File xsdFile = new File(resourceUrl.toURI());
         assertTrue(xsdFile.exists(), "Test file test-fund-simple.xsd should exist");
 
         XsdNodeFactory factory = new XsdNodeFactory();
