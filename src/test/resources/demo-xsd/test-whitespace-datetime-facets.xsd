@@ -33,7 +33,8 @@
     <!-- Example 3: String with collapse whitespace -->
     <xs:element name="CollapsedText">
         <xs:annotation>
-            <xs:documentation>Text with collapsed whitespace (replace + trim + collapse consecutive spaces)</xs:documentation>
+            <xs:documentation>Text with collapsed whitespace (replace + trim + collapse consecutive spaces)
+            </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
             <xs:restriction base="xs:string">
@@ -75,7 +76,9 @@
     <!-- Example 7: DateTime with optional timezone -->
     <xs:element name="EventTimeOptional">
         <xs:annotation>
-            <xs:documentation>DateTime with optional timezone (both 2024-01-15T10:30:00 and 2024-01-15T10:30:00Z allowed)</xs:documentation>
+            <xs:documentation>DateTime with optional timezone (both 2024-01-15T10:30:00 and 2024-01-15T10:30:00Z
+                allowed)
+            </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
             <xs:restriction base="xs:dateTime">
@@ -87,7 +90,8 @@
     <!-- Example 8: DateTime with prohibited timezone -->
     <xs:element name="LocalTimeOnly">
         <xs:annotation>
-            <xs:documentation>DateTime without timezone (e.g., 2024-01-15T10:30:00, timezone not allowed)</xs:documentation>
+            <xs:documentation>DateTime without timezone (e.g., 2024-01-15T10:30:00, timezone not allowed)
+            </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
             <xs:restriction base="xs:dateTime">
