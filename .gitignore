@@ -131,3 +131,6 @@ certs/*/summary.txt
 debug_output.svg
 
 Icon?
+
+# MkDocs generated site
+site/

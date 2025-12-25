@@ -1,9 +1,10 @@
 # XML Editor
 
-> **Last Updated:** November 2025 | **Version:** 1.0.0
+> **Last Updated:** December 2025 | **Version:** 1.1.0
 
-The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and easy-to-use interface for working with
-XML files.
+The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and easy-to-use interface for working with XML files.
+
+---
 
 ## Overview
 
@@ -15,28 +16,49 @@ XML files.
 
 ---
 
+## Toolbar
+
+| Button | Shortcut | Description |
+|--------|----------|-------------|
+| **New** | Ctrl+N | Create new XML document |
+| **Open** | Ctrl+O | Open XML file |
+| **Save** | Ctrl+S | Save current file |
+| **Save As** | Ctrl+Shift+S | Save with new name |
+| **Recent** | Ctrl+Shift+R | Open recent files menu |
+| **Undo** | Ctrl+Z | Undo last change |
+| **Redo** | Ctrl+Y | Redo undone change |
+| **Add Favorite** | Ctrl+D | Add file to favorites |
+| **Favorites** | Ctrl+Shift+D | Toggle favorites panel |
+| **Format** | Ctrl+Alt+F | Pretty print XML |
+| **Validate** | F5 | Validate XML |
+| **Convert** | Ctrl+E | XML/Excel/CSV converter |
+| **Query** | Ctrl+Q | Run XPath/XQuery |
+| **Templates** | Ctrl+T | Open template manager |
+| **Generator** | Ctrl+G | Schema generator |
+| **XSLT Dev** | Ctrl+Shift+T | XSLT development panel |
+| **Properties** | Ctrl+P | Toggle properties panel |
+| **XPath** | Ctrl+Q | Toggle XPath panel |
+| **Help** | F1 | Show help |
+
+---
+
 ## Working with Files
 
 ### Opening and Saving Files
 
 ![File Operations](img/xml-editor-file-operations.png)
+*File toolbar with Open, Save, and New buttons*
 
-* File toolbar with Open, Save, and New buttons*
+- **Open Files**: Click "Open" or use `Ctrl+O` to browse for XML files
+- **Save Files**: Click "Save" or use `Ctrl+S` to save changes
+- **Save As**: Use `Ctrl+Shift+S` to save with a new name
+- **Create New**: Click "New" to start with an empty XML document
+- **Drag & Drop**: Drag files from your file explorer into the editor
+- **Recent Files**: Quick access to recently opened files
 
-- **Open Files**: Click the "Open" button or use `Ctrl+O` to browse for XML files
-- **Save Files**: Click "Save" or use `Ctrl+S` to save your changes
-- **Create New Files**: Click "New" to start with an empty XML document
-- **Drag & Drop**: Simply drag files from your file explorer into the editor window
+### Multiple Files
 
-### Favorites
-
-Save your frequently used files for quick access:
-
-- Click the star icon to add a file to favorites
-- Organize favorites into custom categories
-- Access favorites from the sidebar panel
-
-Learn more: [Favorites System](favorites-system.md)
+Open multiple XML files in separate tabs. Each tab shows the file name and indicates unsaved changes with an asterisk (*).
 
 ---
 
@@ -45,14 +67,15 @@ Learn more: [Favorites System](favorites-system.md)
 ### Text Mode
 
 ![Text Mode Editing](img/xml-editor-text-mode.png)
-*Screenshot placeholder: Text editor with syntax highlighting*
+*Text editor with syntax highlighting*
 
 The text editor provides:
 
-- **Syntax Highlighting**: XML elements, attributes, and values are color-coded for easy reading
+- **Syntax Highlighting**: XML elements, attributes, and values are color-coded
 - **Line Numbers**: Every line is numbered for easy reference
-- **Code Folding**: Click the arrows next to elements to collapse or expand sections
+- **Code Folding**: Click arrows to collapse or expand sections
 - **Auto-Completion**: Type `<` to see suggestions for valid elements
+- **Error Highlighting**: Invalid XML is highlighted in red
 
 ### Tree View
 
@@ -60,8 +83,9 @@ The text editor provides:
 *Tree view showing XML structure*
 
 - See your XML document as a hierarchical tree
-- Drag and drop elements to reorganize the structure
+- Drag and drop elements to reorganize structure
 - Right-click for context menu options
+- Double-click to edit element values
 
 ### Grid Mode
 
@@ -73,6 +97,7 @@ The grid editor provides:
 - **Table View**: Edit XML data in a spreadsheet-like interface
 - **Direct Cell Editing**: Click cells to edit values directly
 - **Easy Navigation**: Move through the document using arrow keys
+- **Sorting**: Sort data by clicking column headers
 
 ---
 
@@ -88,7 +113,7 @@ The editor automatically suggests valid elements and attributes based on your XS
 3. **Press Enter** to insert the selected element
 4. **Press Escape** to close the suggestions
 
-The suggestions are context-sensitive - only elements that are valid at your current position will be shown.
+The suggestions are context-sensitive - only elements valid at your current position are shown.
 
 Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 
@@ -98,11 +123,12 @@ Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 
 ### Pretty Print
 
-![Pretty Print](img/xml-editor-pretty-print-before.png)
+![Pretty Print Before](img/xml-editor-pretty-print-before.png)
 *Before pretty print*
 
-Click "Pretty Print" to format your XML with proper indentation. This makes messy or compressed XML easy to read.
-![Pretty Print](img/xml-editor-pretty-print-after.png)
+Click **Format** or use `Ctrl+Alt+F` to format your XML with proper indentation.
+
+![Pretty Print After](img/xml-editor-pretty-print-after.png)
 *After pretty print*
 
 ---
@@ -114,80 +140,155 @@ Click "Pretty Print" to format your XML with proper indentation. This makes mess
 
 ### How to Validate
 
-1. **Load a Schema**: Click the folder icon in the XSD Schema section to select your schema file
-2. **Automatic Detection**: If your XML references a schema, it will be loaded automatically
-3. **View Results**: Errors and warnings appear in the validation panel
-4. **Navigate to Errors**: Click on an error to jump to the problem location
+1. Click **Validate** or press **F5**
+2. If your XML references a schema, it's loaded automatically
+3. Errors and warnings appear in the validation panel
+4. Click an error to jump to the problem location
 
 ### Supported Validation Methods
 
-| Method                | Description                         |
-|-----------------------|-------------------------------------|
+| Method | Description |
+|--------|-------------|
 | **Well-Formed Check** | Ensures basic XML syntax is correct |
-| **XSD Validation**    | Validates against XML Schema files  |
-| **Schematron**        | Validates against business rules    |
+| **XSD Validation** | Validates against XML Schema files |
+| **Schematron** | Validates against business rules |
 
 ### Supported Schema Formats
 
-| Format           | Support       |
-|------------------|---------------|
-| XSD (XML Schema) | Full support  |
-| Schematron       | Full support  |
-| DTD              | Not supported |
-| RelaxNG          | Not supported |
+| Format | Support |
+|--------|---------|
+| XSD (XML Schema) | Full support (1.0 and 1.1) |
+| Schematron | Full support |
+| DTD | Not supported |
+| RelaxNG | Not supported |
 
 ---
 
 ## XPath and XQuery
 
 ![XPath Query](img/xml-editor-xpath.png)
-*Screenshot placeholder: XPath tab with query input and results*
+*XPath panel with query input and results*
 
-Use XPath and XQuery to find and extract data from your XML documents:
+Use XPath and XQuery to find and extract data from your XML documents.
 
-1. **Switch to the XPath/XQuery tab** at the bottom of the editor
-2. **Enter your query** in the input field
-3. **Click Execute** to run the query
-4. **View Results** in the results panel
+### Using the XPath/XQuery Panel
 
-### Example Queries
+1. Toggle the panel with **Ctrl+Q** or click the **XPath** button
+2. Choose **XPath** or **XQuery** tab
+3. Enter your expression
+4. Click **Execute Query**
+5. View results in the editor (matching nodes are highlighted)
 
-- `//element` - Find all elements named "element"
-- `//element/@attribute` - Find all attributes named "attribute" on "element"
-- `/root/child[1]` - Find the first child of root
+### XPath Examples
+
+| Expression | Description |
+|------------|-------------|
+| `//element` | Find all elements named "element" |
+| `//element/@attr` | Find all "attr" attributes on "element" |
+| `/root/child[1]` | Find the first child of root |
+| `count(//item)` | Count all item elements |
+| `//text()` | Find all text nodes |
+
+### XQuery Examples
+
+| Expression | Description |
+|------------|-------------|
+| `for $x in //item return $x` | Return all items |
+| `for $x in //item where $x/@id='1' return $x/name` | Filter and return |
+
+Use the **Examples** menu for quick insertion of common expressions.
+
+---
+
+## XML/Excel/CSV Converter
+
+Click **Convert** (Ctrl+E) to open the converter dialog:
+
+- **XML to Excel**: Export XML data to Excel spreadsheet
+- **XML to CSV**: Export XML data to CSV file
+- **Excel to XML**: Import Excel data as XML
+- **CSV to XML**: Import CSV data as XML
+
+---
+
+## Templates
+
+Click **Templates** (Ctrl+T) to access the template manager:
+
+- Insert pre-defined XML snippets
+- Create your own templates
+- Organize templates by category
+
+Learn more: [Template Management](template-management.md)
+
+---
+
+## Schema Generator
+
+Click **Generator** (Ctrl+G) to generate an XSD schema from your XML:
+
+- Analyze XML structure
+- Generate matching XSD schema
+- Customize type detection
+
+---
+
+## Favorites
+
+Save frequently used files for quick access:
+
+- **Add Favorite** (Ctrl+D) - Save current file to favorites
+- **Favorites** (Ctrl+Shift+D) - Show/hide favorites panel
+
+The favorites panel appears on the right side.
+
+Learn more: [Favorites System](favorites-system.md)
 
 ---
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action               |
-|----------|----------------------|
-| `Ctrl+O` | Open file            |
-| `Ctrl+S` | Save file            |
-| `Ctrl+Z` | Undo                 |
-| `Ctrl+Y` | Redo                 |
-| `Ctrl+F` | Find                 |
-| `Ctrl+H` | Replace              |
-| `Ctrl++` | Zoom in              |
-| `Ctrl+-` | Zoom out             |
-| `<`      | Open auto-completion |
+| Shortcut | Action |
+|----------|--------|
+| Ctrl+N | New file |
+| Ctrl+O | Open file |
+| Ctrl+S | Save file |
+| Ctrl+Shift+S | Save As |
+| Ctrl+W | Close tab |
+| Ctrl+Z | Undo |
+| Ctrl+Y | Redo |
+| Ctrl+F | Find |
+| Ctrl+H | Replace |
+| Ctrl+G | Go to line |
+| Ctrl+D | Add to favorites |
+| Ctrl+Shift+D | Toggle favorites |
+| Ctrl+Alt+F | Format/Pretty Print |
+| Ctrl+Q | Toggle XPath panel |
+| Ctrl+E | XML/Excel converter |
+| Ctrl+T | Templates |
+| Ctrl++ | Zoom in |
+| Ctrl+- | Zoom out |
+| F5 | Validate |
+| F1 | Help |
+| `<` | Open auto-completion |
 
 ---
 
 ## Tips
 
-- **Multiple Files**: You can open multiple XML files in different tabs
+- **Multiple Files**: Open multiple XML files in different tabs
 - **Remember Location**: The editor remembers the last folder you used
-- **Font Size**: Use `Ctrl++` and `Ctrl+-` to adjust the font size
+- **Font Size**: Use `Ctrl++` and `Ctrl+-` to adjust font size
 - **Quick Validation**: Errors are highlighted as you type
+- **Drag & Drop**: Drag files directly into the editor window
+- **Recent Files**: Use the Recent menu for quick access
 
 ---
 
 ## Navigation
 
-| Previous         | Home             | Next                                          |
-|------------------|------------------|-----------------------------------------------|
+| Previous | Home | Next |
+|----------|------|------|
 | [Home](index.md) | [Home](index.md) | [XML Editor Features](xml-editor-features.md) |
 
-**All Pages:
-** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT](xslt-viewer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

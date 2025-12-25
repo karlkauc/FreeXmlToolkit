@@ -1,15 +1,12 @@
-# Schematron Support
+# Schematron Validation
 
-> **Last Updated:** November 2025 | **Version:** 1.0.0
+> **Last Updated:** December 2025 | **Version:** 1.1.0
 
 Schematron lets you create custom validation rules that go beyond what XSD schemas can check. It's perfect for validating business rules and data relationships.
 
 ---
 
-## What is Schematron?
-
-![Schematron Overview](img/schematron-overview.png)
-*Screenshot placeholder: Schematron validation interface*
+## Overview
 
 While XSD schemas check the structure of your XML (which elements can appear where), Schematron checks the content and relationships:
 
@@ -28,76 +25,206 @@ While XSD schemas check the structure of your XML (which elements can appear whe
 
 ---
 
-## Key Features
+## Toolbar
 
-### 1. Visual Rule Builder
-
-![Rule Builder](img/schematron-rule-builder.png)
-*Screenshot placeholder: Visual rule builder interface*
-
-Create validation rules without writing code:
-- Drag-and-drop interface
-- Pre-built templates for common rules
-- Test rules against sample files
-
-### 2. Real-time Validation
-
-![Validation Results](img/schematron-validation.png)
-*Screenshot placeholder: Validation results panel*
-
-- Errors appear as you edit
-- Clear error messages tell you what's wrong
-- Click errors to jump to the problem location
-
-### 3. Integration with XML Editor
-
-Use Schematron validation directly in the XML Editor:
-1. Open an XML file
-2. Select a Schematron file in the sidebar
-3. Enable continuous validation
-4. Errors are highlighted automatically
+| Button | Shortcut | Description |
+|--------|----------|-------------|
+| **New** | - | Create new Schematron file |
+| **Open** | - | Open existing Schematron file |
+| **Save** | Ctrl+S | Save current file |
+| **Save As** | Ctrl+Shift+S | Save with new name |
+| **Add Rule** | Ctrl+R | Add a new rule template |
+| **Add Favorite** | Ctrl+D | Add to favorites |
+| **Favorites** | Ctrl+Shift+D | Toggle favorites panel |
+| **Help** | F1 | Show help |
 
 ---
 
-## How to Use Schematron
+## Code Editor
 
-### Creating Rules
+The Code tab provides a full-featured Schematron editor:
 
-![Creating Rules](img/schematron-create.png)
-*Screenshot placeholder: Rule creation interface*
+### Editor Toolbar
 
-1. Open the Schematron tab
-2. Create a new Schematron file
-3. Define your rules using the visual builder
-4. Save the file
+| Button | Description |
+|--------|-------------|
+| **Load Schematron** | Open an existing file |
+| **New File** | Create empty Schematron |
+| **Save** / **Save As** | Save current file |
+| **New Rule** | Insert rule template |
+| **New Pattern** | Insert pattern template |
+| **Format** | Format/prettify the XML |
+| **Validate** | Check Schematron syntax |
+| **Test Rules** | Test against XML files |
 
-### Validating Documents
+### Sidebar Panels
 
-1. Open your XML file
-2. Load the Schematron rules file
-3. View validation results
-4. Fix any errors shown
+The sidebar provides helpful tools:
+
+#### Quick Help
+
+Shows Schematron basics:
+- `<pattern>` - Groups related rules together
+- `<rule>` - Defines context and conditions
+- `<assert>` - Tests a condition (must be true)
+- `<report>` - Reports a finding (when condition is true)
+
+Common XPath expressions for Schematron rules.
+
+#### Document Structure
+
+Shows the structure of your current Schematron schema - patterns, rules, and assertions.
+
+#### Rule Templates
+
+Pre-built rule templates you can insert:
+- Required field check
+- Unique value check
+- Conditional requirement
+- Value comparison
+- Cross-reference validation
+
+#### XPath Tester
+
+Test XPath expressions against sample XML:
+1. Enter an XPath expression
+2. Click **Test**
+3. See the result
 
 ---
 
-## Example Schematron Rule
+## Creating Schematron Rules
 
-Here's what a simple Schematron rule looks like:
+### Basic Structure
 
 ```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://purl.oclc.org/dsdl/schematron">
-    <pattern>
+    <title>My Validation Rules</title>
+
+    <pattern name="Invoice Validation">
         <rule context="invoice">
             <assert test="@date">
-                Every invoice must have a date
+                Every invoice must have a date attribute.
             </assert>
-            <assert test="sum(item/price) = total">
-                Total must equal sum of item prices
+            <assert test="customer">
+                Every invoice must have a customer element.
             </assert>
         </rule>
     </pattern>
 </schema>
 ```
+
+### Common Rule Patterns
+
+#### Required Field
+
+```xml
+<rule context="order">
+    <assert test="orderNumber">
+        Order number is required.
+    </assert>
+</rule>
+```
+
+#### Conditional Requirement
+
+```xml
+<rule context="order">
+    <assert test="not(@status='shipped') or shipDate">
+        Shipped orders must have a ship date.
+    </assert>
+</rule>
+```
+
+#### Value Comparison
+
+```xml
+<rule context="order">
+    <assert test="endDate >= startDate">
+        End date must be after start date.
+    </assert>
+</rule>
+```
+
+#### Sum Validation
+
+```xml
+<rule context="invoice">
+    <assert test="sum(item/price) = total">
+        Total must equal sum of item prices.
+    </assert>
+</rule>
+```
+
+#### Unique Values
+
+```xml
+<rule context="items">
+    <assert test="count(item) = count(distinct-values(item/@id))">
+        All item IDs must be unique.
+    </assert>
+</rule>
+```
+
+#### Cross-Reference
+
+```xml
+<rule context="orderLine">
+    <assert test="@productId = //product/@id">
+        Product ID must reference an existing product.
+    </assert>
+</rule>
+```
+
+---
+
+## Testing Rules
+
+### Test Against XML Files
+
+1. Click **Test Rules** in the toolbar
+2. Select one or more XML files
+3. View validation results
+
+### Integration with XML Editor
+
+Use Schematron validation directly in the XML Editor:
+
+1. Open an XML file in the XML Editor
+2. In the validation panel, select your Schematron file
+3. Errors are highlighted in the editor
+4. Click errors to jump to the problem location
+
+---
+
+## Favorites Integration
+
+Save frequently used Schematron files for quick access:
+
+- **Add Favorite** (Ctrl+D) - Save current file to favorites
+- **Favorites** (Ctrl+Shift+D) - Show/hide the favorites panel
+
+---
+
+## XPath Reference
+
+Common XPath expressions for Schematron rules:
+
+| Expression | Description |
+|------------|-------------|
+| `.` | Current node |
+| `@attribute` | Attribute of current node |
+| `child::element` | Child element |
+| `parent::element` | Parent element |
+| `//element` | Any element in document |
+| `count(element)` | Count elements |
+| `string-length(.)` | Length of text content |
+| `contains(., 'text')` | Text contains substring |
+| `starts-with(., 'text')` | Text starts with |
+| `normalize-space(.)` | Normalized whitespace |
+| `sum(element)` | Sum of numeric values |
+| `distinct-values(element)` | Unique values |
 
 ---
 
@@ -105,17 +232,42 @@ Here's what a simple Schematron rule looks like:
 
 | Format | Support |
 |--------|---------|
-| Pure Schematron (.sch) | Full support |
+| ISO Schematron (.sch) | Full support |
 | XSLT-based Schematron | Full support |
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| Ctrl+S | Save file |
+| Ctrl+Shift+S | Save As |
+| Ctrl+R | Add new rule |
+| Ctrl+D | Add to favorites |
+| Ctrl+Shift+D | Toggle favorites |
+| F1 | Help |
 
 ---
 
 ## Tips
 
-- Start with simple rules and build up complexity
-- Test rules with both valid and invalid sample files
-- Use clear error messages to help users understand problems
-- Organize rules into logical groups (patterns)
+- **Start simple** - Begin with basic rules and add complexity
+- **Test both ways** - Test with valid and invalid sample files
+- **Clear messages** - Write helpful error messages for users
+- **Use patterns** - Group related rules into patterns
+- **XPath Tester** - Use the sidebar to test expressions
+
+---
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Rule not firing | Check the context XPath matches elements |
+| False positives | Review your test condition logic |
+| Namespace issues | Add namespace declarations to schema |
+| Performance slow | Optimize complex XPath expressions |
 
 ---
 
@@ -123,7 +275,6 @@ Here's what a simple Schematron rule looks like:
 
 | Previous | Home | Next |
 |----------|------|------|
-| [Auto-Completion](context-sensitive-intellisense.md) | [Home](index.md) | [Schema Support](schema-support.md) |
+| [IntelliSense](context-sensitive-intellisense.md) | [Home](index.md) | [Schema Support](schema-support.md) |
 
-**All Pages:
-** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT](xslt-viewer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

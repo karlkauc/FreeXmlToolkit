@@ -1,0 +1,99 @@
+site_name: FreeXmlToolkit Documentation
+site_description: Universal Toolkit for XML - User Documentation
+site_author: Karl Kauc
+site_url: https://karlkauc.github.io/FreeXmlToolkit/
+
+repo_name: karlkauc/FreeXmlToolkit
+repo_url: https://github.com/karlkauc/FreeXmlToolkit
+
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+  logo: img/logo.png
+  favicon: img/logo.png
+
+plugins:
+  - search:
+      lang: en
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/karlkauc/FreeXmlToolkit
+  generator: false
+
+copyright: Copyright &copy; 2024-2025 Karl Kauc
+
+nav:
+  - Home: index.md
+  - XML Editing:
+    - XML Editor: xml-editor.md
+    - Editor Features: xml-editor-features.md
+    - Auto-Completion: context-sensitive-intellisense.md
+    - Templates: template-management.md
+    - Favorites: favorites-system.md
+  - XSD Tools:
+    - XSD Editor & Tools: xsd-tools.md
+    - XSD Validation: xsd-validation.md
+    - Schema Support: schema-support.md
+  - Transformations:
+    - XSLT Viewer: xslt-viewer.md
+    - XSLT Developer: xslt-developer.md
+    - PDF Generator (FOP): pdf-generator.md
+  - Validation:
+    - Schematron: schematron-support.md
+  - Security:
+    - Digital Signatures: digital-signatures.md
+  - Reference:
+    - Technology Stack: technology-stack.md
+    - Licenses: licenses.md
