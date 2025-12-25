@@ -1,0 +1,117 @@
+/* FreeXmlToolkit Custom Theme Colors
+ * Based on the application's look & feel
+ */
+
+:root {
+  /* Primary Blue - from app buttons */
+  --md-primary-fg-color: #4a90e2;
+  --md-primary-fg-color--light: #5ba0f2;
+  --md-primary-fg-color--dark: #357abd;
+
+  /* Accent Orange - from app menu */
+  --md-accent-fg-color: #fc9040;
+  --md-accent-fg-color--transparent: rgba(252, 144, 64, 0.1);
+
+  /* Teal - from app bottom line */
+  --md-footer-bg-color: #264653;
+  --md-footer-bg-color--dark: #1d3640;
+}
+
+/* Dark mode adjustments */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #5ba0f2;
+  --md-accent-fg-color: #fc9040;
+  --md-footer-bg-color: #1d3640;
+}
+
+/* Header gradient matching app */
+.md-header {
+  background: linear-gradient(to right, #4a90e2 0%, #357abd 100%);
+}
+
+/* Navigation tabs */
+.md-tabs {
+  background: linear-gradient(to right, #357abd 0%, #2a6ca8 100%);
+}
+
+/* Code blocks */
+.highlight code {
+  border-radius: 6px;
+}
+
+/* Links */
+.md-content a {
+  color: #4a90e2;
+}
+
+.md-content a:hover {
+  color: #357abd;
+}
+
+/* Tables */
+.md-typeset table:not([class]) th {
+  background-color: #f6f8fa;
+  color: #24292f;
+}
+
+/* Admonitions - matching app colors */
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: #4a90e2;
+}
+
+.md-typeset .note > .admonition-title,
+.md-typeset .note > summary {
+  background-color: rgba(74, 144, 226, 0.1);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: #2A9D8F;
+}
+
+.md-typeset .tip > .admonition-title,
+.md-typeset .tip > summary {
+  background-color: rgba(42, 157, 143, 0.1);
+}
+
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-color: #fc9040;
+}
+
+.md-typeset .warning > .admonition-title,
+.md-typeset .warning > summary {
+  background-color: rgba(252, 144, 64, 0.1);
+}
+
+/* Buttons */
+.md-typeset .md-button {
+  background-color: #4a90e2;
+  border-color: #357abd;
+}
+
+.md-typeset .md-button:hover {
+  background-color: #357abd;
+}
+
+/* Footer */
+.md-footer {
+  background: linear-gradient(to right, #2A9D8F 0%, #264653 100%);
+}
+
+/* Search highlight */
+.md-search-result mark {
+  background-color: rgba(252, 144, 64, 0.4);
+}
+
+/* Navigation hover */
+.md-nav__link:hover {
+  color: #4a90e2;
+}
+
+/* Active navigation */
+.md-nav__link--active {
+  color: #4a90e2;
+  font-weight: bold;
+}

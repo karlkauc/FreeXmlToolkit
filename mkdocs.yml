@@ -15,16 +15,16 @@ theme:
     # Light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: blue
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     # Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: blue
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -42,6 +42,7 @@ theme:
     repo: fontawesome/brands/github
   logo: img/logo.png
   favicon: img/logo.png
+  custom_dir: docs/overrides
 
 plugins:
   - search:
@@ -71,6 +72,9 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/karlkauc/FreeXmlToolkit
   generator: false
+
+extra_css:
+  - overrides/stylesheets/extra.css
 
 copyright: Copyright &copy; 2024-2025 Karl Kauc
 
