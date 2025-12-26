@@ -339,7 +339,7 @@
       "xsd": "bi-diagram-3",
       "xslt": "bi-arrow-repeat",
       "schematron": "bi-shield-check",
-      "pdf": "bi-file-pdf",
+      "pdf": "bi-file-earmark-richtext",
       "text": "bi-file-text",
       "fileEarmark": "bi-file-earmark",
       "fileEarmarkText": "bi-file-earmark-text",

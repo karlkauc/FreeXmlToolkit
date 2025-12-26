@@ -103,6 +103,24 @@ public class SignatureController {
         this.parentController = parentController;
     }
 
+    /**
+     * Programmatically selects a sub-tab by its ID.
+     * Called from MainController menu handlers.
+     *
+     * @param tabId the fx:id of the tab to select
+     */
+    public void selectSubTab(String tabId) {
+        if (tabPane == null || tabId == null) {
+            return;
+        }
+        for (Tab tab : tabPane.getTabs()) {
+            if (tabId.equals(tab.getId())) {
+                tabPane.getSelectionModel().select(tab);
+                return;
+            }
+        }
+    }
+
     @FXML
     private void initialize() {
         if (new File("certs").exists()) {

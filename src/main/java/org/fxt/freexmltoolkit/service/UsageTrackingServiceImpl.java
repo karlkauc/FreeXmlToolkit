@@ -445,7 +445,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
                 "Generate professional PDF documents from XML using XSL-FO templates.",
                 "fop",
                 5,
-                "bi-file-pdf"
+                "bi-file-earmark-richtext"
             );
             case "schema_generation" -> new FeatureTip(
                 feature.getFeatureId(),

@@ -70,6 +70,7 @@ public class MainController implements Initializable {
     XsltDeveloperController xsltDeveloperController;
     SchemaGeneratorController schemaGeneratorController;
     TemplatesController templatesController;
+    UnifiedEditorController unifiedEditorController;
 
     // Track currently active tab
     private String activeTabId = "welcome";
@@ -89,7 +90,7 @@ public class MainController implements Initializable {
     AnchorPane contentPane;
 
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator; // templates removed
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, unifiedEditor; // templates removed
 
     @FXML
     MenuItem menuItemExit;
@@ -438,6 +439,7 @@ public class MainController implements Initializable {
             // case "templates" -> "/pages/tab_templates.fxml"; // Removed from menu
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
+            case "unifiedEditor" -> "/pages/tab_unified_editor.fxml";
             default -> null;
         };
 
@@ -459,7 +461,7 @@ public class MainController implements Initializable {
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
             xmlUltimate, xsd, xsdValidation, schematron, xslt, fop,
-            signature, help, settings, schemaGenerator, xsltDeveloper
+            signature, help, settings, schemaGenerator, xsltDeveloper, unifiedEditor
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -498,6 +500,7 @@ public class MainController implements Initializable {
             case "settings" -> "/pages/settings.fxml";
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
+            case "unifiedEditor" -> "/pages/tab_unified_editor.fxml";
             default -> null;
         };
 
@@ -532,6 +535,7 @@ public class MainController implements Initializable {
             case "help" -> help;
             case "settings" -> settings;
             case "schemaGenerator" -> schemaGenerator;
+            case "unifiedEditor" -> unifiedEditor;
             default -> null;
         };
     }
@@ -692,6 +696,10 @@ public class MainController implements Initializable {
                 logger.debug("set Advanced XSLT Developer Controller");
                 this.xsltDeveloperController = xsltDeveloperController1;
             }
+            case UnifiedEditorController unifiedEditorController1 -> {
+                logger.debug("set Unified Editor Controller");
+                this.unifiedEditorController = unifiedEditorController1;
+            }
             case null, default -> {
                 if (controller != null) {
                     logger.error("no valid controller found: {}", controller.getClass());
@@ -762,15 +770,167 @@ public class MainController implements Initializable {
         aboutDialog.showAndWait();
     }
 
+    // ======================================================================
+    // Menu Handlers for Tools Menus (XSD Tools, XML Tools, Schematron Tools, PDF & Signatures)
+    // ======================================================================
+
+    // --- XSD Tools Menu Handlers ---
+
+    @FXML
+    public void openTypeLibrary() {
+        switchToXsdAndSelectSubTab("typeLibraryTab");
+    }
+
+    @FXML
+    public void openTypeEditor() {
+        switchToXsdAndSelectSubTab("typeEditorTab");
+    }
+
+    @FXML
+    public void openSchemaAnalysis() {
+        switchToXsdAndSelectSubTab("schemaAnalysisTab");
+    }
+
+    @FXML
+    public void openXsdDocumentation() {
+        switchToXsdAndSelectSubTab("documentation");
+    }
+
+    @FXML
+    public void openGenerateExampleData() {
+        switchToXsdAndSelectSubTab("generateExampleData");
+    }
+
+    @FXML
+    public void openFlattenSchema() {
+        switchToXsdAndSelectSubTab("flattenTab");
+    }
+
+    // --- XML Tools Menu Handlers ---
+
+    @FXML
+    public void openXsltDeveloper() {
+        switchToXmlUltimateAndSelectSubTab("xsltDevTab");
+    }
+
+    @FXML
+    public void openTemplateBuilder() {
+        switchToXmlUltimateAndSelectSubTab("templateTab");
+    }
+
+    @FXML
+    public void openXmlToCsv() {
+        switchToXmlUltimateAndSelectSubTab("convertTab");
+    }
+
+    @FXML
+    public void openGenerateSchema() {
+        switchToXmlUltimateAndSelectSubTab("generatorTab");
+    }
+
+    // --- Schematron Tools Menu Handlers ---
+
+    @FXML
+    public void openSchematronBuilder() {
+        switchToSchematronAndSelectSubTab("visualBuilderTab");
+    }
+
+    @FXML
+    public void openSchematronTest() {
+        switchToSchematronAndSelectSubTab("testTab");
+    }
+
+    @FXML
+    public void openSchematronDocumentation() {
+        switchToSchematronAndSelectSubTab("documentationTab");
+    }
+
+    // --- PDF & Signatures Menu Handlers ---
+
+    @FXML
+    public void openGeneratePdf() {
+        removeActiveFromAllMenuButtons();
+        fop.getStyleClass().add("active");
+        loadPageFromPath("/pages/tab_fop.fxml");
+    }
+
+    @FXML
+    public void openCreateCertificate() {
+        switchToSignatureAndSelectSubTab("createCertificateTab");
+    }
+
+    @FXML
+    public void openSignXml() {
+        switchToSignatureAndSelectSubTab("signXmlTab");
+    }
+
+    @FXML
+    public void openValidateSignature() {
+        switchToSignatureAndSelectSubTab("validateTab");
+    }
+
+    @FXML
+    public void openExpertSigning() {
+        switchToSignatureAndSelectSubTab("expertModeTab");
+    }
+
+    // --- Helper Methods for Menu Navigation ---
+
+    private void switchToXsdAndSelectSubTab(String subTabId) {
+        removeActiveFromAllMenuButtons();
+        xsd.getStyleClass().add("active");
+        loadPageFromPath("/pages/tab_xsd.fxml");
+        Platform.runLater(() -> {
+            if (xsdController != null) {
+                xsdController.selectSubTab(subTabId);
+            }
+        });
+    }
+
+    private void switchToXmlUltimateAndSelectSubTab(String subTabId) {
+        removeActiveFromAllMenuButtons();
+        xmlUltimate.getStyleClass().add("active");
+        loadPageFromPath("/pages/tab_xml_ultimate.fxml");
+        Platform.runLater(() -> {
+            if (xmlUltimateController != null) {
+                xmlUltimateController.selectSubTab(subTabId);
+            }
+        });
+    }
+
+    private void switchToSchematronAndSelectSubTab(String subTabId) {
+        removeActiveFromAllMenuButtons();
+        schematron.getStyleClass().add("active");
+        loadPageFromPath("/pages/tab_schematron.fxml");
+        Platform.runLater(() -> {
+            if (schematronController != null) {
+                schematronController.selectSubTab(subTabId);
+            }
+        });
+    }
+
+    private void switchToSignatureAndSelectSubTab(String subTabId) {
+        removeActiveFromAllMenuButtons();
+        signature.getStyleClass().add("active");
+        loadPageFromPath("/pages/tab_signature.fxml");
+        Platform.runLater(() -> {
+            // SignatureController is obtained from page loading
+            Object controller = contentPane.getUserData();
+            if (controller instanceof SignatureController sc) {
+                sc.selectSubTab(subTabId);
+            }
+        });
+    }
+
     @FXML
     private void toggleMenuBar() {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper);
+            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper);
+            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
         }
         showMenu = !showMenu;
     }

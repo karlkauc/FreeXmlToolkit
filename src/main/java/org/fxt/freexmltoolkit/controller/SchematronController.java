@@ -1262,6 +1262,26 @@ public class SchematronController implements FavoritesParentController {
         logger.debug("Parent controller set for SchematronController");
     }
 
+    /**
+     * Programmatically selects a sub-tab by its ID.
+     * Called from MainController menu handlers.
+     *
+     * @param tabId the fx:id of the tab to select
+     */
+    public void selectSubTab(String tabId) {
+        if (tabPane == null || tabId == null) {
+            return;
+        }
+        for (Tab tab : tabPane.getTabs()) {
+            if (tabId.equals(tab.getId())) {
+                tabPane.getSelectionModel().select(tab);
+                logger.debug("Selected sub-tab: {}", tabId);
+                return;
+            }
+        }
+        logger.warn("Sub-tab not found: {}", tabId);
+    }
+
     // ======================================================================
     // Favorites functionality (unified FavoritesPanel)
     // ======================================================================

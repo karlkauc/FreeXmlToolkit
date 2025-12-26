@@ -2541,6 +2541,31 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     }
 
     /**
+     * Programmatically selects a sub-tab by its ID.
+     * Called from MainController menu handlers.
+     * This handles both development tabs (XPath, XSLT, Template, Console).
+     *
+     * @param tabId the fx:id of the tab to select
+     */
+    public void selectSubTab(String tabId) {
+        if (developmentTabPane == null || tabId == null) {
+            return;
+        }
+        // First, make sure development pane is visible
+        setDevelopmentPaneVisible(true);
+
+        // Then select the requested tab
+        for (Tab tab : developmentTabPane.getTabs()) {
+            if (tabId.equals(tab.getId())) {
+                developmentTabPane.getSelectionModel().select(tab);
+                logger.debug("Selected development sub-tab: {}", tabId);
+                return;
+            }
+        }
+        logger.warn("Development sub-tab not found: {}", tabId);
+    }
+
+    /**
      * Sets the visibility of the XML Editor sidebar for all open XML editor tabs.
      * This method is called from the MainController based on the Windows menu checkbox.
      *
