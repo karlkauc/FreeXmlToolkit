@@ -47,6 +47,7 @@ public class XmlCodeEditorV2 extends VBox {
     private final FoldingManagerV2 foldingManager;
     private final StatusLineManagerV2 statusLineManager;
     private final EventHandlerManager eventHandlerManager;
+    private final ContextMenuManagerV2 contextMenuManager;
 
     // IntelliSense
     private final IntelliSenseEngine intelliSenseEngine;
@@ -83,6 +84,8 @@ public class XmlCodeEditorV2 extends VBox {
         this.foldingManager = new FoldingManagerV2(codeArea);
         this.statusLineManager = new StatusLineManagerV2(editorContext);
         this.eventHandlerManager = new EventHandlerManager(editorContext);
+        this.contextMenuManager = new ContextMenuManagerV2(editorContext, foldingManager);
+        this.contextMenuManager.initialize();
 
         // Create IntelliSense engine
         this.intelliSenseEngine = new IntelliSenseEngine(editorContext);
@@ -397,6 +400,15 @@ public class XmlCodeEditorV2 extends VBox {
      */
     public void refreshStatusLine() {
         statusLineManager.refresh();
+    }
+
+    /**
+     * Gets the context menu manager.
+     *
+     * @return the context menu manager
+     */
+    public ContextMenuManagerV2 getContextMenuManager() {
+        return contextMenuManager;
     }
 
     /**

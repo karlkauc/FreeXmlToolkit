@@ -31,7 +31,13 @@ public abstract class EditorEvent {
         INTELLISENSE_STATE_CHANGED,
 
         /** Folding regions have been updated */
-        FOLDING_UPDATED
+        FOLDING_UPDATED,
+
+        /** Find & Replace dialog requested */
+        FIND_REPLACE_REQUESTED,
+
+        /** Validation requested from context menu */
+        VALIDATION_REQUESTED
     }
 
     private final Type type;
@@ -173,6 +179,24 @@ public abstract class EditorEvent {
 
         public int getErrorCount() {
             return errorCount;
+        }
+    }
+
+    /**
+     * Event fired when Find & Replace dialog is requested.
+     */
+    public static class FindReplaceRequestedEvent extends EditorEvent {
+        public FindReplaceRequestedEvent() {
+            super(Type.FIND_REPLACE_REQUESTED);
+        }
+    }
+
+    /**
+     * Event fired when validation is requested from context menu.
+     */
+    public static class ValidationRequestedEvent extends EditorEvent {
+        public ValidationRequestedEvent() {
+            super(Type.VALIDATION_REQUESTED);
         }
     }
 }
