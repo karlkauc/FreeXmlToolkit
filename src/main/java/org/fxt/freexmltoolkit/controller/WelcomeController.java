@@ -33,11 +33,17 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.dashboard.FeatureProgressGrid;
+import org.fxt.freexmltoolkit.controls.dashboard.StatisticsCard;
+import org.fxt.freexmltoolkit.controls.dashboard.TipsBanner;
+import org.fxt.freexmltoolkit.controls.dashboard.TrendSparkline;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
+import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
 import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
+import org.fxt.freexmltoolkit.service.UsageTrackingService;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.awt.Desktop;
@@ -85,6 +91,22 @@ public class WelcomeController {
     private FlowPane recentFilesGrid;
     @FXML
     private VBox emptyFilesPlaceholder;
+
+    // Dashboard/Statistics Components
+    @FXML
+    private TitledPane statisticsPane;
+    @FXML
+    private HBox statisticsCardsContainer;
+    @FXML
+    private VBox statisticsDashboard;
+
+    private StatisticsCard validationsCard;
+    private StatisticsCard errorsFixedCard;
+    private StatisticsCard transformationsCard;
+    private StatisticsCard productivityCard;
+    private TrendSparkline trendSparkline;
+    private FeatureProgressGrid featureGrid;
+    private TipsBanner tipsBanner;
 
     private final ObservableList<RecentFileEntry> recentFiles = FXCollections.observableArrayList();
 
@@ -134,6 +156,111 @@ public class WelcomeController {
 
         // Setup recent files grid
         setupRecentFilesGrid();
+
+        // Initialize statistics dashboard
+        initializeStatisticsDashboard();
+    }
+
+    /**
+     * Initializes the statistics dashboard with usage tracking data.
+     */
+    private void initializeStatisticsDashboard() {
+        try {
+            UsageTrackingService trackingService = ServiceRegistry.get(UsageTrackingService.class);
+            if (trackingService == null || !trackingService.isTrackingEnabled()) {
+                hideStatisticsDashboard();
+                return;
+            }
+
+            // Create dashboard components programmatically if container exists
+            if (statisticsDashboard != null) {
+                createStatisticsDashboard(trackingService);
+            } else {
+                logger.debug("Statistics dashboard container not found in FXML");
+            }
+        } catch (Exception e) {
+            logger.debug("Statistics dashboard not available: {}", e.getMessage());
+            hideStatisticsDashboard();
+        }
+    }
+
+    /**
+     * Creates and populates the statistics dashboard.
+     */
+    private void createStatisticsDashboard(UsageTrackingService trackingService) {
+        UsageStatistics stats = trackingService.getStatistics();
+
+        // Clear existing content
+        statisticsDashboard.getChildren().clear();
+        statisticsDashboard.setSpacing(16);
+
+        // Statistics Cards Row
+        HBox cardsRow = new HBox(12);
+        cardsRow.setAlignment(Pos.CENTER);
+
+        validationsCard = StatisticsCard.createValidationsCard(
+            stats.getFilesValidated(),
+            trackingService.getWeeklyChange("validations")
+        );
+
+        errorsFixedCard = StatisticsCard.createErrorsFixedCard(
+            stats.getErrorsCorrected(),
+            trackingService.getWeeklyChange("errors_fixed")
+        );
+
+        transformationsCard = StatisticsCard.createTransformationsCard(
+            stats.getTransformationsPerformed(),
+            trackingService.getWeeklyChange("transformations")
+        );
+
+        productivityCard = StatisticsCard.createProductivityCard(
+            trackingService.getProductivityScore(),
+            trackingService.getProductivityLevel()
+        );
+
+        cardsRow.getChildren().addAll(validationsCard, errorsFixedCard, transformationsCard, productivityCard);
+
+        // Trend Sparkline
+        trendSparkline = new TrendSparkline();
+        trendSparkline.updateData(trackingService.getDailyStats(7));
+
+        // Feature Progress Grid
+        featureGrid = new FeatureProgressGrid();
+        featureGrid.updateFeatures(trackingService.getAllFeatures());
+        featureGrid.setOnFeatureClick(pageId -> {
+            if (parentController != null) {
+                parentController.navigateToPage(pageId);
+            }
+        });
+
+        // Tips Banner
+        tipsBanner = new TipsBanner();
+        tipsBanner.setTips(trackingService.getRelevantTips());
+        tipsBanner.setOnActionClick(pageId -> {
+            if (parentController != null) {
+                parentController.navigateToPage(pageId);
+            }
+        });
+
+        // Add all components
+        statisticsDashboard.getChildren().addAll(cardsRow, trendSparkline, featureGrid, tipsBanner);
+
+        logger.debug("Statistics dashboard initialized with {} validations, score: {}",
+            stats.getFilesValidated(), trackingService.getProductivityScore());
+    }
+
+    /**
+     * Hides the statistics dashboard when tracking is disabled.
+     */
+    private void hideStatisticsDashboard() {
+        if (statisticsPane != null) {
+            statisticsPane.setVisible(false);
+            statisticsPane.setManaged(false);
+        }
+        if (statisticsDashboard != null) {
+            statisticsDashboard.setVisible(false);
+            statisticsDashboard.setManaged(false);
+        }
     }
 
     /**

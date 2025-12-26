@@ -1369,6 +1369,15 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
             editor.validateWithAlert();
+            // Track validation (error count will be updated in XmlEditor's callback if available)
+            try {
+                UsageTrackingService trackingService = ServiceRegistry.get(UsageTrackingService.class);
+                if (trackingService != null) {
+                    trackingService.trackFileValidation(0); // Basic tracking
+                }
+            } catch (Exception e) {
+                logger.debug("Usage tracking not available");
+            }
         } else {
             logToConsole("No XML editor tab selected for validation");
         }
@@ -2205,6 +2214,20 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                     queryResultLabel.setText("Query executed successfully (" + queryResult.length() + " chars)");
                 }
                 logToConsole("Query executed successfully");
+
+                // Track XPath/XQuery usage
+                try {
+                    UsageTrackingService trackingService = ServiceRegistry.get(UsageTrackingService.class);
+                    if (trackingService != null) {
+                        if ("xQueryTab".equals(selectedItem.getId())) {
+                            trackingService.trackXQueryExecution();
+                        } else {
+                            trackingService.trackXPathQuery();
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.debug("Usage tracking not available");
+                }
             } else {
                 logger.debug("Query returned empty result");
                 if (queryResultLabel != null) {

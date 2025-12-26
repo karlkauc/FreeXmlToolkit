@@ -44,6 +44,7 @@ import org.fxt.freexmltoolkit.service.ConnectionService;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
+import org.fxt.freexmltoolkit.service.UsageTrackingService;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -61,6 +62,7 @@ public class SettingsController {
     private final ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
     private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);
     private final UpdateCheckService updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
+    private final UsageTrackingService usageTrackingService = ServiceRegistry.get(UsageTrackingService.class);
 
     @FXML
     RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder, lightTheme, darkTheme;
@@ -154,6 +156,13 @@ public class SettingsController {
     // Usage Statistics & Cache FXML components
     @FXML
     CheckBox sendUsageStatistics;
+
+    // Local Usage Tracking (Progress Dashboard)
+    @FXML
+    CheckBox localTrackingEnabled;
+
+    @FXML
+    Button clearStatisticsButton;
 
     // Toolbar Icon Settings
     @FXML
@@ -489,6 +498,9 @@ public class SettingsController {
             // Save usage statistics setting
             props.setProperty("sendUsageStatistics", String.valueOf(sendUsageStatistics.isSelected()));
 
+            // Save local tracking (progress dashboard) setting
+            usageTrackingService.setTrackingEnabled(localTrackingEnabled.isSelected());
+
             // Save toolbar icon size setting
             propertiesService.setUseSmallIcons(useSmallIcons.isSelected());
 
@@ -693,6 +705,9 @@ public class SettingsController {
         // Load usage statistics setting
         boolean sendStats = Boolean.parseBoolean(props.getProperty("sendUsageStatistics", "false"));
         sendUsageStatistics.setSelected(sendStats);
+
+        // Load local tracking (progress dashboard) setting
+        localTrackingEnabled.setSelected(usageTrackingService.isTrackingEnabled());
 
         // Load toolbar icon size setting
         boolean smallIcons = propertiesService.isUseSmallIcons();
@@ -1007,6 +1022,35 @@ public class SettingsController {
                     logger.error("Failed to clear cache", e);
                     showAlert(Alert.AlertType.ERROR, "Error Clearing Cache",
                             "Could not clear the cache: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    /**
+     * Clears all local usage statistics and progress data.
+     */
+    @FXML
+    public void clearStatistics() {
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Clear Statistics");
+        confirmDialog.setHeaderText("Clear All Progress Data?");
+        confirmDialog.setContentText("This will permanently delete all your usage statistics, " +
+                "including productivity score, feature discovery progress, and activity history.\n\n" +
+                "This action cannot be undone. Are you sure you want to continue?");
+
+        confirmDialog.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    usageTrackingService.clearStatistics();
+                    showAlert(Alert.AlertType.INFORMATION, "Statistics Cleared",
+                            "All usage statistics have been reset successfully.\n\n" +
+                            "Your progress dashboard will now show fresh data as you continue using the application.");
+                    logger.info("User cleared all usage statistics");
+                } catch (Exception e) {
+                    logger.error("Failed to clear statistics", e);
+                    showAlert(Alert.AlertType.ERROR, "Error Clearing Statistics",
+                            "Could not clear statistics: " + e.getMessage());
                 }
             }
         });

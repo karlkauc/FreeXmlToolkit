@@ -35,6 +35,7 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
+import org.fxt.freexmltoolkit.service.UsageTrackingService;
 
 import java.awt.*;
 import java.io.File;
@@ -203,6 +204,16 @@ public class FxtGui extends Application {
             });
 
             primaryStage.show();
+
+            // Start usage tracking session
+            try {
+                UsageTrackingService trackingService = ServiceRegistry.get(UsageTrackingService.class);
+                if (trackingService != null) {
+                    trackingService.startSession();
+                }
+            } catch (Exception e) {
+                logger.debug("Usage tracking not available: {}", e.getMessage());
+            }
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
@@ -269,6 +280,16 @@ public class FxtGui extends Application {
         }
 
         mainController.shutdown();
+
+        // End usage tracking session
+        try {
+            UsageTrackingService trackingService = ServiceRegistry.get(UsageTrackingService.class);
+            if (trackingService != null) {
+                trackingService.endSession();
+            }
+        } catch (Exception e) {
+            logger.debug("Usage tracking end session failed: {}", e.getMessage());
+        }
 
         startWatch.stop();
         var currentDuration = startWatch.getDuration(); // / 1000;

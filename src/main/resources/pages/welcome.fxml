@@ -181,6 +181,13 @@
                 </VBox>
             </HBox>
 
+            <!-- Statistics Dashboard (Gamification) -->
+            <TitledPane fx:id="statisticsPane" text="Your Progress" expanded="true" styleClass="statistics-pane">
+                <VBox fx:id="statisticsDashboard" spacing="16" styleClass="statistics-dashboard">
+                    <!-- Content will be populated programmatically by WelcomeController -->
+                </VBox>
+            </TitledPane>
+
             <!-- Main Content Area: Recent Projects + System Updates -->
             <HBox spacing="24" VBox.vgrow="ALWAYS">
                 <!-- Recent Projects (Left, 2/3 width) -->

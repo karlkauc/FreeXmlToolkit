@@ -588,3 +588,279 @@
   -fx-stroke-width: 1;
   -fx-stroke-dash-array: 1 2;
 }
+
+/* =================================================================
+   Progress Dashboard & Statistics (Gamification)
+   ================================================================= */
+
+/* Statistics Cards Container */
+.statistics-pane {
+  -fx-background-color: transparent;
+}
+
+.statistics-pane > .title {
+  -fx-background-color: #f6f8fa;
+  -fx-font-weight: bold;
+  -fx-text-fill: #24292f;
+}
+
+.statistics-pane > .content {
+  -fx-background-color: #ffffff;
+  -fx-border-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-radius: 0 0 6px 6px;
+}
+
+.statistics-dashboard {
+  -fx-padding: 16px;
+  -fx-background-color: #ffffff;
+}
+
+/* Statistics Card */
+.statistics-card {
+  -fx-background-color: #ffffff;
+  -fx-background-radius: 8px;
+  -fx-border-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-radius: 8px;
+  -fx-padding: 16px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 4, 0, 0, 2);
+}
+
+.statistics-card:hover {
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 6, 0, 0, 3);
+}
+
+.statistics-card .stat-value {
+  -fx-font-size: 28px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #24292f;
+}
+
+.statistics-card .stat-label {
+  -fx-font-size: 12px;
+  -fx-text-fill: #57606a;
+}
+
+.statistics-card .stat-trend {
+  -fx-font-size: 11px;
+  -fx-font-weight: bold;
+}
+
+.statistics-card .stat-trend.trend-up {
+  -fx-text-fill: #28a745;
+}
+
+.statistics-card .stat-trend.trend-down {
+  -fx-text-fill: #dc3545;
+}
+
+.statistics-card .stat-trend.trend-neutral {
+  -fx-text-fill: #6c757d;
+}
+
+/* Productivity Score Badge */
+.productivity-badge {
+  -fx-background-radius: 50px;
+  -fx-min-width: 64px;
+  -fx-min-height: 64px;
+  -fx-alignment: center;
+}
+
+.productivity-beginner {
+  -fx-background-color: #6c757d;
+  -fx-text-fill: white;
+}
+
+.productivity-intermediate {
+  -fx-background-color: #17a2b8;
+  -fx-text-fill: white;
+}
+
+.productivity-advanced {
+  -fx-background-color: #28a745;
+  -fx-text-fill: white;
+}
+
+.productivity-professional {
+  -fx-background-color: #ffc107;
+  -fx-text-fill: #24292f;
+}
+
+.productivity-expert {
+  -fx-background-color: #fd7e14;
+  -fx-text-fill: white;
+}
+
+/* Trend Sparkline */
+.trend-sparkline {
+  -fx-background-color: #ffffff;
+  -fx-background-radius: 8px;
+  -fx-border-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-radius: 8px;
+}
+
+.trend-chart {
+  -fx-background-color: transparent;
+}
+
+.trend-chart .chart-plot-background {
+  -fx-background-color: transparent;
+}
+
+.trend-chart .chart-series-line {
+  -fx-stroke: #0969da;
+  -fx-stroke-width: 2px;
+}
+
+.trend-chart .chart-line-symbol {
+  -fx-background-color: #0969da, white;
+  -fx-background-insets: 0, 2;
+  -fx-background-radius: 5px;
+}
+
+.trend-chart .axis {
+  -fx-tick-label-fill: #57606a;
+}
+
+/* Feature Progress Grid */
+.feature-progress-grid {
+  -fx-background-color: #ffffff;
+  -fx-background-radius: 8px;
+  -fx-border-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-radius: 8px;
+}
+
+.feature-grid-title {
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #24292f;
+}
+
+.feature-grid-progress-text {
+  -fx-font-size: 12px;
+  -fx-text-fill: #57606a;
+}
+
+.feature-progress-bar {
+  -fx-accent: #28a745;
+}
+
+.feature-progress-bar .track {
+  -fx-background-color: #e9ecef;
+  -fx-background-radius: 4px;
+}
+
+.feature-progress-bar .bar {
+  -fx-background-color: linear-gradient(to right, #28a745, #20c997);
+  -fx-background-radius: 4px;
+}
+
+.feature-chip {
+  -fx-background-radius: 16px;
+  -fx-border-radius: 16px;
+  -fx-padding: 6px 10px;
+  -fx-cursor: hand;
+}
+
+.feature-chip.discovered {
+  -fx-background-color: #e7f3ff;
+  -fx-border-color: #0969da;
+  -fx-border-width: 1px;
+}
+
+.feature-chip.undiscovered {
+  -fx-background-color: #f6f8fa;
+  -fx-border-color: #d0d7de;
+  -fx-border-width: 1px;
+  -fx-opacity: 0.7;
+}
+
+.feature-chip.undiscovered:hover {
+  -fx-opacity: 1.0;
+  -fx-background-color: #e9ecef;
+}
+
+.feature-chip-name {
+  -fx-font-size: 11px;
+  -fx-text-fill: #24292f;
+}
+
+.check-icon-discovered {
+  -fx-fill: #28a745;
+}
+
+.check-icon-undiscovered {
+  -fx-fill: #8c959f;
+}
+
+/* Tips Banner */
+.tips-banner {
+  -fx-background-color: #e7f3ff;
+  -fx-background-radius: 8px;
+  -fx-border-color: #b8daff;
+  -fx-border-width: 1px;
+  -fx-border-radius: 8px;
+}
+
+.tips-header-icon {
+  -fx-fill: #0969da;
+}
+
+.tips-header-label {
+  -fx-font-size: 12px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #0969da;
+}
+
+.tips-dismiss-button {
+  -fx-background-color: transparent;
+  -fx-background-radius: 4px;
+  -fx-padding: 4px;
+  -fx-cursor: hand;
+}
+
+.tips-dismiss-button:hover {
+  -fx-background-color: rgba(0, 0, 0, 0.1);
+}
+
+.tip-icon {
+  -fx-fill: #0969da;
+}
+
+.tip-message {
+  -fx-font-size: 13px;
+  -fx-text-fill: #24292f;
+}
+
+.tip-action-button {
+  -fx-background-color: #0969da;
+  -fx-text-fill: white;
+  -fx-font-size: 11px;
+  -fx-font-weight: bold;
+  -fx-background-radius: 4px;
+  -fx-padding: 4px 12px;
+  -fx-cursor: hand;
+}
+
+.tip-action-button:hover {
+  -fx-background-color: #0550ae;
+}
+
+.tips-nav-button {
+  -fx-background-color: transparent;
+  -fx-background-radius: 4px;
+  -fx-padding: 4px 8px;
+  -fx-cursor: hand;
+}
+
+.tips-nav-button:hover {
+  -fx-background-color: rgba(0, 0, 0, 0.1);
+}
+
+.tips-counter {
+  -fx-font-size: 11px;
+  -fx-text-fill: #57606a;
+}

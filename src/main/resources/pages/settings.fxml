@@ -134,6 +134,29 @@
                                 </VBox>
                             </VBox>
 
+                            <!-- Progress Dashboard & Local Statistics -->
+                            <VBox spacing="12"
+                                  style="-fx-background-color: #e8f4fd; -fx-background-radius: 4px; -fx-padding: 16px;">
+                                <Label text="Progress Dashboard"
+                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                <VBox spacing="8">
+                                    <CheckBox fx:id="localTrackingEnabled" text="Track local usage statistics"/>
+                                    <Label text="Track your productivity metrics locally (never leaves your computer)"
+                                           style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
+                                </VBox>
+                                <HBox spacing="12" alignment="CENTER_LEFT">
+                                    <Button fx:id="clearStatisticsButton" mnemonicParsing="false" onAction="#clearStatistics"
+                                            text="Clear Statistics"
+                                            style="-fx-background-color: #fd7e14; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                                        </graphic>
+                                    </Button>
+                                    <Label text="This will reset all your progress data"
+                                           style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
+                                </HBox>
+                            </VBox>
+
                             <!-- Usage Statistics & Cache Settings -->
                             <VBox spacing="12"
                                   style="-fx-background-color: #f0fff0; -fx-background-radius: 4px; -fx-padding: 16px;">

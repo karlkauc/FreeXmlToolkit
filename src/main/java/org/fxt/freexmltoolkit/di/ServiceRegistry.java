@@ -81,6 +81,9 @@ public final class ServiceRegistry {
         // 8. AutoUpdateService - for automatic application updates
         registerFactory(AutoUpdateService.class, AutoUpdateServiceImpl::getInstance);
 
+        // 9. UsageTrackingService - for gamification dashboard
+        registerFactory(UsageTrackingService.class, UsageTrackingServiceImpl::getInstance);
+
         initialized = true;
     }
 

@@ -1743,6 +1743,16 @@ public class SchematronController implements FavoritesParentController {
 
                 DialogHelper.showInformation("Test Results", "",
                         String.format("Tests completed:\n✓ Passed: %d\n✗ Failed: %d", passed, failed));
+
+                // Track Schematron validation usage
+                try {
+                    UsageTrackingService trackingService = ServiceRegistry.get(UsageTrackingService.class);
+                    if (trackingService != null) {
+                        trackingService.trackSchematronValidation();
+                    }
+                } catch (Exception e) {
+                    logger.debug("Usage tracking not available");
+                }
             }
 
             // Update results tabs
