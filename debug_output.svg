@@ -146,7 +146,7 @@
    </defs>
    <a href="#">
       <rect x="32"
-            y="142"
+            y="44"
             fill="#f0f8ff"
             width="57.0"
             style="stroke: #4a90e2; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);"
@@ -158,7 +158,7 @@
             id="/Fund"/>
       <text x="44"
             fill="#2c5aa0"
-            y="170.939453125"
+            y="72.939453125"
             font-size="14"
             font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">Fund</text>
    </a>
@@ -167,18 +167,18 @@
             x="44"
             fill="#6c757d"
             font-size="13"
-            y="200.939453125"
+            y="102.939453125"
             font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"/>
    </g>
-   <line y2="162.4697265625"
+   <line y2="64.4697265625"
          style="stroke: #6c757d; stroke-width: 2; fill: none;"
          x1="89.0"
          class="connection-line"
          x2="124.0"
-         y1="162.4697265625"/>
+         y1="64.4697265625"/>
    <g>
       <rect x="124.0"
-            y="147.4697265625"
+            y="49.4697265625"
             fill="url(#sequenceGradient)"
             width="50.0"
             rx="4"
@@ -188,10 +188,10 @@
             stroke-width="2"/>
       <use xmlns:xlink="http://www.w3.org/1999/xlink"
            x="141.0"
-           y="154.4697265625"
+           y="56.4697265625"
            xlink:href="#sequence-icon"/>
    </g>
-   <a href="Name_edabcf95b7d89d7e1946aba983d6c5e7.html">
+   <a href="Name_3750c6f5f8485c3fad597eee321054b2.html">
       <rect x="249.0"
             y="32.0"
             fill="#f0f8ff"
@@ -202,7 +202,7 @@
             rx="8"
             ry="8"
             height="65.87890625"
-            id="/Fund/Name"/>
+            id="/Fund/SEQUENCE_1/Name"/>
       <g>
          <text x="261.0"
                fill="#2c5aa0"
@@ -242,9 +242,9 @@
    </a>
    <path fill="none"
          stroke-width="2"
-         d="M 174.0 162.4697265625 H 192.75 V 64.939453125 H 249.0"
+         d="M 174.0 64.4697265625 H 192.75 V 64.939453125 H 249.0"
          stroke="#6c757d"/>
-   <a href="FundDynamicData_6b5915dd2fe6af5440f0024287ede561.html">
+   <a href="FundDynamicData_bb29e5655e5370bba6c0410d72b34aa6.html">
       <rect x="249.0"
             y="129.87890625"
             fill="#f0f8ff"
@@ -255,7 +255,7 @@
             rx="8"
             ry="8"
             height="65.87890625"
-            id="/Fund/FundDynamicData"/>
+            id="/Fund/SEQUENCE_1/FundDynamicData"/>
       <g>
          <text x="261.0"
                fill="#2c5aa0"
@@ -295,7 +295,7 @@
    </a>
    <path fill="none"
          stroke-width="2"
-         d="M 174.0 162.4697265625 H 192.75 V 162.818359375 H 249.0"
+         d="M 174.0 64.4697265625 H 192.75 V 162.818359375 H 249.0"
          stroke="#6c757d"/>
    <g>
       <rect x="294.0"
@@ -315,9 +315,9 @@
    </g>
    <path fill="none"
          stroke-width="2"
-         d="M 174.0 162.4697265625 H 204.0 V 262.7578125 H 294.0"
+         d="M 174.0 64.4697265625 H 204.0 V 262.7578125 H 294.0"
          stroke="#ff8c00"/>
-   <a href="SingleFund_4c66861874f7d3e0da5f3ab20b18c680.html">
+   <a href="SingleFund_2d9bb4835d2ccdede2366aabb891564a.html">
       <rect x="379.0"
             y="247.7578125"
             fill="#f0f8ff"
@@ -328,7 +328,7 @@
             rx="8"
             ry="8"
             height="65.87890625"
-            id="/Fund/CHOICE_3/SingleFund"/>
+            id="/Fund/SEQUENCE_1/CHOICE_3/SingleFund"/>
       <g>
          <text x="391.0"
                fill="#2c5aa0"
@@ -370,7 +370,7 @@
          stroke-width="2"
          d="M 339.0 262.7578125 H 355.0 V 280.697265625 H 379.0"
          stroke="#ff8c00"/>
-   <a href="Subfunds_21a0dbc863eb9108a66a229d02fb75c3.html">
+   <a href="Subfunds_7296c82fb4314fb08c74f08139b519b5.html">
       <rect x="379.0"
             y="345.63671875"
             fill="#f0f8ff"
@@ -381,7 +381,7 @@
             rx="8"
             ry="8"
             height="65.87890625"
-            id="/Fund/CHOICE_3/Subfunds"/>
+            id="/Fund/SEQUENCE_1/CHOICE_3/Subfunds"/>
       <g>
          <text x="391.0"
                fill="#2c5aa0"
