@@ -709,26 +709,32 @@ public class TypeLibraryView extends BorderPane {
 
         // CSV MenuItem
         MenuItem csvItem = new MenuItem("CSV - Comma Separated Values");
+        csvItem.setGraphic(createMenuIcon("bi-filetype-csv", "#28a745"));
         csvItem.setOnAction(e -> exportTo("CSV"));
 
         // Excel MenuItem
         MenuItem excelItem = new MenuItem("Excel - XLSX (with multiple sheets)");
+        excelItem.setGraphic(createMenuIcon("bi-file-earmark-spreadsheet", "#217346"));
         excelItem.setOnAction(e -> exportTo("XLSX"));
 
         // HTML MenuItem
         MenuItem htmlItem = new MenuItem("HTML - Web Page");
+        htmlItem.setGraphic(createMenuIcon("bi-filetype-html", "#e44d26"));
         htmlItem.setOnAction(e -> exportTo("HTML"));
 
         // JSON MenuItem
         MenuItem jsonItem = new MenuItem("JSON - JavaScript Object Notation");
+        jsonItem.setGraphic(createMenuIcon("bi-braces", "#f7df1e"));
         jsonItem.setOnAction(e -> exportTo("JSON"));
 
         // XML MenuItem
         MenuItem xmlItem = new MenuItem("XML - Extensible Markup Language");
+        xmlItem.setGraphic(createMenuIcon("bi-file-earmark-code", "#007bff"));
         xmlItem.setOnAction(e -> exportTo("XML"));
 
         // Markdown MenuItem
         MenuItem markdownItem = new MenuItem("Markdown - GitHub/GitLab");
+        markdownItem.setGraphic(createMenuIcon("bi-markdown", "#083fa1"));
         markdownItem.setOnAction(e -> exportTo("MARKDOWN"));
 
         exportButton.getItems().addAll(
@@ -827,6 +833,20 @@ public class TypeLibraryView extends BorderPane {
      */
     public void setSchema(XsdSchema newSchema) {
         populateTypes();
+    }
+
+    /**
+     * Creates a colored FontIcon for menu items.
+     *
+     * @param iconLiteral The icon literal (e.g., "bi-file-earmark-code")
+     * @param color       The color in hex format (e.g., "#007bff")
+     * @return FontIcon with specified color
+     */
+    private FontIcon createMenuIcon(String iconLiteral, String color) {
+        FontIcon icon = new FontIcon(iconLiteral);
+        icon.setIconColor(javafx.scene.paint.Color.web(color));
+        icon.setIconSize(16);
+        return icon;
     }
 
     /**

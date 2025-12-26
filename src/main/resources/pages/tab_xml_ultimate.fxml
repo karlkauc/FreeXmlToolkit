@@ -289,11 +289,20 @@
                                     <Label text="XPath Expression:" style="-fx-font-weight: bold;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <MenuButton text="Examples" style="-fx-font-size: 11px;">
+                                        <graphic><FontIcon iconLiteral="bi-collection" iconSize="14"/></graphic>
                                         <items>
-                                            <MenuItem text="//node - Select all nodes" onAction="#insertXPathExample1"/>
-                                            <MenuItem text="/root/child[@attr='value']" onAction="#insertXPathExample2"/>
-                                            <MenuItem text="//text() - All text nodes" onAction="#insertXPathExample3"/>
-                                            <MenuItem text="count(//element)" onAction="#insertXPathExample4"/>
+                                            <MenuItem text="//node - Select all nodes" onAction="#insertXPathExample1">
+                                                <graphic><FontIcon iconLiteral="bi-diagram-3" iconSize="14" iconColor="#007bff"/></graphic>
+                                            </MenuItem>
+                                            <MenuItem text="/root/child[@attr='value']" onAction="#insertXPathExample2">
+                                                <graphic><FontIcon iconLiteral="bi-funnel" iconSize="14" iconColor="#ffc107"/></graphic>
+                                            </MenuItem>
+                                            <MenuItem text="//text() - All text nodes" onAction="#insertXPathExample3">
+                                                <graphic><FontIcon iconLiteral="bi-text-left" iconSize="14" iconColor="#28a745"/></graphic>
+                                            </MenuItem>
+                                            <MenuItem text="count(//element)" onAction="#insertXPathExample4">
+                                                <graphic><FontIcon iconLiteral="bi-hash" iconSize="14" iconColor="#6f42c1"/></graphic>
+                                            </MenuItem>
                                         </items>
                                     </MenuButton>
                                 </HBox>
@@ -307,10 +316,15 @@
                                     <Label text="XQuery Expression:" style="-fx-font-weight: bold;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <MenuButton text="Examples" style="-fx-font-size: 11px;">
+                                        <graphic><FontIcon iconLiteral="bi-collection" iconSize="14"/></graphic>
                                         <items>
-                                            <MenuItem text="for $x in //item return $x" onAction="#insertXQueryExample1"/>
+                                            <MenuItem text="for $x in //item return $x" onAction="#insertXQueryExample1">
+                                                <graphic><FontIcon iconLiteral="bi-arrow-repeat" iconSize="14" iconColor="#007bff"/></graphic>
+                                            </MenuItem>
                                             <MenuItem text="for $x in //item where $x/@id='1' return $x/name"
-                                                      onAction="#insertXQueryExample2"/>
+                                                      onAction="#insertXQueryExample2">
+                                                <graphic><FontIcon iconLiteral="bi-funnel-fill" iconSize="14" iconColor="#ffc107"/></graphic>
+                                            </MenuItem>
                                         </items>
                                     </MenuButton>
                                 </HBox>

@@ -54,15 +54,30 @@
 
             <MenuButton fx:id="filterButton" text="All"
                         style="-fx-background-color: white; -fx-border-color: #4a90e2;">
+                <graphic><FontIcon iconLiteral="bi-funnel" iconSize="14" iconColor="#4a90e2"/></graphic>
                 <items>
-                    <MenuItem text="All Files"/>
-                    <MenuItem text="XML Documents"/>
-                    <MenuItem text="XSD Schemas"/>
-                    <MenuItem text="XSLT Stylesheets"/>
-                    <MenuItem text="XQuery Scripts"/>
+                    <MenuItem text="All Files">
+                        <graphic><FontIcon iconLiteral="bi-files" iconSize="14" iconColor="#6c757d"/></graphic>
+                    </MenuItem>
+                    <MenuItem text="XML Documents">
+                        <graphic><FontIcon iconLiteral="bi-file-earmark-code" iconSize="14" iconColor="#28a745"/></graphic>
+                    </MenuItem>
+                    <MenuItem text="XSD Schemas">
+                        <graphic><FontIcon iconLiteral="bi-diagram-3" iconSize="14" iconColor="#007bff"/></graphic>
+                    </MenuItem>
+                    <MenuItem text="XSLT Stylesheets">
+                        <graphic><FontIcon iconLiteral="bi-arrow-repeat" iconSize="14" iconColor="#fd7e14"/></graphic>
+                    </MenuItem>
+                    <MenuItem text="XQuery Scripts">
+                        <graphic><FontIcon iconLiteral="bi-braces" iconSize="14" iconColor="#6f42c1"/></graphic>
+                    </MenuItem>
                     <SeparatorMenuItem/>
-                    <MenuItem text="Recent"/>
-                    <MenuItem text="Modified"/>
+                    <MenuItem text="Recent">
+                        <graphic><FontIcon iconLiteral="bi-clock-history" iconSize="14" iconColor="#17a2b8"/></graphic>
+                    </MenuItem>
+                    <MenuItem text="Modified">
+                        <graphic><FontIcon iconLiteral="bi-pencil-square" iconSize="14" iconColor="#ffc107"/></graphic>
+                    </MenuItem>
                 </items>
             </MenuButton>
 

@@ -630,6 +630,9 @@ Platform.runLater(() -> {
 - `BUILD_INSTRUCTIONS.md` - Native executable creation
 - `README.md` - User-facing overview
 
+**UI/Styling:**
+- `STYLE_GUIDE.jsonc` - **Complete UI style guide** (colors, icons, components, CSS classes)
+
 ## Critical Architecture Principles
 
 1. **Model-View Separation:** XsdNode has zero UI dependencies
@@ -642,11 +645,69 @@ Platform.runLater(() -> {
 
 ## UI Guidelines
 
-- Use xmlspy-style-config.json for general styling
+**IMPORTANT:** When modifying or creating UI components, ALWAYS consult the **[STYLE_GUIDE.jsonc](STYLE_GUIDE.jsonc)** first!
+
+### Style Guide Reference
+
+The `STYLE_GUIDE.jsonc` file contains comprehensive documentation of:
+- **Color Palette:** Semantic colors, theme colors, tab category colors
+- **Typography:** Font families, sizes, weights, headings
+- **Icons:** Complete list of available Ikonli Bootstrap icons with usage patterns
+- **Components:** Button variants, cards, dialogs, toolbars, context menus
+- **CSS Classes:** All available style classes organized by category
+- **Usage Guidelines:** Best practices for consistent UI development
+
+### Core Principles
+
+- Use `xmlspy-style-config.json` for general styling
 - Modern and colorful styled UI (AtlantaFX theme)
 - Menus and context menus should always have icons and text
 - User-friendly error dialogs and alerts
 - Graceful degradation on errors
+
+### Icon Usage (Critical)
+
+1. **Only use icons from Ikonli Bootstrap Icons** (bi-* prefix)
+2. **Always verify icon existence** at https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
+3. **NEVER use `bi-database`** - it does not exist!
+4. **Standard sizes:**
+   - Menu items: `iconSize="16"`
+   - Toolbar buttons: `iconSize="20"`
+   - Empty states: `iconSize="48"` or `iconSize="64"`
+5. **Use semantic colors:**
+   - Success actions: `#28a745` (green)
+   - Danger/Delete: `#dc3545` (red)
+   - Info/Save: `#17a2b8` (cyan)
+   - Warning: `#ffc107` (yellow)
+   - Primary: `#007bff` (blue)
+
+### Example FXML Icon Usage
+
+```xml
+<!-- Toolbar button with semantic color -->
+<Button onAction="#handleSave">
+    <graphic>
+        <FontIcon iconLiteral="bi-save" iconSize="20"
+                  iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+    </graphic>
+</Button>
+
+<!-- Menu item with icon -->
+<MenuItem text="Delete" onAction="#handleDelete">
+    <graphic>
+        <FontIcon iconLiteral="bi-trash" iconSize="16" iconColor="#dc3545"/>
+    </graphic>
+</MenuItem>
+```
+
+### CSS Style Classes
+
+Use the predefined style classes from the style guide:
+- **Buttons:** `.btn-primary`, `.btn-success`, `.btn-danger`, `.toolbar-button`
+- **Cards:** `.card`, `.action-card`, `.statistics-card`
+- **Tabs:** `.primary-tab`, `.output-tab`, `.utility-tab`
+- **Toolbars:** `.xsd-toolbar`, `.toolbar-icon-success`, `.toolbar-icon-danger`
+- **Dialogs:** `.dialog-header-primary`, `.dialog-info-box`
 
 ## Important Development Guidelines
 
@@ -704,6 +765,7 @@ Platform.runLater(() -> {
 **Serializer:** `controls/v2/editor/serialization/XsdSerializer.java`
 **Factory:** `controls/v2/model/XsdNodeFactory.java`
 **Facets:** `controls/v2/editor/panels/FacetsPanel.java`
+**Style Guide:** `STYLE_GUIDE.jsonc` (colors, icons, components)
 
 ## Performance Requirements
 

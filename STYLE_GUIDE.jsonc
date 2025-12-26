@@ -1,0 +1,843 @@
+{
+  // ============================================================================
+  // FreeXmlToolkit UI Style Guide
+  // ============================================================================
+  // This document defines all visual styles, colors, typography, icons, and
+  // components used throughout the application. When adding new UI elements
+  // or pages, ALWAYS reference this guide to maintain consistency.
+  //
+  // Last updated: 2024-12-26
+  // ============================================================================
+
+  "metadata": {
+    "version": "2.0",
+    "framework": "JavaFX 24.0.1",
+    "theme": "AtlantaFX Base 2.1.0",
+    "icons": "Ikonli Bootstrap Icons",
+    "fonts": ["Roboto", "Segoe UI", "Consolas", "Monaco"]
+  },
+
+  // ============================================================================
+  // COLOR PALETTE
+  // ============================================================================
+  "colors": {
+    // Primary Semantic Colors
+    "semantic": {
+      "success": "#28a745",    // Green - validation passed, save success
+      "info": "#17a2b8",       // Cyan - information, tips
+      "warning": "#ffc107",    // Yellow - warnings, caution
+      "danger": "#dc3545",     // Red - errors, delete actions
+      "primary": "#007bff"     // Blue - primary actions, links
+    },
+
+    // Secondary Semantic Colors
+    "secondary": {
+      "purple": "#6f42c1",     // XPath/XQuery, advanced features
+      "indigo": "#6610f2",
+      "pink": "#e83e8c",
+      "orange": "#fd7e14",     // XSLT, transformation
+      "teal": "#20c997",       // Copy, formatting
+      "cyan": "#17a2b8"
+    },
+
+    // Tab Category Colors (for grouping related functionality)
+    "tabs": {
+      "primary": {
+        "dark": "#9c27b0",         // Purple - primary editing tabs
+        "light": "#e1bee7",
+        "gradient": "linear-gradient(to bottom, #ba68c8, #9c27b0)"
+      },
+      "output": {
+        "dark": "#43a047",         // Green - output generation tabs
+        "light": "#c8e6c9",
+        "gradient": "linear-gradient(to bottom, #66bb6a, #43a047)"
+      },
+      "utility": {
+        "dark": "#1e88e5",         // Blue - utility tabs
+        "light": "#bbdefb",
+        "gradient": "linear-gradient(to bottom, #42a5f5, #1e88e5)"
+      }
+    },
+
+    // Gray Scale
+    "gray": {
+      "100": "#f8f9fa",
+      "200": "#e9ecef",
+      "300": "#dee2e6",
+      "400": "#ced4da",
+      "500": "#adb5bd",
+      "600": "#6c757d",
+      "700": "#495057",
+      "800": "#343a40",
+      "900": "#212529"
+    },
+
+    // Light Theme
+    "light": {
+      "background": {
+        "primary": "#ffffff",
+        "secondary": "#f8f9fa",
+        "tertiary": "#f1f3f5",
+        "hover": "rgba(74, 144, 226, 0.1)",
+        "active": "rgba(74, 144, 226, 0.2)"
+      },
+      "text": {
+        "primary": "#212529",
+        "secondary": "#6c757d",
+        "muted": "#adb5bd"
+      },
+      "border": {
+        "light": "#dee2e6",
+        "medium": "#ced4da",
+        "dark": "#adb5bd",
+        "focus": "#4a90e2"
+      }
+    },
+
+    // Dark Theme (VS Code Dark+ inspired)
+    "dark": {
+      "background": {
+        "primary": "#1e1e1e",
+        "secondary": "#252526",
+        "tertiary": "#2d2d30",
+        "hover": "#2a2d2e",
+        "active": "#094771"
+      },
+      "text": {
+        "primary": "#d4d4d4",
+        "secondary": "#9d9d9d",
+        "muted": "#6a6a6a"
+      },
+      "border": {
+        "light": "#3c3c3c",
+        "medium": "#4a4a4a",
+        "dark": "#5a5a5a",
+        "focus": "#3794ff"
+      }
+    },
+
+    // XML Syntax Highlighting
+    "syntax": {
+      "light": {
+        "tag": "rgb(0, 0, 255)",         // Blue
+        "element": "rgb(128, 0, 0)",      // Maroon
+        "attribute": "darkviolet",
+        "value": "black",
+        "comment": "teal",
+        "enumeration": "#ff0000"
+      },
+      "dark": {
+        "tag": "#569cd6",                 // Light blue
+        "element": "#4ec9b0",             // Teal
+        "attribute": "#9cdcfe",           // Light cyan
+        "value": "#ce9178",               // Orange/brown
+        "comment": "#6a9955",             // Green
+        "enumeration": "#dcdcaa"          // Yellow
+      }
+    },
+
+    // Application-specific colors
+    "application": {
+      "menuGradient": "linear-gradient(from 0% 0% to 100% 100%, #fdeec5 0%, #fc9040 100%)",
+      "bottomLineGradient": "linear-gradient(from 0% 0% to 100% 100%, #2A9D8F 0%, #264653 100%)",
+      "schematron": "#ff6b6b",
+      "xslt": "#e27429",
+      "fop": "INDIANRED",
+      "signature": "#578013"
+    }
+  },
+
+  // ============================================================================
+  // TYPOGRAPHY
+  // ============================================================================
+  "typography": {
+    "fontFamilies": {
+      "base": "'Segoe UI', Arial, sans-serif",
+      "heading": "Roboto, sans-serif",
+      "monospace": "'Courier New', Courier, monospace",
+      "code": "'Consolas', 'Monaco', 'Courier New', monospace"
+    },
+
+    "fontSizes": {
+      "xs": "10px",
+      "sm": "11px",
+      "base": "12px",
+      "md": "13px",
+      "lg": "14px",
+      "xl": "16px",
+      "2xl": "18px",
+      "3xl": "24px",
+      "4xl": "32px"
+    },
+
+    "fontWeights": {
+      "light": 300,
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+
+    "lineHeights": {
+      "tight": 1.2,
+      "base": 1.5,
+      "relaxed": 1.8
+    },
+
+    "headings": {
+      "h1": {
+        "fontFamily": "Roboto",
+        "fontSize": "4em"
+      },
+      "h2": {
+        "fontFamily": "Roboto",
+        "fontSize": "1.5em",
+        "fontWeight": "bold",
+        "padding": "0 0 5px 0"
+      },
+      "h3": {
+        "fontFamily": "Roboto",
+        "fontSize": "1.1em",
+        "fontWeight": "bold"
+      }
+    }
+  },
+
+  // ============================================================================
+  // SPACING SYSTEM
+  // ============================================================================
+  "spacing": {
+    "values": {
+      "0": "0",
+      "1": "4px",
+      "2": "8px",
+      "3": "12px",
+      "4": "16px",
+      "5": "20px",
+      "6": "24px",
+      "8": "32px",
+      "10": "40px"
+    },
+    "aliases": {
+      "xs": "4px",
+      "sm": "8px",
+      "md": "16px",
+      "lg": "20px",
+      "xl": "24px"
+    }
+  },
+
+  // ============================================================================
+  // BORDER RADIUS
+  // ============================================================================
+  "borderRadius": {
+    "none": "0",
+    "sm": "2px",
+    "base": "4px",
+    "md": "6px",
+    "lg": "8px",
+    "xl": "12px",
+    "full": "9999px"
+  },
+
+  // ============================================================================
+  // SHADOWS
+  // ============================================================================
+  "shadows": {
+    "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    "base": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+    "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+    "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+  },
+
+  // ============================================================================
+  // ICON SIZES
+  // ============================================================================
+  "iconSizes": {
+    "xs": "10px",
+    "sm": "12px",      // Menu items
+    "base": "14px",
+    "md": "16px",      // Toolbar buttons, FXML default
+    "lg": "20px",      // Toolbar icons
+    "xl": "24px",      // Feature icons
+    "2xl": "32px",     // Dialog icons, headers
+    "3xl": "48px",     // Empty state icons
+    "4xl": "64px"      // Large empty states
+  },
+
+  // ============================================================================
+  // ICONS - IKONLI BOOTSTRAP ICONS
+  // ============================================================================
+  // Reference: https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
+  // IMPORTANT: Always verify icon existence before use!
+  // ============================================================================
+  "icons": {
+    // File Operations
+    "file": {
+      "new": "bi-file-earmark-plus",
+      "open": "bi-folder2-open",
+      "save": "bi-save",
+      "saveFill": "bi-save-fill",
+      "close": "bi-x-circle",
+      "delete": "bi-trash",
+      "copy": "bi-files",
+      "cut": "bi-scissors",
+      "paste": "bi-clipboard"
+    },
+
+    // Navigation
+    "navigation": {
+      "arrowRight": "bi-arrow-right",
+      "arrowLeft": "bi-arrow-left",
+      "arrowUp": "bi-arrow-up",
+      "arrowDown": "bi-arrow-down",
+      "chevronRight": "bi-chevron-right",
+      "chevronLeft": "bi-chevron-left",
+      "exit": "bi-door-closed"
+    },
+
+    // Actions
+    "actions": {
+      "play": "bi-play-fill",
+      "playCircle": "bi-play-circle-fill",
+      "refresh": "bi-arrow-clockwise",
+      "undo": "bi-arrow-counterclockwise",
+      "redo": "bi-arrow-clockwise",
+      "search": "bi-search",
+      "settings": "bi-gear-fill",
+      "edit": "bi-pencil",
+      "plus": "bi-plus",
+      "plusCircle": "bi-plus-circle",
+      "eraser": "bi-eraser",
+      "lightning": "bi-lightning",
+      "download": "bi-download",
+      "upload": "bi-cloud-arrow-up"
+    },
+
+    // Validation & Status
+    "validation": {
+      "check": "bi-check",
+      "checkCircle": "bi-check-circle",
+      "checkCircleFill": "bi-check-circle-fill",
+      "clipboardCheck": "bi-clipboard-check",
+      "error": "bi-x-circle-fill",
+      "warning": "bi-exclamation-triangle-fill",
+      "info": "bi-info-circle",
+      "infoFill": "bi-info-circle-fill",
+      "question": "bi-question-circle",
+      "questionSquare": "bi-question-square",
+      "hourglass": "bi-hourglass",
+      "clock": "bi-clock",
+      "clockHistory": "bi-clock-history",
+      "bug": "bi-bug"
+    },
+
+    // Document Types
+    "documents": {
+      "xml": "bi-file-earmark-code",
+      "xsd": "bi-diagram-3",
+      "xslt": "bi-arrow-repeat",
+      "schematron": "bi-shield-check",
+      "pdf": "bi-file-pdf",
+      "text": "bi-file-text",
+      "fileEarmark": "bi-file-earmark",
+      "fileEarmarkText": "bi-file-earmark-text",
+      "fileEarmarkCheck": "bi-file-earmark-check",
+      "fileEarmarkX": "bi-file-earmark-x",
+      "fileEarmarkRuled": "bi-file-earmark-ruled",
+      "fileEarmarkArrowRight": "bi-file-earmark-arrow-right"
+    },
+
+    // XML/XSD Editor
+    "editor": {
+      "codeSlash": "bi-code-slash",
+      "codeSquare": "bi-code-square",
+      "braces": "bi-braces",
+      "diagram2": "bi-diagram-2",
+      "diagram3": "bi-diagram-3",
+      "collection": "bi-collection",
+      "pencilSquare": "bi-pencil-square",
+      "cardText": "bi-card-text",
+      "textLeft": "bi-text-left"
+    },
+
+    // UI Elements
+    "ui": {
+      "menu": "bi-menu-up",
+      "columnsGap": "bi-columns-gap",
+      "eye": "bi-eye",
+      "speedometer": "bi-speedometer2",
+      "globe": "bi-globe",
+      "gear": "bi-gear",
+      "palette": "bi-palette",
+      "hddNetwork": "bi-hdd-network",
+      "plug": "bi-plug-fill",
+      "folder": "bi-folder",
+      "folder2": "bi-folder2",
+      "folderPlus": "bi-folder-plus"
+    },
+
+    // Favorites & Rating
+    "favorites": {
+      "star": "bi-star",
+      "starFill": "bi-star-fill",
+      "bookmark": "bi-bookmark",
+      "bookmarkFill": "bi-bookmark-fill"
+    },
+
+    // Communication & Annotations
+    "communication": {
+      "chatSquareText": "bi-chat-square-text",
+      "book": "bi-book",
+      "lightbulb": "bi-lightbulb"
+    },
+
+    // Security & Keys
+    "security": {
+      "key": "bi-key",
+      "shieldCheck": "bi-shield-check",
+      "shieldLock": "bi-shield-lock",
+      "lock": "bi-lock",
+      "patchCheck": "bi-patch-check",
+      "fileEarmarkLock": "bi-file-earmark-lock"
+    },
+
+    // Tags & Attributes
+    "tags": {
+      "tag": "bi-tag",
+      "at": "bi-at",
+      "signpost": "bi-signpost-2"
+    },
+
+    // Layout & Structure
+    "layout": {
+      "listCheck": "bi-list-check",
+      "borderAll": "bi-border-all",
+      "arrowsExpand": "bi-arrows-expand",
+      "arrowsCollapse": "bi-arrows-collapse",
+      "boxArrowUpRight": "bi-box-arrow-up-right",
+      "boxArrowUp": "bi-box-arrow-up",
+      "layers": "bi-layers-half"
+    },
+
+    // Other Icon Packs (used sparingly)
+    "other": {
+      "gitPullRequest": "fth-git-pull-request",  // XSLT icon
+      "pdfWin10": "win10-pdf",                   // FOP tab
+      "keyWin10": "win10-key"                    // Signature tab
+    },
+
+    // FORBIDDEN ICONS - DO NOT USE (do not exist)
+    "_forbidden": [
+      "bi-database",  // Does not exist in Ikonli Bootstrap Icons!
+      "bi-123"        // Does not exist - use bi-hash instead
+    ]
+  },
+
+  // ============================================================================
+  // ICON COLOR MAPPINGS
+  // ============================================================================
+  "iconColors": {
+    "semantic": {
+      "success": "#28a745",   // Green - bi-check-circle, bi-play-fill
+      "info": "#17a2b8",      // Cyan - bi-info-circle, bi-save
+      "warning": "#ffc107",   // Yellow - bi-star, bi-exclamation-triangle
+      "danger": "#dc3545",    // Red - bi-x-circle, bi-trash, bi-diagram-3 (Schema Generator)
+      "primary": "#007bff",   // Blue - bi-folder2-open, bi-file-earmark-code
+      "secondary": "#6c757d", // Gray - bi-arrow-clockwise, bi-clock-history
+      "purple": "#6f42c1",    // Purple - bi-search, bi-braces
+      "teal": "#20c997",      // Teal - bi-code-square
+      "orange": "#fd7e14"     // Orange - bi-arrow-repeat (XSLT)
+    },
+    "tabSpecific": {
+      "xmlEditor": null,              // Default icon color
+      "xsdEditor": "dodgerblue",      // Blue for XSD
+      "schemaGenerator": "#dc3545",   // Red for Schema Generator
+      "xslt": "#e27429",              // Orange
+      "schematron": "#ff6b6b",        // Light red
+      "fop": "INDIANRED",             // PDF
+      "signature": "#578013",         // Green
+      "help": "#5151e8"               // Violet/blue
+    }
+  },
+
+  // ============================================================================
+  // COMPONENTS
+  // ============================================================================
+  "components": {
+    // Button Variants
+    "buttons": {
+      "default": {
+        "background": "linear-gradient(from 0% 0% to 0% 100%, #ffffff, #f0f2f5)",
+        "textColor": "#24292f",
+        "borderColor": "#d0d7de",
+        "borderRadius": "4px",
+        "padding": "5px 15px",
+        "fontWeight": "bold"
+      },
+      "primary": {
+        "background": "linear-gradient(from 0% 0% to 0% 100%, #2b8aff, #0969da)",
+        "textColor": "white",
+        "borderColor": "#0550ae"
+      },
+      "success": {
+        "background": "linear-gradient(to bottom, #28a745 0%, #1e7e34 100%)",
+        "textColor": "white"
+      },
+      "warning": {
+        "background": "linear-gradient(to bottom, #ffc107 0%, #e0a800 100%)",
+        "textColor": "#212529"
+      },
+      "info": {
+        "background": "linear-gradient(to bottom, #17a2b8 0%, #117a8b 100%)",
+        "textColor": "white"
+      },
+      "outline": {
+        "background": "transparent",
+        "textColor": "#4a90e2",
+        "borderColor": "#4a90e2"
+      },
+      "menu": {
+        "height": "50px",
+        "width": "200px",
+        "alignment": "baseline-left",
+        "background": "transparent",
+        "activeBackground": "#d0e7ff",
+        "activeBorder": "0 0 0 3px #0969da"
+      },
+      "toolbar": {
+        "background": "transparent",
+        "borderRadius": "6px",
+        "padding": "8px 10px",
+        "fontSize": "9px"
+      }
+    },
+
+    // Card Component
+    "card": {
+      "background": "#ffffff",
+      "borderColor": "#e1e4e8",
+      "borderRadius": "6px",
+      "padding": "20px",
+      "shadow": "dropshadow(gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 2)"
+    },
+
+    // Action Card (Dashboard)
+    "actionCard": {
+      "background": "white",
+      "borderColor": "#e5e7eb",
+      "borderRadius": "8px",
+      "padding": "16px",
+      "minHeight": "160px",
+      "iconWrapperSize": "48px",
+      "hover": {
+        "background": "#f8fafc",
+        "borderColor": "#cbd5e1"
+      }
+    },
+
+    // Tab Pane
+    "tabPane": {
+      "headerBackground": "#f6f8fa",
+      "tabPadding": "8px 12px",
+      "selectedBorder": "2px solid #0969da",
+      "tabGroups": {
+        "primary": "linear-gradient(to bottom, #f3e5f5, #e1bee7)",
+        "output": "linear-gradient(to bottom, #e8f5e9, #c8e6c9)",
+        "utility": "linear-gradient(to bottom, #e3f2fd, #bbdefb)"
+      }
+    },
+
+    // Dialog
+    "dialog": {
+      "sizes": {
+        "small": { "width": "400px", "height": "300px" },
+        "medium": { "width": "600px", "height": "450px" },
+        "large": { "width": "850px", "height": "650px" },
+        "xlarge": { "width": "1000px", "height": "750px" }
+      },
+      "header": {
+        "variants": {
+          "primary": "linear-gradient(to bottom, var(--color-primary), derive(var(--color-primary), -20%))",
+          "success": "linear-gradient(to bottom, var(--color-success), derive(var(--color-success), -20%))",
+          "info": "linear-gradient(to bottom, var(--color-info), derive(var(--color-info), -20%))",
+          "warning": "linear-gradient(to bottom, var(--color-warning), derive(var(--color-warning), -20%))",
+          "danger": "linear-gradient(to bottom, var(--color-danger), derive(var(--color-danger), -20%))"
+        }
+      },
+      "infoBox": {
+        "info": { "background": "#e3f2fd", "border": "#90caf9", "text": "#1976d2" },
+        "success": { "background": "#e8f5e9", "border": "#a5d6a7", "text": "#2e7d32" },
+        "warning": { "background": "#fff3e0", "border": "#ffcc80", "text": "#e65100" },
+        "danger": { "background": "#ffebee", "border": "#ef9a9a", "text": "#c62828" }
+      }
+    },
+
+    // Context Menu
+    "contextMenu": {
+      "background": "#f5f5f5",
+      "borderRadius": "6px",
+      "borderColor": "#d0d7de",
+      "shadow": "dropshadow(gaussian, rgba(0, 0, 0, 0.1), 10, 0, 0, 2)",
+      "menuItem": {
+        "padding": "8px 12px",
+        "hoverBackground": "rgba(74, 144, 226, 0.1)"
+      },
+      "iconClasses": {
+        "success": ".menu-icon-success",
+        "info": ".menu-icon-info",
+        "warning": ".menu-icon-warning",
+        "danger": ".menu-icon-danger",
+        "primary": ".menu-icon-primary",
+        "purple": ".menu-icon-purple",
+        "orange": ".menu-icon-orange",
+        "teal": ".menu-icon-teal"
+      }
+    },
+
+    // Toolbar
+    "toolbar": {
+      "background": "linear-gradient(to bottom, #f8f9fa, #e9ecef)",
+      "borderBottom": "1px solid #dee2e6",
+      "padding": "6px 10px",
+      "buttonSpacing": "4px",
+      "iconStyles": {
+        "success": "#28a745",
+        "primary": "#007bff",
+        "info": "#17a2b8",
+        "warning": "#ffc107",
+        "danger": "#dc3545",
+        "teal": "#20c997",
+        "purple": "#6f42c1",
+        "secondary": "#6c757d"
+      }
+    },
+
+    // Statistics Card (Dashboard)
+    "statisticsCard": {
+      "background": "#ffffff",
+      "borderRadius": "8px",
+      "padding": "16px",
+      "valueSize": "28px",
+      "labelSize": "12px",
+      "trendColors": {
+        "up": "#28a745",
+        "down": "#dc3545",
+        "neutral": "#6c757d"
+      }
+    },
+
+    // Feature Progress Grid
+    "featureProgressGrid": {
+      "chipDiscovered": {
+        "background": "#e7f3ff",
+        "border": "#0969da"
+      },
+      "chipUndiscovered": {
+        "background": "#f6f8fa",
+        "border": "#d0d7de",
+        "opacity": 0.7
+      }
+    },
+
+    // Tips Banner
+    "tipsBanner": {
+      "background": "#e7f3ff",
+      "border": "#b8daff",
+      "iconColor": "#0969da"
+    }
+  },
+
+  // ============================================================================
+  // CSS STYLE CLASSES
+  // ============================================================================
+  "cssClasses": {
+    // Layout
+    "layout": [
+      ".dashboard-root",
+      ".dashboard-container",
+      ".menu_box",
+      ".bottom_line",
+      ".card",
+      ".feature-box"
+    ],
+
+    // Typography
+    "typography": [
+      ".h1", ".h2", ".h3",
+      ".dashboard-title",
+      ".dashboard-subtitle",
+      ".section-title",
+      ".card-title"
+    ],
+
+    // Buttons
+    "buttons": [
+      ".button",
+      ".menu_button",
+      ".menu_button_collapsed",
+      ".btn-primary",
+      ".btn-secondary",
+      ".btn-success",
+      ".btn-warning",
+      ".btn-info",
+      ".btn-outline",
+      ".toolbar-button"
+    ],
+
+    // Tabs
+    "tabs": [
+      ".tab-pane",
+      ".primary-tab",
+      ".output-tab",
+      ".utility-tab"
+    ],
+
+    // Cards & Containers
+    "containers": [
+      ".action-card",
+      ".statistics-card",
+      ".recent-projects-card",
+      ".system-updates-card",
+      ".dialog-section"
+    ],
+
+    // XML Syntax
+    "syntax": [
+      ".tagmark",
+      ".anytag",
+      ".paren",
+      ".attribute",
+      ".avalue",
+      ".comment",
+      ".enumeration-content"
+    ],
+
+    // Status & Validation
+    "status": [
+      ".diagnostic-error",
+      ".diagnostic-warning",
+      ".search-highlight"
+    ],
+
+    // Dialogs
+    "dialogs": [
+      ".dialog-pane",
+      ".dialog-header",
+      ".dialog-header-primary",
+      ".dialog-header-success",
+      ".dialog-header-info",
+      ".dialog-header-warning",
+      ".dialog-header-danger",
+      ".dialog-info-box",
+      ".dialog-feature-item"
+    ],
+
+    // Context Menu
+    "contextMenu": [
+      ".context-menu",
+      ".menu-item",
+      ".menu-icon-success",
+      ".menu-icon-danger",
+      ".menu-icon-primary",
+      ".add-icon",
+      ".delete-icon",
+      ".edit-icon"
+    ],
+
+    // Toolbar
+    "toolbar": [
+      ".xsd-toolbar",
+      ".toolbar-icon-success",
+      ".toolbar-icon-primary",
+      ".toolbar-icon-info",
+      ".toolbar-icon-warning",
+      ".toolbar-icon-danger",
+      ".toolbar-icon-purple",
+      ".toolbar-icon-teal",
+      ".toolbar-icon-secondary"
+    ],
+
+    // Statistics & Gamification
+    "statistics": [
+      ".statistics-pane",
+      ".statistics-dashboard",
+      ".statistics-card",
+      ".feature-progress-grid",
+      ".feature-chip",
+      ".tips-banner",
+      ".productivity-badge"
+    ]
+  },
+
+  // ============================================================================
+  // CSS FILES
+  // ============================================================================
+  "cssFiles": {
+    "main": "src/main/resources/css/fxt-theme.css",
+    "appTheme": "src/main/resources/css/app-theme.css",
+    "lightTheme": "src/main/resources/css/light-theme.css",
+    "darkTheme": "src/main/resources/css/dark-theme.css",
+    "dialogTheme": "src/main/resources/css/dialog-theme.css",
+    "contextMenuTheme": "src/main/resources/css/context-menu-theme.css",
+    "toolbarTheme": "src/main/resources/css/toolbar-theme.css",
+    "xsdTabGroups": "src/main/resources/css/xsd-tab-groups.css"
+  },
+
+  // ============================================================================
+  // USAGE GUIDELINES
+  // ============================================================================
+  "guidelines": {
+    "icons": [
+      "Always use icons from Ikonli Bootstrap Icons (bi-*)",
+      "Verify icon existence at https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html before use",
+      "NEVER use bi-database - it does not exist!",
+      "Standard icon size in FXML: iconSize='16'",
+      "Toolbar icon size: iconSize='20'",
+      "Always provide iconColor for semantic meaning",
+      "Use styleClass for themed icon colors (e.g., toolbar-icon-success)"
+    ],
+    "colors": [
+      "Use semantic colors for actions (success=green, danger=red, etc.)",
+      "Use tab category colors for grouping related functionality",
+      "Maintain consistency between light and dark themes",
+      "Use CSS variables when possible for theme support"
+    ],
+    "components": [
+      "Use standard button variants for consistent styling",
+      "Action cards should have fixed height (160px) for dashboard layout",
+      "Dialog headers should use gradient variants for visual hierarchy",
+      "Toolbar icons should have colored styleClasses for semantic meaning"
+    ],
+    "bestPractices": [
+      "All user-facing text must be in English",
+      "Menus and context menus should always have icons and text",
+      "Use dropshadow effects sparingly for depth",
+      "Maintain 8px grid alignment for spacing",
+      "Use linear gradients for button backgrounds"
+    ]
+  },
+
+  // ============================================================================
+  // COMMON ICON USAGE PATTERNS
+  // ============================================================================
+  "patterns": {
+    "toolbarButton": {
+      "example": "<FontIcon iconLiteral=\"bi-play-fill\" iconSize=\"20\" iconColor=\"#28a745\" styleClass=\"toolbar-icon-success\"/>",
+      "notes": "Use styleClass for hover effects"
+    },
+    "menuItem": {
+      "example": "<MenuItem text=\"Save\"><graphic><FontIcon iconLiteral=\"bi-save\" iconSize=\"16\"/></graphic></MenuItem>",
+      "notes": "Always include both text and icon"
+    },
+    "actionCard": {
+      "example": "<FontIcon iconLiteral=\"bi-plus\" iconSize=\"24\" iconColor=\"#2563eb\"/>",
+      "notes": "Wrap in StackPane with colored background"
+    },
+    "statusIndicator": {
+      "example": "<FontIcon iconLiteral=\"bi-check-circle-fill\" iconColor=\"#28a745\"/>",
+      "notes": "Use fill variants for status indicators"
+    }
+  }
+}

@@ -127,10 +127,10 @@ public class FileExplorer extends VBox {
 
                 FontIcon icon;
                 if (Files.isDirectory(item)) {
-                    icon = new FontIcon("fa-folder-o");
+                    icon = new FontIcon("bi-folder");
                     icon.setIconColor(javafx.scene.paint.Color.ORANGE);
                 } else {
-                    icon = new FontIcon("fa-file-o");
+                    icon = new FontIcon("bi-file-earmark");
                     icon.setIconColor(javafx.scene.paint.Color.DODGERBLUE);
                 }
                 icon.setIconSize(16);
@@ -146,7 +146,7 @@ public class FileExplorer extends VBox {
                     TreeItem<Path> genericTreeItem = row.getTreeItem();
                     if (genericTreeItem != null) {
                         if (Files.isDirectory(item) && genericTreeItem.isExpanded()) {
-                            ((FontIcon) getGraphic()).setIconLiteral("fa-folder-open-o");
+                            ((FontIcon) getGraphic()).setIconLiteral("bi-folder2-open");
                         }
 
                         if (genericTreeItem instanceof FileExplorerTreeItem customTreeItem) {
@@ -202,7 +202,7 @@ public class FileExplorer extends VBox {
                 });
 
         Button homeButton = new Button();
-        FontIcon homeIcon = new FontIcon("fa-home");
+        FontIcon homeIcon = new FontIcon("bi-house");
         homeIcon.setIconSize(16);
         homeButton.setGraphic(homeIcon);
         homeButton.setTooltip(new Tooltip("Go to User Home Directory"));

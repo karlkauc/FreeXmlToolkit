@@ -306,11 +306,19 @@
                                     <FontIcon iconLiteral="bi-collection" iconSize="14"/>
                                 </graphic>
                                 <items>
-                                    <MenuItem text="Simple Query" onAction="#insertXQueryExampleSimple"/>
-                                    <MenuItem text="FLWOR Expression" onAction="#insertXQueryExampleFlwor"/>
-                                    <MenuItem text="HTML Report" onAction="#insertXQueryExampleHtmlReport"/>
+                                    <MenuItem text="Simple Query" onAction="#insertXQueryExampleSimple">
+                                        <graphic><FontIcon iconLiteral="bi-code" iconSize="14" iconColor="#007bff"/></graphic>
+                                    </MenuItem>
+                                    <MenuItem text="FLWOR Expression" onAction="#insertXQueryExampleFlwor">
+                                        <graphic><FontIcon iconLiteral="bi-braces" iconSize="14" iconColor="#6f42c1"/></graphic>
+                                    </MenuItem>
+                                    <MenuItem text="HTML Report" onAction="#insertXQueryExampleHtmlReport">
+                                        <graphic><FontIcon iconLiteral="bi-file-earmark-code" iconSize="14" iconColor="#e44d26"/></graphic>
+                                    </MenuItem>
                                     <SeparatorMenuItem/>
-                                    <MenuItem text="Data Quality Check" onAction="#insertXQueryExampleDqCheck"/>
+                                    <MenuItem text="Data Quality Check" onAction="#insertXQueryExampleDqCheck">
+                                        <graphic><FontIcon iconLiteral="bi-check2-square" iconSize="14" iconColor="#28a745"/></graphic>
+                                    </MenuItem>
                                 </items>
                             </MenuButton>
                         </HBox>
