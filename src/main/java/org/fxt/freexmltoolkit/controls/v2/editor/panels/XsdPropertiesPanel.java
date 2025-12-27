@@ -111,14 +111,28 @@ public class XsdPropertiesPanel extends VBox {
 
         // Listen to selection changes
         editorContext.getSelectionModel().addSelectionListener((oldSelection, newSelection) -> {
+            logger.debug("Selection changed in XsdPropertiesPanel: oldSize={}, newSize={}", 
+                    oldSelection != null ? oldSelection.size() : 0,
+                    newSelection != null ? newSelection.size() : 0);
             if (!newSelection.isEmpty()) {
                 // Get the first (primary) selected node
                 VisualNode firstNode = newSelection.iterator().next();
+                logger.debug("Updating properties for node: {}", firstNode.getLabel());
                 updateProperties(firstNode);
             } else {
+                logger.debug("Clearing properties (no selection)");
                 clearProperties();
             }
         });
+
+        // Check if there's already a selection when the panel is created
+        // This ensures properties are shown immediately if a node is already selected
+        java.util.Set<VisualNode> currentSelection = editorContext.getSelectionModel().getSelectedNodes();
+        if (currentSelection != null && !currentSelection.isEmpty()) {
+            VisualNode firstNode = currentSelection.iterator().next();
+            logger.debug("Initial selection found: {}, updating properties", firstNode.getLabel());
+            updateProperties(firstNode);
+        }
     }
 
     /**
@@ -682,8 +696,9 @@ public class XsdPropertiesPanel extends VBox {
 
     /**
      * Updates the properties panel with the given node's data.
+     * Can be called externally to force an update.
      */
-    private void updateProperties(VisualNode node) {
+    public void updateProperties(VisualNode node) {
         this.currentNode = node;
         updating = true;
 

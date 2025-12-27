@@ -42,9 +42,6 @@ public class XmlEditorSidebarController {
     private CheckBox continuousValidationCheckBox;
 
     @FXML
-    private Button manualValidateButton;
-
-    @FXML
     private ComboBox<String> xsdFavoritesComboBox;
 
     @FXML
@@ -144,12 +141,18 @@ public class XmlEditorSidebarController {
 
     private XmlEditor xmlEditor;
 
+    // Support for Unified Editor (XmlUnifiedTab)
+    private org.fxt.freexmltoolkit.controls.unified.XmlUnifiedTab xmlUnifiedTab;
+    private org.fxt.freexmltoolkit.domain.XsdDocumentationData unifiedTabXsdData;
+
     // Services - injected via ServiceRegistry
     private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+    private final org.fxt.freexmltoolkit.service.XsdDocumentationService xsdDocumentationService = new org.fxt.freexmltoolkit.service.XsdDocumentationService();
 
     // XSD management
     private File originalXsdFile; // Store the original linked XSD
+    private File currentXsdFile; // Current XSD file for unified tab mode
 
     private String xsdPath;
 
@@ -161,7 +164,7 @@ public class XmlEditorSidebarController {
     private double expandedWidth = 300; // Store the expanded width
     private final List<SchematronService.SchematronValidationError> currentSchematronErrors = new ArrayList<>();
     private final List<ValidationError> currentValidationErrors = new ArrayList<>();
-    
+
     // XSD Documentation Comments tracking
     private boolean xsdCommentsActive = false;
     private static final String XSD_COMMENT_MARKER = " [XSD-DOC] ";
@@ -171,6 +174,81 @@ public class XmlEditorSidebarController {
 
     public void setXmlEditor(XmlEditor xmlEditor) {
         this.xmlEditor = xmlEditor;
+    }
+
+    /**
+     * Sets the XmlUnifiedTab for use in the Unified Editor.
+     * This provides an alternative to setXmlEditor for the new unified editor architecture.
+     */
+    public void setXmlUnifiedTab(org.fxt.freexmltoolkit.controls.unified.XmlUnifiedTab tab) {
+        this.xmlUnifiedTab = tab;
+        if (tab != null) {
+            // Load XSD if tab has one linked
+            File xsdFile = tab.getXsdFile();
+            if (xsdFile != null) {
+                loadXsdForUnifiedTab(xsdFile);
+            }
+        }
+    }
+
+    /**
+     * Loads XSD documentation for the unified tab mode.
+     */
+    private void loadXsdForUnifiedTab(File xsdFile) {
+        loadXsdDataForSidebar(xsdFile);
+    }
+
+    /**
+     * Loads XSD data directly into the sidebar without triggering XmlUnifiedTab callbacks.
+     * This is used by the async XSD loading callback to avoid infinite loops.
+     *
+     * @param xsdFile the XSD file to load
+     */
+    public void loadXsdDataForSidebar(File xsdFile) {
+        if (xsdFile == null || !xsdFile.exists()) {
+            return;
+        }
+
+        try {
+            currentXsdFile = xsdFile;
+            xsdDocumentationService.setXsdFilePath(xsdFile.getAbsolutePath());
+            xsdDocumentationService.processXsd(true);
+            unifiedTabXsdData = xsdDocumentationService.xsdDocumentationData;
+
+            // Update UI
+            setXsdPath(xsdFile.getAbsolutePath());
+
+            logger.info("Loaded XSD for sidebar: {}", xsdFile.getName());
+        } catch (Exception e) {
+            logger.error("Failed to load XSD for sidebar: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Manually sets the XSD file for the sidebar (works in unified tab mode).
+     */
+    public void setXsdFileDirectly(File xsdFile) {
+        if (xmlEditor != null) {
+            xmlEditor.setXsdFile(xsdFile);
+        } else if (xmlUnifiedTab != null) {
+            xmlUnifiedTab.setXsdFile(xsdFile);
+            loadXsdForUnifiedTab(xsdFile);
+        } else {
+            // Standalone mode - just load the XSD
+            loadXsdForUnifiedTab(xsdFile);
+        }
+    }
+
+    /**
+     * Gets the XSD documentation data (works in both modes).
+     */
+    public org.fxt.freexmltoolkit.domain.XsdDocumentationData getXsdDocumentationData() {
+        if (xmlEditor != null) {
+            return xmlEditor.getXsdDocumentationData();
+        } else if (unifiedTabXsdData != null) {
+            return unifiedTabXsdData;
+        }
+        return null;
     }
 
     public void setMainController(org.fxt.freexmltoolkit.controller.MainController mainController) {
@@ -201,15 +279,6 @@ public class XmlEditorSidebarController {
         // Initialize child elements list view with double-click handler
         initializeChildElementsList();
 
-        // Setup manual validate button - validates with alert
-        if (manualValidateButton != null) {
-            manualValidateButton.setOnAction(event -> {
-                if (xmlEditor != null) {
-                    xmlEditor.validateWithAlert();
-                }
-            });
-        }
-
         // Setup XSD favorites dropdown
         setupXsdFavoritesDropdown();
 
@@ -227,16 +296,20 @@ public class XmlEditorSidebarController {
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Files", "*.xsd"));
 
             // Set initial directory to the same as the XML file if available
+            File initialDir = null;
             if (xmlEditor != null && xmlEditor.getXmlFile() != null && xmlEditor.getXmlFile().getParentFile() != null) {
-                fileChooser.setInitialDirectory(xmlEditor.getXmlFile().getParentFile());
+                initialDir = xmlEditor.getXmlFile().getParentFile();
+            } else if (xmlUnifiedTab != null && xmlUnifiedTab.getSourceFile() != null && xmlUnifiedTab.getSourceFile().getParentFile() != null) {
+                initialDir = xmlUnifiedTab.getSourceFile().getParentFile();
+            }
+            if (initialDir != null && initialDir.exists()) {
+                fileChooser.setInitialDirectory(initialDir);
             }
 
             File selectedFile = fileChooser.showOpenDialog(changeXsdButton.getScene().getWindow());
             if (selectedFile != null) {
                 xsdPathField.setText(selectedFile.getAbsolutePath());
-                if (xmlEditor != null) {
-                    xmlEditor.setXsdFile(selectedFile);
-                }
+                setXsdFileDirectly(selectedFile);
             }
         });
 
@@ -260,14 +333,22 @@ public class XmlEditorSidebarController {
         });
 
         continuousValidationCheckBox.setOnAction(event -> {
-            if (continuousValidationCheckBox.isSelected() && xmlEditor != null) {
-                xmlEditor.validateXml();
+            if (continuousValidationCheckBox.isSelected()) {
+                if (xmlEditor != null) {
+                    xmlEditor.validateXml();
+                } else if (xmlUnifiedTab != null) {
+                    performUnifiedTabValidation();
+                }
             }
         });
 
         continuousSchematronValidationCheckBox.setOnAction(event -> {
-            if (continuousSchematronValidationCheckBox.isSelected() && xmlEditor != null) {
-                xmlEditor.validateSchematron();
+            if (continuousSchematronValidationCheckBox.isSelected()) {
+                if (xmlEditor != null) {
+                    xmlEditor.validateSchematron();
+                } else if (xmlUnifiedTab != null) {
+                    performUnifiedTabSchematronValidation();
+                }
             }
         });
 
@@ -826,20 +907,19 @@ public class XmlEditorSidebarController {
             File newXsdFile = new File(selectedFavorite.getFilePath());
             if (newXsdFile.exists()) {
                 // Store original XSD if not already stored
-                if (originalXsdFile == null && xmlEditor != null && xmlEditor.getXsdFile() != null) {
-                    originalXsdFile = xmlEditor.getXsdFile();
+                if (originalXsdFile == null) {
+                    if (xmlEditor != null && xmlEditor.getXsdFile() != null) {
+                        originalXsdFile = xmlEditor.getXsdFile();
+                    } else if (xmlUnifiedTab != null && xmlUnifiedTab.getXsdFile() != null) {
+                        originalXsdFile = xmlUnifiedTab.getXsdFile();
+                    }
                 }
 
-                // Apply new XSD
-                if (xmlEditor != null) {
-                    xmlEditor.setXsdFile(newXsdFile);
-                    xsdPathField.setText(newXsdFile.getAbsolutePath());
+                // Apply new XSD using the common method that handles both modes
+                xsdPathField.setText(newXsdFile.getAbsolutePath());
+                setXsdFileDirectly(newXsdFile);
 
-                    // Trigger validation with new schema
-                    xmlEditor.validateXml();
-
-                    logger.info("Applied XSD favorite: {}", selectedFavorite.getName());
-                }
+                logger.info("Applied XSD favorite: {}", selectedFavorite.getName());
             } else {
                 logger.warn("Selected XSD favorite file does not exist: {}", selectedFavorite.getFilePath());
                 showAlert("XSD File Not Found", "The selected XSD file no longer exists:\n" + selectedFavorite.getFilePath());
@@ -851,15 +931,16 @@ public class XmlEditorSidebarController {
      * Reset to original XSD schema
      */
     private void resetToOriginalXsd() {
-        if (originalXsdFile != null && xmlEditor != null) {
-            xmlEditor.setXsdFile(originalXsdFile);
+        if (originalXsdFile != null) {
             xsdPathField.setText(originalXsdFile.getAbsolutePath());
 
             // Clear dropdown selection
-            xsdFavoritesComboBox.getSelectionModel().clearSelection();
+            if (xsdFavoritesComboBox != null) {
+                xsdFavoritesComboBox.getSelectionModel().clearSelection();
+            }
 
-            // Trigger validation with original schema
-            xmlEditor.validateXml();
+            // Apply original XSD using the common method
+            setXsdFileDirectly(originalXsdFile);
 
             logger.info("Reset to original XSD: {}", originalXsdFile.getName());
         } else {
@@ -1441,5 +1522,53 @@ public class XmlEditorSidebarController {
      */
     public boolean isXsdLinked() {
         return xsdLinked;
+    }
+
+    // ==================== Unified Tab Validation ====================
+
+    /**
+     * Performs XML validation for the unified tab and updates the sidebar.
+     */
+    public void performUnifiedTabValidation() {
+        if (xmlUnifiedTab == null) {
+            return;
+        }
+
+        try {
+            var errors = xmlUnifiedTab.validateXml();
+            boolean isValid = errors.isEmpty();
+
+            String status = isValid ? "Valid" : errors.size() + " error(s)";
+            String color = isValid ? "#28a745" : "#dc3545";
+
+            updateValidationStatus(status, color, errors);
+            logger.debug("Unified tab validation: {} (errors={})", status, errors.size());
+        } catch (Exception e) {
+            logger.error("Error during unified tab validation: {}", e.getMessage());
+            updateValidationStatus("Error: " + e.getMessage(), "#dc3545", List.of());
+        }
+    }
+
+    /**
+     * Performs Schematron validation for the unified tab and updates the sidebar.
+     */
+    public void performUnifiedTabSchematronValidation() {
+        if (xmlUnifiedTab == null) {
+            return;
+        }
+
+        try {
+            var errors = xmlUnifiedTab.validateSchematron();
+            boolean isValid = errors.isEmpty();
+
+            String status = isValid ? "Valid" : errors.size() + " error(s)";
+            String color = isValid ? "#28a745" : "#dc3545";
+
+            updateSchematronValidationStatus(status, color, errors);
+            logger.debug("Unified tab Schematron validation: {} (errors={})", status, errors.size());
+        } catch (Exception e) {
+            logger.error("Error during unified tab Schematron validation: {}", e.getMessage());
+            updateSchematronValidationStatus("Error: " + e.getMessage(), "#dc3545", null);
+        }
     }
 }

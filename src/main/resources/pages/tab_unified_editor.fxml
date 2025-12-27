@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) Karl Kauc 2024.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
+
+<VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+      AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.fxt.freexmltoolkit.controller.UnifiedEditorController"
+      stylesheets="@../css/xsd-tab-groups.css, @../css/unified-editor.css">
+
+    <!-- Unified Editor Toolbar -->
+    <ToolBar styleClass="xsd-toolbar">
+        <!-- New File Menu -->
+        <MenuButton fx:id="newFileMenu" text="New" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Create New File"/>
+            </tooltip>
+            <items>
+                <MenuItem text="XML File" onAction="#newXmlFile">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="XSD Schema" onAction="#newXsdFile">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-diagram-3" iconSize="16" iconColor="#28a745"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="XSLT Stylesheet" onAction="#newXsltFile">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16" iconColor="#fd7e14"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="Schematron" onAction="#newSchematronFile">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#6f42c1"/>
+                    </graphic>
+                </MenuItem>
+            </items>
+        </MenuButton>
+
+        <Button fx:id="openFileButton" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Open File (Ctrl+O)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="saveButton" text="Save" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveCurrentTab">
+            <graphic>
+                <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save (Ctrl+S)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="saveAllButton" text="Save All" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveAllTabs">
+            <graphic>
+                <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save All (Ctrl+Shift+S)"/>
+            </tooltip>
+        </Button>
+
+        <MenuButton fx:id="recentFilesMenu" text="Recent" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Recent Files (Ctrl+Shift+R)"/>
+            </tooltip>
+        </MenuButton>
+
+        <Separator orientation="VERTICAL"/>
+
+        <Button fx:id="closeTabButton" text="Close" contentDisplay="TOP" styleClass="toolbar-button" onAction="#closeCurrentTab">
+            <graphic>
+                <FontIcon iconLiteral="bi-x-circle" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Close Current Tab (Ctrl+W)"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <Button fx:id="validateButton" text="Validate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#validateCurrentTab">
+            <graphic>
+                <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Validate (F5)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="formatButton" text="Format" contentDisplay="TOP" styleClass="toolbar-button" onAction="#formatCurrentTab">
+            <graphic>
+                <FontIcon iconLiteral="bi-text-left" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Format/Pretty Print (Ctrl+Shift+F)"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <Button fx:id="undoButton" text="Undo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#undo">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Undo (Ctrl+Z)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="redoButton" text="Redo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#redo">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Redo (Ctrl+Y)"/>
+            </tooltip>
+        </Button>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <Separator orientation="VERTICAL"/>
+
+        <ToggleButton fx:id="linkedFilesToggle" text="Linked" contentDisplay="TOP" styleClass="toolbar-button" onAction="#toggleLinkedFilesPanel">
+            <graphic>
+                <FontIcon iconLiteral="bi-link-45deg" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle Linked Files Panel (Ctrl+L)"/>
+            </tooltip>
+        </ToggleButton>
+
+        <ToggleButton fx:id="xpathPanelToggle" text="XPath" contentDisplay="TOP" styleClass="toolbar-button" onAction="#toggleXPathPanel">
+            <graphic>
+                <FontIcon iconLiteral="bi-search" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-orange"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle XPath/XQuery Panel (Ctrl+Shift+X)"/>
+            </tooltip>
+        </ToggleButton>
+
+        <ToggleButton fx:id="propertiesToggle" text="Properties" contentDisplay="TOP" styleClass="toolbar-button" onAction="#togglePropertiesPanel">
+            <graphic>
+                <FontIcon iconLiteral="bi-sliders" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle Properties Panel (Ctrl+Shift+P)"/>
+            </tooltip>
+        </ToggleButton>
+
+        <Button fx:id="favoritesButton" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showFavoritesPanel">
+            <graphic>
+                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Show Favorites (Ctrl+Shift+B)"/>
+            </tooltip>
+        </Button>
+
+        <Button text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
+            <graphic>
+                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Add Current File to Favorites (Ctrl+D)"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <Button fx:id="helpButton" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+            <graphic>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Help"/>
+            </tooltip>
+        </Button>
+    </ToolBar>
+
+    <!-- Main Content Area -->
+    <SplitPane fx:id="mainSplitPane" VBox.vgrow="ALWAYS" dividerPositions="0.75">
+        <!-- Editor Tabs -->
+        <TabPane fx:id="editorTabPane" tabClosingPolicy="ALL_TABS" side="TOP">
+            <!-- Tabs are dynamically added -->
+        </TabPane>
+
+        <!-- Linked Files Panel (Initially Hidden) -->
+        <VBox fx:id="linkedFilesPanel" minWidth="200" maxWidth="400" spacing="8" visible="false" managed="false">
+            <padding>
+                <Insets top="8" right="8" bottom="8" left="8"/>
+            </padding>
+
+            <Label text="Linked Files" style="-fx-font-weight: bold; -fx-font-size: 14px;">
+                <graphic>
+                    <FontIcon iconLiteral="bi-link-45deg" iconSize="16" iconColor="#6f42c1"/>
+                </graphic>
+            </Label>
+
+            <ListView fx:id="linkedFilesList" VBox.vgrow="ALWAYS">
+                <placeholder>
+                    <Label text="No linked files detected" style="-fx-text-fill: #6c757d;"/>
+                </placeholder>
+            </ListView>
+
+            <HBox spacing="8">
+                <Button text="Open Selected" onAction="#openSelectedLinkedFile" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
+                    </graphic>
+                </Button>
+                <Button text="Open All" onAction="#openAllLinkedFiles">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-collection" iconSize="14" iconColor="#28a745"/>
+                    </graphic>
+                </Button>
+            </HBox>
+        </VBox>
+    </SplitPane>
+
+    <!-- Status Bar -->
+    <HBox fx:id="statusBar" spacing="16" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0; -fx-padding: 4 12;">
+        <Label fx:id="statusLabel" text="Ready" style="-fx-text-fill: #6c757d;">
+            <graphic>
+                <FontIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
+            </graphic>
+        </Label>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <Label fx:id="fileTypeLabel" text="" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+
+        <Separator orientation="VERTICAL"/>
+
+        <Label fx:id="cursorPositionLabel" text="Ln 1, Col 1" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+
+        <Separator orientation="VERTICAL"/>
+
+        <Label fx:id="linkedFilesCountLabel" text="" style="-fx-text-fill: #6f42c1; -fx-font-size: 11px;">
+            <graphic>
+                <FontIcon iconLiteral="bi-link-45deg" iconSize="12" iconColor="#6f42c1"/>
+            </graphic>
+        </Label>
+    </HBox>
+</VBox>

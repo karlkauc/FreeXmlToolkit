@@ -121,7 +121,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private void initializeUI() {
 
         // Setup selection listener
-        selectionModel.addSelectionListener((oldSelection, newSelection) -> {
+        // Use getSelectionModel() to ensure we're using the same instance as editorContext
+        getSelectionModel().addSelectionListener((oldSelection, newSelection) -> {
             // Update visual state of previously selected nodes
             for (VisualNode node : oldSelection) {
                 node.setSelected(false);
@@ -135,7 +136,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 node.setInEditMode(editMode);
             }
             // Set focus on primary selection
-            VisualNode primarySelection = selectionModel.getPrimarySelection();
+            VisualNode primarySelection = getSelectionModel().getPrimarySelection();
             if (primarySelection != null) {
                 primarySelection.setFocused(true);
             }
@@ -343,7 +344,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
             // 2. Save selection state
             Set<String> selectedNodeIds = new HashSet<>();
-            for (VisualNode selected : selectionModel.getSelectedNodes()) {
+            for (VisualNode selected : getSelectionModel().getSelectedNodes()) {
                 Object modelObj = selected.getModelObject();
                 if (modelObj instanceof XsdNode xsdNode) {
                     selectedNodeIds.add(xsdNode.getId());
@@ -365,12 +366,12 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             logger.trace("Restored expansion state (single pass O(n))");
 
             // 5. Restore selection using nodeMap for O(1) lookup instead of O(n) findNodeById
-            selectionModel.clearSelection();
+            getSelectionModel().clearSelection();
             for (String selectedId : selectedNodeIds) {
                 // Use nodeMap for O(1) lookup instead of recursive findNodeById O(n)
                 VisualNode nodeToSelect = nodeMap.get(selectedId);
                 if (nodeToSelect != null) {
-                    selectionModel.addToSelection(nodeToSelect);
+                    getSelectionModel().addToSelection(nodeToSelect);
                 }
             }
             logger.trace("Restored selection state (using HashMap O(1) lookup)");
@@ -823,18 +824,18 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 // Node body clicked - select it via SelectionModel
                 if (event.isControlDown()) {
                     // Ctrl+Click: toggle selection
-                    selectionModel.toggleSelection(clickedNode);
-                } else if (event.isShiftDown() && !selectionModel.isEmpty()) {
+                    getSelectionModel().toggleSelection(clickedNode);
+                } else if (event.isShiftDown() && !getSelectionModel().isEmpty()) {
                     // Shift+Click: add to selection
-                    selectionModel.addToSelection(clickedNode);
+                    getSelectionModel().addToSelection(clickedNode);
                 } else {
                     // Normal click: single selection
-                    selectionModel.select(clickedNode);
+                    getSelectionModel().select(clickedNode);
                 }
             }
         } else {
             // Clicked on empty space - clear selection
-            selectionModel.clearSelection();
+            getSelectionModel().clearSelection();
         }
     }
 
@@ -854,8 +855,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         VisualNode clickedNode = findNodeAt(rootNode, x, y);
 
         // If node is clicked but not selected, select it first
-        if (clickedNode != null && !selectionModel.isSelected(clickedNode)) {
-            selectionModel.select(clickedNode);
+        if (clickedNode != null && !getSelectionModel().isSelected(clickedNode)) {
+            getSelectionModel().select(clickedNode);
         }
 
         // Create and show context menu
@@ -1061,7 +1062,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             return;
         }
 
-        VisualNode selected = selectionModel.getPrimarySelection();
+        VisualNode selected = getSelectionModel().getPrimarySelection();
         if (selected == null) {
             logger.debug("Cannot move node: no node selected");
             return;
@@ -1093,7 +1094,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             return;
         }
 
-        VisualNode selected = selectionModel.getPrimarySelection();
+        VisualNode selected = getSelectionModel().getPrimarySelection();
         if (selected == null) {
             logger.debug("Cannot move node: no node selected");
             return;
@@ -1120,7 +1121,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * Triggered by Ctrl+C keyboard shortcut.
      */
     private void copySelectedNode() {
-        VisualNode selected = selectionModel.getPrimarySelection();
+        VisualNode selected = getSelectionModel().getPrimarySelection();
         if (selected == null) {
             logger.debug("Cannot copy: no node selected");
             return;
@@ -1143,7 +1144,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             return;
         }
 
-        VisualNode selected = selectionModel.getPrimarySelection();
+        VisualNode selected = getSelectionModel().getPrimarySelection();
         if (selected == null) {
             logger.debug("Cannot cut: no node selected");
             return;
@@ -1171,7 +1172,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             return;
         }
 
-        VisualNode selected = selectionModel.getPrimarySelection();
+        VisualNode selected = getSelectionModel().getPrimarySelection();
         if (selected == null) {
             logger.debug("Cannot paste: no target node selected");
             return;
@@ -1195,7 +1196,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             return;
         }
 
-        VisualNode selected = selectionModel.getPrimarySelection();
+        VisualNode selected = getSelectionModel().getPrimarySelection();
         if (selected == null) {
             logger.debug("Cannot delete: no node selected");
             return;
@@ -1542,10 +1543,17 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
     /**
      * Gets the selection model.
+     * Returns the selection model from the editorContext to ensure consistency
+     * with the properties panel and other components.
      *
      * @return the selection model
      */
     public SelectionModel getSelectionModel() {
+        // Always return the selectionModel from editorContext to ensure consistency
+        // This ensures that selection changes are synchronized across all components
+        if (editorContext != null) {
+            return editorContext.getSelectionModel();
+        }
         return selectionModel;
     }
 
@@ -1560,7 +1568,22 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             this.editorContext.removePropertyChangeListener("editMode", this::handleEditModeChange);
         }
 
-        this.editorContext = editorContext != null ? editorContext : new XsdEditorContext(xsdSchema);
+        // If a new editorContext is provided, ensure it uses the existing selectionModel
+        // This ensures that selection changes in the graph view are reflected in the properties panel
+        if (editorContext != null) {
+            // Check if the new context has a different selectionModel
+            SelectionModel newContextSelectionModel = editorContext.getSelectionModel();
+            if (newContextSelectionModel != this.selectionModel) {
+                // The new context has a different selectionModel - this shouldn't happen in normal usage
+                // but if it does, we need to ensure the graph view uses the context's selectionModel
+                logger.warn("New editorContext has different SelectionModel - selection may not sync properly");
+            }
+        } else {
+            // Create new context with existing selectionModel to maintain selection state
+            editorContext = new XsdEditorContext(xsdSchema, this.selectionModel);
+        }
+
+        this.editorContext = editorContext;
 
         // Add listener for edit mode changes
         this.editorContext.addPropertyChangeListener("editMode", this::handleEditModeChange);
@@ -1598,12 +1621,21 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         boolean editMode = editorContext != null && editorContext.isEditMode();
 
         // Update all selected nodes
-        for (VisualNode node : selectionModel.getSelectedNodes()) {
+        for (VisualNode node : getSelectionModel().getSelectedNodes()) {
             node.setInEditMode(editMode);
         }
 
         // Redraw to show changes
         redraw();
+    }
+
+    /**
+     * Gets the root visual node.
+     *
+     * @return the root visual node, or null if not yet built
+     */
+    public VisualNode getRootNode() {
+        return rootNode;
     }
 
     /**
@@ -1662,6 +1694,42 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         } else {
             logger.warn("setOpenSimpleTypeEditorCallback: contextMenuFactory is null, callback stored for later");
         }
+    }
+
+    /**
+     * Hides the embedded properties panel.
+     * Use this when the XsdGraphView is used in a context that has its own external properties panel
+     * (e.g., UnifiedEditor with MultiFunctionalSidePane).
+     */
+    public void hideEmbeddedPropertiesPanel() {
+        if (mainSplitPane != null && propertiesPanel != null) {
+            mainSplitPane.getItems().remove(propertiesPanel);
+            if (propertiesToggle != null) {
+                propertiesToggle.setSelected(false);
+            }
+            logger.debug("Embedded properties panel hidden");
+        }
+    }
+
+    /**
+     * Shows the embedded properties panel.
+     */
+    public void showEmbeddedPropertiesPanel() {
+        if (mainSplitPane != null && propertiesPanel != null && !mainSplitPane.getItems().contains(propertiesPanel)) {
+            mainSplitPane.getItems().add(propertiesPanel);
+            mainSplitPane.setDividerPositions(0.7);
+            if (propertiesToggle != null) {
+                propertiesToggle.setSelected(true);
+            }
+            logger.debug("Embedded properties panel shown");
+        }
+    }
+
+    /**
+     * Checks if the embedded properties panel is currently visible.
+     */
+    public boolean isEmbeddedPropertiesPanelVisible() {
+        return mainSplitPane != null && propertiesPanel != null && mainSplitPane.getItems().contains(propertiesPanel);
     }
 
     /**

@@ -67,9 +67,6 @@
                         <HBox spacing="8" alignment="CENTER_LEFT">
                             <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"
                                       styleClass="sidebar-checkbox"/>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Button fx:id="manualValidateButton" text="Validate"
-                                    prefWidth="70" styleClass="sidebar-button"/>
                         </HBox>
 
                         <!-- XSD Documentation Toggle -->

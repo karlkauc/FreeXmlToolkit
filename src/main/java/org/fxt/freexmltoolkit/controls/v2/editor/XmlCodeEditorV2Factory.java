@@ -71,4 +71,29 @@ public class XmlCodeEditorV2Factory {
         };
         return new XmlCodeEditorV2(noSchemaProvider);
     }
+
+    /**
+     * Creates an editor with a mutable schema provider that can be updated at runtime.
+     * This is useful for editors that need to dynamically load/change XSD schemas.
+     *
+     * @return the editor instance with a mutable schema provider
+     */
+    public static XmlCodeEditorV2 createWithMutableSchema() {
+        logger.debug("Creating XmlCodeEditorV2 with mutable schema provider");
+        org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider provider =
+                new org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider();
+        return new XmlCodeEditorV2(provider);
+    }
+
+    /**
+     * Creates an editor with a specific mutable schema provider.
+     *
+     * @param provider the mutable schema provider to use
+     * @return the editor instance
+     */
+    public static XmlCodeEditorV2 createWithMutableSchema(
+            org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider provider) {
+        logger.debug("Creating XmlCodeEditorV2 with provided mutable schema provider");
+        return new XmlCodeEditorV2(provider);
+    }
 }

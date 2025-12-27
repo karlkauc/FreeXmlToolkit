@@ -1,0 +1,210 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2024.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ * Unified Editor CSS Styles
+ */
+
+/* ===== Tab Type Styling ===== */
+
+/* Base unified tab styling */
+.unified-tab {
+    -fx-background-radius: 4 4 0 0;
+}
+
+/* XML Tab - Blue */
+.unified-tab.xml-tab {
+    -fx-background-color: linear-gradient(to bottom, #e3f2fd, #bbdefb);
+}
+
+.unified-tab.xml-tab:selected {
+    -fx-background-color: linear-gradient(to bottom, #42a5f5, #1e88e5);
+}
+
+.unified-tab.xml-tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+/* XSD Tab - Green */
+.unified-tab.xsd-tab {
+    -fx-background-color: linear-gradient(to bottom, #e8f5e9, #c8e6c9);
+}
+
+.unified-tab.xsd-tab:selected {
+    -fx-background-color: linear-gradient(to bottom, #66bb6a, #43a047);
+}
+
+.unified-tab.xsd-tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+/* XSLT Tab - Orange */
+.unified-tab.xslt-tab {
+    -fx-background-color: linear-gradient(to bottom, #fff3e0, #ffe0b2);
+}
+
+.unified-tab.xslt-tab:selected {
+    -fx-background-color: linear-gradient(to bottom, #ffb74d, #f57c00);
+}
+
+.unified-tab.xslt-tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+/* Schematron Tab - Purple */
+.unified-tab.schematron-tab {
+    -fx-background-color: linear-gradient(to bottom, #f3e5f5, #e1bee7);
+}
+
+.unified-tab.schematron-tab:selected {
+    -fx-background-color: linear-gradient(to bottom, #ba68c8, #8e24aa);
+}
+
+.unified-tab.schematron-tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+/* ===== Dirty Indicator ===== */
+
+.unified-tab.dirty .tab-label {
+    -fx-font-weight: bold;
+}
+
+/* ===== Linked Files Panel ===== */
+
+.linked-files-panel {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 0 1;
+}
+
+.linked-files-panel .label {
+    -fx-text-fill: #212529;
+}
+
+/* ===== Linked Files List ===== */
+
+.linked-file-cell {
+    -fx-padding: 6 8;
+    -fx-background-color: transparent;
+}
+
+.linked-file-cell:hover {
+    -fx-background-color: rgba(0, 123, 255, 0.1);
+}
+
+.linked-file-cell:selected {
+    -fx-background-color: rgba(0, 123, 255, 0.2);
+}
+
+.linked-file-resolved {
+    -fx-text-fill: #212529;
+}
+
+.linked-file-unresolved {
+    -fx-text-fill: #dc3545;
+    -fx-font-style: italic;
+}
+
+/* ===== Status Bar ===== */
+
+.status-bar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 4 12;
+}
+
+.status-bar .label {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 11px;
+}
+
+/* ===== Toolbar Enhancements ===== */
+
+.toolbar-icon-purple {
+    -fx-icon-color: #6f42c1;
+}
+
+.toolbar-button:hover .toolbar-icon-purple {
+    -fx-icon-color: #8b5cf6;
+}
+
+/* ===== Empty State ===== */
+
+.empty-state {
+    -fx-background-color: #f8f9fa;
+    -fx-padding: 40;
+    -fx-alignment: center;
+}
+
+.empty-state-icon {
+    -fx-icon-color: #dee2e6;
+}
+
+.empty-state-text {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 14px;
+}
+
+/* ===== Split Pane Divider ===== */
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: #dee2e6;
+    -fx-padding: 0 1;
+}
+
+/* ===== Tab Pane Header ===== */
+
+.tab-pane > .tab-header-area {
+    -fx-background-color: #f8f9fa;
+    -fx-padding: 4 4 0 4;
+}
+
+.tab-pane > .tab-header-area > .headers-region {
+    -fx-background-color: transparent;
+}
+
+/* ===== Menu Button Styling ===== */
+
+.unified-editor .menu-button {
+    -fx-background-color: transparent;
+}
+
+.unified-editor .menu-button:hover {
+    -fx-background-color: rgba(0, 123, 255, 0.1);
+}
+
+.unified-editor .menu-button .arrow {
+    -fx-background-color: #6c757d;
+}
+
+/* ===== Context Menu ===== */
+
+.unified-editor .context-menu {
+    -fx-background-color: white;
+    -fx-border-color: #dee2e6;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 2);
+}
+
+.unified-editor .context-menu .menu-item {
+    -fx-padding: 6 12;
+}
+
+.unified-editor .context-menu .menu-item:hover {
+    -fx-background-color: rgba(0, 123, 255, 0.1);
+}
