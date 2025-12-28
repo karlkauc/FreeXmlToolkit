@@ -7,41 +7,31 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Orientation;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.unified.AbstractUnifiedEditorTab;
-import org.fxt.freexmltoolkit.controls.unified.XmlUnifiedTab;
-import org.fxt.freexmltoolkit.controls.unified.XsdUnifiedTab;
-import org.fxt.freexmltoolkit.controls.unified.MultiFunctionalSidePane;
-import org.fxt.freexmltoolkit.controls.unified.UnifiedEditorTabManager;
-import org.fxt.freexmltoolkit.controls.unified.UnifiedXPathQueryPanel;
+import org.fxt.freexmltoolkit.controls.unified.*;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
-import org.fxt.freexmltoolkit.service.LinkedFileDetector;
-import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
-import org.fxt.freexmltoolkit.service.FavoritesService;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.*;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.concurrent.CompletableFuture;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Controller for the Unified Editor page.
@@ -76,6 +66,12 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     @FXML private ToggleButton propertiesToggle;
     @FXML private Button favoritesButton;
     @FXML private Button helpButton;
+    @FXML
+    private MenuButton convertMenu;
+    @FXML
+    private Button templatesButton;
+    @FXML
+    private Button generatorButton;
 
     // FXML Components - Main Content
     @FXML private SplitPane mainSplitPane;
@@ -102,6 +98,10 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     // XPath/XQuery panel
     private UnifiedXPathQueryPanel xpathPanel;
     private SplitPane editorXPathSplitPane;
+
+    // Search bar
+    private UnifiedSearchBar searchBar;
+    private VBox editorWithSearchContainer;
 
     // Multi-functional side pane (replaces separate favorites panel)
     private MultiFunctionalSidePane multiFunctionalPane;
@@ -132,6 +132,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
         // Setup keyboard shortcuts
         setupKeyboardShortcuts();
+
+        // Setup Search bar
+        setupSearchBar();
 
         // Setup XPath/XQuery panel
         setupXPathPanel();
@@ -311,6 +314,11 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     public void openFile(File file) {
         if (file != null && file.exists()) {
             tabManager.openFile(file);
+
+            // Add to recent files
+            propertiesService.addLastOpenFile(file);
+            refreshRecentFilesMenu();
+
             updateStatus("Opened: " + file.getName());
         }
     }
@@ -327,8 +335,12 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
         for (File file : files) {
             tabManager.openFile(file);
+
+            // Add to recent files
+            propertiesService.addLastOpenFile(file);
         }
 
+        refreshRecentFilesMenu();
         updateStatus("Opened " + files.size() + " file(s)");
     }
 
@@ -421,6 +433,195 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
             currentTab.redo();
             updateStatus("Redo");
         }
+    }
+
+    // ==================== XML Tools (Convert, Templates, Generator) ====================
+
+    /**
+     * Shows the XML to Spreadsheet converter dialog.
+     */
+    @FXML
+    public void showXmlToSpreadsheet() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (!(currentTab instanceof XmlUnifiedTab xmlTab)) {
+            showAlert(Alert.AlertType.WARNING, "Convert",
+                    "Please open an XML file first to use the converter.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/dialogs/XmlSpreadsheetConverterDialog.fxml"));
+            Parent dialogContent = loader.load();
+            XmlSpreadsheetConverterDialogController controller = loader.getController();
+
+            // Pre-fill with current XML content
+            controller.setSourceXml(xmlTab.getEditorContent());
+            // Select XML to Spreadsheet direction
+            controller.selectXmlToSpreadsheetMode();
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("XML to Excel/CSV Converter");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.initOwner(editorTabPane.getScene().getWindow());
+            dialogStage.setScene(new Scene(dialogContent));
+            dialogStage.setMinWidth(900);
+            dialogStage.setMinHeight(700);
+            dialogStage.showAndWait();
+
+            updateStatus("Converter dialog closed");
+        } catch (IOException e) {
+            logger.error("Failed to open converter dialog", e);
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Failed to open converter: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows the Spreadsheet to XML converter dialog.
+     */
+    @FXML
+    public void showSpreadsheetToXml() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/dialogs/XmlSpreadsheetConverterDialog.fxml"));
+            Parent dialogContent = loader.load();
+            XmlSpreadsheetConverterDialogController controller = loader.getController();
+
+            // Select Spreadsheet to XML direction
+            controller.selectSpreadsheetToXmlMode();
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Excel/CSV to XML Converter");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.initOwner(editorTabPane.getScene().getWindow());
+            dialogStage.setScene(new Scene(dialogContent));
+            dialogStage.setMinWidth(900);
+            dialogStage.setMinHeight(700);
+            dialogStage.showAndWait();
+
+            updateStatus("Converter dialog closed");
+        } catch (IOException e) {
+            logger.error("Failed to open converter dialog", e);
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Failed to open converter: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows the templates popup for inserting XML templates.
+     */
+    @FXML
+    public void showTemplates() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (!(currentTab instanceof XmlUnifiedTab xmlTab)) {
+            showAlert(Alert.AlertType.INFORMATION, "Templates",
+                    "Templates are available for XML files. Please open an XML file first.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/popup_templates.fxml"));
+
+            // Create and set controller instance BEFORE loading
+            TemplateEngine templateEngine = TemplateEngine.getInstance();
+            TemplateRepository templateRepository = TemplateRepository.getInstance();
+
+            // Create an adapter that implements the required interface for templates
+            UnifiedEditorTemplateAdapter adapter = new UnifiedEditorTemplateAdapter(xmlTab);
+            TemplateManagerPopupController controller = new TemplateManagerPopupController(
+                    adapter, templateEngine, templateRepository
+            );
+            loader.setController(controller);
+
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+
+            Stage popup = new Stage();
+            popup.setTitle("XML Templates");
+            popup.initModality(Modality.APPLICATION_MODAL);
+            popup.initOwner(editorTabPane.getScene().getWindow());
+            popup.setScene(scene);
+            popup.setMinWidth(800);
+            popup.setMinHeight(600);
+            popup.showAndWait();
+
+            updateStatus("Template popup closed");
+        } catch (Exception e) {
+            logger.error("Failed to open templates popup", e);
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Failed to open templates: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows the schema generator popup for generating XSD from XML.
+     */
+    @FXML
+    public void showGenerator() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (!(currentTab instanceof XmlUnifiedTab xmlTab)) {
+            showAlert(Alert.AlertType.WARNING, "Schema Generator",
+                    "Please open an XML file first to generate a schema.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/popup_schema_generator.fxml"));
+
+            // Create and set controller instance BEFORE loading
+            SchemaGenerationEngine schemaEngine = new SchemaGenerationEngine();
+
+            // Create an adapter that implements the required interface for generator
+            UnifiedEditorGeneratorAdapter adapter = new UnifiedEditorGeneratorAdapter(xmlTab, this);
+            SchemaGeneratorPopupController controller = new SchemaGeneratorPopupController(
+                    adapter, schemaEngine
+            );
+            loader.setController(controller);
+
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+
+            Stage popup = new Stage();
+            popup.setTitle("Generate XSD Schema from XML");
+            popup.initModality(Modality.APPLICATION_MODAL);
+            popup.initOwner(editorTabPane.getScene().getWindow());
+            popup.setScene(scene);
+            popup.setMinWidth(800);
+            popup.setMinHeight(600);
+            popup.showAndWait();
+
+            updateStatus("Schema generator closed");
+        } catch (Exception e) {
+            logger.error("Failed to open schema generator popup", e);
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Failed to open schema generator: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Opens a new XSD tab with the given content.
+     * Used by the schema generator to open generated schemas.
+     */
+    public void openNewXsdTab(String xsdContent) {
+        if (xsdContent != null && !xsdContent.isEmpty()) {
+            tabManager.createNewTab(UnifiedEditorFileType.XSD);
+            AbstractUnifiedEditorTab newTab = tabManager.getCurrentTab();
+            if (newTab != null) {
+                newTab.setEditorContent(xsdContent);
+                updateStatus("Generated XSD opened in new tab");
+            }
+        }
+    }
+
+    /**
+     * Shows an alert dialog.
+     */
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.initOwner(editorTabPane.getScene().getWindow());
+        alert.showAndWait();
     }
 
     // ==================== XPath/XQuery Panel ====================
@@ -676,6 +877,11 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                 updateXPathPanelContent();
             }
 
+            // Update search bar to use the new tab's editor if visible
+            if (searchBar != null && searchBar.isVisible()) {
+                connectSearchBarToTab(unifiedTab);
+            }
+
             // Update multi-functional pane to show properties for this editor type
             if (multiFunctionalPane != null && !multiFunctionalPane.isFavoritesShowing()) {
                 multiFunctionalPane.showPropertiesForEditor(unifiedTab.getFileType());
@@ -756,6 +962,140 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         return name.endsWith(".xml") || name.endsWith(".xsd") ||
                 name.endsWith(".xsl") || name.endsWith(".xslt") ||
                 name.endsWith(".sch") || name.endsWith(".schematron");
+    }
+
+    // ==================== Search Bar ====================
+
+    /**
+     * Sets up the search bar component.
+     */
+    private void setupSearchBar() {
+        searchBar = new UnifiedSearchBar();
+        searchBar.setOnClose(() -> {
+            // Return focus to the current editor
+            AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+            if (currentTab != null) {
+                Platform.runLater(currentTab::requestEditorFocus);
+            }
+        });
+        logger.debug("Search bar initialized");
+    }
+
+    /**
+     * Shows the search bar for the current tab.
+     */
+    public void showSearch() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab == null) {
+            return;
+        }
+
+        // Connect search bar to the current tab's editor
+        connectSearchBarToTab(currentTab);
+
+        // Show the search bar if not already visible
+        if (!searchBar.isVisible()) {
+            // Add search bar to the editor container if not already there
+            addSearchBarToUI();
+        }
+
+        searchBar.show();
+
+        // Pre-fill with selected text if any
+        String selectedText = getSelectedTextFromTab(currentTab);
+        if (selectedText != null && !selectedText.isEmpty()) {
+            searchBar.setSearchText(selectedText);
+        }
+    }
+
+    /**
+     * Shows the search bar in replace mode.
+     */
+    public void showReplace() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab == null) {
+            return;
+        }
+
+        // Connect search bar to the current tab's editor
+        connectSearchBarToTab(currentTab);
+
+        // Add search bar to the editor container if not already there
+        addSearchBarToUI();
+
+        searchBar.showReplace();
+
+        // Pre-fill with selected text if any
+        String selectedText = getSelectedTextFromTab(currentTab);
+        if (selectedText != null && !selectedText.isEmpty()) {
+            searchBar.setSearchText(selectedText);
+        }
+    }
+
+    /**
+     * Hides the search bar.
+     */
+    public void hideSearch() {
+        if (searchBar != null) {
+            searchBar.hide();
+        }
+    }
+
+    /**
+     * Connects the search bar to the given tab's editor.
+     */
+    private void connectSearchBarToTab(AbstractUnifiedEditorTab tab) {
+        if (tab instanceof XmlUnifiedTab xmlTab) {
+            searchBar.setCurrentEditor(xmlTab.getTextEditor());
+        } else if (tab instanceof XsdUnifiedTab xsdTab) {
+            searchBar.setCurrentEditor(xsdTab.getTextEditor());
+        } else if (tab instanceof XsltUnifiedTab xsltTab) {
+            searchBar.setCurrentCodeArea(xsltTab.getCodeArea());
+        } else if (tab instanceof SchematronUnifiedTab schTab) {
+            searchBar.setCurrentEditor(schTab.getCodeEditor());
+        }
+    }
+
+    /**
+     * Adds the search bar to the UI above the editor tab pane.
+     */
+    private void addSearchBarToUI() {
+        // Check if search bar is already in the UI
+        if (editorWithSearchContainer != null &&
+                editorWithSearchContainer.getChildren().contains(searchBar)) {
+            return;
+        }
+
+        // The structure is: mainSplitPane contains editorXPathSplitPane
+        // editorXPathSplitPane contains a VBox with editorTabPane
+        // We need to add the search bar to that VBox
+
+        if (editorXPathSplitPane != null && !editorXPathSplitPane.getItems().isEmpty()) {
+            var firstItem = editorXPathSplitPane.getItems().get(0);
+            if (firstItem instanceof VBox vbox) {
+                // Add search bar at the top if not already there
+                if (!vbox.getChildren().contains(searchBar)) {
+                    vbox.getChildren().add(0, searchBar);
+                }
+                editorWithSearchContainer = vbox;
+            }
+        }
+    }
+
+    /**
+     * Gets the selected text from the current tab.
+     */
+    private String getSelectedTextFromTab(AbstractUnifiedEditorTab tab) {
+        if (tab instanceof XmlUnifiedTab xmlTab) {
+            return xmlTab.getCodeArea().getSelectedText();
+        } else if (tab instanceof XsdUnifiedTab xsdTab) {
+            return xsdTab.getCodeArea().getSelectedText();
+        } else if (tab instanceof XsltUnifiedTab xsltTab) {
+            return xsltTab.getCodeArea().getSelectedText();
+        } else if (tab instanceof SchematronUnifiedTab schTab) {
+            return schTab.getCodeArea().getSelectedText();
+        }
+        return null;
     }
 
     // ==================== Keyboard Shortcuts ====================
@@ -860,6 +1200,36 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                         new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN),
                         this::showRecentFilesMenu
                 );
+
+                // Ctrl+E - Convert XML to Spreadsheet
+                scene.getAccelerators().put(
+                        new KeyCodeCombination(KeyCode.E, KeyCombination.CONTROL_DOWN),
+                        this::showXmlToSpreadsheet
+                );
+
+                // Ctrl+T - Templates
+                scene.getAccelerators().put(
+                        new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN),
+                        this::showTemplates
+                );
+
+                // Ctrl+G - Generate XSD Schema
+                scene.getAccelerators().put(
+                        new KeyCodeCombination(KeyCode.G, KeyCombination.CONTROL_DOWN),
+                        this::showGenerator
+                );
+
+                // Ctrl+F - Find (Search)
+                scene.getAccelerators().put(
+                        new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN),
+                        this::showSearch
+                );
+
+                // Ctrl+H - Find and Replace
+                scene.getAccelerators().put(
+                        new KeyCodeCombination(KeyCode.H, KeyCombination.CONTROL_DOWN),
+                        this::showReplace
+                );
             }
         });
     }
@@ -885,7 +1255,10 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                 - Automatic linked file detection
                 - Favorites panel for quick access
                 - Drag and drop support
-                - Common toolbar operations
+                - XML to Excel/CSV conversion
+                - XML Templates
+                - XSD Schema generation from XML
+                - Find and Replace in text
 
                 Keyboard Shortcuts:
                 - Ctrl+O: Open file
@@ -895,6 +1268,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                 - Ctrl+W: Close tab
                 - Ctrl+Z: Undo
                 - Ctrl+Y: Redo
+                - Ctrl+F: Find (Search)
+                - Ctrl+H: Find and Replace
                 - Ctrl+D: Add to favorites
                 - F5: Validate
                 - Ctrl+Shift+F: Format
@@ -902,6 +1277,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                 - Ctrl+Shift+X: Toggle XPath/XQuery panel
                 - Ctrl+Shift+P: Toggle properties panel
                 - Ctrl+Shift+B: Show favorites
+                - Ctrl+E: XML to Spreadsheet converter
+                - Ctrl+T: XML Templates
+                - Ctrl+G: Generate XSD Schema
                 """);
         alert.showAndWait();
     }

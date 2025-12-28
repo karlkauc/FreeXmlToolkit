@@ -486,4 +486,181 @@ public class XmlCodeEditorV2 extends VBox {
                 ", hasSchema=" + editorContext.hasSchema() +
                 '}';
     }
+
+    // ==================== Search & Replace ====================
+
+    private int lastSearchPos = -1;
+    private String lastSearchText = "";
+
+    /**
+     * Finds text in the editor.
+     *
+     * @param searchText the text to find
+     * @param forward    true to search forward, false to search backward
+     * @return true if text was found
+     */
+    public boolean find(String searchText, boolean forward) {
+        if (searchText == null || searchText.isEmpty()) {
+            return false;
+        }
+
+        String content = codeArea.getText();
+        if (content == null || content.isEmpty()) {
+            return false;
+        }
+
+        // Reset search position if search text changed
+        if (!searchText.equals(lastSearchText)) {
+            lastSearchPos = -1;
+            lastSearchText = searchText;
+        }
+
+        int currentPos = codeArea.getCaretPosition();
+        int foundPos;
+
+        if (forward) {
+            // Search forward from current position
+            int startPos = currentPos;
+            foundPos = content.toLowerCase().indexOf(searchText.toLowerCase(), startPos);
+            // Wrap around if not found
+            if (foundPos < 0 && startPos > 0) {
+                foundPos = content.toLowerCase().indexOf(searchText.toLowerCase());
+            }
+        } else {
+            // Search backward from current position
+            int endPos = currentPos > 0 ? currentPos - 1 : content.length();
+            foundPos = content.toLowerCase().lastIndexOf(searchText.toLowerCase(), endPos);
+            // Wrap around if not found
+            if (foundPos < 0) {
+                foundPos = content.toLowerCase().lastIndexOf(searchText.toLowerCase());
+            }
+        }
+
+        if (foundPos >= 0) {
+            lastSearchPos = foundPos;
+            codeArea.selectRange(foundPos, foundPos + searchText.length());
+            codeArea.requestFollowCaret();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Finds and highlights all occurrences of the search text.
+     *
+     * @param searchText the text to find
+     * @return the number of occurrences found
+     */
+    public int findAll(String searchText) {
+        if (searchText == null || searchText.isEmpty()) {
+            return 0;
+        }
+
+        String content = codeArea.getText();
+        if (content == null || content.isEmpty()) {
+            return 0;
+        }
+
+        String lowerContent = content.toLowerCase();
+        String lowerSearch = searchText.toLowerCase();
+        int count = 0;
+        int pos = 0;
+
+        while ((pos = lowerContent.indexOf(lowerSearch, pos)) >= 0) {
+            count++;
+            pos += searchText.length();
+        }
+
+        // Select first occurrence
+        if (count > 0) {
+            find(searchText, true);
+        }
+
+        return count;
+    }
+
+    /**
+     * Replaces the current selection with new text.
+     *
+     * @param findText    the text to find
+     * @param replaceText the replacement text
+     * @return true if replacement was made
+     */
+    public boolean replace(String findText, String replaceText) {
+        if (findText == null || findText.isEmpty()) {
+            return false;
+        }
+
+        String selected = codeArea.getSelectedText();
+        if (selected != null && selected.equalsIgnoreCase(findText)) {
+            codeArea.replaceSelection(replaceText != null ? replaceText : "");
+            return true;
+        } else {
+            // Find next occurrence first
+            if (find(findText, true)) {
+                codeArea.replaceSelection(replaceText != null ? replaceText : "");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Replaces all occurrences of text.
+     *
+     * @param findText    the text to find
+     * @param replaceText the replacement text
+     * @return the number of replacements made
+     */
+    public int replaceAll(String findText, String replaceText) {
+        if (findText == null || findText.isEmpty()) {
+            return 0;
+        }
+
+        String content = codeArea.getText();
+        if (content == null || content.isEmpty()) {
+            return 0;
+        }
+
+        // Count occurrences first
+        int count = 0;
+        int pos = 0;
+        String lowerContent = content.toLowerCase();
+        String lowerFind = findText.toLowerCase();
+        while ((pos = lowerContent.indexOf(lowerFind, pos)) >= 0) {
+            count++;
+            pos += findText.length();
+        }
+
+        if (count > 0) {
+            // Perform case-insensitive replace
+            String newContent = content;
+            StringBuilder result = new StringBuilder();
+            int lastEnd = 0;
+            pos = 0;
+            while ((pos = lowerContent.indexOf(lowerFind, pos)) >= 0) {
+                result.append(content, lastEnd, pos);
+                result.append(replaceText != null ? replaceText : "");
+                lastEnd = pos + findText.length();
+                pos = lastEnd;
+            }
+            result.append(content.substring(lastEnd));
+
+            int oldCaret = codeArea.getCaretPosition();
+            codeArea.replaceText(result.toString());
+            int newLen = codeArea.getLength();
+            codeArea.moveTo(Math.min(oldCaret, newLen));
+        }
+
+        return count;
+    }
+
+    /**
+     * Clears the search state.
+     */
+    public void clearSearch() {
+        lastSearchPos = -1;
+        lastSearchText = "";
+    }
 }

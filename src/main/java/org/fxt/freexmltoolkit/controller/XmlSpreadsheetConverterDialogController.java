@@ -605,6 +605,24 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
         return currentPreviewData != null && !currentPreviewData.isEmpty();
     }
 
+    /**
+     * Selects XML to Spreadsheet conversion mode.
+     */
+    public void selectXmlToSpreadsheetMode() {
+        if (xmlToSpreadsheetRadio != null) {
+            xmlToSpreadsheetRadio.setSelected(true);
+        }
+    }
+
+    /**
+     * Selects Spreadsheet to XML conversion mode.
+     */
+    public void selectSpreadsheetToXmlMode() {
+        if (spreadsheetToXmlRadio != null) {
+            spreadsheetToXmlRadio.setSelected(true);
+        }
+    }
+
     public void performConversion() {
         if (currentPreviewData == null) {
             showError("No Preview", "Please generate a preview first.");

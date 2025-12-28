@@ -653,12 +653,13 @@ public class XmlEditor extends Tab {
         try {
             String textToCursor = text.substring(0, caretPosition);
 
-            // Pattern for opening tags
-            Pattern openTagPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^/>]*(?<!/)>");
-            // Pattern for closing tags  
+            // Pattern for opening tags - handles attributes with slashes (e.g., URLs in namespace declarations)
+            // The previous pattern [^/>]* would stop at '/' in attribute values like xmlns="http://..."
+            Pattern openTagPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)(?:\\s[^>]*)?>(?<!/>)");
+            // Pattern for closing tags
             Pattern closeTagPattern = Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\\s*>");
-            // Pattern for self-closing tags
-            Pattern selfClosingPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^>]*/>");
+            // Pattern for self-closing tags - handles attributes with slashes
+            Pattern selfClosingPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)(?:\\s[^>]*)?/>");
 
             // Find all tags in order
             List<TagMatch> tags = new ArrayList<>();
@@ -901,51 +902,70 @@ public class XmlEditor extends Tab {
     }
 
     /**
-     * Formats child elements with option to include type information for display
+     * Formats child elements with option to include type information for display.
+     * Filters out container elements (SEQUENCE_, CHOICE_, ALL_) and recursively
+     * resolves them to show actual child element names.
      */
     private List<String> formatChildElementsForDisplay(List<String> childElements, boolean includeTypes) {
         List<String> formattedElements = new ArrayList<>();
+        var elementMap = xsdDocumentationData != null ? xsdDocumentationData.getExtendedXsdElementMap() : null;
 
         for (String childXPath : childElements) {
             try {
+                // Skip attributes
+                if (childXPath.contains("/@")) {
+                    continue;
+                }
+
                 // Extract element name from XPath (get the last part after the last '/')
                 String elementName = getElementNameFromXPath(childXPath);
-                if (elementName != null) {
-                    String displayText;
-                    if (includeTypes) {
-                        // Get the XsdExtendedElement for this child
-                        XsdExtendedElement childElement = xsdDocumentationData != null ?
-                                xsdDocumentationData.getExtendedXsdElementMap().get(childXPath) : null;
+                if (elementName == null) {
+                    continue;
+                }
 
-                        // Check if element is mandatory or optional
-                        String mandatoryIndicator = "";
-                        if (childElement != null) {
-                            mandatoryIndicator = childElement.isMandatory() ? " [mandatory]" : " [optional]";
+                // Handle container elements (SEQUENCE_, CHOICE_, ALL_) - resolve them recursively
+                if (elementName.startsWith("SEQUENCE_") || elementName.startsWith("CHOICE_") || elementName.startsWith("ALL_")) {
+                    // For containers, look at their children instead
+                    if (elementMap != null && elementMap.containsKey(childXPath)) {
+                        var containerElement = elementMap.get(childXPath);
+                        if (containerElement.getChildren() != null && !containerElement.getChildren().isEmpty()) {
+                            formattedElements.addAll(formatChildElementsForDisplay(containerElement.getChildren(), includeTypes));
                         }
+                    }
+                    continue;
+                }
 
-                        // Try to get type information from the XSD documentation data
-                        String elementType = getElementTypeFromXsdData(childXPath);
-                        if (elementType != null && !elementType.isEmpty() && !elementType.equals("xs:string")) {
-                            // Show element name with type and mandatory/optional indicator
-                            displayText = elementName + " (" + elementType + ")" + mandatoryIndicator;
-                        } else {
-                            // Show element name with mandatory/optional indicator (no type info)
-                            displayText = elementName + mandatoryIndicator;
-                        }
-                    } else {
-                        // IntelliSense mode: only show element name
-                        displayText = elementName;
+                String displayText;
+                if (includeTypes) {
+                    // Get the XsdExtendedElement for this child
+                    XsdExtendedElement childElement = elementMap != null ? elementMap.get(childXPath) : null;
+
+                    // Check if element is mandatory or optional
+                    String mandatoryIndicator = "";
+                    if (childElement != null) {
+                        mandatoryIndicator = childElement.isMandatory() ? " *" : "";
                     }
 
-                    formattedElements.add(displayText);
+                    // Try to get type information from the XSD documentation data
+                    String elementType = getElementTypeFromXsdData(childXPath);
+                    if (elementType != null && !elementType.isEmpty() && !elementType.equals("xs:string") && !elementType.equals("(container)")) {
+                        // Show element name with type and mandatory indicator
+                        displayText = elementName + " : " + elementType + mandatoryIndicator;
+                    } else {
+                        // Show element name with mandatory indicator (no type info)
+                        displayText = elementName + mandatoryIndicator;
+                    }
                 } else {
-                    // Fallback: show the original XPath if we can't parse it
-                    formattedElements.add(childXPath);
+                    // IntelliSense mode: only show element name
+                    displayText = elementName;
+                }
+
+                // Avoid duplicates
+                if (!formattedElements.contains(displayText)) {
+                    formattedElements.add(displayText);
                 }
             } catch (Exception e) {
                 logger.debug("Could not format child element: " + childXPath, e);
-                // Fallback: show the original XPath
-                formattedElements.add(childXPath);
             }
         }
 
@@ -1681,7 +1701,8 @@ public class XmlEditor extends Tab {
 
     /**
      * Tries to find the best matching element in the extendedXsdElementMap for a given XPath.
-     * This method handles cases where the exact XPath isn't found by looking for parent elements.
+     * This method handles XSD structure markers (SEQUENCE_, CHOICE_, ALL_) by cleaning paths
+     * and using a scoring algorithm to find the best context match.
      *
      * @param targetXPath The XPath to find a match for
      * @return The best matching XsdExtendedElement or null
@@ -1692,6 +1713,9 @@ public class XmlEditor extends Tab {
         }
 
         Map<String, XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
+        if (elementMap == null || elementMap.isEmpty()) {
+            return null;
+        }
 
         // Try exact match first
         XsdExtendedElement exactMatch = elementMap.get(targetXPath);
@@ -1699,35 +1723,84 @@ public class XmlEditor extends Tab {
             return exactMatch;
         }
 
-        // Try to find the longest matching parent path
-        String bestMatch = null;
-        int bestMatchLength = 0;
+        // Clean the XML XPath (remove empty parts)
+        List<String> cleanXmlPath = new ArrayList<>();
+        for (String part : targetXPath.split("/")) {
+            if (!part.isEmpty()) {
+                cleanXmlPath.add(part);
+            }
+        }
 
-        for (String xpath : elementMap.keySet()) {
-            if (targetXPath.startsWith(xpath + "/") || targetXPath.equals(xpath)) {
-                if (xpath.length() > bestMatchLength) {
-                    bestMatch = xpath;
-                    bestMatchLength = xpath.length();
+        if (cleanXmlPath.isEmpty()) {
+            return null;
+        }
+
+        // Get the element name we're looking for (last part of path)
+        String elementName = cleanXmlPath.get(cleanXmlPath.size() - 1);
+
+        // Find best matching element using path-cleaning and scoring
+        XsdExtendedElement bestMatch = null;
+        int bestMatchScore = -1;
+
+        for (Map.Entry<String, XsdExtendedElement> entry : elementMap.entrySet()) {
+            String mapXPath = entry.getKey();
+            XsdExtendedElement element = entry.getValue();
+
+            // Skip container elements
+            String elName = element.getElementName();
+            if (elName == null || elName.startsWith("SEQUENCE_") || elName.startsWith("CHOICE_") || elName.startsWith("ALL_")) {
+                continue;
+            }
+
+            // Check if element name matches
+            if (!elName.equals(elementName)) {
+                continue;
+            }
+
+            // Clean the map XPath (remove container elements like SEQUENCE_, CHOICE_, ALL_)
+            List<String> cleanMapPath = new ArrayList<>();
+            for (String part : mapXPath.split("/")) {
+                if (!part.isEmpty() && !part.startsWith("SEQUENCE_") && !part.startsWith("CHOICE_") && !part.startsWith("ALL_")) {
+                    cleanMapPath.add(part);
                 }
+            }
+
+            // Calculate score: compare full path from the start
+            // This ensures we match the correct context (e.g., /FundsXML4/AssetMasterData/Asset vs /FundsXML4/Fund/Asset)
+            int score = 0;
+            boolean fullMatch = cleanXmlPath.size() == cleanMapPath.size();
+
+            // Score based on how many path elements match from the start
+            int minLen = Math.min(cleanXmlPath.size(), cleanMapPath.size());
+            boolean pathMatches = true;
+            for (int i = 0; i < minLen; i++) {
+                if (cleanXmlPath.get(i).equals(cleanMapPath.get(i))) {
+                    score++;
+                } else {
+                    pathMatches = false;
+                    break;
+                }
+            }
+
+            // If the full path matches exactly, give it a much higher score
+            if (fullMatch && pathMatches && score == cleanXmlPath.size()) {
+                score += 1000; // Bonus for exact match
+            }
+
+            // Prefer matches with higher score
+            if (score > bestMatchScore) {
+                bestMatchScore = score;
+                bestMatch = element;
             }
         }
 
         if (bestMatch != null) {
-            logger.debug("Found partial match for '{}': '{}'", targetXPath, bestMatch);
-            return elementMap.get(bestMatch);
+            logger.debug("Found element by path matching (score={}): elementName='{}', xpath='{}'",
+                    bestMatchScore, bestMatch.getElementName(), bestMatch.getCurrentXpath());
+            return bestMatch;
         }
 
-        // Fallback: try to find by element name
-        String elementName = getElementNameFromXPath(targetXPath);
-        if (elementName != null) {
-            for (XsdExtendedElement element : elementMap.values()) {
-                if (elementName.equals(element.getElementName())) {
-                    logger.debug("Found match by element name for '{}': '{}'", targetXPath, element.getCurrentXpath());
-                    return element;
-                }
-            }
-        }
-
+        logger.debug("No match found for xpath='{}', elementName='{}'", targetXPath, elementName);
         return null;
     }
 
@@ -2336,9 +2409,14 @@ public class XmlEditor extends Tab {
                         sidebarController.setExampleValues(List.of("No example values available"));
                     }
 
-                    // Set child elements
+                    // Set child elements - format to resolve SEQUENCE_, CHOICE_, ALL_ containers
                     if (xsdElement.getChildren() != null && !xsdElement.getChildren().isEmpty()) {
-                        sidebarController.setPossibleChildElements(xsdElement.getChildren());
+                        List<String> formattedChildren = formatChildElementsForDisplay(xsdElement.getChildren(), true);
+                        if (formattedChildren.isEmpty()) {
+                            sidebarController.setPossibleChildElements(List.of("No child elements defined"));
+                        } else {
+                            sidebarController.setPossibleChildElements(formattedChildren);
+                        }
                     } else {
                         sidebarController.setPossibleChildElements(List.of("No child elements defined"));
                     }

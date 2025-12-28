@@ -792,9 +792,10 @@ public class XmlEditorSidebarController {
                         setExampleValues(java.util.List.of("No example values available"));
                     }
 
-                    // Set child elements
+                    // Set child elements (filter out SEQUENCE_, CHOICE_, ALL_ containers)
                     if (xsdElement.getChildren() != null && !xsdElement.getChildren().isEmpty()) {
-                        setPossibleChildElements(xsdElement.getChildren());
+                        var xsdData = xmlEditor.getXsdDocumentationData();
+                        setPossibleChildElements(formatChildElementsForDisplay(xsdElement.getChildren(), xsdData));
                     } else {
                         setPossibleChildElements(java.util.List.of("No child elements available"));
                     }
@@ -836,6 +837,87 @@ public class XmlEditorSidebarController {
             case org.w3c.dom.Node.NOTATION_NODE -> "Notation";
             default -> "Unknown";
         };
+    }
+
+    /**
+     * Formats child element XPaths for display, extracting just the element name.
+     * Filters out container elements (SEQUENCE_, CHOICE_, ALL_) and attributes.
+     * Recursively resolves container elements to find actual child elements.
+     *
+     * @param childXPaths The list of child XPaths from the XSD
+     * @param xsdData The XSD documentation data for looking up container children
+     * @return A list of formatted element names suitable for display
+     */
+    private java.util.List<String> formatChildElementsForDisplay(
+            java.util.List<String> childXPaths,
+            org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdData) {
+        if (childXPaths == null || childXPaths.isEmpty()) {
+            return java.util.List.of("No child elements");
+        }
+
+        var elementMap = xsdData != null ? xsdData.getExtendedXsdElementMap() : null;
+        java.util.List<String> formatted = new java.util.ArrayList<>();
+
+        logger.debug("formatChildElementsForDisplay called with {} children, elementMap size: {}",
+            childXPaths.size(), elementMap != null ? elementMap.size() : 0);
+
+        for (String childXPath : childXPaths) {
+            if (childXPath == null || childXPath.isEmpty()) {
+                continue;
+            }
+
+            // Skip attributes
+            if (childXPath.contains("/@")) {
+                continue;
+            }
+
+            // Extract element name from XPath
+            String elementName = childXPath;
+            int lastSlash = childXPath.lastIndexOf('/');
+            if (lastSlash >= 0 && lastSlash < childXPath.length() - 1) {
+                elementName = childXPath.substring(lastSlash + 1);
+            }
+
+            // Skip container elements (SEQUENCE_, CHOICE_, ALL_) - resolve them recursively
+            if (elementName.startsWith("SEQUENCE_") || elementName.startsWith("CHOICE_") || elementName.startsWith("ALL_")) {
+                // For containers, look at their children instead
+                boolean foundInMap = elementMap != null && elementMap.containsKey(childXPath);
+                logger.debug("Container element: {} (full path: {}), found in map: {}",
+                    elementName, childXPath, foundInMap);
+                if (foundInMap) {
+                    var containerElement = elementMap.get(childXPath);
+                    if (containerElement.getChildren() != null) {
+                        logger.debug("Container has {} children", containerElement.getChildren().size());
+                        formatted.addAll(formatChildElementsForDisplay(containerElement.getChildren(), xsdData));
+                    }
+                }
+                continue;
+            }
+
+            // Get type information if available
+            String displayText = elementName;
+            if (elementMap != null && elementMap.containsKey(childXPath)) {
+                var childElement = elementMap.get(childXPath);
+                String type = childElement.getElementType();
+                if (type != null && !type.isEmpty() && !type.equals("(container)")) {
+                    displayText = elementName + " : " + type;
+                }
+                // Add cardinality indicator for mandatory elements
+                if (childElement.isMandatory()) {
+                    displayText += " *";
+                }
+            }
+
+            if (!formatted.contains(displayText)) {
+                formatted.add(displayText);
+            }
+        }
+
+        if (formatted.isEmpty()) {
+            return java.util.List.of("No child elements");
+        }
+
+        return formatted;
     }
 
     /**

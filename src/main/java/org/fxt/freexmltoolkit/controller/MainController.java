@@ -119,7 +119,46 @@ public class MainController implements Initializable {
 
     @FXML
     MenuItem menuItemRedo;
-    
+
+    @FXML
+    MenuItem menuItemSave;
+
+    @FXML
+    MenuItem menuItemSaveAs;
+
+    @FXML
+    MenuItem menuItemClose;
+
+    @FXML
+    MenuItem menuItemCloseAll;
+
+    @FXML
+    MenuItem menuItemSettings;
+
+    @FXML
+    MenuItem menuItemFind;
+
+    @FXML
+    MenuItem menuItemFindReplace;
+
+    @FXML
+    MenuItem menuItemFullScreen;
+
+    @FXML
+    MenuItem menuItemUserGuide;
+
+    @FXML
+    MenuItem menuItemKeyboardShortcuts;
+
+    @FXML
+    MenuItem menuItemCheckUpdates;
+
+    @FXML
+    MenuItem menuItemReportIssue;
+
+    @FXML
+    MenuItem menuItemAbout;
+
     List<File> lastOpenFiles = new LinkedList<>();
 
     Boolean showMenu = true;
@@ -1236,15 +1275,15 @@ public class MainController implements Initializable {
             setupKeyboardShortcuts();
 
             // Check for updates asynchronously after startup (with small delay)
-            scheduler.schedule(this::checkForUpdates, 2, TimeUnit.SECONDS);
+            scheduler.schedule(this::checkForUpdatesOnStartup, 2, TimeUnit.SECONDS);
         });
     }
 
     /**
-     * Checks for available updates asynchronously.
+     * Checks for available updates asynchronously on application startup.
      * Shows the update notification dialog if a new version is available.
      */
-    private void checkForUpdates() {
+    private void checkForUpdatesOnStartup() {
         UpdateCheckService updateService = ServiceRegistry.get(UpdateCheckService.class);
 
         if (!updateService.isUpdateCheckEnabled()) {
@@ -1252,7 +1291,7 @@ public class MainController implements Initializable {
             return;
         }
 
-        logger.info("Checking for updates...");
+        logger.info("Checking for updates on startup...");
 
         updateService.checkForUpdates()
                 .thenAccept(updateInfo -> {
@@ -1720,6 +1759,247 @@ public class MainController implements Initializable {
                 }
             }
             default -> logger.debug("Ctrl+Shift+D: No toggle favorites action defined for tab '{}'", activeTabId);
+        }
+    }
+
+    // ==================== FILE MENU HANDLERS ====================
+
+    /**
+     * Handle Save menu action - delegates to the active tab's save functionality
+     */
+    @FXML
+    public void handleSave() {
+        handleSaveAction();
+    }
+
+    /**
+     * Handle Save As menu action - delegates to the active tab's save as functionality
+     */
+    @FXML
+    public void handleSaveAs() {
+        handleSaveAsAction();
+    }
+
+    /**
+     * Handle Close menu action - closes the current tab/file
+     */
+    @FXML
+    public void handleClose() {
+        logger.debug("Close action triggered - Active tab: {}", activeTabId);
+
+        // For most tabs, return to welcome page
+        loadWelcomePage();
+        removeActiveFromAllMenuButtons();
+        activeTabId = "welcome";
+        logger.debug("Returned to welcome page");
+    }
+
+    /**
+     * Handle Close All menu action - closes all open tabs/files
+     */
+    @FXML
+    public void handleCloseAll() {
+        logger.debug("Close All action triggered");
+
+        // Return to welcome page
+        loadWelcomePage();
+        removeActiveFromAllMenuButtons();
+        activeTabId = "welcome";
+        logger.info("Closed all files and returned to welcome page");
+    }
+
+    /**
+     * Handle Settings menu action - navigates to settings page
+     */
+    @FXML
+    public void openSettings() {
+        logger.debug("Opening Settings page from menu");
+        removeActiveFromAllMenuButtons();
+        settings.getStyleClass().add("active");
+        loadPageFromPath("/pages/settings.fxml");
+        activeTabId = "settings";
+    }
+
+    // ==================== EDIT MENU HANDLERS ====================
+
+    /**
+     * Handle Find menu action - activates find functionality in current editor.
+     * Note: The search functionality is built into the editors via Ctrl+F.
+     */
+    @FXML
+    public void handleFind() {
+        logger.debug("Find action triggered - Active tab: {}", activeTabId);
+        // The editors have their own search bar triggered by Ctrl+F
+        // This menu item provides an alternative way to access it
+        DialogHelper.showInformation("Find", "Use Search Bar",
+                "Use Ctrl+F in the editor to search.\n\n" +
+                        "The search bar will appear at the top of the editor.");
+    }
+
+    /**
+     * Handle Find & Replace menu action - activates find/replace in current editor.
+     * Note: Replace functionality is available in the search bar.
+     */
+    @FXML
+    public void handleFindReplace() {
+        logger.debug("Find & Replace action triggered - Active tab: {}", activeTabId);
+        // The editors have their own search/replace via Ctrl+H
+        DialogHelper.showInformation("Find & Replace", "Use Search & Replace Bar",
+                "Use Ctrl+H in the editor for Find & Replace.\n\n" +
+                        "The search bar with replace option will appear at the top of the editor.");
+    }
+
+    // ==================== WINDOW MENU HANDLERS ====================
+
+    /**
+     * Toggle full screen mode
+     */
+    @FXML
+    public void toggleFullScreen() {
+        logger.debug("Toggle full screen action triggered");
+
+        Stage stage = (Stage) contentPane.getScene().getWindow();
+        if (stage != null) {
+            stage.setFullScreen(!stage.isFullScreen());
+            logger.info("Full screen mode: {}", stage.isFullScreen());
+        }
+    }
+
+    // ==================== HELP MENU HANDLERS ====================
+
+    /**
+     * Open User Guide in browser
+     */
+    @FXML
+    public void openUserGuide() {
+        logger.debug("Opening User Guide");
+        try {
+            java.awt.Desktop.getDesktop().browse(
+                    new java.net.URI("https://karlkauc.github.io/FreeXmlToolkit/")
+            );
+            logger.info("Opened User Guide in browser");
+        } catch (Exception e) {
+            logger.error("Failed to open User Guide", e);
+            DialogHelper.showError("Error", "Could not open User Guide",
+                    "Failed to open the User Guide in your browser. Please visit:\nhttps://karlkauc.github.io/FreeXmlToolkit/");
+        }
+    }
+
+    /**
+     * Show keyboard shortcuts dialog
+     */
+    @FXML
+    public void showKeyboardShortcuts() {
+        logger.debug("Showing keyboard shortcuts dialog");
+
+        var features = java.util.List.of(
+                new String[]{"bi-folder", "File Operations", "Create, open, save, and manage files"},
+                new String[]{"bi-pencil", "Edit Operations", "Undo, redo, find and replace text"},
+                new String[]{"bi-window", "View Controls", "Toggle full screen and window options"},
+                new String[]{"bi-play-circle", "Actions", "Execute operations and manage favorites"}
+        );
+
+        var shortcuts = java.util.List.of(
+                new String[]{"Ctrl+N", "New File"},
+                new String[]{"Ctrl+O", "Open File"},
+                new String[]{"Ctrl+S", "Save"},
+                new String[]{"Ctrl+Shift+S", "Save As"},
+                new String[]{"Ctrl+W", "Close"},
+                new String[]{"Ctrl+Z", "Undo"},
+                new String[]{"Ctrl+Shift+Z", "Redo"},
+                new String[]{"Ctrl+F", "Find"},
+                new String[]{"Ctrl+H", "Find & Replace"},
+                new String[]{"F11", "Toggle Full Screen"},
+                new String[]{"F5", "Execute (Validate/Transform)"},
+                new String[]{"Ctrl+D", "Add to Favorites"},
+                new String[]{"Ctrl+Shift+D", "Toggle Favorites Panel"},
+                new String[]{"F1", "Show Help"}
+        );
+
+        var helpDialog = DialogHelper.createHelpDialog(
+                "Keyboard Shortcuts",
+                "Keyboard Shortcuts",
+                "Quick reference for all keyboard shortcuts in FreeXmlToolkit",
+                "bi-keyboard",
+                DialogHelper.HeaderTheme.INFO,
+                features,
+                shortcuts
+        );
+
+        helpDialog.showAndWait();
+    }
+
+    /**
+     * Flag to prevent concurrent update checks
+     */
+    private volatile boolean isCheckingForUpdates = false;
+
+    /**
+     * Manually check for updates (menu action)
+     */
+    @FXML
+    public void checkForUpdates() {
+        // Prevent concurrent update checks
+        if (isCheckingForUpdates) {
+            logger.debug("Update check already in progress, ignoring duplicate request");
+            return;
+        }
+        isCheckingForUpdates = true;
+        logger.info("Manual update check triggered from menu");
+
+        UpdateCheckService updateService = ServiceRegistry.get(UpdateCheckService.class);
+
+        // Show progress indicator
+        Alert progressDialog = new Alert(Alert.AlertType.INFORMATION);
+        progressDialog.setTitle("Check for Updates");
+        progressDialog.setHeaderText("Checking for updates...");
+        progressDialog.setContentText("Please wait while we check for available updates.");
+        progressDialog.getButtonTypes().clear();
+        progressDialog.show();
+
+        updateService.checkForUpdates()
+                .thenAccept(updateInfo -> {
+                    Platform.runLater(() -> {
+                        progressDialog.close();
+                        isCheckingForUpdates = false;
+
+                        if (updateInfo.updateAvailable()) {
+                            logger.info("Update available: {} -> {}",
+                                    updateInfo.currentVersion(), updateInfo.latestVersion());
+                            showUpdateDialog(updateInfo);
+                        } else {
+                            DialogHelper.showInformation("No Updates Available", "You're up to date!",
+                                    "You are running the latest version: " + updateInfo.currentVersion());
+                        }
+                    });
+                })
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        progressDialog.close();
+                        isCheckingForUpdates = false;
+                        DialogHelper.showError("Update Check Failed", "Could not check for updates",
+                                "Failed to connect to update server. Please check your internet connection.\n\n" +
+                                        "Error: " + ex.getMessage());
+                    });
+                    return null;
+                });
+    }
+
+    /**
+     * Open GitHub Issues page to report an issue
+     */
+    @FXML
+    public void reportIssue() {
+        logger.debug("Opening GitHub Issues page");
+        try {
+            java.awt.Desktop.getDesktop().browse(
+                    new java.net.URI("https://github.com/karlkauc/FreeXmlToolkit/issues/new")
+            );
+            logger.info("Opened GitHub Issues page in browser");
+        } catch (Exception e) {
+            logger.error("Failed to open GitHub Issues page", e);
+            DialogHelper.showError("Error", "Could not open browser",
+                    "Failed to open the GitHub Issues page. Please visit:\nhttps://github.com/karlkauc/FreeXmlToolkit/issues/new");
         }
     }
 

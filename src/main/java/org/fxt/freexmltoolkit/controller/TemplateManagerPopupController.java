@@ -47,7 +47,7 @@ public class TemplateManagerPopupController implements Initializable {
     private static final Logger logger = LogManager.getLogger(TemplateManagerPopupController.class);
 
     // Services
-    private final XmlUltimateController parentController;
+    private final XmlContentProvider contentProvider;
     private final TemplateEngine templateEngine;
     private final TemplateRepository templateRepository;
 
@@ -95,10 +95,10 @@ public class TemplateManagerPopupController implements Initializable {
     private XmlTemplate selectedTemplate;
     private final Map<String, String> currentTemplateParams = new HashMap<>();
 
-    public TemplateManagerPopupController(XmlUltimateController parentController,
+    public TemplateManagerPopupController(XmlContentProvider contentProvider,
                                           TemplateEngine templateEngine,
                                           TemplateRepository templateRepository) {
-        this.parentController = parentController;
+        this.contentProvider = contentProvider;
         this.templateEngine = templateEngine;
         this.templateRepository = templateRepository;
     }
@@ -251,7 +251,7 @@ public class TemplateManagerPopupController implements Initializable {
         if (selectedTemplate != null) {
             try {
                 String generatedXml = selectedTemplate.processTemplate(currentTemplateParams);
-                parentController.setCurrentXmlContent(generatedXml);
+                contentProvider.setCurrentXmlContent(generatedXml);
                 showInfo("Template Applied", "Template has been applied to the current editor");
                 closePopup();
             } catch (Exception e) {
@@ -266,7 +266,7 @@ public class TemplateManagerPopupController implements Initializable {
         if (selectedTemplate != null) {
             try {
                 String generatedXml = selectedTemplate.processTemplate(currentTemplateParams);
-                parentController.insertXmlContent("\n\n" + generatedXml);
+                contentProvider.insertXmlContent("\n\n" + generatedXml);
                 showInfo("Template Inserted", "Template has been inserted at cursor position");
                 closePopup();
             } catch (Exception e) {

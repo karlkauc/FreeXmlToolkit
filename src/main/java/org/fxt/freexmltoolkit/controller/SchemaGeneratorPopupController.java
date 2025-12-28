@@ -50,7 +50,7 @@ public class SchemaGeneratorPopupController implements Initializable {
     private static final Logger logger = LogManager.getLogger(SchemaGeneratorPopupController.class);
 
     // Services
-    private final XmlUltimateController parentController;
+    private final XmlContentProvider contentProvider;
     private final SchemaGenerationEngine schemaEngine;
 
     // Background processing
@@ -146,9 +146,9 @@ public class SchemaGeneratorPopupController implements Initializable {
     private SchemaGenerationResult lastResult;
     private final List<File> selectedFiles = new ArrayList<>();
 
-    public SchemaGeneratorPopupController(XmlUltimateController parentController,
+    public SchemaGeneratorPopupController(XmlContentProvider contentProvider,
                                           SchemaGenerationEngine schemaEngine) {
-        this.parentController = parentController;
+        this.contentProvider = contentProvider;
         this.schemaEngine = schemaEngine;
     }
 
@@ -405,7 +405,7 @@ public class SchemaGeneratorPopupController implements Initializable {
         List<String> contents = new ArrayList<>();
 
         if (useCurrentEditorRadio.isSelected()) {
-            String currentContent = parentController.getCurrentXmlContent();
+            String currentContent = contentProvider.getCurrentXmlContent();
             if (!currentContent.trim().isEmpty()) {
                 contents.add(currentContent);
             }

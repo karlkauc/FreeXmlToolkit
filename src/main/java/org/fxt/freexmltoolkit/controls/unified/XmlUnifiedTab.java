@@ -16,19 +16,16 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlParser;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
-import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
+import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.service.*;
 import org.kordamp.ikonli.javafx.FontIcon;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -280,9 +277,15 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
 
         // First try local file detection
         List<LinkedFileInfo> links = linkDetector.detectXmlLinks(sourceFile);
+        logger.debug("Detected {} linked files in {}", links.size(), sourceFile != null ? sourceFile.getName() : "null");
+
         for (LinkedFileInfo link : links) {
+            logger.debug("  Link: {} - resolved={}, type={}, path={}",
+                    link.referencePath(), link.isResolved(), link.getFileType(), link.resolvedFile());
+
             if (link.isResolved()) {
                 if (link.getFileType() == UnifiedEditorFileType.XSD) {
+                    logger.info("Found local XSD: {}", link.resolvedFile());
                     setXsdFile(link.resolvedFile());
                     xsdLoaded = true;
                 } else if (link.getFileType() == UnifiedEditorFileType.SCHEMATRON) {
@@ -293,6 +296,7 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
 
         // If no local XSD was found, try to load remote schema via XmlService
         if (!xsdLoaded && sourceFile != null) {
+            logger.debug("No local XSD found, trying remote schema loading...");
             loadRemoteSchemaAsync();
         }
     }
@@ -302,18 +306,23 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
      * The XmlService handles downloading and caching of remote schemas.
      */
     private void loadRemoteSchemaAsync() {
+        logger.debug("Starting async schema loading for: {}", sourceFile != null ? sourceFile.getName() : "null");
+
         // Run in background to avoid blocking UI
         Thread schemaLoader = new Thread(() -> {
             try {
                 // Set the current XML file in the service
                 xmlService.setCurrentXmlFile(sourceFile);
+                logger.debug("Set current XML file in xmlService: {}", sourceFile);
 
                 // Try to load schema from XML file (handles remote URLs)
                 boolean loaded = xmlService.loadSchemaFromXMLFile();
+                logger.debug("xmlService.loadSchemaFromXMLFile() returned: {}", loaded);
 
                 if (loaded) {
                     File loadedXsd = xmlService.getCurrentXsdFile();
                     String remoteLocation = xmlService.getRemoteXsdLocation();
+                    logger.debug("Loaded XSD file: {}, remote location: {}", loadedXsd, remoteLocation);
 
                     if (loadedXsd != null && loadedXsd.exists()) {
                         logger.info("Auto-loaded remote schema from: {} (cached at: {})",
@@ -321,12 +330,14 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
 
                         // Update UI on JavaFX thread
                         Platform.runLater(() -> setXsdFile(loadedXsd));
+                    } else {
+                        logger.warn("Loaded XSD file is null or doesn't exist: {}", loadedXsd);
                     }
                 } else {
-                    logger.debug("No remote schema found or loading failed for: {}", sourceFile.getName());
+                    logger.info("No remote schema found or loading failed for: {}", sourceFile.getName());
                 }
             } catch (Exception e) {
-                logger.warn("Failed to auto-load remote schema: {}", e.getMessage());
+                logger.warn("Failed to auto-load remote schema: {}", e.getMessage(), e);
             }
         }, "Schema-Loader-" + (sourceFile != null ? sourceFile.getName() : "unnamed"));
 
@@ -344,6 +355,22 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
     @Override
     public void setEditorContent(String content) {
         textEditor.setText(content);
+    }
+
+    /**
+     * Inserts text at the current cursor position in the editor.
+     *
+     * @param content the content to insert
+     */
+    public void insertAtCursor(String content) {
+        if (content == null || content.isEmpty()) {
+            return;
+        }
+
+        CodeArea codeArea = textEditor.getCodeArea();
+        int caretPosition = codeArea.getCaretPosition();
+        codeArea.insertText(caretPosition, content);
+        logger.debug("Inserted {} characters at position {}", content.length(), caretPosition);
     }
 
     @Override

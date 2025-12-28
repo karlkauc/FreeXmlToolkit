@@ -79,7 +79,7 @@ import java.util.concurrent.TimeUnit;
  * Ultimate XML Controller - The Complete XML Editor with All Features
  * Provides comprehensive XML editing, validation, transformation, and generation capabilities
  */
-public class XmlUltimateController implements Initializable, FavoritesParentController {
+public class XmlUltimateController implements Initializable, FavoritesParentController, XmlContentProvider {
     private static final Logger logger = LogManager.getLogger(XmlUltimateController.class);
 
     // Services - injected via ServiceRegistry

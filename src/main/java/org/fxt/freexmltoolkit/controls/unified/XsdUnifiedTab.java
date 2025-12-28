@@ -24,8 +24,12 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collections;
@@ -367,19 +371,109 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
 
     @Override
     public String validate() {
-        String content = getEditorContent();
+        // Always get content directly from text editor for validation
+        // This ensures we validate the actual current text, not cached/serialized content
+        String content = textEditor.getText();
+
+        logger.debug("Validating XSD content, length: {}", content != null ? content.length() : 0);
+
         if (content == null || content.trim().isEmpty()) {
             return "Empty document";
         }
 
         try {
+            // First check XML well-formedness
             var errors = xmlService.validateText(content);
-            if (errors == null || errors.isEmpty()) {
-                return null; // Valid
-            } else {
-                return "XSD Error: " + errors.get(0).getMessage();
+            if (errors != null && !errors.isEmpty()) {
+                return "XML Error: " + errors.get(0).getMessage();
             }
+
+            // Now validate as XSD schema using SchemaFactory
+            // Force using the JDK's built-in SchemaFactory, not Xerces
+            // Xerces may be too lenient with type resolution errors
+            SchemaFactory schemaFactory;
+            try {
+                // Try to use JDK's implementation explicitly
+                schemaFactory = SchemaFactory.newInstance(
+                        XMLConstants.W3C_XML_SCHEMA_NS_URI,
+                        "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory",
+                        null);
+            } catch (Exception e) {
+                // Fall back to default
+                schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            }
+            logger.debug("Using SchemaFactory: {}", schemaFactory.getClass().getName());
+
+            // Check if content contains potentially invalid types for debugging
+            if (content.contains("decimal2") || content.contains("string2")) {
+                logger.warn("Content contains potentially invalid type reference (decimal2 or string2)");
+            }
+
+            // Collect all validation errors using a custom error handler
+            java.util.List<String> schemaErrors = new java.util.ArrayList<>();
+            java.util.List<String> importWarnings = new java.util.ArrayList<>();
+            schemaFactory.setErrorHandler(new org.xml.sax.ErrorHandler() {
+                @Override
+                public void warning(org.xml.sax.SAXParseException e) {
+                    logger.debug("Schema warning: {}", e.getMessage());
+                }
+
+                @Override
+                public void error(org.xml.sax.SAXParseException e) {
+                    String msg = e.getMessage();
+                    // Filter out import-related errors (external schemas not available)
+                    // These typically reference namespaces like ds:, xlink:, etc.
+                    if (msg != null && (msg.contains("ds:") || msg.contains("xlink:") ||
+                            msg.contains("xml:") || msg.contains("xsi:"))) {
+                        logger.debug("Ignoring import-related error: {}", msg);
+                        importWarnings.add(msg);
+                    } else if (msg != null && msg.contains("xs:")) {
+                        // Errors with xs: prefix are real XSD type errors
+                        logger.warn("Schema error: {}", msg);
+                        schemaErrors.add(msg);
+                    } else {
+                        logger.warn("Schema error: {}", msg);
+                        schemaErrors.add(msg);
+                    }
+                }
+
+                @Override
+                public void fatalError(org.xml.sax.SAXParseException e) throws org.xml.sax.SAXException {
+                    logger.error("Schema fatal error: {}", e.getMessage());
+                    schemaErrors.add(e.getMessage());
+                    throw e;
+                }
+            });
+
+            schemaFactory.newSchema(new StreamSource(new StringReader(content)));
+
+            // Log import warnings if any
+            if (!importWarnings.isEmpty()) {
+                logger.info("Ignored {} import-related warning(s) - external schemas not available", importWarnings.size());
+            }
+
+            // Check if any real errors were collected
+            if (!schemaErrors.isEmpty()) {
+                String errorMsg = schemaErrors.get(0);
+                if (errorMsg.length() > 200) {
+                    errorMsg = errorMsg.substring(0, 200) + "...";
+                }
+                logger.info("XSD validation failed with {} error(s): {}", schemaErrors.size(), errorMsg);
+                return "XSD Schema Error: " + errorMsg;
+            }
+
+            logger.debug("XSD validation successful");
+            return null; // Valid XSD schema
+        } catch (org.xml.sax.SAXException e) {
+            // SAXException indicates the XSD schema is invalid
+            String message = e.getMessage();
+            if (message != null && message.length() > 200) {
+                message = message.substring(0, 200) + "...";
+            }
+            logger.info("XSD validation failed: {}", e.getMessage());
+            return "XSD Schema Error: " + message;
         } catch (Exception e) {
+            logger.error("Unexpected error during XSD validation", e);
             return "XSD Error: " + e.getMessage();
         }
     }

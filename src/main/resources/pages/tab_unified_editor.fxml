@@ -22,7 +22,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
-
 <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
       AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.UnifiedEditorController"
@@ -146,6 +145,52 @@
             </graphic>
             <tooltip>
                 <Tooltip text="Redo (Ctrl+Y)"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- XML Tools Section -->
+        <MenuButton fx:id="convertMenu" text="Convert" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-table" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Convert XML to/from Spreadsheets (Ctrl+E)"/>
+            </tooltip>
+            <items>
+                <MenuItem text="XML to Excel/CSV..." onAction="#showXmlToSpreadsheet">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-file-earmark-excel" iconSize="16" iconColor="#28a745"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="Excel/CSV to XML..." onAction="#showSpreadsheetToXml">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
+                    </graphic>
+                </MenuItem>
+            </items>
+        </MenuButton>
+
+        <Button fx:id="templatesButton" text="Templates" contentDisplay="TOP" styleClass="toolbar-button"
+                onAction="#showTemplates">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-earmark-ruled" iconSize="20" iconColor="#ffc107"
+                          styleClass="toolbar-icon-warning"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="XML Templates (Ctrl+T)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="generatorButton" text="Generator" contentDisplay="TOP" styleClass="toolbar-button"
+                onAction="#showGenerator">
+            <graphic>
+                <FontIcon iconLiteral="bi-lightning" iconSize="20" iconColor="#6f42c1"
+                          styleClass="toolbar-icon-purple"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Generate XSD from XML (Ctrl+G)"/>
             </tooltip>
         </Button>
 
