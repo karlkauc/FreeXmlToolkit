@@ -1346,11 +1346,12 @@ public class XsdController implements FavoritesParentController {
                     currentGraphViewV2.setImportedSchemas(importedSchemas);
                 }
 
-                // Enable edit mode by creating and setting up an editor context
+                // Enable edit mode on the existing editor context (created by XsdGraphView)
+                // IMPORTANT: Use the existing context to ensure SelectionModel is shared
+                // with XsdPropertiesPanel which was created in XsdGraphView.setupLayout()
                 org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext =
-                        new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(schema);
+                        currentGraphViewV2.getEditorContext();
                 editorContext.setEditMode(true);
-                currentGraphViewV2.setEditorContext(editorContext);
 
                 // IMPORTANT: Set callbacks AFTER setEditorContext (which recreates contextMenuFactory)
                 // Set Type Editor callbacks for context menu
