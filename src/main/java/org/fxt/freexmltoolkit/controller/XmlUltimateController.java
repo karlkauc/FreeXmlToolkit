@@ -285,6 +285,20 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     @FXML
     private TextArea consoleOutput;
 
+    // Status Bar
+    @FXML
+    private javafx.scene.layout.HBox statusBar;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private Label fileTypeLabel;
+    @FXML
+    private Label cursorPositionLabel;
+    @FXML
+    private Label encodingLabel;
+    @FXML
+    private Label fileSizeLabel;
+
     // State
     private File currentXmlFile;
     private String currentXmlContent = "";

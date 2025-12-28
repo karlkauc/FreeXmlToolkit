@@ -565,7 +565,7 @@ public class XmlEditor extends Tab {
 
     /**
      * Updates the cursor information including XPath, element name, element type, documentation, and example values.
-     * Uses XSD-based implementation to get comprehensive information about the current element.
+     * Uses findBestMatchingElement with path-cleaning to properly handle XSD SEQUENCE/CHOICE/ALL markers.
      */
     private void updateCursorInformation() {
         if (sidebarController == null) return;
@@ -576,17 +576,84 @@ public class XmlEditor extends Tab {
         logger.debug("XPath at position {}: {}", caretPosition, xpath);
         sidebarController.setXPath(xpath);
 
-        // Get element information from XSD documentation data
-        updateElementInfoFromXsd(caretPosition);
+        // Extract element name from the XPath
+        String elementName = null;
+        if (xpath != null && !xpath.isEmpty() && !xpath.equals("Invalid XML structure") &&
+                !xpath.equals("No XML content") && !xpath.equals("Unable to determine XPath")) {
+            String[] parts = xpath.split("/");
+            if (parts.length > 0) {
+                elementName = parts[parts.length - 1];
+            }
+        }
 
-        // Update child elements based on current position
-        updateChildElements(xpath);
+        if (elementName == null || elementName.isEmpty()) {
+            sidebarController.setElementName("");
+            sidebarController.setElementType("");
+            sidebarController.setDocumentation("");
+            sidebarController.setExampleValues(List.of("No element selected"));
+            sidebarController.setPossibleChildElements(List.of("No element selected"));
+            return;
+        }
 
-        // Update documentation and example values from XSD
-        updateElementDocumentation(caretPosition);
+        sidebarController.setElementName(elementName);
 
-        // Update example values based on current XPath
-        updateExampleValuesFromXsd(xpath);
+        // Use findBestMatchingElement with path-cleaning (same as Unified Editor)
+        if (xsdDocumentationData != null) {
+            XsdExtendedElement xsdElement = findBestMatchingElement(xpath);
+            logger.debug("updateCursorInformation: xpath='{}', xsdElement={}",
+                    xpath, xsdElement != null ? "found '" + xsdElement.getElementName() + "'" : "null");
+
+            if (xsdElement != null) {
+                // Set element type
+                sidebarController.setElementType(xsdElement.getElementType() != null ? xsdElement.getElementType() : "");
+
+                // Set documentation
+                String doc = xsdElement.getDocumentationAsHtml();
+                sidebarController.setDocumentation(doc != null ? stripHtmlTags(doc) : "");
+
+                // Set example values
+                List<String> examples = xsdElement.getExampleValues();
+                if (examples != null && !examples.isEmpty()) {
+                    sidebarController.setExampleValues(examples);
+                } else {
+                    sidebarController.setExampleValues(List.of("No example values available"));
+                }
+
+                // Set child elements - format to resolve SEQUENCE_, CHOICE_, ALL_ containers
+                List<String> children = xsdElement.getChildren();
+                if (children != null && !children.isEmpty()) {
+                    List<String> formattedChildren = formatChildElementsForDisplay(children, true);
+                    if (formattedChildren.isEmpty()) {
+                        sidebarController.setPossibleChildElements(List.of("No child elements defined"));
+                    } else {
+                        sidebarController.setPossibleChildElements(formattedChildren);
+                    }
+                } else {
+                    sidebarController.setPossibleChildElements(List.of("No child elements defined"));
+                }
+            } else {
+                // Element not found in XSD
+                sidebarController.setElementType("");
+                sidebarController.setDocumentation("Element '" + elementName + "' not found in XSD schema");
+                sidebarController.setExampleValues(List.of("No example values available"));
+                sidebarController.setPossibleChildElements(List.of("No child elements"));
+            }
+        } else {
+            // No XSD linked
+            sidebarController.setElementType("");
+            sidebarController.setDocumentation("Link an XSD schema to see documentation");
+            sidebarController.setExampleValues(List.of("Link XSD for example values"));
+            sidebarController.setPossibleChildElements(List.of("Link XSD for child elements"));
+        }
+    }
+
+    /**
+     * Strips HTML tags from text for plain text display.
+     */
+    private String stripHtmlTags(String html) {
+        if (html == null) return "";
+        return html.replaceAll("<[^>]*>", "").replaceAll("&nbsp;", " ").replaceAll("&lt;", "<")
+                .replaceAll("&gt;", ">").replaceAll("&amp;", "&").trim();
     }
 
     /**
@@ -2395,9 +2462,16 @@ public class XmlEditor extends Tab {
             String xpath = buildXPathForV2Element(element);
             sidebarController.setXPath(xpath);
 
+            logger.debug("updateSidebarFromV2Selection: element='{}', xpath='{}', xsdDocumentationData={}",
+                    displayName, xpath, xsdDocumentationData != null ? "present (" +
+                    (xsdDocumentationData.getExtendedXsdElementMap() != null ?
+                     xsdDocumentationData.getExtendedXsdElementMap().size() : 0) + " elements)" : "null");
+
             // Try to get XSD information if available
             if (xsdDocumentationData != null) {
                 XsdExtendedElement xsdElement = findBestMatchingElement(xpath);
+                logger.debug("findBestMatchingElement result: {}", xsdElement != null ?
+                        "found '" + xsdElement.getElementName() + "'" : "null");
                 if (xsdElement != null) {
                     sidebarController.setElementType(xsdElement.getElementType() != null ? xsdElement.getElementType() : "");
                     sidebarController.setDocumentation(getDocumentationFromExtendedElement(xsdElement));
