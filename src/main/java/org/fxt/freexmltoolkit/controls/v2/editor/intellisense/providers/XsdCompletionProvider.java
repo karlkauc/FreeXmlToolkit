@@ -74,24 +74,85 @@ public class XsdCompletionProvider implements CompletionProvider {
         // Try exact match first
         XsdExtendedElement parentInfo = xsdData.getExtendedXsdElementMap().get(parentPath);
 
-        // Fallback to best matching
+        // Fallback to best matching (handles XSD compositor elements like SEQUENCE_X, CHOICE_X)
         if (parentInfo == null) {
             parentInfo = schemaProvider.findBestMatchingElement(parentPath);
         }
 
         if (parentInfo != null && parentInfo.getChildren() != null) {
-            // Add all child elements
+            // Collect all real child elements, recursively digging into compositors
+            List<XsdExtendedElement> realChildren = new ArrayList<>();
+            collectRealChildElements(parentInfo, xsdData, realChildren, new java.util.HashSet<>());
+
+            // Create completion items
             int index = 0;
-            for (String childXpath : parentInfo.getChildren()) {
-                XsdExtendedElement childInfo = xsdData.getExtendedXsdElementMap().get(childXpath);
-                if (childInfo != null && childInfo.getElementName() != null) {
-                    CompletionItem item = createElementCompletionItem(childInfo, index++);
-                    items.add(item);
-                }
+            for (XsdExtendedElement childInfo : realChildren) {
+                CompletionItem item = createElementCompletionItem(childInfo, index++);
+                items.add(item);
             }
         }
 
         return items;
+    }
+
+    /**
+     * Recursively collects real child elements, skipping compositor elements (SEQUENCE, CHOICE, etc.).
+     * Digs into compositors to find actual element definitions.
+     *
+     * @param parent the parent element
+     * @param xsdData the XSD documentation data
+     * @param result the list to collect results into
+     * @param visited set of visited paths to prevent infinite loops
+     */
+    private void collectRealChildElements(XsdExtendedElement parent, XsdDocumentationData xsdData,
+                                          List<XsdExtendedElement> result, java.util.Set<String> visited) {
+        if (parent == null || parent.getChildren() == null) {
+            return;
+        }
+
+        for (String childXpath : parent.getChildren()) {
+            // Prevent infinite loops
+            if (visited.contains(childXpath)) {
+                continue;
+            }
+            visited.add(childXpath);
+
+            XsdExtendedElement childInfo = xsdData.getExtendedXsdElementMap().get(childXpath);
+            if (childInfo == null || childInfo.getElementName() == null) {
+                continue;
+            }
+
+            String elementName = childInfo.getElementName();
+
+            // Check if this is a compositor element (SEQUENCE, CHOICE, ALL, GROUP)
+            if (isCompositorElement(elementName)) {
+                // Recursively dig into the compositor to find real elements
+                collectRealChildElements(childInfo, xsdData, result, visited);
+            } else {
+                // This is a real element - add it if not already present
+                boolean alreadyAdded = result.stream()
+                        .anyMatch(e -> e.getElementName().equals(elementName));
+                if (!alreadyAdded) {
+                    result.add(childInfo);
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if an element name is an XSD compositor (SEQUENCE, CHOICE, ALL, GROUP).
+     * These are internal XSD structure elements, not actual XML elements.
+     */
+    private boolean isCompositorElement(String name) {
+        if (name == null) {
+            return false;
+        }
+        // Check for exact matches (element names without numbers)
+        // and prefixed versions (with numbers like SEQUENCE_1)
+        return name.equals("SEQUENCE") || name.startsWith("SEQUENCE_") ||
+               name.equals("CHOICE") || name.startsWith("CHOICE_") ||
+               name.equals("ALL") || name.startsWith("ALL_") ||
+               name.equals("GROUP") || name.startsWith("GROUP_");
     }
 
     /**

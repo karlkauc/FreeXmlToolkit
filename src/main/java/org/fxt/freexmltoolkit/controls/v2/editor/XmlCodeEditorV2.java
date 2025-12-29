@@ -402,6 +402,46 @@ public class XmlCodeEditorV2 extends VBox {
         statusLineManager.refresh();
     }
 
+    // ==================== XSD Status Control ====================
+
+    /**
+     * Sets the XSD status to LOADING.
+     * Call this when starting to load an XSD schema.
+     */
+    public void setXsdLoading() {
+        statusLineManager.setXsdLoading();
+    }
+
+    /**
+     * Sets the XSD status to LOADED.
+     * Call this when XSD schema has been successfully loaded.
+     * Also invalidates the IntelliSense cache so completions are recalculated.
+     */
+    public void setXsdLoaded() {
+        statusLineManager.setXsdLoaded();
+        // Invalidate IntelliSense cache so completions are recalculated with the new schema
+        if (intelliSenseEngine != null) {
+            intelliSenseEngine.invalidateCacheForSchema();
+            logger.debug("IntelliSense cache invalidated after XSD load");
+        }
+    }
+
+    /**
+     * Sets the XSD status to ERROR.
+     * Call this when XSD schema loading failed.
+     */
+    public void setXsdError() {
+        statusLineManager.setXsdError();
+    }
+
+    /**
+     * Sets the XSD status to NONE.
+     * Call this when no XSD is associated.
+     */
+    public void setXsdNone() {
+        statusLineManager.setXsdNone();
+    }
+
     /**
      * Gets the context menu manager.
      *

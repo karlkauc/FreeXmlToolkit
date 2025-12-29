@@ -29,6 +29,30 @@ public class StatusLineManagerV2 {
 
     private static final Logger logger = LogManager.getLogger(StatusLineManagerV2.class);
 
+    /**
+     * Enumeration for XSD status states.
+     */
+    public enum XsdStatus {
+        NONE("No XSD", "gray", "⚫"),
+        LOADING("Loading XSD...", "#e67e00", "⏳"),
+        LOADED("XSD: ✓", "green", "✓"),
+        ERROR("XSD: ✗", "red", "✗");
+
+        private final String text;
+        private final String color;
+        private final String icon;
+
+        XsdStatus(String text, String color, String icon) {
+            this.text = text;
+            this.color = color;
+            this.icon = icon;
+        }
+
+        public String getText() { return text; }
+        public String getColor() { return color; }
+        public String getIcon() { return icon; }
+    }
+
     private final EditorContext editorContext;
     private final CodeArea codeArea;
     private final HBox statusLine;
@@ -39,6 +63,9 @@ public class StatusLineManagerV2 {
     private final Label encodingLabel;
     private final Label xsdStatusLabel;
     private final Label dirtyLabel;
+
+    // Current XSD status (for external control)
+    private XsdStatus currentXsdStatus = XsdStatus.NONE;
 
     /**
      * Creates a new StatusLineManagerV2.
@@ -182,19 +209,84 @@ public class StatusLineManagerV2 {
     }
 
     /**
-     * Updates the XSD status indicator.
+     * Updates the XSD status indicator based on current state.
+     * If externally set status is LOADING, keeps that status.
+     * Otherwise, checks the schema provider.
      */
     private void updateXsdStatus() {
+        // If loading status was set externally, keep it
+        if (currentXsdStatus == XsdStatus.LOADING) {
+            applyXsdStatus(XsdStatus.LOADING);
+            return;
+        }
+
+        // Auto-detect from schema provider
         boolean hasSchema = editorContext.getSchemaProvider() != null &&
                             editorContext.getSchemaProvider().hasSchema();
 
         if (hasSchema) {
-            xsdStatusLabel.setText("XSD: ✓");
-            xsdStatusLabel.setStyle("-fx-text-fill: green;");
-        } else {
-            xsdStatusLabel.setText("No XSD");
-            xsdStatusLabel.setStyle("-fx-text-fill: gray;");
+            currentXsdStatus = XsdStatus.LOADED;
+        } else if (currentXsdStatus != XsdStatus.ERROR) {
+            currentXsdStatus = XsdStatus.NONE;
         }
+
+        applyXsdStatus(currentXsdStatus);
+    }
+
+    /**
+     * Applies the given XSD status to the UI.
+     *
+     * @param status the status to display
+     */
+    private void applyXsdStatus(XsdStatus status) {
+        xsdStatusLabel.setText(status.getText());
+        xsdStatusLabel.setStyle("-fx-text-fill: " + status.getColor() + ";");
+        logger.debug("XSD status updated to: {}", status);
+    }
+
+    /**
+     * Sets the XSD status to LOADING.
+     * Call this when starting to load an XSD schema.
+     */
+    public void setXsdLoading() {
+        currentXsdStatus = XsdStatus.LOADING;
+        Platform.runLater(() -> applyXsdStatus(XsdStatus.LOADING));
+    }
+
+    /**
+     * Sets the XSD status to LOADED.
+     * Call this when XSD schema has been successfully loaded.
+     */
+    public void setXsdLoaded() {
+        currentXsdStatus = XsdStatus.LOADED;
+        Platform.runLater(() -> applyXsdStatus(XsdStatus.LOADED));
+    }
+
+    /**
+     * Sets the XSD status to ERROR.
+     * Call this when XSD schema loading failed.
+     */
+    public void setXsdError() {
+        currentXsdStatus = XsdStatus.ERROR;
+        Platform.runLater(() -> applyXsdStatus(XsdStatus.ERROR));
+    }
+
+    /**
+     * Sets the XSD status to NONE.
+     * Call this when no XSD is associated.
+     */
+    public void setXsdNone() {
+        currentXsdStatus = XsdStatus.NONE;
+        Platform.runLater(() -> applyXsdStatus(XsdStatus.NONE));
+    }
+
+    /**
+     * Gets the current XSD status.
+     *
+     * @return the current XSD status
+     */
+    public XsdStatus getXsdStatus() {
+        return currentXsdStatus;
     }
 
     /**

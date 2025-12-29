@@ -137,26 +137,113 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
         }
 
         var elementMap = xsdDocumentationData.getExtendedXsdElementMap();
-        if (elementMap == null) {
+        if (elementMap == null || elementMap.isEmpty()) {
             return null;
         }
 
         // Try exact match first
-        String elementName = extractElementName(xpath);
-        if (elementName != null && elementMap.containsKey(elementName)) {
-            return elementMap.get(elementName);
+        if (elementMap.containsKey(xpath)) {
+            return elementMap.get(xpath);
         }
 
-        // Try to find by path segments
-        String[] segments = xpath.split("/");
-        for (int i = segments.length - 1; i >= 0; i--) {
-            String segment = segments[i].replaceAll("\\[.*\\]", ""); // Remove predicates
-            if (!segment.isEmpty() && elementMap.containsKey(segment)) {
-                return elementMap.get(segment);
+        // Extract element segments from the input XPath (filtering out empty segments)
+        String[] inputSegments = xpath.split("/");
+        java.util.List<String> cleanSegments = new java.util.ArrayList<>();
+        for (String seg : inputSegments) {
+            String cleaned = seg.replaceAll("\\[.*\\]", "").trim(); // Remove predicates
+            if (!cleaned.isEmpty()) {
+                cleanSegments.add(cleaned);
             }
         }
 
-        return null;
+        if (cleanSegments.isEmpty()) {
+            return null;
+        }
+
+        // Get the target element name (last segment)
+        String targetElement = cleanSegments.get(cleanSegments.size() - 1);
+
+        // Find all keys that end with the target element name
+        // XSD paths include compositor elements like SEQUENCE_X, CHOICE_X which we need to ignore
+        java.util.List<String> matchingKeys = new java.util.ArrayList<>();
+        for (String key : elementMap.keySet()) {
+            if (key.endsWith("/" + targetElement) || key.equals(targetElement)) {
+                matchingKeys.add(key);
+            }
+        }
+
+        if (matchingKeys.isEmpty()) {
+            logger.debug("No matching keys found for element: {}", targetElement);
+            return null;
+        }
+
+        // If only one match, return it
+        if (matchingKeys.size() == 1) {
+            logger.debug("Single match found for '{}': {}", xpath, matchingKeys.get(0));
+            return elementMap.get(matchingKeys.get(0));
+        }
+
+        // Multiple matches - find the best one by matching parent path segments
+        // Score each key based on how many parent segments match (ignoring SEQUENCE_X, CHOICE_X, etc.)
+        String bestKey = null;
+        int bestScore = -1;
+
+        for (String key : matchingKeys) {
+            int score = calculatePathMatchScore(cleanSegments, key);
+            if (score > bestScore) {
+                bestScore = score;
+                bestKey = key;
+            }
+        }
+
+        if (bestKey != null) {
+            logger.debug("Best match for '{}': {} (score: {})", xpath, bestKey, bestScore);
+            return elementMap.get(bestKey);
+        }
+
+        // Fallback: return first match
+        logger.debug("Fallback match for '{}': {}", xpath, matchingKeys.get(0));
+        return elementMap.get(matchingKeys.get(0));
+    }
+
+    /**
+     * Calculates a match score between clean path segments and an XSD map key.
+     * Higher score means better match.
+     */
+    private int calculatePathMatchScore(java.util.List<String> cleanSegments, String mapKey) {
+        // Extract real element names from the map key (filter out SEQUENCE_X, CHOICE_X, etc.)
+        String[] keyParts = mapKey.split("/");
+        java.util.List<String> keyElements = new java.util.ArrayList<>();
+        for (String part : keyParts) {
+            if (!part.isEmpty() && !isCompositorElement(part)) {
+                keyElements.add(part);
+            }
+        }
+
+        // Count how many segments from cleanSegments appear in keyElements in order
+        int score = 0;
+        int keyIndex = 0;
+        for (String segment : cleanSegments) {
+            for (int i = keyIndex; i < keyElements.size(); i++) {
+                if (keyElements.get(i).equals(segment)) {
+                    score++;
+                    keyIndex = i + 1;
+                    break;
+                }
+            }
+        }
+
+        return score;
+    }
+
+    /**
+     * Checks if an element name is an XSD compositor (SEQUENCE_X, CHOICE_X, ALL_X, etc.)
+     */
+    private boolean isCompositorElement(String name) {
+        return name.startsWith("SEQUENCE_") ||
+               name.startsWith("CHOICE_") ||
+               name.startsWith("ALL_") ||
+               name.startsWith("GROUP_");
     }
 
     /**

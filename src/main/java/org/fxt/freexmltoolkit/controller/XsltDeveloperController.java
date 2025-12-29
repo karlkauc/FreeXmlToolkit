@@ -46,6 +46,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
+import org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
@@ -112,6 +113,9 @@ public class XsltDeveloperController implements FavoritesParentController {
     private XmlCodeEditorV2 xmlInputEditor;
     private XmlCodeEditorV2 xsltInputEditor;
     private XmlCodeEditorV2 xqueryInputEditor;
+
+    // Schema provider for XML input editor (enables auto-XSD loading)
+    private MutableXmlSchemaProvider xmlInputSchemaProvider;
     
     @FXML
     private Button loadXmlBtn;
@@ -368,10 +372,79 @@ public class XsltDeveloperController implements FavoritesParentController {
             }
             currentXmlFile = file;
             logger.debug("Loaded XML file: {}", file.getAbsolutePath());
+
+            // Auto-load XSD schema from XML file (in background)
+            autoLoadXsdSchema(file);
         } catch (IOException e) {
             logger.error("Failed to load XML file", e);
             showAlert("Load Error", "Failed to load XML file: " + e.getMessage());
         }
+    }
+
+    /**
+     * Automatically loads the XSD schema referenced in the XML file.
+     * Runs in background to avoid blocking the UI.
+     * Updates the status line to show loading progress.
+     *
+     * @param xmlFile the XML file to extract schema reference from
+     */
+    private void autoLoadXsdSchema(File xmlFile) {
+        if (xmlFile == null || xmlInputSchemaProvider == null || xmlInputEditor == null) {
+            return;
+        }
+
+        // Set status to loading before starting background thread
+        Platform.runLater(() -> xmlInputEditor.setXsdLoading());
+
+        Thread schemaLoader = new Thread(() -> {
+            try {
+                // Set the current XML file in the service
+                xmlService.setCurrentXmlFile(xmlFile);
+                logger.debug("Set current XML file for schema loading: {}", xmlFile);
+
+                // Try to load schema from XML file (handles xsi:schemaLocation and noNamespaceSchemaLocation)
+                boolean loaded = xmlService.loadSchemaFromXMLFile();
+                logger.debug("xmlService.loadSchemaFromXMLFile() returned: {}", loaded);
+
+                if (loaded) {
+                    File loadedXsd = xmlService.getCurrentXsdFile();
+                    String remoteLocation = xmlService.getRemoteXsdLocation();
+                    logger.debug("Loaded XSD file: {}, remote location: {}", loadedXsd, remoteLocation);
+
+                    if (loadedXsd != null && loadedXsd.exists()) {
+                        logger.info("Auto-loaded schema from: {} (cached at: {})",
+                                remoteLocation != null ? remoteLocation : loadedXsd.getName(),
+                                loadedXsd.getAbsolutePath());
+
+                        // Update schema provider and status on JavaFX thread
+                        Platform.runLater(() -> {
+                            boolean schemaLoaded = xmlInputSchemaProvider.loadSchema(loadedXsd);
+                            if (schemaLoaded) {
+                                logger.info("XSD schema loaded successfully for IntelliSense: {}",
+                                        loadedXsd.getName());
+                                xmlInputEditor.setXsdLoaded();
+                            } else {
+                                logger.warn("Failed to load XSD schema into provider: {}",
+                                        loadedXsd.getName());
+                                xmlInputEditor.setXsdError();
+                            }
+                        });
+                    } else {
+                        logger.debug("Loaded XSD file is null or doesn't exist: {}", loadedXsd);
+                        Platform.runLater(() -> xmlInputEditor.setXsdNone());
+                    }
+                } else {
+                    logger.debug("No schema reference found in XML file: {}", xmlFile.getName());
+                    Platform.runLater(() -> xmlInputEditor.setXsdNone());
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to auto-load XSD schema: {}", e.getMessage());
+                Platform.runLater(() -> xmlInputEditor.setXsdError());
+            }
+        }, "XsltDev-SchemaLoader-" + xmlFile.getName());
+
+        schemaLoader.setDaemon(true);
+        schemaLoader.start();
     }
 
     /**
@@ -668,12 +741,13 @@ public class XsltDeveloperController implements FavoritesParentController {
     private void initializeEditors() {
         logger.info("Initializing XmlCodeEditorV2 instances for XSLT Developer");
 
-        // Initialize XML Input Editor
+        // Initialize XML Input Editor with mutable schema provider for auto-XSD loading
         if (xmlInputEditorPane != null) {
-            xmlInputEditor = XmlCodeEditorV2Factory.createWithoutSchema();
+            xmlInputSchemaProvider = new MutableXmlSchemaProvider();
+            xmlInputEditor = XmlCodeEditorV2Factory.createWithMutableSchema(xmlInputSchemaProvider);
             xmlInputEditor.getCodeArea().replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    <!-- Enter or load your XML source document here -->\n</root>");
             xmlInputEditorPane.getChildren().add(xmlInputEditor);
-            logger.debug("XML Input Editor initialized");
+            logger.debug("XML Input Editor initialized with mutable schema provider");
         }
 
         // Initialize XSLT Input Editor
@@ -1095,31 +1169,19 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         File file = fileChooser.showOpenDialog(loadXmlBtn.getScene().getWindow());
         if (file != null) {
-            try {
-                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-                if (xmlInputEditor != null) {
-                    xmlInputEditor.getCodeArea().replaceText(content);
-                }
-                currentXmlFile = file;
-                logger.debug("Loaded XML file: {}", file.getAbsolutePath());
+            // Use the centralized loading method (includes auto-XSD loading)
+            loadXmlFileInternal(file);
 
-                // Set the XML file in the service for stylesheet detection
-                xmlService.setCurrentXmlFile(file);
+            // Auto-load linked XSLT stylesheet if user hasn't manually loaded one
+            if (currentXsltFile == null) {
+                tryLoadLinkedStylesheet();
+            }
 
-                // Auto-load linked XSLT stylesheet if user hasn't manually loaded one
-                if (currentXsltFile == null) {
-                    tryLoadLinkedStylesheet();
-                }
+            // Show content when file is loaded
+            showContent();
 
-                // Show content when file is loaded
-                showContent();
-
-                if (liveTransformToggle != null && liveTransformToggle.isSelected()) {
-                    performTransformation();
-                }
-            } catch (IOException e) {
-                logger.error("Failed to load XML file", e);
-                showAlert("Load Error", "Failed to load XML file: " + e.getMessage());
+            if (liveTransformToggle != null && liveTransformToggle.isSelected()) {
+                performTransformation();
             }
         }
     }
