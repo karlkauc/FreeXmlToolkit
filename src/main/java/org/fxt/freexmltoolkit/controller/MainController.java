@@ -796,14 +796,20 @@ public class MainController implements Initializable {
             logger.warn("Could not load logo for about dialog graphic.", e);
         }
 
+        // Get version from manifest or use default
+        String version = getClass().getPackage().getImplementationVersion();
+        if (version == null || version.isBlank()) {
+            version = "1.2.1"; // Default version for IDE development
+        }
+
         aboutDialog.setContentText(
                 """
-                        Version: 2024.1
-                        Copyright (c) Karl Kauc 2024.
+                        Version: %s
+                        Copyright (c) Karl Kauc 2024-2025.
                         
-                        Dieses Produkt ist unter der Apache License, Version 2.0, lizenziert. \
-                        Eine Kopie der Lizenz erhalten Sie unter:
-                        http://www.apache.org/licenses/LICENSE-2.0"""
+                        This product is licensed under the Apache License, Version 2.0.
+                        A copy of the license is available at:
+                        http://www.apache.org/licenses/LICENSE-2.0""".formatted(version)
         );
 
         aboutDialog.showAndWait();
