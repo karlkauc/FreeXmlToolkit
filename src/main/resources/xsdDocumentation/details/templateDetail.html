@@ -31,14 +31,24 @@
 
     <!-- Custom styles for details/summary -->
     <style>
-        /* Hide the default marker for summary elements */
+        /* Use custom marker indicator instead of default */
         summary::marker,
         summary::-webkit-details-marker {
             display: none;
         }
+        /* Ensure keyboard focus is visible on summary elements */
+        summary:focus {
+            outline: 2px solid #0ea5e9;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body class="font-sans text-slate-800" data-root-path=".." data-search-index-path="../search_index.json">
+
+<!-- Skip link for keyboard navigation -->
+<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-md focus:shadow-lg focus:text-sky-600">
+    Skip to main content
+</a>
 
 <!-- Modern navigation with shadow and clear spacing -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
@@ -62,6 +72,7 @@
             </div>
             <!-- Search Bar -->
             <div class="relative flex-1 max-w-md mx-4">
+                <label for="search-input" class="sr-only">Search documentation</label>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3" aria-hidden="true">
                     <svg class="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -71,7 +82,7 @@
                 </div>
                 <input type="search" id="search-input" placeholder="Loading search index..." disabled
                        class="w-full pl-3 pr-10 py-2 text-sm leading-tight text-slate-700 border border-slate-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-50 disabled:cursor-not-allowed">
-                <div id="search-results"
+                <div id="search-results" role="listbox" aria-live="polite" aria-label="Search results"
                      class="absolute hidden w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg z-20 max-h-96 overflow-y-auto">
                     <!-- Search results will be injected here -->
                 </div>
@@ -90,7 +101,7 @@
                 <!-- GitHub Link -->
                 <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
                    class="flex items-center space-x-2 text-slate-700 font-bold">
-                    <img src="../assets/logo.png" alt="logo" class="h-8 w-8"/>
+                    <img src="../assets/logo.png" alt="FreeXmlToolkit Logo" class="h-8 w-8"/>
                     <span>FreeXmlToolKit</span>
                 </a>
             </div>
@@ -99,7 +110,7 @@
 </nav>
 
 <!-- Main content -->
-<main class="container mx-auto px-4 py-8 md:py-12">
+<main id="main-content" class="container mx-auto px-4 py-8 md:py-12">
 
     <!-- Breadcrumb navigation: Now uses a pre-formatted HTML string for simplicity and correctness. -->
     <nav aria-label="breadcrumb" class="mb-6 text-sm" th:if="${breadCrumbs != null}"
@@ -116,7 +127,7 @@
                 <p class="text-sm text-slate-600 font-mono" th:text="${this.getCleanXPath(element)}">/path/to/element</p>
 
                 <!-- Button to copy the XPath -->
-                <button th:attr="data-xpath=${this.getCleanXPath(element)}"
+                <button aria-label="Copy XPath" th:attr="data-xpath=${this.getCleanXPath(element)}"
                         onclick="copyXPath(this)"
                         class="relative group p-1 rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -130,7 +141,7 @@
                 </button>
 
                 <!-- Button to copy the Permalink -->
-                <button th:attr="data-xpath=${this.getCleanXPath(element)}"
+                <button aria-label="Copy Permalink" th:attr="data-xpath=${this.getCleanXPath(element)}"
                         onclick="copyPermalink(this)"
                         class="relative group p-1 rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -153,7 +164,7 @@
                     <!-- Thymeleaf switch to differentiate between SVG, PNG and JPG -->
                     <div th:switch="${diagramType}">
                         <!-- Case 1: If the type is 'SVG', insert the SVG code directly -->
-                        <div th:case="'SVG'" th:utext="${diagramContent}">
+                        <div th:case="'SVG'" role="img" aria-label="Diagram showing the structure of this element" th:utext="${diagramContent}">
                             <!-- The raw SVG string is inserted here by Thymeleaf -->
                         </div>
                         <!-- Case 2: If the type is 'PNG', create a normal image tag -->
@@ -286,6 +297,7 @@
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">Child Elements &amp; Attributes</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
+                        <caption class="sr-only">Child elements and attributes of this element</caption>
                         <thead class="bg-slate-50 border-b border-slate-200 text-sm">
                         <tr>
                             <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Name (XPath)</th>
