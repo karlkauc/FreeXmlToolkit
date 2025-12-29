@@ -20,6 +20,8 @@ plugins {
     java
     application
     idea
+    // jacoco - Disabled: JaCoCo 0.8.12 doesn't support Java 25 yet (class file version 69)
+    // Re-enable when JaCoCo releases support for Java 25
     id("com.github.ben-manes.versions") version "0.53.0"
 }
 
@@ -257,6 +259,11 @@ tasks.test {
         "-Dmonocle.platform=Headless"
     )
 }
+
+// JaCoCo Code Coverage Configuration
+// DISABLED: JaCoCo 0.8.12 doesn't support Java 25 (class file version 69)
+// Re-enable when JaCoCo releases support for Java 25
+// See: https://github.com/jacoco/jacoco/issues/1681
 
 idea {
     module {
