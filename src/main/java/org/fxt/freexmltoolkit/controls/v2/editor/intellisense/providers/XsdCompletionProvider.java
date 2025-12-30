@@ -13,6 +13,7 @@ import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -184,7 +185,231 @@ public class XsdCompletionProvider implements CompletionProvider {
         int baseScore = isRequired ? 150 : 100;
         builder.relevanceScore(baseScore + (1000 - index));
 
+        // === Extended fields ===
+
+        // Cardinality (minOccurs/maxOccurs)
+        String cardinality = buildCardinalityString(elementInfo);
+        if (!cardinality.isEmpty()) {
+            builder.cardinality(cardinality);
+        }
+
+        // Default value
+        String defaultValue = extractDefaultValue(elementInfo);
+        if (defaultValue != null && !defaultValue.isEmpty()) {
+            builder.defaultValue(defaultValue);
+        }
+
+        // Facet hints
+        List<String> facetHints = buildFacetHints(elementInfo);
+        if (!facetHints.isEmpty()) {
+            builder.facetHints(facetHints);
+        }
+
+        // Examples from enumeration or sample data
+        List<String> examples = extractExamples(elementInfo);
+        if (!examples.isEmpty()) {
+            builder.examples(examples);
+        }
+
+        // Namespace info
+        if (elementInfo.getSourceNamespace() != null && !elementInfo.getSourceNamespace().isEmpty()) {
+            builder.namespace(elementInfo.getSourceNamespace());
+        }
+        if (elementInfo.getSourceNamespacePrefix() != null && !elementInfo.getSourceNamespacePrefix().isEmpty()) {
+            builder.prefix(elementInfo.getSourceNamespacePrefix());
+        }
+
         return builder.build();
+    }
+
+    /**
+     * Builds a cardinality string from minOccurs/maxOccurs.
+     * Examples: "1", "0..1", "1..*", "0..*", "2..5"
+     */
+    private String buildCardinalityString(XsdExtendedElement elementInfo) {
+        org.w3c.dom.Node cardNode = elementInfo.getCardinalityNode();
+        org.w3c.dom.Node currentNode = elementInfo.getCurrentNode();
+
+        // Try cardinalityNode first (for element references), then currentNode
+        org.w3c.dom.Node sourceNode = cardNode != null ? cardNode : currentNode;
+        if (sourceNode == null) {
+            return "";
+        }
+
+        String minOccurs = getNodeAttribute(sourceNode, "minOccurs");
+        String maxOccurs = getNodeAttribute(sourceNode, "maxOccurs");
+
+        // Defaults: minOccurs=1, maxOccurs=1
+        int min = 1;
+        int max = 1;
+        boolean unbounded = false;
+
+        if (minOccurs != null) {
+            try {
+                min = Integer.parseInt(minOccurs);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        if (maxOccurs != null) {
+            if ("unbounded".equals(maxOccurs)) {
+                unbounded = true;
+            } else {
+                try {
+                    max = Integer.parseInt(maxOccurs);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+
+        // Format cardinality
+        if (min == 1 && max == 1 && !unbounded) {
+            return "1";  // Exactly one (default)
+        } else if (min == 0 && max == 1) {
+            return "0..1";  // Optional
+        } else if (min == 0 && unbounded) {
+            return "0..*";  // Zero or more
+        } else if (min == 1 && unbounded) {
+            return "1..*";  // One or more
+        } else if (unbounded) {
+            return min + "..*";
+        } else if (min == max) {
+            return String.valueOf(min);
+        } else {
+            return min + ".." + max;
+        }
+    }
+
+    /**
+     * Extracts the default value from the element definition.
+     */
+    private String extractDefaultValue(XsdExtendedElement elementInfo) {
+        org.w3c.dom.Node currentNode = elementInfo.getCurrentNode();
+        if (currentNode == null) {
+            return null;
+        }
+
+        // Check for default attribute
+        String defaultVal = getNodeAttribute(currentNode, "default");
+        if (defaultVal != null) {
+            return defaultVal;
+        }
+
+        // Check for fixed attribute (also a kind of default)
+        String fixedVal = getNodeAttribute(currentNode, "fixed");
+        if (fixedVal != null) {
+            return fixedVal + " (fixed)";
+        }
+
+        return null;
+    }
+
+    /**
+     * Builds facet hints from restriction info.
+     * Returns a list like ["pattern", "maxLength:100", "minInclusive:0"]
+     */
+    private List<String> buildFacetHints(XsdExtendedElement elementInfo) {
+        List<String> hints = new ArrayList<>();
+
+        XsdExtendedElement.RestrictionInfo restrictionInfo = elementInfo.getRestrictionInfo();
+        if (restrictionInfo == null || restrictionInfo.facets() == null) {
+            return hints;
+        }
+
+        Map<String, List<String>> facets = restrictionInfo.facets();
+
+        // Add facet hints (skip enumeration as it's handled in examples)
+        for (Map.Entry<String, List<String>> entry : facets.entrySet()) {
+            String facetName = entry.getKey();
+            List<String> values = entry.getValue();
+
+            if (values == null || values.isEmpty()) {
+                continue;
+            }
+
+            switch (facetName) {
+                case "pattern":
+                    // Just indicate pattern exists (actual patterns can be complex)
+                    hints.add("pattern");
+                    break;
+                case "enumeration":
+                    // Skip - handled separately in examples
+                    break;
+                case "minLength":
+                case "maxLength":
+                case "length":
+                case "minInclusive":
+                case "maxInclusive":
+                case "minExclusive":
+                case "maxExclusive":
+                case "totalDigits":
+                case "fractionDigits":
+                    // Show name:value
+                    hints.add(facetName + ":" + values.get(0));
+                    break;
+                case "whiteSpace":
+                    hints.add("whiteSpace:" + values.get(0));
+                    break;
+                default:
+                    hints.add(facetName);
+                    break;
+            }
+        }
+
+        return hints;
+    }
+
+    /**
+     * Extracts example values from enumeration or sample data.
+     */
+    private List<String> extractExamples(XsdExtendedElement elementInfo) {
+        List<String> examples = new ArrayList<>();
+
+        // First, check for enumeration values in restriction
+        XsdExtendedElement.RestrictionInfo restrictionInfo = elementInfo.getRestrictionInfo();
+        if (restrictionInfo != null && restrictionInfo.facets() != null) {
+            List<String> enumerations = restrictionInfo.facets().get("enumeration");
+            if (enumerations != null && !enumerations.isEmpty()) {
+                // Limit to first 5 values for display
+                int limit = Math.min(5, enumerations.size());
+                for (int i = 0; i < limit; i++) {
+                    examples.add(enumerations.get(i));
+                }
+                if (enumerations.size() > 5) {
+                    examples.add("... (" + (enumerations.size() - 5) + " more)");
+                }
+                return examples;
+            }
+        }
+
+        // Fall back to example values from XSD
+        List<String> exampleValues = elementInfo.getExampleValues();
+        if (exampleValues != null && !exampleValues.isEmpty()) {
+            int limit = Math.min(3, exampleValues.size());
+            for (int i = 0; i < limit; i++) {
+                examples.add(exampleValues.get(i));
+            }
+            return examples;
+        }
+
+        // Fall back to sample data if available
+        String sampleData = elementInfo.getDisplaySampleData();
+        if (sampleData != null && !sampleData.isEmpty() && sampleData.length() < 50) {
+            examples.add(sampleData);
+        }
+
+        return examples;
+    }
+
+    /**
+     * Helper to get attribute value from a DOM Node.
+     */
+    private String getNodeAttribute(org.w3c.dom.Node node, String attrName) {
+        if (node == null || node.getAttributes() == null) {
+            return null;
+        }
+        org.w3c.dom.Node attrNode = node.getAttributes().getNamedItem(attrName);
+        return attrNode != null ? attrNode.getNodeValue() : null;
     }
 
     /**

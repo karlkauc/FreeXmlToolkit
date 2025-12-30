@@ -289,3 +289,152 @@
 .performance-mode .xml-info {
     -rtfx-underline-wave: false;
 }
+
+/* ============================================
+ * Enhanced IntelliSense Popup Styles (V2)
+ * Two-line layout with icons and rich metadata
+ * ============================================ */
+
+/* Main popup container */
+.intellisense-popup {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #c0c0c0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 12, 0, 0, 4);
+}
+
+/* ListView inside popup */
+.intellisense-list {
+    -fx-background-color: transparent;
+    -fx-padding: 4px;
+}
+
+.intellisense-list .list-cell {
+    -fx-padding: 2px 4px;
+    -fx-background-radius: 4px;
+}
+
+.intellisense-list .list-cell:filled:selected {
+    -fx-background-color: #0078d4;
+}
+
+.intellisense-list .list-cell:filled:selected .completion-name,
+.intellisense-list .list-cell:filled:selected .completion-datatype,
+.intellisense-list .list-cell:filled:selected .completion-cardinality,
+.intellisense-list .list-cell:filled:selected .completion-default,
+.intellisense-list .list-cell:filled:selected .completion-facets,
+.intellisense-list .list-cell:filled:selected .completion-examples {
+    -fx-text-fill: white !important;
+}
+
+.intellisense-list .list-cell:filled:hover:not(:selected) {
+    -fx-background-color: #e8f4fd;
+}
+
+/* Completion item styles by type */
+.completion-item {
+    -fx-font-family: "Segoe UI", system;
+    -fx-font-size: 12px;
+}
+
+.completion-element {
+    -fx-border-color: transparent transparent transparent #007bff;
+    -fx-border-width: 0 0 0 2px;
+}
+
+.completion-attribute {
+    -fx-border-color: transparent transparent transparent #28a745;
+    -fx-border-width: 0 0 0 2px;
+}
+
+.completion-value {
+    -fx-border-color: transparent transparent transparent #6c757d;
+    -fx-border-width: 0 0 0 2px;
+}
+
+.completion-snippet {
+    -fx-border-color: transparent transparent transparent #ffc107;
+    -fx-border-width: 0 0 0 2px;
+}
+
+.completion-xpath-function {
+    -fx-border-color: transparent transparent transparent #17a2b8;
+    -fx-border-width: 0 0 0 2px;
+}
+
+.completion-xpath-axis {
+    -fx-border-color: transparent transparent transparent #6f42c1;
+    -fx-border-width: 0 0 0 2px;
+}
+
+.completion-type {
+    -fx-border-color: transparent transparent transparent #fd7e14;
+    -fx-border-width: 0 0 0 2px;
+}
+
+/* Required items get subtle red background tint */
+.completion-required {
+    -fx-background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* Name label - always bold */
+.completion-name {
+    -fx-font-weight: bold;
+    -fx-text-fill: #212529;
+}
+
+/* Data type - gray text */
+.completion-datatype {
+    -fx-text-fill: #6c757d;
+}
+
+/* Cardinality - italic cyan */
+.completion-cardinality {
+    -fx-text-fill: #17a2b8;
+    -fx-font-style: italic;
+}
+
+/* Required marker - red asterisk */
+.completion-required-marker {
+    -fx-text-fill: #dc3545;
+    -fx-font-weight: bold;
+}
+
+/* Default value - green italic */
+.completion-default {
+    -fx-text-fill: #28a745;
+    -fx-font-style: italic;
+}
+
+/* Namespace badge */
+.completion-namespace {
+    -fx-background-color: #e9ecef;
+    -fx-background-radius: 3px;
+    -fx-padding: 1 4;
+    -fx-font-size: 10px;
+    -fx-text-fill: #495057;
+}
+
+/* Second line styles */
+.completion-facets {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 11px;
+}
+
+.completion-examples {
+    -fx-text-fill: #007bff;
+    -fx-font-size: 11px;
+}
+
+/* Tooltip styling */
+.intellisense-list .tooltip {
+    -fx-background-color: #fffef0;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1px;
+    -fx-padding: 8px;
+    -fx-font-size: 12px;
+    -fx-max-width: 400px;
+    -fx-wrap-text: true;
+}
