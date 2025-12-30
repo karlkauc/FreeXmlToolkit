@@ -97,6 +97,7 @@ nav:
   - Validation:
     - Schematron: schematron-support.md
   - Security:
+    - Security Features: SECURITY.md
     - Digital Signatures: digital-signatures.md
   - Reference:
     - Technology Stack: technology-stack.md
