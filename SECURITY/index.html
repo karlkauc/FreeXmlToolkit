@@ -15,6 +15,10 @@
         <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/SECURITY/">
       
       
+        <link rel="prev" href="../schematron-support/">
+      
+      
+        <link rel="next" href="../digital-signatures/">
       
       
         
@@ -321,11 +325,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../digital-signatures/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -1012,28 +1018,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
-        
-          
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
             
   
   
@@ -1051,7 +1060,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1061,6 +1070,635 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Features
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xxe-xml-external-entity-protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XXE (XML External Entity) Protection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="XXE (XML External Entity) Protection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-xxe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is XXE?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-of-a-malicious-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example of a Malicious XML
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-freexmltoolkit-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What FreeXmlToolkit Blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means-for-you" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What This Means for You
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xsltxquery-extension-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XSLT/XQuery Extension Security
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="XSLT/XQuery Extension Security">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-are-xslt-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Are XSLT Extensions?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-of-a-dangerous-stylesheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example of a Dangerous Stylesheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-blocked-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is Blocked by Default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enabling-extensions-advanced-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enabling Extensions (Advanced Users)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ssrf-server-side-request-forgery-protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSRF (Server-Side Request Forgery) Protection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SSRF (Server-Side Request Forgery) Protection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-ssrf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is SSRF?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-freexmltoolkit-blocks_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What FreeXmlToolkit Blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-allowed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is Allowed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means-for-you_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What This Means for You
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-traversal-protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path Traversal Protection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Path Traversal Protection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-path-traversal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is Path Traversal?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-freexmltoolkit-blocks_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What FreeXmlToolkit Blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protected-system-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protected System Directories
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#affected-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Affected Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means-for-you_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What This Means for You
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xpath-injection-protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPath Injection Protection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="XPath Injection Protection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-xpath-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is XPath Injection?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-freexmltoolkit-protects-you" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How FreeXmlToolkit Protects You
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-value-escaping-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Value Escaping Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-this-means-for-you_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What This Means for You
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-configure-security-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Configure Security Settings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to Configure Security Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finding-security-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Security Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#available-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-property-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Property Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#external-entity-not-resolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "External entity not resolved"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#url-blocked-for-security-reasons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "URL blocked for security reasons"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xslt-extension-function-not-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "XSLT extension function not available"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-traversal-detected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Path traversal detected"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Technical Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technical Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#xml-parser-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML Parser Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xsltxquery-configuration-saxon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XSLT/XQuery Configuration (Saxon)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#url-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        URL Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
             
               
                 
@@ -2310,6 +2948,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../schematron-support/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Schematron">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Schematron
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../digital-signatures/" class="md-footer__link md-footer__link--next" aria-label="Next: Digital Signatures">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Digital Signatures
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
