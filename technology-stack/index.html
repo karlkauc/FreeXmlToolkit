@@ -1655,10 +1655,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#input-validation" class="md-nav__link">
+  <a href="#input-validation-attack-prevention" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Input Validation
+        Input Validation &amp; Attack Prevention
       
     </span>
   </a>
@@ -2219,10 +2219,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#input-validation" class="md-nav__link">
+  <a href="#input-validation-attack-prevention" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Input Validation
+        Input Validation &amp; Attack Prevention
       
     </span>
   </a>
@@ -2511,6 +2511,7 @@
 - Web content rendering (WebView)
 - Swing interoperability</p>
 <h2 id="security-features">Security Features<a class="headerlink" href="#security-features" title="Permanent link">&para;</a></h2>
+<p>For detailed information about security protections, see the <a href="../SECURITY/">Security Features</a> documentation.</p>
 <h3 id="digital-signatures_1">Digital Signatures<a class="headerlink" href="#digital-signatures_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>XML-DSig:</strong> W3C XML Digital Signature support</li>
@@ -2518,11 +2519,14 @@
 <li><strong>Cryptographic Algorithms:</strong> Support for RSA, DSA, and ECDSA signatures</li>
 <li><strong>Key Generation:</strong> RSA 2048/4096-bit key pair generation</li>
 </ul>
-<h3 id="input-validation">Input Validation<a class="headerlink" href="#input-validation" title="Permanent link">&para;</a></h3>
+<h3 id="input-validation-attack-prevention">Input Validation &amp; Attack Prevention<a class="headerlink" href="#input-validation-attack-prevention" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>XXE Protection:</strong> Secure XML parser configuration prevents external entity attacks</li>
+<li><strong>SSRF Protection:</strong> URL validation blocks access to internal networks and metadata endpoints</li>
+<li><strong>XSLT Extension Security:</strong> Java extensions disabled by default to prevent code execution</li>
+<li><strong>Path Traversal Prevention:</strong> File access restricted to prevent directory escape</li>
+<li><strong>XPath Injection Prevention:</strong> Proper parameter escaping in XPath queries</li>
 <li><strong>Schema Validation:</strong> Strict validation against XSD 1.0/1.1 schemas</li>
-<li><strong>XPath Injection Prevention:</strong> Safe XPath expression execution</li>
-<li><strong>File System Security:</strong> Controlled file access with validation</li>
 </ul>
 <h2 id="development-environment">Development Environment<a class="headerlink" href="#development-environment" title="Permanent link">&para;</a></h2>
 <h3 id="recommended-ide-setup">Recommended IDE Setup<a class="headerlink" href="#recommended-ide-setup" title="Permanent link">&para;</a></h3>
@@ -2552,12 +2556,11 @@
 <tr>
 <td><a href="../template-management/">Templates</a></td>
 <td><a href="../">Home</a></td>
-<td><a href="../licenses/">Licenses</a></td>
+<td><a href="../SECURITY/">Security</a></td>
 </tr>
 </tbody>
 </table>
-<p>**All Pages:
-** <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="./">Tech Stack</a> | <a href="../licenses/">Licenses</a></p>
+<p><strong>All Pages:</strong> <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="./">Tech Stack</a> | <a href="../SECURITY/">Security</a> | <a href="../licenses/">Licenses</a></p>
 
 
 
