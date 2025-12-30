@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.ConnectionService;
+import org.fxt.freexmltoolkit.util.PathValidator;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -511,9 +512,18 @@ public class SchemaResolver {
 
     /**
      * Resolves a remote schema from HTTP/HTTPS.
+     *
+     * <p><b>Security:</b> This method validates URLs to prevent SSRF attacks.
+     * URLs pointing to internal networks, localhost, or metadata endpoints are rejected.
      */
     private ParsedSchema resolveRemoteSchema(String url) throws XsdParseException {
         logger.info("Resolving remote schema: {}", url);
+
+        // SECURITY: Validate URL to prevent SSRF attacks
+        if (!PathValidator.isUrlSafeToAccess(url)) {
+            logger.error("SECURITY: Blocked SSRF attempt - URL targets internal/private network: {}", url);
+            throw new XsdParseException("Security: Remote schema URL is not allowed (points to internal network): " + url);
+        }
 
         try {
             ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
@@ -778,6 +788,12 @@ public class SchemaResolver {
         }
 
         private org.w3c.dom.ls.LSInput resolveRemoteForValidation(String systemId, String publicId) {
+            // SECURITY: Validate URL to prevent SSRF attacks
+            if (!PathValidator.isUrlSafeToAccess(systemId)) {
+                logger.error("SECURITY: Blocked SSRF attempt in validation - URL targets internal/private network: {}", systemId);
+                return null;
+            }
+
             try {
                 logger.debug("Resolving remote schema: {}", systemId);
                 Path cachedPath = cache.getOrDownload(systemId);

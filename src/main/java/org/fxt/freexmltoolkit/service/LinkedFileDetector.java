@@ -4,6 +4,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo.LinkType;
+import org.fxt.freexmltoolkit.util.PathValidator;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -40,13 +42,11 @@ public class LinkedFileDetector {
      * Creates a new LinkedFileDetector.
      */
     public LinkedFileDetector() {
-        this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        this.documentBuilderFactory.setNamespaceAware(true);
+        // Use SecureXmlFactory for XXE protection
+        this.documentBuilderFactory = SecureXmlFactory.createSecureDocumentBuilderFactory(true);
 
-        this.xmlInputFactory = XMLInputFactory.newInstance();
-        // Security settings
-        this.xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-        this.xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        // Use SecureXmlFactory for StAX parser
+        this.xmlInputFactory = SecureXmlFactory.createSecureXMLInputFactory();
     }
 
     /**
@@ -307,6 +307,10 @@ public class LinkedFileDetector {
 
     /**
      * Resolves a relative path against a base file's directory.
+     *
+     * <p><b>Security:</b> This method logs warnings for potentially dangerous
+     * path traversal patterns but allows them for legitimate schema includes.
+     * It rejects attempts to access system paths.
      */
     private File resolvePath(File baseFile, String relativePath) {
         if (baseFile == null || relativePath == null) {
@@ -319,11 +323,32 @@ public class LinkedFileDetector {
                 return new File(relativePath);
             }
 
+            // Log warning for paths with traversal patterns (common but worth noting)
+            int traversalCount = PathValidator.countParentTraversals(relativePath);
+            if (traversalCount > 0) {
+                logger.debug("Path contains {} parent traversals: {} (relative to {})",
+                    traversalCount, relativePath, parentDir);
+            }
+
+            // SECURITY: Reject paths with excessive traversal (more than 5 levels seems suspicious)
+            if (traversalCount > 5) {
+                logger.warn("SECURITY: Rejected path with excessive traversal ({}): {}",
+                    traversalCount, relativePath);
+                return null;
+            }
+
             // Handle various path formats
             String normalizedPath = relativePath.replace('\\', '/');
             File resolved = new File(parentDir, normalizedPath);
+            File canonicalResolved = resolved.getCanonicalFile();
 
-            return resolved.getCanonicalFile();
+            // SECURITY: Reject access to obvious system directories
+            if (!PathValidator.isOutputPathSafe(canonicalResolved.getAbsolutePath())) {
+                logger.warn("SECURITY: Rejected path targeting system directory: {}", canonicalResolved);
+                return null;
+            }
+
+            return canonicalResolved;
         } catch (Exception e) {
             logger.warn("Failed to resolve path: {} relative to {}", relativePath, baseFile);
             return null;

@@ -478,4 +478,23 @@ public class PropertiesServiceImpl implements PropertiesService {
             logger.debug("Set custom temp folder to: {}", path);
         }
     }
+
+    // Security settings implementation
+
+    @Override
+    public boolean isXsltExtensionsAllowed() {
+        return Boolean.parseBoolean(properties.getProperty("security.xslt.allow.extensions", "false"));
+    }
+
+    @Override
+    public void setXsltExtensionsAllowed(boolean allowed) {
+        properties.setProperty("security.xslt.allow.extensions", String.valueOf(allowed));
+        saveProperties(properties);
+        if (allowed) {
+            logger.warn("SECURITY: XSLT Java extensions have been ENABLED. " +
+                       "This allows XSLT stylesheets to execute arbitrary Java code.");
+        } else {
+            logger.info("SECURITY: XSLT Java extensions are disabled (secure default).");
+        }
+    }
 }

@@ -806,6 +806,16 @@ class UpdateCheckServiceTest {
             }
             return getCustomTempFolder() != null ? getCustomTempFolder() : System.getProperty("java.io.tmpdir");
         }
+
+        @Override
+        public boolean isXsltExtensionsAllowed() {
+            return Boolean.parseBoolean(properties.getProperty("security.xslt.allow.extensions", "false"));
+        }
+
+        @Override
+        public void setXsltExtensionsAllowed(boolean allowed) {
+            properties.setProperty("security.xslt.allow.extensions", String.valueOf(allowed));
+        }
     }
 
     /**

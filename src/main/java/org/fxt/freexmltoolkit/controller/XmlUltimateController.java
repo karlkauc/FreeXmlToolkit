@@ -53,6 +53,7 @@ import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -1407,10 +1408,9 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                 protected List<String> call() throws Exception {
                     List<String> errors = new ArrayList<>();
 
-                    // Well-formedness check
+                    // Well-formedness check (with XXE protection)
                     try {
-                        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                        DocumentBuilder builder = factory.newDocumentBuilder();
+                        DocumentBuilder builder = SecureXmlFactory.createSecureWellFormednessBuilder();
                         builder.parse(new InputSource(new StringReader(xml)));
                         errors.add("✓ XML is well-formed");
                     } catch (Exception e) {
@@ -2015,8 +2015,8 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     private void updateDocumentTree(String xml) {
         if (documentTreeView != null) {
             try {
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder builder = factory.newDocumentBuilder();
+                // Use SecureXmlFactory to prevent XXE attacks
+                DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
                 Document doc = builder.parse(new InputSource(new StringReader(xml)));
 
                 TreeItem<String> root = new TreeItem<>(doc.getDocumentElement().getNodeName());
@@ -2042,11 +2042,11 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             return XmlService.prettyFormat(xml, 2);
         } else {
             // For non-indented, just parse and output without indentation
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
+            // Use SecureXmlFactory to prevent XXE attacks
+            DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
             Document doc = builder.parse(new InputSource(new StringReader(xml)));
 
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            TransformerFactory transformerFactory = SecureXmlFactory.createSecureTransformerFactory();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "no");
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");

@@ -1,8 +1,11 @@
 package org.fxt.freexmltoolkit.service;
 
+import net.sf.saxon.Configuration;
+import net.sf.saxon.lib.Feature;
 import net.sf.saxon.s9api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
@@ -86,6 +89,10 @@ public class XsltTransformationEngine {
     public XsltTransformationEngine() {
         // Initialize Saxon processor with XSLT 3.0 support
         saxonProcessor = new Processor(true); // Enable Saxon-EE features if available
+
+        // Apply security configuration to Saxon processor
+        configureSecuritySettings();
+
         xsltCompiler = saxonProcessor.newXsltCompiler();
         transformer = null; // Will be created per transformation
 
@@ -102,6 +109,47 @@ public class XsltTransformationEngine {
         logger.info("XSLT Transformation Engine initialized with Saxon {} (XSLT 3.0 support: {})",
                 saxonProcessor.getSaxonProductVersion(),
                 saxonProcessor.getSaxonEdition());
+    }
+
+    /**
+     * Configures security settings for the Saxon processor.
+     *
+     * <p>By default, Java/JavaScript extensions are disabled to prevent arbitrary code execution.
+     * This can be overridden via the application settings if the user explicitly allows extensions.
+     *
+     * <p><b>Security Warning:</b> Enabling extensions allows XSLT stylesheets to execute
+     * arbitrary Java code, which is a significant security risk.
+     */
+    private void configureSecuritySettings() {
+        Configuration config = saxonProcessor.getUnderlyingConfiguration();
+
+        // Check if extensions are allowed via application settings
+        boolean allowExtensions = false;
+        try {
+            PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+            if (propertiesService != null) {
+                allowExtensions = propertiesService.isXsltExtensionsAllowed();
+            }
+        } catch (Exception e) {
+            logger.debug("Could not read XSLT extension settings, using secure defaults: {}", e.getMessage());
+        }
+
+        if (allowExtensions) {
+            logger.warn("SECURITY WARNING: XSLT Java extensions are ENABLED. " +
+                       "This allows XSLT stylesheets to execute arbitrary Java code. " +
+                       "Only process trusted stylesheets!");
+        } else {
+            // Disable extension functions for security
+            // This prevents java: and other extension namespaces from executing code
+            try {
+                // Disable reflexive extension functions (java: namespace)
+                config.setConfigurationProperty(Feature.ALLOW_EXTERNAL_FUNCTIONS, false);
+
+                logger.info("SECURITY: XSLT Java extensions are disabled (secure default)");
+            } catch (Exception e) {
+                logger.warn("Could not disable XSLT extensions: {}", e.getMessage());
+            }
+        }
     }
 
     public static synchronized XsltTransformationEngine getInstance() {

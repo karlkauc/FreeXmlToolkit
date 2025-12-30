@@ -26,6 +26,7 @@ import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
+import org.fxt.freexmltoolkit.util.PathValidator;
 import org.jspecify.annotations.NonNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -1854,13 +1855,28 @@ public class XsdDocumentationService {
                 @Override
                 public org.w3c.dom.ls.LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI) {
                     if (systemId != null && schemaDir != null) {
+                        // SECURITY: Validate systemId before resolving
+                        int traversalCount = PathValidator.countParentTraversals(systemId);
+                        if (traversalCount > 5) {
+                            logger.warn("SECURITY: Rejected schema import with excessive traversal: {}", systemId);
+                            return null;
+                        }
+
                         File resolvedFile = new File(schemaDir, systemId);
-                        if (resolvedFile.exists()) {
-                            try {
-                                return new LSInputImpl(publicId, systemId, resolvedFile);
-                            } catch (Exception e) {
-                                logger.debug("Could not resolve resource: {}", systemId);
+                        try {
+                            File canonicalFile = resolvedFile.getCanonicalFile();
+
+                            // SECURITY: Check for system directory access
+                            if (!PathValidator.isOutputPathSafe(canonicalFile.getAbsolutePath())) {
+                                logger.warn("SECURITY: Rejected schema import targeting system directory: {}", systemId);
+                                return null;
                             }
+
+                            if (canonicalFile.exists()) {
+                                return new LSInputImpl(publicId, systemId, canonicalFile);
+                            }
+                        } catch (Exception e) {
+                            logger.debug("Could not resolve resource: {}", systemId);
                         }
                     }
                     return null;

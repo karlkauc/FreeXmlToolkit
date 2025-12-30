@@ -201,6 +201,7 @@ The application includes example files in the `examples/` folder to help you get
 
 | Page | Description |
 |------|-------------|
+| [Security Features](SECURITY.md) | Built-in protections against XML attacks |
 | [Technology Stack](technology-stack.md) | Libraries and versions used |
 | [Third-Party Licenses](licenses.md) | License information |
 
@@ -221,4 +222,4 @@ The application includes example files in the `examples/` folder to help you get
 
 **Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
 
-**Reference:** [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**Reference:** [Security](SECURITY.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

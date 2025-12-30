@@ -9,8 +9,9 @@ import org.fxt.freexmltoolkit.domain.XPathSnippet;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
+
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.dom.DOMSource;
 import java.io.StringReader;
 import java.time.LocalDateTime;
@@ -314,19 +315,68 @@ public class XPathExecutionEngine {
             }
         }
 
-        // Replace parameter placeholders
+        // Replace parameter placeholders with properly escaped values
+        // SECURITY: XPath values must be properly escaped to prevent injection attacks
         for (Map.Entry<String, String> param : parameterValues.entrySet()) {
             String placeholder = "${" + param.getKey() + "}";
-            query = query.replace(placeholder, param.getValue());
+            String escapedValue = escapeXPathValue(param.getValue());
+            query = query.replace(placeholder, escapedValue);
         }
 
-        // Replace variables
+        // Replace variables with escaped values
         for (Map.Entry<String, String> var : snippet.getVariables().entrySet()) {
             String value = parameterValues.getOrDefault(var.getKey(), var.getValue());
-            query = query.replace("$" + var.getKey(), value);
+            String escapedValue = escapeXPathValue(value);
+            query = query.replace("$" + var.getKey(), escapedValue);
         }
 
         return query;
+    }
+
+    /**
+     * Escapes a string value for safe use in XPath expressions.
+     *
+     * <p>This method handles the complex quoting requirements of XPath:
+     * <ul>
+     *   <li>If the value contains only single quotes, wrap in double quotes</li>
+     *   <li>If the value contains only double quotes, wrap in single quotes</li>
+     *   <li>If the value contains both, use concat() function</li>
+     * </ul>
+     *
+     * <p><b>Security:</b> This prevents XPath injection attacks by ensuring user input
+     * is properly quoted and cannot break out of string literals.
+     *
+     * @param value the string value to escape
+     * @return the escaped XPath string expression
+     */
+    private String escapeXPathValue(String value) {
+        if (value == null) {
+            return "''";
+        }
+
+        boolean containsSingleQuote = value.contains("'");
+        boolean containsDoubleQuote = value.contains("\"");
+
+        if (!containsSingleQuote) {
+            // No single quotes - wrap in single quotes
+            return "'" + value + "'";
+        } else if (!containsDoubleQuote) {
+            // No double quotes - wrap in double quotes
+            return "\"" + value + "\"";
+        } else {
+            // Contains both - use concat() function
+            // Split the value by single quotes and reconstruct using concat()
+            StringBuilder result = new StringBuilder("concat(");
+            String[] parts = value.split("'", -1);
+            for (int i = 0; i < parts.length; i++) {
+                if (i > 0) {
+                    result.append(", \"'\", ");
+                }
+                result.append("'").append(parts[i]).append("'");
+            }
+            result.append(")");
+            return result.toString();
+        }
     }
 
     private void applySnippetNamespaces(XPathSnippet snippet) {
@@ -343,10 +393,8 @@ public class XPathExecutionEngine {
     }
 
     private Document parseXmlDocument(String xmlContent) throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
-
+        // Use SecureXmlFactory to prevent XXE attacks
+        DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
         return builder.parse(new InputSource(new StringReader(xmlContent)));
     }
 

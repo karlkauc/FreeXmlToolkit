@@ -21,6 +21,8 @@ package org.fxt.freexmltoolkit.service;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.util.PathValidator;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -127,12 +129,21 @@ public class SchemaResourceCache {
     /**
      * Gets or downloads a remote schema file, tracking the referencing schema.
      *
+     * <p><b>Security:</b> This method validates URLs to prevent SSRF attacks.
+     * URLs pointing to internal networks, localhost, or metadata endpoints are rejected.
+     *
      * @param url            the remote URL of the schema file
      * @param referencingUrl the URL of the schema that references this one (for tracking)
      * @return the local path to the cached schema file
      * @throws IOException if the download fails or the file cannot be written
      */
     public Path getOrDownload(String url, String referencingUrl) throws IOException {
+        // SECURITY: Validate URL to prevent SSRF attacks
+        if (!PathValidator.isUrlSafeToAccess(url)) {
+            logger.error("SECURITY: Blocked SSRF attempt in schema cache - URL targets internal/private network: {}", url);
+            throw new IOException("Security: Remote schema URL is not allowed (points to internal network): " + url);
+        }
+
         String filename = generateFilename(url);
 
         // Check in-memory cache first
@@ -287,9 +298,9 @@ public class SchemaResourceCache {
         List<String> redefines = new ArrayList<>();
 
         try {
-            XMLInputFactory factory = XMLInputFactory.newInstance();
+            // Use SecureXmlFactory for XXE protection
+            XMLInputFactory factory = SecureXmlFactory.createSecureXMLInputFactory();
             factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
-            factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
 
             try (InputStream is = Files.newInputStream(schemaFile)) {
                 XMLStreamReader reader = factory.createXMLStreamReader(is);

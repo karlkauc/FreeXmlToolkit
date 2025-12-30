@@ -207,16 +207,21 @@ JavaFX 24.0.1 is bundled with Liberica Full JDK, providing:
 
 ## Security Features
 
+For detailed information about security protections, see the [Security Features](SECURITY.md) documentation.
+
 ### Digital Signatures
 - **XML-DSig:** W3C XML Digital Signature support
 - **Certificate Validation:** X.509 certificate chain validation
 - **Cryptographic Algorithms:** Support for RSA, DSA, and ECDSA signatures
 - **Key Generation:** RSA 2048/4096-bit key pair generation
 
-### Input Validation
+### Input Validation & Attack Prevention
+- **XXE Protection:** Secure XML parser configuration prevents external entity attacks
+- **SSRF Protection:** URL validation blocks access to internal networks and metadata endpoints
+- **XSLT Extension Security:** Java extensions disabled by default to prevent code execution
+- **Path Traversal Prevention:** File access restricted to prevent directory escape
+- **XPath Injection Prevention:** Proper parameter escaping in XPath queries
 - **Schema Validation:** Strict validation against XSD 1.0/1.1 schemas
-- **XPath Injection Prevention:** Safe XPath expression execution
-- **File System Security:** Controlled file access with validation
 
 ## Development Environment
 
@@ -237,7 +242,6 @@ JavaFX 24.0.1 is bundled with Liberica Full JDK, providing:
 
 | Previous | Home | Next |
 |----------|------|------|
-| [Templates](template-management.md) | [Home](index.md) | [Licenses](licenses.md) |
+| [Templates](template-management.md) | [Home](index.md) | [Security](SECURITY.md) |
 
-**All Pages:
-** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT](xslt-viewer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT](xslt-viewer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

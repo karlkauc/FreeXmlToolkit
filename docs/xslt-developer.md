@@ -491,18 +491,20 @@ return <categorized>
 - **Save your work** to favorites for quick access later
 - **Use batch mode** for processing multiple files efficiently
 - **Enable Debug Mode** when troubleshooting complex stylesheets
+- **Only process trusted stylesheets** - see [Security Features](SECURITY.md) for details on XSLT extension security
 
 ---
 
 ## Troubleshooting
 
-| Problem                | Solution                                       |
-|------------------------|------------------------------------------------|
-| No output              | Check that XML and XSLT/XQuery are both loaded |
-| Syntax error           | Check the Debug tab for error details          |
-| Slow transformation    | Check Performance tab; consider simplifying    |
-| Batch results empty    | Ensure files are selected (checkboxes checked) |
-| Parameters not working | Verify parameter names match exactly           |
+| Problem                           | Solution                                                                                                               |
+|-----------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| No output                         | Check that XML and XSLT/XQuery are both loaded                                                                         |
+| Syntax error                      | Check the Debug tab for error details                                                                                  |
+| Slow transformation               | Check Performance tab; consider simplifying                                                                            |
+| Batch results empty               | Ensure files are selected (checkboxes checked)                                                                         |
+| Parameters not working            | Verify parameter names match exactly                                                                                   |
+| Java extension function not found | Java extensions are disabled by default for security. See [Security Features](SECURITY.md#xsltxquery-extension-security) |
 
 ---
 
@@ -512,5 +514,4 @@ return <categorized>
 |-------------------------------|------------------|-----------------------------------------|
 | [XSLT Viewer](xslt-viewer.md) | [Home](index.md) | [PDF Generator (FOP)](pdf-generator.md) |
 
-**All Pages:
-** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

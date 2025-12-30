@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.service;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
+import org.fxt.freexmltoolkit.util.PathValidator;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -398,6 +399,12 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             logger.info("Launcher: {}", launcher);
             logger.info("Update directory: {}", extractedDir);
 
+            // SECURITY: Validate paths before passing to shell scripts
+            if (!validateUpdaterPaths(appDir, extractedDir, launcher)) {
+                logger.error("Security validation failed for updater paths");
+                return false;
+            }
+
             // Create the updater script in the temp directory
             Path updaterScript = createUpdaterScript(extractedDir, appDir, launcher);
 
@@ -430,6 +437,45 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             logger.error("Failed to launch updater", e);
             return false;
         }
+    }
+
+    /**
+     * Validates paths before passing them to updater scripts.
+     *
+     * <p>This method ensures paths don't contain characters that could
+     * be used for command injection attacks.
+     *
+     * @return true if all paths are valid, false otherwise
+     */
+    private boolean validateUpdaterPaths(Path appDir, Path extractedDir, Path launcher) {
+        // Check all paths are valid and don't target system directories
+        if (!PathValidator.isOutputPathSafe(appDir.toString())) {
+            logger.warn("SECURITY: Application directory targets system path: {}", appDir);
+            return false;
+        }
+
+        if (!PathValidator.isOutputPathSafe(extractedDir.toString())) {
+            logger.warn("SECURITY: Extract directory targets system path: {}", extractedDir);
+            return false;
+        }
+
+        if (!PathValidator.isOutputPathSafe(launcher.toString())) {
+            logger.warn("SECURITY: Launcher path targets system path: {}", launcher);
+            return false;
+        }
+
+        // Check for suspicious characters that could break shell parsing
+        // Even though we use array-form ProcessBuilder and quoted variables in scripts,
+        // this is defense-in-depth
+        String[] paths = {appDir.toString(), extractedDir.toString(), launcher.toString()};
+        for (String path : paths) {
+            if (path.contains("`") || path.contains("$(") || path.contains("${")) {
+                logger.warn("SECURITY: Path contains suspicious shell characters: {}", path);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

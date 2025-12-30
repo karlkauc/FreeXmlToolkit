@@ -30,6 +30,7 @@ import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.openssl.jcajce.JcePEMEncryptorBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -96,8 +97,8 @@ public class SignatureService {
         if (Security.getProvider(SECURITY_PROVIDER) == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
-        dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
+        // Use SecureXmlFactory to prevent XXE attacks
+        dbf = SecureXmlFactory.createSecureDocumentBuilderFactory(true);
     }
 
     /**

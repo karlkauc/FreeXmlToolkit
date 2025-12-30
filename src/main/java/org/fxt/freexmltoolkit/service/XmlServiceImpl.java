@@ -35,6 +35,7 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.BatchValidationFile;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.*;
 import org.xml.sax.ErrorHandler;
@@ -88,7 +89,7 @@ public class XmlServiceImpl implements XmlService {
     XsltExecutable stylesheet;
     private File cachedXsltFile = null; // Added for caching compiled stylesheet
     File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
-    DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+    DocumentBuilderFactory builderFactory = SecureXmlFactory.createSecureDocumentBuilderFactory();
     DocumentBuilder builder;
     Document xmlDocument;
 
@@ -304,8 +305,8 @@ public class XmlServiceImpl implements XmlService {
 
         try {
             // STEP 1: Parse the XSD file as an XML document (this is required)
-            builderFactory = DocumentBuilderFactory.newInstance();
-            builderFactory.setNamespaceAware(true);
+            // Use SecureXmlFactory to prevent XXE attacks
+            builderFactory = SecureXmlFactory.createSecureDocumentBuilderFactory(true);
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
             Document document = builder.parse(xsdFile);
 
@@ -411,11 +412,9 @@ public class XmlServiceImpl implements XmlService {
     private List<SAXParseException> checkWellFormednessOnly(String xmlString) {
         final List<SAXParseException> exceptions = new LinkedList<>();
         try {
-            // Wir verwenden einen Standard DocumentBuilder, da dies der direkteste Weg ist,
-            // die Wohlgeformtheit ohne Schema-Validierung zu prüfen.
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setValidating(false); // Explizit DTD-Validierung deaktivieren
-            dbf.setNamespaceAware(true); // Gute Praxis für XML-Verarbeitung
+            // Use SecureXmlFactory to prevent XXE attacks while checking well-formedness
+            DocumentBuilderFactory dbf = SecureXmlFactory.createSecureDocumentBuilderFactory(true);
+            dbf.setValidating(false); // Explicitly disable DTD validation
             DocumentBuilder db = dbf.newDocumentBuilder();
 
             // Ein ErrorHandler fängt alle Parsing-Fehler ab.
@@ -503,9 +502,8 @@ public class XmlServiceImpl implements XmlService {
                 logger.debug("Detected XSD 1.1 schema: {}", schemaFile.getAbsolutePath());
 
                 try {
-                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                    dbf.setNamespaceAware(true);
-                    DocumentBuilder db = dbf.newDocumentBuilder();
+                    // Use SecureXmlFactory to prevent XXE attacks
+                    DocumentBuilder db = SecureXmlFactory.createSecureDocumentBuilder(true);
                     db.parse(schemaFile);
                     logger.debug("XSD 1.1 schema is well-formed XML");
                     return true;
@@ -546,9 +544,8 @@ public class XmlServiceImpl implements XmlService {
                 logger.debug("Detected XSD 1.1 schema content");
 
                 try {
-                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                    dbf.setNamespaceAware(true);
-                    DocumentBuilder db = dbf.newDocumentBuilder();
+                    // Use SecureXmlFactory to prevent XXE attacks
+                    DocumentBuilder db = SecureXmlFactory.createSecureDocumentBuilder(true);
                     db.parse(new org.xml.sax.InputSource(new StringReader(schemaContent)));
                     logger.debug("XSD 1.1 schema content is well-formed XML");
                     return true;
@@ -1502,9 +1499,8 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public void updateRootDocumentation(File xsdFile, String documentationContent) throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
+        // Use SecureXmlFactory to prevent XXE attacks
+        DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
         Document doc = builder.parse(xsdFile);
 
         Element root = doc.getDocumentElement();
@@ -1576,10 +1572,8 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public void updateElementDocumentation(File xsdFile, String elementXpath, String documentation, String javadoc) throws Exception {
-        // 1. Parse the document
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
+        // 1. Parse the document with XXE protection
+        DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
         Document doc = builder.parse(xsdFile);
         Element root = doc.getDocumentElement();
 
@@ -1681,10 +1675,8 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public void updateExampleValues(File xsdFile, String elementXpath, List<String> exampleValues) throws Exception {
-        // 1. Parse the document
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
+        // 1. Parse the document with XXE protection
+        DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
         Document doc = builder.parse(xsdFile);
         Element root = doc.getDocumentElement();
 
@@ -1781,10 +1773,8 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public XsdDocInfo getElementDocInfo(File xsdFile, String elementXpath) throws Exception {
-        // 1. Parse the document
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
+        // 1. Parse the document with XXE protection
+        DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
         Document doc = builder.parse(xsdFile);
 
         // 2. Define namespaces
@@ -1934,11 +1924,8 @@ public class XmlServiceImpl implements XmlService {
         List<String> importLocations = new ArrayList<>();
 
         try {
-            // Parse as XML DOM
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-
+            // Parse as XML DOM with XXE protection
+            DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
             Document doc = builder.parse(new ByteArrayInputStream(xsdContent.getBytes()));
 
             // Find all xs:import elements

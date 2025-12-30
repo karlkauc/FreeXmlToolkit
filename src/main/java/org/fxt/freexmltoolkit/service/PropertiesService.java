@@ -305,4 +305,27 @@ public interface PropertiesService {
      * @param path the custom temp folder path
      */
     void setCustomTempFolder(String path);
+
+    // Security settings
+
+    /**
+     * Gets whether XSLT Java extensions are allowed.
+     *
+     * <p><b>Security Warning:</b> Enabling XSLT extensions allows XSLT stylesheets
+     * to execute arbitrary Java code, which poses a significant security risk.
+     * Only enable this if you trust all XSLT stylesheets being processed.
+     *
+     * @return true if XSLT Java extensions are allowed, false otherwise (default: false)
+     */
+    boolean isXsltExtensionsAllowed();
+
+    /**
+     * Sets whether XSLT Java extensions are allowed.
+     *
+     * <p><b>Security Warning:</b> Enabling XSLT extensions allows XSLT stylesheets
+     * to execute arbitrary Java code. Only enable this for trusted stylesheets.
+     *
+     * @param allowed true to allow XSLT extensions, false to disable
+     */
+    void setXsltExtensionsAllowed(boolean allowed);
 }

@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -121,9 +122,8 @@ public class XmlParser {
      */
     private XmlDocument parse(InputSource source) throws XmlParseException {
         try {
-            // Create DOM parser
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(namespaceAware);
+            // Create secure DOM parser with XXE protection
+            DocumentBuilderFactory factory = SecureXmlFactory.createSecureDocumentBuilderFactory(namespaceAware);
             factory.setValidating(validating);
 
             DocumentBuilder builder = factory.newDocumentBuilder();
