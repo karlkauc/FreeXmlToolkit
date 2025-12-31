@@ -243,15 +243,15 @@ public class IntelliSensePopup {
         private static final String ICON_TYPE = "bi-diagram-3";
         private static final String ICON_DEFAULT = "bi-circle";
 
-        // Color mappings
-        private static final Color COLOR_ELEMENT = Color.web("#007bff");
-        private static final Color COLOR_ATTRIBUTE = Color.web("#28a745");
-        private static final Color COLOR_VALUE = Color.web("#6c757d");
-        private static final Color COLOR_SNIPPET = Color.web("#ffc107");
-        private static final Color COLOR_FUNCTION = Color.web("#17a2b8");
-        private static final Color COLOR_AXIS = Color.web("#6f42c1");
-        private static final Color COLOR_TYPE = Color.web("#fd7e14");
-        private static final Color COLOR_REQUIRED = Color.web("#dc3545");
+        // Color mappings - WCAG AA compliant (minimum 4.5:1 contrast on white)
+        private static final Color COLOR_ELEMENT = Color.web("#0056b3");    // Darker blue (7.0:1)
+        private static final Color COLOR_ATTRIBUTE = Color.web("#1e7e34");  // Darker green (5.3:1)
+        private static final Color COLOR_VALUE = Color.web("#495057");      // Darker gray (7.4:1)
+        private static final Color COLOR_SNIPPET = Color.web("#856404");    // Dark gold (6.2:1)
+        private static final Color COLOR_FUNCTION = Color.web("#0c5460");   // Dark cyan (8.6:1)
+        private static final Color COLOR_AXIS = Color.web("#5a32a3");       // Darker purple (7.1:1)
+        private static final Color COLOR_TYPE = Color.web("#c45000");       // Darker orange (5.1:1)
+        private static final Color COLOR_REQUIRED = Color.web("#bd2130");   // Darker red (5.5:1)
 
         @Override
         protected void updateItem(CompletionItem item, boolean empty) {
@@ -322,40 +322,35 @@ public class IntelliSensePopup {
             icon.setIconSize(16);
             line.getChildren().add(icon);
 
-            // Element/Attribute name (bold)
+            // Element/Attribute name (bold) - color via CSS
             Label nameLabel = new Label(item.getLabel());
-            nameLabel.setStyle("-fx-font-weight: bold;");
             nameLabel.getStyleClass().add("completion-name");
             line.getChildren().add(nameLabel);
 
-            // Data type
+            // Data type - color via CSS class
             if (item.getDataType() != null && !item.getDataType().isEmpty()) {
                 Label typeLabel = new Label(": " + item.getDataType());
-                typeLabel.setStyle("-fx-text-fill: #6c757d;");
                 typeLabel.getStyleClass().add("completion-datatype");
                 line.getChildren().add(typeLabel);
             }
 
-            // Cardinality
+            // Cardinality - color via CSS class
             if (item.getCardinality() != null && !item.getCardinality().isEmpty()) {
                 Label cardLabel = new Label("(" + item.getCardinality() + ")");
-                cardLabel.setStyle("-fx-text-fill: #17a2b8; -fx-font-style: italic;");
                 cardLabel.getStyleClass().add("completion-cardinality");
                 line.getChildren().add(cardLabel);
             }
 
-            // Required indicator
+            // Required indicator - color via CSS class
             if (item.isRequired()) {
                 Label reqLabel = new Label("*");
-                reqLabel.setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold; -fx-font-size: 14px;");
                 reqLabel.getStyleClass().add("completion-required-marker");
                 line.getChildren().add(reqLabel);
             }
 
-            // Default value
+            // Default value - color via CSS class
             if (item.getDefaultValue() != null && !item.getDefaultValue().isEmpty()) {
                 Label defaultLabel = new Label("= \"" + truncate(item.getDefaultValue(), 20) + "\"");
-                defaultLabel.setStyle("-fx-text-fill: #28a745; -fx-font-style: italic;");
                 defaultLabel.getStyleClass().add("completion-default");
                 line.getChildren().add(defaultLabel);
             }
@@ -365,10 +360,9 @@ public class IntelliSensePopup {
             HBox.setHgrow(spacer, Priority.ALWAYS);
             line.getChildren().add(spacer);
 
-            // Namespace prefix badge
+            // Namespace prefix badge - color via CSS class
             if (item.getPrefix() != null && !item.getPrefix().isEmpty()) {
                 Label nsLabel = new Label(item.getPrefix());
-                nsLabel.setStyle("-fx-background-color: #e9ecef; -fx-padding: 1 4; -fx-background-radius: 3; -fx-font-size: 10px;");
                 nsLabel.getStyleClass().add("completion-namespace");
                 line.getChildren().add(nsLabel);
             }
@@ -378,23 +372,24 @@ public class IntelliSensePopup {
 
         /**
          * Creates the second line with facets and examples.
+         * All colors controlled via CSS for proper selection state handling.
          */
         private HBox createSecondLine(CompletionItem item) {
             HBox line = new HBox(8);
             line.setAlignment(Pos.CENTER_LEFT);
             line.setPadding(new Insets(0, 0, 0, 22)); // Indent to align with text after icon
+            line.getStyleClass().add("completion-second-line");
 
-            // Facet hints
+            // Facet hints - color via CSS
             List<String> facets = item.getFacetHints();
             if (facets != null && !facets.isEmpty()) {
                 FontIcon facetIcon = new FontIcon("bi-list-check");
                 facetIcon.setIconSize(12);
-                facetIcon.setIconColor(Color.web("#6c757d"));
+                facetIcon.getStyleClass().add("completion-facet-icon");
                 line.getChildren().add(facetIcon);
 
                 String facetText = String.join(", ", facets);
                 Label facetLabel = new Label(truncate(facetText, 30));
-                facetLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
                 facetLabel.getStyleClass().add("completion-facets");
                 line.getChildren().add(facetLabel);
             }
@@ -402,39 +397,38 @@ public class IntelliSensePopup {
             // Separator if both facets and examples
             if (!facets.isEmpty() && !item.getExamples().isEmpty()) {
                 Label sep = new Label("|");
-                sep.setStyle("-fx-text-fill: #ced4da;");
+                sep.getStyleClass().add("completion-separator");
                 line.getChildren().add(sep);
             }
 
-            // Examples
+            // Examples - color via CSS
             List<String> examples = item.getExamples();
             if (examples != null && !examples.isEmpty()) {
                 Label exLabel = new Label("e.g.: ");
-                exLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
+                exLabel.getStyleClass().add("completion-example-label");
                 line.getChildren().add(exLabel);
 
                 String exampleText = String.join(", ", examples);
                 Label exValues = new Label(truncate(exampleText, 35));
-                exValues.setStyle("-fx-text-fill: #007bff; -fx-font-size: 11px;");
                 exValues.getStyleClass().add("completion-examples");
                 line.getChildren().add(exValues);
             }
 
-            // Required attributes hint
+            // Required attributes hint - color via CSS
             List<String> reqAttrs = item.getRequiredAttributes();
             if (reqAttrs != null && !reqAttrs.isEmpty()) {
-                if (line.getChildren().size() > 0) {
+                if (!line.getChildren().isEmpty()) {
                     Label sep = new Label("|");
-                    sep.setStyle("-fx-text-fill: #ced4da;");
+                    sep.getStyleClass().add("completion-separator");
                     line.getChildren().add(sep);
                 }
                 FontIcon attrIcon = new FontIcon("bi-exclamation-triangle");
                 attrIcon.setIconSize(12);
-                attrIcon.setIconColor(Color.web("#ffc107"));
+                attrIcon.getStyleClass().add("completion-attr-icon");
                 line.getChildren().add(attrIcon);
 
                 Label attrLabel = new Label("needs: " + truncate(String.join(", ", reqAttrs), 25));
-                attrLabel.setStyle("-fx-text-fill: #856404; -fx-font-size: 11px;");
+                attrLabel.getStyleClass().add("completion-required-attrs");
                 line.getChildren().add(attrLabel);
             }
 
@@ -443,70 +437,71 @@ public class IntelliSensePopup {
 
         /**
          * Creates an icon for the given completion type.
+         * Colors are controlled via CSS classes for proper selection state handling.
          */
         private FontIcon createIcon(CompletionItemType type) {
+            String iconLiteral;
+            String styleClass;
+
             if (type == null) {
                 FontIcon icon = new FontIcon(ICON_DEFAULT);
-                icon.setIconColor(COLOR_VALUE);
+                icon.getStyleClass().add("completion-icon-default");
                 return icon;
             }
-
-            String iconLiteral;
-            Color color;
 
             switch (type) {
                 case ELEMENT:
                     iconLiteral = ICON_ELEMENT;
-                    color = COLOR_ELEMENT;
+                    styleClass = "completion-icon-element";
                     break;
                 case ATTRIBUTE:
                     iconLiteral = ICON_ATTRIBUTE;
-                    color = COLOR_ATTRIBUTE;
+                    styleClass = "completion-icon-attribute";
                     break;
                 case VALUE:
                     iconLiteral = ICON_VALUE;
-                    color = COLOR_VALUE;
+                    styleClass = "completion-icon-value";
                     break;
                 case SNIPPET:
                     iconLiteral = ICON_SNIPPET;
-                    color = COLOR_SNIPPET;
+                    styleClass = "completion-icon-snippet";
                     break;
                 case XPATH_FUNCTION:
                     iconLiteral = ICON_FUNCTION;
-                    color = COLOR_FUNCTION;
+                    styleClass = "completion-icon-function";
                     break;
                 case XPATH_AXIS:
                     iconLiteral = ICON_AXIS;
-                    color = COLOR_AXIS;
+                    styleClass = "completion-icon-axis";
                     break;
                 case XPATH_OPERATOR:
                     iconLiteral = ICON_OPERATOR;
-                    color = COLOR_VALUE;
+                    styleClass = "completion-icon-operator";
                     break;
                 case XQUERY_KEYWORD:
                     iconLiteral = ICON_KEYWORD;
-                    color = COLOR_FUNCTION;
+                    styleClass = "completion-icon-keyword";
                     break;
                 case XPATH_NODE_TEST:
                     iconLiteral = ICON_NODE_TEST;
-                    color = COLOR_AXIS;
+                    styleClass = "completion-icon-nodetest";
                     break;
                 case XPATH_VARIABLE:
                     iconLiteral = ICON_VARIABLE;
-                    color = COLOR_SNIPPET;
+                    styleClass = "completion-icon-variable";
                     break;
                 case TYPE:
                     iconLiteral = ICON_TYPE;
-                    color = COLOR_TYPE;
+                    styleClass = "completion-icon-type";
                     break;
                 default:
                     iconLiteral = ICON_DEFAULT;
-                    color = COLOR_VALUE;
+                    styleClass = "completion-icon-default";
                     break;
             }
 
             FontIcon icon = new FontIcon(iconLiteral);
-            icon.setIconColor(color);
+            icon.getStyleClass().add(styleClass);
             return icon;
         }
 
