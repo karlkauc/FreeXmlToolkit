@@ -164,21 +164,16 @@ public class IntelliSenseEngine {
                 return;
             }
 
-            // Get caret bounds in screen coordinates
+            // Get caret bounds - getCaretBounds() already returns screen coordinates
             Bounds caretBounds = codeArea.getCaretBounds().orElse(null);
             if (caretBounds != null) {
-                Bounds screenBounds = codeArea.localToScreen(caretBounds);
-                if (screenBounds != null) {
-                    // Show popup below the caret
-                    double x = screenBounds.getMinX();
-                    double y = screenBounds.getMaxY() + 2; // 2px offset
+                // Show popup below the caret (caretBounds is already in screen coordinates)
+                double x = caretBounds.getMinX();
+                double y = caretBounds.getMaxY() + 2; // 2px offset below caret
 
-                    popup.show(items, ownerWindow, x, y);
-                    state = IntelliSenseState.SHOWING_ELEMENTS;
-                    logger.debug("Popup shown at ({}, {}) with {} items", x, y, items.size());
-                } else {
-                    logger.warn("Could not convert caret bounds to screen coordinates");
-                }
+                popup.show(items, ownerWindow, x, y);
+                state = IntelliSenseState.SHOWING_ELEMENTS;
+                logger.debug("Popup shown at ({}, {}) with {} items", x, y, items.size());
             } else {
                 logger.warn("Could not get caret bounds");
             }
