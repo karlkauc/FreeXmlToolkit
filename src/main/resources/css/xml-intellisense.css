@@ -317,50 +317,25 @@
     -fx-background-radius: 4px;
 }
 
+/* Selected row: Light blue background that keeps text colors readable */
 .intellisense-list .list-cell:filled:selected {
-    -fx-background-color: #0056b3;
+    -fx-background-color: #cce5ff;
+    -fx-border-color: #0056b3;
+    -fx-border-width: 0 0 0 3px;
 }
 
-/* === SELECTED STATE: All text and icons become white === */
-.intellisense-list .list-cell:filled:selected .label,
-.intellisense-list .list-cell:filled:selected .completion-name,
-.intellisense-list .list-cell:filled:selected .completion-datatype,
-.intellisense-list .list-cell:filled:selected .completion-cardinality,
-.intellisense-list .list-cell:filled:selected .completion-default,
-.intellisense-list .list-cell:filled:selected .completion-facets,
-.intellisense-list .list-cell:filled:selected .completion-examples,
-.intellisense-list .list-cell:filled:selected .completion-required-marker,
-.intellisense-list .list-cell:filled:selected .completion-namespace,
-.intellisense-list .list-cell:filled:selected .completion-separator,
-.intellisense-list .list-cell:filled:selected .completion-example-label,
-.intellisense-list .list-cell:filled:selected .completion-required-attrs {
-    -fx-text-fill: #ffffff;
+/* === SELECTED STATE: Darker text colors for better contrast on light blue === */
+.intellisense-list .list-cell:filled:selected .completion-name {
+    -fx-text-fill: #003366;
+    -fx-font-weight: bold;
 }
 
-/* Icons become white on selection - all icon types */
-.intellisense-list .list-cell:filled:selected .ikonli-font-icon,
-.intellisense-list .list-cell:filled:selected .completion-facet-icon,
-.intellisense-list .list-cell:filled:selected .completion-attr-icon,
-.intellisense-list .list-cell:filled:selected .completion-icon-element,
-.intellisense-list .list-cell:filled:selected .completion-icon-attribute,
-.intellisense-list .list-cell:filled:selected .completion-icon-value,
-.intellisense-list .list-cell:filled:selected .completion-icon-snippet,
-.intellisense-list .list-cell:filled:selected .completion-icon-function,
-.intellisense-list .list-cell:filled:selected .completion-icon-axis,
-.intellisense-list .list-cell:filled:selected .completion-icon-operator,
-.intellisense-list .list-cell:filled:selected .completion-icon-keyword,
-.intellisense-list .list-cell:filled:selected .completion-icon-nodetest,
-.intellisense-list .list-cell:filled:selected .completion-icon-variable,
-.intellisense-list .list-cell:filled:selected .completion-icon-type,
-.intellisense-list .list-cell:filled:selected .completion-icon-default {
-    -fx-icon-color: #ffffff;
-    -fx-fill: #ffffff;
-}
+/* Other text elements remain their original colors - already WCAG compliant on light blue */
 
-/* Namespace badge inverts on selection */
+/* Namespace badge on selection */
 .intellisense-list .list-cell:filled:selected .completion-namespace {
-    -fx-background-color: rgba(255, 255, 255, 0.2);
-    -fx-text-fill: #ffffff;
+    -fx-background-color: rgba(0, 86, 179, 0.15);
+    -fx-text-fill: #003366;
 }
 
 .intellisense-list .list-cell:filled:hover:not(:selected) {

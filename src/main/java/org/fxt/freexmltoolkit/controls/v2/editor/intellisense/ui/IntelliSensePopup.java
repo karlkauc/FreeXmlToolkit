@@ -57,6 +57,11 @@ public class IntelliSensePopup {
 
         VBox container = new VBox(listView);
         container.getStyleClass().add("intellisense-popup");
+
+        // Load IntelliSense CSS styles
+        String cssPath = getClass().getResource("/css/xml-intellisense.css").toExternalForm();
+        container.getStylesheets().add(cssPath);
+
         popup.getContent().add(container);
     }
 
