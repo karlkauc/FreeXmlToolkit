@@ -1,0 +1,593 @@
+/* ========================================
+   JSON Editor Stylesheet
+   Supports JSON, JSONC, and JSON5
+   ======================================== */
+
+/* ========== JSON Syntax Highlighting ========== */
+
+/* Object property keys - purple like attributes */
+.json-key {
+    -fx-fill: #9876aa;
+    -fx-font-weight: bold;
+}
+
+/* String values - green */
+.json-string {
+    -fx-fill: #6a8759;
+}
+
+/* Numeric values - blue */
+.json-number {
+    -fx-fill: #6897bb;
+}
+
+/* Boolean values (true/false) - orange */
+.json-boolean {
+    -fx-fill: #cc7832;
+    -fx-font-weight: bold;
+}
+
+/* Null values - orange italic */
+.json-null {
+    -fx-fill: #cc7832;
+    -fx-font-style: italic;
+}
+
+/* Brackets and braces - gold/yellow */
+.json-bracket {
+    -fx-fill: #ffc66d;
+    -fx-font-weight: bold;
+}
+
+/* Comments (JSONC/JSON5) - gray italic */
+.json-comment {
+    -fx-fill: #808080;
+    -fx-font-style: italic;
+}
+
+/* Colons and commas - gray */
+.json-punctuation {
+    -fx-fill: #a9b7c6;
+}
+
+/* ========== Alternative Color Scheme (Light Theme) ========== */
+
+.json-editor-light .json-key {
+    -fx-fill: #0056b3;
+    -fx-font-weight: bold;
+}
+
+.json-editor-light .json-string {
+    -fx-fill: #28a745;
+}
+
+.json-editor-light .json-number {
+    -fx-fill: #17a2b8;
+}
+
+.json-editor-light .json-boolean {
+    -fx-fill: #fd7e14;
+    -fx-font-weight: bold;
+}
+
+.json-editor-light .json-null {
+    -fx-fill: #6c757d;
+    -fx-font-style: italic;
+}
+
+.json-editor-light .json-bracket {
+    -fx-fill: #495057;
+    -fx-font-weight: bold;
+}
+
+.json-editor-light .json-comment {
+    -fx-fill: #6c757d;
+    -fx-font-style: italic;
+}
+
+.json-editor-light .json-punctuation {
+    -fx-fill: #212529;
+}
+
+/* ========== JSON Editor Root ========== */
+
+.json-editor-root {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #212529;
+}
+
+/* ========== JSON Toolbar ========== */
+
+.json-toolbar {
+    -fx-background-color: linear-gradient(to bottom, #fff3e0, #ffe0b2);
+    -fx-border-color: #ffcc80;
+    -fx-border-width: 0 0 1px 0;
+    -fx-spacing: 5px;
+    -fx-padding: 8px 10px;
+}
+
+.json-toolbar .button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 6px 12px;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-text-fill: #495057;
+    -fx-font-size: 12px;
+}
+
+.json-toolbar .button:hover {
+    -fx-background-color: rgba(245, 124, 0, 0.1);
+    -fx-border-color: #f57c00;
+    -fx-text-fill: #f57c00;
+}
+
+.json-toolbar .button:pressed {
+    -fx-background-color: rgba(245, 124, 0, 0.2);
+}
+
+.json-toolbar .toggle-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #6c757d;
+    -fx-border-width: 1px;
+    -fx-padding: 6px 12px;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-text-fill: #495057;
+}
+
+.json-toolbar .toggle-button:selected {
+    -fx-background-color: #f57c00;
+    -fx-border-color: #e65100;
+    -fx-text-fill: white;
+}
+
+.json-toolbar .separator {
+    -fx-background-color: #ffcc80;
+}
+
+/* ========== JSON Tab Styling ========== */
+
+.json-tab {
+    -fx-background-color: #fff3e0;
+    -fx-border-color: #f57c00;
+}
+
+.json-tab:selected {
+    -fx-background-color: #ffffff;
+}
+
+.json-tab .tab-label {
+    -fx-text-fill: #f57c00;
+}
+
+/* ========== JSON Code Area ========== */
+
+.json-code-area {
+    -fx-font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+    -fx-font-size: 13px;
+    -fx-line-spacing: 1.2em;
+    -fx-background-color: white;
+    -fx-text-fill: #212529;
+}
+
+.json-code-area .paragraph-text {
+    -fx-fill: #212529;
+}
+
+/* Line number styling */
+.json-code-area .paragraph-box {
+    -fx-background-color: #fff8e1;
+    -fx-border-color: #ffcc80;
+    -fx-border-width: 0 1px 0 0;
+    -fx-padding: 0 8px 0 8px;
+    -fx-text-fill: #ff8f00;
+    -fx-font-size: 11px;
+    -fx-alignment: center-right;
+    -fx-min-width: 40px;
+}
+
+.json-code-area .paragraph-box:hover {
+    -fx-background-color: #ffecb3;
+    -fx-text-fill: #e65100;
+}
+
+/* Current line highlighting */
+.json-code-area .paragraph-text.current-line {
+    -fx-background-color: rgba(245, 124, 0, 0.05);
+}
+
+/* ========== JSON Tree View ========== */
+
+.json-tree-view {
+    -fx-background-color: white;
+    -fx-border-color: #ffcc80;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.json-tree-view .tree-cell {
+    -fx-padding: 3px 5px;
+    -fx-text-fill: #495057;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.json-tree-view .tree-cell:selected {
+    -fx-background-color: #f57c00;
+    -fx-text-fill: white;
+}
+
+.json-tree-view .tree-cell:hover:filled {
+    -fx-background-color: rgba(245, 124, 0, 0.1);
+}
+
+/* JSON node type styling in tree */
+.json-tree-object {
+    -fx-text-fill: #9876aa;
+    -fx-font-weight: bold;
+}
+
+.json-tree-array {
+    -fx-text-fill: #6897bb;
+    -fx-font-weight: bold;
+}
+
+.json-tree-string {
+    -fx-text-fill: #6a8759;
+}
+
+.json-tree-number {
+    -fx-text-fill: #6897bb;
+}
+
+.json-tree-boolean {
+    -fx-text-fill: #cc7832;
+    -fx-font-weight: bold;
+}
+
+.json-tree-null {
+    -fx-text-fill: #808080;
+    -fx-font-style: italic;
+}
+
+.json-tree-key {
+    -fx-text-fill: #9876aa;
+    -fx-font-weight: bold;
+}
+
+/* ========== JSON Properties Panel ========== */
+
+.json-properties-panel {
+    -fx-background-color: #fff8e1;
+    -fx-border-color: #ffcc80;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 10px;
+}
+
+.json-properties-panel .label {
+    -fx-text-fill: #495057;
+    -fx-font-size: 12px;
+}
+
+.json-properties-panel .text-field {
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 12px;
+}
+
+.json-properties-panel .property-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #f57c00;
+}
+
+/* ========== JSON Validation Panel ========== */
+
+.json-validation-panel {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.json-validation-success {
+    -fx-text-fill: #28a745;
+    -fx-font-weight: bold;
+}
+
+.json-validation-error {
+    -fx-text-fill: #dc3545;
+    -fx-font-weight: bold;
+}
+
+.json-validation-warning {
+    -fx-text-fill: #ffc107;
+}
+
+/* ========== JSONPath Panel ========== */
+
+.jsonpath-panel {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 10px;
+}
+
+.jsonpath-input {
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 12px;
+    -fx-background-color: white;
+    -fx-border-color: #f57c00;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.jsonpath-input:focused {
+    -fx-border-color: #e65100;
+    -fx-effect: dropshadow(gaussian, rgba(245, 124, 0, 0.25), 0, 0, 0, 0);
+}
+
+.jsonpath-results {
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 12px;
+    -fx-background-color: white;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+/* ========== JSON Schema Status ========== */
+
+.json-schema-status {
+    -fx-padding: 4px 8px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-font-size: 11px;
+}
+
+.json-schema-status.valid {
+    -fx-background-color: rgba(40, 167, 69, 0.1);
+    -fx-text-fill: #28a745;
+    -fx-border-color: #28a745;
+    -fx-border-width: 1px;
+}
+
+.json-schema-status.invalid {
+    -fx-background-color: rgba(220, 53, 69, 0.1);
+    -fx-text-fill: #dc3545;
+    -fx-border-color: #dc3545;
+    -fx-border-width: 1px;
+}
+
+.json-schema-status.no-schema {
+    -fx-background-color: rgba(108, 117, 125, 0.1);
+    -fx-text-fill: #6c757d;
+    -fx-border-color: #6c757d;
+    -fx-border-width: 1px;
+}
+
+/* ========== Format Selector ========== */
+
+.json-format-selector {
+    -fx-font-size: 11px;
+    -fx-background-color: white;
+    -fx-border-color: #f57c00;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.json-format-selector:focused {
+    -fx-border-color: #e65100;
+}
+
+.json-format-badge {
+    -fx-padding: 2px 6px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.json-format-badge.json {
+    -fx-background-color: #f57c00;
+    -fx-text-fill: white;
+}
+
+.json-format-badge.jsonc {
+    -fx-background-color: #6f42c1;
+    -fx-text-fill: white;
+}
+
+.json-format-badge.json5 {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+}
+
+/* ========== Error Highlighting ========== */
+
+.json-syntax-error {
+    -fx-background-color: rgba(220, 53, 69, 0.2);
+    -fx-border-color: #dc3545;
+    -fx-border-width: 0 0 2px 0;
+    -fx-border-style: dashed;
+}
+
+.json-schema-error {
+    -fx-background-color: rgba(255, 193, 7, 0.2);
+    -fx-border-color: #ffc107;
+    -fx-border-width: 0 0 2px 0;
+    -fx-border-style: dotted;
+}
+
+/* ========== Bracket Matching ========== */
+
+.json-bracket-match {
+    -fx-background-color: rgba(245, 124, 0, 0.2);
+    -fx-border-color: #f57c00;
+    -fx-border-width: 1px;
+    -fx-border-radius: 2px;
+    -fx-background-radius: 2px;
+}
+
+.json-bracket-mismatch {
+    -fx-background-color: rgba(220, 53, 69, 0.2);
+    -fx-border-color: #dc3545;
+    -fx-border-width: 1px;
+    -fx-border-radius: 2px;
+    -fx-background-radius: 2px;
+}
+
+/* ========== Collapsible Regions ========== */
+
+.json-collapse-indicator {
+    -fx-background-color: #fff3e0;
+    -fx-border-color: #f57c00;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-padding: 1px 4px;
+    -fx-text-fill: #f57c00;
+    -fx-font-size: 10px;
+    -fx-font-family: monospace;
+    -fx-cursor: hand;
+}
+
+.json-collapse-indicator:hover {
+    -fx-background-color: #ffcc80;
+}
+
+.json-collapse-indicator.collapsed {
+    -fx-background-color: #f57c00;
+    -fx-text-fill: white;
+}
+
+/* ========== Dark Theme Support ========== */
+
+.json-editor-root.dark-theme {
+    -fx-background-color: #2b2b2b;
+    -fx-text-fill: #a9b7c6;
+}
+
+.json-editor-root.dark-theme .json-toolbar {
+    -fx-background-color: linear-gradient(to bottom, #3c3c3c, #2b2b2b);
+    -fx-border-color: #555555;
+}
+
+.json-editor-root.dark-theme .json-code-area {
+    -fx-background-color: #2b2b2b;
+    -fx-text-fill: #a9b7c6;
+}
+
+.json-editor-root.dark-theme .json-code-area .paragraph-box {
+    -fx-background-color: #313335;
+    -fx-border-color: #3c3f41;
+    -fx-text-fill: #606366;
+}
+
+.json-editor-root.dark-theme .json-tree-view {
+    -fx-background-color: #2b2b2b;
+    -fx-border-color: #3c3f41;
+}
+
+.json-editor-root.dark-theme .json-tree-view .tree-cell {
+    -fx-text-fill: #a9b7c6;
+}
+
+.json-editor-root.dark-theme .json-tree-view .tree-cell:selected {
+    -fx-background-color: #214283;
+    -fx-text-fill: #ffffff;
+}
+
+.json-editor-root.dark-theme .json-properties-panel {
+    -fx-background-color: #313335;
+    -fx-border-color: #3c3f41;
+}
+
+/* Dark theme syntax highlighting (already good from base) */
+.json-editor-root.dark-theme .json-key {
+    -fx-fill: #9876aa;
+}
+
+.json-editor-root.dark-theme .json-string {
+    -fx-fill: #6a8759;
+}
+
+.json-editor-root.dark-theme .json-number {
+    -fx-fill: #6897bb;
+}
+
+.json-editor-root.dark-theme .json-boolean {
+    -fx-fill: #cc7832;
+}
+
+.json-editor-root.dark-theme .json-null {
+    -fx-fill: #cc7832;
+}
+
+.json-editor-root.dark-theme .json-bracket {
+    -fx-fill: #ffc66d;
+}
+
+.json-editor-root.dark-theme .json-comment {
+    -fx-fill: #808080;
+}
+
+/* ========== Accessibility ========== */
+
+.json-editor-root:focusVisible {
+    -fx-background-color: white;
+    -fx-border-color: #f57c00;
+    -fx-border-width: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .json-key {
+        -fx-fill: #0000ff;
+        -fx-font-weight: bold;
+    }
+
+    .json-string {
+        -fx-fill: #008000;
+    }
+
+    .json-number {
+        -fx-fill: #800080;
+    }
+
+    .json-boolean,
+    .json-null {
+        -fx-fill: #ff0000;
+        -fx-font-weight: bold;
+    }
+
+    .json-bracket {
+        -fx-fill: #000000;
+        -fx-font-weight: bold;
+    }
+
+    .json-comment {
+        -fx-fill: #808080;
+    }
+}
+
+/* ========== Print Styles ========== */
+
+@media print {
+    .json-toolbar,
+    .jsonpath-panel {
+        -fx-opacity: 0;
+    }
+
+    .json-collapse-indicator {
+        -fx-opacity: 0;
+    }
+}

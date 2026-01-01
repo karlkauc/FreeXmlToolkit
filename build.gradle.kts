@@ -64,6 +64,11 @@ dependencies {
 
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.4")
     implementation("com.google.code.gson:gson:2.13.2")
+
+    // JSON Editor support
+    implementation("de.marhali:json5-java:3.0.0")                  // JSON5 support (comments, trailing commas)
+    implementation("com.networknt:json-schema-validator:1.5.6")    // JSON Schema validation
+    implementation("com.jayway.jsonpath:json-path:2.9.0")          // JSONPath queries
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-win10-pack:12.4.0")
