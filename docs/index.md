@@ -1,6 +1,6 @@
 # FreeXmlToolkit Documentation
 
-> **Last Updated:** December 2025 | **Version:** 1.1.0
+> **Last Updated:** January 2026 | **Version:** 1.2.1
 
 ## Welcome
 
@@ -67,6 +67,20 @@ Edit your XML files with professional tools:
 | **Code Folding** | Collapse sections to focus on what matters |
 
 Learn more: [XML Editor Guide](xml-editor.md) | [Editor Features](xml-editor-features.md)
+
+### JSON Editor
+
+Edit and validate JSON files with multiple format support:
+
+| Feature | What It Does |
+|---------|--------------|
+| **Multi-Format Support** | Edit JSON, JSONC (with comments), and JSON5 |
+| **Tree View** | Navigate JSON structure visually |
+| **JSONPath Queries** | Extract data using JSONPath expressions |
+| **Schema Validation** | Validate against JSON Schema |
+| **Hover Information** | See JSONPath and type info on hover |
+
+Learn more: [JSON Editor Guide](json-editor.md)
 
 ### XSD Schema Tools
 
@@ -180,6 +194,7 @@ The application includes example files in the `examples/` folder to help you get
 |-----------------------------------------------|------------------------------------------|
 | [XML Editor](xml-editor.md)                   | How to edit XML files                    |
 | [XML Editor Features](xml-editor-features.md) | Detailed editor features                 |
+| [JSON Editor](json-editor.md)                 | How to edit JSON files                   |
 | [XSD Tools](xsd-tools.md)                     | Working with XML schemas                 |
 | [XSD Validation](xsd-validation.md)           | Validating XML against schemas           |
 | [XSLT Viewer](xslt-viewer.md)                 | Quick XSLT transformations               |
@@ -217,8 +232,7 @@ The application includes example files in the `examples/` folder to help you get
 
 ## Quick Links
 
-**Editors:
-** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [PDF/FOP](pdf-generator.md) | [Signatures](digital-signatures.md)
+**Editors:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [PDF/FOP](pdf-generator.md) | [Signatures](digital-signatures.md)
 
 **Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
 

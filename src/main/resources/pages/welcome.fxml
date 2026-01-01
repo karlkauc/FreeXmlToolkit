@@ -120,6 +120,21 @@
 
             <!-- Action Cards Row 2 -->
             <HBox spacing="16" VBox.vgrow="NEVER">
+                <!-- JSON Editor Card -->
+                <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
+                      onMouseClicked="#openJsonEditor" style="-fx-cursor: hand;">
+                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #fff7ed;">
+                        <FontIcon iconLiteral="bi-braces" iconSize="24" iconColor="#ea580c"/>
+                    </StackPane>
+                    <Label text="JSON Editor" styleClass="action-card-title"/>
+                    <Label text="Edit, validate and query JSON." styleClass="action-card-description" wrapText="true"/>
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
+                        <Label text="Open JSON Editor" styleClass="action-link-text"/>
+                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                    </HBox>
+                </VBox>
+
                 <!-- Schematron Card -->
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
                       onMouseClicked="#openSchematron" style="-fx-cursor: hand;">
@@ -239,19 +254,19 @@
                                 <StackPane styleClass="update-check-icon">
                                     <FontIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
                                 </StackPane>
-                                <Label text="Enhanced XSD Visual Designer" styleClass="update-item-text"/>
+                                <Label text="NEW: JSON Editor with Tree View" styleClass="update-item-text"/>
                             </HBox>
                             <HBox alignment="CENTER_LEFT" spacing="8">
                                 <StackPane styleClass="update-check-icon">
                                     <FontIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
                                 </StackPane>
-                                <Label text="Real-time Validation Engine" styleClass="update-item-text"/>
+                                <Label text="JSONPath Queries &amp; Schema Validation" styleClass="update-item-text"/>
                             </HBox>
                             <HBox alignment="CENTER_LEFT" spacing="8">
                                 <StackPane styleClass="update-check-icon">
                                     <FontIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
                                 </StackPane>
-                                <Label text="Interactive IntelliSense" styleClass="update-item-text"/>
+                                <Label text="Support for JSONC and JSON5" styleClass="update-item-text"/>
                             </HBox>
                         </VBox>
 

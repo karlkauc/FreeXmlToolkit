@@ -76,7 +76,7 @@ extra:
 extra_css:
   - overrides/stylesheets/extra.css
 
-copyright: Copyright &copy; 2024-2025 Karl Kauc
+copyright: Copyright &copy; 2024-2026 Karl Kauc
 
 nav:
   - Home: index.md
@@ -86,6 +86,8 @@ nav:
     - Auto-Completion: context-sensitive-intellisense.md
     - Templates: template-management.md
     - Favorites: favorites-system.md
+  - JSON Editing:
+    - JSON Editor: json-editor.md
   - XSD Tools:
     - XSD Editor & Tools: xsd-tools.md
     - XSD Validation: xsd-validation.md

@@ -1,8 +1,8 @@
 # Third-Party Libraries and Licenses
 
-FreeXmlToolkit (Version 1.0.0) uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.
+FreeXmlToolkit (Version 1.2.1) uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.
 
-> **Last Updated:** November 2025
+> **Last Updated:** January 2026
 
 ## Core Dependencies
 
@@ -11,6 +11,13 @@ FreeXmlToolkit (Version 1.0.0) uses several third-party libraries. The following
 | **Saxon-HE** (net.sf.saxon:Saxon-HE) | 12.9 | [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/) |
 | **Jakarta XML Bind API** (jakarta.xml.bind:jakarta.xml.bind-api) | 4.0.4 | [Eclipse Distribution License 1.0](https://www.eclipse.org/org/documents/edl-v10.php) |
 | **Gson** (com.google.code.gson:gson) | 2.13.2 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+
+## JSON Processing
+
+| Library | Version | License |
+|---------|---------|---------|
+| **JSONPath** (com.jayway.jsonpath:json-path) | 2.9.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **JSON Schema Validator** (com.networknt:json-schema-validator) | 1.5.6 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## XML Validation (XSD 1.1 Support)
 

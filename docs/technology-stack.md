@@ -1,8 +1,8 @@
 # Technology Stack
 
-FreeXmlToolkit is built using modern Java technologies and libraries to provide a robust, cross-platform XML processing environment.
+FreeXmlToolkit is built using modern Java technologies and libraries to provide a robust, cross-platform XML and JSON processing environment.
 
-> **Last Updated:** November 2025 | **Version:** 1.0.0
+> **Last Updated:** January 2026 | **Version:** 1.2.1
 
 ## Core Technologies
 
@@ -24,6 +24,11 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 - **Saxon HE:** 12.9 - XSLT 3.0, XPath 3.1 and XQuery processing engine
 - **Jakarta XML Bind API:** 4.0.4 - XML binding and marshalling
 - **Apache Xerces:** 2.12.2 (exist-db fork) - XSD 1.1 validation with assertions support
+
+### JSON Processing
+- **Gson:** 2.13.2 - JSON parsing and serialization
+- **JSONPath:** 2.9.0 (Jayway) - JSONPath query language support
+- **JSON Schema Validator:** 1.5.6 (NetworkNT) - JSON Schema validation (Draft 4-2020-12)
 
 ### PDF Generation
 - **Apache FOP:** 2.11 - XSL-FO to PDF transformation

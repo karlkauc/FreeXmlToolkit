@@ -670,6 +670,11 @@ public class WelcomeController {
     }
 
     @FXML
+    public void openJsonEditor() {
+        navigateTo("json");
+    }
+
+    @FXML
     public void openXsltDeveloper() {
         navigateTo("xsltDeveloper");
     }
