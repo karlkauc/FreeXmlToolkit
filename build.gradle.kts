@@ -995,22 +995,25 @@ tasks.register("notarizeMacOSDMG", Exec::class) {
 
         println("🍎 Starting notarization process...")
         println("   This may take several minutes...")
+
+        val currentArch = when {
+            System.getProperty("os.arch").contains("aarch64") || System.getProperty("os.arch")
+                .contains("arm") -> "arm64"
+
+            else -> "x64"
+        }
+
+        val version = project.version.toString()
+        val dmgPath = "build/dist/macos-$currentArch-dmg/FreeXmlToolkit-$currentArch-$version.dmg"
+
+        // Important: set command line at execution time (env vars may be null during configuration)
+        commandLine(
+            "bash",
+            "scripts/notarize-macos-dmg.sh",
+            dmgPath,
+            appleId,
+            teamId,
+            appPassword
+        )
     }
-
-    val currentArch = when {
-        System.getProperty("os.arch").contains("aarch64") || System.getProperty("os.arch").contains("arm") -> "arm64"
-        else -> "x64"
-    }
-
-    val version = project.version.toString()
-    val dmgPath = "build/dist/macos-$currentArch-dmg/FreeXmlToolkit-$currentArch-$version.dmg"
-
-    commandLine(
-        "bash",
-        "scripts/notarize-macos-dmg.sh",
-        dmgPath,
-        System.getenv("APPLE_ID"),
-        System.getenv("APPLE_TEAM_ID"),
-        System.getenv("APPLE_APP_PASSWORD")
-    )
 }

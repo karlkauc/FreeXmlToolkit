@@ -88,8 +88,6 @@ public class JsonPathCalculator {
 
         int i = 0;
         int length = text.length();
-        boolean inString = false;
-        boolean escaped = false;
         String currentKey = null;
         int arrayIndex = -1;
         int lastKeyStart = -1;
@@ -109,115 +107,105 @@ public class JsonPathCalculator {
                         currentValue.toString().trim(), arrayIndex, i >= lastKeyStart && i <= lastKeyEnd);
             }
 
-            if (inString) {
-                if (escaped) {
-                    escaped = false;
-                    if (collectingValue) currentValue.append(c);
-                } else if (c == '\\') {
-                    escaped = true;
-                    if (collectingValue) currentValue.append(c);
-                } else if (c == '"') {
-                    inString = false;
-                    if (collectingValue) {
-                        collectingValue = false;
+            switch (c) {
+                case '"' -> {
+                    int stringEnd = findStringEnd(text, i);
+                    if (stringEnd < 0) {
+                        // Unterminated string - stop parsing
+                        return buildHoverInfo(pathStack, currentKey, lastValueType,
+                                currentValue.toString().trim(), arrayIndex, false);
                     }
-                } else {
-                    if (collectingValue) currentValue.append(c);
-                }
-            } else {
-                switch (c) {
-                    case '"' -> {
-                        inString = true;
-                        // Check if this is a key or value
-                        int colonPos = findNextNonWhitespace(text, i + 1);
-                        if (colonPos < length && text.charAt(colonPos) == ':') {
-                            // This is a key
-                            lastKeyStart = i;
-                            String key = extractString(text, i);
-                            lastKeyEnd = i + key.length() + 1; // +1 for closing quote
-                            currentKey = key;
 
-                            // Check if targetPosition is within this key (including quotes)
-                            if (targetPosition >= lastKeyStart && targetPosition <= lastKeyEnd) {
-                                return buildHoverInfo(pathStack, currentKey, "property",
-                                        null, arrayIndex, true);
-                            }
+                    // Extract the string content (without quotes)
+                    String stringContent = extractString(text, i);
 
-                            i = lastKeyEnd;
-                        } else {
-                            // This is a string value
-                            lastValueStart = i;
-                            lastValueType = "string";
-                            currentValue.setLength(0);
-                            collectingValue = true;
+                    // Determine if this is a property key: "..."\s*:
+                    int afterString = findNextNonWhitespace(text, stringEnd + 1);
+                    boolean isKey = afterString < length && text.charAt(afterString) == ':';
 
-                            // Extract the full string value for hover
-                            String stringValue = extractString(text, i);
-                            int stringEnd = i + stringValue.length() + 1;
+                    if (isKey) {
+                        lastKeyStart = i;
+                        lastKeyEnd = stringEnd;
+                        currentKey = stringContent;
 
-                            // Check if targetPosition is within this string value
-                            if (targetPosition >= lastValueStart && targetPosition <= stringEnd) {
-                                return buildHoverInfo(pathStack, currentKey, "string",
-                                        stringValue, arrayIndex, false);
-                            }
+                        if (targetPosition >= lastKeyStart && targetPosition <= lastKeyEnd) {
+                            return buildHoverInfo(pathStack, currentKey, "property",
+                                    null, arrayIndex, true);
                         }
-                    }
-                    case ':' -> {
-                        // After colon comes the value
-                        lastValueStart = findNextNonWhitespace(text, i + 1);
-                        if (lastValueStart < length) {
-                            char valueStart = text.charAt(lastValueStart);
-                            lastValueType = detectValueType(text, lastValueStart);
-                            if (valueStart != '"' && valueStart != '{' && valueStart != '[') {
-                                currentValue.setLength(0);
-                                collectingValue = true;
-                            }
-                        }
-                    }
-                    case '{' -> {
-                        if (currentKey != null) {
-                            pathStack.push(new PathElement(currentKey, ElementType.OBJECT, -1));
-                            currentKey = null;
-                        } else if (!pathStack.isEmpty() && pathStack.peek().type == ElementType.ARRAY) {
-                            pathStack.push(new PathElement("[" + arrayIndex + "]", ElementType.OBJECT, arrayIndex));
-                        }
-                        lastValueType = "object";
-                        collectingValue = false;
-                    }
-                    case '}' -> {
-                        if (!pathStack.isEmpty() && pathStack.peek().type != ElementType.ROOT) {
-                            pathStack.pop();
-                        }
-                        collectingValue = false;
-                    }
-                    case '[' -> {
-                        if (currentKey != null) {
-                            pathStack.push(new PathElement(currentKey, ElementType.ARRAY, -1));
-                            currentKey = null;
-                        }
-                        arrayIndex = 0;
-                        lastValueType = "array";
-                        collectingValue = false;
-                    }
-                    case ']' -> {
-                        if (!pathStack.isEmpty() && pathStack.peek().type == ElementType.ARRAY) {
-                            pathStack.pop();
-                        }
-                        arrayIndex = -1;
-                        collectingValue = false;
-                    }
-                    case ',' -> {
-                        if (!pathStack.isEmpty() && pathStack.peek().type == ElementType.ARRAY) {
-                            arrayIndex++;
-                        }
-                        currentKey = null;
+                    } else {
+                        // String value
+                        lastValueStart = i;
+                        lastValueType = "string";
                         collectingValue = false;
                         currentValue.setLength(0);
-                    }
-                    default -> {
-                        if (collectingValue && !Character.isWhitespace(c)) {
-                            currentValue.append(c);
+
+                        if (targetPosition >= lastValueStart && targetPosition <= stringEnd) {
+                            return buildHoverInfo(pathStack, currentKey, "string",
+                                    stringContent, arrayIndex, false);
                         }
+                    }
+
+                    // Jump to end quote; loop will i++ afterwards
+                    i = stringEnd;
+                }
+                case ':' -> {
+                    // After colon comes the value
+                    lastValueStart = findNextNonWhitespace(text, i + 1);
+                    if (lastValueStart < length) {
+                        char valueStart = text.charAt(lastValueStart);
+                        lastValueType = detectValueType(text, lastValueStart);
+                        if (valueStart != '"' && valueStart != '{' && valueStart != '[') {
+                            currentValue.setLength(0);
+                            collectingValue = true;
+                        } else {
+                            collectingValue = false;
+                            currentValue.setLength(0);
+                        }
+                    }
+                }
+                case '{' -> {
+                    if (currentKey != null) {
+                        pathStack.push(new PathElement(currentKey, ElementType.OBJECT, -1));
+                        currentKey = null;
+                    } else if (!pathStack.isEmpty() && pathStack.peek().type == ElementType.ARRAY) {
+                        pathStack.push(new PathElement("", ElementType.OBJECT, arrayIndex));
+                    }
+                    lastValueType = "object";
+                    collectingValue = false;
+                }
+                case '}' -> {
+                    if (!pathStack.isEmpty() && pathStack.peek().type != ElementType.ROOT) {
+                        pathStack.pop();
+                    }
+                    collectingValue = false;
+                }
+                case '[' -> {
+                    if (currentKey != null) {
+                        pathStack.push(new PathElement(currentKey, ElementType.ARRAY, -1));
+                        currentKey = null;
+                    }
+                    arrayIndex = 0;
+                    lastValueType = "array";
+                    collectingValue = false;
+                }
+                case ']' -> {
+                    if (!pathStack.isEmpty() && pathStack.peek().type == ElementType.ARRAY) {
+                        pathStack.pop();
+                    }
+                    arrayIndex = -1;
+                    collectingValue = false;
+                }
+                case ',' -> {
+                    if (!pathStack.isEmpty() && pathStack.peek().type == ElementType.ARRAY) {
+                        arrayIndex++;
+                    }
+                    currentKey = null;
+                    collectingValue = false;
+                    currentValue.setLength(0);
+                }
+                default -> {
+                    if (collectingValue && !Character.isWhitespace(c)) {
+                        currentValue.append(c);
                     }
                 }
             }
@@ -270,20 +258,39 @@ public class JsonPathCalculator {
         return sb.toString();
     }
 
+    private static int findStringEnd(String text, int startQuote) {
+        boolean escaped = false;
+        for (int i = startQuote + 1; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (c == '\\') {
+                escaped = true;
+            } else if (c == '"') {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     private static JsonHoverInfo buildHoverInfo(Deque<PathElement> pathStack, String currentKey,
                                                  String valueType, String value, int arrayIndex, boolean onKey) {
         StringBuilder path = new StringBuilder();
 
         // Build path from stack (forward order, from root to leaf)
         PathElement[] elements = pathStack.toArray(new PathElement[0]);
-        for (int i = 0; i < elements.length; i++) {
+        for (int i = elements.length - 1; i >= 0; i--) {
             PathElement elem = elements[i];
             if (elem.type == ElementType.ROOT) {
                 path.append(elem.name);
             } else if (elem.type == ElementType.ARRAY) {
                 // Array elements don't add to path themselves,
                 // the index is added when accessing elements
-                path.append(".").append(elem.name);
+                if (elem.name != null && !elem.name.isEmpty()) {
+                    path.append(".").append(elem.name);
+                }
             } else if (elem.index >= 0) {
                 // This is an object inside an array - add array index notation
                 path.append("[").append(elem.index).append("]");
