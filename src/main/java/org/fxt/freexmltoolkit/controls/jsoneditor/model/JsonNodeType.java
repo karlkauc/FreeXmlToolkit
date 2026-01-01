@@ -45,7 +45,7 @@ public enum JsonNodeType {
     /**
      * A number value (integer or floating point).
      */
-    NUMBER("bi-123", "#fd7e14"),
+    NUMBER("bi-hash", "#fd7e14"),
 
     /**
      * A boolean value (true or false).
