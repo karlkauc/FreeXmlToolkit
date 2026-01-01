@@ -41,11 +41,12 @@ class UnifiedEditorFileTypeTest {
     @Test
     @DisplayName("All enum values exist")
     void allValuesExist() {
-        assertEquals(4, UnifiedEditorFileType.values().length);
+        assertEquals(5, UnifiedEditorFileType.values().length);
         assertNotNull(UnifiedEditorFileType.XML);
         assertNotNull(UnifiedEditorFileType.XSD);
         assertNotNull(UnifiedEditorFileType.XSLT);
         assertNotNull(UnifiedEditorFileType.SCHEMATRON);
+        assertNotNull(UnifiedEditorFileType.JSON);
     }
 
     @ParameterizedTest
@@ -172,6 +173,26 @@ class UnifiedEditorFileTypeTest {
     }
 
     @Nested
+    @DisplayName("JSON file type")
+    class JsonTests {
+
+        @Test
+        @DisplayName("Has correct properties")
+        void hasCorrectProperties() {
+            UnifiedEditorFileType json = UnifiedEditorFileType.JSON;
+
+            assertEquals("bi-filetype-json", json.getIcon());
+            assertEquals("#f57c00", json.getColor());
+            assertEquals("json-tab", json.getStyleClass());
+            assertTrue(json.getExtensions().contains("json"));
+            assertTrue(json.getExtensions().contains("jsonc"));
+            assertTrue(json.getExtensions().contains("json5"));
+            assertEquals("JSON", json.getDisplayName());
+            assertEquals("json", json.getDefaultExtension());
+        }
+    }
+
+    @Nested
     @DisplayName("fromFile")
     class FromFileTests {
 
@@ -240,6 +261,30 @@ class UnifiedEditorFileTypeTest {
             file.createNewFile();
             assertEquals(UnifiedEditorFileType.SCHEMATRON, UnifiedEditorFileType.fromFile(file));
         }
+
+        @Test
+        @DisplayName("Returns correct type for .json file")
+        void returnsCorrectTypeForJsonFile() throws IOException {
+            File file = tempDir.resolve("data.json").toFile();
+            file.createNewFile();
+            assertEquals(UnifiedEditorFileType.JSON, UnifiedEditorFileType.fromFile(file));
+        }
+
+        @Test
+        @DisplayName("Returns correct type for .jsonc file")
+        void returnsCorrectTypeForJsoncFile() throws IOException {
+            File file = tempDir.resolve("config.jsonc").toFile();
+            file.createNewFile();
+            assertEquals(UnifiedEditorFileType.JSON, UnifiedEditorFileType.fromFile(file));
+        }
+
+        @Test
+        @DisplayName("Returns correct type for .json5 file")
+        void returnsCorrectTypeForJson5File() throws IOException {
+            File file = tempDir.resolve("modern.json5").toFile();
+            file.createNewFile();
+            assertEquals(UnifiedEditorFileType.JSON, UnifiedEditorFileType.fromFile(file));
+        }
     }
 
     @Nested
@@ -303,7 +348,14 @@ class UnifiedEditorFileTypeTest {
         void returnsXmlForUnknownExtension() {
             assertEquals(UnifiedEditorFileType.XML, UnifiedEditorFileType.fromFileName("file.txt"));
             assertEquals(UnifiedEditorFileType.XML, UnifiedEditorFileType.fromFileName("file.html"));
-            assertEquals(UnifiedEditorFileType.XML, UnifiedEditorFileType.fromFileName("file.json"));
+            assertEquals(UnifiedEditorFileType.XML, UnifiedEditorFileType.fromFileName("file.csv"));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"data.json", "CONFIG.JSON", "test.jsonc", "modern.json5"})
+        @DisplayName("Returns JSON for various JSON filenames (case insensitive)")
+        void returnsJsonForVariousJsonFilenames(String filename) {
+            assertEquals(UnifiedEditorFileType.JSON, UnifiedEditorFileType.fromFileName(filename));
         }
 
         @Test
@@ -326,6 +378,7 @@ class UnifiedEditorFileTypeTest {
             assertEquals(UnifiedEditorFileType.XSD, UnifiedEditorFileType.valueOf("XSD"));
             assertEquals(UnifiedEditorFileType.XSLT, UnifiedEditorFileType.valueOf("XSLT"));
             assertEquals(UnifiedEditorFileType.SCHEMATRON, UnifiedEditorFileType.valueOf("SCHEMATRON"));
+            assertEquals(UnifiedEditorFileType.JSON, UnifiedEditorFileType.valueOf("JSON"));
         }
 
         @Test
