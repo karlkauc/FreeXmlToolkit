@@ -594,4 +594,38 @@ public class JsonCodeEditor extends VBox {
     public void focusEditor() {
         Platform.runLater(codeArea::requestFocus);
     }
+
+    /**
+     * Moves the caret to the specified position.
+     */
+    public void moveTo(int position) {
+        if (position >= 0 && position <= codeArea.getText().length()) {
+            Platform.runLater(() -> {
+                codeArea.moveTo(position);
+                codeArea.requestFollowCaret();
+            });
+        }
+    }
+
+    /**
+     * Gets the current caret position.
+     */
+    public int getCaretPosition() {
+        return codeArea.getCaretPosition();
+    }
+
+    /**
+     * Gets the text property for observing changes.
+     */
+    public javafx.beans.value.ObservableValue<String> textProperty() {
+        return codeArea.textProperty();
+    }
+
+    /**
+     * Requests focus.
+     */
+    @Override
+    public void requestFocus() {
+        Platform.runLater(codeArea::requestFocus);
+    }
 }

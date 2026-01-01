@@ -150,6 +150,45 @@
             </tooltip>
         </Button>
 
+        <Separator orientation="VERTICAL"/>
+
+        <!-- View Toggle Group -->
+        <ToggleButton fx:id="treeViewToggle" text="Tree" contentDisplay="TOP" styleClass="toolbar-button" onAction="#toggleTreeView">
+            <graphic>
+                <FontIcon iconLiteral="bi-diagram-2" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle Tree View (Ctrl+T)"/>
+            </tooltip>
+        </ToggleButton>
+
+        <MenuButton fx:id="treeViewOptions" text="View" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-eye" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="View Options"/>
+            </tooltip>
+            <items>
+                <MenuItem text="Expand All" onAction="#expandAllNodes">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-arrows-expand" iconSize="16" iconColor="#28a745"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="Collapse All" onAction="#collapseAllNodes">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-arrows-collapse" iconSize="16" iconColor="#6c757d"/>
+                    </graphic>
+                </MenuItem>
+                <SeparatorMenuItem/>
+                <MenuItem text="Sync with Editor" onAction="#syncTreeWithEditor">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16" iconColor="#007bff"/>
+                    </graphic>
+                </MenuItem>
+            </items>
+        </MenuButton>
+
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Format Indicator -->
@@ -195,8 +234,14 @@
                 <Label text="Supports: JSON, JSONC (comments), JSON5" style="-fx-font-size: 12px; -fx-text-fill: #adb5bd;"/>
             </VBox>
 
-            <!-- Editor Container (initially hidden) -->
-            <VBox fx:id="editorContainer" visible="false" managed="false"/>
+            <!-- Editor Container with Tree View (initially hidden) -->
+            <SplitPane fx:id="editorSplitPane" orientation="HORIZONTAL" dividerPositions="0.25" visible="false" managed="false">
+                <!-- Tree View Panel (left) -->
+                <VBox fx:id="treeViewContainer" minWidth="200" maxWidth="400" visible="false" managed="false"/>
+
+                <!-- Text Editor Panel (right) -->
+                <VBox fx:id="editorContainer"/>
+            </SplitPane>
         </StackPane>
 
         <!-- JSONPath Query Panel -->

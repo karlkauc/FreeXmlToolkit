@@ -21,12 +21,19 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonCodeEditor;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonArray;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeFactory;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject;
+import org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.JsonService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
@@ -51,6 +58,8 @@ public class JsonController {
 
     private MainController parentController;
     private JsonCodeEditor jsonEditor;
+    private JsonTreeView jsonTreeView;
+    private JsonDocument currentDocument;
     private File currentFile;
     private File schemaFile;
     private String lastOpenDir = ".";
@@ -58,15 +67,18 @@ public class JsonController {
     // FXML Components
     @FXML private ToolBar mainToolbar;
     @FXML private SplitPane mainSplitPane;
+    @FXML private SplitPane editorSplitPane;
     @FXML private StackPane editorStackPane;
     @FXML private VBox emptyStatePane;
     @FXML private VBox editorContainer;
+    @FXML private VBox treeViewContainer;
     @FXML private VBox jsonPathPane;
     @FXML private TextField jsonPathField;
     @FXML private TextArea jsonPathResultArea;
     @FXML private Label queryResultLabel;
     @FXML private Label formatLabel;
     @FXML private MenuButton toolbarRecentFiles;
+    @FXML private ToggleButton treeViewToggle;
     @FXML private Button undoBtn;
     @FXML private Button redoBtn;
 
@@ -101,8 +113,21 @@ public class JsonController {
         editorContainer.getChildren().add(jsonEditor);
         VBox.setVgrow(jsonEditor, javafx.scene.layout.Priority.ALWAYS);
 
+        // Create and setup tree view
+        jsonTreeView = new JsonTreeView();
+        jsonTreeView.setOnSelectionChanged(this::onTreeNodeSelected);
+        treeViewContainer.getChildren().add(jsonTreeView);
+        VBox.setVgrow(jsonTreeView, Priority.ALWAYS);
+
         // Wire up drag and drop callback
         jsonEditor.setOnFileDropped(this::loadJsonFile);
+
+        // Setup text change listener for tree sync
+        jsonEditor.textProperty().addListener((obs, oldText, newText) -> {
+            if (treeViewToggle.isSelected()) {
+                updateTreeViewFromText();
+            }
+        });
 
         // Setup keyboard shortcuts
         setupKeyboardShortcuts();
@@ -566,6 +591,306 @@ public class JsonController {
         logger.debug("JSONPath panel visibility toggled to: {}", !visible);
     }
 
+    // ==================== Tree View Operations ====================
+
+    /**
+     * Toggles the tree view visibility.
+     */
+    @FXML
+    public void toggleTreeView() {
+        boolean showTree = treeViewToggle.isSelected();
+
+        treeViewContainer.setVisible(showTree);
+        treeViewContainer.setManaged(showTree);
+
+        if (showTree) {
+            // Show tree - set divider to show tree panel
+            editorSplitPane.setDividerPositions(0.25);
+            updateTreeViewFromText();
+        } else {
+            // Hide tree - let editor take full space
+            editorSplitPane.setDividerPositions(0.0);
+        }
+
+        logger.debug("Tree view toggled to: {}", showTree);
+    }
+
+    /**
+     * Expands all nodes in the tree view.
+     */
+    @FXML
+    public void expandAllNodes() {
+        if (jsonTreeView != null) {
+            jsonTreeView.expandAll();
+            logger.debug("All tree nodes expanded");
+        }
+    }
+
+    /**
+     * Collapses all nodes in the tree view.
+     */
+    @FXML
+    public void collapseAllNodes() {
+        if (jsonTreeView != null) {
+            jsonTreeView.collapseAll();
+            logger.debug("All tree nodes collapsed");
+        }
+    }
+
+    /**
+     * Syncs the tree view with the current cursor position in the editor.
+     */
+    @FXML
+    public void syncTreeWithEditor() {
+        if (jsonTreeView == null || currentDocument == null) {
+            return;
+        }
+
+        // First update the tree from current text
+        updateTreeViewFromText();
+
+        // Get current caret position and try to find the node at that position
+        int caretPos = jsonEditor.getCaretPosition();
+        String text = jsonEditor.getText();
+
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        // Use JSONPath calculator to find what node we're in
+        var hoverInfo = org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonPathCalculator.calculatePath(text, caretPos);
+        if (hoverInfo != null && hoverInfo.isValid()) {
+            // Try to find the node in the document by path
+            String path = hoverInfo.jsonPath();
+            logger.debug("Syncing to path: {}", path);
+
+            // Find node by traversing the path
+            JsonNode node = findNodeByPath(currentDocument.getRootValue(), path);
+            if (node != null) {
+                jsonTreeView.selectNode(node);
+            }
+        }
+    }
+
+    /**
+     * Updates the tree view from the current text content.
+     */
+    private void updateTreeViewFromText() {
+        String content = jsonEditor.getText();
+        if (content == null || content.trim().isEmpty()) {
+            currentDocument = null;
+            jsonTreeView.setDocument(null);
+            return;
+        }
+
+        try {
+            currentDocument = JsonNodeFactory.parse(content);
+            jsonTreeView.setDocument(currentDocument);
+        } catch (Exception e) {
+            // Invalid JSON, don't update tree
+            logger.trace("Cannot parse JSON for tree view: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Called when a node is selected in the tree view.
+     */
+    private void onTreeNodeSelected(JsonNode node) {
+        if (node == null) {
+            return;
+        }
+
+        String text = jsonEditor.getText();
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        // Find the position of this node in the text by searching for its key or value
+        int position = findNodePosition(text, node);
+
+        if (position >= 0) {
+            // Move caret to the node's position
+            jsonEditor.moveTo(position);
+            jsonEditor.requestFocus();
+            logger.debug("Selected tree node: {} at position {}", node.getPath(), position);
+        }
+    }
+
+    /**
+     * Finds the position of a node in the JSON text.
+     * Uses the node's path to navigate through the text.
+     */
+    private int findNodePosition(String text, JsonNode node) {
+        // Build the path segments
+        java.util.List<String> pathSegments = new java.util.ArrayList<>();
+        JsonNode current = node;
+        while (current != null && current.getParent() != null) {
+            if (current.getKey() != null) {
+                pathSegments.add(0, current.getKey());
+            } else if (current.getParent() instanceof JsonArray) {
+                int index = current.getParent().indexOf(current);
+                pathSegments.add(0, "[" + index + "]");
+            }
+            current = current.getParent();
+        }
+
+        // Navigate through the text to find the position
+        int searchFrom = 0;
+        for (String segment : pathSegments) {
+            if (segment.startsWith("[")) {
+                // Array index - count array elements
+                int index = Integer.parseInt(segment.substring(1, segment.length() - 1));
+                int arrayPos = findArrayElement(text, searchFrom, index);
+                if (arrayPos < 0) {
+                    return -1;
+                }
+                searchFrom = arrayPos;
+            } else {
+                // Object key - search for "key":
+                String searchKey = "\"" + segment + "\"";
+                int keyPos = text.indexOf(searchKey, searchFrom);
+                if (keyPos < 0) {
+                    return -1;
+                }
+                searchFrom = keyPos;
+            }
+        }
+
+        return searchFrom;
+    }
+
+    /**
+     * Finds the position of an array element by index.
+     */
+    private int findArrayElement(String text, int startFrom, int targetIndex) {
+        int depth = 0;
+        int currentIndex = -1;
+        boolean inString = false;
+        boolean escaped = false;
+
+        for (int i = startFrom; i < text.length(); i++) {
+            char c = text.charAt(i);
+
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                } else if (c == '\\') {
+                    escaped = true;
+                } else if (c == '"') {
+                    inString = false;
+                }
+            } else {
+                switch (c) {
+                    case '"' -> inString = true;
+                    case '[' -> {
+                        if (depth == 0) {
+                            currentIndex = 0;
+                            if (currentIndex == targetIndex) {
+                                return i + 1; // Position after '['
+                            }
+                        }
+                        depth++;
+                    }
+                    case ']' -> depth--;
+                    case ',' -> {
+                        if (depth == 1) {
+                            currentIndex++;
+                            if (currentIndex == targetIndex) {
+                                // Find the start of the value after comma
+                                int pos = i + 1;
+                                while (pos < text.length() && Character.isWhitespace(text.charAt(pos))) {
+                                    pos++;
+                                }
+                                return pos;
+                            }
+                        }
+                    }
+                    case '{', '}' -> {
+                        // Track nested objects within array
+                    }
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Finds a node by its JSONPath.
+     */
+    private JsonNode findNodeByPath(JsonNode root, String path) {
+        if (root == null || path == null || path.isEmpty()) {
+            return null;
+        }
+
+        // Path format: $.key1.key2[0].key3
+        if (path.equals("$")) {
+            return root;
+        }
+
+        // Remove leading "$." or "$"
+        String relativePath = path.startsWith("$.") ? path.substring(2) :
+                              path.startsWith("$") ? path.substring(1) : path;
+
+        if (relativePath.isEmpty()) {
+            return root;
+        }
+
+        JsonNode current = root;
+        String[] segments = relativePath.split("(?=\\[)|\\.");
+
+        for (String segment : segments) {
+            if (segment.isEmpty()) {
+                continue;
+            }
+
+            if (current == null) {
+                return null;
+            }
+
+            if (segment.startsWith("[") && segment.endsWith("]")) {
+                // Array index
+                try {
+                    int index = Integer.parseInt(segment.substring(1, segment.length() - 1));
+                    if (current instanceof JsonArray array) {
+                        var children = array.getChildren();
+                        if (index >= 0 && index < children.size()) {
+                            current = children.get(index);
+                        } else {
+                            return null;
+                        }
+                    } else {
+                        return null;
+                    }
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            } else {
+                // Object key
+                if (current instanceof JsonObject obj) {
+                    JsonNode child = findChildByKey(obj, segment);
+                    current = child;
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        return current;
+    }
+
+    /**
+     * Finds a child node by its key.
+     */
+    private JsonNode findChildByKey(JsonNode parent, String key) {
+        for (JsonNode child : parent.getChildren()) {
+            if (key.equals(child.getKey())) {
+                return child;
+            }
+        }
+        return null;
+    }
+
     // ==================== Help ====================
 
     /**
@@ -597,8 +922,15 @@ public class JsonController {
     private void showEditor() {
         emptyStatePane.setVisible(false);
         emptyStatePane.setManaged(false);
+        editorSplitPane.setVisible(true);
+        editorSplitPane.setManaged(true);
         editorContainer.setVisible(true);
         editorContainer.setManaged(true);
+
+        // Update tree view if toggle is active
+        if (treeViewToggle.isSelected()) {
+            updateTreeViewFromText();
+        }
     }
 
     /**

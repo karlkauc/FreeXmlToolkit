@@ -38,6 +38,10 @@ public abstract class JsonNode {
     private String key; // The property key (for object properties)
     protected final List<JsonNode> children = new ArrayList<>();
 
+    // Position in the source text (for navigation)
+    private int startPosition = -1;
+    private int endPosition = -1;
+
     /**
      * Gets the unique identifier for this node.
      */
@@ -80,6 +84,34 @@ public abstract class JsonNode {
         String oldKey = this.key;
         this.key = key;
         pcs.firePropertyChange("key", oldKey, key);
+    }
+
+    /**
+     * Gets the start position in the source text.
+     */
+    public int getStartPosition() {
+        return startPosition;
+    }
+
+    /**
+     * Sets the start position in the source text.
+     */
+    public void setStartPosition(int startPosition) {
+        this.startPosition = startPosition;
+    }
+
+    /**
+     * Gets the end position in the source text.
+     */
+    public int getEndPosition() {
+        return endPosition;
+    }
+
+    /**
+     * Sets the end position in the source text.
+     */
+    public void setEndPosition(int endPosition) {
+        this.endPosition = endPosition;
     }
 
     /**
