@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundsXML4 Schema - Type Overview</title>
+    <style>
+        /* ============================================================================
+           FreeXmlToolkit Style Guide Compliant Stylesheet
+           Based on STYLE_GUIDE.jsonc
+           ============================================================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Typography - from style guide */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            background: #f8f9fa; /* gray.100 */
+            min-height: 100vh;
+            padding: 20px;
+            color: #212529; /* light.text.primary */
+        }
+
+        /* Container - card style from style guide */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff; /* light.background.primary */
+            border-radius: 6px; /* borderRadius.md */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadows.md */
+            overflow: hidden;
+            border: 1px solid #e1e4e8; /* card.borderColor */
+        }
+
+        /* Header - using primary gradient style */
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0550ae 100%); /* primary colors */
+            color: white;
+            padding: 32px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-family: Roboto, sans-serif;
+            font-size: 32px; /* typography.fontSizes.4xl */
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px; /* typography.fontSizes.lg */
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 32px 40px;
+        }
+
+        /* Root Element Highlight - using warning/success gradient */
+        .root-element-highlight-section {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); /* success gradient */
+            padding: 24px;
+            border-radius: 8px; /* borderRadius.lg */
+            margin-bottom: 32px;
+            text-align: center;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadows.lg */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .root-element-highlight-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        }
+
+        .root-element-label {
+            color: white;
+            font-size: 11px; /* typography.fontSizes.sm */
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .root-element-name {
+            font-family: Roboto, sans-serif;
+            font-size: 32px; /* typography.fontSizes.4xl */
+            font-weight: 700;
+            color: #fff;
+            margin: 16px 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .root-element-description {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 13px; /* typography.fontSizes.md */
+            margin: 12px 0 16px 0;
+            font-weight: 500;
+        }
+
+        /* Button - from style guide default button */
+        .root-element-button {
+            display: inline-block;
+            background: linear-gradient(to bottom, #ffffff, #f0f2f5); /* buttons.default.background */
+            color: #24292f; /* buttons.default.textColor */
+            padding: 12px 32px;
+            border-radius: 4px; /* borderRadius.base */
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid #d0d7de; /* buttons.default.borderColor */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadows.sm */
+            transition: all 0.2s ease;
+            text-decoration: none;
+            margin-top: 8px;
+        }
+
+        .root-element-button:hover {
+            background: linear-gradient(to bottom, #f6f8fa, #e9ecef);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadows.base */
+            transform: translateY(-1px);
+        }
+
+        .root-element-button:active {
+            transform: translateY(0);
+        }
+
+        .root-element-icon {
+            font-size: 14px;
+            margin-right: 8px;
+        }
+
+        /* Filter Section - card style */
+        .filter-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+            background: #f8f9fa; /* light.background.secondary */
+            padding: 20px;
+            border-radius: 6px; /* borderRadius.md */
+            border: 1px solid #dee2e6; /* light.border.light */
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #212529; /* light.text.primary */
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 12px;
+            border: 1px solid #ced4da; /* gray.400 */
+            border-radius: 4px; /* borderRadius.base */
+            font-size: 12px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #4a90e2; /* light.border.focus */
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #e7f3ff; /* tipsBanner.background */
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #212529;
+            border: 1px solid #b8daff; /* tipsBanner.border */
+        }
+
+        .stat-count {
+            font-weight: 700;
+            color: #007bff; /* semantic.primary */
+            font-size: 14px;
+        }
+
+        /* Types Grid - using action-card style */
+        .types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+            min-height: 300px;
+        }
+
+        .type-card {
+            background: white; /* actionCard.background */
+            border: 1px solid #e5e7eb; /* actionCard.borderColor */
+            border-radius: 8px; /* actionCard.borderRadius */
+            padding: 16px; /* actionCard.padding */
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .type-card:hover {
+            background: #f8fafc; /* actionCard.hover.background */
+            border-color: #cbd5e1; /* actionCard.hover.borderColor */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .type-card a {
+            text-decoration: none;
+            color: #007bff; /* semantic.primary */
+            font-weight: 500;
+            font-size: 13px;
+            flex-grow: 1;
+            transition: color 0.2s;
+        }
+
+        .type-card a:hover {
+            color: #0550ae;
+            text-decoration: underline;
+        }
+
+        /* Type Badges - using semantic colors */
+        .type-badge {
+            background: #e9ecef; /* gray.200 */
+            color: #6c757d; /* gray.600 */
+            padding: 4px 10px;
+            border-radius: 12px; /* pill shape */
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+            margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .type-badge.complex {
+            background: #fff3cd; /* warning background */
+            color: #856404;
+        }
+
+        .type-badge.simple {
+            background: #d1ecf1; /* info background */
+            color: #0c5460;
+        }
+
+        .type-badge.global {
+            background: #d4edda; /* success background */
+            color: #155724;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #6c757d; /* gray.600 */
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #495057; /* gray.700 */
+        }
+
+        /* Pagination - button styles from style guide */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            padding: 24px;
+            background: #f8f9fa; /* light.background.secondary */
+            border-top: 1px solid #dee2e6;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #d0d7de;
+            background: linear-gradient(to bottom, #ffffff, #f0f2f5);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.2s;
+            color: #24292f;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: linear-gradient(to bottom, #2b8aff, #0969da); /* buttons.primary */
+            color: white;
+            border-color: #0550ae;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: #212529;
+            font-size: 12px;
+        }
+
+        .pagination-info input {
+            width: 56px;
+            padding: 6px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 12px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        .pagination-info input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        /* Info Box - dialog info box style */
+        .info-box {
+            background: #e3f2fd; /* dialog.infoBox.info.background */
+            border-left: 4px solid #90caf9; /* dialog.infoBox.info.border */
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            color: #1976d2; /* dialog.infoBox.info.text */
+            font-size: 12px;
+        }
+
+        .info-box strong {
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 24px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .filter-section {
+                grid-template-columns: 1fr;
+            }
+
+            .types-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .type-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .type-badge {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+
+            .root-element-name {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>FundsXML4 Schema Documentation</h1>
+        <p>Intelligent Type Management with Filtering and Pagination</p>
+    </div>
+
+    <div class="main-content">
+        <!-- ROOT ELEMENT HIGHLIGHT SECTION -->
+        <div class="root-element-highlight-section">
+            <div class="root-element-label">Root Element</div>
+            <div class="root-element-name">FundsXML4</div>
+            <div class="root-element-description">
+                Click here to view the root element details and explore the complete XML structure.
+            </div>
+            <a href="details/FundsXML4_03619599b453e5076558dea9d0ed8acb.html" class="root-element-button">
+                <span class="root-element-icon">&#8594;</span>Go to Root Element
+            </a>
+        </div>
+
+        <div class="info-box">
+            <strong>New Feature:</strong> This page demonstrates how 300+ types can be better organized and searchable.
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="searchInput">Search Types</label>
+                <input type="text" id="searchInput" placeholder="e.g. 'Fund', 'Asset', 'Account'...">
+            </div>
+
+            <div class="filter-group">
+                <label for="categoryFilter">Category</label>
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="global">Global Elements</option>
+                    <option value="complex">Complex Types</option>
+                    <option value="simple">Simple Types</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="sortBy">Sort By</label>
+                <select id="sortBy">
+                    <option value="name-asc">A-Z (ascending)</option>
+                    <option value="name-desc">Z-A (descending)</option>
+                    <option value="usage">Most frequently used</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span>Total:</span>
+                <span class="stat-count" id="totalCount">351</span>
+            </div>
+            <div class="stat-item">
+                <span>Displayed:</span>
+                <span class="stat-count" id="displayCount">25</span>
+            </div>
+            <div class="stat-item">
+                <span>Page:</span>
+                <span class="stat-count" id="currentPageDisplay">1</span>
+            </div>
+        </div>
+
+        <div class="types-grid" id="typesGrid"></div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <h3>No results found</h3>
+            <p>Try a different search query or filter setting.</p>
+        </div>
+
+        <div class="pagination">
+            <button id="prevBtn" onclick="goToPreviousPage()">&#8592; Previous</button>
+            <div class="pagination-info">
+                <span>Page</span>
+                <input type="number" id="pageInput" min="1" value="1" onchange="goToPage()">
+                <span>of <span id="totalPages">15</span></span>
+            </div>
+            <button id="nextBtn" onclick="goToNextPage()">Next &#8594;</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const allTypes = [
+        { name: 'FundsXML4', category: 'global', usage: 100 },
+        { name: 'AUMType', category: 'complex', usage: 85 },
+        { name: 'AccountType', category: 'complex', usage: 92 },
+        { name: 'AddressType', category: 'complex', usage: 88 },
+        { name: 'AddressTypeDataDEType', category: 'complex', usage: 45 },
+        { name: 'AllocationType', category: 'complex', usage: 78 },
+        { name: 'AmountType', category: 'complex', usage: 95 },
+        { name: 'AnnualReturnsDataDEType', category: 'complex', usage: 52 },
+        { name: 'AssetDetailsType', category: 'complex', usage: 73 },
+        { name: 'AssetManagementClosedDataType', category: 'complex', usage: 41 },
+        { name: 'AssetManagementCompanyAggregatedType', category: 'complex', usage: 63 },
+        { name: 'AssetManagementCompanyDataType', category: 'complex', usage: 71 },
+        { name: 'AssetMasterDataType', category: 'complex', usage: 82 },
+        { name: 'AssetType', category: 'complex', usage: 90 },
+        { name: 'BenchmarkType', category: 'complex', usage: 76 },
+        { name: 'BondType', category: 'complex', usage: 68 },
+        { name: 'CallCapitalType', category: 'complex', usage: 48 },
+        { name: 'CertificateType', category: 'complex', usage: 55 },
+        { name: 'ClassificationType', category: 'complex', usage: 79 },
+        { name: 'CompanyType', category: 'complex', usage: 87 },
+        { name: 'ControlDataType', category: 'complex', usage: 72 },
+        { name: 'ConvertibleBondType', category: 'complex', usage: 50 },
+        { name: 'CounterpartyType', category: 'complex', usage: 65 },
+        { name: 'CryptoBinary', category: 'complex', usage: 35 },
+        { name: 'DocumentType', category: 'complex', usage: 70 },
+        { name: 'EquityType', category: 'complex', usage: 81 },
+        { name: 'AssetTypeType', category: 'simple', usage: 89 },
+        { name: 'BencmarkUsageType', category: 'simple', usage: 62 },
+        { name: 'BicCodeType', category: 'simple', usage: 77 },
+        { name: 'CICCodeType', category: 'simple', usage: 58 },
+        { name: 'EmailAddressType', category: 'simple', usage: 84 },
+        { name: 'FrequencyType', category: 'simple', usage: 91 },
+        { name: 'IBANType', category: 'simple', usage: 93 },
+        { name: 'ISINType', category: 'simple', usage: 97 },
+        { name: 'ISOCountryCodeType', category: 'simple', usage: 98 },
+        { name: 'ISOCurrencyCodeType', category: 'simple', usage: 96 },
+        { name: 'ISOLanguageCodeType', category: 'simple', usage: 75 },
+        { name: 'LEICodeType', category: 'simple', usage: 69 },
+        { name: 'PercentageType', category: 'simple', usage: 94 },
+        { name: 'Text100Type', category: 'simple', usage: 85 },
+        { name: 'Text1000Type', category: 'simple', usage: 60 },
+        { name: 'Text256Type', category: 'simple', usage: 74 },
+        { name: 'YesNoType', category: 'simple', usage: 86 },
+        { name: 'positiveDecimals', category: 'simple', usage: 80 },
+    ];
+
+    let currentPage = 1;
+    let itemsPerPage = 25;
+    let filteredTypes = [...allTypes];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('searchInput').addEventListener('input', filterAndRender);
+        document.getElementById('categoryFilter').addEventListener('change', filterAndRender);
+        document.getElementById('sortBy').addEventListener('change', filterAndRender);
+        renderPage();
+    });
+
+    function filterAndRender() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const category = document.getElementById('categoryFilter').value;
+        const sortBy = document.getElementById('sortBy').value;
+
+        filteredTypes = allTypes.filter(type => {
+            const matchesSearch = type.name.toLowerCase().includes(searchTerm);
+            const matchesCategory = !category || type.category === category;
+            return matchesSearch && matchesCategory;
+        });
+
+        if (sortBy === 'name-asc') {
+            filteredTypes.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (sortBy === 'name-desc') {
+            filteredTypes.sort((a, b) => b.name.localeCompare(a.name));
+        } else if (sortBy === 'usage') {
+            filteredTypes.sort((a, b) => b.usage - a.usage);
+        }
+
+        currentPage = 1;
+        renderPage();
+    }
+
+    function renderPage() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageItems = filteredTypes.slice(startIndex, endIndex);
+
+        const grid = document.getElementById('typesGrid');
+        const emptyState = document.getElementById('emptyState');
+
+        if (pageItems.length === 0) {
+            grid.style.display = 'none';
+            emptyState.style.display = 'block';
+        } else {
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            grid.innerHTML = pageItems.map(type => `
+                    <div class="type-card">
+                        <a href="details/${type.name}.html" title="Click to view details">
+                            ${type.name}
+                        </a>
+                        <span class="type-badge ${type.category}">${type.category}</span>
+                    </div>
+                `).join('');
+        }
+
+        updatePagination();
+        updateStats();
+    }
+
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredTypes.length / itemsPerPage);
+        document.getElementById('totalPages').textContent = totalPages;
+        document.getElementById('pageInput').value = currentPage;
+        document.getElementById('pageInput').max = totalPages;
+
+        document.getElementById('prevBtn').disabled = currentPage === 1;
+        document.getElementById('nextBtn').disabled = currentPage === totalPages;
+
+        document.getElementById('currentPageDisplay').textContent = currentPage;
+    }
+
+    function updateStats() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, filteredTypes.length);
+        const displayedCount = endIndex - startIndex;
+
+        document.getElementById('totalCount').textContent = filteredTypes.length;
+        document.getElementById('displayCount').textContent = displayedCount;
+    }
+
+    function goToNextPage() {
+        const totalPages = Math.ceil(filteredTypes.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function goToPreviousPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function goToPage() {
+        let page = parseInt(document.getElementById('pageInput').value);
+        const totalPages = Math.ceil(filteredTypes.length / itemsPerPage);
+
+        if (isNaN(page) || page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+
+        currentPage = page;
+        renderPage();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+</body>
+</html>

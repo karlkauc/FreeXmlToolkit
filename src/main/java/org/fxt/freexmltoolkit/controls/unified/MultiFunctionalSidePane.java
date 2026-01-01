@@ -318,7 +318,7 @@ public class MultiFunctionalSidePane extends VBox {
         placeholder.setPadding(new Insets(20));
         placeholder.setAlignment(Pos.TOP_CENTER);
 
-        FontIcon icon = new FontIcon("bi-filetype-json");
+        FontIcon icon = new FontIcon("bi-braces");
         icon.setIconSize(48);
         icon.setIconColor(javafx.scene.paint.Color.web("#f57c00"));
 

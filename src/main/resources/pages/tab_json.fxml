@@ -176,7 +176,7 @@
             <!-- Empty State -->
             <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
                   visible="true" managed="true">
-                <FontIcon iconLiteral="bi-filetype-json" iconSize="64" iconColor="#f57c00"/>
+                <FontIcon iconLiteral="bi-braces" iconSize="64" iconColor="#f57c00"/>
                 <Label text="Ready to Edit JSON" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
                 <Label text="Create a new JSON file or open an existing document to start editing" wrapText="true" textAlignment="CENTER"
                        style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
@@ -204,7 +204,7 @@
             <!-- Query Controls Bar -->
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Label text="JSONPath Query:" style="-fx-font-weight: bold;"/>
-                <TextField fx:id="jsonPathField" prefWidth="400" promptText="$.store.book[*].author"/>
+                <TextField fx:id="jsonPathField" prefWidth="400" promptText="Enter JSONPath (e.g. $$.items[*].name)"/>
                 <Button fx:id="executeQueryButton" onAction="#runJsonPath"
                         text="Execute" prefWidth="100"
                         style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;">

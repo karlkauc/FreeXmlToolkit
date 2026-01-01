@@ -341,7 +341,7 @@
                             <Button fx:id="json" mnemonicParsing="false" onAction="#loadPage"
                                     styleClass="menu_button" text="JSON Editor" VBox.vgrow="ALWAYS">
                                 <graphic>
-                                    <FontIcon iconColor="#f57c00" iconLiteral="bi-filetype-json" iconSize="16"/>
+                                    <FontIcon iconColor="#f57c00" iconLiteral="bi-braces" iconSize="16"/>
                                 </graphic>
                             </Button>
 

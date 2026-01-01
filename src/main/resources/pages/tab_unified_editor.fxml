@@ -61,7 +61,7 @@
                 <SeparatorMenuItem/>
                 <MenuItem text="JSON File" onAction="#newJsonFile">
                     <graphic>
-                        <FontIcon iconLiteral="bi-filetype-json" iconSize="16" iconColor="#f57c00"/>
+                        <FontIcon iconLiteral="bi-braces" iconSize="16" iconColor="#f57c00"/>
                     </graphic>
                 </MenuItem>
             </items>

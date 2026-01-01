@@ -35,7 +35,7 @@ public enum UnifiedEditorFileType {
     /**
      * JSON files (.json, .jsonc, .json5)
      */
-    JSON("bi-filetype-json", "#f57c00", "json-tab", Set.of("json", "jsonc", "json5"));
+    JSON("bi-braces", "#f57c00", "json-tab", Set.of("json", "jsonc", "json5"));
 
     private final String icon;
     private final String color;

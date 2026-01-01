@@ -181,7 +181,7 @@ class UnifiedEditorFileTypeTest {
         void hasCorrectProperties() {
             UnifiedEditorFileType json = UnifiedEditorFileType.JSON;
 
-            assertEquals("bi-filetype-json", json.getIcon());
+            assertEquals("bi-braces", json.getIcon());
             assertEquals("#f57c00", json.getColor());
             assertEquals("json-tab", json.getStyleClass());
             assertTrue(json.getExtensions().contains("json"));
