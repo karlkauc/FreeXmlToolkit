@@ -19,12 +19,17 @@
 package org.fxt.freexmltoolkit.controls.jsoneditor.editor;
 
 import javafx.application.Platform;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -32,8 +37,13 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
 /**
@@ -59,6 +69,15 @@ public class JsonCodeEditor extends VBox {
     private static final int MAX_FONT_SIZE = 72;
     private int fontSize = DEFAULT_FONT_SIZE;
 
+    // Hover tooltip
+    private Popup hoverPopup;
+    private Label hoverLabel;
+    private long lastHoverUpdate = 0;
+    private static final long HOVER_DELAY_MS = 300;
+
+    // Drag & Drop callback
+    private Consumer<File> onFileDropped;
+
     /**
      * Creates a new JSON code editor.
      */
@@ -79,6 +98,12 @@ public class JsonCodeEditor extends VBox {
 
         // Setup event handlers
         setupEventHandlers();
+
+        // Setup hover tooltip
+        setupHoverTooltip();
+
+        // Setup drag & drop
+        setupDragAndDrop();
 
         logger.info("JsonCodeEditor created successfully");
     }
@@ -185,6 +210,168 @@ public class JsonCodeEditor extends VBox {
         });
 
         logger.debug("Event handlers setup");
+    }
+
+    /**
+     * Sets up the hover tooltip for showing JSONPath information.
+     */
+    private void setupHoverTooltip() {
+        // Create popup and label
+        hoverPopup = new Popup();
+        hoverLabel = new Label();
+        hoverLabel.setStyle(
+                "-fx-background-color: #2d2d2d; " +
+                "-fx-text-fill: #e0e0e0; " +
+                "-fx-padding: 8 12; " +
+                "-fx-font-family: 'JetBrains Mono', 'Consolas', monospace; " +
+                "-fx-font-size: 11px; " +
+                "-fx-background-radius: 4; " +
+                "-fx-border-radius: 4; " +
+                "-fx-border-color: #555; " +
+                "-fx-border-width: 1; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 2, 2);"
+        );
+        hoverPopup.getContent().add(hoverLabel);
+        hoverPopup.setAutoHide(true);
+
+        // Mouse move handler
+        codeArea.setOnMouseMoved(event -> {
+            long now = System.currentTimeMillis();
+            if (now - lastHoverUpdate < HOVER_DELAY_MS) {
+                return;
+            }
+            lastHoverUpdate = now;
+
+            try {
+                // Get character position under mouse
+                var hitInfo = codeArea.hit(event.getX(), event.getY());
+                int charIndex = hitInfo.getCharacterIndex().orElse(-1);
+
+                if (charIndex >= 0 && charIndex < codeArea.getText().length()) {
+                    String text = codeArea.getText();
+                    JsonPathCalculator.JsonHoverInfo hoverInfo = JsonPathCalculator.calculatePath(text, charIndex);
+
+                    if (hoverInfo != null && hoverInfo.isValid()) {
+                        // Build tooltip text
+                        StringBuilder tooltipText = new StringBuilder();
+                        tooltipText.append("Path: ").append(hoverInfo.jsonPath());
+                        tooltipText.append("\nType: ").append(hoverInfo.valueType());
+                        if (hoverInfo.key() != null) {
+                            tooltipText.append("\nKey: \"").append(hoverInfo.key()).append("\"");
+                        }
+                        if (hoverInfo.value() != null && !hoverInfo.value().isEmpty()) {
+                            String displayValue = hoverInfo.value();
+                            if (displayValue.length() > 50) {
+                                displayValue = displayValue.substring(0, 47) + "...";
+                            }
+                            tooltipText.append("\nValue: ").append(displayValue);
+                        }
+
+                        hoverLabel.setText(tooltipText.toString());
+
+                        // Position and show popup
+                        Bounds screenBounds = codeArea.localToScreen(codeArea.getBoundsInLocal());
+                        if (screenBounds != null) {
+                            double x = event.getScreenX() + 15;
+                            double y = event.getScreenY() + 15;
+                            hoverPopup.show(codeArea, x, y);
+                        }
+                    } else {
+                        hoverPopup.hide();
+                    }
+                } else {
+                    hoverPopup.hide();
+                }
+            } catch (Exception e) {
+                logger.trace("Hover tooltip error: {}", e.getMessage());
+                hoverPopup.hide();
+            }
+        });
+
+        // Hide on mouse exit
+        codeArea.setOnMouseExited(event -> hoverPopup.hide());
+
+        logger.debug("Hover tooltip setup");
+    }
+
+    /**
+     * Sets up drag and drop support for JSON files.
+     */
+    private void setupDragAndDrop() {
+        // Accept drag over
+        codeArea.setOnDragOver(event -> {
+            Dragboard db = event.getDragboard();
+            if (db.hasFiles()) {
+                List<File> files = db.getFiles();
+                if (!files.isEmpty() && isJsonFile(files.get(0))) {
+                    event.acceptTransferModes(TransferMode.COPY);
+                }
+            }
+            event.consume();
+        });
+
+        // Handle drop
+        codeArea.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+
+            if (db.hasFiles()) {
+                List<File> files = db.getFiles();
+                if (!files.isEmpty()) {
+                    File file = files.get(0);
+                    if (isJsonFile(file)) {
+                        if (onFileDropped != null) {
+                            // Use callback if set
+                            onFileDropped.accept(file);
+                            success = true;
+                        } else {
+                            // Load file directly
+                            try {
+                                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+                                setText(content);
+                                documentPath = file.getAbsolutePath();
+                                success = true;
+                                logger.info("File dropped and loaded: {}", file.getName());
+                            } catch (Exception e) {
+                                logger.error("Error loading dropped file: {}", e.getMessage(), e);
+                            }
+                        }
+                    }
+                }
+            }
+
+            event.setDropCompleted(success);
+            event.consume();
+        });
+
+        // Visual feedback on drag enter/exit
+        codeArea.setOnDragEntered(event -> {
+            if (event.getDragboard().hasFiles()) {
+                codeArea.setStyle(codeArea.getStyle() + "-fx-border-color: #28a745; -fx-border-width: 2;");
+            }
+        });
+
+        codeArea.setOnDragExited(event -> {
+            updateFontSize(); // Reset style
+        });
+
+        logger.debug("Drag and drop setup");
+    }
+
+    /**
+     * Checks if a file is a JSON file.
+     */
+    private boolean isJsonFile(File file) {
+        if (file == null || !file.isFile()) return false;
+        String name = file.getName().toLowerCase();
+        return name.endsWith(".json") || name.endsWith(".jsonc") || name.endsWith(".json5");
+    }
+
+    /**
+     * Sets a callback for when a file is dropped onto the editor.
+     */
+    public void setOnFileDropped(Consumer<File> callback) {
+        this.onFileDropped = callback;
     }
 
     /**

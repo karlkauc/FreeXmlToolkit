@@ -101,6 +101,9 @@ public class JsonController {
         editorContainer.getChildren().add(jsonEditor);
         VBox.setVgrow(jsonEditor, javafx.scene.layout.Priority.ALWAYS);
 
+        // Wire up drag and drop callback
+        jsonEditor.setOnFileDropped(this::loadJsonFile);
+
         // Setup keyboard shortcuts
         setupKeyboardShortcuts();
 
@@ -550,6 +553,16 @@ public class JsonController {
         boolean visible = jsonPathPane.isVisible();
         jsonPathPane.setVisible(!visible);
         jsonPathPane.setManaged(!visible);
+
+        // Adjust SplitPane divider when panel is hidden/shown
+        if (!visible) {
+            // Showing panel - set divider to show JSONPath pane
+            mainSplitPane.setDividerPositions(0.75);
+        } else {
+            // Hiding panel - let editor take full space
+            mainSplitPane.setDividerPositions(1.0);
+        }
+
         logger.debug("JSONPath panel visibility toggled to: {}", !visible);
     }
 
