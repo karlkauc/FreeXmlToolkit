@@ -816,6 +816,24 @@ class UpdateCheckServiceTest {
         public void setXsltExtensionsAllowed(boolean allowed) {
             properties.setProperty("security.xslt.allow.extensions", String.valueOf(allowed));
         }
+
+        @Override
+        public int getJsonIndentSpaces() {
+            return 2;
+        }
+
+        @Override
+        public void setJsonIndentSpaces(int spaces) {
+        }
+
+        @Override
+        public java.util.List<java.io.File> getRecentJsonFiles() {
+            return java.util.List.of();
+        }
+
+        @Override
+        public void addRecentJsonFile(java.io.File file) {
+        }
     }
 
     /**
