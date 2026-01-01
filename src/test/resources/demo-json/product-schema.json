@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/product.schema.json",
+  "title": "Product",
+  "description": "A product in the catalog",
+  "type": "object",
+  "required": ["id", "name", "price"],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "The unique identifier for a product",
+      "minimum": 1
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the product",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "description": "Product description"
+    },
+    "price": {
+      "type": "number",
+      "description": "The price of the product",
+      "minimum": 0,
+      "exclusiveMinimum": true
+    },
+    "currency": {
+      "type": "string",
+      "description": "Currency code",
+      "enum": ["USD", "EUR", "GBP", "JPY", "CHF"],
+      "default": "USD"
+    },
+    "category": {
+      "type": "string",
+      "description": "Product category",
+      "enum": ["electronics", "clothing", "food", "books", "toys"]
+    },
+    "inStock": {
+      "type": "boolean",
+      "description": "Whether the product is in stock",
+      "default": true
+    },
+    "quantity": {
+      "type": "integer",
+      "description": "Available quantity",
+      "minimum": 0
+    },
+    "tags": {
+      "type": "array",
+      "description": "Product tags",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "dimensions": {
+      "type": "object",
+      "description": "Product dimensions",
+      "properties": {
+        "width": {"type": "number", "minimum": 0},
+        "height": {"type": "number", "minimum": 0},
+        "depth": {"type": "number", "minimum": 0},
+        "unit": {"type": "string", "enum": ["cm", "in", "mm"]}
+      },
+      "required": ["width", "height", "depth"]
+    },
+    "manufacturer": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "country": {"type": "string"},
+        "website": {"type": "string", "format": "uri"}
+      }
+    },
+    "releaseDate": {
+      "type": "string",
+      "description": "Product release date",
+      "format": "date"
+    }
+  },
+  "additionalProperties": false
+}

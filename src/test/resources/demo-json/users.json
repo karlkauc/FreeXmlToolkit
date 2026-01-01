@@ -1,0 +1,63 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@example.com",
+      "profile": {
+        "firstName": "John",
+        "lastName": "Doe",
+        "age": 32,
+        "city": "New York"
+      },
+      "roles": ["admin", "user"],
+      "active": true,
+      "lastLogin": "2024-12-15T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "username": "jane_smith",
+      "email": "jane@example.com",
+      "profile": {
+        "firstName": "Jane",
+        "lastName": "Smith",
+        "age": 28,
+        "city": "Los Angeles"
+      },
+      "roles": ["user"],
+      "active": true,
+      "lastLogin": "2024-12-20T14:45:00Z"
+    },
+    {
+      "id": 3,
+      "username": "bob_wilson",
+      "email": "bob@example.com",
+      "profile": {
+        "firstName": "Bob",
+        "lastName": "Wilson",
+        "age": 45,
+        "city": "Chicago"
+      },
+      "roles": ["user", "moderator"],
+      "active": false,
+      "lastLogin": "2024-11-01T08:00:00Z"
+    },
+    {
+      "id": 4,
+      "username": "alice_jones",
+      "email": "alice@example.com",
+      "profile": {
+        "firstName": "Alice",
+        "lastName": "Jones",
+        "age": 35,
+        "city": "Seattle"
+      },
+      "roles": ["admin", "user", "moderator"],
+      "active": true,
+      "lastLogin": "2024-12-22T16:20:00Z"
+    }
+  ],
+  "totalCount": 4,
+  "page": 1,
+  "pageSize": 10
+}

@@ -1,0 +1,47 @@
+{
+  "company": {
+    "name": "TechCorp International",
+    "founded": 2010,
+    "headquarters": {
+      "address": {
+        "street": "123 Innovation Drive",
+        "city": "San Francisco",
+        "state": "CA",
+        "zip": "94102",
+        "country": "USA"
+      },
+      "coordinates": {
+        "latitude": 37.7749,
+        "longitude": -122.4194
+      }
+    },
+    "departments": {
+      "engineering": {
+        "head": "Jane Smith",
+        "teams": {
+          "frontend": {
+            "members": 15,
+            "technologies": ["React", "TypeScript", "CSS"]
+          },
+          "backend": {
+            "members": 20,
+            "technologies": ["Java", "Spring Boot", "PostgreSQL"]
+          },
+          "devops": {
+            "members": 8,
+            "technologies": ["Kubernetes", "Docker", "Terraform"]
+          }
+        }
+      },
+      "sales": {
+        "head": "John Doe",
+        "regions": {
+          "north": {"quota": 500000, "achieved": 450000},
+          "south": {"quota": 400000, "achieved": 420000},
+          "east": {"quota": 350000, "achieved": 380000},
+          "west": {"quota": 600000, "achieved": 590000}
+        }
+      }
+    }
+  }
+}

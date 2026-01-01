@@ -1,0 +1,64 @@
+{
+  "emptyObject": {},
+  "emptyArray": [],
+  "nullValue": null,
+  "booleans": {
+    "trueValue": true,
+    "falseValue": false
+  },
+  "numbers": {
+    "integer": 42,
+    "negative": -17,
+    "float": 3.14159,
+    "scientific": 1.23e10,
+    "negativeExponent": 5e-3,
+    "zero": 0,
+    "negativeZero": -0
+  },
+  "strings": {
+    "empty": "",
+    "simple": "Hello, World!",
+    "unicode": "Hallo \u00d6sterreich! \u4e2d\u6587 \u65e5\u672c\u8a9e",
+    "emoji": "Hello! \ud83d\ude00 \ud83c\udf89 \ud83d\ude80",
+    "escaped": "Line1\nLine2\tTabbed\r\nWindows",
+    "quotes": "He said \"Hello\" and 'Goodbye'",
+    "backslash": "C:\\Users\\Documents\\file.txt",
+    "specialChars": "< > & \" ' / \\"
+  },
+  "deeplyNested": {
+    "level1": {
+      "level2": {
+        "level3": {
+          "level4": {
+            "level5": {
+              "level6": {
+                "level7": {
+                  "level8": {
+                    "level9": {
+                      "level10": "You found me!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "mixedContent": [
+    1,
+    "two",
+    3.0,
+    true,
+    false,
+    null,
+    {"nested": "object"},
+    ["nested", "array"],
+    []
+  ],
+  "duplicateKeys": "Note: JSON spec says last value wins for duplicate keys",
+  "largeNumber": 9007199254740991,
+  "verySmallNumber": 0.000000001,
+  "whitespaceKey": "This key has leading/trailing spaces trimmed by most parsers"
+}

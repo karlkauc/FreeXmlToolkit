@@ -1,0 +1,49 @@
+{
+  // Application Configuration File
+  // This file demonstrates JSONC (JSON with Comments) support
+
+  "application": {
+    "name": "FreeXmlToolkit",
+    "version": "1.2.1",
+    // Enable debug mode for development
+    "debug": true
+  },
+
+  /*
+   * Database Configuration
+   * Supports PostgreSQL, MySQL, and SQLite
+   */
+  "database": {
+    "driver": "postgresql",
+    "host": "localhost",
+    "port": 5432,
+    "name": "fxt_db",
+    // Credentials should be overridden by environment variables
+    "username": "admin",
+    "password": "changeme"
+  },
+
+  // Logging configuration
+  "logging": {
+    "level": "DEBUG",       // Options: TRACE, DEBUG, INFO, WARN, ERROR
+    "file": "./logs/app.log",
+    "maxSize": "10MB",
+    "maxFiles": 5,
+    "console": true         // Also log to console
+  },
+
+  /* Feature flags for gradual rollout */
+  "features": {
+    "newEditor": true,      // V2 XML Editor
+    "jsonSupport": true,    // JSON editing capabilities
+    "darkMode": false,      // Coming soon!
+    "autoUpdate": true
+  },
+
+  // Cache settings
+  "cache": {
+    "enabled": true,
+    "ttl": 3600,            // Time-to-live in seconds
+    "maxItems": 1000
+  }
+}

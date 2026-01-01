@@ -1,0 +1,97 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Wireless Bluetooth Headphones",
+      "description": "Premium noise-canceling wireless headphones with 30-hour battery life",
+      "price": 199.99,
+      "currency": "USD",
+      "category": "electronics",
+      "inStock": true,
+      "quantity": 150,
+      "tags": ["wireless", "bluetooth", "audio", "noise-canceling"],
+      "dimensions": {
+        "width": 18.5,
+        "height": 20.0,
+        "depth": 8.5,
+        "unit": "cm"
+      },
+      "manufacturer": {
+        "name": "AudioTech",
+        "country": "Japan",
+        "website": "https://audiotech.example.com"
+      },
+      "releaseDate": "2024-03-15"
+    },
+    {
+      "id": 2,
+      "name": "Cotton T-Shirt",
+      "description": "Comfortable 100% organic cotton t-shirt",
+      "price": 29.99,
+      "currency": "EUR",
+      "category": "clothing",
+      "inStock": true,
+      "quantity": 500,
+      "tags": ["cotton", "organic", "casual"],
+      "dimensions": {
+        "width": 50,
+        "height": 70,
+        "depth": 2,
+        "unit": "cm"
+      },
+      "manufacturer": {
+        "name": "EcoWear",
+        "country": "Portugal"
+      },
+      "releaseDate": "2024-01-10"
+    },
+    {
+      "id": 3,
+      "name": "Programming in Java",
+      "description": "Comprehensive guide to Java programming for beginners and experts",
+      "price": 49.99,
+      "currency": "USD",
+      "category": "books",
+      "inStock": true,
+      "quantity": 75,
+      "tags": ["programming", "java", "education", "technology"],
+      "dimensions": {
+        "width": 17,
+        "height": 24,
+        "depth": 4,
+        "unit": "cm"
+      },
+      "manufacturer": {
+        "name": "TechBooks Publishing",
+        "country": "USA",
+        "website": "https://techbooks.example.com"
+      },
+      "releaseDate": "2024-06-01"
+    },
+    {
+      "id": 4,
+      "name": "Smart Watch Pro",
+      "description": "Advanced fitness tracker with heart rate monitoring and GPS",
+      "price": 349.00,
+      "currency": "USD",
+      "category": "electronics",
+      "inStock": false,
+      "quantity": 0,
+      "tags": ["smartwatch", "fitness", "gps", "health"],
+      "dimensions": {
+        "width": 4.4,
+        "height": 4.4,
+        "depth": 1.2,
+        "unit": "cm"
+      },
+      "manufacturer": {
+        "name": "TechWear",
+        "country": "South Korea",
+        "website": "https://techwear.example.com"
+      },
+      "releaseDate": "2024-09-20"
+    }
+  ],
+  "totalProducts": 4,
+  "lastUpdated": "2024-12-22T10:30:00Z"
+}

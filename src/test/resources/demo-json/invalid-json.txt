@@ -1,0 +1,15 @@
+{
+  "name": "Invalid JSON Example",
+  "description": This string is not quoted,
+  "missing_comma": "value1"
+  "another_key": "value2",
+  trailing_comma: "bad",
+  "unterminated_string: "oops
+  "single_quotes": 'not valid in JSON',
+  undefined_value: undefined,
+  nan_value: NaN,
+  infinity: Infinity
+}
+
+// This file intentionally contains invalid JSON
+// Use it to test error handling and validation messages

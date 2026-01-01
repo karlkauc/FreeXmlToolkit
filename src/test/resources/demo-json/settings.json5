@@ -1,0 +1,57 @@
+{
+  // JSON5 Demo File
+  // Demonstrates extended JSON5 syntax features
+
+  // Unquoted property names (identifiers)
+  applicationName: 'FreeXmlToolkit',
+  version: '1.2.1',
+
+  // Single-quoted strings
+  description: 'A powerful toolkit for XML and JSON',
+
+  // Multi-line strings are NOT supported in JSON5, but trailing commas are!
+  features: [
+    'XML Editing',
+    'XSD Validation',
+    'XSLT Transformation',
+    'JSON Editing',
+    'JSONPath Queries',  // trailing comma allowed
+  ],
+
+  // Numbers can have leading/trailing decimal points
+  price: .99,
+  discount: 10.,
+
+  // Hexadecimal numbers
+  colorRed: 0xFF0000,
+  colorGreen: 0x00FF00,
+  colorBlue: 0x0000FF,
+
+  // Positive/negative infinity and NaN
+  maxValue: Infinity,
+  minValue: -Infinity,
+  notANumber: NaN,
+
+  // Explicit positive sign
+  positiveNumber: +42,
+
+  settings: {
+    // Nested objects with unquoted keys
+    theme: 'dark',
+    fontSize: 14,
+    fontFamily: 'JetBrains Mono',
+
+    // Trailing comma in objects too
+    autoSave: true,
+  },
+
+  /*
+   * Block comments work just like in JavaScript
+   * They can span multiple lines
+   */
+  metadata: {
+    createdAt: '2024-12-01',
+    updatedAt: '2024-12-22',
+    author: 'Demo User',
+  },
+}

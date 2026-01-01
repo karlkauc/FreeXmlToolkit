@@ -1,0 +1,31 @@
+{
+  "primitiveArray": [1, 2, 3, 4, 5],
+  "stringArray": ["apple", "banana", "cherry", "date", "elderberry"],
+  "mixedArray": [42, "hello", true, null, 3.14],
+  "nestedArrays": [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+  ],
+  "objectArray": [
+    {"id": 1, "name": "First", "active": true},
+    {"id": 2, "name": "Second", "active": false},
+    {"id": 3, "name": "Third", "active": true}
+  ],
+  "emptyArray": [],
+  "deepNesting": [
+    {
+      "level1": [
+        {
+          "level2": [
+            {
+              "level3": [
+                {"value": "deeply nested"}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

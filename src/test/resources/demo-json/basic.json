@@ -1,0 +1,20 @@
+{
+  "name": "FreeXmlToolkit",
+  "version": "1.2.1",
+  "description": "Universal Toolkit for XML, XSD, XSLT, and JSON",
+  "author": "Karl Kauc",
+  "license": "Apache-2.0",
+  "features": [
+    "XML Editing",
+    "XSD Validation",
+    "XSLT Transformation",
+    "JSON Editing",
+    "JSONPath Queries"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/karlkauc/FreeXmlToolkit"
+  },
+  "active": true,
+  "downloads": 12500
+}
