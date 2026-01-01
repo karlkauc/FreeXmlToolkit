@@ -66,6 +66,7 @@ public class UnifiedEditorTabFactory {
             case XSD -> new XsdUnifiedTab(file);
             case XSLT -> new XsltUnifiedTab(file);
             case SCHEMATRON -> new SchematronUnifiedTab(file);
+            case JSON -> new JsonUnifiedTab(file);
         };
     }
 
@@ -120,6 +121,16 @@ public class UnifiedEditorTabFactory {
     }
 
     /**
+     * Creates a JSON tab.
+     *
+     * @param file the file to open (or null for new file)
+     * @return JSON unified tab
+     */
+    public static JsonUnifiedTab createJsonTab(File file) {
+        return new JsonUnifiedTab(file);
+    }
+
+    /**
      * Checks if a file is supported by the Unified Editor.
      *
      * @param file the file to check
@@ -136,7 +147,10 @@ public class UnifiedEditorTabFactory {
                 name.endsWith(".xsl") ||
                 name.endsWith(".xslt") ||
                 name.endsWith(".sch") ||
-                name.endsWith(".schematron");
+                name.endsWith(".schematron") ||
+                name.endsWith(".json") ||
+                name.endsWith(".jsonc") ||
+                name.endsWith(".json5");
     }
 
     /**
@@ -177,6 +191,8 @@ public class UnifiedEditorTabFactory {
             return UnifiedEditorFileType.XSLT;
         } else if (lower.endsWith(".sch") || lower.endsWith(".schematron")) {
             return UnifiedEditorFileType.SCHEMATRON;
+        } else if (lower.endsWith(".json") || lower.endsWith(".jsonc") || lower.endsWith(".json5")) {
+            return UnifiedEditorFileType.JSON;
         }
 
         return null;

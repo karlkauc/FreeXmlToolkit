@@ -110,6 +110,7 @@ public class UnifiedEditorTabManager {
             case XSD -> new XsdUnifiedTab(file);
             case XSLT -> new XsltUnifiedTab(file);
             case SCHEMATRON -> new SchematronUnifiedTab(file);
+            case JSON -> new JsonUnifiedTab(file);
         };
 
         long duration = System.currentTimeMillis() - startTime;

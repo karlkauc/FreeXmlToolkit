@@ -58,6 +58,12 @@
                         <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#6f42c1"/>
                     </graphic>
                 </MenuItem>
+                <SeparatorMenuItem/>
+                <MenuItem text="JSON File" onAction="#newJsonFile">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-filetype-json" iconSize="16" iconColor="#f57c00"/>
+                    </graphic>
+                </MenuItem>
             </items>
         </MenuButton>
 

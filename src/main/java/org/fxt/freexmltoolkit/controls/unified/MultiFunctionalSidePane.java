@@ -223,6 +223,7 @@ public class MultiFunctionalSidePane extends VBox {
             case XSD -> "Schema Properties";
             case XSLT -> "XSLT Output";
             case SCHEMATRON -> "Schematron Properties";
+            case JSON -> "JSON Properties";
         };
 
         // Only update if showing properties (not favorites)
@@ -240,6 +241,7 @@ public class MultiFunctionalSidePane extends VBox {
             case XSD -> createXsdPropertiesPane();
             case XSLT -> createXsltOutputPane();
             case SCHEMATRON -> createSchematronPropertiesPane();
+            case JSON -> createJsonPropertiesPane();
         };
     }
 
@@ -305,6 +307,36 @@ public class MultiFunctionalSidePane extends VBox {
         SchematronPropertiesPane propertiesPane = new SchematronPropertiesPane();
         logger.debug("Created Schematron properties pane");
         return propertiesPane;
+    }
+
+    /**
+     * Creates the JSON properties pane.
+     * For now, a simple placeholder. Will be expanded in Phase 4+.
+     */
+    private Node createJsonPropertiesPane() {
+        VBox placeholder = new VBox(16);
+        placeholder.setPadding(new Insets(20));
+        placeholder.setAlignment(Pos.TOP_CENTER);
+
+        FontIcon icon = new FontIcon("bi-filetype-json");
+        icon.setIconSize(48);
+        icon.setIconColor(javafx.scene.paint.Color.web("#f57c00"));
+
+        Label titleLabel = new Label("JSON Properties");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+
+        Label infoLabel = new Label("JSON property panel coming in Phase 4");
+        infoLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 13px;");
+        infoLabel.setWrapText(true);
+        infoLabel.setAlignment(Pos.CENTER);
+
+        // Basic info section
+        Label formatLabel = new Label("Supports: JSON, JSONC, JSON5");
+        formatLabel.setStyle("-fx-text-fill: #17a2b8; -fx-font-size: 12px;");
+
+        placeholder.getChildren().addAll(icon, titleLabel, infoLabel, formatLabel);
+        logger.debug("Created JSON properties placeholder");
+        return placeholder;
     }
 
     /**

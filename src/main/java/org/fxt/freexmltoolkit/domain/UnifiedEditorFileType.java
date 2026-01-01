@@ -30,7 +30,12 @@ public enum UnifiedEditorFileType {
     /**
      * Schematron files (.sch, .schematron)
      */
-    SCHEMATRON("bi-shield-check", "#6f42c1", "schematron-tab", Set.of("sch", "schematron"));
+    SCHEMATRON("bi-shield-check", "#6f42c1", "schematron-tab", Set.of("sch", "schematron")),
+
+    /**
+     * JSON files (.json, .jsonc, .json5)
+     */
+    JSON("bi-filetype-json", "#f57c00", "json-tab", Set.of("json", "jsonc", "json5"));
 
     private final String icon;
     private final String color;
@@ -129,6 +134,7 @@ public enum UnifiedEditorFileType {
             case XSD -> "XSD Schema";
             case XSLT -> "XSLT Stylesheet";
             case SCHEMATRON -> "Schematron";
+            case JSON -> "JSON";
         };
     }
 
@@ -143,6 +149,7 @@ public enum UnifiedEditorFileType {
             case XSD -> "xsd";
             case XSLT -> "xslt";
             case SCHEMATRON -> "sch";
+            case JSON -> "json";
         };
     }
 }

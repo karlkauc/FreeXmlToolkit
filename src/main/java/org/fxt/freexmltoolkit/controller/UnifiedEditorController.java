@@ -288,15 +288,22 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     }
 
     @FXML
+    public void newJsonFile() {
+        tabManager.createNewTab(UnifiedEditorFileType.JSON);
+        updateStatus("Created new JSON file");
+    }
+
+    @FXML
     public void openFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open File");
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("All Supported Files", "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron"),
+                new FileChooser.ExtensionFilter("All Supported Files", "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron", "*.json", "*.jsonc", "*.json5"),
                 new FileChooser.ExtensionFilter("XML Files", "*.xml"),
                 new FileChooser.ExtensionFilter("XSD Schema Files", "*.xsd"),
                 new FileChooser.ExtensionFilter("XSLT Stylesheets", "*.xsl", "*.xslt"),
                 new FileChooser.ExtensionFilter("Schematron Files", "*.sch", "*.schematron"),
+                new FileChooser.ExtensionFilter("JSON Files", "*.json", "*.jsonc", "*.json5"),
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
 
@@ -961,7 +968,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         String name = file.getName().toLowerCase();
         return name.endsWith(".xml") || name.endsWith(".xsd") ||
                 name.endsWith(".xsl") || name.endsWith(".xslt") ||
-                name.endsWith(".sch") || name.endsWith(".schematron");
+                name.endsWith(".sch") || name.endsWith(".schematron") ||
+                name.endsWith(".json") || name.endsWith(".jsonc") || name.endsWith(".json5");
     }
 
     // ==================== Search Bar ====================
@@ -1053,6 +1061,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
             searchBar.setCurrentCodeArea(xsltTab.getCodeArea());
         } else if (tab instanceof SchematronUnifiedTab schTab) {
             searchBar.setCurrentEditor(schTab.getCodeEditor());
+        } else if (tab instanceof JsonUnifiedTab jsonTab) {
+            searchBar.setCurrentCodeArea(jsonTab.getCodeArea());
         }
     }
 
@@ -1094,6 +1104,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
             return xsltTab.getCodeArea().getSelectedText();
         } else if (tab instanceof SchematronUnifiedTab schTab) {
             return schTab.getCodeArea().getSelectedText();
+        } else if (tab instanceof JsonUnifiedTab jsonTab) {
+            return jsonTab.getCodeArea().getSelectedText();
         }
         return null;
     }
@@ -1249,6 +1261,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                 - XSD Schema files (.xsd)
                 - XSLT Stylesheets (.xsl, .xslt)
                 - Schematron files (.sch)
+                - JSON files (.json, .jsonc, .json5)
 
                 Features:
                 - Multi-tab editing
