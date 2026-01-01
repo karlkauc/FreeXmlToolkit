@@ -274,9 +274,9 @@ public class JsonPathCalculator {
                                                  String valueType, String value, int arrayIndex, boolean onKey) {
         StringBuilder path = new StringBuilder();
 
-        // Build path from stack (reverse order)
+        // Build path from stack (forward order, from root to leaf)
         PathElement[] elements = pathStack.toArray(new PathElement[0]);
-        for (int i = elements.length - 1; i >= 0; i--) {
+        for (int i = 0; i < elements.length; i++) {
             PathElement elem = elements[i];
             if (elem.type == ElementType.ROOT) {
                 path.append(elem.name);
