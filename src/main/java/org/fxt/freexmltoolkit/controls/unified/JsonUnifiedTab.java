@@ -29,6 +29,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonCodeEditor;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeFactory;
+import org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
 import org.fxt.freexmltoolkit.service.JsonService;
@@ -63,9 +66,13 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
     private final Tab jsonTab;
     private final Tab treeTab;
     private final JsonCodeEditor textEditor;
+    private final JsonTreeView treeView;
 
     // Services
     private final JsonService jsonService;
+
+    // Model
+    private JsonDocument jsonDocument;
 
     // State
     private String lastSavedContent;
@@ -87,6 +94,14 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
         if (sourceFile != null) {
             textEditor.setDocumentPath(sourceFile.getAbsolutePath());
         }
+
+        // Create tree view
+        this.treeView = new JsonTreeView();
+        treeView.setOnSelectionChanged(node -> {
+            if (node != null) {
+                logger.debug("Tree selection: {}", node.getPath());
+            }
+        });
 
         // Create view tabs
         this.viewTabPane = new TabPane();
@@ -118,11 +133,11 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
         jsonTab.setGraphic(jsonIcon);
         jsonTab.setContent(textEditor);
 
-        // Tree tab (placeholder for now)
+        // Tree tab with actual tree view
         FontIcon treeIcon = new FontIcon("bi-diagram-3");
         treeIcon.setIconSize(16);
         treeTab.setGraphic(treeIcon);
-        treeTab.setContent(new Label("JSON Tree View (coming soon)"));
+        treeTab.setContent(treeView);
 
         viewTabPane.getTabs().addAll(jsonTab, treeTab);
 
@@ -154,24 +169,21 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
     private void refreshTreeView() {
         String content = textEditor.getText();
         if (content == null || content.trim().isEmpty()) {
-            treeTab.setContent(new Label("No JSON content to display"));
+            treeView.setDocument(null);
             return;
         }
 
         try {
-            // Parse JSON to validate it first
-            jsonService.parseAuto(content);
-
-            // TODO: Implement tree view in Phase 4
-            VBox placeholder = new VBox(10);
-            placeholder.setStyle("-fx-padding: 20; -fx-alignment: center;");
-            Label infoLabel = new Label("JSON Tree View coming in Phase 4");
-            infoLabel.setStyle("-fx-text-fill: #666;");
-            placeholder.getChildren().add(infoLabel);
-
-            treeTab.setContent(placeholder);
+            // Parse JSON into model
+            jsonDocument = JsonNodeFactory.parse(content);
+            if (sourceFile != null) {
+                jsonDocument.setSourceFile(sourceFile);
+            }
+            treeView.setDocument(jsonDocument);
+            logger.debug("Refreshed tree view with {} format", jsonDocument.getFormat());
         } catch (Exception e) {
-            treeTab.setContent(new Label("Invalid JSON: " + e.getMessage()));
+            logger.warn("Failed to parse JSON for tree view: {}", e.getMessage());
+            treeView.setDocument(null);
         }
     }
 
@@ -401,6 +413,20 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
     @Override
     public CodeArea getPrimaryCodeArea() {
         return textEditor.getCodeArea();
+    }
+
+    /**
+     * Gets the tree view component.
+     */
+    public JsonTreeView getTreeView() {
+        return treeView;
+    }
+
+    /**
+     * Gets the current JSON document model.
+     */
+    public JsonDocument getJsonDocument() {
+        return jsonDocument;
     }
 
     /**
