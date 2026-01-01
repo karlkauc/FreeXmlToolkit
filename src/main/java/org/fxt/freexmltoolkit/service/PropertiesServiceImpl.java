@@ -497,4 +497,71 @@ public class PropertiesServiceImpl implements PropertiesService {
             logger.info("SECURITY: XSLT Java extensions are disabled (secure default).");
         }
     }
+
+    // JSON Editor settings implementation
+
+    private static final int MAX_RECENT_JSON_FILES = 10;
+
+    @Override
+    public List<File> getRecentJsonFiles() {
+        List<File> recentFiles = new java.util.ArrayList<>();
+        for (int i = 0; i < MAX_RECENT_JSON_FILES; i++) {
+            String path = properties.getProperty("json.recent.file." + i);
+            if (path != null && !path.isEmpty()) {
+                File file = new File(path);
+                if (file.exists()) {
+                    recentFiles.add(file);
+                }
+            }
+        }
+        return recentFiles;
+    }
+
+    @Override
+    public void addRecentJsonFile(File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
+
+        // Get current list and remove if already present
+        List<File> recentFiles = new java.util.ArrayList<>(getRecentJsonFiles());
+        recentFiles.removeIf(f -> f.getAbsolutePath().equals(file.getAbsolutePath()));
+
+        // Add to front
+        recentFiles.addFirst(file);
+
+        // Limit to max
+        while (recentFiles.size() > MAX_RECENT_JSON_FILES) {
+            recentFiles.removeLast();
+        }
+
+        // Save to properties
+        for (int i = 0; i < MAX_RECENT_JSON_FILES; i++) {
+            if (i < recentFiles.size()) {
+                properties.setProperty("json.recent.file." + i, recentFiles.get(i).getAbsolutePath());
+            } else {
+                properties.remove("json.recent.file." + i);
+            }
+        }
+        saveProperties(properties);
+        logger.debug("Added recent JSON file: {}", file.getAbsolutePath());
+    }
+
+    @Override
+    public int getJsonIndentSpaces() {
+        try {
+            return Integer.parseInt(properties.getProperty("json.indent.spaces", "2"));
+        } catch (NumberFormatException e) {
+            return 2;
+        }
+    }
+
+    @Override
+    public void setJsonIndentSpaces(int spaces) {
+        if (spaces >= 0 && spaces <= 8) {
+            properties.setProperty("json.indent.spaces", String.valueOf(spaces));
+            saveProperties(properties);
+            logger.debug("Set JSON indent spaces to: {}", spaces);
+        }
+    }
 }

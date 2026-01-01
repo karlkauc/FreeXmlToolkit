@@ -328,4 +328,34 @@ public interface PropertiesService {
      * @param allowed true to allow XSLT extensions, false to disable
      */
     void setXsltExtensionsAllowed(boolean allowed);
+
+    // JSON Editor settings
+
+    /**
+     * Gets the list of recently opened JSON files.
+     *
+     * @return list of recently opened JSON files
+     */
+    List<File> getRecentJsonFiles();
+
+    /**
+     * Adds a JSON file to the recent files list.
+     *
+     * @param file the file to add
+     */
+    void addRecentJsonFile(File file);
+
+    /**
+     * Gets the number of spaces used for JSON indentation.
+     *
+     * @return the number of indent spaces (default: 2)
+     */
+    int getJsonIndentSpaces();
+
+    /**
+     * Sets the number of spaces used for JSON indentation.
+     *
+     * @param spaces the number of indent spaces
+     */
+    void setJsonIndentSpaces(int spaces);
 }

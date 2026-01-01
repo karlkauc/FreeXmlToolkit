@@ -71,6 +71,7 @@ public class MainController implements Initializable {
     SchemaGeneratorController schemaGeneratorController;
     TemplatesController templatesController;
     UnifiedEditorController unifiedEditorController;
+    JsonController jsonController;
 
     // Track currently active tab
     private String activeTabId = "welcome";
@@ -90,7 +91,7 @@ public class MainController implements Initializable {
     AnchorPane contentPane;
 
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, unifiedEditor; // templates removed
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, unifiedEditor, json; // templates removed
 
     @FXML
     MenuItem menuItemExit;
@@ -479,6 +480,7 @@ public class MainController implements Initializable {
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedEditor" -> "/pages/tab_unified_editor.fxml";
+            case "json" -> "/pages/tab_json.fxml";
             default -> null;
         };
 
@@ -500,7 +502,7 @@ public class MainController implements Initializable {
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
             xmlUltimate, xsd, xsdValidation, schematron, xslt, fop,
-            signature, help, settings, schemaGenerator, xsltDeveloper, unifiedEditor
+            signature, help, settings, schemaGenerator, xsltDeveloper, unifiedEditor, json
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -540,6 +542,7 @@ public class MainController implements Initializable {
             case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
             case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             case "unifiedEditor" -> "/pages/tab_unified_editor.fxml";
+            case "json" -> "/pages/tab_json.fxml";
             default -> null;
         };
 
@@ -575,6 +578,7 @@ public class MainController implements Initializable {
             case "settings" -> settings;
             case "schemaGenerator" -> schemaGenerator;
             case "unifiedEditor" -> unifiedEditor;
+            case "json" -> json;
             default -> null;
         };
     }
@@ -738,6 +742,11 @@ public class MainController implements Initializable {
             case UnifiedEditorController unifiedEditorController1 -> {
                 logger.debug("set Unified Editor Controller");
                 this.unifiedEditorController = unifiedEditorController1;
+            }
+            case JsonController jsonController1 -> {
+                logger.debug("set JSON Editor Controller");
+                this.jsonController = jsonController1;
+                jsonController1.setParentController(this);
             }
             case null, default -> {
                 if (controller != null) {

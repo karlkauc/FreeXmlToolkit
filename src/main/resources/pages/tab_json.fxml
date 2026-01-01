@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
+<VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.JsonController"
+      stylesheets="@../css/xsd-tab-groups.css, @../css/json-editor.css">
+
+    <!-- JSON Editor Toolbar -->
+    <ToolBar fx:id="mainToolbar" styleClass="xsd-toolbar">
+        <!-- File Operations Group -->
+        <Button fx:id="newFile" text="New" contentDisplay="TOP" styleClass="toolbar-button" onAction="#newFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="New JSON Document (Ctrl+N)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="openFile" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Open JSON Document (Ctrl+O)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="saveFile" text="Save" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save Document (Ctrl+S)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="saveAsFile" text="Save As" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveAsFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save As... (Ctrl+Shift+S)"/>
+            </tooltip>
+        </Button>
+
+        <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Recent Files"/>
+            </tooltip>
+        </MenuButton>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Edit Operations Group -->
+        <Button fx:id="undoBtn" text="Undo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#undo">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Undo (Ctrl+Z)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="redoBtn" text="Redo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#redo">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Redo (Ctrl+Y)"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Format Operations Group -->
+        <Button fx:id="formatJson" text="Format" contentDisplay="TOP" styleClass="toolbar-button" onAction="#formatJson">
+            <graphic>
+                <FontIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#f57c00" styleClass="toolbar-icon-json"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Format JSON (Ctrl+Alt+F)"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="minifyJson" text="Minify" contentDisplay="TOP" styleClass="toolbar-button" onAction="#minifyJson">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-zip" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Minify JSON"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Validation Group -->
+        <Button fx:id="validateBtn" text="Validate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#validateJson">
+            <graphic>
+                <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Validate JSON (F5)"/>
+            </tooltip>
+        </Button>
+
+        <MenuButton fx:id="schemaBtn" text="Schema" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#9c27b0" styleClass="toolbar-icon-purple"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="JSON Schema Options"/>
+            </tooltip>
+            <items>
+                <MenuItem text="Load Schema..." onAction="#loadSchema">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="Clear Schema" onAction="#clearSchema">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
+                    </graphic>
+                </MenuItem>
+                <SeparatorMenuItem/>
+                <MenuItem text="Validate Against Schema" onAction="#validateAgainstSchema">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#28a745"/>
+                    </graphic>
+                </MenuItem>
+            </items>
+        </MenuButton>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- JSONPath Query Group -->
+        <Button fx:id="jsonPathBtn" text="JSONPath" contentDisplay="TOP" styleClass="toolbar-button" onAction="#runJsonPath">
+            <graphic>
+                <FontIcon iconLiteral="bi-search" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Run JSONPath Query"/>
+            </tooltip>
+        </Button>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <!-- Format Indicator -->
+        <Label fx:id="formatLabel" text="JSON" style="-fx-font-weight: bold; -fx-text-fill: #f57c00;"/>
+
+        <Separator orientation="VERTICAL"/>
+
+        <!-- Help -->
+        <Button fx:id="helpButton" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+            <graphic>
+                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Help (F1)"/>
+            </tooltip>
+        </Button>
+
+    </ToolBar>
+
+    <!-- Main Content Area with Vertical Split for JSONPath Panel -->
+    <SplitPane fx:id="mainSplitPane" orientation="VERTICAL" VBox.vgrow="ALWAYS" dividerPositions="0.75">
+        <!-- Main Editor Area -->
+        <StackPane fx:id="editorStackPane">
+            <!-- Empty State -->
+            <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
+                  visible="true" managed="true">
+                <FontIcon iconLiteral="bi-filetype-json" iconSize="64" iconColor="#f57c00"/>
+                <Label text="Ready to Edit JSON" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
+                <Label text="Create a new JSON file or open an existing document to start editing" wrapText="true" textAlignment="CENTER"
+                       style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="emptyStateNewButton" text="New JSON File" styleClass="btn-primary" onAction="#newFile">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="white"/>
+                        </graphic>
+                    </Button>
+                    <Button fx:id="emptyStateOpenButton" text="Open JSON File" styleClass="btn-secondary" onAction="#openFile">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                        </graphic>
+                    </Button>
+                </HBox>
+                <Label text="Supports: JSON, JSONC (comments), JSON5" style="-fx-font-size: 12px; -fx-text-fill: #adb5bd;"/>
+            </VBox>
+
+            <!-- Editor Container (initially hidden) -->
+            <VBox fx:id="editorContainer" visible="false" managed="false"/>
+        </StackPane>
+
+        <!-- JSONPath Query Panel -->
+        <VBox fx:id="jsonPathPane" spacing="10" style="-fx-padding: 10;" minHeight="120" visible="false" managed="false">
+            <!-- Query Controls Bar -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="JSONPath Query:" style="-fx-font-weight: bold;"/>
+                <TextField fx:id="jsonPathField" prefWidth="400" promptText="$.store.book[*].author"/>
+                <Button fx:id="executeQueryButton" onAction="#runJsonPath"
+                        text="Execute" prefWidth="100"
+                        style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;">
+                    <graphic>
+                        <FontIcon iconColor="white" iconLiteral="bi-play-circle-fill" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="clearQueryButton" onAction="#clearJsonPath" text="Clear" prefWidth="80">
+                    <graphic>
+                        <FontIcon iconColor="#6c757d" iconLiteral="bi-eraser" iconSize="14"/>
+                    </graphic>
+                </Button>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Result:" style="-fx-font-weight: bold;"/>
+                <Label fx:id="queryResultLabel" text="Ready" style="-fx-text-fill: #6c757d;"/>
+            </HBox>
+
+            <Separator/>
+
+            <!-- Result Area -->
+            <TextArea fx:id="jsonPathResultArea" editable="false" prefHeight="100" VBox.vgrow="ALWAYS"
+                      promptText="JSONPath query results will appear here..."
+                      style="-fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;"/>
+        </VBox>
+    </SplitPane>
+
+</VBox>
