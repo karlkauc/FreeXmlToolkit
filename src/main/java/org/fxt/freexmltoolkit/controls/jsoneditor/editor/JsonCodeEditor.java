@@ -78,6 +78,9 @@ public class JsonCodeEditor extends VBox {
     // Drag & Drop callback
     private Consumer<File> onFileDropped;
 
+    // Context menu
+    private JsonContextMenuManager contextMenuManager;
+
     /**
      * Creates a new JSON code editor.
      */
@@ -105,7 +108,30 @@ public class JsonCodeEditor extends VBox {
         // Setup drag & drop
         setupDragAndDrop();
 
+        // Setup context menu
+        setupContextMenu();
+
         logger.info("JsonCodeEditor created successfully");
+    }
+
+    /**
+     * Sets up the context menu for the editor.
+     */
+    private void setupContextMenu() {
+        contextMenuManager = new JsonContextMenuManager(codeArea);
+        contextMenuManager.initializeContextMenu();
+        logger.debug("Context menu setup");
+    }
+
+    /**
+     * Sets the context menu action handler.
+     *
+     * @param actions The action handler
+     */
+    public void setContextMenuActions(JsonContextMenuManager.JsonContextActions actions) {
+        if (contextMenuManager != null) {
+            contextMenuManager.setContextActions(actions);
+        }
     }
 
     /**

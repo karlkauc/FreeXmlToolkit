@@ -136,6 +136,13 @@ public class JsonPathCalculator {
                             String key = extractString(text, i);
                             lastKeyEnd = i + key.length() + 1; // +1 for closing quote
                             currentKey = key;
+
+                            // Check if targetPosition is within this key (including quotes)
+                            if (targetPosition >= lastKeyStart && targetPosition <= lastKeyEnd) {
+                                return buildHoverInfo(pathStack, currentKey, "property",
+                                        null, arrayIndex, true);
+                            }
+
                             i = lastKeyEnd;
                         } else {
                             // This is a string value
@@ -143,6 +150,16 @@ public class JsonPathCalculator {
                             lastValueType = "string";
                             currentValue.setLength(0);
                             collectingValue = true;
+
+                            // Extract the full string value for hover
+                            String stringValue = extractString(text, i);
+                            int stringEnd = i + stringValue.length() + 1;
+
+                            // Check if targetPosition is within this string value
+                            if (targetPosition >= lastValueStart && targetPosition <= stringEnd) {
+                                return buildHoverInfo(pathStack, currentKey, "string",
+                                        stringValue, arrayIndex, false);
+                            }
                         }
                     }
                     case ':' -> {
@@ -263,9 +280,15 @@ public class JsonPathCalculator {
             PathElement elem = elements[i];
             if (elem.type == ElementType.ROOT) {
                 path.append(elem.name);
-            } else if (elem.type == ElementType.ARRAY && elem.index >= 0) {
+            } else if (elem.type == ElementType.ARRAY) {
+                // Array elements don't add to path themselves,
+                // the index is added when accessing elements
+                path.append(".").append(elem.name);
+            } else if (elem.index >= 0) {
+                // This is an object inside an array - add array index notation
                 path.append("[").append(elem.index).append("]");
             } else {
+                // Regular object property
                 path.append(".").append(elem.name);
             }
         }
@@ -285,7 +308,7 @@ public class JsonPathCalculator {
         return new JsonHoverInfo(
                 pathStr,
                 valueType,
-                value.isEmpty() ? null : value,
+                value != null && !value.isEmpty() ? value : null,
                 currentKey,
                 pathStack.size() - 1
         );

@@ -28,6 +28,7 @@ import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonCodeEditor;
+import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonContextMenuManager;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonArray;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
@@ -109,6 +110,24 @@ public class JsonController {
         // Create JSON editor
         jsonEditor = new JsonCodeEditor();
 
+        // Wire up context menu actions
+        jsonEditor.setContextMenuActions(new JsonContextMenuManager.JsonContextActions() {
+            @Override
+            public void formatJson() {
+                JsonController.this.formatJson();
+            }
+
+            @Override
+            public void minifyJson() {
+                JsonController.this.minifyJson();
+            }
+
+            @Override
+            public void validateJson() {
+                JsonController.this.validateJson();
+            }
+        });
+
         // Add editor to container (initially hidden)
         editorContainer.getChildren().add(jsonEditor);
         VBox.setVgrow(jsonEditor, javafx.scene.layout.Priority.ALWAYS);
@@ -135,7 +154,30 @@ public class JsonController {
         // Load recent files
         loadRecentFiles();
 
+        // Show tree view and JSONPath panel by default
+        showTreeViewByDefault();
+        showJsonPathPanelByDefault();
+
         logger.info("JsonController initialized");
+    }
+
+    /**
+     * Shows the tree view panel by default on page load.
+     */
+    private void showTreeViewByDefault() {
+        treeViewToggle.setSelected(true);
+        treeViewContainer.setVisible(true);
+        treeViewContainer.setManaged(true);
+        logger.debug("Tree view panel shown by default");
+    }
+
+    /**
+     * Shows the JSONPath panel by default on page load.
+     */
+    private void showJsonPathPanelByDefault() {
+        jsonPathPane.setVisible(true);
+        jsonPathPane.setManaged(true);
+        logger.debug("JSONPath panel shown by default");
     }
 
     /**
@@ -898,20 +940,40 @@ public class JsonController {
      */
     @FXML
     public void showHelp() {
-        DialogHelper.showInformation("JSON Editor Help", "Features and Shortcuts",
-                "JSON Editor supports:\n\n" +
-                "- JSON (standard)\n" +
-                "- JSONC (JSON with Comments)\n" +
-                "- JSON5 (extended syntax)\n\n" +
-                "Keyboard Shortcuts:\n" +
-                "- Ctrl+N: New file\n" +
-                "- Ctrl+O: Open file\n" +
-                "- Ctrl+S: Save file\n" +
-                "- Ctrl+Alt+F: Format JSON\n" +
-                "- F5: Validate JSON\n" +
-                "- Ctrl+Z: Undo\n" +
-                "- Ctrl+Y: Redo\n" +
-                "- Ctrl++/-: Zoom in/out");
+        var features = java.util.List.of(
+                new String[]{"bi-braces", "Multi-Format Support", "Edit JSON, JSONC (with comments), and JSON5 (extended syntax)"},
+                new String[]{"bi-diagram-3", "Tree View", "Navigate JSON structure visually with expand/collapse support"},
+                new String[]{"bi-signpost-2", "JSONPath Queries", "Extract data using JSONPath expressions ($.store.book[*].author)"},
+                new String[]{"bi-file-earmark-check", "Schema Validation", "Validate JSON against JSON Schema (Draft 4-2020-12)"},
+                new String[]{"bi-cursor-text", "Hover Information", "See JSONPath, type, and value info when hovering over elements"},
+                new String[]{"bi-cloud-arrow-up", "Drag & Drop", "Drop JSON files directly into the editor to open"}
+        );
+
+        var shortcuts = java.util.List.of(
+                new String[]{"Ctrl+N", "Create new JSON file"},
+                new String[]{"Ctrl+O", "Open JSON file"},
+                new String[]{"Ctrl+S", "Save current file"},
+                new String[]{"Ctrl+Shift+S", "Save as new file"},
+                new String[]{"Ctrl+Alt+F", "Format/beautify JSON"},
+                new String[]{"F5", "Validate JSON syntax"},
+                new String[]{"Ctrl+Z", "Undo last change"},
+                new String[]{"Ctrl+Y", "Redo last change"},
+                new String[]{"Ctrl++", "Zoom in"},
+                new String[]{"Ctrl+-", "Zoom out"},
+                new String[]{"Ctrl+0", "Reset zoom"}
+        );
+
+        var helpDialog = DialogHelper.createHelpDialog(
+                "JSON Editor - Help",
+                "JSON Editor",
+                "Edit, validate, and query JSON files",
+                "bi-braces",
+                DialogHelper.HeaderTheme.WARNING,
+                features,
+                shortcuts
+        );
+
+        helpDialog.showAndWait();
     }
 
     // ==================== UI Helpers ====================
