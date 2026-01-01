@@ -542,6 +542,17 @@ public class JsonController {
         queryResultLabel.setStyle("-fx-text-fill: #6c757d;");
     }
 
+    /**
+     * Toggles the visibility of the JSONPath panel.
+     */
+    @FXML
+    public void toggleJsonPath() {
+        boolean visible = jsonPathPane.isVisible();
+        jsonPathPane.setVisible(!visible);
+        jsonPathPane.setManaged(!visible);
+        logger.debug("JSONPath panel visibility toggled to: {}", !visible);
+    }
+
     // ==================== Help ====================
 
     /**

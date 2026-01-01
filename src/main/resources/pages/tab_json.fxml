@@ -200,16 +200,33 @@
         </StackPane>
 
         <!-- JSONPath Query Panel -->
-        <VBox fx:id="jsonPathPane" spacing="10" style="-fx-padding: 10;" minHeight="120" visible="false" managed="false">
+        <VBox fx:id="jsonPathPane" spacing="10" style="-fx-padding: 10; -fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0;" minHeight="150" visible="false" managed="false">
+            <!-- Header with title and close button -->
+            <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 5 0;">
+                <FontIcon iconLiteral="bi-search" iconSize="18" iconColor="#6f42c1"/>
+                <Label text="JSONPath Query" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button onAction="#toggleJsonPath" style="-fx-background-color: transparent; -fx-cursor: hand;" mnemonicParsing="false">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-x" iconSize="16" iconColor="#6c757d"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Close JSONPath Panel"/>
+                    </tooltip>
+                </Button>
+            </HBox>
             <!-- Query Controls Bar -->
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="JSONPath Query:" style="-fx-font-weight: bold;"/>
-                <TextField fx:id="jsonPathField" prefWidth="400" promptText="Enter JSONPath (e.g. $$.items[*].name)"/>
+                <TextField fx:id="jsonPathField" HBox.hgrow="ALWAYS" promptText="Enter JSONPath (e.g. $$.items[*].name)">
+                    <tooltip>
+                        <Tooltip text="Examples: $$.name, $$.items[*], $$..author, $$.store.book[?(@.price &lt; 10)]"/>
+                    </tooltip>
+                </TextField>
                 <Button fx:id="executeQueryButton" onAction="#runJsonPath"
                         text="Execute" prefWidth="100"
                         style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;">
                     <graphic>
-                        <FontIcon iconColor="white" iconLiteral="bi-play-circle-fill" iconSize="16"/>
+                        <FontIcon iconColor="white" iconLiteral="bi-play-fill" iconSize="16"/>
                     </graphic>
                 </Button>
                 <Button fx:id="clearQueryButton" onAction="#clearJsonPath" text="Clear" prefWidth="80">
@@ -217,8 +234,8 @@
                         <FontIcon iconColor="#6c757d" iconLiteral="bi-eraser" iconSize="14"/>
                     </graphic>
                 </Button>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label text="Result:" style="-fx-font-weight: bold;"/>
+                <Separator orientation="VERTICAL"/>
+                <Label text="Status:" style="-fx-font-weight: bold;"/>
                 <Label fx:id="queryResultLabel" text="Ready" style="-fx-text-fill: #6c757d;"/>
             </HBox>
 
