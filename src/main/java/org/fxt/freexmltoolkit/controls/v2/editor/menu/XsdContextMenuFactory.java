@@ -1073,19 +1073,30 @@ public class XsdContextMenuFactory {
     }
 
     /**
-     * Checks if child elements can be added to an element.
-     * According to XSD standard, child elements can only be added if they are contained
-     * in a compositor (Sequence/Choice/All).
+     * Checks if child elements can be added to a node.
+     * According to XSD standard, child elements can only be added to:
+     * - Compositor nodes (Sequence/Choice/All) directly
+     * - Element nodes that have a compositor child
      *
      * Returns false if:
-     * - Element has a SimpleType
-     * - Element doesn't have a compositor child
+     * - Node is an Element with a SimpleType
+     * - Node is an Element without a compositor child
      *
-     * @param node the element node to check
-     * @return true if element has a compositor where child elements can be added
+     * @param node the node to check (element or compositor)
+     * @return true if child elements can be added to this node
      */
     private boolean canAddElement(VisualNode node) {
         Object modelObject = node.getModelObject();
+
+        // Compositor nodes (Sequence/Choice/All) can always have child elements added
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSequence ||
+            modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdChoice ||
+            modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAll) {
+            logger.debug("Node is a compositor, child elements can be added");
+            return true;
+        }
+
+        // Element nodes - check if they can have child elements
         if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
             return false;
         }
