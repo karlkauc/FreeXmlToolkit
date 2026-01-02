@@ -694,19 +694,12 @@ public class XsdController implements FavoritesParentController {
                 loadXsdIntoGraphicViewV2(currentText);
                 xsdContentDirty = false;  // Reset dirty flag after successful parse
             } else if (cachedXsdSchema != null && currentGraphViewV2 != null) {
-                // Content unchanged: reuse cached schema (instant switch)
-                logger.debug("XSD content unchanged, reusing cached schema for instant view switch");
-                // GraphView is already displayed, no action needed
-            } else if (cachedXsdSchema != null) {
-                // Schema cached but view needs recreation
-                logger.debug("Recreating graphic view with cached schema...");
-                currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(cachedXsdSchema);
-                xsdStackPaneV2.getChildren().clear();
-                xsdStackPaneV2.getChildren().add(currentGraphViewV2);
-                updateTypeEditorWithSchema(cachedXsdSchema);
+                // Content unchanged and view already exists: instant switch
+                logger.debug("XSD content unchanged, instant view switch (no reload needed)");
+                // GraphView is already displayed, just show the tab - no action needed
             } else {
-                // No cache available: full reload
-                logger.debug("No schema cache available, performing full load...");
+                // No valid cache: full reload (safe fallback)
+                logger.debug("Schema cache unavailable or invalid, performing full load...");
                 loadXsdIntoGraphicViewV2(currentText);
                 xsdContentDirty = false;
             }
