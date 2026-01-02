@@ -1111,8 +1111,8 @@ public class XsdNodeRenderer {
         }
 
         /**
-         * Maps datatype strings to appropriate icons.
-         * Recognizes xs: prefix and other common datatypes.
+         * Maps specific XSD datatype strings to unique Bootstrap icons.
+         * Each common datatype has its own distinct icon for visual differentiation.
          */
         private String getDataTypeIcon(String datatype) {
             if (datatype == null || datatype.isEmpty()) {
@@ -1121,32 +1121,101 @@ public class XsdNodeRenderer {
 
             String lower = datatype.toLowerCase();
 
-            // String types
-            if (lower.contains("string") || lower.contains("token") || lower.contains("ncname")) {
-                return "bi-file-text";  // Text/string
+            // Exact datatype matches (highest priority)
+            // String types - different icons for variations
+            if (lower.endsWith("string")) {
+                return "bi-file-text";  // xs:string
+            }
+            if (lower.endsWith("token")) {
+                return "bi-chat-left-quote";  // xs:token (validated icon)
+            }
+            if (lower.endsWith("ncname")) {
+                return "bi-tag";  // xs:NCName
+            }
+            if (lower.endsWith("name")) {
+                return "bi-tag-fill";  // xs:Name
+            }
+            if (lower.endsWith("id")) {
+                return "bi-shield-check";  // xs:ID (validated icon)
             }
 
-            // Numeric types
-            if (lower.contains("int") || lower.contains("integer") || lower.contains("long") || lower.contains("short") || lower.contains("byte")) {
-                return "bi-hash";  // # symbol for numbers
+            // Integer types - distinct icons for each
+            if (lower.endsWith("integer")) {
+                return "bi-hash";  // xs:integer
             }
-            if (lower.contains("float") || lower.contains("double") || lower.contains("decimal")) {
-                return "bi-percent";  // Percent symbol for decimals
+            if (lower.endsWith(":int") || lower.equals("int")) {
+                return "bi-1-circle-fill";  // xs:int (validated icon)
+            }
+            if (lower.endsWith("long")) {
+                return "bi-2-circle-fill";  // xs:long (validated icon)
+            }
+            if (lower.endsWith("short")) {
+                return "bi-dash-square";  // xs:short
+            }
+            if (lower.endsWith("byte")) {
+                return "bi-subtract";  // xs:byte
             }
 
-            // Date/Time types
-            if (lower.contains("date") || lower.contains("time") || lower.contains("datetime") || lower.contains("duration")) {
-                return "bi-calendar";  // Calendar
+            // Decimal/Float types - distinct icons
+            if (lower.endsWith("decimal")) {
+                return "bi-percent";  // xs:decimal
+            }
+            if (lower.endsWith("float")) {
+                return "bi-hexagon-fill";  // xs:float (validated icon)
+            }
+            if (lower.endsWith("double")) {
+                return "bi-box";  // xs:double
+            }
+
+            // Date/Time types - each its own icon
+            if (lower.endsWith("date")) {
+                return "bi-calendar";  // xs:date
+            }
+            if (lower.endsWith("datetime")) {
+                return "bi-calendar-event";  // xs:dateTime
+            }
+            if (lower.endsWith("time")) {
+                return "bi-clock";  // xs:time
+            }
+            if (lower.endsWith("duration")) {
+                return "bi-hourglass-split";  // xs:duration
+            }
+            if (lower.endsWith("gmonth")) {
+                return "bi-calendar3";  // xs:gMonth
+            }
+            if (lower.endsWith("gyear")) {
+                return "bi-calendar2";  // xs:gYear (validated icon)
             }
 
             // Boolean
-            if (lower.contains("boolean")) {
-                return "bi-toggle-on";  // Toggle for true/false
+            if (lower.endsWith("boolean")) {
+                return "bi-toggle-on";  // xs:boolean
             }
 
-            // Binary/encoded types
-            if (lower.contains("binary") || lower.contains("hex") || lower.contains("base64")) {
-                return "bi-lock";  // Lock for encoded data
+            // Binary/encoded types - distinct icons
+            if (lower.endsWith("base64binary")) {
+                return "bi-lock";  // xs:base64Binary
+            }
+            if (lower.endsWith("hexbinary")) {
+                return "bi-shield-lock";  // xs:hexBinary
+            }
+
+            // URI/URL types
+            if (lower.endsWith("uri") || lower.endsWith("anyuri")) {
+                return "bi-link-45deg";  // xs:anyURI
+            }
+            if (lower.endsWith("qname")) {
+                return "bi-question-square";  // xs:QName
+            }
+
+            // List types
+            if (lower.endsWith("list")) {
+                return "bi-list";  // List type
+            }
+
+            // Union types
+            if (lower.endsWith("union")) {
+                return "bi-diagram-2";  // Union type
             }
 
             // Default for unknown types
