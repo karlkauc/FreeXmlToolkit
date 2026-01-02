@@ -290,33 +290,53 @@ public class XsdContextMenuFactory {
     private ContextMenu createCompositorMenu(VisualNode node) {
         ContextMenu menu = new ContextMenu();
 
-        // Change compositor type submenu
-        Menu changeTypeMenu = new Menu("Change Type To");
+        // Add Element submenu with icon
+        Menu addMenu = new Menu("Add");
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
+        addMenu.getItems().add(
+                createMenuItemConditional("Element", "bi-plus", "#28a745",
+                        () -> handleAddElement(node), () -> canAddElement(node))
+        );
+
+        // Change Type submenu with icon
+        Menu changeTypeMenu = new Menu("Change Type");
+        changeTypeMenu.setGraphic(createColoredIcon("bi-arrow-repeat", "#17a2b8"));
 
         if (node.getType() != NodeWrapperType.SEQUENCE) {
             changeTypeMenu.getItems().add(
-                    createMenuItem("Sequence", () -> logger.info("Change compositor to sequence"))
+                    createMenuItem("Sequence", "bi-list-ol", "#6c757d",
+                            () -> logger.info("Change compositor to sequence"))
             );
         }
 
         if (node.getType() != NodeWrapperType.CHOICE) {
             changeTypeMenu.getItems().add(
-                    createMenuItem("Choice", () -> logger.info("Change compositor to choice"))
+                    createMenuItem("Choice", "bi-card-list", "#6c757d",
+                            () -> logger.info("Change compositor to choice"))
             );
         }
 
         if (node.getType() != NodeWrapperType.ALL) {
             changeTypeMenu.getItems().add(
-                    createMenuItem("All", () -> logger.info("Change compositor to all"))
+                    createMenuItem("All", "bi-grid-3x3", "#6c757d",
+                            () -> logger.info("Change compositor to all"))
             );
         }
 
+        // Edit Cardinality
+        MenuItem editCardinalityItem = createMenuItem("Edit Cardinality", "bi-arrow-left-right", "#17a2b8",
+                () -> logger.info("Edit cardinality of compositor"));
+
+        // Delete
+        MenuItem deleteItem = createMenuItem("Delete", "bi-trash", "#dc3545",
+                () -> handleDelete(node));
+
         menu.getItems().addAll(
-                createMenuItem("Add Element", () -> handleAddElement(node)),
+                addMenu,
                 changeTypeMenu,
-                createMenuItem("Edit Cardinality", () -> logger.info("Edit cardinality of compositor")),
+                editCardinalityItem,
                 new SeparatorMenuItem(),
-                createMenuItem("Delete", () -> handleDelete(node))
+                deleteItem
         );
 
         return menu;
