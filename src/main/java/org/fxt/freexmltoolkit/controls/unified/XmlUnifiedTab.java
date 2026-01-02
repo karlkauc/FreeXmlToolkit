@@ -72,6 +72,7 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
     // State
     private String lastSavedContent;
     private LinkedFileDetector linkDetector;
+    private boolean syncingViews = false;
 
     // Callback for XSD loading notification
     private Runnable onXsdLoadedCallback;
@@ -140,14 +141,16 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
 
         // Tab switch listener to sync content
         xmlTab.setOnSelectionChanged(e -> {
-            if (!xmlTab.isSelected()) {
-                refreshGraphicView();
+            if (xmlTab.isSelected() && !syncingViews) {
+                // Switching to text view - sync from graphic view if it has changes
+                syncFromGraphicView();
             }
         });
 
         graphicTab.setOnSelectionChanged(e -> {
-            if (graphicTab.isSelected()) {
-                refreshGraphicView();
+            if (graphicTab.isSelected() && !syncingViews) {
+                // Switching to graphic view - sync from text
+                syncToGraphicView();
             }
         });
 
@@ -157,7 +160,7 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
         // Setup change listener for dirty tracking
         CodeArea codeArea = textEditor.getCodeArea();
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (lastSavedContent != null && !lastSavedContent.equals(newText)) {
+            if (!syncingViews && lastSavedContent != null && !lastSavedContent.equals(newText)) {
                 setDirty(true);
             }
         });
@@ -189,12 +192,62 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
                 graphicViewContext.setSchema(xsdDocumentationData);
             }
 
+            // Listen for model changes to track dirty state
+            graphicViewContext.addPropertyChangeListener(evt -> {
+                if ("dirty".equals(evt.getPropertyName())
+                    && Boolean.TRUE.equals(evt.getNewValue())
+                    && !syncingViews) {
+                    setDirty(true);
+                }
+            });
+
             XmlCanvasView canvasView = new XmlCanvasView(graphicViewContext);
             VBox container = new VBox(canvasView);
             VBox.setVgrow(canvasView, Priority.ALWAYS);
             graphicTab.setContent(container);
         } catch (Exception e) {
             graphicTab.setContent(new Label("Invalid XML: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Syncs content from text editor to graphic view.
+     */
+    private void syncToGraphicView() {
+        try {
+            syncingViews = true;
+            refreshGraphicView();
+        } finally {
+            syncingViews = false;
+        }
+    }
+
+    /**
+     * Syncs content from graphic view to text editor.
+     */
+    private void syncFromGraphicView() {
+        if (graphicViewContext == null) {
+            return;
+        }
+
+        try {
+            syncingViews = true;
+
+            // Serialize the XmlDocument model back to XML text
+            String serialized = graphicViewContext.serializeToString();
+            if (serialized != null && !serialized.equals(textEditor.getText())) {
+                textEditor.setText(serialized);
+            }
+
+            // Reset dirty flag since we synced
+            if (graphicViewContext.getCommandManager() != null) {
+                graphicViewContext.getCommandManager().markAsSaved();
+            }
+
+        } catch (Exception e) {
+            logger.warn("Failed to sync from graphic view: {}", e.getMessage());
+        } finally {
+            syncingViews = false;
         }
     }
 
