@@ -377,6 +377,35 @@ public class XsdElement extends XsdNode {
         return XsdNodeType.ELEMENT;
     }
 
+    /**
+     * Checks if this element has a compositor child (Sequence, Choice, or All).
+     * Following XSD standard: element can have either a type OR compositors, not both.
+     *
+     * @return true if element has a compositor child
+     */
+    public boolean hasCompositor() {
+        for (XsdNode child : getChildren()) {
+            // Look for inline complexType
+            if (child instanceof XsdComplexType complexType) {
+                // Check if complexType has a compositor
+                for (XsdNode ctChild : complexType.getChildren()) {
+                    if (ctChild instanceof XsdSequence ||
+                        ctChild instanceof XsdChoice ||
+                        ctChild instanceof XsdAll) {
+                        return true;
+                    }
+                }
+            }
+            // Or direct compositor (shouldn't happen for element, but check anyway)
+            else if (child instanceof XsdSequence ||
+                     child instanceof XsdChoice ||
+                     child instanceof XsdAll) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public XsdNode deepCopy(String suffix) {
         // Create new element with suffix appended to name

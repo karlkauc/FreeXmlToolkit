@@ -16,6 +16,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Factory for creating context-sensitive context menus for XSD editor nodes.
@@ -121,13 +122,17 @@ public class XsdContextMenuFactory {
         Menu addMenu = new Menu("Add");
         addMenu.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
         addMenu.getItems().addAll(
-                createMenuItem("Child Element", "bi-plus", "#28a745", () -> handleAddChildElement(node)),
-                createMenuItem("Container Element", "bi-folder-plus", "#17a2b8", () -> handleAddContainerElement(node)),
-                createMenuItem("Attribute", "bi-at", "#ffc107", () -> logger.info("Add attribute to {}", node.getLabel())),
+                createMenuItemConditional("Element", "bi-plus", "#28a745",
+                        () -> handleAddElement(node), () -> canAddElement(node)),
+                createMenuItemConditional("Attribute", "bi-at", "#ffc107",
+                        () -> handleAddAttribute(node), () -> canAddAttribute(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Sequence", "bi-list-ol", "#6c757d", () -> handleAddSequence(node)),
-                createMenuItem("Choice", "bi-card-list", "#6c757d", () -> handleAddChoice(node)),
-                createMenuItem("All", "bi-grid-3x3", "#6c757d", () -> handleAddAll(node))
+                createMenuItemConditional("Sequence", "bi-list-ol", "#6c757d",
+                        () -> handleAddSequence(node), () -> canAddCompositor(node)),
+                createMenuItemConditional("Choice", "bi-card-list", "#6c757d",
+                        () -> handleAddChoice(node), () -> canAddCompositor(node)),
+                createMenuItemConditional("All", "bi-grid-3x3", "#6c757d",
+                        () -> handleAddAll(node), () -> canAddCompositor(node))
         );
 
         // Check if element has a ComplexType or SimpleType reference - if so, add "Edit Type in Editor" option
@@ -307,7 +312,7 @@ public class XsdContextMenuFactory {
         }
 
         menu.getItems().addAll(
-                createMenuItem("Add Element", () -> handleAddChildElement(node)),
+                createMenuItem("Add Element", () -> handleAddElement(node)),
                 changeTypeMenu,
                 createMenuItem("Edit Cardinality", () -> logger.info("Edit cardinality of compositor")),
                 new SeparatorMenuItem(),
@@ -345,7 +350,7 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Add Element", () -> handleAddChildElement(node)),
+                createMenuItem("Add Element", () -> handleAddElement(node)),
                 new SeparatorMenuItem(),
                 createMenuItem("Rename", () -> handleRename(node)),
                 createMenuItem("Delete", () -> handleDelete(node))
@@ -446,6 +451,24 @@ public class XsdContextMenuFactory {
     private MenuItem createMenuItemAlwaysEnabled(String text, String iconLiteral, String iconColor, Runnable action) {
         MenuItem item = createMenuItemAlwaysEnabled(text, action);
         item.setGraphic(createColoredIcon(iconLiteral, iconColor));
+        return item;
+    }
+
+    /**
+     * Creates a conditional menu item with icon.
+     * The menu item is enabled/disabled based on a condition.
+     *
+     * @param text              the menu item text
+     * @param iconLiteral       the icon literal (e.g., "bi-list-ol")
+     * @param iconColor         the icon color (e.g., "#6c757d")
+     * @param action            the action to execute
+     * @param enabledCondition  supplier that returns true if item should be enabled
+     * @return the menu item
+     */
+    private MenuItem createMenuItemConditional(String text, String iconLiteral, String iconColor,
+                                               Runnable action, Supplier<Boolean> enabledCondition) {
+        MenuItem item = createMenuItem(text, iconLiteral, iconColor, action);
+        item.setDisable(!enabledCondition.get());
         return item;
     }
 
@@ -595,14 +618,16 @@ public class XsdContextMenuFactory {
     }
 
     /**
-     * Handles add child element operation for a node.
+     * Handles add element operation for a node.
+     * Creates a new element without a type (following XSD standard).
+     * Element can then have either a type or child compositors (Sequence/Choice/All).
      *
      * @param node the parent node
      */
-    private void handleAddChildElement(VisualNode node) {
+    private void handleAddElement(VisualNode node) {
         TextInputDialog dialog = new TextInputDialog("newElement");
-        dialog.setTitle("Add Child Element");
-        dialog.setHeaderText("Add child element to '" + node.getLabel() + "'");
+        dialog.setTitle("Add Element");
+        dialog.setHeaderText("Add element to '" + node.getLabel() + "'");
         dialog.setContentText("Element name:");
 
         Optional<String> result = dialog.showAndWait();
@@ -611,11 +636,13 @@ public class XsdContextMenuFactory {
                 // Extract XsdNode from VisualNode for the command
                 Object modelObject = node.getModelObject();
                 if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode parentNode) {
-                    AddElementCommand command = new AddElementCommand(parentNode, elementName.trim());
+                    // Create element without type (type will be xs:string by default in AddElementCommand)
+                    // But we create with null type instead
+                    AddElementCommand command = new AddElementCommand(parentNode, elementName.trim(), null);
                     editorContext.getCommandManager().executeCommand(command);
-                    logger.info("Added child element '{}' to '{}'", elementName, node.getLabel());
+                    logger.info("Added element '{}' to '{}'", elementName, node.getLabel());
                 } else {
-                    logger.warn("Cannot add child element - model object is not an XsdNode: {}",
+                    logger.warn("Cannot add element - model object is not an XsdNode: {}",
                             modelObject != null ? modelObject.getClass() : "null");
                 }
             }
@@ -623,29 +650,28 @@ public class XsdContextMenuFactory {
     }
 
     /**
-     * Handles add container element operation for a node.
-     * A container element has no type but an inline complexType with sequence,
-     * allowing it to have child elements.
+     * Handles add attribute operation for a node.
+     * Creates a new attribute without a type (type can be set in Properties Panel later).
      *
      * @param node the parent node
      */
-    private void handleAddContainerElement(VisualNode node) {
-        TextInputDialog dialog = new TextInputDialog("newContainer");
-        dialog.setTitle("Add Container Element");
-        dialog.setHeaderText("Add container element to '" + node.getLabel() + "'");
-        dialog.setContentText("Container name:");
+    private void handleAddAttribute(VisualNode node) {
+        TextInputDialog dialog = new TextInputDialog("newAttribute");
+        dialog.setTitle("Add Attribute");
+        dialog.setHeaderText("Add attribute to '" + node.getLabel() + "'");
+        dialog.setContentText("Attribute name:");
 
         Optional<String> result = dialog.showAndWait();
-        result.ifPresent(elementName -> {
-            if (!elementName.trim().isEmpty()) {
+        result.ifPresent(attributeName -> {
+            if (!attributeName.trim().isEmpty()) {
                 // Extract XsdNode from VisualNode for the command
                 Object modelObject = node.getModelObject();
                 if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode parentNode) {
-                    AddContainerElementCommand command = new AddContainerElementCommand(parentNode, elementName.trim());
+                    AddAttributeCommand command = new AddAttributeCommand(parentNode, attributeName.trim());
                     editorContext.getCommandManager().executeCommand(command);
-                    logger.info("Added container element '{}' to '{}'", elementName, node.getLabel());
+                    logger.info("Added attribute '{}' to '{}'", attributeName, node.getLabel());
                 } else {
-                    logger.warn("Cannot add container element - model object is not an XsdNode: {}",
+                    logger.warn("Cannot add attribute - model object is not an XsdNode: {}",
                             modelObject != null ? modelObject.getClass() : "null");
                 }
             }
@@ -992,6 +1018,128 @@ public class XsdContextMenuFactory {
             }
         }
         return false;
+    }
+
+    /**
+     * Checks if a compositor (Sequence/Choice/All) can be added to an element.
+     * Returns false if element has a type or ref attribute set.
+     * Following XSD standard: element can have either a type OR child compositors, not both.
+     *
+     * @param node the element node to check
+     * @return true if compositor can be added (element has no type/ref)
+     */
+    private boolean canAddCompositor(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
+            return false;
+        }
+
+        // Check if element has type attribute
+        String type = element.getType();
+        if (type != null && !type.trim().isEmpty()) {
+            logger.debug("Element '{}' has type '{}', cannot add compositor", element.getName(), type);
+            return false;  // Element has type, cannot add compositor
+        }
+
+        // Check if element has ref attribute
+        String ref = element.getRef();
+        if (ref != null && !ref.trim().isEmpty()) {
+            logger.debug("Element '{}' has ref '{}', cannot add compositor", element.getName(), ref);
+            return false;  // Element has ref, cannot add compositor
+        }
+
+        logger.debug("Element '{}' can have compositor added", element.getName());
+        return true;  // Element can have compositor
+    }
+
+    /**
+     * Checks if child elements can be added to an element.
+     * Returns false if element has a SimpleType.
+     * ComplexType allows child elements, and elements without type can have inline complexType.
+     *
+     * @param node the element node to check
+     * @return true if child elements can be added (element has no type or ComplexType)
+     */
+    private boolean canAddElement(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
+            return false;
+        }
+
+        String type = element.getType();
+
+        // No type - can add element with inline complexType
+        if (type == null || type.trim().isEmpty()) {
+            logger.debug("Element '{}' has no type, can add child elements", element.getName());
+            return true;
+        }
+
+        // Check if it's a SimpleType (built-in or custom)
+        if (type.startsWith("xs:")) {
+            // Built-in SimpleType - cannot add child elements
+            logger.debug("Element '{}' has built-in SimpleType '{}', cannot add child elements",
+                    element.getName(), type);
+            return false;
+        }
+
+        // Custom type - check if it's a SimpleType or ComplexType
+        XsdSimpleType simpleType = findSimpleTypeInSchema(type);
+        if (simpleType != null) {
+            // It's a SimpleType - cannot add child elements
+            logger.debug("Element '{}' references SimpleType '{}', cannot add child elements",
+                    element.getName(), type);
+            return false;
+        }
+
+        // Must be ComplexType or not found - allow adding
+        logger.debug("Element '{}' has ComplexType or unknown type '{}', can add child elements",
+                element.getName(), type);
+        return true;
+    }
+
+    /**
+     * Checks if attributes can be added to an element.
+     * Returns false if element has a SimpleType.
+     * ComplexType or elements without type can have attributes.
+     *
+     * @param node the element node to check
+     * @return true if attributes can be added (element has no type or ComplexType)
+     */
+    private boolean canAddAttribute(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
+            return false;
+        }
+
+        String type = element.getType();
+
+        // No type - can add attribute (will create inline complexType)
+        if (type == null || type.trim().isEmpty()) {
+            logger.debug("Element '{}' has no type, can add attributes", element.getName());
+            return true;
+        }
+
+        // Check if it's a SimpleType (built-in or custom)
+        if (type.startsWith("xs:")) {
+            // Built-in SimpleType - cannot add attributes
+            logger.debug("Element '{}' has built-in SimpleType '{}', cannot add attributes",
+                    element.getName(), type);
+            return false;
+        }
+
+        // Custom type - check if it's a SimpleType or ComplexType
+        XsdSimpleType simpleType = findSimpleTypeInSchema(type);
+        if (simpleType != null) {
+            // It's a SimpleType - cannot add attributes
+            logger.debug("Element '{}' references SimpleType '{}', cannot add attributes",
+                    element.getName(), type);
+            return false;
+        }
+
+        // Must be ComplexType or not found - allow adding
+        logger.debug("Element '{}' has ComplexType or unknown type '{}', can add attributes",
+                element.getName(), type);
+        return true;
     }
 
     /**

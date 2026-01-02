@@ -41,7 +41,7 @@ public class AddElementCommand implements XsdCommand {
      *
      * @param parentNode  the parent node to add the element to
      * @param elementName the name of the new element
-     * @param elementType the XSD type of the new element (e.g., "xs:string", "xs:int")
+     * @param elementType the XSD type of the new element (e.g., "xs:string", "xs:int"), or null for no type
      */
     public AddElementCommand(XsdNode parentNode, String elementName, String elementType) {
         if (parentNode == null) {
@@ -53,7 +53,7 @@ public class AddElementCommand implements XsdCommand {
 
         this.parentNode = parentNode;
         this.elementName = elementName.trim();
-        this.elementType = elementType != null ? elementType : "xs:string";
+        this.elementType = elementType;
     }
 
     @Override
@@ -61,7 +61,9 @@ public class AddElementCommand implements XsdCommand {
         // Create actual XsdElement and add to parent model
         // This will fire PropertyChangeEvent which triggers automatic view refresh
         addedElement = new XsdElement(elementName);
-        addedElement.setType(elementType);
+        if (elementType != null) {
+            addedElement.setType(elementType);
+        }
 
         // Find the correct parent to add to:
         // If parent is an element with complexType containing a compositor, add to compositor

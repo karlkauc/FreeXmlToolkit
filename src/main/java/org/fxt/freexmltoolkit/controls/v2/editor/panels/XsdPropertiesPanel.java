@@ -34,6 +34,8 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdDatatypeFacets;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
+import java.util.Optional;
+
 /**
  * Properties panel for editing XSD node properties.
  * Displays and allows editing of properties based on selected node type.
@@ -1008,6 +1010,60 @@ public class XsdPropertiesPanel extends VBox {
         // Only create command if value actually changed
         if (!java.util.Objects.equals(newType, currentType)) {
             XsdNode node = (XsdNode) modelObject;
+
+            // Check if we're setting a type on an element that has a compositor
+            if (node instanceof XsdElement element && newType != null && !newType.isEmpty()) {
+                if (element.hasCompositor()) {
+                    // Element has compositor, ask user what to do
+                    Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirmDialog.setTitle("Compositor vorhanden");
+                    confirmDialog.setHeaderText("Element '" + element.getName() + "' hat bereits einen Compositor (Sequence/Choice/All)");
+                    confirmDialog.setContentText("Soll der Compositor entfernt werden um einen Typ zu setzen?");
+
+                    ButtonType removeButton = new ButtonType("Ja, Compositor entfernen");
+                    ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+                    confirmDialog.getButtonTypes().setAll(removeButton, cancelButton);
+
+                    Optional<ButtonType> result = confirmDialog.showAndWait();
+                    if (!result.isPresent() || result.get() != removeButton) {
+                        logger.debug("User cancelled type change due to existing compositor");
+                        // Reset the combobox to the old value
+                        updating = true;
+                        typeComboBox.setValue(currentType);
+                        updating = false;
+                        return;
+                    }
+
+                    // User confirmed removal - we'll remove compositor below
+                    // First, remove the compositor
+                    for (XsdNode child : new java.util.ArrayList<>(element.getChildren())) {
+                        if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+                            // Remove compositor from complexType
+                            for (XsdNode ctChild : new java.util.ArrayList<>(complexType.getChildren())) {
+                                if (ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSequence ||
+                                    ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdChoice ||
+                                    ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAll) {
+                                    // Remove the compositor via command (for undo/redo support)
+                                    DeleteNodeCommand deleteCmd = new DeleteNodeCommand(ctChild);
+                                    editorContext.getCommandManager().executeCommand(deleteCmd);
+                                    logger.info("Removed compositor '{}' from element '{}'",
+                                            ctChild.getClass().getSimpleName(), element.getName());
+                                    break;
+                                }
+                            }
+                            // If complexType is now empty (no other children), remove it too
+                            if (complexType.getChildren().isEmpty()) {
+                                DeleteNodeCommand deleteComplexTypeCmd = new DeleteNodeCommand(complexType);
+                                editorContext.getCommandManager().executeCommand(deleteComplexTypeCmd);
+                                logger.info("Removed empty complexType from element '{}'", element.getName());
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Now set the type
             ChangeTypeCommand command = new ChangeTypeCommand(editorContext, node, newType);
             editorContext.getCommandManager().executeCommand(command);
             logger.debug("Executed ChangeTypeCommand: {} -> {}", currentType, newType);
