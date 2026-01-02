@@ -1924,6 +1924,12 @@ public class XsdPropertiesPanel extends VBox {
                 typeComboBox.getEditor().setText(uniqueMatch);
                 typeComboBox.setValue(uniqueMatch);
                 updating = false;
+
+                // Manually trigger type change handling for autocompleted values
+                // (ValueChangeListener is blocked by updating flag)
+                if (currentNode != null) {
+                    handleTypeChange();
+                }
                 logger.debug("Auto-completed type to: {}", uniqueMatch);
             } else if (filteredTypes.size() > 0) {
                 // Show the dropdown with filtered suggestions
