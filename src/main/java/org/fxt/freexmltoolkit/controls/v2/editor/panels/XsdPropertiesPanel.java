@@ -58,6 +58,7 @@ public class XsdPropertiesPanel extends VBox {
     // General section controls
     private TextField nameField;
     private ComboBox<String> typeComboBox;
+    private FontIcon typeIcon;
     private Spinner<Integer> minOccursSpinner;
     private Spinner<Integer> maxOccursSpinner;
     private CheckBox unboundedCheckBox;
@@ -519,13 +520,23 @@ public class XsdPropertiesPanel extends VBox {
         nameField.setPromptText("Element/Attribute name");
         grid.add(nameField, 1, row++);
 
-        // Type
+        // Type with icon
         grid.add(new Label("Type:"), 0, row);
+        HBox typeBox = new HBox(8);
+        typeBox.setAlignment(Pos.CENTER_LEFT);
+
         typeComboBox = new ComboBox<>();
         typeComboBox.setEditable(true);
         typeComboBox.setPromptText("xs:string, MyCustomType");
         typeComboBox.setMaxWidth(Double.MAX_VALUE);
-        grid.add(typeComboBox, 1, row++);
+        HBox.setHgrow(typeComboBox, Priority.ALWAYS);
+
+        typeIcon = new FontIcon("bi-diagram-3");
+        typeIcon.setIconSize(18);
+        typeIcon.setStyle("-fx-icon-color: #666666;");
+
+        typeBox.getChildren().addAll(typeComboBox, typeIcon);
+        grid.add(typeBox, 1, row++);
 
         // Cardinality section
         Label cardinalityLabel = new Label("Cardinality:");
@@ -762,6 +773,9 @@ public class XsdPropertiesPanel extends VBox {
 
             // Set the current type in the combobox (pre-select it)
             typeComboBox.setValue(currentType);
+
+            // Update type icon
+            updateTypeIcon(currentType);
 
             // Update cardinality
             int minOccurs = node.getMinOccurs();
@@ -1073,7 +1087,132 @@ public class XsdPropertiesPanel extends VBox {
                 updateConstraintTabs(xsdElement);
                 logger.debug("Updated facets after type change");
             }
+
+            // Update type icon
+            updateTypeIcon(newType);
         }
+    }
+
+    /**
+     * Updates the type icon based on the given datatype string.
+     */
+    private void updateTypeIcon(String datatype) {
+        if (typeIcon == null) {
+            return;
+        }
+
+        String iconLiteral = getDataTypeIcon(datatype);
+        typeIcon.setIconLiteral(iconLiteral);
+        logger.debug("Updated type icon to {} for datatype {}", iconLiteral, datatype);
+    }
+
+    /**
+     * Maps specific XSD datatype strings to unique Bootstrap icons.
+     * Each common datatype has its own distinct icon for visual differentiation.
+     */
+    private String getDataTypeIcon(String datatype) {
+        if (datatype == null || datatype.isEmpty()) {
+            return "bi-diagram-3";  // Default type
+        }
+
+        String lower = datatype.toLowerCase();
+
+        // String types - different icons for variations
+        if (lower.endsWith("string")) {
+            return "bi-file-text";
+        }
+        if (lower.endsWith("token")) {
+            return "bi-chat-left-quote";
+        }
+        if (lower.endsWith("ncname")) {
+            return "bi-tag";
+        }
+        if (lower.endsWith("name")) {
+            return "bi-tag-fill";
+        }
+        if (lower.endsWith(":id") || lower.equals("id")) {
+            return "bi-shield-check";
+        }
+
+        // Integer types - distinct icons for each
+        if (lower.endsWith("integer")) {
+            return "bi-hash";
+        }
+        if (lower.endsWith(":int") || lower.equals("int")) {
+            return "bi-1-circle-fill";
+        }
+        if (lower.endsWith("long")) {
+            return "bi-2-circle-fill";
+        }
+        if (lower.endsWith("short")) {
+            return "bi-dash-square";
+        }
+        if (lower.endsWith("byte")) {
+            return "bi-subtract";
+        }
+
+        // Decimal/Float types - distinct icons
+        if (lower.endsWith("decimal")) {
+            return "bi-percent";
+        }
+        if (lower.endsWith("float")) {
+            return "bi-hexagon-fill";
+        }
+        if (lower.endsWith("double")) {
+            return "bi-box";
+        }
+
+        // Date/Time types - each its own icon
+        if (lower.endsWith("datetime")) {
+            return "bi-calendar-event";
+        }
+        if (lower.endsWith("duration")) {
+            return "bi-hourglass-split";
+        }
+        if (lower.endsWith("gmonth")) {
+            return "bi-calendar3";
+        }
+        if (lower.endsWith("gyear")) {
+            return "bi-calendar2";
+        }
+        if (lower.endsWith("date")) {
+            return "bi-calendar";
+        }
+        if (lower.endsWith("time")) {
+            return "bi-clock";
+        }
+
+        // Boolean
+        if (lower.endsWith("boolean")) {
+            return "bi-toggle-on";
+        }
+
+        // Binary/encoded types - distinct icons
+        if (lower.endsWith("base64binary")) {
+            return "bi-lock";
+        }
+        if (lower.endsWith("hexbinary")) {
+            return "bi-shield-lock";
+        }
+
+        // URI/URL types
+        if (lower.endsWith("uri") || lower.endsWith("anyuri")) {
+            return "bi-link-45deg";
+        }
+        if (lower.endsWith("qname")) {
+            return "bi-question-square";
+        }
+
+        // Complex/structured types
+        if (lower.endsWith("complextype")) {
+            return "bi-diagram-2";
+        }
+        if (lower.endsWith("simpletype")) {
+            return "bi-diagram-3";
+        }
+
+        // Default for unknown types
+        return "bi-diagram-3";
     }
 
     /**
