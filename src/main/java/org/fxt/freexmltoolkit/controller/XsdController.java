@@ -1573,6 +1573,10 @@ public class XsdController implements FavoritesParentController {
                 // Load the new XSD content into the editor
                 loadXsdContent(xsdContent);
 
+                // Also load into V2 graphic view (Type Editor, Type Library, etc.)
+                // This ensures the Type Editor tab and Type Library are populated with the new schema
+                loadXsdIntoGraphicViewV2(xsdContent);
+
                 // Clear current file reference (this is a new unsaved file)
                 currentXsdFile = null;
 
@@ -4967,13 +4971,8 @@ public class XsdController implements FavoritesParentController {
                 typeLibraryInitialized = false;
                 if (typeLibraryStackPane != null) {
                     // Remove any existing TypeLibraryView but keep noFileLoadedPaneTypeLibrary
-                    typeLibraryStackPane.getChildren().removeIf(node -> 
+                    typeLibraryStackPane.getChildren().removeIf(node ->
                         node instanceof org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView);
-                }
-                // Hide no file loaded pane and show TypeLibraryView will be created on next tab selection
-                if (noFileLoadedPaneTypeLibrary != null) {
-                    noFileLoadedPaneTypeLibrary.setVisible(false);
-                    noFileLoadedPaneTypeLibrary.setManaged(false);
                 }
                 logger.debug("Type Library reset - will reinitialize on next tab selection");
 
@@ -4996,6 +4995,14 @@ public class XsdController implements FavoritesParentController {
                             }
                         }
                     });
+                } else {
+                    // Type Library tab not selected - keep noFileLoadedPane visible
+                    // It will be hidden when user clicks the Type Library tab
+                    if (noFileLoadedPaneTypeLibrary != null) {
+                        noFileLoadedPaneTypeLibrary.setVisible(true);
+                        noFileLoadedPaneTypeLibrary.setManaged(true);
+                    }
+                    logger.debug("Type Library tab not selected - noFileLoadedPane will remain visible");
                 }
 
                 // Update pending schema for lazy Schema Analysis initialization
