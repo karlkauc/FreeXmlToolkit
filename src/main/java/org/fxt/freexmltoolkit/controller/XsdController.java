@@ -74,6 +74,11 @@ public class XsdController implements FavoritesParentController {
 
     private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView currentGraphViewV2;
 
+    // Schema caching to avoid reloading on view switches
+    private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema cachedXsdSchema;
+    private String cachedXsdContent;  // Last successfully parsed content
+    private boolean xsdContentDirty = false;  // Track if text has changed since last parse
+
     // Type Editor integration
     private org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager typeEditorTabManager;
     @FXML
@@ -665,6 +670,9 @@ public class XsdController implements FavoritesParentController {
     /**
      * Synchronizes the text editor content to the graphic view.
      * This is called when switching from text tab to graphic tab.
+     *
+     * OPTIMIZATION: Only reloads schema if text content has changed.
+     * If content is unchanged, reuses cached XsdSchema for instant view switching.
      */
     private void syncTextToGraphic() {
         if (sourceCodeEditor == null || sourceCodeEditor.getCodeArea() == null) {
@@ -677,10 +685,31 @@ public class XsdController implements FavoritesParentController {
         }
 
         try {
-            // Reload V2 graphic view without triggering text update
-            // V2 editor is now always active (toggle button removed)
-            loadXsdIntoGraphicViewV2(currentText);
-            logger.debug("Synchronized text content to V2 graphic view");
+            // Check if content has changed since last parse
+            boolean contentChanged = !currentText.equals(cachedXsdContent) || xsdContentDirty;
+
+            if (contentChanged) {
+                // Content has changed: full reload
+                logger.debug("XSD content has changed, reloading schema from text...");
+                loadXsdIntoGraphicViewV2(currentText);
+                xsdContentDirty = false;  // Reset dirty flag after successful parse
+            } else if (cachedXsdSchema != null && currentGraphViewV2 != null) {
+                // Content unchanged: reuse cached schema (instant switch)
+                logger.debug("XSD content unchanged, reusing cached schema for instant view switch");
+                // GraphView is already displayed, no action needed
+            } else if (cachedXsdSchema != null) {
+                // Schema cached but view needs recreation
+                logger.debug("Recreating graphic view with cached schema...");
+                currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(cachedXsdSchema);
+                xsdStackPaneV2.getChildren().clear();
+                xsdStackPaneV2.getChildren().add(currentGraphViewV2);
+                updateTypeEditorWithSchema(cachedXsdSchema);
+            } else {
+                // No cache available: full reload
+                logger.debug("No schema cache available, performing full load...");
+                loadXsdIntoGraphicViewV2(currentText);
+                xsdContentDirty = false;
+            }
         } catch (Exception e) {
             logger.error("Failed to synchronize text to graphic view", e);
         }
@@ -760,7 +789,8 @@ public class XsdController implements FavoritesParentController {
     }
 
     /**
-     * Ensures the source code editor is properly initialized with line numbers and search shortcuts
+     * Ensures the source code editor is properly initialized with line numbers and search shortcuts.
+     * Also sets up text change listener for dirty tracking.
      */
     private void ensureSourceCodeEditorInitialized() {
         if (sourceCodeEditor != null) {
@@ -771,7 +801,34 @@ public class XsdController implements FavoritesParentController {
 
             // Always ensure search shortcuts are properly set - remove any existing filters first
             setupSearchKeyboardShortcutsForEditor();
+
+            // Setup text change listener for dirty tracking (only once)
+            setupTextChangeDirtyTracking();
         }
+    }
+
+    /**
+     * Sets up text change listener to track if content has been modified.
+     * This enables the view switching optimization by detecting when text changes.
+     */
+    private boolean textChangeListenerInitialized = false;
+
+    private void setupTextChangeDirtyTracking() {
+        if (textChangeListenerInitialized || sourceCodeEditor == null || sourceCodeEditor.getCodeArea() == null) {
+            return;
+        }
+
+        // Add listener to mark content as dirty when text changes
+        sourceCodeEditor.getCodeArea().textProperty().addListener((observable, oldValue, newValue) -> {
+            // Mark content as dirty if it differs from cached content
+            if (!newValue.equals(cachedXsdContent)) {
+                xsdContentDirty = true;
+                logger.trace("XSD content marked as dirty due to text change");
+            }
+        });
+
+        textChangeListenerInitialized = true;
+        logger.debug("Text change dirty tracking initialized");
     }
 
     /**
@@ -977,6 +1034,13 @@ public class XsdController implements FavoritesParentController {
      */
     public void openXsdFile(File file) {
         try {
+            // Clear schema cache when opening a new file
+            // This ensures fresh parsing for the new file
+            cachedXsdSchema = null;
+            cachedXsdContent = null;
+            xsdContentDirty = false;
+            logger.debug("Cleared XSD schema cache for new file load");
+
             // Check for auto-save recovery first
             checkForAutoSaveRecovery(file);
 
@@ -1336,6 +1400,11 @@ public class XsdController implements FavoritesParentController {
             xsdStackPaneV2.getChildren().clear();
 
             if (schema != null) {
+                // Cache the successfully parsed schema for view switching optimization
+                cachedXsdSchema = schema;
+                cachedXsdContent = xsdContent;
+                xsdContentDirty = false;  // Content is now in sync with schema
+
                 // Use XsdSchema-based constructor
                 currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(schema);
 
