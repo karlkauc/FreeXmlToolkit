@@ -8,6 +8,7 @@ import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
 /**
@@ -18,14 +19,16 @@ import javafx.scene.text.TextAlignment;
  */
 public class XsdNodeRenderer {
 
-    private static final double MIN_NODE_WIDTH = 150;
-    private static final double MAX_NODE_WIDTH = 500;  // Increased for longer text
-    private static final double NODE_HEIGHT = 50;
+    private static final double MIN_NODE_WIDTH = 200;  // Increased for new header+body layout
+    private static final double MAX_NODE_WIDTH = 400;  // Adjusted for consistent spacing
+    private static final double HEADER_HEIGHT = 36.0;  // New: fixed header height
+    private static final double MIN_BODY_HEIGHT = 40.0;  // New: minimum body height (1 property line)
+    private static final double NODE_HEIGHT = HEADER_HEIGHT + MIN_BODY_HEIGHT;  // 76px total
     private static final double COMPOSITOR_SIZE = 28;  // Small square for compositors
     private static final double EXPAND_BUTTON_SIZE = 16;
     private static final double HORIZONTAL_SPACING = 40;
     private static final double VERTICAL_SPACING = 20;
-    private static final double CORNER_RADIUS = 4;  // XMLSpy uses 4px radius
+    private static final double CORNER_RADIUS = 6;  // Updated to 6px for modern look
     private static final double PADDING = 30; // Increased padding for better text spacing
 
     private final XsdNodeStyler styler;
@@ -98,6 +101,284 @@ public class XsdNodeRenderer {
     }
 
     /**
+     * Renders the header section of a node (36px height with icon, name, and cardinality badge).
+     *
+     * @param gc        Graphics context
+     * @param node      The visual node
+     * @param x         X position
+     * @param y         Y position
+     * @param width     Node width
+     */
+    private void renderNodeHeader(GraphicsContext gc, VisualNode node, double x, double y, double width) {
+        final double ICON_BOX_SIZE = 24.0;
+        final double ICON_BOX_PADDING = 4.0;
+        final double ICON_SIZE = 16.0;
+        final double PADDING = 8.0;
+        final double HEADER_CORNER_RADIUS = 4.0;
+
+        // Validate dimensions
+        if (width <= 0 || width > 2000) {
+            return;  // Skip invalid width
+        }
+
+        // Get colors and properties for this node
+        Color headerColor = node.getHeaderColor();
+        Color borderColor = node.getBorderColor();
+        Color iconBgColor = node.getIconBackgroundColor();
+        String iconLiteral = node.getIconLiteral();
+        String cardinityBadge = node.getCardinalityBadge();
+
+        // Apply fallback colors if null
+        if (headerColor == null) {
+            headerColor = Color.LIGHTGRAY;
+        }
+        if (borderColor == null) {
+            borderColor = Color.GRAY;
+        }
+        if (iconBgColor == null) {
+            iconBgColor = headerColor;
+        }
+
+        // Create gradient background for header
+        LinearGradient headerGradient = createHeaderGradient(headerColor, y, HEADER_HEIGHT);
+
+        // Draw header background
+        gc.setFill(headerGradient);
+        gc.setStroke(borderColor);
+
+        // Determine line width: thicker (3.0) for unbounded/multiple, normal (1.5) for single
+        double lineWidth = (node.maxOccurs > 1 || node.maxOccurs == -1) ? 3.0 : 1.5;
+        gc.setLineWidth(lineWidth);
+
+        // Set line dashes for optional fields: dashed if minOccurs == 0, solid otherwise
+        if (node.minOccurs == 0) {
+            gc.setLineDashes(6, 4);  // Dashed pattern
+        }
+
+        gc.fillRoundRect(x, y, width, HEADER_HEIGHT, HEADER_CORNER_RADIUS, HEADER_CORNER_RADIUS);
+
+        // Don't stroke the bottom (it connects to body)
+        gc.setLineWidth(lineWidth);
+        gc.strokeLine(x, y, x + width, y);  // Top
+        gc.strokeLine(x, y, x, y + HEADER_HEIGHT);  // Left
+        gc.strokeLine(x + width, y, x + width, y + HEADER_HEIGHT);  // Right
+
+        // Reset line dashes
+        gc.setLineDashes();
+
+        // Draw icon box (left side)
+        double iconBoxX = x + PADDING;
+        double iconBoxY = y + (HEADER_HEIGHT - ICON_BOX_SIZE) / 2;
+
+        gc.setFill(iconBgColor);
+        gc.setStroke(borderColor);
+        gc.setLineWidth(1.0);
+        gc.fillRoundRect(iconBoxX, iconBoxY, ICON_BOX_SIZE, ICON_BOX_SIZE, 4, 4);
+
+        // Render the icon inside the box
+        SvgIconRenderer.renderIcon(gc, iconLiteral,
+                iconBoxX + ICON_BOX_PADDING,
+                iconBoxY + ICON_BOX_PADDING,
+                ICON_SIZE,
+                Color.WHITE);
+
+        // Draw node name (center area)
+        double nameX = iconBoxX + ICON_BOX_SIZE + PADDING;
+        double nameY = y + (HEADER_HEIGHT - 16) / 2;  // Vertically center
+
+        // Darker version of header color for text
+        Color textColor = headerColor.interpolate(Color.BLACK, 0.3);
+        gc.setFill(textColor);
+        gc.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.CENTER);
+
+        double availableNameWidth = width - (nameX - x) - PADDING - (cardinityBadge != null && !cardinityBadge.isEmpty() ? 60 : PADDING);
+        String displayName = truncateText(node.getLabel(), availableNameWidth, gc.getFont());
+        gc.fillText(displayName, nameX, nameY);
+
+        // Draw cardinality badge (right side)
+        if (cardinityBadge != null && !cardinityBadge.isEmpty()) {
+            double badgeHeight = 20.0;
+            double badgePadding = 6.0;
+            double badgeWidth = estimateTextWidth(cardinityBadge, Font.font("Consolas", FontWeight.BOLD, 10)) + badgePadding * 2;
+            double badgeX = x + width - badgeWidth - PADDING;
+            double badgeY = y + (HEADER_HEIGHT - badgeHeight) / 2;
+
+            // Draw badge background (white)
+            gc.setFill(Color.WHITE);
+            gc.setStroke(borderColor);
+            gc.setLineWidth(1.0);
+            gc.fillRoundRect(badgeX, badgeY, badgeWidth, badgeHeight, 4, 4);
+            gc.strokeRoundRect(badgeX, badgeY, badgeWidth, badgeHeight, 4, 4);
+
+            // Draw badge text (cardinality)
+            gc.setFill(borderColor);
+            gc.setFont(Font.font("Consolas", FontWeight.BOLD, 10));
+            gc.setTextAlign(TextAlignment.CENTER);
+            gc.setTextBaseline(VPos.CENTER);
+            gc.fillText(cardinityBadge, badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
+        }
+    }
+
+    /**
+     * Estimates text width for layout purposes.
+     */
+    private double estimateTextWidth(String text, Font font) {
+        textMeasurer.setFont(font);
+        textMeasurer.setText(text);
+        return textMeasurer.getBoundsInLocal().getWidth();
+    }
+
+    /**
+     * Renders connection point circles on the node edges.
+     *
+     * @param gc     Graphics context
+     * @param node   The visual node
+     * @param x      X position of node
+     * @param y      Y position of node
+     * @param width  Node width
+     * @param height Node height
+     */
+    private void renderConnectionPoints(GraphicsContext gc, VisualNode node, double x, double y, double width, double height) {
+        final double CIRCLE_DIAMETER = 12.0;
+        final double CIRCLE_RADIUS = CIRCLE_DIAMETER / 2.0;
+
+        // Validate dimensions
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+
+        Color borderColor = node.getBorderColor();
+        if (borderColor == null) {
+            borderColor = Color.GRAY;
+        }
+
+        // Vertical center of the node
+        double centerY = y + height / 2.0;
+
+        // Left connection point (if node has parent)
+        if (node.getParent() != null) {
+            double leftCircleX = x - CIRCLE_RADIUS;
+            double leftCircleY = centerY - CIRCLE_RADIUS;
+
+            try {
+                gc.setFill(Color.WHITE);
+                gc.setStroke(borderColor);
+                gc.setLineWidth(2.0);
+                gc.fillOval(leftCircleX, leftCircleY, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
+                gc.strokeOval(leftCircleX, leftCircleY, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
+            } catch (Exception e) {
+                // Skip on error
+            }
+        }
+
+        // Right connection point (if node has children or can be expanded)
+        if (node.hasChildren()) {
+            double rightCircleX = x + width - CIRCLE_RADIUS;
+            double rightCircleY = centerY - CIRCLE_RADIUS;
+
+            try {
+                gc.setFill(Color.WHITE);
+                gc.setStroke(borderColor);
+                gc.setLineWidth(2.0);
+                gc.fillOval(rightCircleX, rightCircleY, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
+                gc.strokeOval(rightCircleX, rightCircleY, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
+            } catch (Exception e) {
+                // Skip on error
+            }
+        }
+    }
+
+    /**
+     * Renders the body section of a node (white background with property information).
+     *
+     * @param gc         Graphics context
+     * @param node       The visual node
+     * @param x          X position
+     * @param y          Y position (should be below the header)
+     * @param width      Node width
+     * @param bodyHeight Body height
+     */
+    private void renderNodeBody(GraphicsContext gc, VisualNode node, double x, double y, double width, double bodyHeight) {
+        final double PADDING = 8.0;
+        final double BODY_CORNER_RADIUS = 4.0;
+        final double PROPERTY_LINE_HEIGHT = 20.0;
+
+        // Validate dimensions
+        if (width <= 0 || bodyHeight <= 0) {
+            return;  // Skip if dimensions are invalid
+        }
+
+        // Get border color for consistency
+        Color borderColor = node.getBorderColor();
+        if (borderColor == null) {
+            borderColor = Color.GRAY;  // Fallback color
+        }
+
+        // Draw body background (white)
+        gc.setFill(Color.WHITE);
+        gc.setStroke(borderColor);
+
+        // Determine line width: thicker (3.0) for unbounded/multiple, normal (1.5) for single
+        double lineWidth = (node.maxOccurs > 1 || node.maxOccurs == -1) ? 3.0 : 1.5;
+        gc.setLineWidth(lineWidth);
+
+        // Set line dashes for optional fields: dashed if minOccurs == 0, solid otherwise
+        if (node.minOccurs == 0) {
+            gc.setLineDashes(6, 4);  // Dashed pattern
+        }
+
+        gc.fillRoundRect(x, y, width, bodyHeight, BODY_CORNER_RADIUS, BODY_CORNER_RADIUS);
+
+        // Only stroke sides and bottom (top connects to header)
+        gc.setLineWidth(lineWidth);
+        gc.strokeLine(x, y + bodyHeight, x + width, y + bodyHeight);  // Bottom
+        gc.strokeLine(x, y, x, y + bodyHeight);  // Left
+        gc.strokeLine(x + width, y, x + width, y + bodyHeight);  // Right
+
+        // Reset line dashes
+        gc.setLineDashes();
+
+        // Draw detail/type information in the body
+        if (node.getDetail() != null && !node.getDetail().isEmpty()) {
+            double propertyY = y + PADDING;
+
+            // Label: "Type"
+            gc.setFill(Color.rgb(108, 117, 125));  // Gray for labels
+            gc.setFont(Font.font("Segoe UI", 11));
+            gc.setTextAlign(TextAlignment.LEFT);
+            gc.setTextBaseline(VPos.TOP);
+            gc.fillText("Type:", x + PADDING, propertyY);
+
+            // Value: actual type
+            gc.setFill(Color.rgb(33, 37, 41));  // Dark text for values
+            gc.setFont(Font.font("Consolas", 11));
+            double availableWidth = width - PADDING * 3 - 40;  // Reserve space for label
+            String displayDetail = truncateText(node.getDetail(), availableWidth, gc.getFont());
+            gc.fillText(displayDetail, x + PADDING + 50, propertyY);
+
+            // Additional property line: Occurs (for elements)
+            if (node.getType() == NodeWrapperType.ELEMENT || node.getType() == NodeWrapperType.ATTRIBUTE) {
+                double secondLineY = propertyY + PROPERTY_LINE_HEIGHT;
+
+                String occursLabel = node.getType() == NodeWrapperType.ATTRIBUTE ? "Use:" : "Occurs:";
+                String occursValue = node.getMinOccurs() > 0 ? "required" : "optional";
+
+                // Label
+                gc.setFill(Color.rgb(108, 117, 125));
+                gc.setFont(Font.font("Segoe UI", 11));
+                gc.fillText(occursLabel, x + PADDING, secondLineY);
+
+                // Value
+                gc.setFill(Color.rgb(33, 37, 41));
+                gc.setFont(Font.font("Consolas", 11));
+                gc.fillText(occursValue, x + PADDING + 50, secondLineY);
+            }
+        }
+    }
+
+    /**
      * Renders a regular node (element, attribute, etc.)
      */
     private void renderRegularNode(GraphicsContext gc, VisualNode node, double x, double y) {
@@ -105,51 +386,46 @@ public class XsdNodeRenderer {
         double width = node.getWidth();
         double height = node.getHeight();
 
-        // Determine gradient fill and border colors based on node type (XMLSpy style)
-        LinearGradient fillGradient = getNodeFillGradient(node.getType(), x, y, width, height);
-        Color borderColor = getXMLSpyBorderColor(node.getType());
-
-        // Apply visual feedback modifications for hover/selection
-        if (node.isHovered()) {
-            // Brighten gradient for hover effect
-            fillGradient = brightenGradient(fillGradient);
+        // Ensure valid dimensions (prevent negative or zero values)
+        if (width <= 0 || height <= 0) {
+            return;  // Skip rendering invalid nodes
         }
 
-        if (node.isSelected()) {
-            // Use brighter gradient for selected nodes
-            fillGradient = brightenGradient(fillGradient);
+        // Ensure minimum node height for proper layout
+        double actualHeight = Math.max(NODE_HEIGHT, height);
+        final double BODY_HEIGHT = actualHeight - HEADER_HEIGHT;
+
+        // Render the header section (colored background with icon, name, cardinality)
+        if (node.getHeaderColor() != null && node.getBorderColor() != null) {
+            try {
+                renderNodeHeader(gc, node, x, y, width);
+            } catch (Exception e) {
+                // Skip header rendering on error and continue with visual states
+            }
         }
 
-        // Draw node rectangle with gradient fill
-        gc.setFill(fillGradient);
-        gc.setStroke(borderColor);
-
-        // Determine line width based on state and maxOccurs
-        double lineWidth;
-        if (node.isSelected()) {
-            lineWidth = 4.0;  // Thicker border for selected nodes
-        } else if (node.getMaxOccurs() > 1 || node.getMaxOccurs() == Integer.MAX_VALUE || node.getMaxOccurs() == -1) {
-            lineWidth = 3.0;  // Thicker border for multiple occurrences (check for both Integer.MAX_VALUE and -1 for UNBOUNDED)
-        } else {
-            lineWidth = 1.5;  // Normal border for single occurrence
-        }
-        gc.setLineWidth(lineWidth);
-
-        // Draw filled rectangle
-        gc.fillRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
-
-        // Draw border (dashed if optional, solid otherwise)
-        if (node.getMinOccurs() == 0) {
-            // Dashed border for optional nodes
-            gc.setLineDashes(6, 4);
-            gc.strokeRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
-            gc.setLineDashes(null);  // Reset to solid
-        } else {
-            // Solid border for required nodes
-            gc.strokeRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
+        // Render the body section (white background with type/detail info)
+        if (BODY_HEIGHT > 0 && node.getBorderColor() != null) {
+            try {
+                renderNodeBody(gc, node, x, y + HEADER_HEIGHT, width, BODY_HEIGHT);
+            } catch (Exception e) {
+                // Skip body rendering on error and continue
+            }
         }
 
-        // Draw selection highlight (additional colored border)
+        // Render connection point circles on node edges
+        if (node.getBorderColor() != null) {
+            try {
+                renderConnectionPoints(gc, node, x, y, width, actualHeight);
+            } catch (Exception e) {
+                // Skip connection points on error
+            }
+        }
+
+        // Apply visual state indicators over both header and body
+        Color borderColor = node.getBorderColor();
+
+        // Draw selection highlight (outer border)
         if (node.isSelected()) {
             gc.setStroke(Color.rgb(59, 130, 246));  // Blue highlight
             gc.setLineWidth(3);
@@ -178,48 +454,6 @@ public class XsdNodeRenderer {
             gc.setFill(Color.rgb(147, 197, 253));  // Light blue overlay
             gc.fillRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
             gc.setGlobalAlpha(1.0);  // Reset
-        }
-
-        // Draw node text with XMLSpy styling
-        // Element and attribute names use specific colors
-        Color textColor = switch (node.getType()) {
-            case ELEMENT -> Color.rgb(44, 90, 160);        // #2c5aa0 - XMLSpy element text
-            case ATTRIBUTE -> Color.rgb(139, 105, 20);     // #8b6914 - XMLSpy attribute text
-            default -> Color.rgb(51, 51, 51);              // #333333 - Default text
-        };
-
-        gc.setFill(textColor);
-        gc.setFont(nodeFont);
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.TOP);
-
-        // Calculate available text width (node width minus padding and expand button)
-        double availableWidth = width - 20 - (node.hasChildren() ? EXPAND_BUTTON_SIZE + 10 : 0);
-        String displayText = truncateText(node.getLabel(), availableWidth, nodeFont);
-        gc.fillText(displayText, x + 10, y + 10);
-
-        // Draw detail text (type, cardinality)
-        if (node.getDetail() != null && !node.getDetail().isEmpty()) {
-            gc.setFont(detailFont);
-            gc.setFill(Color.rgb(108, 117, 125));  // #6c757d - XMLSpy secondary text
-            String detailText = truncateText(node.getDetail(), availableWidth, detailFont);
-            gc.fillText(detailText, x + 10, y + 28);
-        }
-        
-        // Draw cardinality indicator in top-right corner (before edit mode badge)
-        String cardinality = getCardinalityString(node);
-        if (!cardinality.isEmpty()) {
-            gc.setFont(Font.font("Segoe UI", 9));
-            gc.setFill(Color.rgb(67, 56, 202));  // Indigo color for cardinality
-            gc.setTextAlign(TextAlignment.RIGHT);
-            gc.setTextBaseline(VPos.TOP);
-            
-            // Position in top-right, accounting for edit badge if present
-            double cardinalityX = x + width - 10 - (node.isInEditMode() ? 15 : 0);
-            gc.fillText(cardinality, cardinalityX, y + 4);
-            
-            // Reset text alignment
-            gc.setTextAlign(TextAlignment.LEFT);
         }
 
         // Draw edit mode indicator (small badge in top-right corner)
@@ -252,7 +486,7 @@ public class XsdNodeRenderer {
 
             // Draw "I" symbol for include
             gc.setFill(Color.WHITE);
-            gc.setFont(Font.font("Segoe UI", javafx.scene.text.FontWeight.BOLD, 7));
+            gc.setFont(Font.font("Segoe UI", FontWeight.BOLD, 7));
             gc.setTextAlign(TextAlignment.CENTER);
             gc.setTextBaseline(VPos.CENTER);
             gc.fillText("I", badgeX + badgeSize / 2, badgeY + badgeSize / 2);
@@ -520,6 +754,72 @@ public class XsdNodeRenderer {
     }
 
     /**
+     * Gets the header background color for a node type.
+     * Returns semantic colors from STYLE_GUIDE.jsonc.
+     */
+    private Color getHeaderColor(NodeWrapperType type) {
+        return switch (type) {
+            case SCHEMA -> Color.rgb(111, 66, 193);            // #6f42c1 - Purple
+            case ELEMENT -> Color.rgb(0, 123, 255);             // #007bff - Blue
+            case ATTRIBUTE -> Color.rgb(32, 201, 151);          // #20c997 - Teal
+            case COMPLEX_TYPE -> Color.rgb(108, 117, 125);      // #6c757d - Gray
+            case SIMPLE_TYPE -> Color.rgb(40, 167, 69);         // #28a745 - Green
+            case SEQUENCE -> Color.rgb(23, 162, 184);           // #17a2b8 - Cyan
+            case CHOICE -> Color.rgb(253, 126, 20);             // #fd7e14 - Orange
+            case ALL -> Color.rgb(111, 66, 193);                // #6f42c1 - Purple
+            default -> Color.LIGHTGRAY;
+        };
+    }
+
+    /**
+     * Creates a header gradient from a base color.
+     * Returns a gradient from lighter tint to darker tint.
+     */
+    private LinearGradient createHeaderGradient(Color baseColor, double y, double height) {
+        // Create a subtle gradient that's lighter and more modern
+        Color lighter = baseColor.interpolate(Color.WHITE, 0.55);  // Much lighter tint (55% towards white)
+        Color darker = baseColor.interpolate(Color.WHITE, 0.35);   // Slightly darker but still light (35% towards white)
+
+        return new LinearGradient(0, y, 0, y + height, false, CycleMethod.NO_CYCLE,
+                new Stop(0, lighter),
+                new Stop(1, darker)
+        );
+    }
+
+    /**
+     * Gets the icon literal for rendering the node icon.
+     * Returns Bootstrap Icons names (e.g., "bi-diagram-3", "bi-file-earmark-code").
+     */
+    private String getIconLiteral(NodeWrapperType type) {
+        return switch (type) {
+            case SCHEMA -> "bi-diagram-3";
+            case ELEMENT -> "bi-file-earmark-code";
+            case ATTRIBUTE -> "bi-at";
+            case COMPLEX_TYPE -> "bi-diagram-2";
+            case SIMPLE_TYPE -> "bi-diagram-3";
+            case SEQUENCE -> "bi-list-check";
+            case CHOICE -> "bi-signpost-2";
+            case ALL -> "bi-asterisk";
+            default -> "bi-diagram-2";
+        };
+    }
+
+    /**
+     * Formats cardinality as a badge string.
+     * Examples: "ROOT", "1..1", "0..*", "2..5", "required", "optional"
+     */
+    private String formatCardinalityBadge(NodeWrapperType type, int minOccurs, int maxOccurs) {
+        // Special case for SCHEMA - show "ROOT"
+        if (type == NodeWrapperType.SCHEMA) {
+            return "ROOT";
+        }
+
+        // Format minOccurs..maxOccurs
+        String maxStr = maxOccurs == Integer.MAX_VALUE || maxOccurs == -1 ? "*" : String.valueOf(maxOccurs);
+        return minOccurs + ".." + maxStr;
+    }
+
+    /**
      * Truncates text to fit within the specified width using accurate text measurement.
      */
     private String truncateText(String text, double maxWidth, Font font) {
@@ -669,6 +969,14 @@ public class XsdNodeRenderer {
         private boolean dragging = false;
         private boolean dropTarget = false;
 
+        // New properties for improved visual representation
+        private String iconLiteral;             // Bootstrap icon code (e.g., "bi-diagram-3")
+        private Color headerColor;              // Header background color
+        private Color borderColor;              // Border and connection point color
+        private Color iconBackgroundColor;      // Icon box background color
+        private String cardinalityBadge;        // Formatted cardinality (e.g., "1..1", "0..*", "ROOT")
+        private boolean showConnectionPoints;   // Whether to show connection circles
+
         // PropertyChangeListener for model updates
         private final java.beans.PropertyChangeListener modelListener;
 
@@ -709,6 +1017,140 @@ public class XsdNodeRenderer {
                 // Initialize detail string from model immediately
                 updateFromModel();
             }
+
+            // Initialize visual properties based on node type
+            initializeVisualProperties();
+        }
+
+        /**
+         * Initializes visual properties (colors, icons, cardinality badge) based on node type.
+         * This method is called once during construction and can be called to refresh visual properties.
+         */
+        public void initializeVisualProperties() {
+            // Set icon literal based on type and content
+            this.iconLiteral = determineIconLiteral();
+
+
+            // Set header color (semantic colors from style guide)
+            this.headerColor = switch (type) {
+                case SCHEMA -> Color.rgb(111, 66, 193);            // #6f42c1 - Purple
+                case ELEMENT -> Color.rgb(0, 123, 255);             // #007bff - Blue
+                case ATTRIBUTE -> Color.rgb(32, 201, 151);          // #20c997 - Teal
+                case COMPLEX_TYPE -> Color.rgb(108, 117, 125);      // #6c757d - Gray
+                case SIMPLE_TYPE -> Color.rgb(40, 167, 69);         // #28a745 - Green
+                case SEQUENCE -> Color.rgb(23, 162, 184);           // #17a2b8 - Cyan
+                case CHOICE -> Color.rgb(253, 126, 20);             // #fd7e14 - Orange
+                case ALL -> Color.rgb(111, 66, 193);                // #6f42c1 - Purple
+                default -> Color.LIGHTGRAY;
+            };
+
+            // Icon background color is the same as header color
+            this.iconBackgroundColor = this.headerColor;
+
+            // Border color matches header color
+            this.borderColor = this.headerColor;
+
+            // Set cardinality badge
+            this.cardinalityBadge = formatCardinalityBadge();
+
+            // Connection points are always shown
+            this.showConnectionPoints = true;
+        }
+
+        /**
+         * Formats the cardinality badge text.
+         */
+        private String formatCardinalityBadge() {
+            // Special case for SCHEMA - show "ROOT"
+            if (type == NodeWrapperType.SCHEMA) {
+                return "ROOT";
+            }
+
+            // Format minOccurs..maxOccurs
+            String maxStr = maxOccurs == Integer.MAX_VALUE || maxOccurs == -1 ? "*" : String.valueOf(maxOccurs);
+            return minOccurs + ".." + maxStr;
+        }
+
+        /**
+         * Determines the appropriate icon literal based on node type and datatype.
+         * Uses different icons for primitive types vs complex types.
+         */
+        private String determineIconLiteral() {
+            switch (type) {
+                case SCHEMA:
+                    return "bi-diagram-3";  // Database/schema symbol
+                case ELEMENT:
+                    // Try to detect element datatype from detail string
+                    if (detail != null && !detail.isEmpty()) {
+                        return getDataTypeIcon(detail);
+                    }
+                    return "bi-file-text";  // Generic document
+                case ATTRIBUTE:
+                    return "bi-at";  // @ symbol
+                case COMPLEX_TYPE:
+                    return "bi-diagram-2";  // Complex structure
+                case SIMPLE_TYPE:
+                    // Try to detect simple type from detail
+                    if (detail != null && !detail.isEmpty()) {
+                        return getDataTypeIcon(detail);
+                    }
+                    return "bi-diagram-3";  // Type symbol
+                case SEQUENCE:
+                    return "bi-list-check";  // Ordered list
+                case CHOICE:
+                    return "bi-signpost-2";  // Branch/choice
+                case ALL:
+                    return "bi-asterisk";  // All/any
+                case GROUP:
+                    return "bi-diagram-3";  // Grouping
+                case ENUMERATION:
+                    return "bi-list-check";  // Enumeration/list
+                default:
+                    return "bi-question-circle";  // Unknown type
+            }
+        }
+
+        /**
+         * Maps datatype strings to appropriate icons.
+         * Recognizes xs: prefix and other common datatypes.
+         */
+        private String getDataTypeIcon(String datatype) {
+            if (datatype == null || datatype.isEmpty()) {
+                return "bi-diagram-3";  // Default type
+            }
+
+            String lower = datatype.toLowerCase();
+
+            // String types
+            if (lower.contains("string") || lower.contains("token") || lower.contains("ncname")) {
+                return "bi-file-text";  // Text/string
+            }
+
+            // Numeric types
+            if (lower.contains("int") || lower.contains("integer") || lower.contains("long") || lower.contains("short") || lower.contains("byte")) {
+                return "bi-hash";  // # symbol for numbers
+            }
+            if (lower.contains("float") || lower.contains("double") || lower.contains("decimal")) {
+                return "bi-percent";  // Percent symbol for decimals
+            }
+
+            // Date/Time types
+            if (lower.contains("date") || lower.contains("time") || lower.contains("datetime") || lower.contains("duration")) {
+                return "bi-calendar";  // Calendar
+            }
+
+            // Boolean
+            if (lower.contains("boolean")) {
+                return "bi-toggle-on";  // Toggle for true/false
+            }
+
+            // Binary/encoded types
+            if (lower.contains("binary") || lower.contains("hex") || lower.contains("base64")) {
+                return "bi-lock";  // Lock for encoded data
+            }
+
+            // Default for unknown types
+            return "bi-diagram-3";  // Default generic type
         }
 
         /**
@@ -835,21 +1277,59 @@ public class XsdNodeRenderer {
                 return explicitType;
             }
 
-            // Check for inline simpleType with restriction
+            // Check for inline complexType with simpleContent
             for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : element.getChildren()) {
-                if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
-                    // Look for restriction in simpleType children
-                    for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode restrictionChild : simpleType.getChildren()) {
-                        if (restrictionChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction) {
-                            String base = restriction.getBase();
-                            if (base != null && !base.isEmpty()) {
-                                return base;
+                if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+                    // Look for simpleContent in complexType
+                    for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode complexChild : complexType.getChildren()) {
+                        if (complexChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent) {
+                            // Look for extension or restriction in simpleContent
+                            for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode contentChild : simpleContent.getChildren()) {
+                                String baseType = extractBaseType(contentChild);
+                                if (baseType != null) {
+                                    return baseType;
+                                }
                             }
                         }
                     }
                 }
             }
 
+            // Check for inline simpleType with restriction
+            for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : element.getChildren()) {
+                if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
+                    // Look for restriction in simpleType children
+                    for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode restrictionChild : simpleType.getChildren()) {
+                        String baseType = extractBaseType(restrictionChild);
+                        if (baseType != null) {
+                            return baseType;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Extracts the base type from an XsdExtension or XsdRestriction node.
+         *
+         * @param node the node to extract base type from
+         * @return the base type, or null if not found
+         */
+        private String extractBaseType(org.fxt.freexmltoolkit.controls.v2.model.XsdNode node) {
+            // Check if it's an extension or restriction
+            if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction) {
+                String base = restriction.getBase();
+                if (base != null && !base.isEmpty()) {
+                    return base;
+                }
+            } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdExtension extension) {
+                String base = extension.getBase();
+                if (base != null && !base.isEmpty()) {
+                    return base;
+                }
+            }
             return null;
         }
 
@@ -937,6 +1417,31 @@ public class XsdNodeRenderer {
 
         public int getMaxOccurs() {
             return maxOccurs;
+        }
+
+        // Getters for new visual properties
+        public String getIconLiteral() {
+            return iconLiteral;
+        }
+
+        public Color getHeaderColor() {
+            return headerColor;
+        }
+
+        public Color getBorderColor() {
+            return borderColor;
+        }
+
+        public Color getIconBackgroundColor() {
+            return iconBackgroundColor;
+        }
+
+        public String getCardinalityBadge() {
+            return cardinalityBadge;
+        }
+
+        public boolean isShowConnectionPoints() {
+            return showConnectionPoints;
         }
 
         public void setX(double x) {
