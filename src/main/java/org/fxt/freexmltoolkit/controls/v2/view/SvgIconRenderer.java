@@ -54,6 +54,11 @@ public class SvgIconRenderer {
                 renderDiagram(gc, x, y, size);
                 break;
             case "bi-file-earmark-code":
+            case "bi-file-text":
+            case "bi-chat-left-quote":
+            case "bi-tag":
+            case "bi-tag-fill":
+            case "bi-subtract":
                 renderDocument(gc, x, y, size);
                 break;
             case "bi-at":
@@ -67,6 +72,39 @@ public class SvgIconRenderer {
                 break;
             case "bi-asterisk":
                 renderAll(gc, x, y, size);
+                break;
+            case "bi-hash":
+            case "bi-dash-square":
+            case "bi-1-circle-fill":
+            case "bi-2-circle-fill":
+                renderHash(gc, x, y, size);
+                break;
+            case "bi-percent":
+                renderPercent(gc, x, y, size);
+                break;
+            case "bi-hexagon-fill":
+                renderHexagon(gc, x, y, size);
+                break;
+            case "bi-box":
+                renderBox(gc, x, y, size);
+                break;
+            case "bi-calendar":
+            case "bi-calendar2":
+            case "bi-calendar3":
+            case "bi-calendar-event":
+                renderCalendar(gc, x, y, size);
+                break;
+            case "bi-clock":
+                renderClock(gc, x, y, size);
+                break;
+            case "bi-hourglass-split":
+                renderHourglass(gc, x, y, size);
+                break;
+            case "bi-toggle-on":
+                renderToggle(gc, x, y, size);
+                break;
+            case "bi-shield-check":
+                renderShield(gc, x, y, size);
                 break;
             default:
                 renderPlaceholder(gc, x, y, size, color);
@@ -228,6 +266,132 @@ public class SvgIconRenderer {
         gc.setLineWidth(1);
         gc.strokeText("?", x + size / 3, y + size * 2 / 3);
         gc.restore();
+    }
+
+    /**
+     * Renders a hash/number-like icon (used for numeric datatypes).
+     */
+    private static void renderHash(GraphicsContext gc, double x, double y, double size) {
+        double margin = size * 0.25;
+        double startX = x + margin;
+        double startY = y + margin;
+        double endX = x + size - margin;
+        double endY = y + size - margin;
+
+        gc.strokeLine(startX, startY, startX, endY);
+        gc.strokeLine(endX, startY, endX, endY);
+        gc.strokeLine(startX, startY, endX, startY);
+        gc.strokeLine(startX, endY, endX, endY);
+    }
+
+    /**
+     * Renders a percent icon (used for decimals).
+     */
+    private static void renderPercent(GraphicsContext gc, double x, double y, double size) {
+        double circleRadius = size * 0.12;
+        double offset = size * 0.15;
+        gc.strokeLine(x + offset, y + size - offset, x + size - offset, y + offset);
+        gc.strokeOval(x + offset * 0.8, y + offset * 0.8, circleRadius * 2, circleRadius * 2);
+        gc.strokeOval(x + size - offset * 1.8 - circleRadius * 2, y + size - offset * 1.8 - circleRadius * 2,
+                circleRadius * 2, circleRadius * 2);
+    }
+
+    /**
+     * Renders a hexagon icon (used for float).
+     */
+    private static void renderHexagon(GraphicsContext gc, double x, double y, double size) {
+        double r = size * 0.4;
+        double cx = x + size / 2;
+        double cy = y + size / 2;
+        double[] xs = new double[6];
+        double[] ys = new double[6];
+        for (int i = 0; i < 6; i++) {
+            double angle = Math.PI / 6 + i * Math.PI / 3;
+            xs[i] = cx + r * Math.cos(angle);
+            ys[i] = cy + r * Math.sin(angle);
+        }
+        gc.strokePolygon(xs, ys, 6);
+    }
+
+    /**
+     * Renders a simple box (used for double).
+     */
+    private static void renderBox(GraphicsContext gc, double x, double y, double size) {
+        double margin = size * 0.2;
+        gc.strokeRect(x + margin, y + margin, size - 2 * margin, size - 2 * margin);
+    }
+
+    /**
+     * Renders a calendar icon (used for date/datetime).
+     */
+    private static void renderCalendar(GraphicsContext gc, double x, double y, double size) {
+        double margin = size * 0.15;
+        double header = size * 0.25;
+        gc.strokeRect(x + margin, y + margin, size - 2 * margin, size - 2 * margin);
+        gc.strokeLine(x + margin, y + margin + header, x + size - margin, y + margin + header);
+        // binding rings
+        double ringRadius = size * 0.05;
+        double ringY = y + margin;
+        gc.strokeOval(x + size * 0.35 - ringRadius, ringY - ringRadius, ringRadius * 2, ringRadius * 2);
+        gc.strokeOval(x + size * 0.65 - ringRadius, ringY - ringRadius, ringRadius * 2, ringRadius * 2);
+    }
+
+    /**
+     * Renders a clock icon (used for time).
+     */
+    private static void renderClock(GraphicsContext gc, double x, double y, double size) {
+        double radius = size * 0.35;
+        double cx = x + size / 2;
+        double cy = y + size / 2;
+        gc.strokeOval(cx - radius, cy - radius, 2 * radius, 2 * radius);
+        gc.strokeLine(cx, cy, cx, cy - radius * 0.6);
+        gc.strokeLine(cx, cy, cx + radius * 0.4, cy);
+    }
+
+    /**
+     * Renders an hourglass icon (used for duration).
+     */
+    private static void renderHourglass(GraphicsContext gc, double x, double y, double size) {
+        double top = y + size * 0.2;
+        double bottom = y + size - size * 0.2;
+        double left = x + size * 0.25;
+        double right = x + size - size * 0.25;
+        double midY = y + size / 2;
+        gc.strokePolygon(
+                new double[]{left, right, left, right},
+                new double[]{top, top, midY, midY},
+                4);
+        gc.strokePolygon(
+                new double[]{left, right, left, right},
+                new double[]{bottom, bottom, midY, midY},
+                4);
+    }
+
+    /**
+     * Renders a toggle icon (used for boolean).
+     */
+    private static void renderToggle(GraphicsContext gc, double x, double y, double size) {
+        double radius = size * 0.25;
+        double trackHeight = radius * 2;
+        double trackWidth = size - radius;
+        double trackX = x + size * 0.1;
+        double trackY = y + (size - trackHeight) / 2;
+        gc.strokeRoundRect(trackX, trackY, trackWidth, trackHeight, trackHeight, trackHeight);
+        gc.fillOval(trackX + trackWidth - radius * 1.8, trackY + (trackHeight - radius * 2) / 2, radius * 2, radius * 2);
+    }
+
+    /**
+     * Renders a shield icon (used for ID types).
+     */
+    private static void renderShield(GraphicsContext gc, double x, double y, double size) {
+        double top = y + size * 0.15;
+        double width = size * 0.6;
+        double height = size * 0.7;
+        double left = x + (size - width) / 2;
+        gc.strokePolygon(
+                new double[]{left, left + width, left + width / 2},
+                new double[]{top, top, top + height},
+                3);
     }
 
     /**
