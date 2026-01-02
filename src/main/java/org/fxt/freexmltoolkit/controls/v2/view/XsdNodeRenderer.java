@@ -19,11 +19,12 @@ import javafx.scene.text.TextAlignment;
  */
 public class XsdNodeRenderer {
 
-    private static final double MIN_NODE_WIDTH = 200;  // Increased for new header+body layout
-    private static final double MAX_NODE_WIDTH = 400;  // Adjusted for consistent spacing
-    private static final double HEADER_HEIGHT = 36.0;  // New: fixed header height
-    private static final double MIN_BODY_HEIGHT = 40.0;  // New: minimum body height (1 property line)
-    private static final double NODE_HEIGHT = HEADER_HEIGHT + MIN_BODY_HEIGHT;  // 76px total
+    private static final double MIN_NODE_WIDTH = 200;  // Minimum width
+    private static final double MAX_NODE_WIDTH = 800;  // Increased max width for larger content
+    private static final double HEADER_HEIGHT = 36.0;  // Fixed header height
+    private static final double MIN_BODY_HEIGHT = 20.0;  // Minimum body height (no content)
+    private static final double PROPERTY_LINE_HEIGHT = 20.0;  // Height per property line
+    private static final double NODE_HEIGHT = HEADER_HEIGHT + MIN_BODY_HEIGHT;  // 56px minimum
     private static final double COMPOSITOR_SIZE = 28;  // Small square for compositors
     private static final double EXPAND_BUTTON_SIZE = 16;
     private static final double HORIZONTAL_SPACING = 40;
@@ -45,32 +46,91 @@ public class XsdNodeRenderer {
     }
 
     /**
-     * Calculates the required width for a node based on its label and detail text.
+     * Calculates the required width for a node based on all header elements:
+     * - Icon box (28px) + padding (8px)
+     * - Node name text
+     * - Cardinality badge (60px)
+     * - Expand button (16px) + spacing (8px) if has children
+     * - Plus detail text from body
      */
     public double calculateNodeWidth(VisualNode node) {
         if (isCompositorNode(node)) {
             return COMPOSITOR_SIZE;
         }
 
+        final double ICON_BOX_SIZE = 28.0;      // 24px box + 4px padding on each side
+        final double ICON_BOX_SPACING = 8.0;    // Spacing after icon box
+        final double BADGE_WIDTH = 60.0;        // Cardinality badge fixed width
+        final double BADGE_SPACING = 8.0;       // Spacing before badge
+        final double EXPAND_BTN_WIDTH = 16.0;   // Expand button width
+        final double EXPAND_BTN_SPACING = 8.0;  // Spacing for expand button
+
+        // Calculate header width components
+        double headerWidth = ICON_BOX_SIZE + ICON_BOX_SPACING;  // Icon and spacing
+
         // Measure label text with proper font
         textMeasurer.setFont(nodeFont);
         textMeasurer.setText(node.getLabel() != null ? node.getLabel() : "");
         double labelWidth = textMeasurer.getBoundsInLocal().getWidth();
+        headerWidth += labelWidth;
 
-        // Measure detail text with proper font
+        // Add cardinality badge width
+        String cardinality = node.getCardinalityBadge();
+        if (cardinality != null && !cardinality.isEmpty()) {
+            headerWidth += BADGE_SPACING + estimateTextWidth(cardinality, Font.font("Consolas", FontWeight.BOLD, 10)) + 12;  // +12 for badge padding
+        }
+
+        // Add expand button width if has children
+        if (node.hasChildren()) {
+            headerWidth += EXPAND_BTN_SPACING + EXPAND_BTN_WIDTH;
+        }
+
+        // Add left and right padding
+        headerWidth += PADDING + PADDING;
+
+        // Also measure detail text width for body
         double detailWidth = 0;
         if (node.getDetail() != null && !node.getDetail().isEmpty()) {
             textMeasurer.setFont(detailFont);
             textMeasurer.setText(node.getDetail());
             detailWidth = textMeasurer.getBoundsInLocal().getWidth();
+            // Add "Type: " prefix width and spacing
+            detailWidth += 50;  // Estimated width of "Type: " label + spacing
         }
 
-        // Take maximum of both, add padding and expand button space
-        double maxTextWidth = Math.max(labelWidth, detailWidth);
-        double requiredWidth = maxTextWidth + PADDING + (node.hasChildren() ? EXPAND_BUTTON_SIZE + 10 : 0) + 20;
+        // Take maximum of header and detail, use header as minimum
+        double requiredWidth = Math.max(headerWidth, detailWidth);
 
-        // Use minimum width but allow expansion for longer text
-        return Math.max(MIN_NODE_WIDTH, Math.min(MAX_NODE_WIDTH, requiredWidth));
+        // Use minimum width but allow expansion for longer text (no hard upper limit)
+        return Math.max(MIN_NODE_WIDTH, requiredWidth);
+    }
+
+    /**
+     * Calculates the required body height based on the content lines to display.
+     * For elements/attributes with type info, reserves 2 property lines plus extra padding.
+     * For compositors, only 1 line (child count).
+     */
+    public double calculateBodyHeight(VisualNode node) {
+        if (node.getDetail() == null || node.getDetail().isEmpty()) {
+            return MIN_BODY_HEIGHT;
+        }
+
+        // Elements and attributes need 2 property lines (Type and Occurs/Use) with extra padding
+        if (node.getType() == NodeWrapperType.ELEMENT || node.getType() == NodeWrapperType.ATTRIBUTE) {
+            return PROPERTY_LINE_HEIGHT * 2 + 10;  // 50px for 2 lines with padding
+        }
+
+        // Compositors and other nodes need only 1 line
+        return PROPERTY_LINE_HEIGHT;  // 20px for 1 line
+    }
+
+    /**
+     * Calculates the complete node height (header + body).
+     * This is the total height needed to render the node with all its content.
+     */
+    public double calculateNodeHeight(VisualNode node) {
+        double bodyHeight = calculateBodyHeight(node);
+        return HEADER_HEIGHT + bodyHeight;
     }
 
     private boolean isCompositorNode(VisualNode node) {
@@ -184,7 +244,7 @@ public class XsdNodeRenderer {
 
         // Draw node name (center area)
         double nameX = iconBoxX + ICON_BOX_SIZE + PADDING;
-        double nameY = y + (HEADER_HEIGHT - 16) / 2;  // Vertically center
+        double nameY = y + HEADER_HEIGHT / 2;  // Vertically center in header
 
         // Darker version of header color for text
         Color textColor = headerColor.interpolate(Color.BLACK, 0.3);
@@ -193,9 +253,8 @@ public class XsdNodeRenderer {
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setTextBaseline(VPos.CENTER);
 
-        double availableNameWidth = width - (nameX - x) - PADDING - (cardinityBadge != null && !cardinityBadge.isEmpty() ? 60 : PADDING);
-        String displayName = truncateText(node.getLabel(), availableNameWidth, gc.getFont());
-        gc.fillText(displayName, nameX, nameY);
+        // Display the full node name without truncation - let node width accommodate it
+        gc.fillText(node.getLabel(), nameX, nameY);
 
         // Draw cardinality badge (right side)
         if (cardinityBadge != null && !cardinityBadge.isEmpty()) {
@@ -351,12 +410,11 @@ public class XsdNodeRenderer {
             gc.setTextBaseline(VPos.TOP);
             gc.fillText("Type:", x + PADDING, propertyY);
 
-            // Value: actual type
+            // Value: actual type (display fully without truncation)
             gc.setFill(Color.rgb(33, 37, 41));  // Dark text for values
             gc.setFont(Font.font("Consolas", 11));
-            double availableWidth = width - PADDING * 3 - 40;  // Reserve space for label
-            String displayDetail = truncateText(node.getDetail(), availableWidth, gc.getFont());
-            gc.fillText(displayDetail, x + PADDING + 50, propertyY);
+            // Display detail text without truncation - let node width accommodate it
+            gc.fillText(node.getDetail(), x + PADDING + 50, propertyY);
 
             // Additional property line: Occurs (for elements)
             if (node.getType() == NodeWrapperType.ELEMENT || node.getType() == NodeWrapperType.ATTRIBUTE) {
@@ -391,9 +449,10 @@ public class XsdNodeRenderer {
             return;  // Skip rendering invalid nodes
         }
 
-        // Ensure minimum node height for proper layout
-        double actualHeight = Math.max(NODE_HEIGHT, height);
-        final double BODY_HEIGHT = actualHeight - HEADER_HEIGHT;
+        // Calculate body height dynamically based on content
+        double bodyHeight = calculateBodyHeight(node);
+        double actualHeight = HEADER_HEIGHT + bodyHeight;
+        final double BODY_HEIGHT = bodyHeight;
 
         // Render the header section (colored background with icon, name, cardinality)
         if (node.getHeaderColor() != null && node.getBorderColor() != null) {
@@ -1304,18 +1363,11 @@ public class XsdNodeRenderer {
                 return detail.toString().trim();
             }
 
-            // Handle XsdAttribute - show type, use, and form
+            // Handle XsdAttribute - show type and form (use indicator is shown in body)
             if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
-                // Add type
+                // Add type only - use indicator is already shown in the "Use:" row in the body
                 if (attribute.getType() != null) {
                     detail.append(attribute.getType());
-                }
-
-                // Add use indicator
-                if ("required".equals(attribute.getUse())) {
-                    detail.append(" (required)");
-                } else if ("prohibited".equals(attribute.getUse())) {
-                    detail.append(" (prohibited)");
                 }
 
                 // Add form flag

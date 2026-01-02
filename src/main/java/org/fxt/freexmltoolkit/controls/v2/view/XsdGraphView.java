@@ -603,9 +603,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
     /**
      * Recursively layouts nodes in a tree structure.
+     * Uses dynamic node heights calculated from content.
+     * Uses harmonized spacing proportional to node height.
      */
     private double layoutNode(VisualNode node, double x, double y) {
-        double nodeHeight = renderer.getNodeHeight();
         double vSpacing = renderer.getVerticalSpacing();
         double hSpacing = renderer.getHorizontalSpacing();
 
@@ -617,7 +618,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         // Use actual node dimensions (compositor symbols are smaller)
         double compositorSize = renderer.getCompositorSize();
         double actualWidth = isCompositor ? compositorSize : renderer.calculateNodeWidth(node);
-        double actualHeight = isCompositor ? compositorSize : nodeHeight;
+        double actualHeight = isCompositor ? compositorSize : renderer.calculateNodeHeight(node);
 
         // Position this node and set dimensions
         node.setX(x);
@@ -653,14 +654,24 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
             double childHeight = layoutNode(child, childX, childY);
 
-            // Use smaller spacing after compositor symbols
-            double spacingToUse = isCompositor ? vSpacing / 4 : vSpacing;
+            // Calculate harmonized spacing based on node height
+            // Compositor symbols use minimal spacing, regular nodes use proportional spacing
+            double spacingToUse;
+            if (isCompositor) {
+                spacingToUse = vSpacing / 4;  // 5px for compositor symbols
+            } else {
+                // For regular nodes: use base spacing + proportional extra spacing
+                // This harmonizes spacing between elements and attributes
+                spacingToUse = vSpacing + 12.0;  // 32px total spacing (20 + 12)
+            }
 
             childY += childHeight + spacingToUse;
             totalHeight += childHeight + spacingToUse;
         }
 
-        totalHeight = Math.max(totalHeight - (isCompositor ? vSpacing / 4 : vSpacing), actualHeight);
+        // Remove spacing from last child
+        double finalSpacing = isCompositor ? vSpacing / 4 : (vSpacing + 12.0);
+        totalHeight = Math.max(totalHeight - finalSpacing, actualHeight);
 
         // Center parent vertically with children
         double centerOffset = (totalHeight - actualHeight) / 2;
