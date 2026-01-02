@@ -308,8 +308,46 @@ public class XsdVisualTreeBuilder {
         int minOccurs = element.getMinOccurs();
         int maxOccurs = element.getMaxOccurs();
 
-        // Detail string will be built by VisualNode.buildDetailString() from model properties
-        VisualNode node = new VisualNode(label, "", NodeWrapperType.ELEMENT, element, parent,
+        // Extract element's type for detail string (used for icon selection)
+        String detail = "";
+        if (element.getType() != null && !element.getType().isEmpty()) {
+            detail = element.getType();
+        } else {
+            // Check for inline complex/simple type
+            for (XsdNode child : element.getChildren()) {
+                if (child instanceof XsdComplexType complexType) {
+                    // Try to extract the base type from inline complex type
+                    for (XsdNode complexChild : complexType.getChildren()) {
+                        if (complexChild instanceof XsdSimpleContent simpleContent) {
+                            // Extract base type from simpleContent
+                            for (XsdNode scChild : simpleContent.getChildren()) {
+                                if (scChild instanceof XsdExtension ext && ext.getBase() != null) {
+                                    detail = ext.getBase();
+                                    break;
+                                } else if (scChild instanceof XsdRestriction res && res.getBase() != null) {
+                                    detail = res.getBase();
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                } else if (child instanceof XsdSimpleType simpleType) {
+                    // Try to extract base from inline simple type
+                    for (XsdNode stChild : simpleType.getChildren()) {
+                        if (stChild instanceof XsdRestriction res && res.getBase() != null) {
+                            detail = res.getBase();
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Create VisualNode with extracted type detail
+        VisualNode node = new VisualNode(label, detail, NodeWrapperType.ELEMENT, element, parent,
                 minOccurs, maxOccurs, onModelChangeCallback);
 
         // Add to nodeMap for later lookup
