@@ -4669,6 +4669,8 @@ public class XsdController implements FavoritesParentController {
                                         node instanceof org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView);
                                     org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
                                         new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(pendingTypeLibrarySchema);
+                                    // Wire TypeEditorTabManager for Create New Type feature
+                                    typeLibraryView.setTypeEditorTabManager(typeEditorTabManager);
                                     typeLibraryStackPane.getChildren().add(typeLibraryView);
                                     typeLibraryInitialized = true;
                                     long elapsed = System.currentTimeMillis() - startTime;
@@ -4983,6 +4985,8 @@ public class XsdController implements FavoritesParentController {
                                 node instanceof org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView);
                             org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
                                 new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(pendingTypeLibrarySchema);
+                            // Wire TypeEditorTabManager for Create New Type feature
+                            typeLibraryView.setTypeEditorTabManager(typeEditorTabManager);
                             typeLibraryStackPane.getChildren().add(typeLibraryView);
                             typeLibraryInitialized = true;
                             logger.info("TypeLibraryView initialized immediately because tab is active");
