@@ -10,6 +10,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ public class TypeLibraryView extends BorderPane {
     private ChoiceBox<String> filterChoice;
     private Label statsLabel;
     private String schemaName = "Unknown Schema";
+    private TypeEditorTabManager typeEditorTabManager;
 
     public TypeLibraryView(XsdSchema schema) {
         this.schema = schema;
@@ -57,6 +59,14 @@ public class TypeLibraryView extends BorderPane {
      */
     public void setSchemaName(String schemaName) {
         this.schemaName = schemaName;
+    }
+
+    /**
+     * Set the TypeEditorTabManager for creating new types.
+     * Required for the "Create New Type" buttons to work.
+     */
+    public void setTypeEditorTabManager(TypeEditorTabManager typeEditorTabManager) {
+        this.typeEditorTabManager = typeEditorTabManager;
     }
 
     private void initializeUI() {
@@ -119,11 +129,39 @@ public class TypeLibraryView extends BorderPane {
             "-fx-text-fill: #2c5aa0;"
         );
 
+        // Create buttons for new types
+        Button createComplexTypeBtn = new Button("New ComplexType");
+        createComplexTypeBtn.setGraphic(new FontIcon("bi-file-earmark-plus"));
+        ((FontIcon) createComplexTypeBtn.getGraphic()).setIconColor(javafx.scene.paint.Color.web("#28a745"));
+        ((FontIcon) createComplexTypeBtn.getGraphic()).setIconSize(16);
+        createComplexTypeBtn.setStyle("-fx-font-size: 11px;");
+        createComplexTypeBtn.setOnAction(e -> {
+            if (typeEditorTabManager != null) {
+                typeEditorTabManager.createNewComplexType();
+            }
+        });
+
+        Button createSimpleTypeBtn = new Button("New SimpleType");
+        createSimpleTypeBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        ((FontIcon) createSimpleTypeBtn.getGraphic()).setIconColor(javafx.scene.paint.Color.web("#17a2b8"));
+        ((FontIcon) createSimpleTypeBtn.getGraphic()).setIconSize(16);
+        createSimpleTypeBtn.setStyle("-fx-font-size: 11px;");
+        createSimpleTypeBtn.setOnAction(e -> {
+            if (typeEditorTabManager != null) {
+                typeEditorTabManager.createNewSimpleType();
+            }
+        });
+
         // Export button with menu
         MenuButton exportButton = createExportButton();
 
+        Separator separator = new Separator();
+        separator.setStyle("-fx-padding: 0 5 0 5;");
+
         HBox.setHgrow(searchField, Priority.NEVER);
         toolbar.getChildren().addAll(
+            createComplexTypeBtn, createSimpleTypeBtn,
+            separator,
             searchLabel, searchField,
             filterLabel, filterChoice,
             createSpacer(),

@@ -130,6 +130,68 @@ public class TypeEditorTabManager {
     }
 
     /**
+     * Creates a new ComplexType and opens it in the editor.
+     * Prompts the user for a type name and validates uniqueness.
+     */
+    public void createNewComplexType() {
+        TextInputDialog dialog = new TextInputDialog("NewComplexType");
+        dialog.setTitle("Create New Complex Type");
+        dialog.setHeaderText("Create New ComplexType");
+        dialog.setContentText("Please enter a name for the new ComplexType:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(typeName -> {
+            if (!typeName.trim().isEmpty()) {
+                // Check if name already exists (across both SimpleTypes and ComplexTypes)
+                if (typeNameExists(typeName)) {
+                    showErrorAlert("Duplicate Name",
+                        "A type with the name '" + typeName + "' already exists.",
+                        "Please choose a different name.");
+                    return;
+                }
+
+                // Create new ComplexType with user-provided name
+                XsdComplexType newType = new XsdComplexType(typeName);
+                mainSchema.addChild(newType);
+                openComplexTypeTab(newType);
+
+                logger.info("Created new ComplexType: {}", typeName);
+            }
+        });
+    }
+
+    /**
+     * Creates a new SimpleType and opens it in the editor.
+     * Prompts the user for a type name and validates uniqueness.
+     */
+    public void createNewSimpleType() {
+        TextInputDialog dialog = new TextInputDialog("NewSimpleType");
+        dialog.setTitle("Create New Simple Type");
+        dialog.setHeaderText("Create New SimpleType");
+        dialog.setContentText("Please enter a name for the new SimpleType:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(typeName -> {
+            if (!typeName.trim().isEmpty()) {
+                // Check if name already exists (across both SimpleTypes and ComplexTypes)
+                if (typeNameExists(typeName)) {
+                    showErrorAlert("Duplicate Name",
+                        "A type with the name '" + typeName + "' already exists.",
+                        "Please choose a different name.");
+                    return;
+                }
+
+                // Create new SimpleType with user-provided name
+                XsdSimpleType newType = new XsdSimpleType(typeName);
+                mainSchema.addChild(newType);
+                openSimpleTypeTab(newType);
+
+                logger.info("Created new SimpleType: {}", typeName);
+            }
+        });
+    }
+
+    /**
      * Opens the SimpleTypes list tab.
      * Only one instance of this tab can be open.
      */
