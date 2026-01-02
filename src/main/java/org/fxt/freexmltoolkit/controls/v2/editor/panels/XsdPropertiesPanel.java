@@ -59,6 +59,7 @@ public class XsdPropertiesPanel extends VBox {
     private TextField nameField;
     private ComboBox<String> typeComboBox;
     private FontIcon typeIcon;
+    private java.util.List<String> allAvailableTypes; // For autocomplete filtering
     private Spinner<Integer> minOccursSpinner;
     private Spinner<Integer> maxOccursSpinner;
     private CheckBox unboundedCheckBox;
@@ -537,6 +538,9 @@ public class XsdPropertiesPanel extends VBox {
 
         typeBox.getChildren().addAll(typeComboBox, typeIcon);
         grid.add(typeBox, 1, row++);
+
+        // Setup autocomplete for type combobox
+        setupTypeComboBoxAutoComplete();
 
         // Cardinality section
         Label cardinalityLabel = new Label("Cardinality:");
@@ -1862,11 +1866,73 @@ public class XsdPropertiesPanel extends VBox {
         // Sort the list alphabetically
         java.util.Collections.sort(availableTypes);
 
+        // Store all available types for autocomplete filtering
+        this.allAvailableTypes = new java.util.ArrayList<>(availableTypes);
+
         // Update ComboBox items
         typeComboBox.getItems().clear();
         typeComboBox.getItems().addAll(availableTypes);
 
         logger.debug("Populated type combobox with {} types", availableTypes.size());
+    }
+
+    /**
+     * Sets up autocomplete functionality for the type combobox.
+     * Filters available types as the user types and auto-completes if only one match remains.
+     */
+    private void setupTypeComboBoxAutoComplete() {
+        if (typeComboBox == null || typeComboBox.getEditor() == null) {
+            return;
+        }
+
+        // Listen to text changes in the editable combobox
+        typeComboBox.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
+            if (updating || newVal == null) {
+                return;
+            }
+
+            // If empty, show all types
+            if (newVal.isEmpty()) {
+                typeComboBox.getItems().clear();
+                if (allAvailableTypes != null) {
+                    typeComboBox.getItems().addAll(allAvailableTypes);
+                }
+                typeComboBox.hide();
+                return;
+            }
+
+            // Filter available types based on input
+            java.util.List<String> filteredTypes = new java.util.ArrayList<>();
+            String lowerInput = newVal.toLowerCase();
+
+            if (allAvailableTypes != null) {
+                for (String type : allAvailableTypes) {
+                    if (type.toLowerCase().contains(lowerInput)) {
+                        filteredTypes.add(type);
+                    }
+                }
+            }
+
+            // Update the dropdown with filtered items
+            typeComboBox.getItems().clear();
+            typeComboBox.getItems().addAll(filteredTypes);
+
+            // If exactly one match remains, auto-complete it
+            if (filteredTypes.size() == 1) {
+                String uniqueMatch = filteredTypes.get(0);
+                updating = true;
+                typeComboBox.getEditor().setText(uniqueMatch);
+                typeComboBox.setValue(uniqueMatch);
+                updating = false;
+                logger.debug("Auto-completed type to: {}", uniqueMatch);
+            } else if (filteredTypes.size() > 0) {
+                // Show the dropdown with filtered suggestions
+                typeComboBox.show();
+            } else {
+                // No matches, hide dropdown
+                typeComboBox.hide();
+            }
+        });
     }
 
     /**
