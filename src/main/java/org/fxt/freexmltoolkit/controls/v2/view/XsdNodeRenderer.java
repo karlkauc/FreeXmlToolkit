@@ -1123,6 +1123,7 @@ public class XsdNodeRenderer {
 
             // Exact datatype matches (highest priority)
             // String types - different icons for variations
+            // IMPORTANT: Check longer/more specific patterns first!
             if (lower.endsWith("string")) {
                 return "bi-file-text";  // xs:string
             }
@@ -1130,12 +1131,12 @@ public class XsdNodeRenderer {
                 return "bi-chat-left-quote";  // xs:token (validated icon)
             }
             if (lower.endsWith("ncname")) {
-                return "bi-tag";  // xs:NCName
+                return "bi-tag";  // xs:NCName (check before "name"!)
             }
             if (lower.endsWith("name")) {
-                return "bi-tag-fill";  // xs:Name
+                return "bi-tag-fill";  // xs:Name (check after "ncname"!)
             }
-            if (lower.endsWith("id")) {
+            if (lower.endsWith(":id") || lower.equals("id")) {
                 return "bi-shield-check";  // xs:ID (validated icon)
             }
 
@@ -1168,14 +1169,10 @@ public class XsdNodeRenderer {
             }
 
             // Date/Time types - each its own icon
-            if (lower.endsWith("date")) {
-                return "bi-calendar";  // xs:date
-            }
+            // IMPORTANT: Check longer/more specific patterns first!
+            // e.g., "datetime" must come before "date" because "datetime".endsWith("date") == true
             if (lower.endsWith("datetime")) {
-                return "bi-calendar-event";  // xs:dateTime
-            }
-            if (lower.endsWith("time")) {
-                return "bi-clock";  // xs:time
+                return "bi-calendar-event";  // xs:dateTime (check before "date"!)
             }
             if (lower.endsWith("duration")) {
                 return "bi-hourglass-split";  // xs:duration
@@ -1185,6 +1182,12 @@ public class XsdNodeRenderer {
             }
             if (lower.endsWith("gyear")) {
                 return "bi-calendar2";  // xs:gYear (validated icon)
+            }
+            if (lower.endsWith("date")) {
+                return "bi-calendar";  // xs:date (check after "datetime"!)
+            }
+            if (lower.endsWith("time")) {
+                return "bi-clock";  // xs:time
             }
 
             // Boolean
