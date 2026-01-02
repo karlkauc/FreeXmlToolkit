@@ -111,6 +111,9 @@ public class ConnectionServiceImpl implements ConnectionService {
                 }
             }
 
+            // Configure proxy authentication
+            configureProxyAuthentication(testProperties);
+
             // Configure proxy
             Proxy proxy = configureProxy(testProperties);
 
@@ -241,16 +244,53 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     /**
+     * Configures proxy authentication if manual proxy with credentials is enabled.
+     *
+     * <p>This method installs a custom Authenticator that provides proxy credentials
+     * to HttpURLConnection when connecting through an authenticated proxy.
+     *
+     * <p>Security: The authenticator only responds to PROXY authentication requests.
+     * Server authentication requests are ignored to avoid credential leakage.
+     *
+     * @param props properties containing proxy settings
+     */
+    private void configureProxyAuthentication(Properties props) {
+        boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
+
+        if (!useManualProxy) {
+            // Not using manual proxy - no authentication needed
+            logger.debug("Manual proxy not enabled, skipping proxy authentication");
+            return;
+        }
+
+        String proxyUser = props.getProperty("http.proxy.user", "").trim();
+        String proxyPassword = props.getProperty("http.proxy.password", "").trim();
+
+        // Only configure authentication if credentials are provided
+        if (!proxyUser.isEmpty()) {
+            logger.debug("Configuring proxy authentication for user: {}", proxyUser);
+            // DO NOT log password!
+
+            ProxyAuthenticator authenticator = new ProxyAuthenticator(proxyUser, proxyPassword);
+            Authenticator.setDefault(authenticator);
+
+            logger.debug("Proxy authenticator installed successfully");
+        } else {
+            logger.debug("No proxy credentials provided, proxy authentication not configured");
+        }
+    }
+
+    /**
      * Configures proxy settings based on properties
      */
     private Proxy configureProxy(Properties props) {
         boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
         boolean useSystemProxy = Boolean.parseBoolean(props.getProperty("useSystemProxy", "false"));
-        
+
         if (useManualProxy) {
             String proxyHost = props.getProperty("http.proxy.host", "");
             String proxyPortStr = props.getProperty("http.proxy.port", "");
-            
+
             if (!proxyHost.isEmpty() && !proxyPortStr.isEmpty()) {
                 try {
                     int proxyPort = Integer.parseInt(proxyPortStr);
@@ -260,13 +300,13 @@ public class ConnectionServiceImpl implements ConnectionService {
                 }
             }
         }
-        
+
         if (useSystemProxy) {
             // Use system proxy settings
             System.setProperty("java.net.useSystemProxies", "true");
             return null; // Let Java handle system proxy automatically
         }
-        
+
         return null; // No proxy
     }
     

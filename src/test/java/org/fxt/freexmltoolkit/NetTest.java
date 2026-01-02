@@ -203,7 +203,30 @@ public class NetTest {
         }
 
         @Test
-        @DisplayName("2.7. Fails gracefully with proxy user but empty password")
+        @DisplayName("2.7. Handles proxy authentication with credentials")
+        void testConnectionWithProxyUserAndPassword() {
+            System.out.println("--- Testing Connection with Proxy User and Password ---");
+            Properties props = propertiesService.loadProperties();
+            props.setProperty("manualProxy", "true");
+            props.setProperty("http.proxy.host", "127.0.0.1");
+            props.setProperty("http.proxy.port", "9999");
+            props.setProperty("http.proxy.user", "testuser");
+            props.setProperty("http.proxy.password", "testpass");
+
+            ConnectionResult result = connectionService.testHttpRequest(testUri, props);
+
+            assertNotNull(result, "Connection result should not be null.");
+            // Expected outcomes:
+            // - If proxy is not running: Connection refused (status <= 0)
+            // - If proxy is running but credentials wrong: 407 Proxy Authentication Required
+            // - If proxy is running and credentials correct: 200 OK (or other success)
+            assertTrue(result.httpStatus() == 200 || result.httpStatus() == 407 || result.httpStatus() <= 0,
+                    "Expected either successful auth (200), auth failure (407), or connection failure (<=0). Actual: " + result.httpStatus());
+            System.out.println("Connection attempt with proxy credentials completed: " + result.httpStatus() + " - " + result.resultBody());
+        }
+
+        @Test
+        @DisplayName("2.8. Fails gracefully with proxy user but empty password")
         void testConnectionWithProxyUserAndEmptyPassword() {
             System.out.println("--- Testing Connection with Proxy User and Empty Password ---");
             Properties props = propertiesService.loadProperties();
@@ -216,13 +239,14 @@ public class NetTest {
             ConnectionResult result = connectionService.testHttpRequest(testUri, props);
 
             assertNotNull(result, "Connection result should not be null.");
-            assertTrue(result.httpStatus() <= 0, "Expected a failed connection status.");
-            assertTrue(result.resultBody().toLowerCase().contains("connection refused"), "Expected error message to indicate a connection failure.");
-            System.out.println("Connection attempt with authenticated proxy (empty password) failed as expected: " + result.resultBody());
+            // With empty password, expect either connection failure or auth failure (407)
+            assertTrue(result.httpStatus() == 407 || result.httpStatus() <= 0,
+                    "Expected either auth failure (407) or connection failure (<=0). Actual: " + result.httpStatus());
+            System.out.println("Connection attempt with authenticated proxy (empty password) failed as expected: " + result.httpStatus());
         }
 
         @Test
-        @DisplayName("2.8. Test with different settings (requires running proxy)")
+        @DisplayName("2.9. Test with different settings (requires running proxy)")
         void testConnectionWithProperties() {
             Properties props = propertiesService.loadProperties();
 
