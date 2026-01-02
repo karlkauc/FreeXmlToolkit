@@ -1246,6 +1246,9 @@ public class XsdNodeRenderer {
 
             // Rebuild detail string based on node type
             this.detail = buildDetailString(xsdNode);
+
+            // Re-initialize visual properties (icon, colors, etc.) based on updated detail
+            initializeVisualProperties();
         }
 
         /**
