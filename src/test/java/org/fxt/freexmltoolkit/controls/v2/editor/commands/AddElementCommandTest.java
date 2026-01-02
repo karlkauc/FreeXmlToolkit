@@ -277,7 +277,7 @@ class AddElementCommandTest {
     }
 
     @Test
-    @DisplayName("Constructor should use default type when type is null")
+    @DisplayName("Constructor should preserve null type when type is null")
     void testConstructorUsesDefaultTypeWhenTypeIsNull() {
         // Arrange & Act
         AddElementCommand command = new AddElementCommand(parentElement, "newElement", null);
@@ -285,7 +285,7 @@ class AddElementCommandTest {
 
         // Assert
         XsdElement addedElement = command.getAddedElement();
-        assertEquals("xs:string", addedElement.getType(), "Default type should be used when type is null");
+        assertNull(addedElement.getType(), "Type should be null when not specified");
     }
 
     // ========== Multiple Execute/Undo Tests ==========

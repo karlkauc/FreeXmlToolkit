@@ -693,7 +693,7 @@ public class XsdContextMenuFactory {
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(elementName -> {
             if (!elementName.trim().isEmpty()) {
-                AddElementCommand command = new AddElementCommand(parentNode, elementName.trim());
+                AddElementCommand command = new AddElementCommand(parentNode, elementName.trim(), null);
                 editorContext.getCommandManager().executeCommand(command);
                 logger.info("Added root element '{}' to schema", elementName);
             }
