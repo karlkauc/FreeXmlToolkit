@@ -1067,6 +1067,12 @@ public class XsdPropertiesPanel extends VBox {
             ChangeTypeCommand command = new ChangeTypeCommand(editorContext, node, newType);
             editorContext.getCommandManager().executeCommand(command);
             logger.debug("Executed ChangeTypeCommand: {} -> {}", currentType, newType);
+
+            // Update facets after type change to reflect applicable facets for the new type
+            if (modelObject instanceof XsdElement xsdElement) {
+                updateConstraintTabs(xsdElement);
+                logger.debug("Updated facets after type change");
+            }
         }
     }
 
