@@ -134,3 +134,7 @@ Icon?
 
 # MkDocs generated site
 site/
+
+# Large demo files (for development only, not for repository)
+src/test/resources/demo-xml/large-*.xml
+src/test/resources/demo-json/large-*.json
