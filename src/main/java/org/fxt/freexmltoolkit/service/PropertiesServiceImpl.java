@@ -23,6 +23,8 @@ public class PropertiesServiceImpl implements PropertiesService {
     private static final File propertiesFile = new File(FREE_XML_TOOLKIT_PROPERTIES);
     private static final PropertiesService instance = new PropertiesServiceImpl();
     private Properties properties = new Properties();
+    private final PasswordEncryptionService passwordEncryptionService =
+            PasswordEncryptionServiceImpl.getInstance();
 
     /**
      * Returns the singleton instance of the PropertiesService.
@@ -36,6 +38,7 @@ public class PropertiesServiceImpl implements PropertiesService {
     /**
      * Private constructor to initialize the properties service.
      * Creates a default properties file if it does not exist.
+     * Migrates plain text passwords to encrypted format if needed.
      */
     private PropertiesServiceImpl() {
         if (!propertiesFile.exists()) {
@@ -44,11 +47,13 @@ public class PropertiesServiceImpl implements PropertiesService {
         } else {
             logger.debug("Properties file already exists!");
             properties = loadProperties();
+            migratePasswordsIfNeeded();
         }
     }
 
     /**
      * Loads properties from the properties file.
+     * Automatically decrypts all encrypted password properties.
      *
      * @return the loaded properties
      */
@@ -56,6 +61,7 @@ public class PropertiesServiceImpl implements PropertiesService {
     public Properties loadProperties() {
         try (FileInputStream fis = new FileInputStream(propertiesFile)) {
             properties.load(fis);
+            decryptPasswords();
             logger.debug("Loaded Properties '{}': {}", propertiesFile.getAbsolutePath(), properties);
         } catch (IOException e) {
             logger.warn("No properties found!");
@@ -65,14 +71,21 @@ public class PropertiesServiceImpl implements PropertiesService {
 
     /**
      * Saves the given properties to the properties file.
+     * Automatically encrypts all password properties before saving.
      *
      * @param save the properties to save
      */
     @Override
     public void saveProperties(Properties save) {
         this.properties = save;
+
+        // Create a copy for saving with encrypted passwords
+        Properties saveProps = new Properties();
+        saveProps.putAll(properties);
+        encryptPasswords(saveProps);
+
         try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
-            this.properties.store(fos, null);
+            saveProps.store(fos, null);
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
@@ -562,6 +575,73 @@ public class PropertiesServiceImpl implements PropertiesService {
             properties.setProperty("json.indent.spaces", String.valueOf(spaces));
             saveProperties(properties);
             logger.debug("Set JSON indent spaces to: {}", spaces);
+        }
+    }
+
+    /**
+     * Decrypts all encrypted password properties in-memory after loading from disk.
+     * Plain text passwords are left unchanged.
+     */
+    private void decryptPasswords() {
+        for (String key : properties.stringPropertyNames()) {
+            if (passwordEncryptionService.isPasswordProperty(key)) {
+                String value = properties.getProperty(key);
+                if (passwordEncryptionService.isEncrypted(value)) {
+                    String decrypted = passwordEncryptionService.decrypt(value);
+                    properties.setProperty(key, decrypted);
+                    logger.debug("Decrypted password property: {}", key);
+                }
+            }
+        }
+    }
+
+    /**
+     * Encrypts all password properties before saving to disk.
+     * Plain text passwords are encrypted, already encrypted passwords are left unchanged.
+     *
+     * @param propsToSave the properties object to encrypt (modified in place)
+     */
+    private void encryptPasswords(Properties propsToSave) {
+        for (String key : propsToSave.stringPropertyNames()) {
+            if (passwordEncryptionService.isPasswordProperty(key)) {
+                String value = propsToSave.getProperty(key);
+
+                // Only encrypt if not already encrypted and not empty
+                if (!passwordEncryptionService.isEncrypted(value) && !value.isEmpty()) {
+                    try {
+                        String encrypted = passwordEncryptionService.encrypt(value);
+                        propsToSave.setProperty(key, encrypted);
+                        logger.debug("Encrypted password property: {}", key);
+                    } catch (EncryptionException e) {
+                        logger.error("Failed to encrypt property '{}': {}", key, e.getMessage());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Migrates plain text passwords to encrypted format on first startup.
+     * Automatically detects and encrypts any plain text passwords found.
+     */
+    private void migratePasswordsIfNeeded() {
+        boolean foundPlainTextPassword = false;
+
+        for (String key : properties.stringPropertyNames()) {
+            if (passwordEncryptionService.isPasswordProperty(key)) {
+                String value = properties.getProperty(key);
+                // Plain text = not encrypted AND not empty
+                if (!passwordEncryptionService.isEncrypted(value) && !value.isEmpty()) {
+                    foundPlainTextPassword = true;
+                    logger.info("Found plain text password property: {}", key);
+                }
+            }
+        }
+
+        if (foundPlainTextPassword) {
+            logger.info("Migrating plain text passwords to encrypted format...");
+            saveProperties(properties); // This encrypts passwords
+            logger.info("Password migration completed successfully");
         }
     }
 }
