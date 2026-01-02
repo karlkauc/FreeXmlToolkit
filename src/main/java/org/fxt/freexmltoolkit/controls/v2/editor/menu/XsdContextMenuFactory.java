@@ -1054,11 +1054,15 @@ public class XsdContextMenuFactory {
 
     /**
      * Checks if child elements can be added to an element.
-     * Returns false if element has a SimpleType.
-     * ComplexType allows child elements, and elements without type can have inline complexType.
+     * According to XSD standard, child elements can only be added if they are contained
+     * in a compositor (Sequence/Choice/All).
+     *
+     * Returns false if:
+     * - Element has a SimpleType
+     * - Element doesn't have a compositor child
      *
      * @param node the element node to check
-     * @return true if child elements can be added (element has no type or ComplexType)
+     * @return true if element has a compositor where child elements can be added
      */
     private boolean canAddElement(VisualNode node) {
         Object modelObject = node.getModelObject();
@@ -1068,42 +1072,47 @@ public class XsdContextMenuFactory {
 
         String type = element.getType();
 
-        // No type - can add element with inline complexType
-        if (type == null || type.trim().isEmpty()) {
-            logger.debug("Element '{}' has no type, can add child elements", element.getName());
+        // Check if it's a SimpleType (built-in or custom)
+        if (type != null && !type.trim().isEmpty()) {
+            if (type.startsWith("xs:")) {
+                // Built-in SimpleType - cannot add child elements
+                logger.debug("Element '{}' has built-in SimpleType '{}', cannot add child elements",
+                        element.getName(), type);
+                return false;
+            }
+
+            // Custom type - check if it's a SimpleType or ComplexType
+            XsdSimpleType simpleType = findSimpleTypeInSchema(type);
+            if (simpleType != null) {
+                // It's a SimpleType - cannot add child elements
+                logger.debug("Element '{}' references SimpleType '{}', cannot add child elements",
+                        element.getName(), type);
+                return false;
+            }
+        }
+
+        // Check if element has a compositor child (required for adding child elements)
+        if (element.hasCompositor()) {
+            logger.debug("Element '{}' has a compositor, child elements can be added", element.getName());
             return true;
         }
 
-        // Check if it's a SimpleType (built-in or custom)
-        if (type.startsWith("xs:")) {
-            // Built-in SimpleType - cannot add child elements
-            logger.debug("Element '{}' has built-in SimpleType '{}', cannot add child elements",
-                    element.getName(), type);
-            return false;
-        }
-
-        // Custom type - check if it's a SimpleType or ComplexType
-        XsdSimpleType simpleType = findSimpleTypeInSchema(type);
-        if (simpleType != null) {
-            // It's a SimpleType - cannot add child elements
-            logger.debug("Element '{}' references SimpleType '{}', cannot add child elements",
-                    element.getName(), type);
-            return false;
-        }
-
-        // Must be ComplexType or not found - allow adding
-        logger.debug("Element '{}' has ComplexType or unknown type '{}', can add child elements",
-                element.getName(), type);
-        return true;
+        // No compositor - cannot add child elements according to XSD standard
+        logger.debug("Element '{}' has no compositor (Sequence/Choice/All), cannot add child elements", element.getName());
+        return false;
     }
 
     /**
      * Checks if attributes can be added to an element.
-     * Returns false if element has a SimpleType.
-     * ComplexType or elements without type can have attributes.
+     * According to XSD standard, attributes cannot coexist with compositor children
+     * (Sequence/Choice/All) in the same complexType.
+     *
+     * Returns false if:
+     * - Element has a SimpleType
+     * - Element has a compositor child (Sequence/Choice/All)
      *
      * @param node the element node to check
-     * @return true if attributes can be added (element has no type or ComplexType)
+     * @return true if attributes can be added to the element
      */
     private boolean canAddAttribute(VisualNode node) {
         Object modelObject = node.getModelObject();
@@ -1111,34 +1120,37 @@ public class XsdContextMenuFactory {
             return false;
         }
 
+        // Check if element has a compositor - if so, cannot add attributes
+        // (Attributes and compositors are mutually exclusive in XSD)
+        if (element.hasCompositor()) {
+            logger.debug("Element '{}' has a compositor, cannot add attributes (mutually exclusive)",
+                    element.getName());
+            return false;
+        }
+
         String type = element.getType();
 
-        // No type - can add attribute (will create inline complexType)
-        if (type == null || type.trim().isEmpty()) {
-            logger.debug("Element '{}' has no type, can add attributes", element.getName());
-            return true;
-        }
-
         // Check if it's a SimpleType (built-in or custom)
-        if (type.startsWith("xs:")) {
-            // Built-in SimpleType - cannot add attributes
-            logger.debug("Element '{}' has built-in SimpleType '{}', cannot add attributes",
-                    element.getName(), type);
-            return false;
+        if (type != null && !type.trim().isEmpty()) {
+            if (type.startsWith("xs:")) {
+                // Built-in SimpleType - cannot add attributes
+                logger.debug("Element '{}' has built-in SimpleType '{}', cannot add attributes",
+                        element.getName(), type);
+                return false;
+            }
+
+            // Custom type - check if it's a SimpleType or ComplexType
+            XsdSimpleType simpleType = findSimpleTypeInSchema(type);
+            if (simpleType != null) {
+                // It's a SimpleType - cannot add attributes
+                logger.debug("Element '{}' references SimpleType '{}', cannot add attributes",
+                        element.getName(), type);
+                return false;
+            }
         }
 
-        // Custom type - check if it's a SimpleType or ComplexType
-        XsdSimpleType simpleType = findSimpleTypeInSchema(type);
-        if (simpleType != null) {
-            // It's a SimpleType - cannot add attributes
-            logger.debug("Element '{}' references SimpleType '{}', cannot add attributes",
-                    element.getName(), type);
-            return false;
-        }
-
-        // Must be ComplexType or not found - allow adding
-        logger.debug("Element '{}' has ComplexType or unknown type '{}', can add attributes",
-                element.getName(), type);
+        // No compositor, no SimpleType - attributes can be added
+        logger.debug("Element '{}' can have attributes added", element.getName());
         return true;
     }
 
