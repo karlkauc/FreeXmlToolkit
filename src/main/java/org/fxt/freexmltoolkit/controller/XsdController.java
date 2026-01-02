@@ -85,7 +85,10 @@ public class XsdController implements FavoritesParentController {
     private Tab typeEditorTab;
     @FXML
     private StackPane typeEditorStackPane;
+    @FXML
+    private VBox noFileLoadedPaneTypeEditor;
     private TabPane typeEditorTabPane;
+    private boolean typeEditorInitialized = false;
 
     @FXML
     private TabPane tabPane;
@@ -171,6 +174,8 @@ public class XsdController implements FavoritesParentController {
     private Tab typeLibraryTab;
     @FXML
     private StackPane typeLibraryStackPane;
+    @FXML
+    private VBox noFileLoadedPaneTypeLibrary;
 
     // Lazy initialization flag for TypeLibraryView (performance optimization)
     private boolean typeLibraryInitialized = false;
@@ -484,6 +489,47 @@ public class XsdController implements FavoritesParentController {
 
         // Initialize type editor
         initializeTypeEditor();
+        
+        // Set up type editor tab selection handler with lazy initialization
+        if (typeEditorTab != null) {
+            typeEditorTab.setOnSelectionChanged(event -> {
+                if (typeEditorTab.isSelected()) {
+                    logger.debug("Type Editor tab selected");
+                    // Show/hide no file loaded pane based on whether schema is loaded
+                    if (currentXsdFile == null || cachedXsdSchema == null) {
+                        if (noFileLoadedPaneTypeEditor != null) {
+                            noFileLoadedPaneTypeEditor.setVisible(true);
+                            noFileLoadedPaneTypeEditor.setManaged(true);
+                        }
+                        if (typeEditorTabPane != null) {
+                            typeEditorTabPane.setVisible(false);
+                            typeEditorTabPane.setManaged(false);
+                        }
+                    } else {
+                        if (noFileLoadedPaneTypeEditor != null) {
+                            noFileLoadedPaneTypeEditor.setVisible(false);
+                            noFileLoadedPaneTypeEditor.setManaged(false);
+                        }
+                        if (typeEditorTabPane != null) {
+                            typeEditorTabPane.setVisible(true);
+                            typeEditorTabPane.setManaged(true);
+                        }
+                        // Lazy initialization: Open Schema Statistics tab on first selection if no tabs are open
+                        if (!typeEditorInitialized && typeEditorTabManager != null && 
+                            typeEditorTabPane != null && typeEditorTabPane.getTabs().isEmpty()) {
+                            logger.debug("Lazy initializing Type Editor - opening Schema Statistics tab");
+                            Platform.runLater(() -> {
+                                if (typeEditorTabManager != null && cachedXsdSchema != null) {
+                                    typeEditorTabManager.openSchemaStatisticsTab();
+                                    typeEditorInitialized = true;
+                                    logger.info("Type Editor Schema Statistics tab opened on first selection");
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+        }
 
         // Initialize validation errors table
         initializeValidationErrorsTable();
@@ -4583,26 +4629,53 @@ public class XsdController implements FavoritesParentController {
      * Initialize the type library panel
      */
     private void initializeTypeLibrary() {
+        // Initialize StackPane with no file loaded pane visible by default
+        if (typeLibraryStackPane != null && noFileLoadedPaneTypeLibrary != null) {
+            // Ensure no file loaded pane is visible initially
+            noFileLoadedPaneTypeLibrary.setVisible(true);
+            noFileLoadedPaneTypeLibrary.setManaged(true);
+        }
+        
         // Set up type library tab selection handler with lazy initialization
         if (typeLibraryTab != null) {
             typeLibraryTab.setOnSelectionChanged(event -> {
                 if (typeLibraryTab.isSelected()) {
                     logger.debug("Type library tab selected");
-                    // Lazy initialization: Only create TypeLibraryView when tab is first selected
-                    if (!typeLibraryInitialized && pendingTypeLibrarySchema != null) {
-                        logger.debug("Lazy initializing TypeLibraryView on first tab selection");
-                        long startTime = System.currentTimeMillis();
-                        Platform.runLater(() -> {
-                            if (typeLibraryStackPane != null) {
-                                typeLibraryStackPane.getChildren().clear();
-                                org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
-                                    new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(pendingTypeLibrarySchema);
-                                typeLibraryStackPane.getChildren().add(typeLibraryView);
-                                typeLibraryInitialized = true;
-                                long elapsed = System.currentTimeMillis() - startTime;
-                                logger.info("TypeLibraryView lazily initialized in {}ms", elapsed);
-                            }
-                        });
+                    // Show/hide no file loaded pane based on whether schema is loaded
+                    if (currentXsdFile == null || cachedXsdSchema == null || pendingTypeLibrarySchema == null) {
+                        if (noFileLoadedPaneTypeLibrary != null) {
+                            noFileLoadedPaneTypeLibrary.setVisible(true);
+                            noFileLoadedPaneTypeLibrary.setManaged(true);
+                        }
+                        // Hide any existing TypeLibraryView
+                        if (typeLibraryStackPane != null) {
+                            typeLibraryStackPane.getChildren().removeIf(node -> 
+                                node instanceof org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView);
+                        }
+                        typeLibraryInitialized = false; // Reset flag when no schema
+                    } else {
+                        if (noFileLoadedPaneTypeLibrary != null) {
+                            noFileLoadedPaneTypeLibrary.setVisible(false);
+                            noFileLoadedPaneTypeLibrary.setManaged(false);
+                        }
+                        // Lazy initialization: Only create TypeLibraryView when tab is first selected
+                        if (!typeLibraryInitialized && pendingTypeLibrarySchema != null) {
+                            logger.debug("Lazy initializing TypeLibraryView on first tab selection");
+                            long startTime = System.currentTimeMillis();
+                            Platform.runLater(() -> {
+                                if (typeLibraryStackPane != null && pendingTypeLibrarySchema != null) {
+                                    // Remove any existing TypeLibraryView
+                                    typeLibraryStackPane.getChildren().removeIf(node -> 
+                                        node instanceof org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView);
+                                    org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
+                                        new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(pendingTypeLibrarySchema);
+                                    typeLibraryStackPane.getChildren().add(typeLibraryView);
+                                    typeLibraryInitialized = true;
+                                    long elapsed = System.currentTimeMillis() - startTime;
+                                    logger.info("TypeLibraryView lazily initialized in {}ms", elapsed);
+                                }
+                            });
+                        }
                     }
                 }
             });
@@ -4828,7 +4901,17 @@ public class XsdController implements FavoritesParentController {
             // Add typeEditorTabPane to typeEditorStackPane (from FXML)
             if (typeEditorStackPane != null) {
                 typeEditorStackPane.getChildren().clear();
+                // Add TabPane first (will be on top when visible)
                 typeEditorStackPane.getChildren().add(typeEditorTabPane);
+                // Add no file loaded pane (will be visible initially)
+                if (noFileLoadedPaneTypeEditor != null) {
+                    typeEditorStackPane.getChildren().add(noFileLoadedPaneTypeEditor);
+                    // Initially hide TabPane and show no file loaded pane
+                    typeEditorTabPane.setVisible(false);
+                    typeEditorTabPane.setManaged(false);
+                    noFileLoadedPaneTypeEditor.setVisible(true);
+                    noFileLoadedPaneTypeEditor.setManaged(true);
+                }
                 logger.info("Type Editor TabPane added to StackPane");
             } else {
                 logger.warn("Type Editor StackPane is not initialized (FXML injection failed?)");
@@ -4862,15 +4945,54 @@ public class XsdController implements FavoritesParentController {
                 // Re-create TypeEditorTabManager with new schema
                 typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
                 logger.info("Type Editor updated with loaded schema: {}", schema.getTargetNamespace());
+                
+                // Reset initialization flag so Schema Statistics tab will be opened on next tab selection
+                typeEditorInitialized = false;
+                
+                // Show TabPane and hide no file loaded pane
+                if (typeEditorTabPane != null) {
+                    typeEditorTabPane.setVisible(true);
+                    typeEditorTabPane.setManaged(true);
+                }
+                if (noFileLoadedPaneTypeEditor != null) {
+                    noFileLoadedPaneTypeEditor.setVisible(false);
+                    noFileLoadedPaneTypeEditor.setManaged(false);
+                }
 
                 // Update pending schema for lazy Type Library View initialization
                 // Reset flag so TypeLibraryView will be recreated on next tab selection
                 pendingTypeLibrarySchema = schema;
                 typeLibraryInitialized = false;
                 if (typeLibraryStackPane != null) {
-                    typeLibraryStackPane.getChildren().clear();
+                    // Remove any existing TypeLibraryView but keep noFileLoadedPaneTypeLibrary
+                    typeLibraryStackPane.getChildren().removeIf(node -> 
+                        node instanceof org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView);
+                }
+                // Hide no file loaded pane and show TypeLibraryView will be created on next tab selection
+                if (noFileLoadedPaneTypeLibrary != null) {
+                    noFileLoadedPaneTypeLibrary.setVisible(false);
+                    noFileLoadedPaneTypeLibrary.setManaged(false);
                 }
                 logger.debug("Type Library reset - will reinitialize on next tab selection");
+
+                // If the Type Library tab is currently selected, initialize immediately
+                if (typeLibraryTab != null && typeLibraryTab.isSelected()) {
+                    Platform.runLater(() -> {
+                        if (typeLibraryStackPane != null && pendingTypeLibrarySchema != null) {
+                            typeLibraryStackPane.getChildren().removeIf(node ->
+                                node instanceof org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView);
+                            org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
+                                new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(pendingTypeLibrarySchema);
+                            typeLibraryStackPane.getChildren().add(typeLibraryView);
+                            typeLibraryInitialized = true;
+                            logger.info("TypeLibraryView initialized immediately because tab is active");
+                            if (noFileLoadedPaneTypeLibrary != null) {
+                                noFileLoadedPaneTypeLibrary.setVisible(false);
+                                noFileLoadedPaneTypeLibrary.setManaged(false);
+                            }
+                        }
+                    });
+                }
 
                 // Update pending schema for lazy Schema Analysis initialization
                 // Reset flag so SchemaAnalysisTabPane will be recreated on next tab selection
@@ -5541,6 +5663,37 @@ public class XsdController implements FavoritesParentController {
         if (currentGraphViewV2 != null) {
             // Clear the graphic view content
             logger.debug("Cleared graphic view content");
+        }
+        // Clear schema cache
+        cachedXsdSchema = null;
+        cachedXsdContent = null;
+        xsdContentDirty = false;
+        // Reset Type Editor UI
+        if (typeEditorTabManager != null) {
+            typeEditorTabManager.closeAllTypeTabs();
+        }
+        typeEditorInitialized = false;
+        // Show no file loaded pane and hide TabPane
+        if (noFileLoadedPaneTypeEditor != null) {
+            noFileLoadedPaneTypeEditor.setVisible(true);
+            noFileLoadedPaneTypeEditor.setManaged(true);
+        }
+        if (typeEditorTabPane != null) {
+            typeEditorTabPane.setVisible(false);
+            typeEditorTabPane.setManaged(false);
+        }
+        // Reset Type Library UI
+        typeLibraryInitialized = false;
+        pendingTypeLibrarySchema = null;
+        if (typeLibraryStackPane != null) {
+            // Remove any existing TypeLibraryView but keep noFileLoadedPaneTypeLibrary
+            typeLibraryStackPane.getChildren().removeIf(node -> 
+                node instanceof org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView);
+        }
+        // Show no file loaded pane
+        if (noFileLoadedPaneTypeLibrary != null) {
+            noFileLoadedPaneTypeLibrary.setVisible(true);
+            noFileLoadedPaneTypeLibrary.setManaged(true);
         }
     }
 

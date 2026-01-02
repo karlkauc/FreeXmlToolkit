@@ -300,6 +300,33 @@
             </graphic>
             <content>
                 <StackPane fx:id="typeLibraryStackPane" style="-fx-background-color: #fafafa;">
+                    <!-- No File Loaded View -->
+                    <VBox fx:id="noFileLoadedPaneTypeLibrary" alignment="CENTER" spacing="20.0">
+                        <children>
+                            <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                                      iconSize="64"/>
+                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                   text="No XSD file loaded"/>
+                            <Label style="-fx-text-fill: #6c757d;"
+                                   text="Please load an XSD file to browse types."/>
+                            <HBox alignment="CENTER" spacing="10">
+                                <Button onAction="#createNewXsdFile" styleClass="button"
+                                        text="New XSD File">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-file-plus"
+                                                  iconColor="#28a745"/>
+                                    </graphic>
+                                </Button>
+                                <Button onAction="#openXsdFileChooser"
+                                        styleClass="button, :default"
+                                        text="Load XSD File">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-folder2-open"/>
+                                    </graphic>
+                                </Button>
+                            </HBox>
+                        </children>
+                    </VBox>
                     <!-- Type library panel will be dynamically added here -->
                 </StackPane>
             </content>
@@ -313,6 +340,33 @@
             </graphic>
             <content>
                 <StackPane fx:id="typeEditorStackPane" style="-fx-background-color: #fafafa;">
+                    <!-- No File Loaded View -->
+                    <VBox fx:id="noFileLoadedPaneTypeEditor" alignment="CENTER" spacing="20.0">
+                        <children>
+                            <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                                      iconSize="64"/>
+                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                   text="No XSD file loaded"/>
+                            <Label style="-fx-text-fill: #6c757d;"
+                                   text="Please load an XSD file to edit types."/>
+                            <HBox alignment="CENTER" spacing="10">
+                                <Button onAction="#createNewXsdFile" styleClass="button"
+                                        text="New XSD File">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-file-plus"
+                                                  iconColor="#28a745"/>
+                                    </graphic>
+                                </Button>
+                                <Button onAction="#openXsdFileChooser"
+                                        styleClass="button, :default"
+                                        text="Load XSD File">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-folder2-open"/>
+                                    </graphic>
+                                </Button>
+                            </HBox>
+                        </children>
+                    </VBox>
                     <!-- Type editor TabPane will be dynamically added here -->
                 </StackPane>
             </content>

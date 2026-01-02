@@ -709,7 +709,7 @@ public class TypeLibraryView extends BorderPane {
 
         // CSV MenuItem
         MenuItem csvItem = new MenuItem("CSV - Comma Separated Values");
-        csvItem.setGraphic(createMenuIcon("bi-filetype-csv", "#28a745"));
+        csvItem.setGraphic(createMenuIcon("bi-file-text", "#28a745"));
         csvItem.setOnAction(e -> exportTo("CSV"));
 
         // Excel MenuItem
@@ -719,7 +719,7 @@ public class TypeLibraryView extends BorderPane {
 
         // HTML MenuItem
         MenuItem htmlItem = new MenuItem("HTML - Web Page");
-        htmlItem.setGraphic(createMenuIcon("bi-filetype-html", "#e44d26"));
+        htmlItem.setGraphic(createMenuIcon("bi-code", "#e44d26"));
         htmlItem.setOnAction(e -> exportTo("HTML"));
 
         // JSON MenuItem
