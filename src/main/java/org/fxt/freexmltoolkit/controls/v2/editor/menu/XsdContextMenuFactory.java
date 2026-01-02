@@ -100,7 +100,12 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Add Root Element", () -> logger.info("Add root element")),
+                createMenuItem("Add Root Element", () -> {
+                    org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = editorContext.getSchema();
+                    if (schema != null) {
+                        handleAddRootElement(schema);
+                    }
+                }),
                 createMenuItem("Add Global Type", () -> logger.info("Add global type"))
         );
         return menu;
@@ -120,9 +125,9 @@ public class XsdContextMenuFactory {
                 createMenuItem("Container Element", "bi-folder-plus", "#17a2b8", () -> handleAddContainerElement(node)),
                 createMenuItem("Attribute", "bi-at", "#ffc107", () -> logger.info("Add attribute to {}", node.getLabel())),
                 new SeparatorMenuItem(),
-                createMenuItem("Sequence", "bi-list-ol", "#6c757d", () -> logger.info("Add sequence to {}", node.getLabel())),
-                createMenuItem("Choice", "bi-card-list", "#6c757d", () -> logger.info("Add choice to {}", node.getLabel())),
-                createMenuItem("All", "bi-grid-3x3", "#6c757d", () -> logger.info("Add all to {}", node.getLabel()))
+                createMenuItem("Sequence", "bi-list-ol", "#6c757d", () -> handleAddSequence(node)),
+                createMenuItem("Choice", "bi-card-list", "#6c757d", () -> handleAddChoice(node)),
+                createMenuItem("All", "bi-grid-3x3", "#6c757d", () -> handleAddAll(node))
         );
 
         // Check if element has a ComplexType or SimpleType reference - if so, add "Edit Type in Editor" option
@@ -319,7 +324,12 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Add Root Element", () -> logger.info("Add root element to schema")),
+                createMenuItem("Add Root Element", () -> {
+                    Object modelObject = node.getModelObject();
+                    if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode parentNode) {
+                        handleAddRootElement(parentNode);
+                    }
+                }),
                 createMenuItem("Add Global Type", () -> logger.info("Add global type to schema")),
                 new SeparatorMenuItem(),
                 createMenuItem("Edit Namespace", () -> logger.info("Edit schema namespace"))
@@ -640,6 +650,82 @@ public class XsdContextMenuFactory {
                 }
             }
         });
+    }
+
+    /**
+     * Handles add root element operation for the schema.
+     * Creates a new element directly under the schema.
+     *
+     * @param parentNode the parent node (schema)
+     */
+    private void handleAddRootElement(org.fxt.freexmltoolkit.controls.v2.model.XsdNode parentNode) {
+        TextInputDialog dialog = new TextInputDialog("newElement");
+        dialog.setTitle("Add Root Element");
+        dialog.setHeaderText("Add element to schema");
+        dialog.setContentText("Element name:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(elementName -> {
+            if (!elementName.trim().isEmpty()) {
+                AddElementCommand command = new AddElementCommand(parentNode, elementName.trim());
+                editorContext.getCommandManager().executeCommand(command);
+                logger.info("Added root element '{}' to schema", elementName);
+            }
+        });
+    }
+
+    /**
+     * Handles add sequence operation for an element.
+     * Creates an inline complexType with a sequence if needed.
+     *
+     * @param node the element node
+     */
+    private void handleAddSequence(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+            AddSequenceCommand command = new AddSequenceCommand(element);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.info("Added sequence to element '{}'", element.getName());
+        } else {
+            logger.warn("Cannot add sequence - model object is not an XsdElement: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles add choice operation for an element.
+     * Creates an inline complexType with a choice if needed.
+     *
+     * @param node the element node
+     */
+    private void handleAddChoice(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+            AddChoiceCommand command = new AddChoiceCommand(element);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.info("Added choice to element '{}'", element.getName());
+        } else {
+            logger.warn("Cannot add choice - model object is not an XsdElement: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles add all operation for an element.
+     * Creates an inline complexType with an all compositor if needed.
+     *
+     * @param node the element node
+     */
+    private void handleAddAll(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+            AddAllCommand command = new AddAllCommand(element);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.info("Added all to element '{}'", element.getName());
+        } else {
+            logger.warn("Cannot add all - model object is not an XsdElement: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
     }
 
     /**
