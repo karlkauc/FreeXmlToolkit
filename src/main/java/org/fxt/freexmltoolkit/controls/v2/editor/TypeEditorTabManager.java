@@ -17,6 +17,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypesListTab;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 
 import java.util.HashMap;
@@ -152,6 +153,10 @@ public class TypeEditorTabManager {
 
                 // Create new ComplexType with user-provided name
                 XsdComplexType newType = new XsdComplexType(typeName);
+                // Auto-create a Sequence element to allow immediate element addition
+                // This follows the most common XSD pattern and improves UX
+                XsdSequence sequence = new XsdSequence();
+                newType.addChild(sequence);
                 mainSchema.addChild(newType);
                 openComplexTypeTab(newType);
 

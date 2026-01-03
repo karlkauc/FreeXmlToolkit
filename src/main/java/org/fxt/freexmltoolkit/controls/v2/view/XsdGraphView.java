@@ -438,42 +438,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
-     * Recursively expands all nodes in the tree.
-     * @deprecated Use restoreExpansionState() for better performance
-     */
-    @Deprecated
-    @SuppressWarnings("unused")
-    private void expandAllNodes(VisualNode node) {
-        if (node == null) return;
-        node.setExpanded(true);
-        for (VisualNode child : node.getChildren()) {
-            expandAllNodes(child);
-        }
-    }
-
-    /**
-     * Recursively applies collapsed state based on saved node IDs.
-     * Only collapses nodes that were previously collapsed.
-     * @deprecated Use restoreExpansionState() for better performance
-     */
-    @Deprecated
-    @SuppressWarnings("unused")
-    private void applyCollapsedState(VisualNode node, Set<String> collapsedIds) {
-        if (node == null) return;
-
-        Object modelObj = node.getModelObject();
-        if (modelObj instanceof XsdNode xsdNode) {
-            if (collapsedIds.contains(xsdNode.getId())) {
-                node.setExpanded(false);
-            }
-        }
-
-        for (VisualNode child : node.getChildren()) {
-            applyCollapsedState(child, collapsedIds);
-        }
-    }
-
-    /**
      * Finds a VisualNode by its model's ID.
      */
     private VisualNode findNodeById(VisualNode node, String id) {

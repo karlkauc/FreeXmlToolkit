@@ -78,6 +78,7 @@ public class XsdController implements FavoritesParentController {
     private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema cachedXsdSchema;
     private String cachedXsdContent;  // Last successfully parsed content
     private boolean xsdContentDirty = false;  // Track if text has changed since last parse
+    private boolean isSchemaLoaded = false;  // Track if a valid schema is available (loaded or created)
 
     // Type Editor integration
     private org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager typeEditorTabManager;
@@ -496,7 +497,7 @@ public class XsdController implements FavoritesParentController {
                 if (typeEditorTab.isSelected()) {
                     logger.debug("Type Editor tab selected");
                     // Show/hide no file loaded pane based on whether schema is loaded
-                    if (currentXsdFile == null || cachedXsdSchema == null) {
+                    if (!isSchemaLoaded) {
                         if (noFileLoadedPaneTypeEditor != null) {
                             noFileLoadedPaneTypeEditor.setVisible(true);
                             noFileLoadedPaneTypeEditor.setManaged(true);
@@ -1078,6 +1079,7 @@ public class XsdController implements FavoritesParentController {
             cachedXsdSchema = null;
             cachedXsdContent = null;
             xsdContentDirty = false;
+            isSchemaLoaded = false;
             logger.debug("Cleared XSD schema cache for new file load");
 
             // Check for auto-save recovery first
@@ -1443,6 +1445,7 @@ public class XsdController implements FavoritesParentController {
                 cachedXsdSchema = schema;
                 cachedXsdContent = xsdContent;
                 xsdContentDirty = false;  // Content is now in sync with schema
+                isSchemaLoaded = true;  // Mark that a valid schema is now available
 
                 // Use XsdSchema-based constructor
                 currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(schema);
@@ -4646,14 +4649,14 @@ public class XsdController implements FavoritesParentController {
                 if (typeLibraryTab.isSelected()) {
                     logger.debug("Type library tab selected");
                     // Show/hide no file loaded pane based on whether schema is loaded
-                    if (currentXsdFile == null || cachedXsdSchema == null || pendingTypeLibrarySchema == null) {
+                    if (!isSchemaLoaded || pendingTypeLibrarySchema == null) {
                         if (noFileLoadedPaneTypeLibrary != null) {
                             noFileLoadedPaneTypeLibrary.setVisible(true);
                             noFileLoadedPaneTypeLibrary.setManaged(true);
                         }
                         // Hide any existing TypeLibraryView
                         if (typeLibraryStackPane != null) {
-                            typeLibraryStackPane.getChildren().removeIf(node -> 
+                            typeLibraryStackPane.getChildren().removeIf(node ->
                                 node instanceof org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView);
                         }
                         typeLibraryInitialized = false; // Reset flag when no schema
@@ -5679,6 +5682,7 @@ public class XsdController implements FavoritesParentController {
         cachedXsdSchema = null;
         cachedXsdContent = null;
         xsdContentDirty = false;
+        isSchemaLoaded = false;
         // Reset Type Editor UI
         if (typeEditorTabManager != null) {
             typeEditorTabManager.closeAllTypeTabs();

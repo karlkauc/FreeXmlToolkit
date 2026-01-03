@@ -298,9 +298,6 @@ public class XmlPropertiesPanel extends VBox {
         if (updating || !(currentNode instanceof XmlElement)) {
             return;
         }
-
-        // TODO: Implement namespace change command
-        // For now, this is a placeholder
     }
 
     /**

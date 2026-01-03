@@ -4,26 +4,26 @@ Alias Password: keypass
 
 Certificate Details:
   [0]         Version: 3
-         SerialNumber: 1767382185339
+         SerialNumber: 1767459290874
              IssuerDN: CN=Signer,O=FreeXmlToolkit,C=AT
-           Start Date: Fri Jan 02 20:29:45 CET 2026
-           Final Date: Sat Jan 02 20:29:45 CET 2027
+           Start Date: Sat Jan 03 17:54:50 CET 2026
+           Final Date: Sun Jan 03 17:54:50 CET 2027
             SubjectDN: CN=Signer,O=FreeXmlToolkit,C=AT
-           Public Key: RSA Public Key [8d:ce:e5:d6:cc:96:8b:ab:28:b4:18:d0:cc:d3:0a:eb:07:94:33:72],[56:66:d1:a4]
-        modulus: d1f25051f7aa528b5731ce95e7843b5ba97535f10846210b14817831ac9fa70ab1f12421513f35214f5cf88b6b516b57c3ae1d0d024362060097a43ffbce41ce1ae0c2eccaee0138821403c5afb9d25b0abc4747747877754933add2ed0c0746d49f173c71e03bb3fa34eeaa6161e6ab5c87db91413d92d111fef66104386b17256084a97c8405ee6650ec49a6686f00f4ebe032f7028fcfc5e0030ffa264340fdb7390ecce75a6265d25e63b5d3ba25eec6c676dc3d2baa57a1fe2f06e5d6387b95aad7e2a0c9f91ef84e416cc5fa5d3ae2259b8ee80e4e078cc1b01b11f7e602c04aed67e89f4c07e1872df1dce2080b7f05e89634af4e0ac146af451d56fd
+           Public Key: RSA Public Key [5f:36:ba:e9:83:b7:f4:44:2c:46:2f:f5:d0:a9:60:9b:69:30:33:c2],[56:66:d1:a4]
+        modulus: ca1eecc4e39c99430f2cb6c11ac5ca4a2c71d23a1661912c2b44f72918f5770ce93419b70647a73da7cf108c4ed1646071646f0ca73e58c18192f814686191177da7766fb09192aa6c9bff76b7f7bca6c199e35d85c3fa73883afcbcf4819c212c8503127e6a00418ee6eda193c0c8187248f4aa55aed688de52388da94bbab06b56c5b6635c0a671e720ffc9615c86fb109972f50af0d81e05eddce3e6353cde1bf1ce75fee4c15f18e7dce21193343d68a0fb41cae9b841611d41a8506ca96b27ad6ef154e28a7a5e7cedfa52c4d2e3cf3bcba954e626ab175c725107bc4dd1b15b28153b2e48f404207402c5e17e16ce1f4d5bf50a0be846717198e22c163
 public exponent: 10001
 
   Signature Algorithm: SHA256WITHRSA
-            Signature: 4b352da0667dd47468de1642ecd9ab669d4b538d
-                       670047c7529d81b577ef1abfe268eeec3382c21b
-                       46dbfdf86ab87546bce41c8b1be1639dbd9d6792
-                       f9b68482db027cbc0e3de1d4cc4846711a766d3d
-                       53741c0a98c57d376115108afa80c11fc1082cb5
-                       37267c9fb1a703176edd5568b578df6c7fa5a0fe
-                       bd6e026067e8a152f71b6f72f905618e22f9ceea
-                       b88f3ccecc9b87e1d6716bc90ed1e8a45f2d9e36
-                       6e9a31f6dcf68d9def8515e6c6ce00c3718313ad
-                       8054e0822b2466716b1ef721e5a95daae937b541
-                       1e010a5b5e2fa90a285c890d8cb5a62dacf2e449
-                       99741942f387f23491668e0f9efc7dbf16e0bc21
-                       5095b33eba2545a1afc103557cc1758c
+            Signature: 47a61bfa3b44008864fb7249f906e0ecd5c76825
+                       49f0a0197cb9fe75acaaec47f0b4a4c18cc26cd2
+                       8fb28ade8cadc2388fba11a85121068eb5562444
+                       f3cfbe1e97cbd6bdb679a6743b3dbe8f3fc7f4e0
+                       a303f8400d58773348ae31e193b15954e95fb0c7
+                       fca18a9b70328533f3bd88facc1a5469ae79e1ff
+                       6e7705542713fe54c2e29fe040fe8bda483efbac
+                       a359a70a27611a68966db25d184b815b95a81e33
+                       f85f3f1f40ea443eff5af0d2609ad16fa9476634
+                       2848eb258a9ffb141a897fa9743be2342eba6146
+                       d3aaa7f5842060ad97aebacc254be15708f8d950
+                       f25b60b121c4dac7b06a205c8a143d64aa87ea6b
+                       0d1190f2d4a69401a11f93e8260e5558
