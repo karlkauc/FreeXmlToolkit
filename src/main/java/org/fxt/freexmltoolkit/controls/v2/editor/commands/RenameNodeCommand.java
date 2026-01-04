@@ -28,12 +28,8 @@ public class RenameNodeCommand implements XsdCommand {
      * @param newName the new name
      */
     public RenameNodeCommand(XsdNode node, String newName) {
-        if (node == null) {
-            throw new IllegalArgumentException("Node cannot be null");
-        }
-        if (newName == null || newName.trim().isEmpty()) {
-            throw new IllegalArgumentException("New name cannot be null or empty");
-        }
+        CommandValidation.requireNonNull(node, "Node");
+        CommandValidation.requireNonEmpty(newName, "New name");
 
         this.node = node;
         this.oldName = node.getName();

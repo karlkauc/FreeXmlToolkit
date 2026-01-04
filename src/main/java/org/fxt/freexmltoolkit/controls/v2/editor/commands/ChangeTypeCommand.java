@@ -33,15 +33,8 @@ public class ChangeTypeCommand implements XsdCommand {
      * @param newType       the new type reference (e.g., "xs:string", "MyCustomType", or null/empty to remove)
      */
     public ChangeTypeCommand(XsdEditorContext editorContext, XsdNode node, String newType) {
-        if (editorContext == null) {
-            throw new IllegalArgumentException("Editor context cannot be null");
-        }
-        if (node == null) {
-            throw new IllegalArgumentException("Node cannot be null");
-        }
-        if (!(node instanceof XsdElement) && !(node instanceof XsdAttribute)) {
-            throw new IllegalArgumentException("Node must be an element or attribute to have a type");
-        }
+        CommandValidation.requireEditorContextAndNode(editorContext, node);
+        CommandValidation.requireNodeTypeOneOf(node, "Change type", XsdElement.class, XsdAttribute.class);
 
         this.editorContext = editorContext;
         this.node = node;

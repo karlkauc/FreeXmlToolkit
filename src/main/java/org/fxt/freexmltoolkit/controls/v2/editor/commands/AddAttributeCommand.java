@@ -37,12 +37,8 @@ public class AddAttributeCommand implements XsdCommand {
      * @param attributeName  the name of the new attribute
      */
     public AddAttributeCommand(XsdNode parentNode, String attributeName) {
-        if (parentNode == null) {
-            throw new IllegalArgumentException("Parent node cannot be null");
-        }
-        if (attributeName == null || attributeName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Attribute name cannot be null or empty");
-        }
+        CommandValidation.requireNonNull(parentNode, "Parent node");
+        CommandValidation.requireNonEmpty(attributeName, "Attribute name");
 
         this.parentNode = parentNode;
         this.attributeName = attributeName.trim();

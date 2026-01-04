@@ -34,19 +34,10 @@ public abstract class AbstractConstraintCommand implements XsdCommand {
      * @throws IllegalArgumentException if editorContext is null, node is null, node is not an XsdElement, or value is empty
      */
     protected AbstractConstraintCommand(XsdEditorContext editorContext, XsdNode node, String value) {
-        if (editorContext == null) {
-            throw new IllegalArgumentException("Editor context cannot be null");
-        }
-        if (node == null) {
-            throw new IllegalArgumentException("Node cannot be null");
-        }
-        if (!(node instanceof XsdElement)) {
-            throw new IllegalArgumentException(getConstraintTypeName() + " can only be added to elements, not to " +
-                    node.getClass().getSimpleName());
-        }
-        if (value == null || value.trim().isEmpty()) {
-            throw new IllegalArgumentException(getConstraintTypeName() + " value cannot be null or empty");
-        }
+        CommandValidation.requireEditorContextAndNode(editorContext, node);
+        CommandValidation.requireNodeType(node, XsdElement.class,
+            getConstraintTypeName() + " can only be added to elements");
+        CommandValidation.requireNonEmpty(value, getConstraintTypeName() + " value");
 
         this.editorContext = editorContext;
         this.element = (XsdElement) node;
