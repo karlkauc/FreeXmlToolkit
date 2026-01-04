@@ -199,8 +199,7 @@
 
                     <!-- Main Editor Area -->
                     <VBox fx:id="codeEditorContainer" spacing="0" SplitPane.resizableWithParent="true">
-                        <org.fxt.freexmltoolkit.controls.XmlCodeEditor fx:id="xmlCodeEditor"
-                                                                       VBox.vgrow="ALWAYS"/>
+                        <!-- XmlCodeEditorV2 is created programmatically in controller -->
                     </VBox>
 
                     <!-- Sidebar -->

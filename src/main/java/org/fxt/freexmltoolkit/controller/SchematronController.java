@@ -22,6 +22,9 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.*;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
+import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TestFile;
 import org.fxt.freexmltoolkit.service.*;
@@ -213,7 +216,9 @@ public class SchematronController implements FavoritesParentController {
 
     // Core components from FXML
     @FXML
-    private XmlCodeEditor xmlCodeEditor;
+    private VBox codeEditorContainer;
+
+    private XmlCodeEditorV2 xmlCodeEditor;
 
     @FXML
     private SchematronVisualBuilder visualBuilder;
@@ -391,22 +396,21 @@ public class SchematronController implements FavoritesParentController {
      */
     private void initializeCodeEditor() {
         try {
-            // xmlCodeEditor is already initialized from FXML
-            if (xmlCodeEditor != null) {
-                codeArea = xmlCodeEditor.getCodeArea();
+            // Create XmlCodeEditorV2 with Schematron mode
+            if (codeEditorContainer != null) {
+                xmlCodeEditor = XmlCodeEditorV2Factory.createWithoutSchema();
+                xmlCodeEditor.setEditorMode(EditorMode.SCHEMATRON);
 
-                // Enable Schematron mode in the XmlCodeEditor (this activates the built-in SchematronAutoComplete)
-                xmlCodeEditor.setSchematronMode(true);
-
-                // Get reference to the auto-completion instance
-                autoComplete = xmlCodeEditor.getSchematronAutoComplete();
+                // Add to container
+                codeEditorContainer.getChildren().add(xmlCodeEditor);
+                VBox.setVgrow(xmlCodeEditor, Priority.ALWAYS);
 
                 logger.debug("Code editor initialized successfully with Schematron features");
-                
+
                 // Test the auto-completion setup
                 testAutoCompletionSetup();
             } else {
-                logger.error("SchematronCodeEditor not found in FXML");
+                logger.error("CodeEditorContainer not found in FXML");
             }
         } catch (Exception e) {
             logger.error("Failed to initialize code editor", e);
@@ -420,15 +424,9 @@ public class SchematronController implements FavoritesParentController {
     private void testAutoCompletionSetup() {
         logger.debug("=== Testing Schematron Auto-Completion Setup ===");
         if (xmlCodeEditor != null) {
-            logger.debug("XmlCodeEditor: {}", xmlCodeEditor.getClass().getSimpleName());
+            logger.debug("XmlCodeEditorV2: {}", xmlCodeEditor.getClass().getSimpleName());
             logger.debug("Current editor mode: {}", xmlCodeEditor.getEditorMode());
-            logger.debug("Is Schematron mode active: {}", xmlCodeEditor.isSchematronMode());
-            
-            var schematronAC = xmlCodeEditor.getSchematronAutoComplete();
-            logger.debug("SchematronAutoComplete instance: {}", schematronAC != null ? "Available" : "NULL");
-            if (schematronAC != null) {
-                logger.debug("SchematronAutoComplete enabled: {}", schematronAC.isEnabled());
-            }
+            logger.debug("Editor mode is SCHEMATRON: {}", xmlCodeEditor.getEditorMode() == EditorMode.SCHEMATRON);
         } else {
             logger.warn("xmlCodeEditor is null in SchematronController");
         }
@@ -597,9 +595,6 @@ public class SchematronController implements FavoritesParentController {
     private void loadSchematronContent(File file, String content) {
         Platform.runLater(() -> {
             if (xmlCodeEditor != null) {
-                // Ensure Schematron mode is active before setting content
-                xmlCodeEditor.setSchematronMode(true);
-                
                 // Check if auto-format is enabled for Schematron files
                 String contentToLoad = content;
                 if (propertiesService.isSchematronPrettyPrintOnLoad()) {
@@ -823,9 +818,6 @@ public class SchematronController implements FavoritesParentController {
      */
     public void createEmptySchematron() {
         Platform.runLater(() -> {
-            // Ensure Schematron mode is active before setting empty content
-            xmlCodeEditor.setSchematronMode(true);
-            
             xmlCodeEditor.setText("");
             
             currentSchematronFile = null;
@@ -852,9 +844,6 @@ public class SchematronController implements FavoritesParentController {
         String template = generateBasicSchematronTemplate();
 
         Platform.runLater(() -> {
-            // Ensure Schematron mode is active before setting text
-            xmlCodeEditor.setSchematronMode(true);
-            
             xmlCodeEditor.setText(template);
             xmlCodeEditor.refreshHighlighting();
 

@@ -45,8 +45,10 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
-import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
+import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
@@ -207,8 +209,8 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     private javafx.scene.Node favoritesPanelNode;
 
     // XSLT Development Code Editors
-    private XmlCodeEditor xmlSourceEditor;
-    private XmlCodeEditor xsltStylesheetEditor;
+    private XmlCodeEditorV2 xmlSourceEditor;
+    private XmlCodeEditorV2 xsltStylesheetEditor;
 
     // XPath/XQuery
     @FXML
@@ -789,8 +791,9 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
 
         // Initialize XML Source Editor
         if (xmlSourceEditorPane != null) {
-            xmlSourceEditor = new XmlCodeEditor();
-            xmlSourceEditor.getCodeArea().replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    <!-- XML Source for XSLT transformation -->\n</root>");
+            xmlSourceEditor = XmlCodeEditorV2Factory.createWithoutSchema();
+            xmlSourceEditor.setEditorMode(EditorMode.XML_WITHOUT_XSD);
+            xmlSourceEditor.setText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    <!-- XML Source for XSLT transformation -->\n</root>");
 
             xmlSourceEditorPane.getChildren().add(xmlSourceEditor);
 
@@ -799,8 +802,9 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
 
         // Initialize XSLT Stylesheet Editor
         if (xsltEditorPane != null) {
-            xsltStylesheetEditor = new XmlCodeEditor();
-            xsltStylesheetEditor.getCodeArea().replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n    <!-- XSLT Stylesheet -->\n    <xsl:template match=\"/\">\n        <html>\n            <body>\n                <xsl:apply-templates/>\n            </body>\n        </html>\n    </xsl:template>\n</xsl:stylesheet>");
+            xsltStylesheetEditor = XmlCodeEditorV2Factory.createWithoutSchema();
+            xsltStylesheetEditor.setEditorMode(EditorMode.XSLT);
+            xsltStylesheetEditor.setText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n    <!-- XSLT Stylesheet -->\n    <xsl:template match=\"/\">\n        <html>\n            <body>\n                <xsl:apply-templates/>\n            </body>\n        </html>\n    </xsl:template>\n</xsl:stylesheet>");
 
             xsltEditorPane.getChildren().add(xsltStylesheetEditor);
 
@@ -1735,7 +1739,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         if (file != null && xsltStylesheetEditor != null) {
             try {
                 currentXsltContent = Files.readString(file.toPath());
-                xsltStylesheetEditor.getCodeArea().replaceText(currentXsltContent);
+                xsltStylesheetEditor.setText(currentXsltContent);
                 logToConsole("XSLT loaded: " + file.getName());
             } catch (IOException e) {
                 showError("Load Error", "Could not load XSLT: " + e.getMessage());
@@ -1757,7 +1761,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         if (file != null && xmlSourceEditor != null) {
             try {
                 String xmlContent = Files.readString(file.toPath());
-                xmlSourceEditor.getCodeArea().replaceText(xmlContent);
+                xmlSourceEditor.setText(xmlContent);
                 logToConsole("XML Source loaded: " + file.getName());
             } catch (IOException e) {
                 showError("Load Error", "Could not load XML: " + e.getMessage());
@@ -1782,7 +1786,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             File file = fileChooser.showSaveDialog(null);
             if (file != null) {
                 try {
-                    Files.writeString(file.toPath(), xmlSourceEditor.getCodeArea().getText());
+                    Files.writeString(file.toPath(), xmlSourceEditor.getText());
                     logToConsole("XML Source saved: " + file.getName());
                 } catch (IOException e) {
                     showError("Save Error", "Could not save XML: " + e.getMessage());
@@ -1809,7 +1813,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                 try {
                     // Add metadata before saving
                     ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
-                    String xsltContent = xsltStylesheetEditor.getCodeArea().getText();
+                    String xsltContent = xsltStylesheetEditor.getText();
                     String contentWithMetadata = metadataService.addOrUpdateXmlMetadata(xsltContent);
 
                     Files.writeString(file.toPath(), contentWithMetadata);
@@ -1829,8 +1833,8 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
 
         // Use XML from xmlSourceEditor instead of current tab
         if (xmlSourceEditor != null && xsltStylesheetEditor != null) {
-            String xml = xmlSourceEditor.getCodeArea().getText();
-            String xslt = xsltStylesheetEditor.getCodeArea().getText();
+            String xml = xmlSourceEditor.getText();
+            String xslt = xsltStylesheetEditor.getText();
 
             if (xslt.isEmpty()) {
                 showError("XSLT Error", "Please load or enter an XSLT stylesheet");
