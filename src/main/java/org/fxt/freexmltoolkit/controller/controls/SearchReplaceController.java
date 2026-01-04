@@ -5,7 +5,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
-import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 
 public class SearchReplaceController {
 
@@ -26,7 +25,9 @@ public class SearchReplaceController {
     @FXML
     private Label replaceStatusLabel;
 
-    private XmlCodeEditor xmlCodeEditor;
+    // V1 XmlCodeEditor is deprecated and removed
+    // SearchReplaceController is no longer used with V2 editor
+    // Search/Replace functionality is now handled by XmlCodeEditorV2
 
     @FXML
     public void initialize() {
@@ -34,36 +35,29 @@ public class SearchReplaceController {
         findFieldReplace.textProperty().bindBidirectional(findFieldSearch.textProperty());
     }
 
-    public void setXmlCodeEditor(XmlCodeEditor xmlCodeEditor) {
-        this.xmlCodeEditor = xmlCodeEditor;
+    @Deprecated(since = "2.0", forRemoval = true)
+    public void setXmlCodeEditor(Object xmlCodeEditor) {
+        // V1 editor deprecated - this method is no longer used
     }
 
     @FXML
     private void findNext() {
-        if (xmlCodeEditor != null) {
-            xmlCodeEditor.find(findFieldSearch.getText(), true);
-        }
+        // V1 Search functionality deprecated - search is now handled by XmlCodeEditorV2
     }
 
     @FXML
     private void findPrevious() {
-        if (xmlCodeEditor != null) {
-            xmlCodeEditor.find(findFieldSearch.getText(), false);
-        }
+        // V1 Search functionality deprecated - search is now handled by XmlCodeEditorV2
     }
 
     @FXML
     private void replace() {
-        if (xmlCodeEditor != null) {
-            xmlCodeEditor.replace(findFieldReplace.getText(), replaceField.getText());
-        }
+        // V1 Replace functionality deprecated - replace is now handled by XmlCodeEditorV2
     }
 
     @FXML
     private void replaceAll() {
-        if (xmlCodeEditor != null) {
-            xmlCodeEditor.replaceAll(findFieldReplace.getText(), replaceField.getText());
-        }
+        // V1 Replace functionality deprecated - replace is now handled by XmlCodeEditorV2
     }
 
     public void focusFindField() {

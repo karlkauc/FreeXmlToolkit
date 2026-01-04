@@ -230,7 +230,6 @@ public class SchematronController implements FavoritesParentController {
     private SchematronTemplateLibrary templateLibrary;
 
     // Additional components
-    private SchematronAutoComplete autoComplete;
     private SchematronErrorDetector errorDetector;
     private SchematronTester tester;
     private CodeArea codeArea;
