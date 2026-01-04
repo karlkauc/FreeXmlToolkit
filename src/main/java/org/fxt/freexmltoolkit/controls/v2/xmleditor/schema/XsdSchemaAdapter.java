@@ -19,7 +19,6 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.schema;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.shared.utilities.XsdIntegrationAdapter;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 
@@ -29,7 +28,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * Adapter that bridges XsdDocumentationData/XsdIntegrationAdapter to XmlSchemaProvider.
+ * Adapter that bridges XsdDocumentationData to XmlSchemaProvider.
  *
  * <p>This class provides a clean interface for the XML editor to access XSD schema
  * information without depending on the internal implementation details.</p>
@@ -42,13 +41,11 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
     private static final Logger logger = LogManager.getLogger(XsdSchemaAdapter.class);
 
     private XsdDocumentationData xsdDocumentationData;
-    private final XsdIntegrationAdapter integrationAdapter;
 
     /**
      * Creates a new XsdSchemaAdapter.
      */
     public XsdSchemaAdapter() {
-        this.integrationAdapter = new XsdIntegrationAdapter();
     }
 
     /**
@@ -59,7 +56,6 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
     public void setXsdDocumentationData(XsdDocumentationData data) {
         this.xsdDocumentationData = data;
         if (data != null) {
-            this.integrationAdapter.setXsdDocumentationData(data);
             logger.info("Schema loaded with {} elements",
                     data.getExtendedXsdElementMap() != null ? data.getExtendedXsdElementMap().size() : 0);
         }
@@ -72,8 +68,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
      */
     public void loadSchema(File schemaFile) {
         if (schemaFile != null && schemaFile.exists()) {
-            integrationAdapter.loadSchema(schemaFile);
-            logger.info("Schema loaded from file: {}", schemaFile.getPath());
+            logger.info("Schema file specified: {}", schemaFile.getPath());
         }
     }
 
@@ -90,7 +85,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
 
     @Override
     public boolean hasSchema() {
-        return xsdDocumentationData != null || integrationAdapter.hasSchema();
+        return xsdDocumentationData != null;
     }
 
     @Override
@@ -100,23 +95,8 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
             return Collections.emptyList();
         }
 
-        logger.debug("getValidChildElements: parentXPath='{}'", parentXPath);
-
-        // Pass the full XPath to the integration adapter - it now handles both full XPaths and element names
-        List<String> elements = integrationAdapter.getAvailableElements(parentXPath);
-        logger.debug("getValidChildElements: Found {} elements for '{}': {}", elements.size(), parentXPath, elements);
-
-        // If no results with full path, also try with just the element name (fallback)
-        if (elements.isEmpty()) {
-            String elementName = extractElementName(parentXPath);
-            if (elementName != null && !elementName.equals(parentXPath)) {
-                logger.debug("getValidChildElements: Trying fallback with element name '{}'", elementName);
-                elements = integrationAdapter.getAvailableElements(elementName);
-                logger.debug("getValidChildElements: Fallback found {} elements", elements.size());
-            }
-        }
-
-        return elements;
+        logger.debug("getValidChildElements: parentXPath='{}' - returning empty (XsdIntegrationAdapter removed)", parentXPath);
+        return Collections.emptyList();
     }
 
     @Override
@@ -125,10 +105,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
             return Collections.emptyList();
         }
 
-        String elementName = extractElementName(elementXPath);
-        return integrationAdapter.getAvailableAttributes(elementName).stream()
-                .map(attr -> attr.name)
-                .toList();
+        return Collections.emptyList();
     }
 
     @Override
@@ -152,15 +129,6 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
             return Optional.empty();
         }
 
-        String elementName = extractElementName(elementXPath);
-        List<XsdIntegrationAdapter.AttributeInfo> attributes = integrationAdapter.getAvailableAttributes(elementName);
-
-        for (XsdIntegrationAdapter.AttributeInfo attr : attributes) {
-            if (attr.name.equals(attributeName)) {
-                return Optional.of(createAttributeTypeInfo(attr, elementXPath, attributeName));
-            }
-        }
-
         return Optional.empty();
     }
 
@@ -178,9 +146,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
             }
         }
 
-        String elementName = extractElementName(elementXPath);
-        String doc = integrationAdapter.getElementDocumentation(elementName);
-        return Optional.ofNullable(doc);
+        return Optional.empty();
     }
 
     @Override
@@ -189,9 +155,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
             return Optional.empty();
         }
 
-        String elementName = extractElementName(elementXPath);
-        String doc = integrationAdapter.getAttributeDocumentation(elementName, attributeName);
-        return Optional.ofNullable(doc);
+        return Optional.empty();
     }
 
     @Override
@@ -338,44 +302,6 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
                 defaultValue,
                 fixedValue,
                 element.getDocumentationAsHtml()
-        );
-    }
-
-    /**
-     * Creates AttributeTypeInfo from XsdIntegrationAdapter.AttributeInfo.
-     */
-    private AttributeTypeInfo createAttributeTypeInfo(XsdIntegrationAdapter.AttributeInfo attr,
-                                                       String elementXPath, String attributeName) {
-        XsdType xsdType = XsdType.fromTypeName(attr.type);
-
-        // Get enumeration values for attribute
-        String elementName = extractElementName(elementXPath);
-        List<String> enumerationValues = integrationAdapter.getAttributeEnumerationValues(elementName, attributeName);
-
-        if (!enumerationValues.isEmpty()) {
-            xsdType = XsdType.ENUMERATION;
-        }
-
-        // Try to get facets from XSD documentation data
-        Map<String, String> facets = new HashMap<>();
-        if (xsdDocumentationData != null) {
-            String attrXpath = elementXPath + "/@" + attributeName;
-            XsdExtendedElement attrElement = xsdDocumentationData.getExtendedXsdElementMap().get(attrXpath);
-            if (attrElement != null) {
-                facets = getFacetsMap(attrElement);
-            }
-        }
-
-        return new AttributeTypeInfo(
-                attr.name,
-                attr.type,
-                xsdType,
-                "required".equals(attr.use),
-                enumerationValues,
-                facets,
-                attr.defaultValue,
-                null, // No fixed value in AttributeInfo
-                attr.documentation
         );
     }
 

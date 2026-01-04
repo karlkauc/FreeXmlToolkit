@@ -169,7 +169,6 @@ public class XmlCanvasView extends Pane {
 
     // ==================== Status Bar & Toast ====================
 
-    private XmlStatusBar statusBar;
     private StackPane toastContainer;
 
     // ==================== Document Change Callback ====================
@@ -1236,9 +1235,6 @@ public class XmlCanvasView extends Pane {
             // Update selection model
             context.getSelectionModel().setSelectedNode(node.getModelNode());
         }
-
-        // Update status bar
-        updateStatusBar();
 
         render();
     }
@@ -2624,16 +2620,6 @@ public class XmlCanvasView extends Pane {
     // ==================== Status Bar ====================
 
     /**
-     * Set the status bar to update.
-     */
-    public void setStatusBar(XmlStatusBar statusBar) {
-        this.statusBar = statusBar;
-        if (statusBar != null) {
-            statusBar.setOnBreadcrumbClick(this::navigateToNode);
-        }
-    }
-
-    /**
      * Sets a callback that is called when the document is modified.
      * The callback receives the serialized XML string.
      *
@@ -2664,24 +2650,6 @@ public class XmlCanvasView extends Pane {
                 ensureNodeVisible(found);
             }
         }
-    }
-
-    /**
-     * Update the status bar with current selection info.
-     */
-    private void updateStatusBar() {
-        if (statusBar == null) return;
-
-        // Update breadcrumb
-        XmlNode selected = getSelectedNode();
-        statusBar.updateBreadcrumb(selected);
-
-        // Update element count
-        int count = countElements(rootNode);
-        statusBar.updateElementCount(count);
-
-        // Update dirty flag
-        statusBar.setDirty(context.isDirty());
     }
 
     private int countElements(NestedGridNode node) {

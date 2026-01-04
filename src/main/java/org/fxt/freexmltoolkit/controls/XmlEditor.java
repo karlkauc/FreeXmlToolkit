@@ -2337,17 +2337,12 @@ public class XmlEditor extends Tab {
             canvasView.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             VBox.setVgrow(canvasView, Priority.ALWAYS);
 
-            // Create status bar
-            org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlStatusBar statusBar =
-                new org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlStatusBar();
-            canvasView.setStatusBar(statusBar);
-
             // Create container with StackPane for toast support
             javafx.scene.layout.StackPane toastContainer = new javafx.scene.layout.StackPane();
             canvasView.setToastContainer(toastContainer);
 
-            // Main content area (canvas with status bar)
-            VBox contentBox = new VBox(canvasView, statusBar);
+            // Main content area (canvas view)
+            VBox contentBox = new VBox(canvasView);
             contentBox.setFillWidth(true);
             VBox.setVgrow(canvasView, Priority.ALWAYS);
             VBox.setVgrow(contentBox, Priority.ALWAYS);
