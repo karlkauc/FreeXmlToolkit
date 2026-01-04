@@ -20,6 +20,7 @@ import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
+import org.fxt.freexmltoolkit.controls.v2.common.utilities.XmlValidationHelper;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
@@ -1188,7 +1189,7 @@ public class XmlEditor extends Tab {
 
     public void validateXml() {
         if (sidebarController == null) return;
-        
+
         if (xsdFile == null) {
             sidebarController.updateValidationStatus("No XSD selected", "orange", null);
             return;
@@ -1209,7 +1210,7 @@ public class XmlEditor extends Tab {
             } else {
                 // Convert SAXParseException to ValidationError objects
                 List<ValidationError> validationErrors = saxErrors.stream()
-                        .map(this::convertToValidationError)
+                        .map(XmlValidationHelper::convertToValidationError)
                         .collect(Collectors.toList());
 
                 String errorMessage = "✗ Invalid (" + saxErrors.size() + " error" + (saxErrors.size() == 1 ? "" : "s") + ")";
@@ -1229,7 +1230,7 @@ public class XmlEditor extends Tab {
     public void validateWithAlert() {
         String xmlContent = codeArea.getText();
         if (xmlContent == null || xmlContent.trim().isEmpty()) {
-            showValidationAlert(Alert.AlertType.WARNING, "Validation", "No XML content to validate.");
+            XmlValidationHelper.showValidationAlert(Alert.AlertType.WARNING, "Validation", "No XML content to validate.");
             return;
         }
 
@@ -1239,7 +1240,7 @@ public class XmlEditor extends Tab {
                 List<org.xml.sax.SAXParseException> errors = xmlService.validateText(xmlContent);
 
                 if (errors == null || errors.isEmpty()) {
-                    showValidationAlert(Alert.AlertType.INFORMATION, "Well-formedness Check",
+                    XmlValidationHelper.showValidationAlert(Alert.AlertType.INFORMATION, "Well-formedness Check",
                         "The XML document is well-formed.");
                 } else {
                     StringBuilder errorDetails = new StringBuilder();
@@ -1254,14 +1255,14 @@ public class XmlEditor extends Tab {
                     if (errors.size() > 5) {
                         errorDetails.append("\n... and ").append(errors.size() - 5).append(" more errors.");
                     }
-                    showValidationAlert(Alert.AlertType.ERROR, "Well-formedness Check", errorDetails.toString());
+                    XmlValidationHelper.showValidationAlert(Alert.AlertType.ERROR, "Well-formedness Check", errorDetails.toString());
                 }
             } else {
                 // Check both well-formedness and schema validity
                 List<org.xml.sax.SAXParseException> errors = xmlService.validateText(xmlContent, xsdFile);
 
                 if (errors == null || errors.isEmpty()) {
-                    showValidationAlert(Alert.AlertType.INFORMATION, "Schema Validation",
+                    XmlValidationHelper.showValidationAlert(Alert.AlertType.INFORMATION, "Schema Validation",
                         "The XML document is valid.\n\nXSD: " + xsdFile.getName());
                 } else {
                     StringBuilder errorDetails = new StringBuilder();
@@ -1282,12 +1283,12 @@ public class XmlEditor extends Tab {
                     if (errors.size() > 5) {
                         errorDetails.append("\n... and ").append(errors.size() - 5).append(" more errors.");
                     }
-                    showValidationAlert(Alert.AlertType.ERROR, "Schema Validation", errorDetails.toString());
+                    XmlValidationHelper.showValidationAlert(Alert.AlertType.ERROR, "Schema Validation", errorDetails.toString());
                 }
             }
         } catch (Exception e) {
             logger.error("Error during validation", e);
-            showValidationAlert(Alert.AlertType.ERROR, "Validation Error",
+            XmlValidationHelper.showValidationAlert(Alert.AlertType.ERROR, "Validation Error",
                 "An error occurred during validation:\n" + e.getMessage());
         }
 
@@ -1295,39 +1296,10 @@ public class XmlEditor extends Tab {
         validateXml();
     }
 
-    /**
-     * Shows a validation result alert dialog.
-     */
-    private void showValidationAlert(Alert.AlertType alertType, String title, String message) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.getDialogPane().setMinWidth(450);
-        alert.showAndWait();
-    }
-
-    /**
-     * Converts a SAXParseException to a ValidationError
-     */
-    private ValidationError convertToValidationError(org.xml.sax.SAXParseException saxException) {
-        int lineNumber = saxException.getLineNumber();
-        int columnNumber = saxException.getColumnNumber();
-        String message = saxException.getMessage();
-
-        // Clean up common error message patterns for better readability
-        if (message != null) {
-            // Remove common prefixes that are not useful for end users
-            message = message.replaceAll("^cvc-[^:]*:\\s*", "");
-            message = message.replaceAll("^The content of element '[^']*' is not complete\\.", "Content is incomplete.");
-        }
-
-        return new ValidationError(lineNumber, columnNumber, message, "ERROR");
-    }
 
     public void validateSchematron() {
         if (sidebarController == null) return;
-        
+
         if (schematronFile == null) {
             sidebarController.updateSchematronValidationStatus("No Schematron rules selected", "orange", null);
             return;
@@ -1363,7 +1335,7 @@ public class XmlEditor extends Tab {
             // Handle Schematron loading errors specifically
             sidebarController.updateSchematronValidationStatus("Failed to load Schematron", "red", null);
             logger.error("Failed to load Schematron file: {}", schematronFile.getName(), e);
-            
+
             // Show error dialog to the user
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -1385,45 +1357,7 @@ public class XmlEditor extends Tab {
      * @return List of element names found in the XSD
      */
     private List<String> extractElementNamesFromXsd(File xsdFile) {
-        List<String> elementNames = new ArrayList<>();
-
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.parse(xsdFile);
-
-            // Find all element definitions
-            NodeList elementNodes = document.getElementsByTagName("xs:element");
-            for (int i = 0; i < elementNodes.getLength(); i++) {
-                Element element = (Element) elementNodes.item(i);
-                String name = element.getAttribute("name");
-                if (!name.isEmpty()) {
-                    elementNames.add(name);
-                }
-            }
-
-            // Also find elements in other namespaces
-            NodeList allElements = document.getElementsByTagName("*");
-            for (int i = 0; i < allElements.getLength(); i++) {
-                Element element = (Element) allElements.item(i);
-                if (element.getTagName().endsWith(":element")) {
-                    String name = element.getAttribute("name");
-                    if (!name.isEmpty() && !elementNames.contains(name)) {
-                        elementNames.add(name);
-                    }
-                }
-            }
-
-            logger.debug("Extracted {} element names from XSD: {}", elementNames.size(), elementNames);
-
-        } catch (Exception e) {
-            logger.error("Error extracting element names from XSD: {}", xsdFile.getAbsolutePath(), e);
-            // Add some default element names as fallback
-            elementNames.addAll(Arrays.asList("root", "element", "item", "data", "content"));
-        }
-
-        return elementNames;
+        return XmlValidationHelper.extractElementNamesFromXsd(xsdFile);
     }
 
     /**
@@ -1434,132 +1368,8 @@ public class XmlEditor extends Tab {
      * @return Map of parent element names to their mandatory child element names only
      */
     private Map<String, List<String>> extractContextElementNamesFromXsd(File xsdFile) {
-        Map<String, List<String>> contextElementNames = new HashMap<>();
-
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.parse(xsdFile);
-
-            // Find all complex types that define element structures
-            NodeList complexTypes = document.getElementsByTagName("xs:complexType");
-            for (int i = 0; i < complexTypes.getLength(); i++) {
-                Element complexType = (Element) complexTypes.item(i);
-                String typeName = complexType.getAttribute("name");
-
-                if (!typeName.isEmpty()) {
-                    // Find mandatory child elements within this complex type
-                    List<String> mandatoryChildren = new ArrayList<>();
-                    extractMandatoryChildrenFromComplexType(complexType, mandatoryChildren);
-
-                    if (!mandatoryChildren.isEmpty()) {
-                        contextElementNames.put(typeName, mandatoryChildren);
-                        logger.debug("Found {} mandatory children for type '{}': {}",
-                                mandatoryChildren.size(), typeName, mandatoryChildren);
-                    }
-                }
-            }
-
-            // Find direct element definitions and their relationships
-            NodeList allElements = document.getElementsByTagName("xs:element");
-            for (int i = 0; i < allElements.getLength(); i++) {
-                Element element = (Element) allElements.item(i);
-                String elementName = element.getAttribute("name");
-                String elementType = element.getAttribute("type");
-
-                if (!elementName.isEmpty() && !elementType.isEmpty()) {
-                    // If this element has a type, check if we have mandatory children for that type
-                    if (!elementType.startsWith("xs:")) {
-                        List<String> childElements = contextElementNames.get(elementType);
-                        if (childElements != null && !childElements.isEmpty()) {
-                            contextElementNames.put(elementName, new ArrayList<>(childElements));
-                            logger.debug("Mapped element '{}' to type '{}' with {} children",
-                                    elementName, elementType, childElements.size());
-                        }
-                    }
-                }
-            }
-
-            // Add root-level elements
-            List<String> rootElements = new ArrayList<>();
-            for (int i = 0; i < allElements.getLength(); i++) {
-                Element element = (Element) allElements.item(i);
-                String elementName = element.getAttribute("name");
-                if (!elementName.isEmpty()) {
-                    rootElements.add(elementName);
-                }
-            }
-            if (!rootElements.isEmpty()) {
-                contextElementNames.put("root", rootElements);
-            }
-
-            logger.debug("Extracted context element names from XSD: {}", contextElementNames);
-
-        } catch (Exception e) {
-            logger.error("Error extracting context element names from XSD: {}", xsdFile.getAbsolutePath(), e);
-            // Add some default fallback
-            contextElementNames.put("ControlData", java.util.List.of("UniqueDocumentID", "DocumentGenerated", "ContentDate", "DataSupplier", "DataOperation", "Language"));
-            contextElementNames.put("DataSupplier", java.util.List.of("SystemCountry", "Short", "Name", "Type"));
-        }
-
-        return contextElementNames;
+        return XmlValidationHelper.extractContextElementNamesFromXsd(xsdFile);
     }
-
-    /**
-     * Extracts mandatory children from a complex type element.
-     */
-    private void extractMandatoryChildrenFromComplexType(Element complexType, List<String> mandatoryChildren) {
-        // Look for sequence, choice, or all elements
-        NodeList sequences = complexType.getElementsByTagName("xs:sequence");
-        NodeList choices = complexType.getElementsByTagName("xs:choice");
-        NodeList alls = complexType.getElementsByTagName("xs:all");
-
-        // Process sequences (most common)
-        processElementsForMandatory(sequences, mandatoryChildren);
-        // Process choices 
-        processElementsForMandatory(choices, mandatoryChildren);
-        // Process alls
-        processElementsForMandatory(alls, mandatoryChildren);
-    }
-
-    /**
-     * Processes element groups to extract mandatory children.
-     */
-    private void processElementsForMandatory(NodeList elementGroups, List<String> mandatoryChildren) {
-        for (int j = 0; j < elementGroups.getLength(); j++) {
-            Element group = (Element) elementGroups.item(j);
-            NodeList elements = group.getElementsByTagName("xs:element");
-
-            for (int k = 0; k < elements.getLength(); k++) {
-                Element element = (Element) elements.item(k);
-                String elementName = element.getAttribute("name");
-                String minOccurs = element.getAttribute("minOccurs");
-
-                // Only add mandatory elements (minOccurs > 0, default is 1)
-                if (!elementName.isEmpty() && isMandatoryFromMinOccurs(minOccurs)) {
-                    mandatoryChildren.add(elementName);
-                }
-            }
-        }
-    }
-
-    /**
-     * Checks if an element is mandatory based on minOccurs attribute.
-     */
-    private boolean isMandatoryFromMinOccurs(String minOccurs) {
-        if (minOccurs == null || minOccurs.isEmpty()) {
-            return true; // Default minOccurs is 1, so mandatory
-        }
-        try {
-            return Integer.parseInt(minOccurs) > 0;
-        } catch (NumberFormatException e) {
-            return true; // If can't parse, assume mandatory
-        }
-    }
-
-
-
 
     private void applyStyles() {
         if (codeArea.getText().length() >= MAX_SIZE_FOR_FORMATTING) return;
