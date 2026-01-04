@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 
 /**
@@ -25,102 +23,41 @@ import org.fxt.freexmltoolkit.controls.v2.model.*;
  */
 public class AddChoiceCommand implements XsdCommand {
 
-    private static final Logger logger = LogManager.getLogger(AddChoiceCommand.class);
-
-    private final XsdElement targetElement;
-    private XsdChoice addedChoice;
-    private XsdComplexType addedComplexType;
-    private boolean createdComplexType;
-    private XsdNode previousCompositor;
+    private final AddCompositorCommand<XsdChoice> delegate;
 
     /**
      * Creates a new add choice command.
      *
      * @param targetElement the element to add the choice to
+     * @throws IllegalArgumentException if targetElement is null
      */
     public AddChoiceCommand(XsdElement targetElement) {
-        if (targetElement == null) {
-            throw new IllegalArgumentException("Target element cannot be null");
-        }
-        this.targetElement = targetElement;
+        this.delegate = AddCompositorCommand.choice(targetElement);
     }
 
     @Override
     public boolean execute() {
-        // Check if element already has a complexType child
-        XsdComplexType existingComplexType = null;
-        for (XsdNode child : targetElement.getChildren()) {
-            if (child instanceof XsdComplexType) {
-                existingComplexType = (XsdComplexType) child;
-                break;
-            }
-        }
-
-        // Create or reuse complexType
-        if (existingComplexType == null) {
-            addedComplexType = new XsdComplexType("");
-            targetElement.addChild(addedComplexType);
-            createdComplexType = true;
-            logger.info("Created inline complexType for element '{}'", targetElement.getName());
-        } else {
-            addedComplexType = existingComplexType;
-            createdComplexType = false;
-
-            // Check if there's already a compositor - store it for undo
-            for (XsdNode child : addedComplexType.getChildren()) {
-                if (child instanceof XsdSequence || child instanceof XsdChoice || child instanceof XsdAll) {
-                    previousCompositor = child;
-                    addedComplexType.removeChild(child);
-                    break;
-                }
-            }
-        }
-
-        // Create and add the choice
-        addedChoice = new XsdChoice();
-        addedComplexType.addChild(addedChoice);
-
-        logger.info("Added choice to element '{}'", targetElement.getName());
-        return true;
+        return delegate.execute();
     }
 
     @Override
     public boolean undo() {
-        if (addedChoice == null || addedComplexType == null) {
-            logger.warn("Cannot undo: no choice was added");
-            return false;
-        }
-
-        // Remove the choice
-        addedComplexType.removeChild(addedChoice);
-
-        // Restore previous compositor if there was one
-        if (previousCompositor != null) {
-            addedComplexType.addChild(previousCompositor);
-        }
-
-        // Remove complexType if we created it
-        if (createdComplexType && addedComplexType != null) {
-            targetElement.removeChild(addedComplexType);
-        }
-
-        logger.info("Removed choice from element '{}'", targetElement.getName());
-        return true;
+        return delegate.undo();
     }
 
     @Override
     public String getDescription() {
-        return "Add choice to element '" + targetElement.getName() + "'";
+        return delegate.getDescription();
     }
 
     @Override
     public boolean canUndo() {
-        return addedChoice != null;
+        return delegate.canUndo();
     }
 
     @Override
     public boolean canMergeWith(XsdCommand other) {
-        return false;
+        return delegate.canMergeWith(other);
     }
 
     /**
@@ -129,6 +66,6 @@ public class AddChoiceCommand implements XsdCommand {
      * @return the added choice, or null if not yet executed
      */
     public XsdChoice getAddedChoice() {
-        return addedChoice;
+        return delegate.getAddedCompositor();
     }
 }

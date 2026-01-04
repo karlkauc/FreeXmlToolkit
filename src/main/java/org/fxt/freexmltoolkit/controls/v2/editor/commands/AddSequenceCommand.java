@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 
 /**
@@ -25,102 +23,41 @@ import org.fxt.freexmltoolkit.controls.v2.model.*;
  */
 public class AddSequenceCommand implements XsdCommand {
 
-    private static final Logger logger = LogManager.getLogger(AddSequenceCommand.class);
-
-    private final XsdElement targetElement;
-    private XsdSequence addedSequence;
-    private XsdComplexType addedComplexType;
-    private boolean createdComplexType;
-    private XsdNode previousCompositor;
+    private final AddCompositorCommand<XsdSequence> delegate;
 
     /**
      * Creates a new add sequence command.
      *
      * @param targetElement the element to add the sequence to
+     * @throws IllegalArgumentException if targetElement is null
      */
     public AddSequenceCommand(XsdElement targetElement) {
-        if (targetElement == null) {
-            throw new IllegalArgumentException("Target element cannot be null");
-        }
-        this.targetElement = targetElement;
+        this.delegate = AddCompositorCommand.sequence(targetElement);
     }
 
     @Override
     public boolean execute() {
-        // Check if element already has a complexType child
-        XsdComplexType existingComplexType = null;
-        for (XsdNode child : targetElement.getChildren()) {
-            if (child instanceof XsdComplexType) {
-                existingComplexType = (XsdComplexType) child;
-                break;
-            }
-        }
-
-        // Create or reuse complexType
-        if (existingComplexType == null) {
-            addedComplexType = new XsdComplexType("");
-            targetElement.addChild(addedComplexType);
-            createdComplexType = true;
-            logger.info("Created inline complexType for element '{}'", targetElement.getName());
-        } else {
-            addedComplexType = existingComplexType;
-            createdComplexType = false;
-
-            // Check if there's already a compositor - store it for undo
-            for (XsdNode child : addedComplexType.getChildren()) {
-                if (child instanceof XsdSequence || child instanceof XsdChoice || child instanceof XsdAll) {
-                    previousCompositor = child;
-                    addedComplexType.removeChild(child);
-                    break;
-                }
-            }
-        }
-
-        // Create and add the sequence
-        addedSequence = new XsdSequence();
-        addedComplexType.addChild(addedSequence);
-
-        logger.info("Added sequence to element '{}'", targetElement.getName());
-        return true;
+        return delegate.execute();
     }
 
     @Override
     public boolean undo() {
-        if (addedSequence == null || addedComplexType == null) {
-            logger.warn("Cannot undo: no sequence was added");
-            return false;
-        }
-
-        // Remove the sequence
-        addedComplexType.removeChild(addedSequence);
-
-        // Restore previous compositor if there was one
-        if (previousCompositor != null) {
-            addedComplexType.addChild(previousCompositor);
-        }
-
-        // Remove complexType if we created it
-        if (createdComplexType && addedComplexType != null) {
-            targetElement.removeChild(addedComplexType);
-        }
-
-        logger.info("Removed sequence from element '{}'", targetElement.getName());
-        return true;
+        return delegate.undo();
     }
 
     @Override
     public String getDescription() {
-        return "Add sequence to element '" + targetElement.getName() + "'";
+        return delegate.getDescription();
     }
 
     @Override
     public boolean canUndo() {
-        return addedSequence != null;
+        return delegate.canUndo();
     }
 
     @Override
     public boolean canMergeWith(XsdCommand other) {
-        return false;
+        return delegate.canMergeWith(other);
     }
 
     /**
@@ -129,6 +66,6 @@ public class AddSequenceCommand implements XsdCommand {
      * @return the added sequence, or null if not yet executed
      */
     public XsdSequence getAddedSequence() {
-        return addedSequence;
+        return delegate.getAddedCompositor();
     }
 }
