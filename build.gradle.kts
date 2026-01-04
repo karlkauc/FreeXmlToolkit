@@ -1017,3 +1017,45 @@ tasks.register("notarizeMacOSDMG", Exec::class) {
         )
     }
 }
+
+// Task to collect LOC data from git history
+tasks.register<Exec>("collectLocData") {
+    group = "reporting"
+    description = "Collect LOC data from last 100 commits"
+
+    doFirst {
+        file("build/reports/loc").mkdirs()
+        println("📊 Starting LOC data collection...")
+    }
+
+    commandLine("bash", "scripts/loc-analysis.sh")
+}
+
+// Task to assemble the LOC report from collected data
+tasks.register<Exec>("assembleLocReport") {
+    group = "reporting"
+    description = "Assemble LOC report from collected data"
+
+    dependsOn("collectLocData")
+
+    commandLine("bash", "scripts/assemble-loc-report.sh")
+
+    doLast {
+        val reportFile = file("build/reports/loc/index.html")
+        if (reportFile.exists()) {
+            println("")
+            println("✅ LOC report generated successfully!")
+            println("📊 Report location: ${reportFile.absolutePath}")
+            println("🌐 Open in browser: file://${reportFile.absolutePath}")
+        } else {
+            throw GradleException("Failed to generate LOC report")
+        }
+    }
+}
+
+// Main task to generate complete LOC report
+tasks.register("generateLocReport") {
+    group = "reporting"
+    description = "Generate complete LOC analysis report for last 100 commits (Java only)"
+    dependsOn("assembleLocReport")
+}
