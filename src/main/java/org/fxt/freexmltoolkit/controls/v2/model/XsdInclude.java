@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
-import java.nio.file.Path;
-
 /**
  * Represents an XSD include element (xs:include).
  * Include brings components from another schema document with the same target namespace
@@ -13,15 +11,9 @@ import java.nio.file.Path;
  *
  * @since 2.0
  */
-public class XsdInclude extends XsdNode {
+public class XsdInclude extends XsdSchemaReference {
 
-    private String schemaLocation; // URI of the schema to include
-
-    // Multi-file support properties
     private XsdSchema includedSchema;  // The loaded schema content
-    private boolean resolved;          // Whether this include has been resolved
-    private Path resolvedPath;         // Absolute path after resolution
-    private String resolutionError;    // Error message if resolution failed
 
     /**
      * Creates a new XSD include element with default name.
@@ -38,26 +30,6 @@ public class XsdInclude extends XsdNode {
     public XsdInclude(String schemaLocation) {
         super("include");
         this.schemaLocation = schemaLocation;
-    }
-
-    /**
-     * Gets the schemaLocation attribute.
-     *
-     * @return the schema location URI, or null
-     */
-    public String getSchemaLocation() {
-        return schemaLocation;
-    }
-
-    /**
-     * Sets the schemaLocation attribute.
-     *
-     * @param schemaLocation the URI of the schema to include
-     */
-    public void setSchemaLocation(String schemaLocation) {
-        String oldValue = this.schemaLocation;
-        this.schemaLocation = schemaLocation;
-        pcs.firePropertyChange("schemaLocation", oldValue, schemaLocation);
     }
 
     /**
@@ -83,76 +55,27 @@ public class XsdInclude extends XsdNode {
     }
 
     /**
-     * Checks whether this include has been resolved (schema loaded).
-     *
-     * @return true if the include has been resolved
-     */
-    public boolean isResolved() {
-        return resolved;
-    }
-
-    /**
-     * Gets the resolved absolute path of the included schema file.
-     *
-     * @return the absolute path, or null if not resolved
-     */
-    public Path getResolvedPath() {
-        return resolvedPath;
-    }
-
-    /**
-     * Sets the resolved absolute path after resolution.
-     *
-     * @param resolvedPath the absolute path to the included schema
-     */
-    public void setResolvedPath(Path resolvedPath) {
-        Path oldValue = this.resolvedPath;
-        this.resolvedPath = resolvedPath;
-        pcs.firePropertyChange("resolvedPath", oldValue, resolvedPath);
-    }
-
-    /**
-     * Gets the resolution error message (if resolution failed).
-     *
-     * @return the error message, or null if no error
-     */
-    public String getResolutionError() {
-        return resolutionError;
-    }
-
-    /**
-     * Sets the resolution error message.
-     *
-     * @param resolutionError the error message
-     */
-    public void setResolutionError(String resolutionError) {
-        String oldValue = this.resolutionError;
-        this.resolutionError = resolutionError;
-        pcs.firePropertyChange("resolutionError", oldValue, resolutionError);
-    }
-
-    /**
-     * Marks this include as failed to resolve.
-     *
-     * @param errorMessage the error message describing why resolution failed
-     */
-    public void markResolutionFailed(String errorMessage) {
-        this.resolved = false;
-        this.includedSchema = null;
-        setResolutionError(errorMessage);
-    }
-
-    /**
      * Gets the file name of the included schema (extracted from schemaLocation).
      *
      * @return the file name, or "unknown" if schemaLocation is not set
      */
     public String getIncludeFileName() {
-        if (schemaLocation == null || schemaLocation.isEmpty()) {
-            return "unknown";
-        }
-        int lastSlash = Math.max(schemaLocation.lastIndexOf('/'), schemaLocation.lastIndexOf('\\'));
-        return lastSlash >= 0 ? schemaLocation.substring(lastSlash + 1) : schemaLocation;
+        return extractFileName();
+    }
+
+    @Override
+    public XsdSchema getReferencedSchema() {
+        return includedSchema;
+    }
+
+    @Override
+    public void setReferencedSchema(XsdSchema schema) {
+        setIncludedSchema(schema);
+    }
+
+    @Override
+    protected void clearReferencedSchema() {
+        this.includedSchema = null;
     }
 
     @Override

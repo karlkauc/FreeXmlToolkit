@@ -13,9 +13,7 @@ import java.util.List;
  *
  * @since 2.0
  */
-public class XsdRedefine extends XsdNode {
-
-    private String schemaLocation; // URI of the schema to redefine
+public class XsdRedefine extends XsdSchemaReference {
 
     /**
      * Creates a new XSD redefine element with default name.
@@ -32,26 +30,6 @@ public class XsdRedefine extends XsdNode {
     public XsdRedefine(String schemaLocation) {
         super("redefine");
         this.schemaLocation = schemaLocation;
-    }
-
-    /**
-     * Gets the schemaLocation attribute.
-     *
-     * @return the schema location URI, or null
-     */
-    public String getSchemaLocation() {
-        return schemaLocation;
-    }
-
-    /**
-     * Sets the schemaLocation attribute.
-     *
-     * @param schemaLocation the URI of the schema to redefine
-     */
-    public void setSchemaLocation(String schemaLocation) {
-        String oldValue = this.schemaLocation;
-        this.schemaLocation = schemaLocation;
-        pcs.firePropertyChange("schemaLocation", oldValue, schemaLocation);
     }
 
     /**
@@ -112,6 +90,24 @@ public class XsdRedefine extends XsdNode {
                 .filter(child -> child instanceof XsdAttributeGroup)
                 .map(child -> (XsdAttributeGroup) child)
                 .toList();
+    }
+
+    @Override
+    public XsdSchema getReferencedSchema() {
+        // Redefine does not maintain a reference to the included schema
+        return null;
+    }
+
+    @Override
+    public void setReferencedSchema(XsdSchema schema) {
+        // Redefine does not maintain a reference to the included schema
+        // This is a no-op
+    }
+
+    @Override
+    protected void clearReferencedSchema() {
+        // Redefine does not maintain a reference to the included schema
+        // This is a no-op
     }
 
     @Override

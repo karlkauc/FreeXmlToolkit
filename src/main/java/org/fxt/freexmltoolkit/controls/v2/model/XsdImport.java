@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
-import java.nio.file.Path;
-
 /**
  * Represents an XSD import element (xs:import).
  * Import brings components from a different target namespace into the current schema.
@@ -10,16 +8,10 @@ import java.nio.file.Path;
  *
  * @since 2.0
  */
-public class XsdImport extends XsdNode {
+public class XsdImport extends XsdSchemaReference {
 
     private String namespace; // Target namespace of the imported schema
-    private String schemaLocation; // Optional URI of the schema to import
-
-    // Multi-file support properties (matching XsdInclude)
     private XsdSchema importedSchema;  // The loaded schema content
-    private boolean resolved;          // Whether this import has been resolved
-    private Path resolvedPath;         // Absolute path after resolution
-    private String resolutionError;    // Error message if resolution failed
 
     /**
      * Creates a new XSD import element with default name.
@@ -71,26 +63,6 @@ public class XsdImport extends XsdNode {
     }
 
     /**
-     * Gets the schemaLocation attribute.
-     *
-     * @return the schema location URI, or null
-     */
-    public String getSchemaLocation() {
-        return schemaLocation;
-    }
-
-    /**
-     * Sets the schemaLocation attribute.
-     *
-     * @param schemaLocation the URI of the schema to import (optional)
-     */
-    public void setSchemaLocation(String schemaLocation) {
-        String oldValue = this.schemaLocation;
-        this.schemaLocation = schemaLocation;
-        pcs.firePropertyChange("schemaLocation", oldValue, schemaLocation);
-    }
-
-    /**
      * Gets the imported schema content (if resolved).
      *
      * @return the imported schema, or null if not yet resolved
@@ -113,76 +85,27 @@ public class XsdImport extends XsdNode {
     }
 
     /**
-     * Checks whether this import has been resolved (schema loaded).
-     *
-     * @return true if the import has been resolved
-     */
-    public boolean isResolved() {
-        return resolved;
-    }
-
-    /**
-     * Gets the resolved absolute path of the imported schema file.
-     *
-     * @return the absolute path, or null if not resolved
-     */
-    public Path getResolvedPath() {
-        return resolvedPath;
-    }
-
-    /**
-     * Sets the resolved absolute path after resolution.
-     *
-     * @param resolvedPath the absolute path to the imported schema
-     */
-    public void setResolvedPath(Path resolvedPath) {
-        Path oldValue = this.resolvedPath;
-        this.resolvedPath = resolvedPath;
-        pcs.firePropertyChange("resolvedPath", oldValue, resolvedPath);
-    }
-
-    /**
-     * Gets the resolution error message (if resolution failed).
-     *
-     * @return the error message, or null if no error
-     */
-    public String getResolutionError() {
-        return resolutionError;
-    }
-
-    /**
-     * Sets the resolution error message.
-     *
-     * @param resolutionError the error message
-     */
-    public void setResolutionError(String resolutionError) {
-        String oldValue = this.resolutionError;
-        this.resolutionError = resolutionError;
-        pcs.firePropertyChange("resolutionError", oldValue, resolutionError);
-    }
-
-    /**
-     * Marks this import as failed to resolve.
-     *
-     * @param errorMessage the error message describing why resolution failed
-     */
-    public void markResolutionFailed(String errorMessage) {
-        this.resolved = false;
-        this.importedSchema = null;
-        setResolutionError(errorMessage);
-    }
-
-    /**
      * Gets the file name of the imported schema (extracted from schemaLocation).
      *
      * @return the file name, or "unknown" if schemaLocation is not set
      */
     public String getImportFileName() {
-        if (schemaLocation == null || schemaLocation.isEmpty()) {
-            return "unknown";
-        }
-        int lastSlash = Math.max(schemaLocation.lastIndexOf('/'), schemaLocation.lastIndexOf('\\'));
-        return lastSlash >= 0 ? schemaLocation.substring(lastSlash + 1) : schemaLocation;
+        return extractFileName();
+    }
+
+    @Override
+    public XsdSchema getReferencedSchema() {
+        return importedSchema;
+    }
+
+    @Override
+    public void setReferencedSchema(XsdSchema schema) {
+        setImportedSchema(schema);
+    }
+
+    @Override
+    protected void clearReferencedSchema() {
+        this.importedSchema = null;
     }
 
     @Override
