@@ -27,9 +27,11 @@ import org.controlsfx.control.CheckComboBox;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
-import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog;
 import org.fxt.freexmltoolkit.controls.intellisense.XmlCodeFoldingManager;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
+import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
@@ -278,7 +280,8 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private VBox noFileLoadedPaneText;
     @FXML
-    private XmlCodeEditor sourceCodeEditor;
+    private VBox sourceCodeEditorContainer;
+    private XmlCodeEditorV2 sourceCodeEditor;
     @FXML
     private ProgressIndicator textProgress;
 
@@ -449,6 +452,9 @@ public class XsdController implements FavoritesParentController {
             grafikFormat.setItems(FXCollections.observableArrayList("SVG", "PNG", "JPG"));
             grafikFormat.setValue("SVG");
         }
+
+        // Initialize source code editor (XmlCodeEditorV2)
+        initializeSourceCodeEditor();
 
         // Initialize favorites menu
         Platform.runLater(() -> {
@@ -5820,6 +5826,29 @@ public class XsdController implements FavoritesParentController {
      */
     public void refreshToolbarIcons() {
         applySmallIconsSetting();
+    }
+
+    /**
+     * Initialize the source code editor (XmlCodeEditorV2)
+     */
+    private void initializeSourceCodeEditor() {
+        try {
+            if (sourceCodeEditorContainer != null) {
+                sourceCodeEditor = XmlCodeEditorV2Factory.createWithoutSchema();
+                sourceCodeEditor.setEditorMode(EditorMode.XML_WITHOUT_XSD);
+
+                // Add to container with grow priority
+                sourceCodeEditorContainer.getChildren().add(sourceCodeEditor);
+                javafx.scene.layout.VBox.setVgrow(sourceCodeEditor, javafx.scene.layout.Priority.ALWAYS);
+
+                logger.debug("Source code editor initialized successfully");
+            } else {
+                logger.error("Source code editor container not found in FXML");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to initialize source code editor", e);
+            DialogHelper.showError("Initialization Error", "", "Failed to initialize code editor: " + e.getMessage());
+        }
     }
 
 }

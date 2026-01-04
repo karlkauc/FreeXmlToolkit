@@ -23,7 +23,6 @@
 <?import javafx.scene.web.WebView?>
 <?import org.fxmisc.flowless.VirtualizedScrollPane?>
 <?import org.fxmisc.richtext.CodeArea?>
-<?import org.fxt.freexmltoolkit.controls.XmlCodeEditor?>
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
       AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
@@ -430,7 +429,7 @@
                                                     </HBox>
                                                 </children>
                                             </VBox>
-                                            <XmlCodeEditor fx:id="sourceCodeEditor" managed="false" visible="false"/>
+                                            <VBox fx:id="sourceCodeEditorContainer" managed="false" visible="false"/>
                                             <ProgressIndicator fx:id="textProgress" maxHeight="80" maxWidth="80"
                                                                visible="false"/>
                                         </children>
