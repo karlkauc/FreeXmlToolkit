@@ -21,6 +21,7 @@ import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 import org.fxt.freexmltoolkit.controls.v2.common.utilities.XmlValidationHelper;
+import org.fxt.freexmltoolkit.controls.v2.common.utilities.XmlEditorUIHelper;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
@@ -649,9 +650,7 @@ public class XmlEditor extends Tab {
      * Strips HTML tags from text for plain text display.
      */
     private String stripHtmlTags(String html) {
-        if (html == null) return "";
-        return html.replaceAll("<[^>]*>", "").replaceAll("&nbsp;", " ").replaceAll("&lt;", "<")
-                .replaceAll("&gt;", ">").replaceAll("&amp;", "&").trim();
+        return XmlEditorUIHelper.stripHtmlTags(html);
     }
 
     /**
