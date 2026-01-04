@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.serialization;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.common.utilities.BackupUtility;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -12,9 +13,6 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -34,8 +32,6 @@ import java.util.Map;
 public class XsdSerializer {
 
     private static final Logger logger = LogManager.getLogger(XsdSerializer.class);
-    private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMAT =
-            DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private static final String DEFAULT_INDENT = "    "; // 4 spaces
     private static final int MAX_SERIALIZATION_DEPTH = 100; // Prevent infinite recursion
@@ -44,7 +40,7 @@ public class XsdSerializer {
     private XsdSortOrder sortOrder = null; // null means use default from settings
 
     /**
-     * Creates a backup of the specified file.
+     * Creates a backup of the specified file using BackupUtility.
      * The backup location is determined by application settings:
      * - If "use separate directory" is enabled, backups go to the configured backup directory
      * - Otherwise, backups are created in the same directory as the original file
@@ -54,34 +50,7 @@ public class XsdSerializer {
      * @throws IOException if backup fails
      */
     public Path createBackup(Path filePath) throws IOException {
-        if (!Files.exists(filePath)) {
-            logger.warn("Cannot create backup: file does not exist: {}", filePath);
-            return null;
-        }
-
-        // Determine backup directory based on settings
-        Path backupDir;
-        PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
-
-        if (propertiesService.isBackupUseSeparateDirectory()) {
-            backupDir = Path.of(propertiesService.getBackupDirectory());
-            // Auto-create the backup directory if it doesn't exist
-            Files.createDirectories(backupDir);
-            logger.debug("Using separate backup directory: {}", backupDir);
-        } else {
-            backupDir = filePath.getParent();
-        }
-
-        // Create backup filename with timestamp
-        String timestamp = LocalDateTime.now().format(BACKUP_TIMESTAMP_FORMAT);
-        String fileName = filePath.getFileName().toString();
-        String backupFileName = fileName.replaceFirst("(\\.[^.]+)$", "_backup_" + timestamp + "$1");
-
-        Path backupPath = backupDir.resolve(backupFileName);
-        Files.copy(filePath, backupPath, StandardCopyOption.REPLACE_EXISTING);
-
-        logger.info("Created backup: {}", backupPath);
-        return backupPath;
+        return BackupUtility.createBackup(filePath);
     }
 
     /**
