@@ -16,7 +16,7 @@
  *
  */
 
-package org.fxt.freexmltoolkit.controls.editor;
+package org.fxt.freexmltoolkit.controls.shared.utilities;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

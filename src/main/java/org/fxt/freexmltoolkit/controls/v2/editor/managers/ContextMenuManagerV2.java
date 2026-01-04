@@ -10,7 +10,7 @@ import javafx.scene.input.ClipboardContent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
-import org.fxt.freexmltoolkit.controls.editor.XmlContextMenuManager;
+import org.fxt.freexmltoolkit.controls.shared.utilities.XmlContextMenuManager;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextAnalyzer;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;

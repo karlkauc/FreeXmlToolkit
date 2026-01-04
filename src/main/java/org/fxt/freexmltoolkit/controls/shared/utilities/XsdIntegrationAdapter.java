@@ -1,4 +1,4 @@
-package org.fxt.freexmltoolkit.controls.intellisense;
+package org.fxt.freexmltoolkit.controls.shared.utilities;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

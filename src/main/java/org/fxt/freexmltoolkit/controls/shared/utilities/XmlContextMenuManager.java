@@ -1,4 +1,4 @@
-package org.fxt.freexmltoolkit.controls.editor;
+package org.fxt.freexmltoolkit.controls.shared.utilities;
 
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;

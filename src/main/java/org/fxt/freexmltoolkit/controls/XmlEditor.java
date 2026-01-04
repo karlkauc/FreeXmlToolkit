@@ -552,8 +552,8 @@ public class XmlEditor extends Tab {
 
     private void showSearchPopup(boolean isSearch) {
         try {
-            org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog dialog = 
-                new org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog(codeArea);
+            org.fxt.freexmltoolkit.controls.shared.utilities.FindReplaceDialog dialog =
+                new org.fxt.freexmltoolkit.controls.shared.utilities.FindReplaceDialog(codeArea);
             dialog.showAndWait();
         } catch (Exception e) {
             logger.error("Error opening find/replace dialog: {}", e.getMessage(), e);

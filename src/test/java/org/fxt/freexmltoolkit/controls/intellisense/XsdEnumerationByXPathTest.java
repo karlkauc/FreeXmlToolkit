@@ -17,6 +17,7 @@
  */
 package org.fxt.freexmltoolkit.controls.intellisense;
 
+import org.fxt.freexmltoolkit.controls.shared.utilities.XsdIntegrationAdapter;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.junit.jupiter.api.BeforeEach;

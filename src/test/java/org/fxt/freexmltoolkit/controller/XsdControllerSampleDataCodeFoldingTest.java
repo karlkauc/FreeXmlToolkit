@@ -20,7 +20,7 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.stage.Stage;
 import org.fxt.freexmltoolkit.FxtGui;
-import org.fxt.freexmltoolkit.controls.intellisense.XmlCodeFoldingManager;
+import org.fxt.freexmltoolkit.controls.shared.utilities.XmlCodeFoldingManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;

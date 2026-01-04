@@ -1,4 +1,4 @@
-package org.fxt.freexmltoolkit.controls.intellisense;
+package org.fxt.freexmltoolkit.controls.shared.utilities;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;

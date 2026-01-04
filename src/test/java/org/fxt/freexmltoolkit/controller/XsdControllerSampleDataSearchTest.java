@@ -98,7 +98,7 @@ class XsdControllerSampleDataSearchTest {
         // Use reflection to check that the field exists
         Field dialogField = XsdController.class.getDeclaredField("sampleDataFindReplaceDialog");
         assertNotNull(dialogField, "sampleDataFindReplaceDialog field should exist");
-        assertEquals("org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog",
+        assertEquals("org.fxt.freexmltoolkit.controls.shared.utilities.FindReplaceDialog",
                 dialogField.getType().getName(),
                 "Field should be of type FindReplaceDialog");
     }

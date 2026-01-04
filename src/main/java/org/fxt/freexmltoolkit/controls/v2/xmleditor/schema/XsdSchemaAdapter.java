@@ -19,7 +19,7 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.schema;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.intellisense.XsdIntegrationAdapter;
+import org.fxt.freexmltoolkit.controls.shared.utilities.XsdIntegrationAdapter;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 
