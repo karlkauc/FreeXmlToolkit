@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.serialization;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.common.utilities.BackupUtility;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.fxt.freexmltoolkit.service.PropertiesService;
@@ -11,8 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -38,8 +37,6 @@ import java.util.*;
 public class MultiFileXsdSerializer {
 
     private static final Logger logger = LogManager.getLogger(MultiFileXsdSerializer.class);
-    private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMAT =
-            DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private static final String DEFAULT_INDENT = "    "; // 4 spaces
 
@@ -1060,18 +1057,10 @@ public class MultiFileXsdSerializer {
     }
 
     /**
-     * Creates a backup of the specified file.
+     * Creates a backup of the specified file using BackupUtility.
      */
     private Path createBackup(Path filePath) throws IOException {
-        String timestamp = LocalDateTime.now().format(BACKUP_TIMESTAMP_FORMAT);
-        String fileName = filePath.getFileName().toString();
-        String backupFileName = fileName.replaceFirst("(\\.[^.]+)$", "_backup_" + timestamp + "$1");
-
-        Path backupPath = filePath.getParent().resolve(backupFileName);
-        Files.copy(filePath, backupPath, StandardCopyOption.REPLACE_EXISTING);
-
-        logger.debug("Created backup: {}", backupPath);
-        return backupPath;
+        return BackupUtility.createBackup(filePath);
     }
 
     /**

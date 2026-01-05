@@ -43,11 +43,6 @@ public class XmlSerializer {
     private static final Logger logger = LogManager.getLogger(XmlSerializer.class);
 
     /**
-     * Default indentation (2 spaces).
-     */
-    private static final int DEFAULT_INDENT = 2;
-
-    /**
      * Backup file suffix format.
      */
     private static final String BACKUP_SUFFIX = ".backup_%s";
@@ -57,6 +52,11 @@ public class XmlSerializer {
      */
     private static final DateTimeFormatter BACKUP_DATE_FORMAT =
             DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+
+    /**
+     * Default indentation (2 spaces).
+     */
+    private static final int DEFAULT_INDENT = 2;
 
     /**
      * Indentation size (number of spaces per level).

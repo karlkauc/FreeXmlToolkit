@@ -237,6 +237,14 @@ org.fxt.freexmltoolkit/
 │   ├── XmlEditor.java                  # XML tab component (uses V2 internally)
 │   └── XmlCodeEditor.java              # Deprecated V1 - only used by Schematron
 ├── controls/v2/                        # XML/XSD Editor V2 (Primary Architecture)
+│   ├── common/
+│   │   └── utilities/                  # Common utility helpers (Phase 3)
+│   │       ├── XmlEditorUIHelper       # Text formatting, HTML stripping
+│   │       ├── XPathAnalyzer           # XPath parsing and analysis
+│   │       ├── XmlValidationHelper     # Error conversion and validation
+│   │       ├── XmlCanvasRenderingHelper # Canvas rendering utilities
+│   │       ├── XmlCanvasLayoutHelper   # Layout calculations
+│   │       └── XmlCanvasEventHelper    # Event type detection
 │   ├── model/                          # XSD domain model (38 classes)
 │   │   ├── XsdNode.java                # Base class for all XSD nodes
 │   │   ├── XsdElement.java             # Element nodes
@@ -245,12 +253,25 @@ org.fxt.freexmltoolkit/
 │   │   ├── XsdRestriction.java         # Type restrictions
 │   │   ├── XsdFacet.java               # Facets (pattern, enumeration, etc.)
 │   │   ├── XsdNodeFactory.java         # Factory for creating nodes from XML
+│   │   ├── XsdTypeParsingHelper        # Type classification and parsing (Phase 3)
+│   │   ├── XsdElementParsingHelper     # Element property extraction (Phase 3)
+│   │   ├── XsdStructureParsingHelper   # Compositor detection (Phase 3)
+│   │   ├── XsdConstraintParsingHelper  # Constraint identification (Phase 3)
+│   │   ├── XsdSchemaReferenceHelper    # Import/Include handling (Phase 3)
 │   │   └── [30+ other XSD constructs]  # Complete XSD 1.0/1.1 support
 │   ├── view/                           # Visual representation layer
+│   │   ├── XsdGraphViewEventHandler    # Mouse event classification (Phase 3)
+│   │   ├── XsdGraphViewRenderingHelper # Zoom and rendering utilities (Phase 3)
+│   │   ├── XsdGraphViewTreeManager     # Tree operations (Phase 3)
+│   │   └── XsdGraphViewOperationHelper # Clipboard and node operations (Phase 3)
 │   ├── editor/                         # Editor orchestration
 │   │   ├── XsdEditorContext.java       # Central context
 │   │   ├── commands/                   # Command pattern (24 commands)
 │   │   ├── panels/                     # Property panels
+│   │   │   ├── XsdPropertiesPanelFacetsHelper       # Facet extraction (Phase 3)
+│   │   │   ├── XsdPropertiesPanelDocumentationHelper # Documentation (Phase 3)
+│   │   │   ├── XsdPropertiesPanelTypeHelper         # Type utilities (Phase 3)
+│   │   │   └── XsdPropertiesPanelConstraintHelper   # Constraint operations (Phase 3)
 │   │   ├── selection/                  # Selection model
 │   │   ├── menu/                       # Context menus
 │   │   └── serialization/              # Model-to-XML serialization
