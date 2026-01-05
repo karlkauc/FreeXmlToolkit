@@ -21,14 +21,14 @@ public class XsdNodeRenderer {
 
     private static final double MIN_NODE_WIDTH = 200;  // Minimum width
     private static final double MAX_NODE_WIDTH = 800;  // Increased max width for larger content
-    private static final double HEADER_HEIGHT = 36.0;  // Fixed header height
+    private static final double HEADER_HEIGHT = 32.0;  // Reduced header height for less dominance
     private static final double MIN_BODY_HEIGHT = 20.0;  // Minimum body height (no content)
     private static final double PROPERTY_LINE_HEIGHT = 20.0;  // Height per property line
-    private static final double NODE_HEIGHT = HEADER_HEIGHT + MIN_BODY_HEIGHT;  // 56px minimum
+    private static final double NODE_HEIGHT = HEADER_HEIGHT + MIN_BODY_HEIGHT;  // 52px minimum
     private static final double COMPOSITOR_SIZE = 28;  // Small square for compositors
     private static final double EXPAND_BUTTON_SIZE = 16;
-    private static final double HORIZONTAL_SPACING = 40;
-    private static final double VERTICAL_SPACING = 20;
+    private static final double HORIZONTAL_SPACING = 80; // Increased spacing
+    private static final double VERTICAL_SPACING = 40;   // Increased spacing
     private static final double CORNER_RADIUS = 6;  // Updated to 6px for modern look
     private static final double PADDING = 30; // Increased padding for better text spacing
 
@@ -40,14 +40,14 @@ public class XsdNodeRenderer {
     public XsdNodeRenderer() {
         this.styler = new XsdNodeStyler();
         // XMLSpy uses Segoe UI font family
-        this.nodeFont = Font.font("Segoe UI", 11);
+        this.nodeFont = Font.font("Segoe UI", 12); // Slightly larger for readability
         this.detailFont = Font.font("Segoe UI", 10);
         this.textMeasurer = new javafx.scene.text.Text();
     }
 
     /**
      * Calculates the required width for a node based on all header elements:
-     * - Icon box (28px) + padding (8px)
+     * - Icon (16px) + spacing
      * - Node name text
      * - Cardinality badge (60px)
      * - Expand button (16px) + spacing (8px) if has children
@@ -58,15 +58,14 @@ public class XsdNodeRenderer {
             return COMPOSITOR_SIZE;
         }
 
-        final double ICON_BOX_SIZE = 28.0;      // 24px box + 4px padding on each side
-        final double ICON_BOX_SPACING = 8.0;    // Spacing after icon box
-        final double BADGE_WIDTH = 60.0;        // Cardinality badge fixed width
+        final double ICON_SIZE = 16.0;
+        final double ICON_SPACING = 12.0;       // Spacing after icon
         final double BADGE_SPACING = 8.0;       // Spacing before badge
         final double EXPAND_BTN_WIDTH = 16.0;   // Expand button width
         final double EXPAND_BTN_SPACING = 8.0;  // Spacing for expand button
 
         // Calculate header width components
-        double headerWidth = ICON_BOX_SIZE + ICON_BOX_SPACING;  // Icon and spacing
+        double headerWidth = ICON_SIZE + ICON_SPACING;  // Icon and spacing
 
         // Measure label text with proper font
         textMeasurer.setFont(nodeFont);
@@ -161,7 +160,7 @@ public class XsdNodeRenderer {
     }
 
     /**
-     * Renders the header section of a node (36px height with icon, name, and cardinality badge).
+     * Renders the header section of a node (32px height with icon, name, and cardinality badge).
      *
      * @param gc        Graphics context
      * @param node      The visual node
@@ -170,10 +169,8 @@ public class XsdNodeRenderer {
      * @param width     Node width
      */
     private void renderNodeHeader(GraphicsContext gc, VisualNode node, double x, double y, double width) {
-        final double ICON_BOX_SIZE = 24.0;
-        final double ICON_BOX_PADDING = 4.0;
         final double ICON_SIZE = 16.0;
-        final double PADDING = 8.0;
+        final double PADDING = 10.0;
         final double HEADER_CORNER_RADIUS = 4.0;
 
         // Validate dimensions
@@ -184,7 +181,6 @@ public class XsdNodeRenderer {
         // Get colors and properties for this node
         Color headerColor = node.getHeaderColor();
         Color borderColor = node.getBorderColor();
-        Color iconBgColor = node.getIconBackgroundColor();
         String iconLiteral = node.getIconLiteral();
         String cardinityBadge = node.getCardinalityBadge();
 
@@ -195,11 +191,8 @@ public class XsdNodeRenderer {
         if (borderColor == null) {
             borderColor = Color.GRAY;
         }
-        if (iconBgColor == null) {
-            iconBgColor = headerColor;
-        }
 
-        // Create gradient background for header
+        // Create gradient background for header (very light)
         LinearGradient headerGradient = createHeaderGradient(headerColor, y, HEADER_HEIGHT);
 
         // Draw header background
@@ -226,30 +219,25 @@ public class XsdNodeRenderer {
         // Reset line dashes
         gc.setLineDashes();
 
-        // Draw icon box (left side)
-        double iconBoxX = x + PADDING;
-        double iconBoxY = y + (HEADER_HEIGHT - ICON_BOX_SIZE) / 2;
+        // Draw icon (left side, no box)
+        double iconX = x + PADDING;
+        double iconY = y + (HEADER_HEIGHT - ICON_SIZE) / 2;
 
-        gc.setFill(iconBgColor);
-        gc.setStroke(borderColor);
-        gc.setLineWidth(1.0);
-        gc.fillRoundRect(iconBoxX, iconBoxY, ICON_BOX_SIZE, ICON_BOX_SIZE, 4, 4);
-
-        // Render the icon inside the box
+        // Render the icon using the strong header color
         SvgIconRenderer.renderIcon(gc, iconLiteral,
-                iconBoxX + ICON_BOX_PADDING,
-                iconBoxY + ICON_BOX_PADDING,
+                iconX,
+                iconY,
                 ICON_SIZE,
-                Color.WHITE);
+                headerColor);
 
         // Draw node name (center area)
-        double nameX = iconBoxX + ICON_BOX_SIZE + PADDING;
+        double nameX = iconX + ICON_SIZE + PADDING;
         double nameY = y + HEADER_HEIGHT / 2;  // Vertically center in header
 
-        // Darker version of header color for text
-        Color textColor = headerColor.interpolate(Color.BLACK, 0.3);
+        // Darker version of header color for text to ensure contrast on light background
+        Color textColor = headerColor.darker();
         gc.setFill(textColor);
-        gc.setFont(Font.font("Roboto", FontWeight.BOLD, 13));
+        gc.setFont(Font.font("Roboto", FontWeight.BOLD, 12)); // Slightly smaller font
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setTextBaseline(VPos.CENTER);
 
@@ -258,14 +246,14 @@ public class XsdNodeRenderer {
 
         // Draw cardinality badge (right side)
         if (cardinityBadge != null && !cardinityBadge.isEmpty()) {
-            double badgeHeight = 20.0;
+            double badgeHeight = 18.0;
             double badgePadding = 6.0;
             double badgeWidth = estimateTextWidth(cardinityBadge, Font.font("Consolas", FontWeight.BOLD, 10)) + badgePadding * 2;
             double badgeX = x + width - badgeWidth - PADDING;
             double badgeY = y + (HEADER_HEIGHT - badgeHeight) / 2;
 
-            // Draw badge background (white)
-            gc.setFill(Color.WHITE);
+            // Draw badge background (white with partial transparency)
+            gc.setFill(Color.rgb(255, 255, 255, 0.8));
             gc.setStroke(borderColor);
             gc.setLineWidth(1.0);
             gc.fillRoundRect(badgeX, badgeY, badgeWidth, badgeHeight, 4, 4);
@@ -835,9 +823,9 @@ public class XsdNodeRenderer {
      * Returns a gradient from lighter tint to darker tint.
      */
     private LinearGradient createHeaderGradient(Color baseColor, double y, double height) {
-        // Create a subtle gradient that's lighter and more modern
-        Color lighter = baseColor.interpolate(Color.WHITE, 0.55);  // Much lighter tint (55% towards white)
-        Color darker = baseColor.interpolate(Color.WHITE, 0.35);   // Slightly darker but still light (35% towards white)
+        // Create a subtle gradient that's much lighter/paler for a modern, less dominant look
+        Color lighter = baseColor.interpolate(Color.WHITE, 0.92);  // 92% towards white
+        Color darker = baseColor.interpolate(Color.WHITE, 0.82);   // 82% towards white
 
         return new LinearGradient(0, y, 0, y + height, false, CycleMethod.NO_CYCLE,
                 new Stop(0, lighter),
@@ -1137,33 +1125,39 @@ public class XsdNodeRenderer {
         private String determineIconLiteral() {
             switch (type) {
                 case SCHEMA:
-                    return "bi-diagram-3";  // Database/schema symbol
+                    return "bi-hdd-stack";  // Database/schema symbol
                 case ELEMENT:
                     // Try to detect element datatype from detail string
                     if (detail != null && !detail.isEmpty()) {
                         return getDataTypeIcon(detail);
                     }
-                    return "bi-file-text";  // Generic document
+                    return "bi-file-earmark";  // Generic document
                 case ATTRIBUTE:
                     return "bi-at";  // @ symbol
                 case COMPLEX_TYPE:
-                    return "bi-diagram-2";  // Complex structure
-                case SIMPLE_TYPE:
-                    // Try to detect simple type from detail
+                    // If simple content (base type found in detail), try to use the datatype icon
                     if (detail != null && !detail.isEmpty()) {
-                        return getDataTypeIcon(detail);
+                        String icon = getDataTypeIcon(detail);
+                        if (!"bi-code".equals(icon)) return icon;
                     }
-                    return "bi-diagram-3";  // Type symbol
+                    return "bi-box-seam";  // Package/Container symbol
+                case SIMPLE_TYPE:
+                    // Try to detect simple type from detail (base type)
+                    if (detail != null && !detail.isEmpty()) {
+                        String icon = getDataTypeIcon(detail);
+                        if (!"bi-code".equals(icon)) return icon;
+                    }
+                    return "bi-type";  // Type symbol (T)
                 case SEQUENCE:
-                    return "bi-list-check";  // Ordered list
+                    return "bi-list-ol";  // Ordered list
                 case CHOICE:
-                    return "bi-signpost-2";  // Branch/choice
+                    return "bi-signpost-split";  // Branch/choice
                 case ALL:
-                    return "bi-asterisk";  // All/any
+                    return "bi-collection";  // Unordered collection
                 case GROUP:
-                    return "bi-diagram-3";  // Grouping
+                    return "bi-folder";  // Folder for grouping
                 case ENUMERATION:
-                    return "bi-list-check";  // Enumeration/list
+                    return "bi-list-check";  // Checklist
                 default:
                     return "bi-question-circle";  // Unknown type
             }
@@ -1175,113 +1169,80 @@ public class XsdNodeRenderer {
          */
         private String getDataTypeIcon(String datatype) {
             if (datatype == null || datatype.isEmpty()) {
-                return "bi-diagram-3";  // Default type
+                return "bi-code";  // Default generic code symbol
             }
 
             String lower = datatype.toLowerCase();
 
-            // Exact datatype matches (highest priority)
-            // String types - different icons for variations
-            // IMPORTANT: Check longer/more specific patterns first!
+            // ID / Keys - Highest priority
+            if (lower.endsWith(":id") || lower.equals("id") || lower.endsWith("idref")) {
+                return "bi-key";  // Key symbol for identifiers
+            }
+
+            // String & Text types
             if (lower.endsWith("string")) {
-                return "bi-file-text";  // xs:string
+                return "bi-type";  // Typography symbol for text
             }
-            if (lower.endsWith("token")) {
-                return "bi-chat-left-quote";  // xs:token (validated icon)
+            if (lower.endsWith("token") || lower.endsWith("normalizedstring")) {
+                return "bi-chat-quote";  // Quote symbol for tokens
             }
-            if (lower.endsWith("ncname")) {
-                return "bi-tag";  // xs:NCName (check before "name"!)
+            if (lower.endsWith("name") || lower.endsWith("ncname")) {
+                return "bi-tag";  // Tag symbol for names
             }
-            if (lower.endsWith("name")) {
-                return "bi-tag-fill";  // xs:Name (check after "ncname"!)
-            }
-            if (lower.endsWith(":id") || lower.equals("id")) {
-                return "bi-shield-check";  // xs:ID (validated icon)
+            if (lower.endsWith("language")) {
+                return "bi-globe2";  // Globe symbol for language
             }
 
-            // Integer types - distinct icons for each
-            if (lower.endsWith("integer")) {
-                return "bi-hash";  // xs:integer
+            // Numeric types
+            // Integers
+            if (lower.endsWith("integer") || lower.endsWith("int") || lower.endsWith("short") || 
+                lower.endsWith("long") || lower.endsWith("byte") || lower.endsWith("unsignedint")) {
+                return "bi-calculator";  // Calculator for numbers
             }
-            if (lower.endsWith(":int") || lower.equals("int")) {
-                return "bi-1-circle-fill";  // xs:int (validated icon)
-            }
-            if (lower.endsWith("long")) {
-                return "bi-2-circle-fill";  // xs:long (validated icon)
-            }
-            if (lower.endsWith("short")) {
-                return "bi-dash-square";  // xs:short
-            }
-            if (lower.endsWith("byte")) {
-                return "bi-subtract";  // xs:byte
+            // Floating point / Decimals
+            if (lower.endsWith("decimal") || lower.endsWith("float") || lower.endsWith("double")) {
+                return "bi-calculator";  // Calculator for precise math
             }
 
-            // Decimal/Float types - distinct icons
-            if (lower.endsWith("decimal")) {
-                return "bi-percent";  // xs:decimal
-            }
-            if (lower.endsWith("float")) {
-                return "bi-hexagon-fill";  // xs:float (validated icon)
-            }
-            if (lower.endsWith("double")) {
-                return "bi-box";  // xs:double
-            }
-
-            // Date/Time types - each its own icon
-            // IMPORTANT: Check longer/more specific patterns first!
-            // e.g., "datetime" must come before "date" because "datetime".endsWith("date") == true
-            if (lower.endsWith("datetime")) {
-                return "bi-calendar-event";  // xs:dateTime (check before "date"!)
-            }
-            if (lower.endsWith("duration")) {
-                return "bi-hourglass-split";  // xs:duration
-            }
-            if (lower.endsWith("gmonth")) {
-                return "bi-calendar3";  // xs:gMonth
-            }
-            if (lower.endsWith("gyear")) {
-                return "bi-calendar2";  // xs:gYear (validated icon)
-            }
-            if (lower.endsWith("date")) {
-                return "bi-calendar";  // xs:date (check after "datetime"!)
-            }
-            if (lower.endsWith("time")) {
-                return "bi-clock";  // xs:time
+            // Date & Time
+            if (lower.endsWith("datetime") || lower.endsWith("date") || 
+                lower.endsWith("gyear") || lower.endsWith("gmonth") || 
+                lower.endsWith("time") || lower.endsWith("duration")) {
+                return "bi-calendar";  // Calendar for all date/time
             }
 
             // Boolean
             if (lower.endsWith("boolean")) {
-                return "bi-toggle-on";  // xs:boolean
+                return "bi-toggle-on";  // Toggle switch
             }
 
-            // Binary/encoded types - distinct icons
-            if (lower.endsWith("base64binary")) {
-                return "bi-lock";  // xs:base64Binary
-            }
-            if (lower.endsWith("hexbinary")) {
-                return "bi-shield-lock";  // xs:hexBinary
+            // Binary Data
+            if (lower.endsWith("base64binary") || lower.endsWith("hexbinary")) {
+                return "bi-file-earmark-binary";  // Binary file symbol
             }
 
-            // URI/URL types
-            if (lower.endsWith("uri") || lower.endsWith("anyuri")) {
-                return "bi-link-45deg";  // xs:anyURI
+            // URIs & Web
+            if (lower.endsWith("anyuri") || lower.endsWith("uri")) {
+                return "bi-link";  // Link symbol
             }
-            if (lower.endsWith("qname")) {
-                return "bi-question-square";  // xs:QName
+
+            // XML Specific
+            if (lower.endsWith("qname") || lower.endsWith("notation")) {
+                return "bi-braces";  // Braces for technical types
             }
 
             // List types
             if (lower.endsWith("list")) {
-                return "bi-list";  // List type
+                return "bi-list-ul";  // List symbol
             }
 
             // Union types
             if (lower.endsWith("union")) {
-                return "bi-diagram-2";  // Union type
+                return "bi-intersect";  // Intersection/Union symbol
             }
 
-            // Default for unknown types
-            return "bi-diagram-3";  // Default generic type
+            // Default fallback
+            return "bi-code";
         }
 
         /**
@@ -1316,6 +1277,8 @@ public class XsdNodeRenderer {
          * Detail formats:
          * - XsdElement: "xs:string [N] [A] [F] [Q]" (type + flags: nillable, abstract, fixed, qualified)
          * - XsdAttribute: "xs:int (required) [Q]" (type + use + qualified)
+         * - XsdSimpleType: "xs:string" (base type)
+         * - XsdComplexType: "xs:string" (base type if simpleContent)
          * - Compositor: "3 items" (child count)
          * - Other nodes: "" (empty)
          * <p>
@@ -1378,6 +1341,34 @@ public class XsdNodeRenderer {
                 }
 
                 return detail.toString().trim();
+            }
+
+            // Handle XsdSimpleType - extract base type for icon determination
+            if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
+                for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : simpleType.getChildren()) {
+                    String base = extractBaseType(child);
+                    if (base != null) {
+                        // Resolve to the ultimate primitive base type (up to 5 levels deep)
+                        String resolvedBase = resolveBaseTypeToPrimitive(base, 0, new java.util.HashSet<>());
+                        return resolvedBase;
+                    }
+                }
+            }
+
+            // Handle XsdComplexType - check for SimpleContent
+            if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+                 for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : complexType.getChildren()) {
+                     if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent) {
+                         for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode contentChild : simpleContent.getChildren()) {
+                             String base = extractBaseType(contentChild);
+                             if (base != null) {
+                                 // Resolve to the ultimate primitive base type (up to 5 levels deep)
+                                 String resolvedBase = resolveBaseTypeToPrimitive(base, 0, new java.util.HashSet<>());
+                                 return resolvedBase;
+                             }
+                         }
+                     }
+                 }
             }
 
             // Handle Compositor nodes (sequence, choice, all) - show child count
@@ -1457,6 +1448,172 @@ public class XsdNodeRenderer {
                     return base;
                 }
             }
+            return null;
+        }
+
+        /**
+         * Resolves a base type name to the ultimate primitive type by following the type chain.
+         * Handles SimpleType restrictions, List, Union, and ComplexType SimpleContent.
+         * Protects against circular references and limits depth to 5 levels.
+         *
+         * @param typeName the type name to resolve (e.g., "BaseTextType")
+         * @param depth current recursion depth
+         * @param visited set of already visited types to prevent circular loops
+         * @return the ultimate primitive base type (e.g., "xs:string"), or the original typeName if not found
+         */
+        private String resolveBaseTypeToPrimitive(String typeName, int depth, java.util.Set<String> visited) {
+            // Base cases
+            if (typeName == null || typeName.isEmpty()) {
+                return typeName;
+            }
+
+            // Depth limit: stop at 5 levels
+            if (depth >= 5) {
+                return typeName;
+            }
+
+            // Check if already a primitive type
+            if (isPrimitiveType(typeName)) {
+                return typeName;
+            }
+
+            // Circular reference check
+            if (visited.contains(typeName)) {
+                return typeName;
+            }
+
+            // Mark as visited
+            visited.add(typeName);
+
+            // Find the type definition in the schema
+            org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = getRootSchema();
+            if (schema == null) {
+                return typeName;
+            }
+
+            org.fxt.freexmltoolkit.controls.v2.model.XsdNode typeDef = findTypeDefinition(schema, typeName);
+            if (typeDef == null) {
+                return typeName;  // Type not found (e.g., imported)
+            }
+
+            // Handle SimpleType
+            if (typeDef instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
+                for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : simpleType.getChildren()) {
+                    // Check for Restriction
+                    if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction) {
+                        String base = restriction.getBase();
+                        if (base != null && !base.isEmpty()) {
+                            return resolveBaseTypeToPrimitive(base, depth + 1, visited);
+                        }
+                    }
+                    // Check for List
+                    else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdList list) {
+                        String itemType = list.getItemType();
+                        if (itemType != null && !itemType.isEmpty()) {
+                            return resolveBaseTypeToPrimitive(itemType, depth + 1, visited);
+                        }
+                    }
+                    // Check for Union - use first member type
+                    else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdUnion union) {
+                        java.util.List<String> memberTypes = union.getMemberTypes();
+                        if (!memberTypes.isEmpty()) {
+                            return resolveBaseTypeToPrimitive(memberTypes.get(0), depth + 1, visited);
+                        }
+                    }
+                }
+            }
+
+            // Handle ComplexType (only SimpleContent)
+            else if (typeDef instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+                for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : complexType.getChildren()) {
+                    if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent) {
+                        // Check for Extension
+                        org.fxt.freexmltoolkit.controls.v2.model.XsdExtension extension = simpleContent.getExtension();
+                        if (extension != null) {
+                            String base = extension.getBase();
+                            if (base != null && !base.isEmpty()) {
+                                return resolveBaseTypeToPrimitive(base, depth + 1, visited);
+                            }
+                        }
+                        // Check for Restriction
+                        org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction = simpleContent.getRestriction();
+                        if (restriction != null) {
+                            String base = restriction.getBase();
+                            if (base != null && !base.isEmpty()) {
+                                return resolveBaseTypeToPrimitive(base, depth + 1, visited);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return typeName;  // Could not resolve further
+        }
+
+        /**
+         * Checks if a type name represents a primitive XSD type.
+         *
+         * @param typeName the type name to check
+         * @return true if it's a primitive type, false otherwise
+         */
+        private boolean isPrimitiveType(String typeName) {
+            if (typeName == null || typeName.isEmpty()) {
+                return false;
+            }
+
+            // Check for xs: or xsd: prefix (most common)
+            if (typeName.startsWith("xs:") || typeName.startsWith("xsd:")) {
+                return true;
+            }
+
+            // Check for unprefixed common primitives (in case of default namespace)
+            String lower = typeName.toLowerCase();
+            return lower.matches("^(string|integer|int|long|short|byte|decimal|float|double|boolean|date|time|" +
+                    "datetime|duration|base64binary|hexbinary|anyuri|uri|qname|notation|token|normalizedstring|" +
+                    "ncname|name|language|id|idref|anytype|any)$");
+        }
+
+        /**
+         * Gets the root XsdSchema node by navigating up the parent chain.
+         *
+         * @return the root XsdSchema, or null if not found
+         */
+        private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema getRootSchema() {
+            VisualNode current = this;
+            while (current != null) {
+                if (current.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema) {
+                    return schema;
+                }
+                current = current.parent;
+            }
+            return null;
+        }
+
+        /**
+         * Finds a type definition (SimpleType or ComplexType) in a schema by name.
+         *
+         * @param schema the schema to search
+         * @param typeName the type name to find (with or without namespace prefix)
+         * @return the XsdNode if found, null otherwise
+         */
+        private org.fxt.freexmltoolkit.controls.v2.model.XsdNode findTypeDefinition(
+                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema, String typeName) {
+            if (schema == null || typeName == null || typeName.isEmpty()) {
+                return null;
+            }
+
+            // Strip namespace prefix for matching (e.g., "tns:MyType" → "MyType")
+            String localName = typeName.contains(":") ? typeName.substring(typeName.indexOf(':') + 1) : typeName;
+
+            // Search schema children for matching SimpleType or ComplexType
+            for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : schema.getChildren()) {
+                if ((child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType ||
+                     child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType) &&
+                    localName.equals(child.getName())) {
+                    return child;
+                }
+            }
+
             return null;
         }
 
