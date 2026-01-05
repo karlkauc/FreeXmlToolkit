@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Utility class for XML editor UI operations.
@@ -36,21 +37,36 @@ import java.util.List;
 public class XmlEditorUIHelper {
     private static final Logger logger = LogManager.getLogger(XmlEditorUIHelper.class);
 
+    // Pre-compiled patterns for optimization
+    private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]*>");
+    private static final Pattern NBSP_PATTERN = Pattern.compile("&nbsp;");
+    private static final Pattern LT_PATTERN = Pattern.compile("&lt;");
+    private static final Pattern GT_PATTERN = Pattern.compile("&gt;");
+    private static final Pattern AMP_PATTERN = Pattern.compile("&amp;");
+
     private XmlEditorUIHelper() {
         // Utility class - no instantiation
     }
 
     /**
      * Strips HTML tags from text for plain text display.
+     * Optimized to use pre-compiled patterns and StringBuilder.
      *
      * @param html the HTML text to strip
      * @return plain text without HTML tags
      */
     public static String stripHtmlTags(String html) {
-        if (html == null) return "";
-        return html.replaceAll("<[^>]*>", "").replaceAll("&nbsp;", " ")
-                .replaceAll("&lt;", "<").replaceAll("&gt;", ">")
-                .replaceAll("&amp;", "&").trim();
+        if (html == null || html.isEmpty()) {
+            return "";
+        }
+
+        // Use pre-compiled patterns instead of calling replaceAll multiple times
+        String result = HTML_TAG_PATTERN.matcher(html).replaceAll("");
+        result = NBSP_PATTERN.matcher(result).replaceAll(" ");
+        result = AMP_PATTERN.matcher(result).replaceAll("&");
+        result = LT_PATTERN.matcher(result).replaceAll("<");
+        result = GT_PATTERN.matcher(result).replaceAll(">");
+        return result.trim();
     }
 
     /**

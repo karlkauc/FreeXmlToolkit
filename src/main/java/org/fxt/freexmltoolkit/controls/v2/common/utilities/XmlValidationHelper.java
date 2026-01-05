@@ -31,6 +31,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Utility class for XML validation operations.
@@ -43,6 +44,10 @@ import java.util.*;
  */
 public class XmlValidationHelper {
     private static final Logger logger = LogManager.getLogger(XmlValidationHelper.class);
+
+    // Pre-compiled patterns for optimization
+    private static final Pattern CVC_PREFIX_PATTERN = Pattern.compile("^cvc-[^:]*:\\s*");
+    private static final Pattern INCOMPLETE_ELEMENT_PATTERN = Pattern.compile("^The content of element '[^']*' is not complete\\.");
 
     private XmlValidationHelper() {
         // Utility class - no instantiation
@@ -60,10 +65,10 @@ public class XmlValidationHelper {
         String message = saxException.getMessage();
 
         // Clean up common error message patterns for better readability
-        if (message != null) {
+        if (message != null && !message.isEmpty()) {
             // Remove common prefixes that are not useful for end users
-            message = message.replaceAll("^cvc-[^:]*:\\s*", "");
-            message = message.replaceAll("^The content of element '[^']*' is not complete\\.", "Content is incomplete.");
+            message = CVC_PREFIX_PATTERN.matcher(message).replaceAll("");
+            message = INCOMPLETE_ELEMENT_PATTERN.matcher(message).replaceAll("Content is incomplete.");
         }
 
         return new ValidationError(lineNumber, columnNumber, message, "ERROR");

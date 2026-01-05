@@ -52,14 +52,14 @@ public class XsdPropertiesPanelFacetsHelper {
      */
     public java.util.Set<XsdFacetType> getApplicableFacets(String datatype) {
         if (datatype == null || datatype.isEmpty()) {
-            return new java.util.HashSet<>();
+            return java.util.Collections.emptySet();
         }
 
         try {
             return XsdDatatypeFacets.getApplicableFacets(datatype);
         } catch (Exception e) {
             logger.warn("Could not get applicable facets for datatype: {}", datatype, e);
-            return new java.util.HashSet<>();
+            return java.util.Collections.emptySet();
         }
     }
 
@@ -70,23 +70,7 @@ public class XsdPropertiesPanelFacetsHelper {
      * @return list of pattern strings
      */
     public List<String> extractPatterns(XsdRestriction restriction) {
-        List<String> patterns = new ArrayList<>();
-
-        if (restriction == null || restriction.getChildren() == null) {
-            return patterns;
-        }
-
-        for (var child : restriction.getChildren()) {
-            if (child instanceof XsdFacet facet && facet.getFacetType() == XsdFacetType.PATTERN) {
-                String patternValue = facet.getValue();
-                if (patternValue != null && !patternValue.isEmpty()) {
-                    patterns.add(patternValue);
-                }
-            }
-        }
-
-        logger.debug("Extracted {} patterns from restriction", patterns.size());
-        return patterns;
+        return extractFacetValues(restriction, XsdFacetType.PATTERN, "patterns");
     }
 
     /**
@@ -96,23 +80,7 @@ public class XsdPropertiesPanelFacetsHelper {
      * @return list of enumeration strings
      */
     public List<String> extractEnumerations(XsdRestriction restriction) {
-        List<String> enumerations = new ArrayList<>();
-
-        if (restriction == null || restriction.getChildren() == null) {
-            return enumerations;
-        }
-
-        for (var child : restriction.getChildren()) {
-            if (child instanceof XsdFacet facet && facet.getFacetType() == XsdFacetType.ENUMERATION) {
-                String enumValue = facet.getValue();
-                if (enumValue != null && !enumValue.isEmpty()) {
-                    enumerations.add(enumValue);
-                }
-            }
-        }
-
-        logger.debug("Extracted {} enumerations from restriction", enumerations.size());
-        return enumerations;
+        return extractFacetValues(restriction, XsdFacetType.ENUMERATION, "enumerations");
     }
 
     /**
@@ -122,23 +90,35 @@ public class XsdPropertiesPanelFacetsHelper {
      * @return list of assertion strings
      */
     public List<String> extractAssertions(XsdRestriction restriction) {
-        List<String> assertions = new ArrayList<>();
+        return extractFacetValues(restriction, XsdFacetType.ASSERTION, "assertions");
+    }
 
+    /**
+     * Extracts facet values of a specific type from a restriction.
+     * Optimized to reduce collection allocations.
+     *
+     * @param restriction the restriction object
+     * @param facetType the type of facet to extract
+     * @param facetName the name for logging
+     * @return list of facet values, or empty list if none found
+     */
+    private List<String> extractFacetValues(XsdRestriction restriction, XsdFacetType facetType, String facetName) {
         if (restriction == null || restriction.getChildren() == null) {
-            return assertions;
+            return java.util.Collections.emptyList();
         }
 
+        java.util.List<String> values = new ArrayList<>();
         for (var child : restriction.getChildren()) {
-            if (child instanceof XsdFacet facet && facet.getFacetType() == XsdFacetType.ASSERTION) {
-                String assertionValue = facet.getValue();
-                if (assertionValue != null && !assertionValue.isEmpty()) {
-                    assertions.add(assertionValue);
+            if (child instanceof XsdFacet facet && facet.getFacetType() == facetType) {
+                String value = facet.getValue();
+                if (value != null && !value.isEmpty()) {
+                    values.add(value);
                 }
             }
         }
 
-        logger.debug("Extracted {} assertions from restriction", assertions.size());
-        return assertions;
+        logger.debug("Extracted {} {} from restriction", values.size(), facetName);
+        return values.isEmpty() ? java.util.Collections.emptyList() : values;
     }
 
     /**

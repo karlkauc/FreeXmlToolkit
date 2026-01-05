@@ -106,18 +106,25 @@ public class XsdGraphViewOperationHelper {
 
     /**
      * Calculates position of a node in its parent's children list.
+     * Optimized to cache the children list reference.
      *
      * @param parent the parent node
      * @param child the child node to find
      * @return the index of the child, -1 if not found
      */
     public int getNodeIndex(XsdNode parent, XsdNode child) {
-        if (parent == null || child == null || parent.getChildren() == null) {
+        if (parent == null || child == null) {
             return -1;
         }
 
-        for (int i = 0; i < parent.getChildren().size(); i++) {
-            if (parent.getChildren().get(i).getId().equals(child.getId())) {
+        java.util.List<XsdNode> children = parent.getChildren();
+        if (children == null) {
+            return -1;
+        }
+
+        String childId = child.getId();
+        for (int i = 0; i < children.size(); i++) {
+            if (children.get(i).getId().equals(childId)) {
                 return i;
             }
         }

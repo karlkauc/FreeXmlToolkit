@@ -74,35 +74,43 @@ public class XmlCanvasRenderingHelper {
     public static final double FONT_SIZE_REGULAR = 11;
     public static final double FONT_SIZE_SMALL = 10;
 
+    // Cached font objects to reduce allocations
+    private static final Font HEADER_FONT = Font.font("Monospaced", FontWeight.BOLD, FONT_SIZE_HEADER);
+    private static final Font REGULAR_FONT = Font.font("Monospaced", FontWeight.NORMAL, FONT_SIZE_REGULAR);
+    private static final Font SMALL_FONT = Font.font("Monospaced", FontWeight.NORMAL, FONT_SIZE_SMALL);
+
     private XmlCanvasRenderingHelper() {
         // Utility class - no instantiation
     }
 
     /**
      * Gets a standard header font (bold).
+     * Returns a cached instance to reduce object allocations.
      *
      * @return font for headers
      */
     public static Font getHeaderFont() {
-        return Font.font("Monospaced", FontWeight.BOLD, FONT_SIZE_HEADER);
+        return HEADER_FONT;
     }
 
     /**
      * Gets a standard regular font.
+     * Returns a cached instance to reduce object allocations.
      *
      * @return font for regular text
      */
     public static Font getRegularFont() {
-        return Font.font("Monospaced", FontWeight.NORMAL, FONT_SIZE_REGULAR);
+        return REGULAR_FONT;
     }
 
     /**
      * Gets a small font for secondary text.
+     * Returns a cached instance to reduce object allocations.
      *
      * @return font for small text
      */
     public static Font getSmallFont() {
-        return Font.font("Monospaced", FontWeight.NORMAL, FONT_SIZE_SMALL);
+        return SMALL_FONT;
     }
 
     /**
