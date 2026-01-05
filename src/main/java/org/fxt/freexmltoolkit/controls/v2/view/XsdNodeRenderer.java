@@ -181,7 +181,16 @@ public class XsdNodeRenderer {
         // Get colors and properties for this node
         Color headerColor = node.getHeaderColor();
         Color borderColor = node.getBorderColor();
+
+        // Determine icon: use cached value OR compute dynamically based on model type
         String iconLiteral = node.getIconLiteral();
+        if ("bi-question-circle".equals(iconLiteral) || iconLiteral == null) {
+            // Icon wasn't properly set, try to determine it from model object
+            iconLiteral = node.determineIconFromModelObject();
+            if (iconLiteral == null) {
+                iconLiteral = node.getIconLiteral();  // Fallback to whatever we have
+            }
+        }
         String cardinityBadge = node.getCardinalityBadge();
 
         // Apply fallback colors if null
@@ -1631,6 +1640,115 @@ public class XsdNodeRenderer {
                 }
             }
 
+            return null;
+        }
+
+        /**
+         * Determines icon literal based on the actual model object type.
+         * This is a fallback when the cached icon is not properly set.
+         * Directly analyzes the modelObject to determine the appropriate icon.
+         *
+         * @return the icon literal, or null if cannot determine
+         */
+        public String determineIconFromModelObject() {
+            if (this.modelObject == null) {
+                return null;
+            }
+
+            // Handle based on actual model object type
+            if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType) {
+                // SimpleType: extract base type and determine icon
+                org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType =
+                    (org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType) this.modelObject;
+                String baseType = extractBaseTypeFromSimpleType(simpleType);
+                if (baseType != null) {
+                    String icon = getDataTypeIcon(baseType);
+                    if (!"bi-code".equals(icon)) return icon;
+                }
+                return "bi-type";  // Fallback for SimpleType
+            }
+            else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType) {
+                // ComplexType: check for SimpleContent base type
+                org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType =
+                    (org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType) this.modelObject;
+                String baseType = extractBaseTypeFromComplexType(complexType);
+                if (baseType != null) {
+                    String icon = getDataTypeIcon(baseType);
+                    if (!"bi-code".equals(icon)) return icon;
+                }
+                return "bi-box-seam";  // Fallback for ComplexType
+            }
+            else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement) {
+                // Element: extract type and determine icon
+                org.fxt.freexmltoolkit.controls.v2.model.XsdElement element =
+                    (org.fxt.freexmltoolkit.controls.v2.model.XsdElement) this.modelObject;
+                String type = element.getType();
+                if (type != null) {
+                    String baseType = resolveBaseTypeToPrimitive(type, 0, new java.util.HashSet<>());
+                    String icon = getDataTypeIcon(baseType);
+                    if (!"bi-code".equals(icon)) return icon;
+                }
+                return "bi-file-earmark";  // Fallback for Element
+            }
+            else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute) {
+                // Attribute: extract type and determine icon
+                org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute =
+                    (org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute) this.modelObject;
+                String type = attribute.getType();
+                if (type != null) {
+                    String baseType = resolveBaseTypeToPrimitive(type, 0, new java.util.HashSet<>());
+                    String icon = getDataTypeIcon(baseType);
+                    if (!"bi-code".equals(icon)) return icon;
+                }
+                return "bi-at";  // Fallback for Attribute
+            }
+
+            return null;
+        }
+
+        /**
+         * Extracts the primitive base type from an XsdSimpleType.
+         * Follows the type chain up to 5 levels.
+         *
+         * @param simpleType the simple type to extract from
+         * @return the base type, or null if not found
+         */
+        private String extractBaseTypeFromSimpleType(org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
+            for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : simpleType.getChildren()) {
+                String base = extractBaseType(child);
+                if (base != null) {
+                    return resolveBaseTypeToPrimitive(base, 0, new java.util.HashSet<>());
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Extracts the primitive base type from an XsdComplexType with SimpleContent.
+         * Follows the type chain up to 5 levels.
+         *
+         * @param complexType the complex type to extract from
+         * @return the base type, or null if not found
+         */
+        private String extractBaseTypeFromComplexType(org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+            for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : complexType.getChildren()) {
+                if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent) {
+                    org.fxt.freexmltoolkit.controls.v2.model.XsdExtension extension = simpleContent.getExtension();
+                    if (extension != null) {
+                        String base = extension.getBase();
+                        if (base != null && !base.isEmpty()) {
+                            return resolveBaseTypeToPrimitive(base, 0, new java.util.HashSet<>());
+                        }
+                    }
+                    org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction = simpleContent.getRestriction();
+                    if (restriction != null) {
+                        String base = restriction.getBase();
+                        if (base != null && !base.isEmpty()) {
+                            return resolveBaseTypeToPrimitive(base, 0, new java.util.HashSet<>());
+                        }
+                    }
+                }
+            }
             return null;
         }
 
