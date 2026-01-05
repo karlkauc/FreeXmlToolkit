@@ -1129,22 +1129,35 @@ public class XsdNodeRenderer {
                 case ELEMENT:
                     // Try to detect element datatype from detail string
                     if (detail != null && !detail.isEmpty()) {
-                        return getDataTypeIcon(detail);
+                        // Extract just the type name (remove flags like [N], [A], etc.)
+                        String typeName = detail.split("\\s*\\[")[0].trim();
+                        return getDataTypeIcon(typeName);
                     }
                     return "bi-file-earmark";  // Generic document
                 case ATTRIBUTE:
+                    // Try to detect attribute datatype from detail string
+                    if (detail != null && !detail.isEmpty()) {
+                        // Extract just the type name (remove flags like [Q], [U])
+                        String typeName = detail.split("\\s*\\[")[0].trim();
+                        String icon = getDataTypeIcon(typeName);
+                        if (!"bi-code".equals(icon)) return icon;
+                    }
                     return "bi-at";  // @ symbol
                 case COMPLEX_TYPE:
                     // If simple content (base type found in detail), try to use the datatype icon
                     if (detail != null && !detail.isEmpty()) {
-                        String icon = getDataTypeIcon(detail);
+                        // Extract just the type name (remove flags if any)
+                        String typeName = detail.split("\\s*\\[")[0].trim();
+                        String icon = getDataTypeIcon(typeName);
                         if (!"bi-code".equals(icon)) return icon;
                     }
                     return "bi-box-seam";  // Package/Container symbol
                 case SIMPLE_TYPE:
                     // Try to detect simple type from detail (base type)
                     if (detail != null && !detail.isEmpty()) {
-                        String icon = getDataTypeIcon(detail);
+                        // Extract just the type name (remove flags if any)
+                        String typeName = detail.split("\\s*\\[")[0].trim();
+                        String icon = getDataTypeIcon(typeName);
                         if (!"bi-code".equals(icon)) return icon;
                     }
                     return "bi-type";  // Type symbol (T)
@@ -1302,7 +1315,9 @@ public class XsdNodeRenderer {
                 // Add type (either explicit type or base type from inline simpleType restriction)
                 String effectiveType = getEffectiveType(element);
                 if (effectiveType != null) {
-                    detail.append(effectiveType);
+                    // Resolve type reference to primitive base type for better icon display
+                    String resolvedType = resolveBaseTypeToPrimitive(effectiveType, 0, new java.util.HashSet<>());
+                    detail.append(resolvedType);
                 }
 
                 // Add constraint flags
@@ -1330,7 +1345,9 @@ public class XsdNodeRenderer {
             if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
                 // Add type only - use indicator is already shown in the "Use:" row in the body
                 if (attribute.getType() != null) {
-                    detail.append(attribute.getType());
+                    // Resolve type reference to primitive base type for better icon display
+                    String resolvedType = resolveBaseTypeToPrimitive(attribute.getType(), 0, new java.util.HashSet<>());
+                    detail.append(resolvedType);
                 }
 
                 // Add form flag
