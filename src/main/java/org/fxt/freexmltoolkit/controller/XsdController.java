@@ -1946,6 +1946,12 @@ public class XsdController implements FavoritesParentController {
             sourceCodeEditor.setManaged(true);
         }
 
+        // Make the container visible
+        if (sourceCodeEditorContainer != null) {
+            sourceCodeEditorContainer.setVisible(true);
+            sourceCodeEditorContainer.setManaged(true);
+        }
+
         // Update UI visibility for text tab
         if (noFileLoadedPaneText != null) {
             noFileLoadedPaneText.setVisible(false);
@@ -5708,13 +5714,26 @@ public class XsdController implements FavoritesParentController {
         pendingTypeLibrarySchema = null;
         if (typeLibraryStackPane != null) {
             // Remove any existing TypeLibraryView but keep noFileLoadedPaneTypeLibrary
-            typeLibraryStackPane.getChildren().removeIf(node -> 
+            typeLibraryStackPane.getChildren().removeIf(node ->
                 node instanceof org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView);
         }
         // Show no file loaded pane
         if (noFileLoadedPaneTypeLibrary != null) {
             noFileLoadedPaneTypeLibrary.setVisible(true);
             noFileLoadedPaneTypeLibrary.setManaged(true);
+        }
+        // Reset Text View UI - hide editor container, show no file loaded pane
+        if (sourceCodeEditorContainer != null) {
+            sourceCodeEditorContainer.setVisible(false);
+            sourceCodeEditorContainer.setManaged(false);
+        }
+        if (noFileLoadedPaneText != null) {
+            noFileLoadedPaneText.setVisible(true);
+            noFileLoadedPaneText.setManaged(true);
+        }
+        if (textInfoPane != null) {
+            textInfoPane.setVisible(false);
+            textInfoPane.setManaged(false);
         }
     }
 
