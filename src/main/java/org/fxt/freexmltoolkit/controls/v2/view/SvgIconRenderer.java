@@ -53,9 +53,15 @@ public class SvgIconRenderer {
             case "bi-diagram-2":
                 renderDiagram(gc, x, y, size);
                 break;
+            case "bi-hdd-stack":
+                renderHddStack(gc, x, y, size);
+                break;
             case "bi-file-earmark-code":
             case "bi-file-text":
+            case "bi-file-earmark":
+            case "bi-file-earmark-binary":
             case "bi-chat-left-quote":
+            case "bi-chat-quote":
             case "bi-tag":
             case "bi-tag-fill":
             case "bi-subtract":
@@ -65,18 +71,40 @@ public class SvgIconRenderer {
                 renderAttribute(gc, x, y, size);
                 break;
             case "bi-list-check":
+            case "bi-list-ul":
                 renderSequence(gc, x, y, size);
                 break;
+            case "bi-list-ol":
+                renderListOl(gc, x, y, size);
+                break;
             case "bi-signpost-2":
+            case "bi-signpost-split":
+            case "bi-arrows-angle-expand":
                 renderChoice(gc, x, y, size);
                 break;
             case "bi-asterisk":
+            case "bi-collection":
                 renderAll(gc, x, y, size);
+                break;
+            case "bi-folder":
+                renderFolder(gc, x, y, size);
+                break;
+            case "bi-key":
+                renderKey(gc, x, y, size);
+                break;
+            case "bi-globe2":
+            case "bi-translate":
+                renderGlobe(gc, x, y, size);
+                break;
+            case "bi-fonts":
+            case "bi-input-cursor-text":
+                renderFonts(gc, x, y, size);
                 break;
             case "bi-hash":
             case "bi-dash-square":
             case "bi-1-circle-fill":
             case "bi-2-circle-fill":
+            case "bi-123":
                 renderHash(gc, x, y, size);
                 break;
             case "bi-percent":
@@ -88,23 +116,41 @@ public class SvgIconRenderer {
             case "bi-box":
                 renderBox(gc, x, y, size);
                 break;
+            case "bi-box-seam":
+                renderBoxSeam(gc, x, y, size);
+                break;
+            case "bi-type":
+                renderType(gc, x, y, size);
+                break;
+            case "bi-calculator":
+                renderCalculator(gc, x, y, size);
+                break;
             case "bi-calendar":
             case "bi-calendar2":
             case "bi-calendar3":
             case "bi-calendar-event":
+            case "bi-calendar-date":
                 renderCalendar(gc, x, y, size);
                 break;
             case "bi-clock":
                 renderClock(gc, x, y, size);
                 break;
+            case "bi-stopwatch":
+                renderHourglass(gc, x, y, size);
+                break;
             case "bi-hourglass-split":
                 renderHourglass(gc, x, y, size);
                 break;
             case "bi-toggle-on":
+            case "bi-toggle2-on":
                 renderToggle(gc, x, y, size);
                 break;
             case "bi-shield-check":
                 renderShield(gc, x, y, size);
+                break;
+            case "bi-link":
+            case "bi-link-45deg":
+                renderLink(gc, x, y, size);
                 break;
             default:
                 renderPlaceholder(gc, x, y, size, color);
@@ -131,6 +177,229 @@ public class SvgIconRenderer {
         gc.fillRect(innerX + cellSize * 1.2, innerY + cellSize * 0.2, cellSize * 0.6, cellSize * 0.6);
         gc.fillRect(innerX + cellSize * 0.2, innerY + cellSize * 1.2, cellSize * 0.6, cellSize * 0.6);
     }
+
+    /**
+     * Renders an HDD stack icon (database).
+     */
+    private static void renderHddStack(GraphicsContext gc, double x, double y, double size) {
+        double margin = size * 0.2;
+        double width = size - 2 * margin;
+        double height = (size - 2 * margin) / 3.5;
+        double spacing = height * 0.25;
+        double startX = x + margin;
+        double startY = y + margin;
+
+        for (int i = 0; i < 3; i++) {
+            double currY = startY + i * (height + spacing);
+            gc.strokeRect(startX, currY, width, height);
+            // Light indicator
+            gc.fillRect(startX + width * 0.1, currY + height * 0.3, height * 0.4, height * 0.4);
+        }
+    }
+
+    /**
+     * Renders a folder icon.
+     */
+    private static void renderFolder(GraphicsContext gc, double x, double y, double size) {
+        double margin = size * 0.15;
+        double width = size - 2 * margin;
+        double height = size * 0.6;
+        double startX = x + margin;
+        double startY = y + size * 0.3;
+
+        // Folder body
+        gc.strokeRect(startX, startY, width, height);
+
+        // Folder tab
+        gc.strokePolyline(
+                new double[]{startX, startX + width * 0.4, startX + width * 0.5, startX + width, startX + width, startX},
+                new double[]{startY, startY, startY - size * 0.1, startY - size * 0.1, startY + height, startY + height},
+                6
+        );
+    }
+
+    /**
+     * Renders a key icon.
+     */
+    private static void renderKey(GraphicsContext gc, double x, double y, double size) {
+        double headRadius = size * 0.25;
+        double cx = x + size * 0.3;
+        double cy = y + size * 0.3;
+
+        // Key head
+        gc.strokeOval(cx - headRadius, cy - headRadius, headRadius * 2, headRadius * 2);
+
+        // Key stem (diagonal)
+        double stemLen = size * 0.5;
+        double endX = cx + stemLen;
+        double endY = cy + stemLen;
+        gc.strokeLine(cx + headRadius * 0.7, cy + headRadius * 0.7, endX, endY);
+
+        // Teeth
+        gc.strokeLine(endX, endY, endX, endY - size * 0.15);
+        gc.strokeLine(endX - size * 0.1, endY - size * 0.1, endX - size * 0.1, endY - size * 0.2);
+    }
+
+    /**
+     * Renders a globe icon.
+     */
+    private static void renderGlobe(GraphicsContext gc, double x, double y, double size) {
+        double radius = size * 0.4;
+        double cx = x + size / 2;
+        double cy = y + size / 2;
+
+        // Circle
+        gc.strokeOval(cx - radius, cy - radius, radius * 2, radius * 2);
+
+        // Equator
+        gc.strokeLine(cx - radius, cy, cx + radius, cy);
+
+        // Meridian
+        gc.strokeLine(cx, cy - radius, cx, cy + radius);
+
+        // Curves
+        gc.strokeOval(cx - radius * 0.5, cy - radius, radius, radius * 2);
+        gc.strokeOval(cx - radius, cy - radius * 0.5, radius * 2, radius);
+    }
+
+    /**
+     * Renders a fonts/text icon ("A").
+     */
+    private static void renderFonts(GraphicsContext gc, double x, double y, double size) {
+        // Draw letter 'A' shape manually
+        double width = size * 0.6;
+        double height = size * 0.7;
+        double left = x + (size - width) / 2;
+        double top = y + (size - height) / 2;
+        double bottom = top + height;
+        double right = left + width;
+        double midX = x + size / 2;
+
+        // Legs
+        gc.strokeLine(left, bottom, midX, top);
+        gc.strokeLine(midX, top, right, bottom);
+
+        // Crossbar
+        double barY = top + height * 0.6;
+        double barLeft = left + width * 0.25; // approx
+        double barRight = right - width * 0.25; // approx
+        gc.strokeLine(barLeft, barY, barRight, barY);
+    }
+
+    /**
+     * Renders a calculator icon.
+     */
+    private static void renderCalculator(GraphicsContext gc, double x, double y, double size) {
+        double margin = size * 0.15;
+        double width = size - 2 * margin;
+        double height = size - 2 * margin;
+        double startX = x + margin;
+        double startY = y + margin;
+
+        // Frame
+        gc.strokeRect(startX, startY, width, height);
+
+        // Screen
+        gc.strokeRect(startX + width * 0.1, startY + height * 0.1, width * 0.8, height * 0.25);
+
+        // Buttons (grid)
+        double btnSize = width * 0.2;
+        double gridY = startY + height * 0.45;
+        double gridX = startX + width * 0.1;
+
+        for (int r = 0; r < 2; r++) {
+            for (int c = 0; c < 3; c++) {
+                gc.fillRect(gridX + c * (btnSize * 1.2), gridY + r * (btnSize * 1.2), btnSize, btnSize);
+            }
+        }
+    }
+
+    /**
+     * Renders an ordered list icon.
+     */
+    private static void renderListOl(GraphicsContext gc, double x, double y, double size) {
+        double margin = size * 0.15;
+        double itemX = x + margin;
+        double itemY = y + margin;
+        double itemSize = (size - 2 * margin) / 3;
+        double spacing = itemSize * 0.1;
+
+        for (int i = 0; i < 3; i++) {
+            double currentY = itemY + i * (itemSize + spacing);
+
+            // Number (dot)
+            gc.fillOval(itemX, currentY + itemSize * 0.2, itemSize * 0.4, itemSize * 0.4);
+
+            // Line
+            double lineX = itemX + itemSize;
+            gc.strokeLine(lineX, currentY + itemSize * 0.4, lineX + itemSize * 1.5, currentY + itemSize * 0.4);
+        }
+    }
+
+    /**
+     * Renders a box with seam icon (package).
+     */
+    private static void renderBoxSeam(GraphicsContext gc, double x, double y, double size) {
+        double margin = size * 0.15;
+        double width = size - 2 * margin;
+        double height = size - 2 * margin;
+        double startX = x + margin;
+        double startY = y + margin;
+
+        // Box outline
+        gc.strokeRect(startX, startY, width, height);
+
+        // Vertical seam
+        gc.strokeLine(startX + width / 2, startY, startX + width / 2, startY + height);
+
+        // Horizontal tape (top part)
+        gc.strokeLine(startX, startY + height * 0.4, startX + width, startY + height * 0.4);
+
+        // Flaps (diagonal lines for depth illusion)
+        gc.strokeLine(startX, startY, startX + width * 0.2, startY + height * 0.2);
+        gc.strokeLine(startX + width, startY, startX + width * 0.8, startY + height * 0.2);
+    }
+
+    /**
+     * Renders a Type icon (letter T).
+     */
+    private static void renderType(GraphicsContext gc, double x, double y, double size) {
+        double margin = size * 0.2;
+        double width = size - 2 * margin;
+        double height = size - 2 * margin;
+        double startX = x + margin;
+        double startY = y + margin;
+
+        // Top bar
+        gc.strokeLine(startX, startY, startX + width, startY);
+        // Serifs top left
+        gc.strokeLine(startX, startY, startX, startY + height * 0.2);
+        // Serifs top right
+        gc.strokeLine(startX + width, startY, startX + width, startY + height * 0.2);
+
+        // Vertical stem
+        double midX = startX + width / 2;
+        gc.strokeLine(midX, startY, midX, startY + height);
+
+        // Bottom serif
+        gc.strokeLine(midX - width * 0.2, startY + height, midX + width * 0.2, startY + height);
+    }
+
+    /**
+     * Renders a link/chain icon.
+     */
+    private static void renderLink(GraphicsContext gc, double x, double y, double size) {
+        double w = size * 0.4;
+        double h = size * 0.25;
+        double cx = x + size / 2;
+        double cy = y + size / 2;
+
+        // Left link
+        gc.strokeOval(cx - w, cy - h / 2, w, h);
+        // Right link
+        gc.strokeOval(cx, cy - h / 2, w, h);
+    }
+
 
     /**
      * Renders a document icon (page with lines).
