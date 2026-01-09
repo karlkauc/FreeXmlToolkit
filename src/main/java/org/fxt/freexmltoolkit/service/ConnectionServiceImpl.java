@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -281,7 +282,17 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     /**
-     * Configures proxy settings based on properties
+     * Configures proxy settings based on properties.
+     *
+     * <p>Supports three modes:
+     * <ul>
+     *   <li>Manual proxy: Uses explicitly configured proxy host/port</li>
+     *   <li>System proxy: Detects proxy using NTLM-aware system proxy detection</li>
+     *   <li>No proxy: Direct connection without proxy</li>
+     * </ul>
+     *
+     * @param props properties containing proxy configuration
+     * @return a Proxy instance or null for direct connection
      */
     private Proxy configureProxy(Properties props) {
         boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
@@ -294,6 +305,7 @@ public class ConnectionServiceImpl implements ConnectionService {
             if (!proxyHost.isEmpty() && !proxyPortStr.isEmpty()) {
                 try {
                     int proxyPort = Integer.parseInt(proxyPortStr);
+                    logger.debug("Using manual proxy configuration: {}:{}", proxyHost, proxyPort);
                     return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
                 } catch (NumberFormatException e) {
                     logger.error("Invalid proxy port: {}", proxyPortStr);
@@ -302,9 +314,22 @@ public class ConnectionServiceImpl implements ConnectionService {
         }
 
         if (useSystemProxy) {
-            // Use system proxy settings
-            System.setProperty("java.net.useSystemProxies", "true");
-            return null; // Let Java handle system proxy automatically
+            // Use NTLM-aware system proxy detection
+            logger.debug("Using system proxy detection with NTLM support");
+
+            Optional<SystemProxyDetector.ProxyConfig> proxyConfig = SystemProxyDetector.detectSystemProxy();
+
+            if (proxyConfig.isPresent()) {
+                SystemProxyDetector.ProxyConfig config = proxyConfig.get();
+                // Configure JVM proxy properties for NTLM authentication
+                SystemProxyDetector.configureProxy(config.host(), config.port());
+                logger.info("System proxy detected and configured: {}:{}", config.host(), config.port());
+                return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(config.host(), config.port()));
+            } else {
+                logger.debug("No system proxy detected, using direct connection");
+                // Clear any previously set proxy properties
+                SystemProxyDetector.clearProxyConfiguration();
+            }
         }
 
         return null; // No proxy

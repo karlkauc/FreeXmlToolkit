@@ -34,6 +34,7 @@ import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.service.SystemProxyDetector;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 import org.fxt.freexmltoolkit.service.UsageTrackingService;
 
@@ -108,6 +109,11 @@ public class FxtGui extends Application {
         logger.info("Initializing service registry...");
         ServiceRegistry.initialize();
         logger.info("Service registry initialization complete");
+
+        // Enable NTLM proxy authentication for corporate environments
+        // This must be called BEFORE any HTTP requests are made
+        logger.info("Enabling NTLM proxy authentication...");
+        SystemProxyDetector.enableNtlmAuthentication();
     }
 
     /**
