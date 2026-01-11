@@ -417,59 +417,10 @@ public class XsdDocumentationImageService {
             }
         }
 
-        // Calculate symmetric sizes
-        double maxChildWidth = calculateMaxChildWidth(childElements);
-
-        var rootElementBounds = font.getStringBounds(rootElement.getElementName(), frc);
-        var rootElementHeight = rootElementBounds.getBounds2D().getHeight();
-        var rootElementWidth = rootElementBounds.getBounds2D().getWidth();
-
-        // Calculate the actual total height of child elements
-        double totalChildElementsHeight = calculateTotalChildElementsHeight(childElements);
-
-        // Calculate documentation height before positioning (only if documentation should be shown)
-        double docHeightTotal = showDocumentation
-                ? calculateDocumentationHeight(rootElement.getDocumentations(), rootElementWidth)
-                : 0;
-
-        // Center the root element vertically in the middle of child elements, but ensure it's not positioned above the top margin
-        int rootStartX = margin * 2;
-        int rootStartY = Math.max(margin, (int) ((totalChildElementsHeight / 2) - ((boxPadding * 2 + rootElementHeight) / 2)));
-
-        // Draw the root element with modern design
-        Element leftRootLink = document.createElementNS(svgNS, "a");
-        leftRootLink.setAttribute("href", "#");
-
-        Element rect1 = createModernSvgRect(document, rootElement.getCurrentXpath(),
-                rootElementHeight, rootElementWidth,
-                String.valueOf(rootStartX), String.valueOf(rootStartY));
-        rect1.setAttribute("filter", "url(#dropShadow)");
-        rect1.setAttribute("style", rootElement.isMandatory() ? ELEMENT_MANDATORY_FORMAT : ELEMENT_OPTIONAL_FORMAT);
-        rect1.setAttribute("class", "hoverable-rect");
-
-        Element text1 = createSvgTextElement(document, rootElement.getElementName(),
-                String.valueOf(rootStartX + boxPadding),
-                String.valueOf(rootStartY + boxPadding + rootElementHeight),
-                COLOR_TEXT_PRIMARY, font.getSize());
-        
-        leftRootLink.appendChild(rect1);
-        leftRootLink.appendChild(text1);
-        svgRoot.appendChild(leftRootLink);
-        updateMaxRightEdge(maxRightEdge, rootStartX + boxPadding * 2 + rootElementWidth);
-
-        // Add documentation (only if showDocumentation is enabled)
-        if (showDocumentation) {
-            generateModernDocumentationElement(document, rootElement.getDocumentations(),
-                    rootElementWidth, rootElementHeight, rootStartX, rootStartY);
-        }
-
-        // Symmetric positioning of child elements with more space for cardinality
-        final double rightStartX = rootStartX + boxPadding * 2 + rootElementWidth + gapBetweenSides + 40;
-        final double rootPathEndX = rootStartX + boxPadding * 2 + rootElementWidth;
-        final double rootPathCenterY = rootStartY + (boxPadding * 2 + rootElementHeight) / 2;
-
         // Check if there is exactly one child and it's a compositor container
         // In that case, we'll draw the compositor symbol and use its children
+        // IMPORTANT: This must happen BEFORE calculating totalChildElementsHeight
+        // so the root element is centered based on actual flattened children
         boolean isSequence = false;
         boolean isChoice = false;
         boolean isAll = false;
@@ -538,6 +489,57 @@ public class XsdDocumentationImageService {
 
         // Note: We keep childElements as-is (may contain nested compositor containers)
         // The recursive drawing method will handle nested compositors automatically
+
+        // Calculate symmetric sizes - AFTER compositor flattening
+        double maxChildWidth = calculateMaxChildWidth(childElements);
+
+        var rootElementBounds = font.getStringBounds(rootElement.getElementName(), frc);
+        var rootElementHeight = rootElementBounds.getBounds2D().getHeight();
+        var rootElementWidth = rootElementBounds.getBounds2D().getWidth();
+
+        // Calculate the actual total height of child elements (with flattened compositor children)
+        double totalChildElementsHeight = calculateTotalChildElementsHeight(childElements);
+
+        // Calculate documentation height before positioning (only if documentation should be shown)
+        double docHeightTotal = showDocumentation
+                ? calculateDocumentationHeight(rootElement.getDocumentations(), rootElementWidth)
+                : 0;
+
+        // Center the root element vertically in the middle of child elements, but ensure it's not positioned above the top margin
+        int rootStartX = margin * 2;
+        int rootStartY = Math.max(margin, (int) ((totalChildElementsHeight / 2) - ((boxPadding * 2 + rootElementHeight) / 2)));
+
+        // Draw the root element with modern design
+        Element leftRootLink = document.createElementNS(svgNS, "a");
+        leftRootLink.setAttribute("href", "#");
+
+        Element rect1 = createModernSvgRect(document, rootElement.getCurrentXpath(),
+                rootElementHeight, rootElementWidth,
+                String.valueOf(rootStartX), String.valueOf(rootStartY));
+        rect1.setAttribute("filter", "url(#dropShadow)");
+        rect1.setAttribute("style", rootElement.isMandatory() ? ELEMENT_MANDATORY_FORMAT : ELEMENT_OPTIONAL_FORMAT);
+        rect1.setAttribute("class", "hoverable-rect");
+
+        Element text1 = createSvgTextElement(document, rootElement.getElementName(),
+                String.valueOf(rootStartX + boxPadding),
+                String.valueOf(rootStartY + boxPadding + rootElementHeight),
+                COLOR_TEXT_PRIMARY, font.getSize());
+
+        leftRootLink.appendChild(rect1);
+        leftRootLink.appendChild(text1);
+        svgRoot.appendChild(leftRootLink);
+        updateMaxRightEdge(maxRightEdge, rootStartX + boxPadding * 2 + rootElementWidth);
+
+        // Add documentation (only if showDocumentation is enabled)
+        if (showDocumentation) {
+            generateModernDocumentationElement(document, rootElement.getDocumentations(),
+                    rootElementWidth, rootElementHeight, rootStartX, rootStartY);
+        }
+
+        // Symmetric positioning of child elements with more space for cardinality
+        final double rightStartX = rootStartX + boxPadding * 2 + rootElementWidth + gapBetweenSides + 40;
+        final double rootPathEndX = rootStartX + boxPadding * 2 + rootElementWidth;
+        final double rootPathCenterY = rootStartY + (boxPadding * 2 + rootElementHeight) / 2;
 
         // Calculate symbol position explicitly
         final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2.0);
