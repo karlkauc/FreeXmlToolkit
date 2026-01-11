@@ -1373,10 +1373,11 @@ public class XsdDocumentationService {
             // Handle references (ref="...")
             String ref = getAttributeValue(node, "ref");
             if (ref != null && !ref.isEmpty()) {
-                // Skip elements from external namespaces that can't be properly generated as sample data
-                // These typically require special handling (e.g., ds:Signature from XML Digital Signature)
+                // Handle elements from external namespaces (e.g., ds:Signature from XML Digital Signature)
+                // These are included in documentation but marked as external references
                 if (ref.contains(":") && isExternalNamespaceReference(ref)) {
-                    logger.debug("Skipping external namespace reference: {}", ref);
+                    logger.debug("Processing external namespace reference for documentation: {}", ref);
+                    processExternalNamespaceReference(node, ref, currentXPath, parentXPath, level);
                     return;
                 }
 
@@ -1412,6 +1413,82 @@ public class XsdDocumentationService {
         } finally {
             visitedOnPath.remove(node);
         }
+    }
+
+    /**
+     * Processes an external namespace reference (e.g., ds:Signature from xs:import).
+     * Creates an XsdExtendedElement to represent the external reference in documentation.
+     * The element will be marked as an external reference and included in the documentation
+     * without sample data generation.
+     *
+     * @param node       The reference node (xs:element with ref="...")
+     * @param ref        The reference value (e.g., "ds:Signature")
+     * @param currentXPath The current XPath position
+     * @param parentXPath The parent XPath
+     * @param level      The nesting level
+     */
+    private void processExternalNamespaceReference(Node node, String ref, String currentXPath, String parentXPath, int level) {
+        XsdExtendedElement extendedElem = new XsdExtendedElement();
+        extendedElem.setUseMarkdownRenderer(this.useMarkdownRenderer);
+        extendedElem.setCurrentNode(node);
+
+        // Extract element name from the reference (e.g., "ds:Signature" -> "Signature")
+        String elementName = ref.contains(":") ? ref.substring(ref.lastIndexOf(":") + 1) : ref;
+        String prefix = ref.contains(":") ? ref.substring(0, ref.indexOf(":")) : "";
+
+        // Update XPath for this element
+        String elementXPath = currentXPath + "/" + elementName;
+
+        extendedElem.setCounter(counter++);
+        extendedElem.setLevel(level);
+        extendedElem.setCurrentXpath(elementXPath);
+        extendedElem.setParentXpath(parentXPath);
+        extendedElem.setElementName(elementName);
+
+        // Mark as external namespace reference
+        extendedElem.setExternalNamespaceReference(true);
+        String namespaceUri = getNamespaceUriForReference(ref);
+        extendedElem.setExternalNamespaceUri(namespaceUri);
+        extendedElem.setSourceNamespacePrefix(prefix);
+        extendedElem.setSourceNamespace(namespaceUri);
+
+        // Set type information
+        extendedElem.setElementType("External Reference (" + ref + ")");
+
+        // Try to get documentation from the imported schema if available
+        Node referencedNode = findReferencedNode("element", ref);
+        if (referencedNode != null) {
+            // Extract documentation from the referenced element using processAnnotations
+            Node annotationNode = getDirectChildElement(referencedNode, "annotation");
+            if (annotationNode != null) {
+                processAnnotations(annotationNode, extendedElem);
+            }
+            // Get type from referenced element
+            String refType = getAttributeValue(referencedNode, "type");
+            if (refType != null && !refType.isEmpty()) {
+                extendedElem.setElementType(refType);
+            }
+            // Store source code from referenced element
+            extendedElem.setSourceCode(nodeToString(referencedNode));
+        } else {
+            // Add a note that this is an imported element
+            extendedElem.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("default",
+                    "Element imported from namespace: " + (namespaceUri != null ? namespaceUri : ref)));
+            // Store source code from the reference node itself
+            extendedElem.setSourceCode(nodeToString(node));
+        }
+
+        // Add to parent's children list
+        if (parentXPath != null && xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
+            List<String> parentChildren = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren();
+            if (!parentChildren.contains(elementXPath)) {
+                parentChildren.add(elementXPath);
+            }
+        }
+
+        // Store in the element map
+        xsdDocumentationData.getExtendedXsdElementMap().put(elementXPath, extendedElem);
+        logger.debug("Added external namespace reference: {} (namespace: {})", ref, namespaceUri);
     }
 
     private void processElementOrAttribute(Node node, String currentXPath, String parentXPath, int level, Set<Node> visitedOnPath) {
@@ -2391,12 +2468,12 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Checks if a reference points to an external namespace that shouldn't be generated as sample data.
-     * External namespace references (like ds:Signature from XML Digital Signature) require special handling
-     * and typically reference schemas that are imported but not included in the current document.
+     * Checks if a reference points to an external namespace (different from the target namespace).
+     * External namespace references (like ds:Signature from XML Digital Signature) are still included
+     * in documentation but marked as external references.
      *
      * @param ref The element reference (e.g., "ds:Signature", "tns:Element")
-     * @return true if the reference is to an external namespace that should be skipped
+     * @return true if the reference is to an external namespace (imported schema)
      */
     private boolean isExternalNamespaceReference(String ref) {
         if (ref == null || !ref.contains(":")) {
@@ -2405,25 +2482,14 @@ public class XsdDocumentationService {
 
         String prefix = ref.substring(0, ref.indexOf(":"));
 
-        // Check if this prefix maps to an external namespace (not the target namespace)
-        // Common external namespace prefixes that should be skipped:
-        // - ds: XML Digital Signature (http://www.w3.org/2000/09/xmldsig#)
-        // - xenc: XML Encryption
-        // - saml: SAML assertions
-        // - wsse: WS-Security
-        Set<String> externalPrefixes = Set.of("ds", "dsig", "xenc", "saml", "wsse", "wsu", "soap", "xsi");
-        if (externalPrefixes.contains(prefix)) {
-            return true;
-        }
-
-        // Also check if we have namespace information from the schema
+        // Check if we have namespace information from the schema
         if (xsdDocumentationData != null && xsdDocumentationData.getNamespaces() != null) {
             Map<String, String> namespaces = xsdDocumentationData.getNamespaces();
             String targetNs = xsdDocumentationData.getTargetNamespace();
             String prefixNs = namespaces.get(prefix);
 
             // If the prefix maps to a namespace different from the target namespace,
-            // and it's not the XSD namespace itself, it's likely external
+            // and it's not the XSD namespace itself, it's an external namespace
             if (prefixNs != null && targetNs != null && !prefixNs.equals(targetNs)
                     && !prefixNs.equals(NS_URI)) {
                 return true;
@@ -2431,6 +2497,26 @@ public class XsdDocumentationService {
         }
 
         return false;
+    }
+
+    /**
+     * Gets the namespace URI for a given prefix from the reference.
+     *
+     * @param ref The element reference (e.g., "ds:Signature")
+     * @return The namespace URI or null if not found
+     */
+    private String getNamespaceUriForReference(String ref) {
+        if (ref == null || !ref.contains(":")) {
+            return null;
+        }
+
+        String prefix = ref.substring(0, ref.indexOf(":"));
+
+        if (xsdDocumentationData != null && xsdDocumentationData.getNamespaces() != null) {
+            return xsdDocumentationData.getNamespaces().get(prefix);
+        }
+
+        return null;
     }
 
     // --- XML/DOM Processing Helper Methods ---

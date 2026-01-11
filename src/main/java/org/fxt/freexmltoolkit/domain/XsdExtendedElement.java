@@ -84,6 +84,10 @@ public class XsdExtendedElement implements Serializable {
     private String sourceNamespace;
     private String sourceNamespacePrefix;
 
+    // External namespace reference (e.g., ds:Signature from xs:import)
+    private boolean externalNamespaceReference = false;
+    private String externalNamespaceUri;
+
     public void setSourceNamespace(String sourceNamespace) {
         this.sourceNamespace = sourceNamespace;
     }
@@ -98,6 +102,22 @@ public class XsdExtendedElement implements Serializable {
 
     public String getSourceNamespacePrefix() {
         return sourceNamespacePrefix;
+    }
+
+    public boolean isExternalNamespaceReference() {
+        return externalNamespaceReference;
+    }
+
+    public void setExternalNamespaceReference(boolean externalNamespaceReference) {
+        this.externalNamespaceReference = externalNamespaceReference;
+    }
+
+    public String getExternalNamespaceUri() {
+        return externalNamespaceUri;
+    }
+
+    public void setExternalNamespaceUri(String externalNamespaceUri) {
+        this.externalNamespaceUri = externalNamespaceUri;
     }
 
     // Helper records for structured data

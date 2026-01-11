@@ -272,7 +272,8 @@
                         <dt class="text-sm font-medium text-slate-500">Level</dt>
                         <dd class="mt-1 text-slate-900" th:text="${element.level}">1</dd>
                     </div>
-                    <div class="flex flex-col md:col-span-2" th:if="${sampleData != null and sampleData != '...'}">
+                    <!-- Sample Data: Only show for leaf elements (no children) -->
+                    <div class="flex flex-col md:col-span-2" th:if="${sampleData != null and sampleData != '...' and (flattenedChildren == null or #lists.isEmpty(flattenedChildren))}">
                         <dt class="text-sm font-medium text-slate-500">Sample Data</dt>
                         <dd class="mt-1 text-slate-900 bg-slate-100 p-2 rounded-md font-mono text-sm"
                             th:text="${sampleData}">Sample Data
