@@ -340,6 +340,8 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private CheckBox generateSvgOverviewPage;
     @FXML
+    private CheckBox addMetadataInOutput;
+    @FXML
     private ChoiceBox<String> grafikFormat;
     @FXML
     private CheckBox showDocumentationInSvg;
@@ -2687,6 +2689,7 @@ public class XsdController implements FavoritesParentController {
         final boolean includeTypeDefs = includeTypeDefinitionsInSourceCode.isSelected();
         final boolean showDocInSvg = showDocumentationInSvg.isSelected();
         final boolean generateSvgOverview = generateSvgOverviewPage.isSelected();
+        final boolean addMetadata = addMetadataInOutput.isSelected();
         final String imageFormat = grafikFormat.getValue();
 
         Task<Void> generationTask = new Task<>() {
@@ -2702,6 +2705,7 @@ public class XsdController implements FavoritesParentController {
                 docService.setIncludeTypeDefinitionsInSourceCode(includeTypeDefs);
                 docService.setShowDocumentationInSvg(showDocInSvg);
                 docService.setGenerateSvgOverviewPage(generateSvgOverview);
+                docService.setAddMetadataInOutput(addMetadata);
 
                 // Set language filter for documentation output
                 docService.setIncludedLanguages(selectedLanguages);

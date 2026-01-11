@@ -103,6 +103,7 @@ public class XsdDocumentationService {
     // SVG documentation display configuration
     private boolean showDocumentationInSvg = true; // Whether to show documentation in SVG diagrams
     private boolean generateSvgOverviewPage = true; // Whether to generate the schema-svg.html overview page
+    private boolean addMetadataInOutput = false; // Whether to add metadata comments to generated HTML files
 
     // Thread-local storage for element reference nodes (to preserve cardinality attributes)
     private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
@@ -160,6 +161,26 @@ public class XsdDocumentationService {
      */
     public void setGenerateSvgOverviewPage(boolean generateSvgOverviewPage) {
         this.generateSvgOverviewPage = generateSvgOverviewPage;
+    }
+
+    /**
+     * Sets whether to add metadata comments to generated HTML files.
+     * When enabled, HTML comments containing timestamp, OS, app version, and source file
+     * are added to all generated HTML documentation files.
+     *
+     * @param addMetadataInOutput true to add metadata comments, false to skip them (default)
+     */
+    public void setAddMetadataInOutput(boolean addMetadataInOutput) {
+        this.addMetadataInOutput = addMetadataInOutput;
+    }
+
+    /**
+     * Returns whether metadata comments should be added to generated HTML files.
+     *
+     * @return true if metadata comments should be added, false otherwise
+     */
+    public boolean isAddMetadataInOutput() {
+        return addMetadataInOutput;
     }
 
     /**
@@ -235,6 +256,7 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.setDocumentationData(xsdDocumentationData);
         xsdDocumentationHtmlService.setXsdDocumentationService(this);
         xsdDocumentationHtmlService.setIncludedLanguages(this.includedLanguages);
+        xsdDocumentationHtmlService.setAddMetadataInOutput(this.addMetadataInOutput);
 
         xsdDocumentationSvgService.setOutputDirectory(outputDirectory);
         xsdDocumentationSvgService.setDocumentationData(xsdDocumentationData);

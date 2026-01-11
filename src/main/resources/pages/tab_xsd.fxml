@@ -592,6 +592,11 @@
                                     <Tooltip text="Generate an interactive SVG page showing the complete schema structure"/>
                                 </tooltip>
                             </CheckBox>
+                            <CheckBox fx:id="addMetadataInOutput" selected="false" text="Add Metadata in Output">
+                                <tooltip>
+                                    <Tooltip text="Add HTML comments with creation details (timestamp, OS, app version) to all generated HTML files"/>
+                                </tooltip>
+                            </CheckBox>
                         </VBox>
 
                         <!-- Language Settings Card -->
