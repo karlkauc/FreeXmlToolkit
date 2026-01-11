@@ -50,23 +50,33 @@
      * @param {string} lang - The language code to switch to
      */
     function switchLanguage(lang) {
+        console.log('[LangSwitcher] Switching to language:', lang);
         // Store the preference
         storeLanguage(lang);
 
         // Find all documentation sections
-        document.querySelectorAll('.documentation-section').forEach(function (section) {
+        var sections = document.querySelectorAll('.documentation-section');
+        console.log('[LangSwitcher] Found documentation sections:', sections.length);
+
+        sections.forEach(function (section) {
             var allDocs = section.querySelectorAll('.doc-content');
+            console.log('[LangSwitcher] Found doc-content elements in section:', allDocs.length);
             var found = false;
 
-            // Hide all, show selected language
+            // Hide all, show selected language (using CSS classes only, no hidden attribute)
             allDocs.forEach(function (doc) {
+                console.log('[LangSwitcher] Checking doc with lang:', doc.dataset.lang);
                 if (doc.dataset.lang === lang) {
-                    doc.hidden = false;
+                    console.log('[LangSwitcher] SHOWING:', doc.dataset.lang);
+                    // Remove hidden attribute if present (for backwards compatibility)
+                    doc.removeAttribute('hidden');
+                    // Use CSS classes for visibility control
                     doc.classList.remove('lang-hidden');
                     doc.classList.add('lang-visible');
                     found = true;
                 } else {
-                    doc.hidden = true;
+                    console.log('[LangSwitcher] HIDING:', doc.dataset.lang);
+                    // Use CSS classes for visibility control (not hidden attribute)
                     doc.classList.remove('lang-visible');
                     doc.classList.add('lang-hidden');
                 }
@@ -74,21 +84,36 @@
 
             // Fallback logic when selected language not found
             if (!found) {
+                console.log('[LangSwitcher] Language not found, using fallback logic');
                 // First, try to show 'default' (no language tag) documentation
                 var defaultDoc = section.querySelector('[data-lang="default"]');
+                console.log('[LangSwitcher] defaultDoc found:', defaultDoc !== null);
                 if (defaultDoc) {
-                    defaultDoc.hidden = false;
+                    console.log('[LangSwitcher] Showing default as fallback');
+                    defaultDoc.removeAttribute('hidden');
                     defaultDoc.classList.remove('lang-hidden');
                     defaultDoc.classList.add('lang-visible');
                 } else if (configuredFallbackLang) {
+                    console.log('[LangSwitcher] Trying configured fallback:', configuredFallbackLang);
                     // If no default documentation exists, use the configured fallback language
                     var fallbackDoc = section.querySelector('[data-lang="' + configuredFallbackLang + '"]');
                     if (fallbackDoc) {
-                        fallbackDoc.hidden = false;
+                        fallbackDoc.removeAttribute('hidden');
                         fallbackDoc.classList.remove('lang-hidden');
                         fallbackDoc.classList.add('lang-visible');
                     }
+                } else {
+                    // Last resort: show the first available documentation
+                    var firstDoc = allDocs[0];
+                    if (firstDoc) {
+                        console.log('[LangSwitcher] Showing first available as last resort:', firstDoc.dataset.lang);
+                        firstDoc.removeAttribute('hidden');
+                        firstDoc.classList.remove('lang-hidden');
+                        firstDoc.classList.add('lang-visible');
+                    }
                 }
+            } else {
+                console.log('[LangSwitcher] Language found in section');
             }
         });
 
@@ -213,9 +238,12 @@
      */
     function initLanguageSwitcher() {
         var switchers = document.querySelectorAll('.lang-switcher');
+        console.log('[LangSwitcher] Found switchers:', switchers.length);
 
         // Load available languages (this also loads the fallback configuration)
         loadAvailableLanguages(function (languages) {
+            console.log('[LangSwitcher] Available languages:', languages);
+            console.log('[LangSwitcher] shouldShowSwitcher:', shouldShowSwitcher);
             // Hide SVG page link if not generated
             if (!shouldShowSvgPage) {
                 hideSvgPageLink();
@@ -241,9 +269,11 @@
             // Populate all switchers
             switchers.forEach(function (switcher) {
                 populateLanguageSwitcher(switcher, languages);
+                console.log('[LangSwitcher] Populated switcher with options:', switcher.options.length);
 
                 // Add change event listener
                 switcher.addEventListener('change', function (e) {
+                    console.log('[LangSwitcher] Change event fired, new value:', e.target.value);
                     switchLanguage(e.target.value);
                 });
             });

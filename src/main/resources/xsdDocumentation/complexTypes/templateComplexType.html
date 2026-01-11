@@ -33,11 +33,6 @@
 <!-- NEU: Body-Tag mit data-Attributen für das Such-Skript -->
 <body class="font-sans text-slate-800" data-root-path=".." data-search-index-path="../search_index.json">
 
-<!-- Skip link for keyboard navigation -->
-<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-md focus:shadow-lg focus:text-sky-600">
-    Skip to main content
-</a>
-
 <!-- NEU: Navigation mit Suchleiste für konsistente UI -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
     <div class="container mx-auto px-4">
@@ -119,11 +114,24 @@
 
         <!-- Card body -->
         <div class="p-6 md:p-8 space-y-10">
-            <!-- Section: Documentation -->
-            <section th:if="${this.getDocumentationFromNode(complexTypeNode) != ''}">
+            <!-- Section: Documentation (Multi-Language Support) -->
+            <section th:with="documentation=${this.getDocumentationsFromNode(complexTypeNode)}"
+                     th:if="${documentation != null and not #maps.isEmpty(documentation)}"
+                     class="documentation-section">
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">Documentation</h2>
                 <div class="bg-slate-100/75 p-4 rounded-md space-y-2">
-                    <p th:text="${this.getDocumentationFromNode(complexTypeNode)}" class="text-slate-700"></p>
+                    <!-- Each language as separate div with data-lang attribute -->
+                    <!-- First entry shown by default, others hidden via CSS class -->
+                    <div th:each="doc, iterStat: ${documentation}"
+                         class="doc-content"
+                         th:classappend="${iterStat.first} ? 'lang-visible' : 'lang-hidden'"
+                         th:attr="data-lang=${doc.key}">
+                        <strong th:if="${doc.key != 'default'}"
+                                class="doc-lang-label inline-block px-2 py-0.5 rounded text-xs font-semibold mb-2"
+                                th:classappend="${doc.key == 'en' ? 'bg-blue-100 text-blue-800' : (doc.key == 'de' ? 'bg-amber-100 text-amber-800' : (doc.key == 'fr' ? 'bg-pink-100 text-pink-800' : 'bg-slate-200 text-slate-700'))}"
+                                th:text="${#strings.toUpperCase(doc.key)}">LANG</strong>
+                        <p class="text-slate-600" th:utext="${doc.value}">VALUE</p>
+                    </div>
                 </div>
             </section>
 
@@ -156,8 +164,14 @@
                             </td>
                             <td class="px-4 py-3 font-mono text-slate-600"
                                 th:text="${this.getAttributeValue(attrNode, 'use', 'optional')}"></td>
-                            <td class="px-4 py-3 text-slate-600 prose prose-sm max-w-md"
-                                th:utext="${this.getDocumentationFromNode(attrNode)}">
+                            <td class="px-4 py-3 text-slate-600 prose prose-sm max-w-md documentation-section">
+                                <!-- Multi-language documentation for attributes -->
+                                <div th:each="doc, iterStat: ${this.getDocumentationsFromNode(attrNode)}"
+                                     class="doc-content"
+                                     th:classappend="${iterStat.first} ? 'lang-visible' : 'lang-hidden'"
+                                     th:attr="data-lang=${doc.key}">
+                                    <span th:utext="${doc.value}"></span>
+                                </div>
                             </td>
                         </tr>
                         </tbody>
@@ -195,8 +209,15 @@
                                       th:text="${child.elementType}"></span>
                             </td>
                             <td class="px-4 py-3 font-mono text-slate-600" th:text="${this.getCardinality(child)}"></td>
-                            <td class="px-4 py-3 text-slate-600 prose prose-sm max-w-md"
-                                th:utext="${this.getChildDocumentation(child.currentXpath)}"></td>
+                            <td class="px-4 py-3 text-slate-600 prose prose-sm max-w-md documentation-section">
+                                <!-- Multi-language documentation for child elements -->
+                                <div th:each="doc, iterStat: ${this.getChildDocumentations(child.currentXpath)}"
+                                     class="doc-content"
+                                     th:classappend="${iterStat.first} ? 'lang-visible' : 'lang-hidden'"
+                                     th:attr="data-lang=${doc.key}">
+                                    <span th:utext="${doc.value}"></span>
+                                </div>
+                            </td>
                         </tr>
                         </tbody>
                     </table>

@@ -1,5 +1,5 @@
 @source "../xsdDocumentation/**/*.html";
-@source " ../../../../release/examples/xslt/Check_FundsXML_File.xslt";
+@source " ../../../../release/examples/xslt/*.xslt";
 
 @font-face {
     font-family: "Inter";
@@ -12,4 +12,35 @@
 
 @theme {
     --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* Screen reader only - visually hidden but accessible */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Language switcher visibility classes - using high specificity */
+/* Hide doc-content with hidden attribute or lang-hidden class */
+.documentation-section .doc-content[hidden],
+.documentation-section .doc-content.lang-hidden,
+.doc-content[hidden],
+.lang-hidden {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Show doc-content with lang-visible class - highest specificity */
+.documentation-section .doc-content.lang-visible,
+.doc-content.lang-visible,
+.lang-visible {
+    display: block !important;
+    visibility: visible !important;
 }

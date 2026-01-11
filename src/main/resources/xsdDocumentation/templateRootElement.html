@@ -27,13 +27,9 @@
     <link href="assets/freexmltoolkit-docs.css" rel="stylesheet">
     <!-- PrismJS for Syntax Highlighting -->
     <link href="assets/prism.css" rel="stylesheet"/>
+
 </head>
 <body class="font-sans text-slate-800" data-root-path="." data-search-index-path="search_index.json">
-
-<!-- Skip link for keyboard navigation -->
-<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-md focus:shadow-lg focus:text-sky-600">
-    Skip to main content
-</a>
 
 <!-- Modern navigation with shadow and clear spacing -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
@@ -73,7 +69,7 @@
                 </div>
             </div>
             <!-- Right navigation group (Language Switcher + GitHub Link) -->
-            <div class="hidden md:flex items-center space-x-4">
+            <div class="hidden md:flex items-center space-x-2">
                 <!-- Language Switcher -->
                 <div class="flex items-center space-x-2">
                     <label for="lang-switcher-nav" class="text-sm text-slate-600">Language:</label>
@@ -95,11 +91,33 @@
 <!-- Main content with generous padding -->
 <main id="main-content" class="container mx-auto px-4 py-8 md:py-12">
 
-    <!-- Information grid as a "card" for metadata -->
-    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 mb-12">
-        <h2 class="text-xl font-semibold text-slate-900 mb-4">Schema Information</h2>
-        <!-- Semantic definition list for better structure and accessibility -->
-        <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+    <!-- Page Title -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-900 mb-2" th:text="${rootElementName} + ' Schema Documentation'">Schema Documentation</h1>
+        <p class="text-slate-600">Browse and search all types defined in this schema</p>
+    </div>
+
+    <!-- Root Element Card -->
+    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <span class="inline-flex px-2 py-1 text-xs font-semibold bg-emerald-100 text-emerald-800 rounded-full mb-2">Root Element</span>
+                <h2 class="text-2xl font-bold text-slate-900" th:text="${rootElementName}">RootElementName</h2>
+                <p class="text-slate-600 mt-1">Click to view the root element details and explore the complete XML structure.</p>
+            </div>
+            <a th:href="${rootElementLink}" class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors no-underline">
+                <span>Go to Root Element</span>
+                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Schema Information Card -->
+    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 mb-8">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Schema Information</h2>
+        <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
             <div class="flex flex-col">
                 <dt class="text-sm font-medium text-slate-500">Created on</dt>
                 <dd class="mt-1 text-slate-900" th:text="${date}">2022-12-30</dd>
@@ -111,18 +129,9 @@
                 </dd>
             </div>
             <div class="flex flex-col">
-                <dt class="text-sm font-medium text-slate-500">Root Element</dt>
-                <dd class="mt-1">
-                    <a th:href="${rootElementLink}"
-                       th:text="${rootElementName}"
-                       class="font-mono text-sky-600 hover:text-sky-800 hover:underline">RootElementName</a>
-                </dd>
-            </div>
-            <div class="flex flex-col">
                 <dt class="text-sm font-medium text-slate-500">Target Namespace</dt>
-                <dd class="mt-1 text-slate-900" th:text="${targetNamespace}">TargetName</dd>
+                <dd class="mt-1 text-slate-900 font-mono text-xs break-all" th:text="${targetNamespace}">TargetName</dd>
             </div>
-            <!-- NEU: Greift auf die neuen Variablen zu, die direkt vom Schema-Knoten kommen -->
             <div class="flex flex-col">
                 <dt class="text-sm font-medium text-slate-500">attributeFormDefault</dt>
                 <dd class="mt-1 font-mono text-sm text-slate-900" th:text="${attributeFormDefault}">unqualified</dd>
@@ -144,61 +153,273 @@
         </dl>
     </div>
 
-    <!-- Table in a "card" for a clean separation -->
-    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
-        <table class="w-full text-left">
-            <caption class="sr-only">Overview of Global Elements, Complex Types, and Simple Types</caption>
-            <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-                <th scope="col" class="px-6 py-4 text-sm font-semibold text-slate-900">Global Elements</th>
-                <th scope="col" class="px-6 py-4 text-sm font-semibold text-slate-900">Complex Types</th>
-                <th scope="col" class="px-6 py-4 text-sm font-semibold text-slate-900">Simple Types</th>
-            </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200">
-            <tr>
-                <td class="px-6 py-4 align-top">
-                    <!-- Vertical layout for the links -->
-                    <div class="flex flex-col space-y-2">
-                        <!-- Iteriert über die globalen Elemente und zeigt optional ein Badge für importierte Elemente an -->
-                        <div th:each="xsdElement : ${xsdGlobalElements}" class="flex items-center space-x-2">
-                            <a th:href="@{'details/' + ${xsdElement.pageName}}"
-                               th:text="${xsdElement.elementName}"
-                               class="text-sky-600 hover:text-sky-800 hover:underline">Name
-                            </a>
-                            <span th:if="${xsdElement.sourceNamespacePrefix != null}"
-                                  th:text="${xsdElement.sourceNamespacePrefix}"
-                                  class="px-2 py-0.5 text-xs font-semibold text-slate-600 bg-slate-200 rounded-full"
-                                  th:title="'Imported from namespace: ' + ${xsdElement.sourceNamespace}">
-                                imported
-                            </span>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-6 py-4 align-top">
-                    <div class="flex flex-col space-y-2">
-                        <!-- NEU: Iteriert über eine Liste von DOM-Knoten und nutzt eine Hilfsmethode für den Namen -->
-                        <a th:each="xsdComplexTypeNode : ${xsdComplexTypes}"
-                           th:href="@{'complexTypes/' + ${this.getAttributeValue(xsdComplexTypeNode, 'name')} + '.html'}"
-                           th:text="${this.getAttributeValue(xsdComplexTypeNode, 'name')}"
-                           class="text-sky-600 hover:text-sky-800 hover:underline">LINK</a>
-                    </div>
-                </td>
-                <td class="px-6 py-4 align-top">
-                    <div class="flex flex-col space-y-2">
-                        <!-- NEU: Iteriert über eine Liste von DOM-Knoten und nutzt eine Hilfsmethode für den Namen -->
-                        <a th:each="xsdSimpleTypeNode : ${xsdSimpleTypes}"
-                           th:href="@{'simpleTypes/' + ${this.getAttributeValue(xsdSimpleTypeNode, 'name')} + '.html'}"
-                           th:text="${this.getAttributeValue(xsdSimpleTypeNode, 'name')}"
-                           class="text-sky-600 hover:text-sky-800 hover:underline">LINK</a>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+    <!-- Filter Section Card -->
+    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 mb-8">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Filter &amp; Search</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="flex flex-col">
+                <label for="searchInput" class="text-sm font-medium text-slate-500 mb-2">Search Types</label>
+                <input type="text" id="searchInput" placeholder="e.g. 'Fund', 'Asset', 'Account'..."
+                       class="w-full pl-3 pr-4 py-2 text-sm text-slate-700 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+            </div>
+            <div class="flex flex-col">
+                <label for="categoryFilter" class="text-sm font-medium text-slate-500 mb-2">Category</label>
+                <select id="categoryFilter"
+                        class="w-full pl-3 pr-8 py-2 text-sm text-slate-700 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white">
+                    <option value="">All Categories</option>
+                    <option value="global">Global Elements</option>
+                    <option value="complex">Complex Types</option>
+                    <option value="simple">Simple Types</option>
+                </select>
+            </div>
+            <div class="flex flex-col">
+                <label for="sortBy" class="text-sm font-medium text-slate-500 mb-2">Sort By</label>
+                <select id="sortBy"
+                        class="w-full pl-3 pr-8 py-2 text-sm text-slate-700 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white">
+                    <option value="name-asc">A-Z (ascending)</option>
+                    <option value="name-desc">Z-A (descending)</option>
+                </select>
+            </div>
+        </div>
     </div>
 
+    <!-- Stats Bar -->
+    <div class="flex flex-wrap gap-3 mb-6">
+        <div class="inline-flex items-center gap-2 px-3 py-2 bg-sky-100 border border-slate-200 rounded-lg text-sm">
+            <span class="text-slate-600">Total:</span>
+            <span class="font-bold text-sky-600" id="totalCount">0</span>
+        </div>
+        <div class="inline-flex items-center gap-2 px-3 py-2 bg-sky-100 border border-slate-200 rounded-lg text-sm">
+            <span class="text-slate-600">Displayed:</span>
+            <span class="font-bold text-sky-600" id="displayCount">0</span>
+        </div>
+        <div class="inline-flex items-center gap-2 px-3 py-2 bg-sky-100 border border-slate-200 rounded-lg text-sm">
+            <span class="text-slate-600">Page:</span>
+            <span class="font-bold text-sky-600" id="currentPageDisplay">1</span>
+        </div>
+    </div>
+
+    <!-- Types Grid -->
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden mb-8">
+        <div id="typesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-slate-200">
+            <!-- Types will be injected by JavaScript -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="hidden text-center py-12 px-4" id="emptyState">
+            <svg class="h-12 w-12 text-slate-400 mb-4" style="margin: 0 auto;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h3 class="text-lg font-medium text-slate-700 mb-2">No results found</h3>
+            <p class="text-slate-500">Try a different search query or filter setting.</p>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex flex-wrap justify-center items-center gap-4 p-4 bg-slate-50 border-t border-slate-200">
+            <button id="prevBtn" onclick="goToPreviousPage()"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors">
+                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Previous
+            </button>
+            <div class="flex items-center gap-2 text-sm">
+                <span class="text-slate-600">Page</span>
+                <input type="number" id="pageInput" min="1" value="1" onchange="goToPage()"
+                       class="w-16 px-2 py-1 text-center text-sm font-medium border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <span class="text-slate-600">of <span id="totalPages" class="font-medium">1</span></span>
+            </div>
+            <button id="nextBtn" onclick="goToNextPage()"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors">
+                Next
+                <svg class="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Hidden data containers for Thymeleaf to inject data -->
+    <script id="globalElementsData" type="application/json" th:inline="none">
+        <th:block th:remove="tag">
+        [<th:block th:each="xsdElement, iterStat : ${xsdGlobalElements}">{"name": "<th:block th:text="${xsdElement.elementName}"/>", "url": "<th:block th:text="@{'details/' + ${xsdElement.pageName}}"/>", "prefix": <th:block th:if="${xsdElement.sourceNamespacePrefix != null}">"<th:block th:text="${xsdElement.sourceNamespacePrefix}"/>"</th:block><th:block th:unless="${xsdElement.sourceNamespacePrefix != null}">null</th:block>}<th:block th:unless="${iterStat.last}">,</th:block></th:block>]
+        </th:block>
+    </script>
+    <script id="complexTypesData" type="application/json" th:inline="none">
+        <th:block th:remove="tag">
+        [<th:block th:each="xsdComplexTypeNode, iterStat : ${xsdComplexTypes}">{"name": "<th:block th:text="${this.getAttributeValue(xsdComplexTypeNode, 'name')}"/>", "url": "<th:block th:text="@{'complexTypes/' + ${this.getAttributeValue(xsdComplexTypeNode, 'name')} + '.html'}"/>"}<th:block th:unless="${iterStat.last}">,</th:block></th:block>]
+        </th:block>
+    </script>
+    <script id="simpleTypesData" type="application/json" th:inline="none">
+        <th:block th:remove="tag">
+        [<th:block th:each="xsdSimpleTypeNode, iterStat : ${xsdSimpleTypes}">{"name": "<th:block th:text="${this.getAttributeValue(xsdSimpleTypeNode, 'name')}"/>", "url": "<th:block th:text="@{'simpleTypes/' + ${this.getAttributeValue(xsdSimpleTypeNode, 'name')} + '.html'}"/>"}<th:block th:unless="${iterStat.last}">,</th:block></th:block>]
+        </th:block>
+    </script>
+
 </main>
+
+<script>
+    // Parse type data from Thymeleaf-injected JSON
+    let allTypes = [];
+
+    function parseTypeData() {
+        try {
+            const globalElements = JSON.parse(document.getElementById('globalElementsData').textContent || '[]');
+            const complexTypes = JSON.parse(document.getElementById('complexTypesData').textContent || '[]');
+            const simpleTypes = JSON.parse(document.getElementById('simpleTypesData').textContent || '[]');
+
+            allTypes = [
+                ...globalElements.map(e => ({ name: e.name, url: e.url, category: 'global', prefix: e.prefix })),
+                ...complexTypes.map(e => ({ name: e.name, url: e.url, category: 'complex', prefix: null })),
+                ...simpleTypes.map(e => ({ name: e.name, url: e.url, category: 'simple', prefix: null }))
+            ];
+        } catch (e) {
+            console.error('Error parsing type data:', e);
+            allTypes = [];
+        }
+    }
+
+    let currentPage = 1;
+    let itemsPerPage = 25;
+    let filteredTypes = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        parseTypeData();
+        filteredTypes = [...allTypes];
+
+        document.getElementById('searchInput').addEventListener('input', filterAndRender);
+        document.getElementById('categoryFilter').addEventListener('change', filterAndRender);
+        document.getElementById('sortBy').addEventListener('change', filterAndRender);
+
+        renderPage();
+    });
+
+    function filterAndRender() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const category = document.getElementById('categoryFilter').value;
+        const sortBy = document.getElementById('sortBy').value;
+
+        filteredTypes = allTypes.filter(type => {
+            const matchesSearch = type.name.toLowerCase().includes(searchTerm);
+            const matchesCategory = !category || type.category === category;
+            return matchesSearch && matchesCategory;
+        });
+
+        if (sortBy === 'name-asc') {
+            filteredTypes.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (sortBy === 'name-desc') {
+            filteredTypes.sort((a, b) => b.name.localeCompare(a.name));
+        }
+
+        currentPage = 1;
+        renderPage();
+    }
+
+    function getBadgeClass(category) {
+        switch(category) {
+            case 'global': return 'bg-emerald-100 text-emerald-800';
+            case 'complex': return 'bg-amber-100 text-amber-800';
+            case 'simple': return 'bg-sky-100 text-sky-700';
+            default: return 'bg-sky-100 text-sky-700';
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function renderPage() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageItems = filteredTypes.slice(startIndex, endIndex);
+
+        const grid = document.getElementById('typesGrid');
+        const emptyState = document.getElementById('emptyState');
+
+        if (pageItems.length === 0) {
+            grid.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+        } else {
+            grid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            grid.innerHTML = pageItems.map(type => {
+                const prefixBadge = type.prefix
+                    ? `<span class="ml-2 px-1.5 py-0.5 text-xs font-medium bg-slate-200 text-slate-600 rounded" title="Imported from external namespace">${escapeHtml(type.prefix)}</span>`
+                    : '';
+                return `
+                <div class="bg-white p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                    <div class="flex items-center flex-1 min-w-0">
+                        <a href="${escapeHtml(type.url)}"
+                           class="text-sky-600 hover:text-sky-800 hover:underline font-medium truncate"
+                           title="Click to view details">
+                            ${escapeHtml(type.name)}
+                        </a>
+                        ${prefixBadge}
+                    </div>
+                    <span class="ml-3 px-2.5 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${getBadgeClass(type.category)}">
+                        ${type.category}
+                    </span>
+                </div>
+            `}).join('');
+        }
+
+        updatePagination();
+        updateStats();
+    }
+
+    function updatePagination() {
+        const totalPages = Math.max(1, Math.ceil(filteredTypes.length / itemsPerPage));
+        document.getElementById('totalPages').textContent = totalPages;
+        document.getElementById('pageInput').value = currentPage;
+        document.getElementById('pageInput').max = totalPages;
+
+        document.getElementById('prevBtn').disabled = currentPage === 1;
+        document.getElementById('nextBtn').disabled = currentPage === totalPages || filteredTypes.length === 0;
+
+        document.getElementById('currentPageDisplay').textContent = currentPage;
+    }
+
+    function updateStats() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, filteredTypes.length);
+        const displayedCount = Math.max(0, endIndex - startIndex);
+
+        document.getElementById('totalCount').textContent = filteredTypes.length;
+        document.getElementById('displayCount').textContent = displayedCount;
+    }
+
+    function goToNextPage() {
+        const totalPages = Math.ceil(filteredTypes.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function goToPreviousPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function goToPage() {
+        let page = parseInt(document.getElementById('pageInput').value);
+        const totalPages = Math.ceil(filteredTypes.length / itemsPerPage);
+
+        if (isNaN(page) || page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+
+        currentPage = page;
+        renderPage();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {

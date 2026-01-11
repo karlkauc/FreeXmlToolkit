@@ -224,11 +224,13 @@ public class XsdDocumentationHtmlService {
             context.setVariable("usedInElements", usedInElements);
 
             // Find child elements from a representative element
+            // Use getFlattenedChildren to skip SEQUENCE/CHOICE/ALL containers
             List<XsdExtendedElement> childElements = new ArrayList<>();
             if (!usedInElements.isEmpty()) {
                 XsdExtendedElement representativeElement = usedInElements.getFirst();
                 if (representativeElement != null && representativeElement.hasChildren()) {
-                    representativeElement.getChildren().stream()
+                    // Use flattened children to skip containers (SEQUENCE, CHOICE, ALL)
+                    getFlattenedChildren(representativeElement).stream()
                             .map(xpath -> xsdDocumentationData.getExtendedXsdElementMap().get(xpath))
                             .filter(Objects::nonNull)
                             .forEach(childElements::add);
@@ -595,6 +597,44 @@ public class XsdDocumentationHtmlService {
         return String.join("\n", docStrings);
     }
 
+    /**
+     * Gets all documentation from a node as a Map with language keys.
+     * This method supports multi-language documentation switching.
+     *
+     * @param node The XSD node to get documentation from
+     * @return A LinkedHashMap of language codes to documentation content (preserves order).
+     *         If no xml:lang attribute, uses "default" as key.
+     */
+    public Map<String, String> getDocumentationsFromNode(Node node) {
+        Map<String, String> result = new LinkedHashMap<>();
+        if (node == null) return result;
+
+        Node annotationNode = getDirectChildElement(node, "annotation");
+        if (annotationNode == null) return result;
+
+        for (Node docNode : getDirectChildElements(annotationNode, "documentation")) {
+            // Get xml:lang attribute
+            String lang = "default";
+            if (docNode.getAttributes() != null) {
+                Node langAttr = docNode.getAttributes().getNamedItemNS("http://www.w3.org/XML/1998/namespace", "lang");
+                if (langAttr == null) {
+                    langAttr = docNode.getAttributes().getNamedItem("xml:lang");
+                }
+                if (langAttr != null && langAttr.getNodeValue() != null && !langAttr.getNodeValue().isBlank()) {
+                    lang = langAttr.getNodeValue().toLowerCase();
+                }
+            }
+
+            String content = docNode.getTextContent();
+            if (content != null && !content.isBlank()) {
+                // If same language already exists, append content
+                result.merge(lang, content, (existing, newContent) -> existing + "\n" + newContent);
+            }
+        }
+
+        return result;
+    }
+
     public String getRestrictionBase(Node simpleTypeNode) {
         Node restrictionNode = getDirectChildElement(simpleTypeNode, "restriction");
         return (restrictionNode != null) ? getAttributeValue(restrictionNode, "base") : "";
@@ -930,6 +970,39 @@ public class XsdDocumentationHtmlService {
             return allDocs.get("default");
         }
         return allDocs.values().iterator().next();
+    }
+
+    /**
+     * Get all language documentations for a child element.
+     * Returns a map with language codes as keys and documentation as values.
+     * Used for multi-language support in the child elements table.
+     *
+     * @param xpath The XPath of the child element
+     * @return Map of language codes to documentation strings
+     */
+    public Map<String, String> getChildDocumentations(String xpath) {
+        XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        if (element == null) {
+            return java.util.Collections.emptyMap();
+        }
+
+        Map<String, String> allDocs = element.getAllLanguageDocumentation();
+        if (allDocs.isEmpty()) {
+            return java.util.Collections.emptyMap();
+        }
+
+        return allDocs;
+    }
+
+    /**
+     * Check if a child element has multi-language documentation.
+     *
+     * @param xpath The XPath of the child element
+     * @return true if the element has documentation in more than one language
+     */
+    public boolean hasMultiLanguageChildDocumentation(String xpath) {
+        Map<String, String> docs = getChildDocumentations(xpath);
+        return docs.size() > 1;
     }
 
     public boolean isChildTypeLinkable(String childXPath) {
