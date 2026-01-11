@@ -3650,19 +3650,14 @@ public class XsdDocumentationService {
             globalTypeNode = simpleTypeMap.get(cleanTypeName);
         }
 
-        // If we found a global type definition, combine it with the element source code
+        // If we found a global type definition, set it separately
         if (globalTypeNode != null) {
             String typeSourceCode = nodeToString(globalTypeNode);
-            logger.debug("Including type definition for '{}' in combined source code", cleanTypeName);
+            logger.debug("Setting separate type definition for '{}' in referencedTypeCode", cleanTypeName);
 
-            // Combine the element source code with the type definition using marker comments
-            String combinedSource = "<!-- Element Definition -->\n" +
-                    elementSourceCode +
-                    "\n\n" +
-                    "<!-- Referenced Type Definition: " + cleanTypeName + " -->\n" +
-                    typeSourceCode;
-
-            extendedElem.setSourceCode(combinedSource);
+            // Set element source code (without type definition)
+            extendedElem.setSourceCode(elementSourceCode);
+            // Set referenced type separately for display in its own section
             extendedElem.setReferencedTypeCode(typeSourceCode);
             extendedElem.setReferencedTypeName(cleanTypeName);
         } else {
