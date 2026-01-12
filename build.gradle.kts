@@ -167,7 +167,13 @@ tasks {
     }
 
     withType<JavaExec> {
-        jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED", "--enable-native-access=javafx.graphics")
+        jvmArgs(
+            "--enable-preview",
+            "--enable-native-access=ALL-UNNAMED",
+            "--enable-native-access=javafx.graphics",
+            "-Dprism.order=sw",           // Force software rendering (may reduce WebView rendering errors)
+            "-Dprism.verbose=false"        // Reduce graphics logging
+        )
     }
 }
 

@@ -16,54 +16,54 @@
    ============================================ */
 
 .dialog-pane {
-    -fx-background-color: var(--bg-primary);
+    -fx-background-color: -bg-primary;
     -fx-padding: 0;
 }
 
 .dialog-pane > .content {
-    -fx-padding: var(--spacing-lg);
+    -fx-padding: 20px;
 }
 
 .dialog-pane > .button-bar {
-    -fx-background-color: var(--bg-secondary);
-    -fx-border-color: var(--border-light);
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: -border-light;
     -fx-border-width: 1 0 0 0;
-    -fx-padding: var(--spacing-md) var(--spacing-lg);
-    -fx-spacing: var(--spacing-md);
+    -fx-padding: 16px -spacing-lg;
+    -fx-spacing: 16px;
 }
 
 .dialog-pane > .button-bar > .container {
-    -fx-spacing: var(--spacing-md);
+    -fx-spacing: 16px;
 }
 
 /* Dialog buttons */
 .dialog-pane .button {
-    -fx-font-size: var(--font-size-md);
-    -fx-font-weight: var(--font-weight-medium);
-    -fx-padding: var(--spacing-sm) var(--spacing-lg);
-    -fx-background-radius: var(--border-radius-base);
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-padding: 8px -spacing-lg;
+    -fx-background-radius: 4px;
     -fx-cursor: hand;
 }
 
 /* Primary/Default button */
 .dialog-pane .button:default {
-    -fx-background-color: var(--color-primary);
+    -fx-background-color: -color-primary;
     -fx-text-fill: white;
-    -fx-font-weight: var(--font-weight-bold);
+    -fx-font-weight: 700;
 }
 
 .dialog-pane .button:default:hover {
-    -fx-background-color: derive(var(--color-primary), -20%);
+    -fx-background-color: derive(-color-primary, -20%);
 }
 
 /* Cancel button */
 .dialog-pane .button:cancel-button {
-    -fx-background-color: var(--color-gray-200);
-    -fx-text-fill: var(--text-primary);
+    -fx-background-color: -color-gray-200;
+    -fx-text-fill: -text-primary;
 }
 
 .dialog-pane .button:cancel-button:hover {
-    -fx-background-color: var(--color-gray-300);
+    -fx-background-color: -color-gray-300;
 }
 
 /* ============================================
@@ -71,9 +71,9 @@
    ============================================ */
 
 .dialog-header {
-    -fx-background-color: linear-gradient(to bottom, var(--color-primary), derive(var(--color-primary), -20%));
-    -fx-padding: var(--spacing-lg);
-    -fx-spacing: var(--spacing-md);
+    -fx-background-color: linear-gradient(to bottom, -color-primary, derive(-color-primary, -20%));
+    -fx-padding: 20px;
+    -fx-spacing: 16px;
 }
 
 .dialog-header .label {
@@ -81,44 +81,44 @@
 }
 
 .dialog-header-title {
-    -fx-font-size: var(--font-size-3xl);
-    -fx-font-weight: var(--font-weight-bold);
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
     -fx-text-fill: white;
 }
 
 .dialog-header-subtitle {
-    -fx-font-size: var(--font-size-lg);
+    -fx-font-size: 14px;
     -fx-text-fill: rgba(255, 255, 255, 0.9);
 }
 
 .dialog-header .ikonli-font-icon {
     -fx-icon-color: white;
-    -fx-icon-size: var(--icon-dialog);
+    -fx-icon-size: 32px;
 }
 
 /* Header color variants */
 .dialog-header-primary {
-    -fx-background-color: linear-gradient(to bottom, var(--color-primary), derive(var(--color-primary), -20%));
+    -fx-background-color: linear-gradient(to bottom, -color-primary, derive(-color-primary, -20%));
 }
 
 .dialog-header-success {
-    -fx-background-color: linear-gradient(to bottom, var(--color-success), derive(var(--color-success), -20%));
+    -fx-background-color: linear-gradient(to bottom, -color-success, derive(-color-success, -20%));
 }
 
 .dialog-header-info {
-    -fx-background-color: linear-gradient(to bottom, var(--color-info), derive(var(--color-info), -20%));
+    -fx-background-color: linear-gradient(to bottom, -color-info, derive(-color-info, -20%));
 }
 
 .dialog-header-warning {
-    -fx-background-color: linear-gradient(to bottom, var(--color-warning), derive(var(--color-warning), -20%));
+    -fx-background-color: linear-gradient(to bottom, -color-warning, derive(-color-warning, -20%));
 }
 
 .dialog-header-danger {
-    -fx-background-color: linear-gradient(to bottom, var(--color-danger), derive(var(--color-danger), -20%));
+    -fx-background-color: linear-gradient(to bottom, -color-danger, derive(-color-danger, -20%));
 }
 
 .dialog-header-purple {
-    -fx-background-color: linear-gradient(to bottom, var(--color-tab-primary), derive(var(--color-tab-primary), -20%));
+    -fx-background-color: linear-gradient(to bottom, -color-tab-primary, derive(-color-tab-primary, -20%));
 }
 
 /* ============================================
@@ -127,52 +127,52 @@
 
 /* Alert header text */
 .dialog-pane > .header-panel {
-    -fx-background-color: var(--bg-secondary);
-    -fx-border-color: var(--border-light);
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: -border-light;
     -fx-border-width: 0 0 1 0;
-    -fx-padding: var(--spacing-lg);
+    -fx-padding: 20px;
 }
 
 .dialog-pane > .header-panel > .label {
-    -fx-font-size: var(--font-size-xl);
-    -fx-font-weight: var(--font-weight-bold);
-    -fx-text-fill: var(--text-primary);
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
 }
 
 /* Content text */
 .dialog-pane > .content > .label {
-    -fx-font-size: var(--font-size-md);
-    -fx-text-fill: var(--text-primary);
+    -fx-font-size: 13px;
+    -fx-text-fill: -text-primary;
     -fx-line-spacing: 2px;
 }
 
 /* Alert icon styling */
 .dialog-pane .graphic-container {
-    -fx-padding: 0 var(--spacing-md) 0 0;
+    -fx-padding: 0 -spacing-md 0 0;
 }
 
 /* Information Alert */
 .dialog-pane.information .graphic-container .ikonli-font-icon {
-    -fx-icon-color: var(--color-info);
-    -fx-icon-size: var(--icon-dialog);
+    -fx-icon-color: -color-info;
+    -fx-icon-size: 32px;
 }
 
 /* Warning Alert */
 .dialog-pane.warning .graphic-container .ikonli-font-icon {
-    -fx-icon-color: var(--color-warning);
-    -fx-icon-size: var(--icon-dialog);
+    -fx-icon-color: -color-warning;
+    -fx-icon-size: 32px;
 }
 
 /* Error Alert */
 .dialog-pane.error .graphic-container .ikonli-font-icon {
-    -fx-icon-color: var(--color-danger);
-    -fx-icon-size: var(--icon-dialog);
+    -fx-icon-color: -color-danger;
+    -fx-icon-size: 32px;
 }
 
 /* Confirmation Alert */
 .dialog-pane.confirmation .graphic-container .ikonli-font-icon {
-    -fx-icon-color: var(--color-primary);
-    -fx-icon-size: var(--icon-dialog);
+    -fx-icon-color: -color-primary;
+    -fx-icon-size: 32px;
 }
 
 /* ============================================
@@ -180,61 +180,61 @@
    ============================================ */
 
 .dialog-section {
-    -fx-background-color: var(--bg-secondary);
-    -fx-padding: var(--spacing-lg);
-    -fx-spacing: var(--spacing-md);
-    -fx-background-radius: var(--border-radius-md);
-    -fx-border-color: var(--border-light);
+    -fx-background-color: -bg-secondary;
+    -fx-padding: 20px;
+    -fx-spacing: 16px;
+    -fx-background-radius: 6px;
+    -fx-border-color: -border-light;
     -fx-border-width: 1;
-    -fx-border-radius: var(--border-radius-md);
+    -fx-border-radius: 6px;
 }
 
 .dialog-section-title {
-    -fx-font-size: var(--font-size-2xl);
-    -fx-font-weight: var(--font-weight-bold);
-    -fx-text-fill: var(--text-primary);
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
 }
 
 .dialog-section-subtitle {
-    -fx-font-size: var(--font-size-base);
-    -fx-text-fill: var(--text-secondary);
+    -fx-font-size: 12px;
+    -fx-text-fill: -text-secondary;
 }
 
 /* Quick action buttons in sections */
 .dialog-section .button.action-primary {
-    -fx-background-color: var(--color-success);
+    -fx-background-color: -color-success;
     -fx-text-fill: white;
-    -fx-font-weight: var(--font-weight-bold);
-    -fx-padding: var(--spacing-sm) var(--spacing-md);
-    -fx-background-radius: var(--border-radius-base);
+    -fx-font-weight: 700;
+    -fx-padding: 8px -spacing-md;
+    -fx-background-radius: 4px;
 }
 
 .dialog-section .button.action-primary:hover {
-    -fx-background-color: derive(var(--color-success), -20%);
+    -fx-background-color: derive(-color-success, -20%);
 }
 
 .dialog-section .button.action-secondary {
-    -fx-background-color: var(--color-warning);
-    -fx-text-fill: var(--color-gray-900);
-    -fx-font-weight: var(--font-weight-bold);
-    -fx-padding: var(--spacing-sm) var(--spacing-md);
-    -fx-background-radius: var(--border-radius-base);
+    -fx-background-color: -color-warning;
+    -fx-text-fill: -color-gray-900;
+    -fx-font-weight: 700;
+    -fx-padding: 8px -spacing-md;
+    -fx-background-radius: 4px;
 }
 
 .dialog-section .button.action-secondary:hover {
-    -fx-background-color: derive(var(--color-warning), -20%);
+    -fx-background-color: derive(-color-warning, -20%);
 }
 
 .dialog-section .button.action-info {
-    -fx-background-color: var(--color-primary);
+    -fx-background-color: -color-primary;
     -fx-text-fill: white;
-    -fx-font-weight: var(--font-weight-bold);
-    -fx-padding: var(--spacing-sm) var(--spacing-md);
-    -fx-background-radius: var(--border-radius-base);
+    -fx-font-weight: 700;
+    -fx-padding: 8px -spacing-md;
+    -fx-background-radius: 4px;
 }
 
 .dialog-section .button.action-info:hover {
-    -fx-background-color: derive(var(--color-primary), -20%);
+    -fx-background-color: derive(-color-primary, -20%);
 }
 
 /* ============================================
@@ -242,51 +242,51 @@
    ============================================ */
 
 .dialog-feature-item {
-    -fx-spacing: var(--spacing-md);
+    -fx-spacing: 16px;
     -fx-alignment: TOP_LEFT;
 }
 
 .dialog-feature-icon {
-    -fx-icon-size: var(--icon-size-xl);
+    -fx-icon-size: 24px;
 }
 
 .dialog-feature-icon.purple {
-    -fx-icon-color: var(--color-tab-primary);
+    -fx-icon-color: -color-tab-primary;
 }
 
 .dialog-feature-icon.green {
-    -fx-icon-color: var(--color-tab-output);
+    -fx-icon-color: -color-tab-output;
 }
 
 .dialog-feature-icon.blue {
-    -fx-icon-color: var(--color-tab-utility);
+    -fx-icon-color: -color-tab-utility;
 }
 
 .dialog-feature-icon.success {
-    -fx-icon-color: var(--color-success);
+    -fx-icon-color: -color-success;
 }
 
 .dialog-feature-icon.warning {
-    -fx-icon-color: var(--color-warning);
+    -fx-icon-color: -color-warning;
 }
 
 .dialog-feature-icon.danger {
-    -fx-icon-color: var(--color-danger);
+    -fx-icon-color: -color-danger;
 }
 
 .dialog-feature-icon.info {
-    -fx-icon-color: var(--color-info);
+    -fx-icon-color: -color-info;
 }
 
 .dialog-feature-title {
-    -fx-font-size: var(--font-size-lg);
-    -fx-font-weight: var(--font-weight-bold);
-    -fx-text-fill: var(--text-primary);
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
 }
 
 .dialog-feature-description {
-    -fx-text-fill: var(--text-secondary);
-    -fx-font-size: var(--font-size-base);
+    -fx-text-fill: -text-secondary;
+    -fx-font-size: 12px;
     -fx-wrap-text: true;
 }
 
@@ -295,12 +295,12 @@
    ============================================ */
 
 .dialog-info-box {
-    -fx-background-color: var(--color-gray-100);
-    -fx-padding: var(--spacing-md);
-    -fx-spacing: var(--spacing-sm);
-    -fx-background-radius: var(--border-radius-md);
+    -fx-background-color: -color-gray-100;
+    -fx-padding: 16px;
+    -fx-spacing: 8px;
+    -fx-background-radius: 6px;
     -fx-border-width: 1;
-    -fx-border-radius: var(--border-radius-md);
+    -fx-border-radius: 6px;
 }
 
 .dialog-info-box-info {
@@ -356,12 +356,12 @@
 }
 
 .dialog-info-box-title {
-    -fx-font-size: var(--font-size-md);
-    -fx-font-weight: var(--font-weight-bold);
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
 }
 
 .dialog-info-box-text {
-    -fx-font-size: var(--font-size-sm);
+    -fx-font-size: 11px;
 }
 
 /* ============================================
@@ -369,21 +369,21 @@
    ============================================ */
 
 .dialog-group-label {
-    -fx-font-size: var(--font-size-sm);
-    -fx-font-weight: var(--font-weight-bold);
-    -fx-padding: var(--spacing-sm) 0 0 0;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-padding: 8px 0 0 0;
 }
 
 .dialog-group-label-primary {
-    -fx-text-fill: var(--color-tab-primary);
+    -fx-text-fill: -color-tab-primary;
 }
 
 .dialog-group-label-output {
-    -fx-text-fill: var(--color-tab-output);
+    -fx-text-fill: -color-tab-output;
 }
 
 .dialog-group-label-utility {
-    -fx-text-fill: var(--color-tab-utility);
+    -fx-text-fill: -color-tab-utility;
 }
 
 /* ============================================
@@ -391,31 +391,31 @@
    ============================================ */
 
 .dialog-action-bar {
-    -fx-background-color: var(--bg-secondary);
-    -fx-border-color: var(--border-light);
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: -border-light;
     -fx-border-width: 1 0 0 0;
-    -fx-padding: var(--spacing-md);
-    -fx-spacing: var(--spacing-md);
+    -fx-padding: 16px;
+    -fx-spacing: 16px;
 }
 
 .dialog-action-bar .check-box {
-    -fx-font-size: var(--font-size-sm);
+    -fx-font-size: 11px;
 }
 
 .dialog-action-bar .button {
-    -fx-font-size: var(--font-size-md);
-    -fx-font-weight: var(--font-weight-bold);
-    -fx-padding: var(--spacing-sm) var(--spacing-xl);
-    -fx-background-radius: var(--border-radius-base);
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-padding: 8px -spacing-xl;
+    -fx-background-radius: 4px;
 }
 
 .dialog-action-bar .button.primary {
-    -fx-background-color: var(--color-primary);
+    -fx-background-color: -color-primary;
     -fx-text-fill: white;
 }
 
 .dialog-action-bar .button.primary:hover {
-    -fx-background-color: derive(var(--color-primary), -20%);
+    -fx-background-color: derive(-color-primary, -20%);
 }
 
 .dialog-action-bar .button.primary .ikonli-font-icon {
@@ -432,20 +432,20 @@
 }
 
 .dialog-pane .scroll-pane > .viewport {
-    -fx-background-color: var(--bg-primary);
+    -fx-background-color: -bg-primary;
 }
 
 .dialog-pane .scroll-pane > .scroll-bar:vertical {
-    -fx-background-color: var(--bg-secondary);
+    -fx-background-color: -bg-secondary;
 }
 
 .dialog-pane .scroll-pane > .scroll-bar:vertical > .thumb {
-    -fx-background-color: var(--color-gray-400);
+    -fx-background-color: -color-gray-400;
     -fx-background-radius: 4;
 }
 
 .dialog-pane .scroll-pane > .scroll-bar:vertical > .thumb:hover {
-    -fx-background-color: var(--color-gray-500);
+    -fx-background-color: -color-gray-500;
 }
 
 /* ============================================
@@ -453,15 +453,15 @@
    ============================================ */
 
 .dialog-pane > .expandable-content {
-    -fx-background-color: var(--bg-tertiary);
-    -fx-border-color: var(--border-light);
+    -fx-background-color: -bg-tertiary;
+    -fx-border-color: -border-light;
     -fx-border-width: 1 0 0 0;
-    -fx-padding: var(--spacing-md);
+    -fx-padding: 16px;
 }
 
 .dialog-pane > .expandable-content > .label {
-    -fx-font-family: var(--font-family-monospace);
-    -fx-font-size: var(--font-size-sm);
+    -fx-font-family: 'Courier New', Courier, monospace;
+    -fx-font-size: 11px;
 }
 
 /* ============================================
@@ -469,15 +469,15 @@
    ============================================ */
 
 .dialog-pane.text-input-dialog .text-field {
-    -fx-font-size: var(--font-size-md);
-    -fx-padding: var(--spacing-sm) var(--spacing-md);
-    -fx-background-radius: var(--border-radius-base);
-    -fx-border-radius: var(--border-radius-base);
+    -fx-font-size: 13px;
+    -fx-padding: 8px -spacing-md;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
 }
 
 .dialog-pane.text-input-dialog .label {
-    -fx-font-size: var(--font-size-md);
-    -fx-text-fill: var(--text-primary);
+    -fx-font-size: 13px;
+    -fx-text-fill: -text-primary;
 }
 
 /* ============================================
@@ -485,9 +485,9 @@
    ============================================ */
 
 .dialog-pane.choice-dialog .combo-box {
-    -fx-font-size: var(--font-size-md);
-    -fx-background-radius: var(--border-radius-base);
-    -fx-border-radius: var(--border-radius-base);
+    -fx-font-size: 13px;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
 }
 
 /* ============================================
@@ -496,21 +496,21 @@
 
 .dialog-pane .progress-bar {
     -fx-pref-height: 8px;
-    -fx-background-radius: var(--border-radius-base);
+    -fx-background-radius: 4px;
 }
 
 .dialog-pane .progress-bar > .track {
-    -fx-background-color: var(--color-gray-300);
-    -fx-background-radius: var(--border-radius-base);
+    -fx-background-color: -color-gray-300;
+    -fx-background-radius: 4px;
 }
 
 .dialog-pane .progress-bar > .bar {
-    -fx-background-color: var(--color-primary);
-    -fx-background-radius: var(--border-radius-base);
+    -fx-background-color: -color-primary;
+    -fx-background-radius: 4px;
 }
 
 .dialog-pane .progress-indicator {
-    -fx-progress-color: var(--color-primary);
+    -fx-progress-color: -color-primary;
 }
 
 /* ============================================
@@ -518,11 +518,11 @@
    ============================================ */
 
 .dialog-separator {
-    -fx-padding: var(--spacing-sm) 0;
+    -fx-padding: 8px 0;
 }
 
 .dialog-separator .line {
-    -fx-border-color: var(--border-light);
+    -fx-border-color: -border-light;
     -fx-border-width: 1 0 0 0;
 }
 
