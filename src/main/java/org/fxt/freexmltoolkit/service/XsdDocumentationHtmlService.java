@@ -1308,6 +1308,53 @@ public class XsdDocumentationHtmlService {
         return getDocumentationFromNode(typeNode);
     }
 
+    /**
+     * Get all language documentations for the type of an element.
+     * Returns a map with language codes as keys and documentation as values.
+     * Used for multi-language support in the Data Dictionary.
+     *
+     * @param xpath The XPath of the element
+     * @return Map of language codes to documentation strings for the element's type
+     */
+    public Map<String, String> getTypeDocumentations(String xpath) {
+        if (xpath == null || xpath.isEmpty()) {
+            return java.util.Collections.emptyMap();
+        }
+
+        XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        if (element == null) {
+            return java.util.Collections.emptyMap();
+        }
+
+        String typeName = element.getElementType();
+        if (typeName == null || typeName.isEmpty()) {
+            return java.util.Collections.emptyMap();
+        }
+
+        // Skip built-in XSD types
+        if (typeName.startsWith("xs:") || typeName.startsWith("xsd:")) {
+            return java.util.Collections.emptyMap();
+        }
+
+        Node typeNode = xsdDocService.findTypeNodeByName(typeName);
+        if (typeNode == null) {
+            return java.util.Collections.emptyMap();
+        }
+
+        return getDocumentationsFromNode(typeNode);
+    }
+
+    /**
+     * Check if an element's type has multi-language documentation.
+     *
+     * @param xpath The XPath of the element
+     * @return true if the type has documentation in more than one language
+     */
+    public boolean hasMultiLanguageTypeDocumentation(String xpath) {
+        Map<String, String> docs = getTypeDocumentations(xpath);
+        return docs.size() > 1;
+    }
+
     private String escapeJson(String value) {
         if (value == null) {
             return "";

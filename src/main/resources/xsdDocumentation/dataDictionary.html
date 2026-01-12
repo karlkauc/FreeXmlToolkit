@@ -115,15 +115,29 @@
                     </td>
 
                     <td class="px-6 py-4">
-                        <span class="text-slate-700"
-                              th:utext="${this.getChildDocumentation(element.currentXpath)}"></span>
+                        <!-- Multi-language documentation with CSS visibility control -->
+                        <div class="documentation-section">
+                            <div th:each="doc, iterStat: ${this.getChildDocumentations(element.currentXpath)}"
+                                 class="doc-content text-slate-700"
+                                 th:classappend="${iterStat.first} ? 'lang-visible' : 'lang-hidden'"
+                                 th:attr="data-lang=${doc.key}">
+                                <span th:utext="${doc.value}"></span>
+                            </div>
+                        </div>
 
-                        <div th:with="typeDoc=${this.getTypeDocumentation(element.currentXpath)}">
-                            <div th:if="${!#strings.isEmpty(typeDoc)}"
-                                 class="mt-2 pt-2 border-t border-slate-200/60">
-                                <span class="block text-xs font-semibold text-slate-500"
-                                      th:text="'Documentation for type: ' + ${element.elementType}"></span>
-                                <span class="block text-xs text-slate-500 italic" th:utext="${typeDoc}"></span>
+                        <!-- Type documentation with multi-language support -->
+                        <div th:with="typeDocs=${this.getTypeDocumentations(element.currentXpath)}"
+                             th:if="${typeDocs != null and !typeDocs.isEmpty()}"
+                             class="mt-2 pt-2 border-t border-slate-200/60">
+                            <span class="block text-xs font-semibold text-slate-500"
+                                  th:text="'Documentation for type: ' + ${element.elementType}"></span>
+                            <div class="documentation-section">
+                                <div th:each="doc, iterStat: ${typeDocs}"
+                                     class="doc-content text-xs text-slate-500 italic"
+                                     th:classappend="${iterStat.first} ? 'lang-visible' : 'lang-hidden'"
+                                     th:attr="data-lang=${doc.key}">
+                                    <span th:utext="${doc.value}"></span>
+                                </div>
                             </div>
                         </div>
                     </td>
