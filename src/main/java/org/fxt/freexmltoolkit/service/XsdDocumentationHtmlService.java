@@ -552,7 +552,14 @@ public class XsdDocumentationHtmlService {
                 .filter(this::isNotContainerElement)
                 .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
                 .toList();
+
+        // Generate Excel export file
+        String excelFileName = "dataDictionary.xlsx";
+        generateDataDictionaryExcel(allElements, excelFileName);
+
         context.setVariable("allElements", allElements);
+        context.setVariable("hasExcelExport", true);
+        context.setVariable("excelFileName", excelFileName);
         context.setVariable("this", this);
         final var result = templateEngine.process("dataDictionary", context);
         final var outputFilePath = Paths.get(outputDirectory.getPath(), "dataDictionary.html");
@@ -560,6 +567,21 @@ public class XsdDocumentationHtmlService {
             Files.writeString(outputFilePath, injectMetadataComment(result), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Could not write data dictionary page", e);
+        }
+    }
+
+    /**
+     * Generates the Data Dictionary Excel export file.
+     */
+    private void generateDataDictionaryExcel(List<XsdExtendedElement> elements, String fileName) {
+        try {
+            DataDictionaryExcelExporter exporter = new DataDictionaryExcelExporter(xsdDocumentationData, this);
+            File excelFile = new File(outputDirectory, fileName);
+            exporter.exportToExcel(excelFile, elements);
+            logger.info("Generated Data Dictionary Excel: {}", excelFile.getAbsolutePath());
+        } catch (Exception e) {
+            logger.error("Failed to generate Data Dictionary Excel", e);
+            // Don't fail the entire documentation generation if Excel export fails
         }
     }
 

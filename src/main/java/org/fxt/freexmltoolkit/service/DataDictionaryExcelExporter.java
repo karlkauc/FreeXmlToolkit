@@ -1,0 +1,517 @@
+package org.fxt.freexmltoolkit.service;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
+import org.w3c.dom.Node;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
+
+/**
+ * Exports Data Dictionary content to Excel format with multi-language support.
+ * Creates one sheet per language with comprehensive element information.
+ */
+public class DataDictionaryExcelExporter {
+
+    private static final Logger logger = LogManager.getLogger(DataDictionaryExcelExporter.class);
+
+    private static final String[] COLUMN_HEADERS = {
+            "#",
+            "XPath",
+            "Element Name",
+            "Type",
+            "Mandatory",
+            "Min Occurs",
+            "Max Occurs",
+            "Cardinality",
+            "Documentation",
+            "Type Documentation",
+            "Restriction Base",
+            "Enumerations",
+            "Pattern",
+            "Min/Max Length",
+            "Min/Max Value",
+            "Total/Fraction Digits",
+            "Sample Data",
+            "Level"
+    };
+
+    private static final int[] COLUMN_WIDTHS = {
+            2000,   // #
+            12000,  // XPath
+            6000,   // Element Name
+            6000,   // Type
+            3000,   // Mandatory
+            3000,   // Min Occurs
+            3000,   // Max Occurs
+            4000,   // Cardinality
+            15000,  // Documentation
+            15000,  // Type Documentation
+            5000,   // Restriction Base
+            10000,  // Enumerations
+            8000,   // Pattern
+            5000,   // Min/Max Length
+            5000,   // Min/Max Value
+            5000,   // Total/Fraction Digits
+            6000,   // Sample Data
+            2500    // Level
+    };
+
+    private final XsdDocumentationData xsdDocumentationData;
+    private final XsdDocumentationHtmlService htmlService;
+
+    public DataDictionaryExcelExporter(XsdDocumentationData xsdDocumentationData,
+                                       XsdDocumentationHtmlService htmlService) {
+        this.xsdDocumentationData = xsdDocumentationData;
+        this.htmlService = htmlService;
+    }
+
+    /**
+     * Exports the Data Dictionary to an Excel file with one sheet per language.
+     *
+     * @param outputFile the output Excel file
+     * @param elements   the list of elements to export
+     */
+    public void exportToExcel(File outputFile, List<XsdExtendedElement> elements) {
+        logger.info("Exporting Data Dictionary to Excel: {}", outputFile.getAbsolutePath());
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            // Set document metadata
+            ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
+            if (metadataService != null) {
+                metadataService.setExcelMetadata(workbook, "Data Dictionary - XSD Documentation");
+            }
+
+            // Discover all languages
+            Set<String> allLanguages = discoverLanguages(elements);
+            logger.debug("Discovered languages: {}", allLanguages);
+
+            // Create styles
+            CellStyle headerStyle = createHeaderStyle(workbook);
+            CellStyle mandatoryYesStyle = createMandatoryYesStyle(workbook);
+            CellStyle mandatoryNoStyle = createMandatoryNoStyle(workbook);
+            CellStyle normalStyle = createNormalStyle(workbook);
+            CellStyle wrapStyle = createWrapStyle(workbook);
+
+            // Create one sheet per language
+            for (String language : allLanguages) {
+                String sheetName = language.toUpperCase();
+                // Excel sheet names have a 31 character limit and can't contain certain chars
+                if (sheetName.length() > 31) {
+                    sheetName = sheetName.substring(0, 31);
+                }
+                createLanguageSheet(workbook, sheetName, language, elements,
+                        headerStyle, mandatoryYesStyle, mandatoryNoStyle, normalStyle, wrapStyle);
+            }
+
+            // Write to file
+            try (FileOutputStream out = new FileOutputStream(outputFile)) {
+                workbook.write(out);
+            }
+
+            logger.info("Excel export completed: {} sheets created", allLanguages.size());
+
+        } catch (IOException e) {
+            logger.error("Failed to export Data Dictionary to Excel", e);
+            throw new RuntimeException("Failed to export Data Dictionary to Excel: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Discovers all unique languages from the element documentation.
+     */
+    private Set<String> discoverLanguages(List<XsdExtendedElement> elements) {
+        Set<String> languages = new LinkedHashSet<>();
+        languages.add("default"); // Always include default first
+
+        for (XsdExtendedElement element : elements) {
+            if (element.getDocumentations() != null) {
+                for (DocumentationInfo doc : element.getDocumentations()) {
+                    if (doc.lang() != null && !doc.lang().isBlank()) {
+                        languages.add(doc.lang().toLowerCase());
+                    }
+                }
+            }
+        }
+
+        return languages;
+    }
+
+    /**
+     * Creates a sheet for a specific language with all element data.
+     */
+    private void createLanguageSheet(XSSFWorkbook workbook, String sheetName, String language,
+                                     List<XsdExtendedElement> elements,
+                                     CellStyle headerStyle, CellStyle mandatoryYesStyle,
+                                     CellStyle mandatoryNoStyle, CellStyle normalStyle,
+                                     CellStyle wrapStyle) {
+        Sheet sheet = workbook.createSheet(sheetName);
+        int rowNum = 0;
+
+        // Create header row
+        Row headerRow = sheet.createRow(rowNum++);
+        for (int i = 0; i < COLUMN_HEADERS.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(COLUMN_HEADERS[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        // Freeze header row
+        sheet.createFreezePane(0, 1);
+
+        // Create data rows
+        int counter = 1;
+        for (XsdExtendedElement element : elements) {
+            Row row = sheet.createRow(rowNum++);
+            int colNum = 0;
+
+            // #
+            createCell(row, colNum++, String.valueOf(counter++), normalStyle);
+
+            // XPath
+            createCell(row, colNum++, htmlService.getCleanXPath(element), normalStyle);
+
+            // Element Name
+            createCell(row, colNum++, element.getElementName(), normalStyle);
+
+            // Type
+            createCell(row, colNum++, element.getElementType(), normalStyle);
+
+            // Mandatory
+            boolean isMandatory = element.isMandatory();
+            Cell mandatoryCell = row.createCell(colNum++);
+            mandatoryCell.setCellValue(isMandatory ? "Yes" : "No");
+            mandatoryCell.setCellStyle(isMandatory ? mandatoryYesStyle : mandatoryNoStyle);
+
+            // Min Occurs
+            createCell(row, colNum++, getMinOccurs(element), normalStyle);
+
+            // Max Occurs
+            createCell(row, colNum++, getMaxOccurs(element), normalStyle);
+
+            // Cardinality
+            createCell(row, colNum++, htmlService.getCardinality(element), normalStyle);
+
+            // Documentation (language-specific)
+            createCell(row, colNum++, getDocumentationForLanguage(element, language), wrapStyle);
+
+            // Type Documentation (language-specific)
+            createCell(row, colNum++, getTypeDocumentationForLanguage(element, language), wrapStyle);
+
+            // Restriction Base
+            createCell(row, colNum++, getRestrictionBase(element), normalStyle);
+
+            // Enumerations
+            createCell(row, colNum++, getEnumerations(element), wrapStyle);
+
+            // Pattern
+            createCell(row, colNum++, getPattern(element), normalStyle);
+
+            // Min/Max Length
+            createCell(row, colNum++, getMinMaxLength(element), normalStyle);
+
+            // Min/Max Value
+            createCell(row, colNum++, getMinMaxValue(element), normalStyle);
+
+            // Total/Fraction Digits
+            createCell(row, colNum++, getTotalFractionDigits(element), normalStyle);
+
+            // Sample Data
+            createCell(row, colNum++, element.getDisplaySampleData(), normalStyle);
+
+            // Level
+            createCell(row, colNum++, String.valueOf(element.getLevel()), normalStyle);
+        }
+
+        // Set column widths
+        for (int i = 0; i < COLUMN_WIDTHS.length; i++) {
+            sheet.setColumnWidth(i, COLUMN_WIDTHS[i]);
+        }
+
+        // Enable auto-filter
+        if (rowNum > 1) {
+            sheet.setAutoFilter(new org.apache.poi.ss.util.CellRangeAddress(0, rowNum - 1, 0, COLUMN_HEADERS.length - 1));
+        }
+    }
+
+    private void createCell(Row row, int colIndex, String value, CellStyle style) {
+        Cell cell = row.createCell(colIndex);
+        cell.setCellValue(value != null ? value : "");
+        cell.setCellStyle(style);
+    }
+
+    /**
+     * Gets the documentation for a specific language, with fallback to default.
+     */
+    private String getDocumentationForLanguage(XsdExtendedElement element, String language) {
+        if (element.getDocumentations() == null || element.getDocumentations().isEmpty()) {
+            return "";
+        }
+
+        // First try to find exact language match
+        for (DocumentationInfo doc : element.getDocumentations()) {
+            if (language.equalsIgnoreCase(doc.lang())) {
+                return stripHtml(doc.content());
+            }
+        }
+
+        // For "default" language, look for entries without lang or with "default"
+        if ("default".equalsIgnoreCase(language)) {
+            for (DocumentationInfo doc : element.getDocumentations()) {
+                if (doc.lang() == null || "default".equalsIgnoreCase(doc.lang())) {
+                    return stripHtml(doc.content());
+                }
+            }
+            // If no default found, return first available
+            return stripHtml(element.getDocumentations().get(0).content());
+        }
+
+        return "";
+    }
+
+    /**
+     * Gets the type documentation for a specific language.
+     */
+    private String getTypeDocumentationForLanguage(XsdExtendedElement element, String language) {
+        Map<String, String> typeDocs = htmlService.getTypeDocumentations(element.getCurrentXpath());
+        if (typeDocs == null || typeDocs.isEmpty()) {
+            return "";
+        }
+
+        // Try exact match first
+        String doc = typeDocs.get(language);
+        if (doc != null) {
+            return stripHtml(doc);
+        }
+
+        // For default, try various fallbacks
+        if ("default".equalsIgnoreCase(language)) {
+            doc = typeDocs.get("default");
+            if (doc != null) {
+                return stripHtml(doc);
+            }
+            // Return first available
+            return stripHtml(typeDocs.values().iterator().next());
+        }
+
+        return "";
+    }
+
+    /**
+     * Strips HTML tags from content for Excel display.
+     */
+    private String stripHtml(String content) {
+        if (content == null || content.isEmpty()) {
+            return "";
+        }
+        // Remove HTML tags
+        String text = content.replaceAll("<[^>]+>", "");
+        // Decode common HTML entities
+        text = text.replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&apos;", "'")
+                .replace("&nbsp;", " ");
+        // Normalize whitespace
+        text = text.replaceAll("\\s+", " ").trim();
+        return text;
+    }
+
+    private String getMinOccurs(XsdExtendedElement element) {
+        if (element.getCurrentNode() == null) {
+            return "1";
+        }
+        return getAttributeValue(element.getCurrentNode(), "minOccurs", "1");
+    }
+
+    private String getMaxOccurs(XsdExtendedElement element) {
+        if (element.getCurrentNode() == null) {
+            return "1";
+        }
+        return getAttributeValue(element.getCurrentNode(), "maxOccurs", "1");
+    }
+
+    private String getRestrictionBase(XsdExtendedElement element) {
+        if (element.getRestrictionInfo() != null && element.getRestrictionInfo().base() != null) {
+            return element.getRestrictionInfo().base();
+        }
+        return "";
+    }
+
+    private String getEnumerations(XsdExtendedElement element) {
+        if (element.getRestrictionInfo() == null || element.getRestrictionInfo().facets() == null) {
+            return "";
+        }
+        List<String> enums = element.getRestrictionInfo().facets().get("enumeration");
+        if (enums != null && !enums.isEmpty()) {
+            return String.join(", ", enums);
+        }
+        return "";
+    }
+
+    private String getPattern(XsdExtendedElement element) {
+        if (element.getRestrictionInfo() == null || element.getRestrictionInfo().facets() == null) {
+            return "";
+        }
+        List<String> patterns = element.getRestrictionInfo().facets().get("pattern");
+        if (patterns != null && !patterns.isEmpty()) {
+            return String.join("; ", patterns);
+        }
+        return "";
+    }
+
+    private String getMinMaxLength(XsdExtendedElement element) {
+        if (element.getRestrictionInfo() == null || element.getRestrictionInfo().facets() == null) {
+            return "";
+        }
+        Map<String, List<String>> facets = element.getRestrictionInfo().facets();
+        List<String> parts = new ArrayList<>();
+
+        List<String> length = facets.get("length");
+        if (length != null && !length.isEmpty()) {
+            parts.add("length=" + length.get(0));
+        }
+
+        List<String> minLength = facets.get("minLength");
+        if (minLength != null && !minLength.isEmpty()) {
+            parts.add("minLength=" + minLength.get(0));
+        }
+
+        List<String> maxLength = facets.get("maxLength");
+        if (maxLength != null && !maxLength.isEmpty()) {
+            parts.add("maxLength=" + maxLength.get(0));
+        }
+
+        return String.join(", ", parts);
+    }
+
+    private String getMinMaxValue(XsdExtendedElement element) {
+        if (element.getRestrictionInfo() == null || element.getRestrictionInfo().facets() == null) {
+            return "";
+        }
+        Map<String, List<String>> facets = element.getRestrictionInfo().facets();
+        List<String> parts = new ArrayList<>();
+
+        List<String> minInclusive = facets.get("minInclusive");
+        if (minInclusive != null && !minInclusive.isEmpty()) {
+            parts.add("min=" + minInclusive.get(0));
+        }
+
+        List<String> maxInclusive = facets.get("maxInclusive");
+        if (maxInclusive != null && !maxInclusive.isEmpty()) {
+            parts.add("max=" + maxInclusive.get(0));
+        }
+
+        List<String> minExclusive = facets.get("minExclusive");
+        if (minExclusive != null && !minExclusive.isEmpty()) {
+            parts.add("min>" + minExclusive.get(0));
+        }
+
+        List<String> maxExclusive = facets.get("maxExclusive");
+        if (maxExclusive != null && !maxExclusive.isEmpty()) {
+            parts.add("max<" + maxExclusive.get(0));
+        }
+
+        return String.join(", ", parts);
+    }
+
+    private String getTotalFractionDigits(XsdExtendedElement element) {
+        if (element.getRestrictionInfo() == null || element.getRestrictionInfo().facets() == null) {
+            return "";
+        }
+        Map<String, List<String>> facets = element.getRestrictionInfo().facets();
+        List<String> parts = new ArrayList<>();
+
+        List<String> totalDigits = facets.get("totalDigits");
+        if (totalDigits != null && !totalDigits.isEmpty()) {
+            parts.add("totalDigits=" + totalDigits.get(0));
+        }
+
+        List<String> fractionDigits = facets.get("fractionDigits");
+        if (fractionDigits != null && !fractionDigits.isEmpty()) {
+            parts.add("fractionDigits=" + fractionDigits.get(0));
+        }
+
+        return String.join(", ", parts);
+    }
+
+    private String getAttributeValue(Node node, String attrName, String defaultValue) {
+        if (node == null || node.getAttributes() == null) {
+            return defaultValue;
+        }
+        Node attr = node.getAttributes().getNamedItem(attrName);
+        return attr != null ? attr.getNodeValue() : defaultValue;
+    }
+
+    // Cell style methods
+
+    private CellStyle createHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 11);
+        font.setColor(IndexedColors.WHITE.getIndex());
+        style.setFont(font);
+        style.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setAlignment(HorizontalAlignment.LEFT);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        return style;
+    }
+
+    private CellStyle createMandatoryYesStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        style.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        return style;
+    }
+
+    private CellStyle createMandatoryNoStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        return style;
+    }
+
+    private CellStyle createNormalStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        style.setAlignment(HorizontalAlignment.LEFT);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        return style;
+    }
+
+    private CellStyle createWrapStyle(Workbook workbook) {
+        CellStyle style = createNormalStyle(workbook);
+        style.setWrapText(true);
+        return style;
+    }
+}
