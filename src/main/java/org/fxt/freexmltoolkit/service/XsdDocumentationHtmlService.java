@@ -547,8 +547,11 @@ public class XsdDocumentationHtmlService {
 
     void generateDataDictionaryPage() {
         final var context = new Context();
-        List<XsdExtendedElement> allElements = new ArrayList<>(xsdDocumentationData.getExtendedXsdElementMap().values());
-        allElements.sort(Comparator.comparing(XsdExtendedElement::getCounter));
+        // Filter out container elements (SEQUENCE, CHOICE, ALL) - they are internal structures
+        List<XsdExtendedElement> allElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(this::isNotContainerElement)
+                .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
+                .toList();
         context.setVariable("allElements", allElements);
         context.setVariable("this", this);
         final var result = templateEngine.process("dataDictionary", context);
