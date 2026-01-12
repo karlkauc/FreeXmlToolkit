@@ -294,12 +294,26 @@ public class XsdSampleDataGenerator {
             return null;
         }
 
-        try {
-            Map<String, List<String>> facets = restriction.facets();
-            Integer exactLength = getIntFacet(facets, "length");
-            Integer minLength = getIntFacet(facets, "minLength");
-            Integer maxLength = getIntFacet(facets, "maxLength");
+        Map<String, List<String>> facets = restriction.facets();
+        Integer exactLength = getIntFacet(facets, "length");
+        Integer minLength = getIntFacet(facets, "minLength");
+        Integer maxLength = getIntFacet(facets, "maxLength");
 
+        // Determine target length for fallback
+        int targetMinLen = exactLength != null ? exactLength : (minLength != null ? minLength : 1);
+        int targetMaxLen = exactLength != null ? exactLength : (maxLength != null ? maxLength : 50);
+
+        // Check if pattern is too complex for Generex (may cause StackOverflowError)
+        // Patterns with nested groups, lookahead/lookbehind, or recursive structures are problematic
+        boolean patternTooComplex = isPatternTooComplex(patternValue);
+
+        if (patternTooComplex) {
+            logger.debug("Pattern '{}' is too complex for Generex, using fallback generator for element '{}'",
+                    patternValue, elementName);
+            return generateFallbackForPattern(patternValue, targetMinLen);
+        }
+
+        try {
             Generex generex = new Generex(patternValue);
 
             // If exact length is specified, use it
@@ -326,11 +340,66 @@ public class XsdSampleDataGenerator {
             // Use 1-50 as reasonable default range
             return generateWithLengthHint(generex, 1, 50, patternValue);
 
+        } catch (StackOverflowError e) {
+            // Generex can cause StackOverflowError on complex patterns with recursive structures
+            logger.warn("StackOverflowError generating sample from pattern '{}' for element '{}'. Using fallback.",
+                    patternValue, elementName);
+            return generateFallbackForPattern(patternValue, targetMinLen);
         } catch (Exception e) {
             logger.warn("Could not generate sample from pattern '{}' for element '{}'. Falling back. Error: {}",
                     patternValue, elementName, e.getMessage());
-            return null;
+            return generateFallbackForPattern(patternValue, targetMinLen);
         }
+    }
+
+    /**
+     * Checks if a regex pattern is too complex for Generex (likely to cause StackOverflowError).
+     * Complex patterns include: deeply nested groups, lookahead/lookbehind, certain email patterns, etc.
+     */
+    private boolean isPatternTooComplex(String pattern) {
+        if (pattern == null || pattern.isEmpty()) {
+            return false;
+        }
+
+        // Count nesting depth of parentheses
+        int maxDepth = 0;
+        int currentDepth = 0;
+        for (char c : pattern.toCharArray()) {
+            if (c == '(') {
+                currentDepth++;
+                maxDepth = Math.max(maxDepth, currentDepth);
+            } else if (c == ')') {
+                currentDepth--;
+            }
+        }
+
+        // Patterns with deep nesting (>5 levels) are problematic
+        if (maxDepth > 5) {
+            return true;
+        }
+
+        // Patterns with lookahead/lookbehind assertions
+        if (pattern.contains("(?=") || pattern.contains("(?!") ||
+            pattern.contains("(?<=") || pattern.contains("(?<!")) {
+            return true;
+        }
+
+        // Patterns with many alternations combined with repetition operators
+        // This is a common cause of exponential backtracking
+        long alternationCount = pattern.chars().filter(c -> c == '|').count();
+        boolean hasUnboundedRepetition = pattern.contains("+") || pattern.contains("*");
+        if (alternationCount > 10 && hasUnboundedRepetition) {
+            return true;
+        }
+
+        // Common email pattern indicators that cause issues
+        if (pattern.contains("@") && (pattern.contains("+") || pattern.contains("*"))) {
+            // Email-like patterns often cause recursion issues in Generex
+            return true;
+        }
+
+        // Very long patterns are often problematic
+        return pattern.length() > 500;
     }
 
     /**
@@ -353,17 +422,27 @@ public class XsdSampleDataGenerator {
             if (isValidResult(result, minLen, maxLen, regexPattern)) {
                 return result;
             }
+        } catch (StackOverflowError e) {
+            // Generex can cause StackOverflowError on recursive patterns
+            logger.debug("Generex random(min, max) caused StackOverflowError for pattern '{}', using fallback", pattern);
+            return generateFallbackForPattern(pattern, minLen);
         } catch (Exception e) {
             // Generex random(min, max) may throw exceptions for some patterns
             logger.debug("Generex random(min, max) failed for pattern '{}': {}", pattern, e.getMessage());
         }
 
         // Fallback: try generating multiple times and pick one with valid length AND pattern match
-        for (int attempt = 0; attempt < MAX_PATTERN_GENERATION_ATTEMPTS; attempt++) {
-            String result = generex.random();
-            if (isValidResult(result, minLen, maxLen, regexPattern)) {
-                return result;
+        try {
+            for (int attempt = 0; attempt < MAX_PATTERN_GENERATION_ATTEMPTS; attempt++) {
+                String result = generex.random();
+                if (isValidResult(result, minLen, maxLen, regexPattern)) {
+                    return result;
+                }
             }
+        } catch (StackOverflowError e) {
+            // Generex can cause StackOverflowError on recursive patterns
+            logger.debug("Generex random() caused StackOverflowError for pattern '{}', using fallback", pattern);
+            return generateFallbackForPattern(pattern, minLen);
         }
 
         // Last resort: use fallback generator which is pattern-aware
