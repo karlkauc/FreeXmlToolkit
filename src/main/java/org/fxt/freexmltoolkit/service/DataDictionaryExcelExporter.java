@@ -13,6 +13,8 @@ import org.w3c.dom.Node;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -68,6 +70,11 @@ public class DataDictionaryExcelExporter {
     private final XsdDocumentationData xsdDocumentationData;
     private final XsdDocumentationHtmlService htmlService;
 
+    // Metadata sheet styles (initialized in exportToExcel)
+    private CellStyle sectionHeaderStyle;
+    private CellStyle labelStyle;
+    private CellStyle valueStyle;
+
     public DataDictionaryExcelExporter(XsdDocumentationData xsdDocumentationData,
                                        XsdDocumentationHtmlService htmlService) {
         this.xsdDocumentationData = xsdDocumentationData;
@@ -94,12 +101,18 @@ public class DataDictionaryExcelExporter {
             Set<String> allLanguages = discoverLanguages(elements);
             logger.debug("Discovered languages: {}", allLanguages);
 
-            // Create styles
+            // Create styles for language sheets
             CellStyle headerStyle = createHeaderStyle(workbook);
             CellStyle mandatoryYesStyle = createMandatoryYesStyle(workbook);
             CellStyle mandatoryNoStyle = createMandatoryNoStyle(workbook);
             CellStyle normalStyle = createNormalStyle(workbook);
             CellStyle wrapStyle = createWrapStyle(workbook);
+
+            // Create styles for metadata sheet
+            initMetadataStyles(workbook);
+
+            // Create metadata sheet FIRST (will be moved to position 0)
+            createMetadataSheet(workbook, elements, allLanguages);
 
             // Create one sheet per language
             for (String language : allLanguages) {
@@ -112,12 +125,15 @@ public class DataDictionaryExcelExporter {
                         headerStyle, mandatoryYesStyle, mandatoryNoStyle, normalStyle, wrapStyle);
             }
 
+            // Ensure Schema Info is the first sheet
+            workbook.setSheetOrder("Schema Info", 0);
+
             // Write to file
             try (FileOutputStream out = new FileOutputStream(outputFile)) {
                 workbook.write(out);
             }
 
-            logger.info("Excel export completed: {} sheets created", allLanguages.size());
+            logger.info("Excel export completed: {} sheets created (including Schema Info)", allLanguages.size() + 1);
 
         } catch (IOException e) {
             logger.error("Failed to export Data Dictionary to Excel", e);
@@ -452,7 +468,189 @@ public class DataDictionaryExcelExporter {
         return attr != null ? attr.getNodeValue() : defaultValue;
     }
 
-    // Cell style methods
+    // ==================== Metadata Sheet Methods ====================
+
+    /**
+     * Initializes styles for the metadata sheet.
+     */
+    private void initMetadataStyles(Workbook workbook) {
+        // Section header: Blue background, white bold text
+        sectionHeaderStyle = workbook.createCellStyle();
+        sectionHeaderStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+        sectionHeaderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setColor(IndexedColors.WHITE.getIndex());
+        headerFont.setFontHeightInPoints((short) 12);
+        sectionHeaderStyle.setFont(headerFont);
+        sectionHeaderStyle.setAlignment(HorizontalAlignment.LEFT);
+        sectionHeaderStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Label: Bold, light grey background
+        labelStyle = workbook.createCellStyle();
+        labelStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        labelStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        Font labelFont = workbook.createFont();
+        labelFont.setBold(true);
+        labelStyle.setFont(labelFont);
+        labelStyle.setAlignment(HorizontalAlignment.LEFT);
+        labelStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Value: Normal white background
+        valueStyle = workbook.createCellStyle();
+        valueStyle.setAlignment(HorizontalAlignment.LEFT);
+        valueStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+    }
+
+    /**
+     * Creates the metadata sheet with export info, schema info, and statistics.
+     */
+    private void createMetadataSheet(Workbook workbook, List<XsdExtendedElement> elements, Set<String> languages) {
+        Sheet sheet = workbook.createSheet("Schema Info");
+        int rowNum = 0;
+
+        // === SECTION 1: Export Information ===
+        rowNum = createSectionHeader(sheet, rowNum, "Export Information");
+        rowNum = createMetadataRow(sheet, rowNum, "Export Timestamp",
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        rowNum = createMetadataRow(sheet, rowNum, "Generated by", "FreeXmlToolkit");
+        rowNum++; // Empty row
+
+        // === SECTION 2: Schema Information ===
+        rowNum = createSectionHeader(sheet, rowNum, "Schema Information");
+        rowNum = createMetadataRow(sheet, rowNum, "Schema File",
+                getSchemaFileName(xsdDocumentationData.getXsdFilePath()));
+        rowNum = createMetadataRow(sheet, rowNum, "Full Path",
+                xsdDocumentationData.getXsdFilePath());
+        rowNum = createMetadataRow(sheet, rowNum, "Target Namespace",
+                xsdDocumentationData.getTargetNamespace());
+        rowNum = createMetadataRow(sheet, rowNum, "Version",
+                xsdDocumentationData.getVersion());
+        rowNum = createMetadataRow(sheet, rowNum, "Element Form Default",
+                xsdDocumentationData.getElementFormDefault());
+        rowNum = createMetadataRow(sheet, rowNum, "Attribute Form Default",
+                xsdDocumentationData.getAttributeFormDefault());
+        rowNum++; // Empty row
+
+        // === SECTION 3: Statistics ===
+        rowNum = createSectionHeader(sheet, rowNum, "Statistics");
+        rowNum = createMetadataRow(sheet, rowNum, "Total Elements (Data Dictionary)",
+                String.valueOf(elements.size()));
+        rowNum = createMetadataRow(sheet, rowNum, "Global Elements",
+                String.valueOf(xsdDocumentationData.getGlobalElements().size()));
+        rowNum = createMetadataRow(sheet, rowNum, "Global Complex Types",
+                String.valueOf(xsdDocumentationData.getGlobalComplexTypes().size()));
+        rowNum = createMetadataRow(sheet, rowNum, "Global Simple Types",
+                String.valueOf(xsdDocumentationData.getGlobalSimpleTypes().size()));
+
+        // Additional calculated statistics
+        long mandatoryCount = elements.stream().filter(XsdExtendedElement::isMandatory).count();
+        long optionalCount = elements.size() - mandatoryCount;
+        rowNum = createMetadataRow(sheet, rowNum, "Mandatory Elements", String.valueOf(mandatoryCount));
+        rowNum = createMetadataRow(sheet, rowNum, "Optional Elements", String.valueOf(optionalCount));
+
+        int maxDepth = elements.stream().mapToInt(XsdExtendedElement::getLevel).max().orElse(0);
+        rowNum = createMetadataRow(sheet, rowNum, "Maximum Nesting Depth", String.valueOf(maxDepth));
+
+        long elementsWithDocs = elements.stream()
+                .filter(e -> e.getDocumentations() != null && !e.getDocumentations().isEmpty())
+                .count();
+        String docCoverage = elements.isEmpty() ? "0 (0.0%)" :
+                String.format("%d (%.1f%%)", elementsWithDocs, 100.0 * elementsWithDocs / elements.size());
+        rowNum = createMetadataRow(sheet, rowNum, "Elements with Documentation", docCoverage);
+
+        long elementsWithRestrictions = elements.stream()
+                .filter(e -> e.getRestrictionInfo() != null &&
+                        e.getRestrictionInfo().facets() != null &&
+                        !e.getRestrictionInfo().facets().isEmpty())
+                .count();
+        rowNum = createMetadataRow(sheet, rowNum, "Elements with Restrictions",
+                String.valueOf(elementsWithRestrictions));
+
+        long elementsWithEnumerations = elements.stream()
+                .filter(e -> e.getRestrictionInfo() != null &&
+                        e.getRestrictionInfo().facets() != null &&
+                        e.getRestrictionInfo().facets().containsKey("enumeration"))
+                .count();
+        rowNum = createMetadataRow(sheet, rowNum, "Elements with Enumerations",
+                String.valueOf(elementsWithEnumerations));
+
+        long elementsWithPatterns = elements.stream()
+                .filter(e -> e.getRestrictionInfo() != null &&
+                        e.getRestrictionInfo().facets() != null &&
+                        e.getRestrictionInfo().facets().containsKey("pattern"))
+                .count();
+        rowNum = createMetadataRow(sheet, rowNum, "Elements with Patterns",
+                String.valueOf(elementsWithPatterns));
+        rowNum++; // Empty row
+
+        // === SECTION 4: Namespaces ===
+        if (xsdDocumentationData.getNamespaces() != null &&
+                !xsdDocumentationData.getNamespaces().isEmpty()) {
+            rowNum = createSectionHeader(sheet, rowNum, "Namespaces");
+            for (Map.Entry<String, String> ns : xsdDocumentationData.getNamespaces().entrySet()) {
+                String prefix = ns.getKey().isEmpty() ? "(default)" : ns.getKey();
+                rowNum = createMetadataRow(sheet, rowNum, prefix, ns.getValue());
+            }
+            rowNum++; // Empty row
+        }
+
+        // === SECTION 5: Documentation Languages ===
+        rowNum = createSectionHeader(sheet, rowNum, "Documentation Languages");
+        rowNum = createMetadataRow(sheet, rowNum, "Languages Found",
+                String.join(", ", languages.stream().map(String::toUpperCase).toList()));
+        rowNum = createMetadataRow(sheet, rowNum, "Number of Language Sheets",
+                String.valueOf(languages.size()));
+
+        // Set column widths
+        sheet.setColumnWidth(0, 10000);  // Label column
+        sheet.setColumnWidth(1, 20000);  // Value column
+
+        logger.debug("Created Schema Info sheet with {} rows", rowNum);
+    }
+
+    /**
+     * Creates a section header row in the metadata sheet.
+     */
+    private int createSectionHeader(Sheet sheet, int rowNum, String title) {
+        Row row = sheet.createRow(rowNum);
+        Cell cell = row.createCell(0);
+        cell.setCellValue(title);
+        cell.setCellStyle(sectionHeaderStyle);
+        // Merge cells for section header
+        sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(rowNum, rowNum, 0, 1));
+        return rowNum + 1;
+    }
+
+    /**
+     * Creates a data row with label and value in the metadata sheet.
+     */
+    private int createMetadataRow(Sheet sheet, int rowNum, String label, String value) {
+        Row row = sheet.createRow(rowNum);
+
+        Cell labelCell = row.createCell(0);
+        labelCell.setCellValue(label);
+        labelCell.setCellStyle(labelStyle);
+
+        Cell valueCell = row.createCell(1);
+        valueCell.setCellValue(value != null ? value : "");
+        valueCell.setCellStyle(valueStyle);
+
+        return rowNum + 1;
+    }
+
+    /**
+     * Extracts the filename from a file path.
+     */
+    private String getSchemaFileName(String path) {
+        if (path == null || path.isEmpty()) {
+            return "";
+        }
+        int lastSep = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+        return lastSep >= 0 ? path.substring(lastSep + 1) : path;
+    }
+
+    // ==================== Cell Style Methods ====================
 
     private CellStyle createHeaderStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
