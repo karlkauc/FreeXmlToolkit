@@ -480,7 +480,7 @@
             </graphic>
 
             <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: #e8ecf0; -fx-background: #e8ecf0;">
-                <VBox spacing="20" style="-fx-padding: 30px; -fx-background-color: #e8ecf0;">
+                <VBox spacing="20" style="-fx-padding: 30 30 50 30; -fx-background-color: #e8ecf0;">
 
                     <!-- Header Section -->
                     <VBox spacing="8">
@@ -538,11 +538,11 @@
                                    style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
 
                             <VBox spacing="6">
+                                <fx:define>
+                                    <ToggleGroup fx:id="outputFormatGroup"/>
+                                </fx:define>
                                 <Label text="Output Format:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
                                 <HBox spacing="20" alignment="CENTER_LEFT">
-                                    <fx:define>
-                                        <ToggleGroup fx:id="outputFormatGroup"/>
-                                    </fx:define>
                                     <RadioButton fx:id="outputFormatHtml" selected="true" text="HTML" toggleGroup="$outputFormatGroup">
                                         <tooltip>
                                             <Tooltip text="Generate HTML documentation with navigation and search"/>
@@ -575,26 +575,27 @@
                         </VBox>
                     </HBox>
 
-                    <!-- Middle Row: Generation Settings | Language Settings -->
+                    <!-- Middle Row: General Settings | Language Settings -->
                     <HBox spacing="20" HBox.hgrow="ALWAYS">
-                        <!-- Generation Settings Card -->
-                        <VBox spacing="12" HBox.hgrow="ALWAYS"
+                        <!-- General Settings Card (shared across all formats) -->
+                        <VBox fx:id="generalSettingsContainer" spacing="12" HBox.hgrow="ALWAYS"
                               style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
-                            <Label text="Generation Settings"
+                            <Label text="General Settings"
                                    style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
 
-                            <CheckBox fx:id="useMarkdownRenderer" selected="true" text="Use Markdown Renderer"/>
-                            <CheckBox fx:id="openFileAfterCreation" selected="true" text="Open file after creation"/>
-                            <CheckBox fx:id="createExampleData" selected="true" text="Create example data if missing"/>
-                            <CheckBox fx:id="includeTypeDefinitionsInSourceCode" selected="true" text="Include type definitions in source code"/>
-                            <CheckBox fx:id="generateSvgOverviewPage" selected="true" text="Generate SVG overview page">
+                            <CheckBox fx:id="useMarkdownRenderer" selected="true" text="Use Markdown Renderer">
                                 <tooltip>
-                                    <Tooltip text="Generate an interactive SVG page showing the complete schema structure"/>
+                                    <Tooltip text="Render Markdown formatting in documentation text"/>
                                 </tooltip>
                             </CheckBox>
-                            <CheckBox fx:id="addMetadataInOutput" selected="false" text="Add Metadata in Output">
+                            <CheckBox fx:id="openFileAfterCreation" selected="true" text="Open file after creation">
                                 <tooltip>
-                                    <Tooltip text="Add HTML comments with creation details (timestamp, OS, app version) to all generated HTML files"/>
+                                    <Tooltip text="Automatically open the generated documentation after creation"/>
+                                </tooltip>
+                            </CheckBox>
+                            <CheckBox fx:id="createExampleData" selected="true" text="Create example data if missing">
+                                <tooltip>
+                                    <Tooltip text="Generate example values for elements without sample data"/>
                                 </tooltip>
                             </CheckBox>
                         </VBox>
@@ -643,9 +644,255 @@
                         </VBox>
                     </HBox>
 
+                    <!-- Format-Specific Settings Row -->
+                    <HBox spacing="20" HBox.hgrow="ALWAYS">
+
+                        <!-- HTML-Specific Settings Card (visible when HTML is selected) -->
+                        <VBox fx:id="htmlSettingsContainer" spacing="12" HBox.hgrow="ALWAYS"
+                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#E34F26"/>
+                                <Label text="HTML Options"
+                                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+                            </HBox>
+
+                            <CheckBox fx:id="includeTypeDefinitionsInSourceCode" selected="true" text="Include type definitions in source code">
+                                <tooltip>
+                                    <Tooltip text="Include referenced type definitions in the source code sections"/>
+                                </tooltip>
+                            </CheckBox>
+                            <CheckBox fx:id="generateSvgOverviewPage" selected="true" text="Generate SVG overview page">
+                                <tooltip>
+                                    <Tooltip text="Generate an interactive SVG page showing the complete schema structure"/>
+                                </tooltip>
+                            </CheckBox>
+                            <CheckBox fx:id="addMetadataInOutput" selected="false" text="Add Metadata in Output">
+                                <tooltip>
+                                    <Tooltip text="Add HTML comments with creation details (timestamp, OS, app version) to all generated HTML files"/>
+                                </tooltip>
+                            </CheckBox>
+                        </VBox>
+
+                        <!-- Word-Specific Settings Card (hidden by default) -->
+                        <VBox fx:id="wordSettingsContainer" spacing="12" HBox.hgrow="ALWAYS"
+                              visible="false" managed="false"
+                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="bi-file-earmark-richtext" iconSize="20" iconColor="#2B579A"/>
+                                <Label text="Word Options"
+                                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+                            </HBox>
+
+                            <fx:define>
+                                <ToggleGroup fx:id="wordOrientationGroup"/>
+                            </fx:define>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Page Size:" prefWidth="100" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <ChoiceBox fx:id="wordPageSize" prefWidth="120" style="-fx-background-radius: 6;">
+                                    <tooltip>
+                                        <Tooltip text="Select the page size for the Word document"/>
+                                    </tooltip>
+                                </ChoiceBox>
+                            </HBox>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Orientation:" prefWidth="100" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <RadioButton fx:id="wordOrientationPortrait" text="Portrait" selected="true" toggleGroup="$wordOrientationGroup"/>
+                                <RadioButton fx:id="wordOrientationLandscape" text="Landscape" toggleGroup="$wordOrientationGroup"/>
+                            </HBox>
+
+                            <Separator style="-fx-padding: 5 0;"/>
+
+                            <CheckBox fx:id="wordIncludeCoverPage" selected="false" text="Include Cover Page">
+                                <tooltip>
+                                    <Tooltip text="Add a title page with schema name and metadata"/>
+                                </tooltip>
+                            </CheckBox>
+                            <CheckBox fx:id="wordIncludeToc" selected="true" text="Include Table of Contents">
+                                <tooltip>
+                                    <Tooltip text="Generate a table of contents"/>
+                                </tooltip>
+                            </CheckBox>
+                            <CheckBox fx:id="wordIncludeDataDictionary" selected="true" text="Include Data Dictionary">
+                                <tooltip>
+                                    <Tooltip text="Include the data dictionary table"/>
+                                </tooltip>
+                            </CheckBox>
+                            <CheckBox fx:id="wordIncludeSchemaDiagram" selected="true" text="Include Schema Diagram">
+                                <tooltip>
+                                    <Tooltip text="Embed the schema diagram as an image"/>
+                                </tooltip>
+                            </CheckBox>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Header Style:" prefWidth="100" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <ChoiceBox fx:id="wordHeaderStyle" prefWidth="150" style="-fx-background-radius: 6;">
+                                    <tooltip>
+                                        <Tooltip text="Select the header style for sections"/>
+                                    </tooltip>
+                                </ChoiceBox>
+                            </HBox>
+                        </VBox>
+
+                        <!-- PDF-Specific Settings Card (hidden by default) -->
+                        <VBox fx:id="pdfSettingsContainer" spacing="12" HBox.hgrow="ALWAYS"
+                              visible="false" managed="false"
+                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#DC3545"/>
+                                <Label text="PDF Options"
+                                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+                            </HBox>
+
+                            <fx:define>
+                                <ToggleGroup fx:id="pdfOrientationGroup"/>
+                            </fx:define>
+
+                            <Accordion fx:id="pdfSettingsAccordion">
+                                <panes>
+                                    <!-- Page Layout -->
+                                    <TitledPane text="Page Layout" expanded="true">
+                                        <content>
+                                            <VBox spacing="10" style="-fx-padding: 10;">
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Page Size:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfPageSize" prefWidth="120" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Orientation:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <RadioButton fx:id="pdfOrientationPortrait" text="Portrait" selected="true" toggleGroup="$pdfOrientationGroup"/>
+                                                    <RadioButton fx:id="pdfOrientationLandscape" text="Landscape" toggleGroup="$pdfOrientationGroup"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Margins:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfMargins" prefWidth="150" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                            </VBox>
+                                        </content>
+                                    </TitledPane>
+
+                                    <!-- Content Sections -->
+                                    <TitledPane text="Content Sections" expanded="true">
+                                        <content>
+                                            <VBox spacing="8" style="-fx-padding: 10;">
+                                                <CheckBox fx:id="pdfIncludeCoverPage" text="Include Cover Page" selected="true"/>
+                                                <CheckBox fx:id="pdfIncludeToc" text="Include Table of Contents" selected="true"/>
+                                                <CheckBox fx:id="pdfIncludeSchemaOverview" text="Include Schema Overview" selected="true"/>
+                                                <CheckBox fx:id="pdfIncludeSchemaDiagram" text="Include Schema Diagram" selected="true"/>
+                                                <CheckBox fx:id="pdfIncludeComplexTypes" text="Include ComplexTypes Section" selected="true"/>
+                                                <CheckBox fx:id="pdfIncludeSimpleTypes" text="Include SimpleTypes Section" selected="true"/>
+                                                <CheckBox fx:id="pdfIncludeDataDictionary" text="Include Data Dictionary" selected="true"/>
+                                            </VBox>
+                                        </content>
+                                    </TitledPane>
+
+                                    <!-- Typography -->
+                                    <TitledPane text="Typography" expanded="false">
+                                        <content>
+                                            <VBox spacing="10" style="-fx-padding: 10;">
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Font Size:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfFontSize" prefWidth="100" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Font Family:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfFontFamily" prefWidth="150" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Heading Style:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfHeadingStyle" prefWidth="150" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Line Spacing:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfLineSpacing" prefWidth="120" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                            </VBox>
+                                        </content>
+                                    </TitledPane>
+
+                                    <!-- Header and Footer -->
+                                    <TitledPane text="Header &amp; Footer" expanded="false">
+                                        <content>
+                                            <VBox spacing="10" style="-fx-padding: 10;">
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Header Style:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfHeaderStyle" prefWidth="150" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Footer Style:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfFooterStyle" prefWidth="150" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                                <CheckBox fx:id="pdfIncludePageNumbers" text="Include Page Numbers" selected="true"/>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Page # Position:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfPageNumberPosition" prefWidth="100" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                            </VBox>
+                                        </content>
+                                    </TitledPane>
+
+                                    <!-- Design and Colors -->
+                                    <TitledPane text="Design &amp; Colors" expanded="false">
+                                        <content>
+                                            <VBox spacing="10" style="-fx-padding: 10;">
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Color Scheme:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfColorScheme" prefWidth="150" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Table Style:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfTableStyle" prefWidth="150" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Watermark:" prefWidth="120" style="-fx-font-size: 13px;"/>
+                                                    <ChoiceBox fx:id="pdfWatermark" prefWidth="150" style="-fx-background-radius: 6;"/>
+                                                </HBox>
+                                            </VBox>
+                                        </content>
+                                    </TitledPane>
+
+                                    <!-- PDF Metadata -->
+                                    <TitledPane text="PDF Metadata" expanded="false">
+                                        <content>
+                                            <VBox spacing="10" style="-fx-padding: 10;">
+                                                <CheckBox fx:id="pdfBookmarks" text="Generate PDF Bookmarks" selected="true">
+                                                    <tooltip>
+                                                        <Tooltip text="Create navigation bookmarks in the PDF"/>
+                                                    </tooltip>
+                                                </CheckBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Title:" prefWidth="80" style="-fx-font-size: 13px;"/>
+                                                    <TextField fx:id="pdfTitle" promptText="Auto (Schema-Name)" HBox.hgrow="ALWAYS"
+                                                               style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db;"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Author:" prefWidth="80" style="-fx-font-size: 13px;"/>
+                                                    <TextField fx:id="pdfAuthor" promptText="Auto (System User)" HBox.hgrow="ALWAYS"
+                                                               style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db;"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Subject:" prefWidth="80" style="-fx-font-size: 13px;"/>
+                                                    <TextField fx:id="pdfSubject" promptText="Optional" HBox.hgrow="ALWAYS"
+                                                               style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db;"/>
+                                                </HBox>
+                                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                                    <Label text="Keywords:" prefWidth="80" style="-fx-font-size: 13px;"/>
+                                                    <TextField fx:id="pdfKeywords" promptText="Optional, comma-separated" HBox.hgrow="ALWAYS"
+                                                               style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db;"/>
+                                                </HBox>
+                                            </VBox>
+                                        </content>
+                                    </TitledPane>
+                                </panes>
+                            </Accordion>
+                        </VBox>
+
+                    </HBox>
+
                     <!-- Generate Button Row -->
-                    <HBox alignment="CENTER_RIGHT">
-                        <Button onAction="#generateDocumentation" text="Generate" prefWidth="200" prefHeight="45"
+                    <HBox alignment="CENTER_RIGHT" style="-fx-padding: 10 0 0 0;">
+                        <Button fx:id="generateDocumentationButton" onAction="#generateDocumentation" text="Generate" prefWidth="200" prefHeight="45"
                                 style="-fx-background-color: #4a7fd9; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;">
                             <graphic>
                                 <FontIcon iconLiteral="bi-play-fill" iconSize="18" iconColor="white"/>

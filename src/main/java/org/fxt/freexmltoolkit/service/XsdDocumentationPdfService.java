@@ -24,6 +24,7 @@ import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.w3c.dom.Document;
@@ -60,6 +61,7 @@ public class XsdDocumentationPdfService {
     private XsdDocumentationImageService imageService;
     private Set<String> includedLanguages;
     private TaskProgressListener progressListener;
+    private PdfDocumentationConfig config = new PdfDocumentationConfig();
 
     // Cached FopFactory for performance
     private static final FopFactory fopFactory;
@@ -245,8 +247,25 @@ public class XsdDocumentationPdfService {
         FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
         foUserAgent.setProducer("FreeXmlToolkit");
         foUserAgent.setCreator("FreeXmlToolkit");
-        foUserAgent.setAuthor(System.getProperty("user.name", ""));
-        foUserAgent.setTitle("XSD Documentation: " + extractSchemaName());
+
+        // Apply PDF metadata from config
+        String author = config.getAuthor() != null && !config.getAuthor().isEmpty()
+                ? config.getAuthor()
+                : System.getProperty("user.name", "");
+        foUserAgent.setAuthor(author);
+
+        String title = config.getTitle() != null && !config.getTitle().isEmpty()
+                ? config.getTitle()
+                : "XSD Documentation: " + extractSchemaName();
+        foUserAgent.setTitle(title);
+
+        if (config.getSubject() != null && !config.getSubject().isEmpty()) {
+            foUserAgent.setSubject(config.getSubject());
+        }
+
+        if (config.getKeywords() != null && !config.getKeywords().isEmpty()) {
+            foUserAgent.setKeywords(config.getKeywords());
+        }
 
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
             Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
@@ -254,9 +273,48 @@ public class XsdDocumentationPdfService {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer(xslSource);
 
-            // Add parameters
+            // Basic parameters
             transformer.setParameter("currentDate", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             transformer.setParameter("schemaName", extractSchemaName());
+
+            // Page layout parameters
+            transformer.setParameter("pageWidth", config.getPageWidth());
+            transformer.setParameter("pageHeight", config.getPageHeight());
+            transformer.setParameter("marginSize", config.getMarginSize());
+
+            // Typography parameters
+            transformer.setParameter("fontSize", config.getFontSizeValue());
+            transformer.setParameter("fontFamily", config.getFontFamilyName());
+            transformer.setParameter("lineHeight", config.getLineHeightValue());
+            transformer.setParameter("headingBold", config.getHeadingStyle().isBold() ? "bold" : "normal");
+            transformer.setParameter("headingUnderlined", config.getHeadingStyle().isUnderlined() ? "underline" : "none");
+            transformer.setParameter("headingColor", config.getHeadingStyle().getColor());
+
+            // Color scheme parameters
+            transformer.setParameter("primaryColor", config.getPrimaryColor());
+            transformer.setParameter("lightBackground", config.getColorScheme().getLightBackground());
+            transformer.setParameter("tableHeaderBg", config.getColorScheme().getTableHeaderBg());
+
+            // Content section toggles
+            transformer.setParameter("includeCoverPage", config.isIncludeCoverPage() ? "true" : "false");
+            transformer.setParameter("includeToc", config.isIncludeToc() ? "true" : "false");
+            transformer.setParameter("includeSchemaOverview", config.isIncludeSchemaOverview() ? "true" : "false");
+            transformer.setParameter("includeComplexTypes", config.isIncludeComplexTypes() ? "true" : "false");
+            transformer.setParameter("includeSimpleTypes", config.isIncludeSimpleTypes() ? "true" : "false");
+            transformer.setParameter("includeDataDictionary", config.isIncludeDataDictionary() ? "true" : "false");
+
+            // Header & Footer parameters
+            transformer.setParameter("headerStyle", config.getHeaderStyle().name());
+            transformer.setParameter("footerStyle", config.getFooterStyle().name());
+            transformer.setParameter("includePageNumbers", config.isIncludePageNumbers() ? "true" : "false");
+            transformer.setParameter("pageNumberPosition", config.getPageNumberPosition().getAlignment());
+
+            // Table style parameter
+            transformer.setParameter("tableStyle", config.getTableStyle().name());
+
+            // Watermark parameters
+            transformer.setParameter("watermarkText", config.getWatermarkText());
+            transformer.setParameter("hasWatermark", config.hasWatermark() ? "true" : "false");
 
             Source xmlSource = new DOMSource(intermediateXml);
             Result result = new SAXResult(fop.getDefaultHandler());
@@ -268,6 +326,7 @@ public class XsdDocumentationPdfService {
     /**
      * Returns an embedded XSL-FO template for PDF generation.
      * This is used as a fallback if the external template is not found.
+     * The template accepts parameters for customization.
      */
     private String getEmbeddedXslFoTemplate() {
         return """
@@ -276,17 +335,57 @@ public class XsdDocumentationPdfService {
                     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                     xmlns:fo="http://www.w3.org/1999/XSL/Format">
 
+                    <!-- Basic parameters -->
                     <xsl:param name="currentDate"/>
                     <xsl:param name="schemaName"/>
 
+                    <!-- Page layout parameters -->
+                    <xsl:param name="pageWidth">210mm</xsl:param>
+                    <xsl:param name="pageHeight">297mm</xsl:param>
+                    <xsl:param name="marginSize">20mm</xsl:param>
+
+                    <!-- Typography parameters -->
+                    <xsl:param name="fontSize">11pt</xsl:param>
+                    <xsl:param name="fontFamily">Helvetica</xsl:param>
+                    <xsl:param name="lineHeight">1.2</xsl:param>
+                    <xsl:param name="headingBold">bold</xsl:param>
+                    <xsl:param name="headingUnderlined">none</xsl:param>
+                    <xsl:param name="headingColor">#2563EB</xsl:param>
+
+                    <!-- Color scheme parameters -->
+                    <xsl:param name="primaryColor">#2563EB</xsl:param>
+                    <xsl:param name="lightBackground">#EFF6FF</xsl:param>
+                    <xsl:param name="tableHeaderBg">#DBEAFE</xsl:param>
+
+                    <!-- Content section toggles -->
+                    <xsl:param name="includeCoverPage">true</xsl:param>
+                    <xsl:param name="includeToc">true</xsl:param>
+                    <xsl:param name="includeSchemaOverview">true</xsl:param>
+                    <xsl:param name="includeComplexTypes">true</xsl:param>
+                    <xsl:param name="includeSimpleTypes">true</xsl:param>
+                    <xsl:param name="includeDataDictionary">true</xsl:param>
+
+                    <!-- Header & Footer parameters -->
+                    <xsl:param name="headerStyle">STANDARD</xsl:param>
+                    <xsl:param name="footerStyle">STANDARD</xsl:param>
+                    <xsl:param name="includePageNumbers">true</xsl:param>
+                    <xsl:param name="pageNumberPosition">center</xsl:param>
+
+                    <!-- Table style parameter -->
+                    <xsl:param name="tableStyle">BORDERED</xsl:param>
+
+                    <!-- Watermark parameters -->
+                    <xsl:param name="watermarkText"></xsl:param>
+                    <xsl:param name="hasWatermark">false</xsl:param>
+
                     <xsl:template match="/">
-                        <fo:root>
+                        <fo:root font-family="{$fontFamily}" font-size="{$fontSize}" line-height="{$lineHeight}">
                             <!-- Page layout -->
                             <fo:layout-master-set>
-                                <fo:simple-page-master master-name="A4"
-                                    page-width="210mm" page-height="297mm"
-                                    margin-top="20mm" margin-bottom="20mm"
-                                    margin-left="25mm" margin-right="25mm">
+                                <fo:simple-page-master master-name="main"
+                                    page-width="{$pageWidth}" page-height="{$pageHeight}"
+                                    margin-top="{$marginSize}" margin-bottom="{$marginSize}"
+                                    margin-left="{$marginSize}" margin-right="{$marginSize}">
                                     <fo:region-body margin-top="15mm" margin-bottom="15mm"/>
                                     <fo:region-before extent="15mm"/>
                                     <fo:region-after extent="15mm"/>
@@ -294,132 +393,173 @@ public class XsdDocumentationPdfService {
                             </fo:layout-master-set>
 
                             <!-- Document content -->
-                            <fo:page-sequence master-reference="A4">
+                            <fo:page-sequence master-reference="main">
                                 <!-- Header -->
-                                <fo:static-content flow-name="xsl-region-before">
-                                    <fo:block font-size="9pt" color="#64748B"
-                                        border-bottom="0.5pt solid #CBD5E1" padding-bottom="3mm">
-                                        XSD Documentation: <xsl:value-of select="$schemaName"/>
-                                    </fo:block>
-                                </fo:static-content>
+                                <xsl:if test="$headerStyle != 'NONE'">
+                                    <fo:static-content flow-name="xsl-region-before">
+                                        <xsl:choose>
+                                            <xsl:when test="$headerStyle = 'STANDARD'">
+                                                <fo:block font-size="9pt" color="#64748B"
+                                                    border-bottom="0.5pt solid #CBD5E1" padding-bottom="3mm">
+                                                    XSD Documentation: <xsl:value-of select="$schemaName"/>
+                                                </fo:block>
+                                            </xsl:when>
+                                            <xsl:when test="$headerStyle = 'MINIMAL'">
+                                                <fo:block border-bottom="0.5pt solid #CBD5E1" padding-bottom="3mm"/>
+                                            </xsl:when>
+                                        </xsl:choose>
+                                    </fo:static-content>
+                                </xsl:if>
 
                                 <!-- Footer -->
-                                <fo:static-content flow-name="xsl-region-after">
-                                    <fo:block font-size="9pt" color="#64748B" text-align="center"
-                                        border-top="0.5pt solid #CBD5E1" padding-top="3mm">
-                                        Page <fo:page-number/> - Generated by FreeXmlToolkit on <xsl:value-of select="$currentDate"/>
-                                    </fo:block>
-                                </fo:static-content>
+                                <xsl:if test="$footerStyle != 'NONE'">
+                                    <fo:static-content flow-name="xsl-region-after">
+                                        <xsl:choose>
+                                            <xsl:when test="$footerStyle = 'STANDARD'">
+                                                <fo:block font-size="9pt" color="#64748B" text-align="{$pageNumberPosition}"
+                                                    border-top="0.5pt solid #CBD5E1" padding-top="3mm">
+                                                    <xsl:if test="$includePageNumbers = 'true'">Page <fo:page-number/> - </xsl:if>
+                                                    Generated by FreeXmlToolkit on <xsl:value-of select="$currentDate"/>
+                                                </fo:block>
+                                            </xsl:when>
+                                            <xsl:when test="$footerStyle = 'MINIMAL'">
+                                                <fo:block font-size="9pt" color="#64748B" text-align="{$pageNumberPosition}"
+                                                    border-top="0.5pt solid #CBD5E1" padding-top="3mm">
+                                                    <xsl:if test="$includePageNumbers = 'true'">Page <fo:page-number/></xsl:if>
+                                                </fo:block>
+                                            </xsl:when>
+                                        </xsl:choose>
+                                    </fo:static-content>
+                                </xsl:if>
 
                                 <!-- Body -->
                                 <fo:flow flow-name="xsl-region-body">
-                                    <!-- Title Page -->
-                                    <fo:block font-size="28pt" font-weight="bold" color="#2563EB"
-                                        text-align="center" space-after="20mm" margin-top="60mm">
-                                        XSD Schema Documentation
-                                    </fo:block>
 
-                                    <fo:block font-size="18pt" color="#64748B" text-align="center" space-after="40mm">
-                                        <xsl:value-of select="xsd-documentation/metadata/schema-name"/>
-                                    </fo:block>
+                                    <!-- Watermark (if enabled) -->
+                                    <xsl:if test="$hasWatermark = 'true'">
+                                        <fo:block-container absolute-position="fixed" top="100mm" left="0mm" width="100%">
+                                            <fo:block text-align="center" font-size="60pt" color="#E5E7EB"
+                                                font-weight="bold" letter-spacing="10pt">
+                                                <xsl:value-of select="$watermarkText"/>
+                                            </fo:block>
+                                        </fo:block-container>
+                                    </xsl:if>
 
-                                    <fo:block font-size="12pt" font-style="italic" color="#64748B" text-align="center" space-after="5mm">
-                                        Generated: <xsl:value-of select="xsd-documentation/metadata/generation-date"/>
-                                    </fo:block>
+                                    <!-- Cover Page -->
+                                    <xsl:if test="$includeCoverPage = 'true'">
+                                        <fo:block font-size="28pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                            text-decoration="{$headingUnderlined}"
+                                            text-align="center" space-after="20mm" margin-top="60mm">
+                                            XSD Schema Documentation
+                                        </fo:block>
 
-                                    <fo:block font-size="10pt" color="#64748B" text-align="center">
-                                        Generated by <xsl:value-of select="xsd-documentation/metadata/generator"/>
-                                    </fo:block>
+                                        <fo:block font-size="18pt" color="#64748B" text-align="center" space-after="40mm">
+                                            <xsl:value-of select="xsd-documentation/metadata/schema-name"/>
+                                        </fo:block>
 
-                                    <fo:block break-after="page"/>
+                                        <fo:block font-size="12pt" font-style="italic" color="#64748B" text-align="center" space-after="5mm">
+                                            Generated: <xsl:value-of select="xsd-documentation/metadata/generation-date"/>
+                                        </fo:block>
+
+                                        <fo:block font-size="10pt" color="#64748B" text-align="center">
+                                            Generated by <xsl:value-of select="xsd-documentation/metadata/generator"/>
+                                        </fo:block>
+
+                                        <fo:block break-after="page"/>
+                                    </xsl:if>
 
                                     <!-- Schema Overview -->
-                                    <fo:block font-size="18pt" font-weight="bold" color="#2563EB"
-                                        space-before="10mm" space-after="5mm">
-                                        Schema Overview
-                                    </fo:block>
+                                    <xsl:if test="$includeSchemaOverview = 'true'">
+                                        <fo:block font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                            text-decoration="{$headingUnderlined}"
+                                            space-before="10mm" space-after="5mm">
+                                            Schema Overview
+                                        </fo:block>
 
-                                    <fo:table table-layout="fixed" width="100%" border="0.5pt solid #CBD5E1">
-                                        <fo:table-column column-width="40%"/>
-                                        <fo:table-column column-width="60%"/>
-                                        <fo:table-body>
-                                            <fo:table-row>
-                                                <fo:table-cell padding="3mm" background-color="#F1F5F9" border="0.5pt solid #CBD5E1">
-                                                    <fo:block font-weight="bold">File Path</fo:block>
-                                                </fo:table-cell>
-                                                <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                    <fo:block><xsl:value-of select="xsd-documentation/metadata/file-path"/></fo:block>
-                                                </fo:table-cell>
-                                            </fo:table-row>
-                                            <fo:table-row>
-                                                <fo:table-cell padding="3mm" background-color="#F1F5F9" border="0.5pt solid #CBD5E1">
-                                                    <fo:block font-weight="bold">Target Namespace</fo:block>
-                                                </fo:table-cell>
-                                                <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                    <fo:block><xsl:value-of select="xsd-documentation/metadata/target-namespace"/></fo:block>
-                                                </fo:table-cell>
-                                            </fo:table-row>
-                                            <fo:table-row>
-                                                <fo:table-cell padding="3mm" background-color="#F1F5F9" border="0.5pt solid #CBD5E1">
-                                                    <fo:block font-weight="bold">Version</fo:block>
-                                                </fo:table-cell>
-                                                <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                    <fo:block><xsl:value-of select="xsd-documentation/metadata/version"/></fo:block>
-                                                </fo:table-cell>
-                                            </fo:table-row>
-                                        </fo:table-body>
-                                    </fo:table>
+                                        <fo:table table-layout="fixed" width="100%" border="0.5pt solid #CBD5E1">
+                                            <fo:table-column column-width="40%"/>
+                                            <fo:table-column column-width="60%"/>
+                                            <fo:table-body>
+                                                <fo:table-row>
+                                                    <fo:table-cell padding="3mm" background-color="{$tableHeaderBg}" border="0.5pt solid #CBD5E1">
+                                                        <fo:block font-weight="bold">File Path</fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                        <fo:block><xsl:value-of select="xsd-documentation/metadata/file-path"/></fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                                <fo:table-row>
+                                                    <fo:table-cell padding="3mm" background-color="{$tableHeaderBg}" border="0.5pt solid #CBD5E1">
+                                                        <fo:block font-weight="bold">Target Namespace</fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                        <fo:block><xsl:value-of select="xsd-documentation/metadata/target-namespace"/></fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                                <fo:table-row>
+                                                    <fo:table-cell padding="3mm" background-color="{$tableHeaderBg}" border="0.5pt solid #CBD5E1">
+                                                        <fo:block font-weight="bold">Version</fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                        <fo:block><xsl:value-of select="xsd-documentation/metadata/version"/></fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                            </fo:table-body>
+                                        </fo:table>
 
-                                    <!-- Statistics -->
-                                    <fo:block font-size="14pt" font-weight="bold" color="#2563EB"
-                                        space-before="10mm" space-after="5mm">
-                                        Statistics
-                                    </fo:block>
+                                        <!-- Statistics -->
+                                        <fo:block font-size="14pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                            text-decoration="{$headingUnderlined}"
+                                            space-before="10mm" space-after="5mm">
+                                            Statistics
+                                        </fo:block>
 
-                                    <fo:table table-layout="fixed" width="100%" border="0.5pt solid #CBD5E1">
-                                        <fo:table-column column-width="50%"/>
-                                        <fo:table-column column-width="50%"/>
-                                        <fo:table-body>
-                                            <fo:table-row>
-                                                <fo:table-cell padding="3mm" background-color="#F1F5F9" border="0.5pt solid #CBD5E1">
-                                                    <fo:block font-weight="bold">Global Elements</fo:block>
-                                                </fo:table-cell>
-                                                <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                    <fo:block><xsl:value-of select="xsd-documentation/statistics/global-elements"/></fo:block>
-                                                </fo:table-cell>
-                                            </fo:table-row>
-                                            <fo:table-row>
-                                                <fo:table-cell padding="3mm" background-color="#F1F5F9" border="0.5pt solid #CBD5E1">
-                                                    <fo:block font-weight="bold">Global ComplexTypes</fo:block>
-                                                </fo:table-cell>
-                                                <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                    <fo:block><xsl:value-of select="xsd-documentation/statistics/global-complex-types"/></fo:block>
-                                                </fo:table-cell>
-                                            </fo:table-row>
-                                            <fo:table-row>
-                                                <fo:table-cell padding="3mm" background-color="#F1F5F9" border="0.5pt solid #CBD5E1">
-                                                    <fo:block font-weight="bold">Global SimpleTypes</fo:block>
-                                                </fo:table-cell>
-                                                <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                    <fo:block><xsl:value-of select="xsd-documentation/statistics/global-simple-types"/></fo:block>
-                                                </fo:table-cell>
-                                            </fo:table-row>
-                                            <fo:table-row>
-                                                <fo:table-cell padding="3mm" background-color="#F1F5F9" border="0.5pt solid #CBD5E1">
-                                                    <fo:block font-weight="bold">Total Elements</fo:block>
-                                                </fo:table-cell>
-                                                <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                    <fo:block><xsl:value-of select="xsd-documentation/statistics/total-elements"/></fo:block>
-                                                </fo:table-cell>
-                                            </fo:table-row>
-                                        </fo:table-body>
-                                    </fo:table>
+                                        <fo:table table-layout="fixed" width="100%" border="0.5pt solid #CBD5E1">
+                                            <fo:table-column column-width="50%"/>
+                                            <fo:table-column column-width="50%"/>
+                                            <fo:table-body>
+                                                <fo:table-row>
+                                                    <fo:table-cell padding="3mm" background-color="{$tableHeaderBg}" border="0.5pt solid #CBD5E1">
+                                                        <fo:block font-weight="bold">Global Elements</fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                        <fo:block><xsl:value-of select="xsd-documentation/statistics/global-elements"/></fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                                <fo:table-row>
+                                                    <fo:table-cell padding="3mm" background-color="{$tableHeaderBg}" border="0.5pt solid #CBD5E1">
+                                                        <fo:block font-weight="bold">Global ComplexTypes</fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                        <fo:block><xsl:value-of select="xsd-documentation/statistics/global-complex-types"/></fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                                <fo:table-row>
+                                                    <fo:table-cell padding="3mm" background-color="{$tableHeaderBg}" border="0.5pt solid #CBD5E1">
+                                                        <fo:block font-weight="bold">Global SimpleTypes</fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                        <fo:block><xsl:value-of select="xsd-documentation/statistics/global-simple-types"/></fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                                <fo:table-row>
+                                                    <fo:table-cell padding="3mm" background-color="{$tableHeaderBg}" border="0.5pt solid #CBD5E1">
+                                                        <fo:block font-weight="bold">Total Elements</fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                        <fo:block><xsl:value-of select="xsd-documentation/statistics/total-elements"/></fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                            </fo:table-body>
+                                        </fo:table>
 
-                                    <fo:block break-after="page"/>
+                                        <fo:block break-after="page"/>
+                                    </xsl:if>
 
                                     <!-- Complex Types -->
-                                    <xsl:if test="xsd-documentation/complex-types/complex-type">
-                                        <fo:block font-size="18pt" font-weight="bold" color="#2563EB"
+                                    <xsl:if test="$includeComplexTypes = 'true' and xsd-documentation/complex-types/complex-type">
+                                        <fo:block font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                            text-decoration="{$headingUnderlined}"
                                             space-before="5mm" space-after="5mm">
                                             Complex Types
                                         </fo:block>
@@ -429,7 +569,7 @@ public class XsdDocumentationPdfService {
                                             <fo:table-column column-width="40%"/>
                                             <fo:table-column column-width="20%"/>
                                             <fo:table-header>
-                                                <fo:table-row background-color="#F1F5F9">
+                                                <fo:table-row background-color="{$tableHeaderBg}">
                                                     <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
                                                         <fo:block font-weight="bold">Type Name</fo:block>
                                                     </fo:table-cell>
@@ -444,6 +584,9 @@ public class XsdDocumentationPdfService {
                                             <fo:table-body>
                                                 <xsl:for-each select="xsd-documentation/complex-types/complex-type">
                                                     <fo:table-row>
+                                                        <xsl:if test="$tableStyle = 'ZEBRA_STRIPES' and position() mod 2 = 0">
+                                                            <xsl:attribute name="background-color">#F9FAFB</xsl:attribute>
+                                                        </xsl:if>
                                                         <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
                                                             <fo:block font-size="9pt"><xsl:value-of select="name"/></fo:block>
                                                         </fo:table-cell>
@@ -460,8 +603,9 @@ public class XsdDocumentationPdfService {
                                     </xsl:if>
 
                                     <!-- Simple Types -->
-                                    <xsl:if test="xsd-documentation/simple-types/simple-type">
-                                        <fo:block font-size="18pt" font-weight="bold" color="#2563EB"
+                                    <xsl:if test="$includeSimpleTypes = 'true' and xsd-documentation/simple-types/simple-type">
+                                        <fo:block font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                            text-decoration="{$headingUnderlined}"
                                             space-before="10mm" space-after="5mm">
                                             Simple Types
                                         </fo:block>
@@ -471,7 +615,7 @@ public class XsdDocumentationPdfService {
                                             <fo:table-column column-width="35%"/>
                                             <fo:table-column column-width="30%"/>
                                             <fo:table-header>
-                                                <fo:table-row background-color="#F1F5F9">
+                                                <fo:table-row background-color="{$tableHeaderBg}">
                                                     <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
                                                         <fo:block font-weight="bold">Type Name</fo:block>
                                                     </fo:table-cell>
@@ -486,6 +630,9 @@ public class XsdDocumentationPdfService {
                                             <fo:table-body>
                                                 <xsl:for-each select="xsd-documentation/simple-types/simple-type">
                                                     <fo:table-row>
+                                                        <xsl:if test="$tableStyle = 'ZEBRA_STRIPES' and position() mod 2 = 0">
+                                                            <xsl:attribute name="background-color">#F9FAFB</xsl:attribute>
+                                                        </xsl:if>
                                                         <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
                                                             <fo:block font-size="9pt"><xsl:value-of select="name"/></fo:block>
                                                         </fo:table-cell>
@@ -499,57 +646,63 @@ public class XsdDocumentationPdfService {
                                                 </xsl:for-each>
                                             </fo:table-body>
                                         </fo:table>
+
+                                        <fo:block break-after="page"/>
                                     </xsl:if>
 
-                                    <fo:block break-after="page"/>
-
                                     <!-- Data Dictionary -->
-                                    <fo:block font-size="18pt" font-weight="bold" color="#2563EB"
-                                        space-before="5mm" space-after="5mm">
-                                        Data Dictionary
-                                    </fo:block>
+                                    <xsl:if test="$includeDataDictionary = 'true'">
+                                        <fo:block font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                            text-decoration="{$headingUnderlined}"
+                                            space-before="5mm" space-after="5mm">
+                                            Data Dictionary
+                                        </fo:block>
 
-                                    <xsl:if test="xsd-documentation/data-dictionary/element">
-                                        <fo:table table-layout="fixed" width="100%" border="0.5pt solid #CBD5E1">
-                                            <fo:table-column column-width="30%"/>
-                                            <fo:table-column column-width="20%"/>
-                                            <fo:table-column column-width="15%"/>
-                                            <fo:table-column column-width="35%"/>
-                                            <fo:table-header>
-                                                <fo:table-row background-color="#F1F5F9">
-                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                        <fo:block font-weight="bold" font-size="9pt">Element Path</fo:block>
-                                                    </fo:table-cell>
-                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                        <fo:block font-weight="bold" font-size="9pt">Type</fo:block>
-                                                    </fo:table-cell>
-                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                        <fo:block font-weight="bold" font-size="9pt">Cardinality</fo:block>
-                                                    </fo:table-cell>
-                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
-                                                        <fo:block font-weight="bold" font-size="9pt">Description</fo:block>
-                                                    </fo:table-cell>
-                                                </fo:table-row>
-                                            </fo:table-header>
-                                            <fo:table-body>
-                                                <xsl:for-each select="xsd-documentation/data-dictionary/element">
-                                                    <fo:table-row>
-                                                        <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
-                                                            <fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="path"/></fo:block>
+                                        <xsl:if test="xsd-documentation/data-dictionary/element">
+                                            <fo:table table-layout="fixed" width="100%" border="0.5pt solid #CBD5E1">
+                                                <fo:table-column column-width="30%"/>
+                                                <fo:table-column column-width="20%"/>
+                                                <fo:table-column column-width="15%"/>
+                                                <fo:table-column column-width="35%"/>
+                                                <fo:table-header>
+                                                    <fo:table-row background-color="{$tableHeaderBg}">
+                                                        <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                            <fo:block font-weight="bold" font-size="9pt">Element Path</fo:block>
                                                         </fo:table-cell>
-                                                        <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
-                                                            <fo:block font-size="8pt"><xsl:value-of select="type"/></fo:block>
+                                                        <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                            <fo:block font-weight="bold" font-size="9pt">Type</fo:block>
                                                         </fo:table-cell>
-                                                        <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
-                                                            <fo:block font-size="8pt"><xsl:value-of select="cardinality"/></fo:block>
+                                                        <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                            <fo:block font-weight="bold" font-size="9pt">Cardinality</fo:block>
                                                         </fo:table-cell>
-                                                        <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
-                                                            <fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="description"/></fo:block>
+                                                        <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                            <fo:block font-weight="bold" font-size="9pt">Description</fo:block>
                                                         </fo:table-cell>
                                                     </fo:table-row>
-                                                </xsl:for-each>
-                                            </fo:table-body>
-                                        </fo:table>
+                                                </fo:table-header>
+                                                <fo:table-body>
+                                                    <xsl:for-each select="xsd-documentation/data-dictionary/element">
+                                                        <fo:table-row>
+                                                            <xsl:if test="$tableStyle = 'ZEBRA_STRIPES' and position() mod 2 = 0">
+                                                                <xsl:attribute name="background-color">#F9FAFB</xsl:attribute>
+                                                            </xsl:if>
+                                                            <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
+                                                                <fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="path"/></fo:block>
+                                                            </fo:table-cell>
+                                                            <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
+                                                                <fo:block font-size="8pt"><xsl:value-of select="type"/></fo:block>
+                                                            </fo:table-cell>
+                                                            <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
+                                                                <fo:block font-size="8pt"><xsl:value-of select="cardinality"/></fo:block>
+                                                            </fo:table-cell>
+                                                            <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
+                                                                <fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="description"/></fo:block>
+                                                            </fo:table-cell>
+                                                        </fo:table-row>
+                                                    </xsl:for-each>
+                                                </fo:table-body>
+                                            </fo:table>
+                                        </xsl:if>
                                     </xsl:if>
 
                                 </fo:flow>
@@ -775,5 +928,13 @@ public class XsdDocumentationPdfService {
 
     public void setProgressListener(TaskProgressListener progressListener) {
         this.progressListener = progressListener;
+    }
+
+    public void setConfig(PdfDocumentationConfig config) {
+        this.config = config != null ? config : new PdfDocumentationConfig();
+    }
+
+    public PdfDocumentationConfig getConfig() {
+        return config;
     }
 }

@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.util.Units;
 import org.apache.poi.xwpf.usermodel.*;
+import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
@@ -58,6 +59,7 @@ public class XsdDocumentationWordService {
     private XsdDocumentationImageService imageService;
     private Set<String> includedLanguages;
     private TaskProgressListener progressListener;
+    private WordDocumentationConfig config = new WordDocumentationConfig();
 
     /**
      * Generates a Word document from the XSD documentation data.
@@ -73,20 +75,27 @@ public class XsdDocumentationWordService {
             // Set document properties
             setDocumentProperties(document);
 
-            // Create title page
-            reportProgress("Creating title page");
-            createTitlePage(document);
+            // Set page size and orientation based on config
+            setPageLayout(document);
 
-            // Create table of contents placeholder
-            reportProgress("Creating table of contents");
-            createTableOfContents(document);
+            // Create cover page if configured
+            if (config.isIncludeCoverPage()) {
+                reportProgress("Creating cover page");
+                createTitlePage(document);
+            }
+
+            // Create table of contents if configured
+            if (config.isIncludeToc()) {
+                reportProgress("Creating table of contents");
+                createTableOfContents(document);
+            }
 
             // Create schema overview
             reportProgress("Creating schema overview");
             createSchemaOverview(document);
 
-            // Embed schema diagram if available
-            if (imageService != null) {
+            // Embed schema diagram if available and configured
+            if (config.isIncludeSchemaDiagram() && imageService != null) {
                 reportProgress("Embedding schema diagram");
                 embedSchemaDiagram(document);
             }
@@ -99,9 +108,11 @@ public class XsdDocumentationWordService {
             reportProgress("Creating SimpleTypes section");
             createSimpleTypesSection(document);
 
-            // Create Data Dictionary
-            reportProgress("Creating Data Dictionary");
-            createDataDictionarySection(document);
+            // Create Data Dictionary if configured
+            if (config.isIncludeDataDictionary()) {
+                reportProgress("Creating Data Dictionary");
+                createDataDictionarySection(document);
+            }
 
             // Save the document
             reportProgress("Saving document");
@@ -111,6 +122,58 @@ public class XsdDocumentationWordService {
 
             logger.info("Word documentation generated successfully: {}", outputFile.getAbsolutePath());
         }
+    }
+
+    /**
+     * Sets the page layout (size and orientation) based on configuration.
+     */
+    private void setPageLayout(XWPFDocument document) {
+        CTDocument1 ctDoc = document.getDocument();
+        CTBody body = ctDoc.getBody();
+        if (body == null) {
+            body = ctDoc.addNewBody();
+        }
+        CTSectPr sectPr = body.getSectPr();
+        if (sectPr == null) {
+            sectPr = body.addNewSectPr();
+        }
+        CTPageSz pageSize = sectPr.getPgSz();
+        if (pageSize == null) {
+            pageSize = sectPr.addNewPgSz();
+        }
+
+        // Set page dimensions based on config
+        // Word uses twips (1 inch = 1440 twips, 1mm = 56.7 twips)
+        BigInteger width;
+        BigInteger height;
+
+        switch (config.getPageSize()) {
+            case LETTER -> {
+                width = BigInteger.valueOf(12240); // 8.5 inches
+                height = BigInteger.valueOf(15840); // 11 inches
+            }
+            case LEGAL -> {
+                width = BigInteger.valueOf(12240); // 8.5 inches
+                height = BigInteger.valueOf(20160); // 14 inches
+            }
+            default -> { // A4
+                width = BigInteger.valueOf(11906); // 210mm
+                height = BigInteger.valueOf(16838); // 297mm
+            }
+        }
+
+        // Swap dimensions for landscape orientation
+        if (config.getOrientation() == WordDocumentationConfig.Orientation.LANDSCAPE) {
+            BigInteger temp = width;
+            width = height;
+            height = temp;
+            pageSize.setOrient(STPageOrientation.LANDSCAPE);
+        } else {
+            pageSize.setOrient(STPageOrientation.PORTRAIT);
+        }
+
+        pageSize.setW(width);
+        pageSize.setH(height);
     }
 
     /**
@@ -833,5 +896,13 @@ public class XsdDocumentationWordService {
 
     public void setProgressListener(TaskProgressListener progressListener) {
         this.progressListener = progressListener;
+    }
+
+    public void setConfig(WordDocumentationConfig config) {
+        this.config = config != null ? config : new WordDocumentationConfig();
+    }
+
+    public WordDocumentationConfig getConfig() {
+        return config;
     }
 }

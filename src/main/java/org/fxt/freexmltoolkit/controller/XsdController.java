@@ -353,6 +353,95 @@ public class XsdController implements FavoritesParentController {
     private RadioButton outputFormatPdf;
     @FXML
     private ToggleGroup outputFormatGroup;
+
+    // Format-specific settings containers
+    @FXML
+    private VBox htmlSettingsContainer;
+    @FXML
+    private VBox wordSettingsContainer;
+    @FXML
+    private VBox pdfSettingsContainer;
+
+    // Word-specific settings
+    @FXML
+    private ChoiceBox<String> wordPageSize;
+    @FXML
+    private RadioButton wordOrientationPortrait;
+    @FXML
+    private RadioButton wordOrientationLandscape;
+    @FXML
+    private ToggleGroup wordOrientationGroup;
+    @FXML
+    private CheckBox wordIncludeCoverPage;
+    @FXML
+    private CheckBox wordIncludeToc;
+    @FXML
+    private CheckBox wordIncludeDataDictionary;
+    @FXML
+    private CheckBox wordIncludeSchemaDiagram;
+    @FXML
+    private ChoiceBox<String> wordHeaderStyle;
+
+    // PDF-specific settings
+    @FXML
+    private Accordion pdfSettingsAccordion;
+    @FXML
+    private ChoiceBox<String> pdfPageSize;
+    @FXML
+    private RadioButton pdfOrientationPortrait;
+    @FXML
+    private RadioButton pdfOrientationLandscape;
+    @FXML
+    private ToggleGroup pdfOrientationGroup;
+    @FXML
+    private ChoiceBox<String> pdfMargins;
+    @FXML
+    private CheckBox pdfIncludeCoverPage;
+    @FXML
+    private CheckBox pdfIncludeToc;
+    @FXML
+    private CheckBox pdfIncludeSchemaOverview;
+    @FXML
+    private CheckBox pdfIncludeSchemaDiagram;
+    @FXML
+    private CheckBox pdfIncludeComplexTypes;
+    @FXML
+    private CheckBox pdfIncludeSimpleTypes;
+    @FXML
+    private CheckBox pdfIncludeDataDictionary;
+    @FXML
+    private ChoiceBox<String> pdfFontSize;
+    @FXML
+    private ChoiceBox<String> pdfFontFamily;
+    @FXML
+    private ChoiceBox<String> pdfHeadingStyle;
+    @FXML
+    private ChoiceBox<String> pdfLineSpacing;
+    @FXML
+    private ChoiceBox<String> pdfHeaderStyle;
+    @FXML
+    private ChoiceBox<String> pdfFooterStyle;
+    @FXML
+    private CheckBox pdfIncludePageNumbers;
+    @FXML
+    private ChoiceBox<String> pdfPageNumberPosition;
+    @FXML
+    private ChoiceBox<String> pdfColorScheme;
+    @FXML
+    private ChoiceBox<String> pdfTableStyle;
+    @FXML
+    private ChoiceBox<String> pdfWatermark;
+    @FXML
+    private CheckBox pdfBookmarks;
+    @FXML
+    private TextField pdfTitle;
+    @FXML
+    private TextField pdfAuthor;
+    @FXML
+    private TextField pdfSubject;
+    @FXML
+    private TextField pdfKeywords;
+
     @FXML
     private VBox xsdPane;
     @FXML
@@ -454,6 +543,9 @@ public class XsdController implements FavoritesParentController {
             grafikFormat.setItems(FXCollections.observableArrayList("SVG", "PNG", "JPG"));
             grafikFormat.setValue("SVG");
         }
+
+        // Initialize format-specific documentation settings
+        initializeDocumentationFormatSettings();
 
         // Initialize source code editor (XmlCodeEditorV2)
         initializeSourceCodeEditor();
@@ -4647,6 +4739,111 @@ public class XsdController implements FavoritesParentController {
     // ======================================================================
     // Type Library Methods
     // ======================================================================
+
+    /**
+     * Initialize format-specific documentation settings (Word, PDF) and set up format switching listener.
+     */
+    private void initializeDocumentationFormatSettings() {
+        // Import PdfDocumentationConfig enums for ChoiceBox population
+        // Initialize Word settings ChoiceBoxes
+        if (wordPageSize != null) {
+            wordPageSize.setItems(FXCollections.observableArrayList("A4", "Letter", "Legal"));
+            wordPageSize.setValue("A4");
+        }
+        if (wordHeaderStyle != null) {
+            wordHeaderStyle.setItems(FXCollections.observableArrayList("Professional", "Minimal", "Colorful"));
+            wordHeaderStyle.setValue("Professional");
+        }
+
+        // Initialize PDF settings ChoiceBoxes
+        if (pdfPageSize != null) {
+            pdfPageSize.setItems(FXCollections.observableArrayList("A4", "Letter", "Legal", "A3"));
+            pdfPageSize.setValue("A4");
+        }
+        if (pdfMargins != null) {
+            pdfMargins.setItems(FXCollections.observableArrayList("Narrow (15mm)", "Normal (20mm)", "Wide (30mm)"));
+            pdfMargins.setValue("Normal (20mm)");
+        }
+        if (pdfFontSize != null) {
+            pdfFontSize.setItems(FXCollections.observableArrayList("9pt", "10pt", "11pt", "12pt"));
+            pdfFontSize.setValue("11pt");
+        }
+        if (pdfFontFamily != null) {
+            pdfFontFamily.setItems(FXCollections.observableArrayList("Helvetica", "Times", "Courier"));
+            pdfFontFamily.setValue("Helvetica");
+        }
+        if (pdfHeadingStyle != null) {
+            pdfHeadingStyle.setItems(FXCollections.observableArrayList("Bold Blue", "Bold Black", "Underlined"));
+            pdfHeadingStyle.setValue("Bold Blue");
+        }
+        if (pdfLineSpacing != null) {
+            pdfLineSpacing.setItems(FXCollections.observableArrayList("Compact", "Normal", "Relaxed"));
+            pdfLineSpacing.setValue("Normal");
+        }
+        if (pdfHeaderStyle != null) {
+            pdfHeaderStyle.setItems(FXCollections.observableArrayList("Standard", "Minimal", "None"));
+            pdfHeaderStyle.setValue("Standard");
+        }
+        if (pdfFooterStyle != null) {
+            pdfFooterStyle.setItems(FXCollections.observableArrayList("Standard", "Minimal", "None"));
+            pdfFooterStyle.setValue("Standard");
+        }
+        if (pdfPageNumberPosition != null) {
+            pdfPageNumberPosition.setItems(FXCollections.observableArrayList("Left", "Center", "Right"));
+            pdfPageNumberPosition.setValue("Center");
+        }
+        if (pdfColorScheme != null) {
+            pdfColorScheme.setItems(FXCollections.observableArrayList("Blue", "Green", "Purple", "Grayscale", "Professional"));
+            pdfColorScheme.setValue("Blue");
+        }
+        if (pdfTableStyle != null) {
+            pdfTableStyle.setItems(FXCollections.observableArrayList("Bordered", "Zebra Stripes", "Minimal", "Full Grid"));
+            pdfTableStyle.setValue("Bordered");
+        }
+        if (pdfWatermark != null) {
+            pdfWatermark.setItems(FXCollections.observableArrayList("None", "Draft", "Confidential", "Internal Use Only"));
+            pdfWatermark.setValue("None");
+        }
+
+        // Set up format switching listener
+        if (outputFormatGroup != null) {
+            outputFormatGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+                updateVisibleSettingsForFormat();
+            });
+        }
+
+        // Set initial visibility (HTML is selected by default)
+        updateVisibleSettingsForFormat();
+    }
+
+    /**
+     * Updates the visibility of format-specific settings containers based on the selected output format.
+     */
+    private void updateVisibleSettingsForFormat() {
+        boolean isHtml = outputFormatHtml != null && outputFormatHtml.isSelected();
+        boolean isWord = outputFormatWord != null && outputFormatWord.isSelected();
+        boolean isPdf = outputFormatPdf != null && outputFormatPdf.isSelected();
+
+        // Update HTML settings visibility
+        if (htmlSettingsContainer != null) {
+            htmlSettingsContainer.setVisible(isHtml);
+            htmlSettingsContainer.setManaged(isHtml);
+        }
+
+        // Update Word settings visibility
+        if (wordSettingsContainer != null) {
+            wordSettingsContainer.setVisible(isWord);
+            wordSettingsContainer.setManaged(isWord);
+        }
+
+        // Update PDF settings visibility
+        if (pdfSettingsContainer != null) {
+            pdfSettingsContainer.setVisible(isPdf);
+            pdfSettingsContainer.setManaged(isPdf);
+        }
+
+        logger.debug("Documentation format settings updated - HTML: {}, Word: {}, PDF: {}", isHtml, isWord, isPdf);
+    }
 
     /**
      * Initialize the type library panel
