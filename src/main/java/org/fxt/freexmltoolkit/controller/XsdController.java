@@ -37,6 +37,8 @@ import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.DocumentationOutputFormat;
+import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
+import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
@@ -380,6 +382,8 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private CheckBox wordIncludeSchemaDiagram;
     @FXML
+    private CheckBox wordIncludeElementDiagrams;
+    @FXML
     private ChoiceBox<String> wordHeaderStyle;
 
     // PDF-specific settings
@@ -403,6 +407,8 @@ public class XsdController implements FavoritesParentController {
     private CheckBox pdfIncludeSchemaOverview;
     @FXML
     private CheckBox pdfIncludeSchemaDiagram;
+    @FXML
+    private CheckBox pdfIncludeElementDiagrams;
     @FXML
     private CheckBox pdfIncludeComplexTypes;
     @FXML
@@ -2784,6 +2790,12 @@ public class XsdController implements FavoritesParentController {
         final boolean addMetadata = addMetadataInOutput.isSelected();
         final String imageFormat = grafikFormat.getValue();
 
+        // Capture Word-specific settings
+        final WordDocumentationConfig wordConfig = captureWordConfig();
+
+        // Capture PDF-specific settings
+        final PdfDocumentationConfig pdfConfig = capturePdfConfig();
+
         Task<Void> generationTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -2834,6 +2846,7 @@ public class XsdController implements FavoritesParentController {
                         XsdDocumentationWordService wordService = new XsdDocumentationWordService();
                         wordService.setProgressListener(progressListener);
                         wordService.setIncludedLanguages(selectedLanguages);
+                        wordService.setConfig(wordConfig);
                         // Create the image service for embedding diagrams
                         XsdDocumentationImageService imageService = new XsdDocumentationImageService(
                                 docService.xsdDocumentationData.getExtendedXsdElementMap());
@@ -2847,6 +2860,7 @@ public class XsdController implements FavoritesParentController {
                         XsdDocumentationPdfService pdfService = new XsdDocumentationPdfService();
                         pdfService.setProgressListener(progressListener);
                         pdfService.setIncludedLanguages(selectedLanguages);
+                        pdfService.setConfig(pdfConfig);
                         XsdDocumentationImageService imageService = new XsdDocumentationImageService(
                                 docService.xsdDocumentationData.getExtendedXsdElementMap());
                         imageService.setShowDocumentation(showDocInSvg);
@@ -3087,6 +3101,216 @@ public class XsdController implements FavoritesParentController {
         }
 
         return new LinkedHashSet<>(checkedItems);
+    }
+
+    /**
+     * Captures Word-specific documentation settings from the UI.
+     *
+     * @return WordDocumentationConfig with values from UI controls
+     */
+    private WordDocumentationConfig captureWordConfig() {
+        WordDocumentationConfig config = new WordDocumentationConfig();
+
+        // Page layout
+        if (wordPageSize != null && wordPageSize.getValue() != null) {
+            config.setPageSize(switch (wordPageSize.getValue()) {
+                case "Letter" -> WordDocumentationConfig.PageSize.LETTER;
+                case "Legal" -> WordDocumentationConfig.PageSize.LEGAL;
+                default -> WordDocumentationConfig.PageSize.A4;
+            });
+        }
+        if (wordOrientationPortrait != null && !wordOrientationPortrait.isSelected()) {
+            config.setOrientation(WordDocumentationConfig.Orientation.LANDSCAPE);
+        }
+
+        // Content sections
+        if (wordIncludeCoverPage != null) {
+            config.setIncludeCoverPage(wordIncludeCoverPage.isSelected());
+        }
+        if (wordIncludeToc != null) {
+            config.setIncludeToc(wordIncludeToc.isSelected());
+        }
+        if (wordIncludeDataDictionary != null) {
+            config.setIncludeDataDictionary(wordIncludeDataDictionary.isSelected());
+        }
+        if (wordIncludeSchemaDiagram != null) {
+            config.setIncludeSchemaDiagram(wordIncludeSchemaDiagram.isSelected());
+        }
+        if (wordIncludeElementDiagrams != null) {
+            config.setIncludeElementDiagrams(wordIncludeElementDiagrams.isSelected());
+        }
+
+        // Styling
+        if (wordHeaderStyle != null && wordHeaderStyle.getValue() != null) {
+            config.setHeaderStyle(switch (wordHeaderStyle.getValue()) {
+                case "Minimal" -> WordDocumentationConfig.HeaderStyle.MINIMAL;
+                case "Colorful" -> WordDocumentationConfig.HeaderStyle.COLORFUL;
+                default -> WordDocumentationConfig.HeaderStyle.PROFESSIONAL;
+            });
+        }
+
+        return config;
+    }
+
+    /**
+     * Captures PDF-specific documentation settings from the UI.
+     *
+     * @return PdfDocumentationConfig with values from UI controls
+     */
+    private PdfDocumentationConfig capturePdfConfig() {
+        PdfDocumentationConfig config = new PdfDocumentationConfig();
+
+        // Page layout
+        if (pdfPageSize != null && pdfPageSize.getValue() != null) {
+            config.setPageSize(switch (pdfPageSize.getValue()) {
+                case "Letter" -> PdfDocumentationConfig.PageSize.LETTER;
+                case "Legal" -> PdfDocumentationConfig.PageSize.LEGAL;
+                case "A3" -> PdfDocumentationConfig.PageSize.A3;
+                default -> PdfDocumentationConfig.PageSize.A4;
+            });
+        }
+        if (pdfOrientationPortrait != null && !pdfOrientationPortrait.isSelected()) {
+            config.setOrientation(PdfDocumentationConfig.Orientation.LANDSCAPE);
+        }
+        if (pdfMargins != null && pdfMargins.getValue() != null) {
+            String marginValue = pdfMargins.getValue();
+            if (marginValue.startsWith("Narrow")) {
+                config.setMargins(PdfDocumentationConfig.Margins.NARROW);
+            } else if (marginValue.startsWith("Wide")) {
+                config.setMargins(PdfDocumentationConfig.Margins.WIDE);
+            } else {
+                config.setMargins(PdfDocumentationConfig.Margins.NORMAL);
+            }
+        }
+
+        // Content sections
+        if (pdfIncludeCoverPage != null) {
+            config.setIncludeCoverPage(pdfIncludeCoverPage.isSelected());
+        }
+        if (pdfIncludeToc != null) {
+            config.setIncludeToc(pdfIncludeToc.isSelected());
+        }
+        if (pdfIncludeSchemaOverview != null) {
+            config.setIncludeSchemaOverview(pdfIncludeSchemaOverview.isSelected());
+        }
+        if (pdfIncludeSchemaDiagram != null) {
+            config.setIncludeSchemaDiagram(pdfIncludeSchemaDiagram.isSelected());
+        }
+        if (pdfIncludeElementDiagrams != null) {
+            config.setIncludeElementDiagrams(pdfIncludeElementDiagrams.isSelected());
+        }
+        if (pdfIncludeComplexTypes != null) {
+            config.setIncludeComplexTypes(pdfIncludeComplexTypes.isSelected());
+        }
+        if (pdfIncludeSimpleTypes != null) {
+            config.setIncludeSimpleTypes(pdfIncludeSimpleTypes.isSelected());
+        }
+        if (pdfIncludeDataDictionary != null) {
+            config.setIncludeDataDictionary(pdfIncludeDataDictionary.isSelected());
+        }
+
+        // Typography
+        if (pdfFontSize != null && pdfFontSize.getValue() != null) {
+            config.setFontSize(switch (pdfFontSize.getValue()) {
+                case "9pt" -> PdfDocumentationConfig.FontSize.PT_9;
+                case "10pt" -> PdfDocumentationConfig.FontSize.PT_10;
+                case "12pt" -> PdfDocumentationConfig.FontSize.PT_12;
+                default -> PdfDocumentationConfig.FontSize.PT_11;
+            });
+        }
+        if (pdfFontFamily != null && pdfFontFamily.getValue() != null) {
+            config.setFontFamily(switch (pdfFontFamily.getValue()) {
+                case "Times" -> PdfDocumentationConfig.FontFamily.TIMES;
+                case "Courier" -> PdfDocumentationConfig.FontFamily.COURIER;
+                default -> PdfDocumentationConfig.FontFamily.HELVETICA;
+            });
+        }
+        if (pdfHeadingStyle != null && pdfHeadingStyle.getValue() != null) {
+            config.setHeadingStyle(switch (pdfHeadingStyle.getValue()) {
+                case "Bold Black" -> PdfDocumentationConfig.HeadingStyle.BOLD_BLACK;
+                case "Underlined" -> PdfDocumentationConfig.HeadingStyle.UNDERLINED;
+                default -> PdfDocumentationConfig.HeadingStyle.BOLD_BLUE;
+            });
+        }
+        if (pdfLineSpacing != null && pdfLineSpacing.getValue() != null) {
+            config.setLineSpacing(switch (pdfLineSpacing.getValue()) {
+                case "Compact" -> PdfDocumentationConfig.LineSpacing.COMPACT;
+                case "Relaxed" -> PdfDocumentationConfig.LineSpacing.RELAXED;
+                default -> PdfDocumentationConfig.LineSpacing.NORMAL;
+            });
+        }
+
+        // Header & Footer
+        if (pdfHeaderStyle != null && pdfHeaderStyle.getValue() != null) {
+            config.setHeaderStyle(switch (pdfHeaderStyle.getValue()) {
+                case "Minimal" -> PdfDocumentationConfig.HeaderFooterStyle.MINIMAL;
+                case "None" -> PdfDocumentationConfig.HeaderFooterStyle.NONE;
+                default -> PdfDocumentationConfig.HeaderFooterStyle.STANDARD;
+            });
+        }
+        if (pdfFooterStyle != null && pdfFooterStyle.getValue() != null) {
+            config.setFooterStyle(switch (pdfFooterStyle.getValue()) {
+                case "Minimal" -> PdfDocumentationConfig.HeaderFooterStyle.MINIMAL;
+                case "None" -> PdfDocumentationConfig.HeaderFooterStyle.NONE;
+                default -> PdfDocumentationConfig.HeaderFooterStyle.STANDARD;
+            });
+        }
+        if (pdfIncludePageNumbers != null) {
+            config.setIncludePageNumbers(pdfIncludePageNumbers.isSelected());
+        }
+        if (pdfPageNumberPosition != null && pdfPageNumberPosition.getValue() != null) {
+            config.setPageNumberPosition(switch (pdfPageNumberPosition.getValue()) {
+                case "Left" -> PdfDocumentationConfig.PageNumberPosition.LEFT;
+                case "Right" -> PdfDocumentationConfig.PageNumberPosition.RIGHT;
+                default -> PdfDocumentationConfig.PageNumberPosition.CENTER;
+            });
+        }
+
+        // Design & Colors
+        if (pdfColorScheme != null && pdfColorScheme.getValue() != null) {
+            config.setColorScheme(switch (pdfColorScheme.getValue()) {
+                case "Green" -> PdfDocumentationConfig.ColorScheme.GREEN;
+                case "Purple" -> PdfDocumentationConfig.ColorScheme.PURPLE;
+                case "Grayscale" -> PdfDocumentationConfig.ColorScheme.GRAYSCALE;
+                case "Professional" -> PdfDocumentationConfig.ColorScheme.PROFESSIONAL;
+                default -> PdfDocumentationConfig.ColorScheme.BLUE;
+            });
+        }
+        if (pdfTableStyle != null && pdfTableStyle.getValue() != null) {
+            config.setTableStyle(switch (pdfTableStyle.getValue()) {
+                case "Zebra Stripes" -> PdfDocumentationConfig.TableStyle.ZEBRA_STRIPES;
+                case "Minimal" -> PdfDocumentationConfig.TableStyle.MINIMAL;
+                case "Full Grid" -> PdfDocumentationConfig.TableStyle.FULL_GRID;
+                default -> PdfDocumentationConfig.TableStyle.BORDERED;
+            });
+        }
+        if (pdfWatermark != null && pdfWatermark.getValue() != null) {
+            config.setWatermark(switch (pdfWatermark.getValue()) {
+                case "Draft" -> PdfDocumentationConfig.Watermark.DRAFT;
+                case "Confidential" -> PdfDocumentationConfig.Watermark.CONFIDENTIAL;
+                case "Internal Use Only" -> PdfDocumentationConfig.Watermark.INTERNAL_USE_ONLY;
+                default -> PdfDocumentationConfig.Watermark.NONE;
+            });
+        }
+
+        // PDF Metadata
+        if (pdfBookmarks != null) {
+            config.setGenerateBookmarks(pdfBookmarks.isSelected());
+        }
+        if (pdfTitle != null && !pdfTitle.getText().isBlank()) {
+            config.setTitle(pdfTitle.getText().trim());
+        }
+        if (pdfAuthor != null && !pdfAuthor.getText().isBlank()) {
+            config.setAuthor(pdfAuthor.getText().trim());
+        }
+        if (pdfSubject != null && !pdfSubject.getText().isBlank()) {
+            config.setSubject(pdfSubject.getText().trim());
+        }
+        if (pdfKeywords != null && !pdfKeywords.getText().isBlank()) {
+            config.setKeywords(pdfKeywords.getText().trim());
+        }
+
+        return config;
     }
 
     /**

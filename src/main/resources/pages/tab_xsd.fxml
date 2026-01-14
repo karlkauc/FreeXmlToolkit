@@ -720,7 +720,12 @@
                             </CheckBox>
                             <CheckBox fx:id="wordIncludeSchemaDiagram" selected="true" text="Include Schema Diagram">
                                 <tooltip>
-                                    <Tooltip text="Embed the schema diagram as an image"/>
+                                    <Tooltip text="Embed the main schema diagram as an image"/>
+                                </tooltip>
+                            </CheckBox>
+                            <CheckBox fx:id="wordIncludeElementDiagrams" selected="false" text="Include Element Diagrams">
+                                <tooltip>
+                                    <Tooltip text="Embed SVG diagrams for each element in the Data Dictionary"/>
                                 </tooltip>
                             </CheckBox>
 
@@ -779,6 +784,11 @@
                                                 <CheckBox fx:id="pdfIncludeToc" text="Include Table of Contents" selected="true"/>
                                                 <CheckBox fx:id="pdfIncludeSchemaOverview" text="Include Schema Overview" selected="true"/>
                                                 <CheckBox fx:id="pdfIncludeSchemaDiagram" text="Include Schema Diagram" selected="true"/>
+                                                <CheckBox fx:id="pdfIncludeElementDiagrams" text="Include Element Diagrams" selected="false">
+                                                    <tooltip>
+                                                        <Tooltip text="Embed SVG diagrams for each element in the Data Dictionary"/>
+                                                    </tooltip>
+                                                </CheckBox>
                                                 <CheckBox fx:id="pdfIncludeComplexTypes" text="Include ComplexTypes Section" selected="true"/>
                                                 <CheckBox fx:id="pdfIncludeSimpleTypes" text="Include SimpleTypes Section" selected="true"/>
                                                 <CheckBox fx:id="pdfIncludeDataDictionary" text="Include Data Dictionary" selected="true"/>
