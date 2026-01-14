@@ -288,6 +288,18 @@
                                 <HBox spacing="10" alignment="CENTER_LEFT">
                                     <Label text="XPath Expression:" style="-fx-font-weight: bold;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
+                                    <MenuButton fx:id="savedXPathQueriesMenu" text="Saved Queries" style="-fx-font-size: 11px;">
+                                        <graphic><FontIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#6f42c1"/></graphic>
+                                    </MenuButton>
+                                    <Button text="Save" onAction="#saveXPathQuery" style="-fx-font-size: 11px;">
+                                        <graphic><FontIcon iconLiteral="bi-save" iconSize="14" iconColor="#17a2b8"/></graphic>
+                                        <tooltip><Tooltip text="Save query to file"/></tooltip>
+                                    </Button>
+                                    <Button text="Load" onAction="#loadXPathQueryFromFile" style="-fx-font-size: 11px;">
+                                        <graphic><FontIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/></graphic>
+                                        <tooltip><Tooltip text="Load query from file"/></tooltip>
+                                    </Button>
+                                    <Separator orientation="VERTICAL"/>
                                     <MenuButton text="Examples" style="-fx-font-size: 11px;">
                                         <graphic><FontIcon iconLiteral="bi-collection" iconSize="14"/></graphic>
                                         <items>
@@ -315,6 +327,18 @@
                                 <HBox spacing="10" alignment="CENTER_LEFT">
                                     <Label text="XQuery Expression:" style="-fx-font-weight: bold;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
+                                    <MenuButton fx:id="savedXQueryQueriesMenu" text="Saved Queries" style="-fx-font-size: 11px;">
+                                        <graphic><FontIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#20c997"/></graphic>
+                                    </MenuButton>
+                                    <Button text="Save" onAction="#saveXQueryQuery" style="-fx-font-size: 11px;">
+                                        <graphic><FontIcon iconLiteral="bi-save" iconSize="14" iconColor="#17a2b8"/></graphic>
+                                        <tooltip><Tooltip text="Save query to file"/></tooltip>
+                                    </Button>
+                                    <Button text="Load" onAction="#loadXQueryQueryFromFile" style="-fx-font-size: 11px;">
+                                        <graphic><FontIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/></graphic>
+                                        <tooltip><Tooltip text="Load query from file"/></tooltip>
+                                    </Button>
+                                    <Separator orientation="VERTICAL"/>
                                     <MenuButton text="Examples" style="-fx-font-size: 11px;">
                                         <graphic><FontIcon iconLiteral="bi-collection" iconSize="14"/></graphic>
                                         <items>

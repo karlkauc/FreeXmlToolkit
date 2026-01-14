@@ -18,6 +18,8 @@ public class Favorite {
         XSD("XSD Schema Files", ".xsd"),
         SCHEMATRON("Schematron Files", ".sch"),
         XSLT("XSLT Files", ".xsl", ".xslt"),
+        XPATH("XPath Query Files", ".xpath"),
+        XQUERY("XQuery Files", ".xquery", ".xq"),
         OTHER("Other Files", "");
 
         private final String displayName;

@@ -41,30 +41,32 @@ public class FileFavorite {
         XSD("XSD Schema", "bi-file-earmark-check", "#007bff"),
         SCHEMATRON("Schematron Rules", "bi-file-earmark-ruled", "#dc3545"),
         XSLT("XSLT Stylesheet", "bi-file-earmark-arrow-right", "#fd7e14"),
+        XPATH("XPath Query", "bi-code-slash", "#6f42c1"),
+        XQUERY("XQuery Query", "bi-braces", "#20c997"),
         OTHER("Other", "bi-file-earmark", "#6c757d");
-        
+
         private final String displayName;
         private final String iconLiteral;
         private final String defaultColor;
-        
+
         FileType(String displayName, String iconLiteral, String defaultColor) {
             this.displayName = displayName;
             this.iconLiteral = iconLiteral;
             this.defaultColor = defaultColor;
         }
-        
+
         public String getDisplayName() {
             return displayName;
         }
-        
+
         public String getIconLiteral() {
             return iconLiteral;
         }
-        
+
         public String getDefaultColor() {
             return defaultColor;
         }
-        
+
         public static FileType fromExtension(String filePath) {
             if (filePath == null) return OTHER;
             String lower = filePath.toLowerCase();
@@ -72,6 +74,8 @@ public class FileFavorite {
             if (lower.endsWith(".xsd")) return XSD;
             if (lower.endsWith(".sch")) return SCHEMATRON;
             if (lower.endsWith(".xsl") || lower.endsWith(".xslt")) return XSLT;
+            if (lower.endsWith(".xpath")) return XPATH;
+            if (lower.endsWith(".xquery") || lower.endsWith(".xq")) return XQUERY;
             return OTHER;
         }
     }
