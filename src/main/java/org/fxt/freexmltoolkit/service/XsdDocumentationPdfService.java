@@ -81,11 +81,20 @@ public class XsdDocumentationPdfService {
      * @param documentationData the parsed XSD documentation data
      * @throws FOPServiceException if PDF generation fails
      */
+    // Temporary directory for storing generated images
+    private Path tempImageDir;
+
     public void generatePdfDocumentation(File outputFile, XsdDocumentationData documentationData)
             throws FOPServiceException {
         this.documentationData = documentationData;
 
         try {
+            // Create temp directory for images if element diagrams are enabled
+            if (config.isIncludeElementDiagrams() && imageService != null) {
+                tempImageDir = Files.createTempDirectory("xsd-pdf-images-");
+                reportProgress("Generating element diagrams");
+            }
+
             reportProgress("Creating intermediate XML");
             Document intermediateXml = createIntermediateXml();
 
@@ -100,6 +109,30 @@ public class XsdDocumentationPdfService {
         } catch (Exception e) {
             logger.error("Failed to generate PDF documentation", e);
             throw new FOPServiceException("PDF generation failed: " + e.getMessage(), e);
+        } finally {
+            // Cleanup temp images
+            cleanupTempImages();
+        }
+    }
+
+    /**
+     * Cleans up temporary image files after PDF generation.
+     */
+    private void cleanupTempImages() {
+        if (tempImageDir != null) {
+            try {
+                Files.walk(tempImageDir)
+                        .sorted((a, b) -> b.compareTo(a)) // reverse order to delete files before dirs
+                        .forEach(path -> {
+                            try {
+                                Files.deleteIfExists(path);
+                            } catch (IOException e) {
+                                logger.debug("Could not delete temp file: {}", path);
+                            }
+                        });
+            } catch (IOException e) {
+                logger.warn("Could not cleanup temp image directory: {}", e.getMessage());
+            }
         }
     }
 
@@ -213,7 +246,75 @@ public class XsdDocumentationPdfService {
 
         logger.info("PDF data dictionary completed with {} elements", totalElements);
 
+        // Element Diagrams section (if configured)
+        if (config.isIncludeElementDiagrams() && imageService != null && tempImageDir != null) {
+            Element elementDiagrams = doc.createElement("element-diagrams");
+            root.appendChild(elementDiagrams);
+
+            // Filter elements that have children (diagrams make sense for these)
+            List<XsdExtendedElement> elementsWithDiagrams = new ArrayList<>();
+            for (XsdExtendedElement element : elementMap.values()) {
+                if (isContainerElement(element)) {
+                    continue;
+                }
+                // Only include elements at level 0-2 that have children
+                if (element.getLevel() <= 2 && hasSignificantContent(element, elementMap)) {
+                    elementsWithDiagrams.add(element);
+                }
+            }
+
+            // Sort by level then by path
+            elementsWithDiagrams.sort(Comparator
+                    .comparingInt(XsdExtendedElement::getLevel)
+                    .thenComparing(this::getCleanXPath));
+
+            logger.info("Generating {} element diagrams for PDF document", elementsWithDiagrams.size());
+            int diagramCount = 0;
+
+            for (XsdExtendedElement element : elementsWithDiagrams) {
+                try {
+                    // Generate PNG image
+                    String safeName = element.getElementName().replaceAll("[^a-zA-Z0-9]", "_");
+                    Path imagePath = tempImageDir.resolve(safeName + "-" + diagramCount + ".png");
+                    String generatedPath = imageService.generateImage(element, imagePath.toFile());
+
+                    if (generatedPath != null) {
+                        Element diagramEntry = doc.createElement("diagram");
+                        elementDiagrams.appendChild(diagramEntry);
+
+                        addElement(doc, diagramEntry, "element-name", element.getElementName());
+                        addElement(doc, diagramEntry, "path", getCleanXPath(element));
+                        addElement(doc, diagramEntry, "type", element.getElementType() != null ? element.getElementType() : "-");
+                        addElement(doc, diagramEntry, "image-path", imagePath.toUri().toString());
+
+                        diagramCount++;
+                    }
+                } catch (Exception e) {
+                    logger.warn("Failed to generate diagram for element {}: {}", element.getElementName(), e.getMessage());
+                }
+            }
+
+            logger.info("PDF element diagrams prepared: {} diagrams", diagramCount);
+        }
+
         return doc;
+    }
+
+    /**
+     * Checks if an element has significant content (children) worth showing in a diagram.
+     */
+    private boolean hasSignificantContent(XsdExtendedElement element, Map<String, XsdExtendedElement> elementMap) {
+        String elementXpath = element.getXpath();
+        if (elementXpath == null) {
+            return false;
+        }
+
+        for (XsdExtendedElement child : elementMap.values()) {
+            if (elementXpath.equals(child.getParentXpath())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -302,6 +403,7 @@ public class XsdDocumentationPdfService {
             transformer.setParameter("includeComplexTypes", config.isIncludeComplexTypes() ? "true" : "false");
             transformer.setParameter("includeSimpleTypes", config.isIncludeSimpleTypes() ? "true" : "false");
             transformer.setParameter("includeDataDictionary", config.isIncludeDataDictionary() ? "true" : "false");
+            transformer.setParameter("includeElementDiagrams", config.isIncludeElementDiagrams() ? "true" : "false");
 
             // Header & Footer parameters
             transformer.setParameter("headerStyle", config.getHeaderStyle().name());
@@ -364,6 +466,7 @@ public class XsdDocumentationPdfService {
                     <xsl:param name="includeComplexTypes">true</xsl:param>
                     <xsl:param name="includeSimpleTypes">true</xsl:param>
                     <xsl:param name="includeDataDictionary">true</xsl:param>
+                    <xsl:param name="includeElementDiagrams">false</xsl:param>
 
                     <!-- Header & Footer parameters -->
                     <xsl:param name="headerStyle">STANDARD</xsl:param>
@@ -702,6 +805,53 @@ public class XsdDocumentationPdfService {
                                                     </xsl:for-each>
                                                 </fo:table-body>
                                             </fo:table>
+                                        </xsl:if>
+                                    </xsl:if>
+
+                                    <!-- Element Diagrams Section -->
+                                    <xsl:if test="$includeElementDiagrams = 'true'">
+                                        <xsl:if test="xsd-documentation/element-diagrams/diagram">
+                                            <fo:block break-before="page"/>
+                                            <fo:block font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                                text-decoration="{$headingUnderlined}"
+                                                space-before="5mm" space-after="5mm">
+                                                Element Diagrams
+                                            </fo:block>
+
+                                            <xsl:for-each select="xsd-documentation/element-diagrams/diagram">
+                                                <fo:block space-before="8mm" space-after="4mm">
+                                                    <!-- Element name heading -->
+                                                    <fo:block font-size="14pt" font-weight="bold" color="{$primaryColor}"
+                                                        space-after="2mm">
+                                                        <xsl:value-of select="element-name"/>
+                                                    </fo:block>
+
+                                                    <!-- Element info -->
+                                                    <fo:block font-size="9pt" color="#6c757d" space-after="1mm">
+                                                        Path: <xsl:value-of select="path"/>
+                                                    </fo:block>
+                                                    <fo:block font-size="9pt" color="#6c757d" space-after="3mm">
+                                                        Type: <xsl:value-of select="type"/>
+                                                    </fo:block>
+
+                                                    <!-- Diagram image -->
+                                                    <fo:block text-align="center">
+                                                        <fo:external-graphic
+                                                            src="{image-path}"
+                                                            content-width="scale-to-fit"
+                                                            content-height="scale-to-fit"
+                                                            max-width="160mm"
+                                                            max-height="100mm"
+                                                            scaling="uniform"/>
+                                                    </fo:block>
+
+                                                    <!-- Caption -->
+                                                    <fo:block font-size="9pt" font-style="italic" color="#6c757d"
+                                                        text-align="center" space-before="2mm">
+                                                        Figure: Structure of <xsl:value-of select="element-name"/>
+                                                    </fo:block>
+                                                </fo:block>
+                                            </xsl:for-each>
                                         </xsl:if>
                                     </xsl:if>
 

@@ -108,6 +108,7 @@ public class WordDocumentationConfig {
     private boolean includeToc = true;
     private boolean includeDataDictionary = true;
     private boolean includeSchemaDiagram = true;
+    private boolean includeElementDiagrams = false;
 
     // Styling
     private HeaderStyle headerStyle = HeaderStyle.PROFESSIONAL;
@@ -133,6 +134,7 @@ public class WordDocumentationConfig {
         this.includeToc = other.includeToc;
         this.includeDataDictionary = other.includeDataDictionary;
         this.includeSchemaDiagram = other.includeSchemaDiagram;
+        this.includeElementDiagrams = other.includeElementDiagrams;
         this.headerStyle = other.headerStyle;
     }
 
@@ -184,6 +186,14 @@ public class WordDocumentationConfig {
 
     public void setIncludeSchemaDiagram(boolean includeSchemaDiagram) {
         this.includeSchemaDiagram = includeSchemaDiagram;
+    }
+
+    public boolean isIncludeElementDiagrams() {
+        return includeElementDiagrams;
+    }
+
+    public void setIncludeElementDiagrams(boolean includeElementDiagrams) {
+        this.includeElementDiagrams = includeElementDiagrams;
     }
 
     public HeaderStyle getHeaderStyle() {

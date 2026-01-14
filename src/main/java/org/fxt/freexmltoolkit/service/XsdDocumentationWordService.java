@@ -114,6 +114,12 @@ public class XsdDocumentationWordService {
                 createDataDictionarySection(document);
             }
 
+            // Create Element Diagrams section if configured
+            if (config.isIncludeElementDiagrams() && imageService != null) {
+                reportProgress("Creating Element Diagrams");
+                createElementDiagramsSection(document);
+            }
+
             // Save the document
             reportProgress("Saving document");
             try (FileOutputStream out = new FileOutputStream(outputFile)) {
@@ -572,6 +578,132 @@ public class XsdDocumentationWordService {
         }
 
         logger.info("Word data dictionary completed with {} elements", totalElements);
+    }
+
+    /**
+     * Creates the Element Diagrams section with SVG diagrams for each significant element.
+     * Only includes elements that have child elements (to avoid trivial diagrams).
+     */
+    private void createElementDiagramsSection(XWPFDocument document) {
+        createHeading(document, "Element Diagrams", 1);
+
+        Map<String, XsdExtendedElement> elementMap = documentationData.getExtendedXsdElementMap();
+
+        // Filter elements that have children (diagrams make sense for these)
+        List<XsdExtendedElement> elementsWithDiagrams = new ArrayList<>();
+        for (XsdExtendedElement element : elementMap.values()) {
+            // Skip container elements
+            if (isContainerElement(element)) {
+                continue;
+            }
+            // Only include elements that have children or are at level 0-2
+            if (element.getLevel() <= 2 && hasSignificantContent(element, elementMap)) {
+                elementsWithDiagrams.add(element);
+            }
+        }
+
+        // Sort by level then by path
+        elementsWithDiagrams.sort(Comparator
+                .comparingInt(XsdExtendedElement::getLevel)
+                .thenComparing(this::getCleanXPath));
+
+        if (elementsWithDiagrams.isEmpty()) {
+            XWPFParagraph emptyPara = document.createParagraph();
+            XWPFRun emptyRun = emptyPara.createRun();
+            emptyRun.setText("No element diagrams available.");
+            emptyRun.setItalic(true);
+            return;
+        }
+
+        logger.info("Generating {} element diagrams for Word document", elementsWithDiagrams.size());
+
+        int diagramCount = 0;
+        int progressInterval = Math.max(1, elementsWithDiagrams.size() / 10);
+
+        for (int i = 0; i < elementsWithDiagrams.size(); i++) {
+            XsdExtendedElement element = elementsWithDiagrams.get(i);
+
+            try {
+                // Create element heading
+                createHeading(document, element.getElementName(), 2);
+
+                // Add element info
+                XWPFParagraph infoPara = document.createParagraph();
+                XWPFRun infoRun = infoPara.createRun();
+                infoRun.setText("Path: " + getCleanXPath(element));
+                infoRun.setFontSize(10);
+                infoRun.setColor(COLOR_SECONDARY);
+
+                if (element.getElementType() != null) {
+                    infoPara = document.createParagraph();
+                    infoRun = infoPara.createRun();
+                    infoRun.setText("Type: " + element.getElementType());
+                    infoRun.setFontSize(10);
+                    infoRun.setColor(COLOR_SECONDARY);
+                }
+
+                // Generate and embed diagram
+                Path tempPng = Files.createTempFile("xsd-element-", ".png");
+                String imagePath = imageService.generateImage(element, tempPng.toFile());
+
+                if (imagePath != null) {
+                    XWPFParagraph imgPara = document.createParagraph();
+                    imgPara.setAlignment(ParagraphAlignment.CENTER);
+                    XWPFRun imgRun = imgPara.createRun();
+
+                    try (InputStream is = Files.newInputStream(tempPng)) {
+                        // Insert the diagram image (max width 450px for page fit)
+                        imgRun.addPicture(is, XWPFDocument.PICTURE_TYPE_PNG,
+                                element.getElementName() + "-diagram.png",
+                                Units.toEMU(450), Units.toEMU(250));
+                    }
+
+                    // Clean up temp file
+                    Files.deleteIfExists(tempPng);
+                    diagramCount++;
+
+                    // Add caption
+                    XWPFParagraph captionPara = document.createParagraph();
+                    captionPara.setAlignment(ParagraphAlignment.CENTER);
+                    XWPFRun captionRun = captionPara.createRun();
+                    captionRun.setText("Figure: Structure of " + element.getElementName());
+                    captionRun.setItalic(true);
+                    captionRun.setFontSize(9);
+                    captionRun.setColor(COLOR_SECONDARY);
+                }
+
+                // Add some spacing
+                document.createParagraph();
+
+            } catch (Exception e) {
+                logger.warn("Failed to generate diagram for element {}: {}", element.getElementName(), e.getMessage());
+            }
+
+            // Report progress
+            if (i > 0 && i % progressInterval == 0) {
+                reportProgress("Generating diagram " + i + " of " + elementsWithDiagrams.size());
+            }
+        }
+
+        logger.info("Word element diagrams completed: {} diagrams generated", diagramCount);
+    }
+
+    /**
+     * Checks if an element has significant content (children or attributes) worth showing in a diagram.
+     */
+    private boolean hasSignificantContent(XsdExtendedElement element, Map<String, XsdExtendedElement> elementMap) {
+        String elementXpath = element.getXpath();
+        if (elementXpath == null) {
+            return false;
+        }
+
+        // Check if any element has this element as parent
+        for (XsdExtendedElement child : elementMap.values()) {
+            if (elementXpath.equals(child.getParentXpath())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ================= Helper Methods =================

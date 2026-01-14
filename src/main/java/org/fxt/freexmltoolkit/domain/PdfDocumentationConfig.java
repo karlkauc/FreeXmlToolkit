@@ -428,6 +428,7 @@ public class PdfDocumentationConfig {
     private boolean includeToc = true;
     private boolean includeSchemaOverview = true;
     private boolean includeSchemaDiagram = true;
+    private boolean includeElementDiagrams = false;
     private boolean includeComplexTypes = true;
     private boolean includeSimpleTypes = true;
     private boolean includeDataDictionary = true;
@@ -478,6 +479,7 @@ public class PdfDocumentationConfig {
         this.includeToc = other.includeToc;
         this.includeSchemaOverview = other.includeSchemaOverview;
         this.includeSchemaDiagram = other.includeSchemaDiagram;
+        this.includeElementDiagrams = other.includeElementDiagrams;
         this.includeComplexTypes = other.includeComplexTypes;
         this.includeSimpleTypes = other.includeSimpleTypes;
         this.includeDataDictionary = other.includeDataDictionary;
@@ -648,6 +650,14 @@ public class PdfDocumentationConfig {
 
     public void setIncludeSchemaDiagram(boolean includeSchemaDiagram) {
         this.includeSchemaDiagram = includeSchemaDiagram;
+    }
+
+    public boolean isIncludeElementDiagrams() {
+        return includeElementDiagrams;
+    }
+
+    public void setIncludeElementDiagrams(boolean includeElementDiagrams) {
+        this.includeElementDiagrams = includeElementDiagrams;
     }
 
     public boolean isIncludeComplexTypes() {
