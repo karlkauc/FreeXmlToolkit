@@ -23,11 +23,14 @@ import java.util.stream.Collectors;
  * Handles persistence, organization, and retrieval of favorite files.
  */
 public class FavoritesService {
-    
+
     private static final Logger logger = LogManager.getLogger(FavoritesService.class);
     private static FavoritesService instance;
-    
+
     private final Path favoritesFile;
+    private final Path queriesDir;
+    private final Path xpathDir;
+    private final Path xqueryDir;
     private final Gson gson;
     private List<FileFavorite> favorites;
     private final Map<String, List<FileFavorite>> favoritesByFolder;
@@ -36,24 +39,37 @@ public class FavoritesService {
         // Initialize favorites file in user's home directory
         String userHome = System.getProperty("user.home");
         Path configDir = Paths.get(userHome, ".freexmltoolkit");
-        
+
         try {
             Files.createDirectories(configDir);
         } catch (IOException e) {
             logger.error("Failed to create config directory", e);
         }
-        
+
         this.favoritesFile = configDir.resolve("favorites.json");
-        
+
+        // Initialize queries directories
+        this.queriesDir = configDir.resolve("queries");
+        this.xpathDir = queriesDir.resolve("xpath");
+        this.xqueryDir = queriesDir.resolve("xquery");
+
+        try {
+            Files.createDirectories(xpathDir);
+            Files.createDirectories(xqueryDir);
+            logger.info("Initialized queries directories at {}", queriesDir);
+        } catch (IOException e) {
+            logger.error("Failed to create queries directories", e);
+        }
+
         // Configure Gson with custom date adapter
         this.gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
             .setPrettyPrinting()
             .create();
-        
+
         this.favorites = new ArrayList<>();
         this.favoritesByFolder = new HashMap<>();
-        
+
         loadFavorites();
     }
     
@@ -318,14 +334,156 @@ public class FavoritesService {
     public void cleanupNonExistentFiles() {
         int originalSize = favorites.size();
         favorites.removeIf(f -> !f.fileExists());
-        
+
         if (favorites.size() < originalSize) {
             organizeFavoritesByFolder();
             saveFavorites();
             logger.info("Removed {} non-existent files from favorites", originalSize - favorites.size());
         }
     }
-    
+
+    // ========== Query Files Management ==========
+
+    /**
+     * Get the XPath queries directory.
+     */
+    public Path getXPathQueriesDir() {
+        return xpathDir;
+    }
+
+    /**
+     * Get the XQuery queries directory.
+     */
+    public Path getXQueryQueriesDir() {
+        return xqueryDir;
+    }
+
+    /**
+     * Get all saved XPath query files.
+     * @return List of XPath query files sorted by modification time (newest first)
+     */
+    public List<File> getSavedXPathQueries() {
+        return getSavedQueries(xpathDir, ".xpath");
+    }
+
+    /**
+     * Get all saved XQuery query files.
+     * @return List of XQuery query files sorted by modification time (newest first)
+     */
+    public List<File> getSavedXQueryQueries() {
+        return getSavedQueries(xqueryDir, ".xquery");
+    }
+
+    private List<File> getSavedQueries(Path dir, String extension) {
+        if (!Files.exists(dir)) {
+            return new ArrayList<>();
+        }
+
+        try {
+            return Files.list(dir)
+                .filter(p -> p.toString().toLowerCase().endsWith(extension))
+                .map(Path::toFile)
+                .sorted((a, b) -> Long.compare(b.lastModified(), a.lastModified()))
+                .collect(Collectors.toList());
+        } catch (IOException e) {
+            logger.error("Failed to list query files in {}", dir, e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Save an XPath query to file.
+     * @param name The query name (without extension)
+     * @param content The XPath query content
+     * @return The saved file, or null if save failed
+     */
+    public File saveXPathQuery(String name, String content) {
+        return saveQuery(xpathDir, name, ".xpath", content);
+    }
+
+    /**
+     * Save an XQuery query to file.
+     * @param name The query name (without extension)
+     * @param content The XQuery content
+     * @return The saved file, or null if save failed
+     */
+    public File saveXQueryQuery(String name, String content) {
+        return saveQuery(xqueryDir, name, ".xquery", content);
+    }
+
+    private File saveQuery(Path dir, String name, String extension, String content) {
+        if (name == null || name.isBlank() || content == null) {
+            logger.warn("Cannot save query with null/empty name or content");
+            return null;
+        }
+
+        // Sanitize filename
+        String sanitizedName = name.replaceAll("[^a-zA-Z0-9_\\-]", "_");
+        if (!sanitizedName.endsWith(extension)) {
+            sanitizedName += extension;
+        }
+
+        Path queryFile = dir.resolve(sanitizedName);
+
+        try {
+            Files.writeString(queryFile, content);
+            logger.info("Saved query to {}", queryFile);
+            return queryFile.toFile();
+        } catch (IOException e) {
+            logger.error("Failed to save query to {}", queryFile, e);
+            return null;
+        }
+    }
+
+    /**
+     * Load a query from file.
+     * @param file The query file
+     * @return The query content, or null if load failed
+     */
+    public String loadQuery(File file) {
+        if (file == null || !file.exists()) {
+            logger.warn("Cannot load query from null or non-existent file");
+            return null;
+        }
+
+        try {
+            return Files.readString(file.toPath());
+        } catch (IOException e) {
+            logger.error("Failed to load query from {}", file, e);
+            return null;
+        }
+    }
+
+    /**
+     * Delete a query file.
+     * @param file The query file to delete
+     * @return true if deleted, false otherwise
+     */
+    public boolean deleteQuery(File file) {
+        if (file == null || !file.exists()) {
+            return false;
+        }
+
+        try {
+            Files.delete(file.toPath());
+            logger.info("Deleted query file {}", file);
+            return true;
+        } catch (IOException e) {
+            logger.error("Failed to delete query file {}", file, e);
+            return false;
+        }
+    }
+
+    /**
+     * Get query name from file (without extension).
+     */
+    public static String getQueryName(File file) {
+        if (file == null) return "";
+        String name = file.getName();
+        int dotIndex = name.lastIndexOf('.');
+        return dotIndex > 0 ? name.substring(0, dotIndex) : name;
+    }
+
     /**
      * Custom adapter for LocalDateTime serialization
      */

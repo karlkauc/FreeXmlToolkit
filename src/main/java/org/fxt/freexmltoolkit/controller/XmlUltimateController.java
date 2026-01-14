@@ -231,6 +231,10 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     private Button executeQueryButton;
     @FXML
     private Button clearQueryButton;
+    @FXML
+    private MenuButton savedXPathQueriesMenu;
+    @FXML
+    private MenuButton savedXQueryQueriesMenu;
 
     // XSLT Development
     @FXML
@@ -752,6 +756,9 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                 logger.debug("XQuery IntelliSense engine initialized");
             }
         });
+
+        // Initialize saved queries dropdown menus
+        refreshSavedQueriesMenus();
 
         logger.info("XPath/XQuery code areas initialized (IntelliSense deferred until first focus)");
     }
@@ -2332,6 +2339,303 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     private void insertXQueryExample2() {
         codeAreaXQuery.replaceText("for $x in //item where $x/@id='1' return $x/name");
         xPathQueryPane.getSelectionModel().select(1);
+    }
+
+    // ========== XPath/XQuery Query Save/Load Methods ==========
+
+    /**
+     * Refresh the saved queries dropdown menus.
+     * Should be called when the query panel is opened or when queries are saved/deleted.
+     */
+    private void refreshSavedQueriesMenus() {
+        refreshSavedXPathQueriesMenu();
+        refreshSavedXQueryQueriesMenu();
+    }
+
+    private void refreshSavedXPathQueriesMenu() {
+        if (savedXPathQueriesMenu == null) return;
+
+        savedXPathQueriesMenu.getItems().clear();
+
+        List<File> xpathQueries = favoritesService.getSavedXPathQueries();
+
+        if (xpathQueries.isEmpty()) {
+            MenuItem noQueriesItem = new MenuItem("No saved queries");
+            noQueriesItem.setDisable(true);
+            savedXPathQueriesMenu.getItems().add(noQueriesItem);
+        } else {
+            for (File queryFile : xpathQueries) {
+                String queryName = FavoritesService.getQueryName(queryFile);
+                MenuItem item = new MenuItem(queryName);
+                item.setOnAction(e -> loadSavedXPathQuery(queryFile));
+                item.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-code-slash"));
+                savedXPathQueriesMenu.getItems().add(item);
+            }
+        }
+
+        // Add separator and management options
+        savedXPathQueriesMenu.getItems().add(new SeparatorMenuItem());
+
+        MenuItem addToFavoritesItem = new MenuItem("Add Current Query to Favorites...");
+        addToFavoritesItem.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-star"));
+        addToFavoritesItem.setOnAction(e -> addCurrentXPathQueryToFavorites());
+        savedXPathQueriesMenu.getItems().add(addToFavoritesItem);
+
+        MenuItem openFolderItem = new MenuItem("Open Queries Folder...");
+        openFolderItem.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-folder2-open"));
+        openFolderItem.setOnAction(e -> openQueriesFolder(true));
+        savedXPathQueriesMenu.getItems().add(openFolderItem);
+    }
+
+    private void refreshSavedXQueryQueriesMenu() {
+        if (savedXQueryQueriesMenu == null) return;
+
+        savedXQueryQueriesMenu.getItems().clear();
+
+        List<File> xqueryQueries = favoritesService.getSavedXQueryQueries();
+
+        if (xqueryQueries.isEmpty()) {
+            MenuItem noQueriesItem = new MenuItem("No saved queries");
+            noQueriesItem.setDisable(true);
+            savedXQueryQueriesMenu.getItems().add(noQueriesItem);
+        } else {
+            for (File queryFile : xqueryQueries) {
+                String queryName = FavoritesService.getQueryName(queryFile);
+                MenuItem item = new MenuItem(queryName);
+                item.setOnAction(e -> loadSavedXQueryQuery(queryFile));
+                item.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-braces"));
+                savedXQueryQueriesMenu.getItems().add(item);
+            }
+        }
+
+        // Add separator and management options
+        savedXQueryQueriesMenu.getItems().add(new SeparatorMenuItem());
+
+        MenuItem addToFavoritesItem = new MenuItem("Add Current Query to Favorites...");
+        addToFavoritesItem.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-star"));
+        addToFavoritesItem.setOnAction(e -> addCurrentXQueryQueryToFavorites());
+        savedXQueryQueriesMenu.getItems().add(addToFavoritesItem);
+
+        MenuItem openFolderItem = new MenuItem("Open Queries Folder...");
+        openFolderItem.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-folder2-open"));
+        openFolderItem.setOnAction(e -> openQueriesFolder(false));
+        savedXQueryQueriesMenu.getItems().add(openFolderItem);
+    }
+
+    private void addCurrentXPathQueryToFavorites() {
+        String content = codeAreaXpath.getText();
+        if (content == null || content.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Empty Query", "Please enter an XPath expression first.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add XPath Query to Favorites");
+        dialog.setHeaderText("Save and add XPath query to favorites");
+        dialog.setContentText("Query name:");
+        dialog.getDialogPane().setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-star"));
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(name -> {
+            if (name.isBlank()) {
+                showAlert(Alert.AlertType.WARNING, "Invalid Name", "Please enter a valid query name.");
+                return;
+            }
+
+            // First save the query to file
+            File savedFile = favoritesService.saveXPathQuery(name, content);
+            if (savedFile != null) {
+                // Then add to favorites
+                favoritesService.addFavorite(savedFile.getAbsolutePath(), name, "XPath Queries");
+                logToConsole("Added XPath query to favorites: " + name);
+                showInfo("Added to Favorites", "XPath query '" + name + "' added to favorites.");
+                refreshSavedXPathQueriesMenu();
+            } else {
+                showError("Error", "Failed to save XPath query.");
+            }
+        });
+    }
+
+    private void addCurrentXQueryQueryToFavorites() {
+        String content = codeAreaXQuery.getText();
+        if (content == null || content.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Empty Query", "Please enter an XQuery expression first.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add XQuery to Favorites");
+        dialog.setHeaderText("Save and add XQuery to favorites");
+        dialog.setContentText("Query name:");
+        dialog.getDialogPane().setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-star"));
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(name -> {
+            if (name.isBlank()) {
+                showAlert(Alert.AlertType.WARNING, "Invalid Name", "Please enter a valid query name.");
+                return;
+            }
+
+            // First save the query to file
+            File savedFile = favoritesService.saveXQueryQuery(name, content);
+            if (savedFile != null) {
+                // Then add to favorites
+                favoritesService.addFavorite(savedFile.getAbsolutePath(), name, "XQuery Queries");
+                logToConsole("Added XQuery to favorites: " + name);
+                showInfo("Added to Favorites", "XQuery '" + name + "' added to favorites.");
+                refreshSavedXQueryQueriesMenu();
+            } else {
+                showError("Error", "Failed to save XQuery.");
+            }
+        });
+    }
+
+    private void loadSavedXPathQuery(File queryFile) {
+        String content = favoritesService.loadQuery(queryFile);
+        if (content != null) {
+            codeAreaXpath.replaceText(content);
+            xPathQueryPane.getSelectionModel().select(0);
+            logToConsole("Loaded XPath query: " + queryFile.getName());
+        } else {
+            showError("Load Error", "Failed to load query from file: " + queryFile.getName());
+        }
+    }
+
+    private void loadSavedXQueryQuery(File queryFile) {
+        String content = favoritesService.loadQuery(queryFile);
+        if (content != null) {
+            codeAreaXQuery.replaceText(content);
+            xPathQueryPane.getSelectionModel().select(1);
+            logToConsole("Loaded XQuery query: " + queryFile.getName());
+        } else {
+            showError("Load Error", "Failed to load query from file: " + queryFile.getName());
+        }
+    }
+
+    private void openQueriesFolder(boolean isXPath) {
+        try {
+            java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+            File folder = isXPath ?
+                favoritesService.getXPathQueriesDir().toFile() :
+                favoritesService.getXQueryQueriesDir().toFile();
+            if (folder.exists()) {
+                desktop.open(folder);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to open queries folder", e);
+        }
+    }
+
+    @FXML
+    public void saveXPathQuery() {
+        String content = codeAreaXpath.getText();
+        if (content == null || content.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Empty Query", "Please enter an XPath expression first.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Save XPath Query");
+        dialog.setHeaderText("Save XPath Query to File");
+        dialog.setContentText("Query name:");
+        dialog.getDialogPane().setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-save"));
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(name -> {
+            if (name.isBlank()) {
+                showAlert(Alert.AlertType.WARNING, "Invalid Name", "Please enter a valid query name.");
+                return;
+            }
+            File savedFile = favoritesService.saveXPathQuery(name, content);
+            if (savedFile != null) {
+                logToConsole("Saved XPath query to: " + savedFile.getAbsolutePath());
+                showInfo("Query Saved", "XPath query saved as: " + name);
+                refreshSavedXPathQueriesMenu();
+            } else {
+                showError("Save Error", "Failed to save XPath query.");
+            }
+        });
+    }
+
+    @FXML
+    public void saveXQueryQuery() {
+        String content = codeAreaXQuery.getText();
+        if (content == null || content.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Empty Query", "Please enter an XQuery expression first.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Save XQuery Query");
+        dialog.setHeaderText("Save XQuery to File");
+        dialog.setContentText("Query name:");
+        dialog.getDialogPane().setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-save"));
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(name -> {
+            if (name.isBlank()) {
+                showAlert(Alert.AlertType.WARNING, "Invalid Name", "Please enter a valid query name.");
+                return;
+            }
+            File savedFile = favoritesService.saveXQueryQuery(name, content);
+            if (savedFile != null) {
+                logToConsole("Saved XQuery to: " + savedFile.getAbsolutePath());
+                showInfo("Query Saved", "XQuery saved as: " + name);
+                refreshSavedXQueryQueriesMenu();
+            } else {
+                showError("Save Error", "Failed to save XQuery.");
+            }
+        });
+    }
+
+    @FXML
+    public void loadXPathQueryFromFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open XPath Query File");
+        fileChooser.setInitialDirectory(favoritesService.getXPathQueriesDir().toFile());
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("XPath Files", "*.xpath"),
+            new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+
+        Stage stage = (Stage) codeAreaXpath.getScene().getWindow();
+        File file = fileChooser.showOpenDialog(stage);
+
+        if (file != null) {
+            String content = favoritesService.loadQuery(file);
+            if (content != null) {
+                codeAreaXpath.replaceText(content);
+                xPathQueryPane.getSelectionModel().select(0);
+                logToConsole("Loaded XPath query from: " + file.getName());
+            } else {
+                showError("Load Error", "Failed to load query from file.");
+            }
+        }
+    }
+
+    @FXML
+    public void loadXQueryQueryFromFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open XQuery File");
+        fileChooser.setInitialDirectory(favoritesService.getXQueryQueriesDir().toFile());
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("XQuery Files", "*.xquery", "*.xq"),
+            new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+
+        Stage stage = (Stage) codeAreaXQuery.getScene().getWindow();
+        File file = fileChooser.showOpenDialog(stage);
+
+        if (file != null) {
+            String content = favoritesService.loadQuery(file);
+            if (content != null) {
+                codeAreaXQuery.replaceText(content);
+                xPathQueryPane.getSelectionModel().select(1);
+                logToConsole("Loaded XQuery from: " + file.getName());
+            } else {
+                showError("Load Error", "Failed to load query from file.");
+            }
+        }
     }
 
     @FXML
