@@ -490,15 +490,14 @@
                                style="-fx-font-size: 14px; -fx-text-fill: #5a6270;" wrapText="true"/>
                     </VBox>
 
-                    <!-- Top Row: Source & Destination | Output Options -->
-                    <HBox spacing="20" HBox.hgrow="ALWAYS">
-                        <!-- Source & Destination Card -->
-                        <VBox spacing="15" HBox.hgrow="ALWAYS"
-                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
-                            <Label text="Source &amp; Destination"
-                                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+                    <!-- Top Row: Source & Destination (full width) -->
+                    <VBox spacing="15"
+                          style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                        <Label text="Source &amp; Destination"
+                               style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
 
-                            <VBox spacing="6">
+                        <HBox spacing="20">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
                                 <Label text="XSD File:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
                                 <HBox spacing="8">
                                     <TextField fx:id="xsdFilePath" promptText="Load an XSD file..." HBox.hgrow="ALWAYS"
@@ -511,7 +510,7 @@
                                 </HBox>
                             </VBox>
 
-                            <VBox spacing="6">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
                                 <Label text="Output Folder:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
                                 <HBox spacing="8">
                                     <TextField fx:id="documentationOutputDirPath" promptText="Select an output directory..." HBox.hgrow="ALWAYS"
@@ -523,57 +522,14 @@
                                     </Button>
                                 </HBox>
                             </VBox>
+                        </HBox>
 
-                            <!-- Hidden XSD Drop Zone -->
-                            <VBox fx:id="xsdPane" accessibleText="XSD File" alignment="CENTER" managed="false" visible="false"
-                                  style="-fx-background-color: #f9fafb; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #d1d5db; -fx-border-style: dashed; -fx-padding: 20;">
-                                <Label text="Drop XSD file here" style="-fx-text-fill: #9ca3af;"/>
-                            </VBox>
+                        <!-- Hidden XSD Drop Zone -->
+                        <VBox fx:id="xsdPane" accessibleText="XSD File" alignment="CENTER" managed="false" visible="false"
+                              style="-fx-background-color: #f9fafb; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #d1d5db; -fx-border-style: dashed; -fx-padding: 20;">
+                            <Label text="Drop XSD file here" style="-fx-text-fill: #9ca3af;"/>
                         </VBox>
-
-                        <!-- Output Options Card -->
-                        <VBox spacing="15" prefWidth="350"
-                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
-                            <Label text="Output Options"
-                                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
-
-                            <VBox spacing="6">
-                                <fx:define>
-                                    <ToggleGroup fx:id="outputFormatGroup"/>
-                                </fx:define>
-                                <Label text="Output Format:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
-                                <HBox spacing="20" alignment="CENTER_LEFT">
-                                    <RadioButton fx:id="outputFormatHtml" selected="true" text="HTML" toggleGroup="$outputFormatGroup">
-                                        <tooltip>
-                                            <Tooltip text="Generate HTML documentation with navigation and search"/>
-                                        </tooltip>
-                                    </RadioButton>
-                                    <RadioButton fx:id="outputFormatWord" text="Word" toggleGroup="$outputFormatGroup">
-                                        <tooltip>
-                                            <Tooltip text="Generate Microsoft Word (.docx) document"/>
-                                        </tooltip>
-                                    </RadioButton>
-                                    <RadioButton fx:id="outputFormatPdf" text="PDF" toggleGroup="$outputFormatGroup">
-                                        <tooltip>
-                                            <Tooltip text="Generate PDF document using Apache FOP"/>
-                                        </tooltip>
-                                    </RadioButton>
-                                </HBox>
-                            </VBox>
-
-                            <VBox spacing="6">
-                                <Label text="Grafik format:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
-                                <ChoiceBox fx:id="grafikFormat" value="SVG" prefWidth="200"
-                                           style="-fx-background-radius: 6;"/>
-                            </VBox>
-
-                            <CheckBox fx:id="showDocumentationInSvg" selected="false" text="Show documentation in SVG">
-                                <tooltip>
-                                    <Tooltip text="Show documentation of the root element below the SVG diagram"/>
-                                </tooltip>
-                            </CheckBox>
-                        </VBox>
-                    </HBox>
+                    </VBox>
 
                     <!-- Middle Row: General Settings | Language Settings -->
                     <HBox spacing="20" HBox.hgrow="ALWAYS">
@@ -583,11 +539,6 @@
                             <Label text="General Settings"
                                    style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
 
-                            <CheckBox fx:id="useMarkdownRenderer" selected="true" text="Use Markdown Renderer">
-                                <tooltip>
-                                    <Tooltip text="Render Markdown formatting in documentation text"/>
-                                </tooltip>
-                            </CheckBox>
                             <CheckBox fx:id="openFileAfterCreation" selected="true" text="Open file after creation">
                                 <tooltip>
                                     <Tooltip text="Automatically open the generated documentation after creation"/>
@@ -644,8 +595,45 @@
                         </VBox>
                     </HBox>
 
-                    <!-- Format-Specific Settings Row -->
+                    <!-- Output Options and Format-Specific Settings Row -->
                     <HBox spacing="20" HBox.hgrow="ALWAYS">
+
+                        <!-- Output Options Card -->
+                        <VBox spacing="15" prefWidth="280"
+                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                            <Label text="Output Options"
+                                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+
+                            <VBox spacing="6">
+                                <fx:define>
+                                    <ToggleGroup fx:id="outputFormatGroup"/>
+                                </fx:define>
+                                <Label text="Output Format:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <VBox spacing="8">
+                                    <RadioButton fx:id="outputFormatHtml" selected="true" text="HTML" toggleGroup="$outputFormatGroup">
+                                        <tooltip>
+                                            <Tooltip text="Generate HTML documentation with navigation and search"/>
+                                        </tooltip>
+                                    </RadioButton>
+                                    <RadioButton fx:id="outputFormatWord" text="Word" toggleGroup="$outputFormatGroup">
+                                        <tooltip>
+                                            <Tooltip text="Generate Microsoft Word (.docx) document"/>
+                                        </tooltip>
+                                    </RadioButton>
+                                    <RadioButton fx:id="outputFormatPdf" text="PDF" toggleGroup="$outputFormatGroup">
+                                        <tooltip>
+                                            <Tooltip text="Generate PDF document using Apache FOP"/>
+                                        </tooltip>
+                                    </RadioButton>
+                                </VBox>
+                            </VBox>
+
+                            <CheckBox fx:id="showDocumentationInSvg" selected="false" text="Show documentation in SVG">
+                                <tooltip>
+                                    <Tooltip text="Show documentation of the root element below the SVG diagram"/>
+                                </tooltip>
+                            </CheckBox>
+                        </VBox>
 
                         <!-- HTML-Specific Settings Card (visible when HTML is selected) -->
                         <VBox fx:id="htmlSettingsContainer" spacing="12" HBox.hgrow="ALWAYS"
@@ -656,6 +644,17 @@
                                        style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
                             </HBox>
 
+                            <VBox spacing="6">
+                                <Label text="Grafik format:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <ChoiceBox fx:id="grafikFormat" value="SVG" prefWidth="200"
+                                           style="-fx-background-radius: 6;"/>
+                            </VBox>
+
+                            <CheckBox fx:id="useMarkdownRenderer" selected="true" text="Use Markdown Renderer">
+                                <tooltip>
+                                    <Tooltip text="Render Markdown formatting in documentation text"/>
+                                </tooltip>
+                            </CheckBox>
                             <CheckBox fx:id="includeTypeDefinitionsInSourceCode" selected="true" text="Include type definitions in source code">
                                 <tooltip>
                                     <Tooltip text="Include referenced type definitions in the source code sections"/>
@@ -666,7 +665,7 @@
                                     <Tooltip text="Generate an interactive SVG page showing the complete schema structure"/>
                                 </tooltip>
                             </CheckBox>
-                            <CheckBox fx:id="addMetadataInOutput" selected="false" text="Add Metadata in Output">
+                            <CheckBox fx:id="addMetadataInOutput" selected="true" text="Add Metadata in Output">
                                 <tooltip>
                                     <Tooltip text="Add HTML comments with creation details (timestamp, OS, app version) to all generated HTML files"/>
                                 </tooltip>
