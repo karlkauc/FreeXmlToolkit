@@ -34,10 +34,12 @@ import org.w3c.dom.Node;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.nio.file.Files;
@@ -304,7 +306,7 @@ public class XsdDocumentationPdfService {
      * Checks if an element has significant content (children) worth showing in a diagram.
      */
     private boolean hasSignificantContent(XsdExtendedElement element, Map<String, XsdExtendedElement> elementMap) {
-        String elementXpath = element.getXpath();
+        String elementXpath = element.getCurrentXpath();
         if (elementXpath == null) {
             return false;
         }

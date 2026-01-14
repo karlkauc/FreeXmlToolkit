@@ -30,7 +30,10 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -692,7 +695,7 @@ public class XsdDocumentationWordService {
      * Checks if an element has significant content (children or attributes) worth showing in a diagram.
      */
     private boolean hasSignificantContent(XsdExtendedElement element, Map<String, XsdExtendedElement> elementMap) {
-        String elementXpath = element.getXpath();
+        String elementXpath = element.getCurrentXpath();
         if (elementXpath == null) {
             return false;
         }
