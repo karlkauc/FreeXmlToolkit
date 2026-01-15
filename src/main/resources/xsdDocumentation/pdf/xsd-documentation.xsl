@@ -15,6 +15,11 @@
     <xsl:param name="currentDate"/>
     <xsl:param name="schemaName"/>
 
+    <!-- Content section toggles -->
+    <xsl:param name="includeSchemaDiagram">false</xsl:param>
+    <xsl:param name="includeElementDiagrams">false</xsl:param>
+    <xsl:param name="generateBookmarks">true</xsl:param>
+
     <!-- Color definitions -->
     <xsl:variable name="color-primary">#2563EB</xsl:variable>
     <xsl:variable name="color-secondary">#64748B</xsl:variable>
@@ -47,6 +52,47 @@
                 </fo:simple-page-master>
             </fo:layout-master-set>
 
+            <!-- PDF Bookmarks / Outline -->
+            <xsl:if test="$generateBookmarks = 'true'">
+                <fo:bookmark-tree>
+                    <fo:bookmark internal-destination="schema-overview">
+                        <fo:bookmark-title>Schema Overview</fo:bookmark-title>
+                    </fo:bookmark>
+
+                    <xsl:if test="$includeSchemaDiagram = 'true'">
+                        <xsl:if test="xsd-documentation/schema-diagram/image-path">
+                            <fo:bookmark internal-destination="schema-diagram">
+                                <fo:bookmark-title>Schema Diagram</fo:bookmark-title>
+                            </fo:bookmark>
+                        </xsl:if>
+                    </xsl:if>
+
+                    <xsl:if test="xsd-documentation/complex-types/complex-type">
+                        <fo:bookmark internal-destination="complex-types">
+                            <fo:bookmark-title>Complex Types</fo:bookmark-title>
+                        </fo:bookmark>
+                    </xsl:if>
+
+                    <xsl:if test="xsd-documentation/simple-types/simple-type">
+                        <fo:bookmark internal-destination="simple-types">
+                            <fo:bookmark-title>Simple Types</fo:bookmark-title>
+                        </fo:bookmark>
+                    </xsl:if>
+
+                    <fo:bookmark internal-destination="data-dictionary">
+                        <fo:bookmark-title>Data Dictionary</fo:bookmark-title>
+                    </fo:bookmark>
+
+                    <xsl:if test="$includeElementDiagrams = 'true'">
+                        <xsl:if test="xsd-documentation/element-diagrams/diagram">
+                            <fo:bookmark internal-destination="element-diagrams">
+                                <fo:bookmark-title>Element Diagrams</fo:bookmark-title>
+                            </fo:bookmark>
+                        </xsl:if>
+                    </xsl:if>
+                </fo:bookmark-tree>
+            </xsl:if>
+
             <!-- Title Page -->
             <fo:page-sequence master-reference="title-page">
                 <fo:flow flow-name="xsl-region-body">
@@ -77,9 +123,11 @@
                 <fo:flow flow-name="xsl-region-body">
                     <xsl:call-template name="table-of-contents"/>
                     <xsl:call-template name="schema-overview"/>
+                    <xsl:call-template name="schema-diagram-section"/>
                     <xsl:call-template name="complex-types-section"/>
                     <xsl:call-template name="simple-types-section"/>
                     <xsl:call-template name="data-dictionary-section"/>
+                    <xsl:call-template name="element-diagrams-section"/>
 
                     <!-- Last page marker for page count -->
                     <fo:block id="last-page"/>
@@ -126,14 +174,32 @@
             <fo:basic-link internal-destination="schema-overview">
                 1. Schema Overview
                 <fo:leader leader-pattern="dots"/>
+                <fo:page-number-citation ref-id="schema-overview"/>
             </fo:basic-link>
         </fo:block>
+
+        <xsl:if test="$includeSchemaDiagram = 'true'">
+            <xsl:if test="xsd-documentation/schema-diagram/image-path">
+                <fo:block font-size="12pt" space-after="5mm">
+                    <fo:basic-link internal-destination="schema-diagram">
+                        2. Schema Diagram
+                        <fo:leader leader-pattern="dots"/>
+                        <fo:page-number-citation ref-id="schema-diagram"/>
+                    </fo:basic-link>
+                </fo:block>
+            </xsl:if>
+        </xsl:if>
 
         <xsl:if test="xsd-documentation/complex-types/complex-type">
             <fo:block font-size="12pt" space-after="5mm">
                 <fo:basic-link internal-destination="complex-types">
-                    2. Complex Types
+                    <xsl:choose>
+                        <xsl:when test="$includeSchemaDiagram = 'true' and xsd-documentation/schema-diagram/image-path">3.</xsl:when>
+                        <xsl:otherwise>2.</xsl:otherwise>
+                    </xsl:choose>
+                    <xsl:text> Complex Types</xsl:text>
                     <fo:leader leader-pattern="dots"/>
+                    <fo:page-number-citation ref-id="complex-types"/>
                 </fo:basic-link>
             </fo:block>
         </xsl:if>
@@ -141,18 +207,95 @@
         <xsl:if test="xsd-documentation/simple-types/simple-type">
             <fo:block font-size="12pt" space-after="5mm">
                 <fo:basic-link internal-destination="simple-types">
-                    3. Simple Types
+                    <xsl:variable name="section-number">
+                        <xsl:choose>
+                            <xsl:when test="$includeSchemaDiagram = 'true' and xsd-documentation/schema-diagram/image-path">
+                                <xsl:choose>
+                                    <xsl:when test="xsd-documentation/complex-types/complex-type">4</xsl:when>
+                                    <xsl:otherwise>3</xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:choose>
+                                    <xsl:when test="xsd-documentation/complex-types/complex-type">3</xsl:when>
+                                    <xsl:otherwise>2</xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
+                    <xsl:value-of select="$section-number"/>
+                    <xsl:text>. Simple Types</xsl:text>
                     <fo:leader leader-pattern="dots"/>
+                    <fo:page-number-citation ref-id="simple-types"/>
                 </fo:basic-link>
             </fo:block>
         </xsl:if>
 
         <fo:block font-size="12pt" space-after="5mm">
             <fo:basic-link internal-destination="data-dictionary">
-                4. Data Dictionary
+                <xsl:variable name="section-number">
+                    <xsl:variable name="base">1</xsl:variable>
+                    <xsl:variable name="plus-schema-diagram">
+                        <xsl:choose>
+                            <xsl:when test="$includeSchemaDiagram = 'true' and xsd-documentation/schema-diagram/image-path">1</xsl:when>
+                            <xsl:otherwise>0</xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
+                    <xsl:variable name="plus-complex">
+                        <xsl:choose>
+                            <xsl:when test="xsd-documentation/complex-types/complex-type">1</xsl:when>
+                            <xsl:otherwise>0</xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
+                    <xsl:variable name="plus-simple">
+                        <xsl:choose>
+                            <xsl:when test="xsd-documentation/simple-types/simple-type">1</xsl:when>
+                            <xsl:otherwise>0</xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
+                    <xsl:value-of select="$base + $plus-schema-diagram + $plus-complex + $plus-simple + 1"/>
+                </xsl:variable>
+                <xsl:value-of select="$section-number"/>
+                <xsl:text>. Data Dictionary</xsl:text>
                 <fo:leader leader-pattern="dots"/>
+                <fo:page-number-citation ref-id="data-dictionary"/>
             </fo:basic-link>
         </fo:block>
+
+        <xsl:if test="$includeElementDiagrams = 'true'">
+            <xsl:if test="xsd-documentation/element-diagrams/diagram">
+                <fo:block font-size="12pt" space-after="5mm">
+                    <fo:basic-link internal-destination="element-diagrams">
+                        <xsl:variable name="section-number">
+                            <xsl:variable name="base">1</xsl:variable>
+                            <xsl:variable name="plus-schema-diagram">
+                                <xsl:choose>
+                                    <xsl:when test="$includeSchemaDiagram = 'true' and xsd-documentation/schema-diagram/image-path">1</xsl:when>
+                                    <xsl:otherwise>0</xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:variable>
+                            <xsl:variable name="plus-complex">
+                                <xsl:choose>
+                                    <xsl:when test="xsd-documentation/complex-types/complex-type">1</xsl:when>
+                                    <xsl:otherwise>0</xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:variable>
+                            <xsl:variable name="plus-simple">
+                                <xsl:choose>
+                                    <xsl:when test="xsd-documentation/simple-types/simple-type">1</xsl:when>
+                                    <xsl:otherwise>0</xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:variable>
+                            <xsl:value-of select="$base + $plus-schema-diagram + $plus-complex + $plus-simple + 2"/>
+                        </xsl:variable>
+                        <xsl:value-of select="$section-number"/>
+                        <xsl:text>. Element Diagrams</xsl:text>
+                        <fo:leader leader-pattern="dots"/>
+                        <fo:page-number-citation ref-id="element-diagrams"/>
+                    </fo:basic-link>
+                </fo:block>
+            </xsl:if>
+        </xsl:if>
 
         <fo:block break-after="page"/>
     </xsl:template>
@@ -161,7 +304,7 @@
     <xsl:template name="schema-overview">
         <fo:block id="schema-overview" font-size="20pt" font-weight="bold" color="{$color-primary}"
             space-before="5mm" space-after="10mm">
-            1. Schema Overview
+            Schema Overview
         </fo:block>
 
         <fo:table table-layout="fixed" width="100%" border="0.5pt solid {$color-border}">
@@ -278,7 +421,7 @@
         <xsl:if test="xsd-documentation/complex-types/complex-type">
             <fo:block id="complex-types" font-size="20pt" font-weight="bold" color="{$color-primary}"
                 space-before="5mm" space-after="10mm">
-                2. Complex Types
+                Complex Types
             </fo:block>
 
             <fo:block font-size="11pt" space-after="10mm" color="{$color-secondary}">
@@ -331,7 +474,7 @@
         <xsl:if test="xsd-documentation/simple-types/simple-type">
             <fo:block id="simple-types" font-size="20pt" font-weight="bold" color="{$color-primary}"
                 space-before="5mm" space-after="10mm">
-                3. Simple Types
+                Simple Types
             </fo:block>
 
             <fo:block font-size="11pt" space-after="10mm" color="{$color-secondary}">
@@ -383,7 +526,7 @@
     <xsl:template name="data-dictionary-section">
         <fo:block id="data-dictionary" font-size="20pt" font-weight="bold" color="{$color-primary}"
             space-before="5mm" space-after="10mm">
-            4. Data Dictionary
+            Data Dictionary
         </fo:block>
 
         <fo:block font-size="11pt" space-after="10mm" color="{$color-secondary}">
@@ -434,6 +577,97 @@
                     </xsl:for-each>
                 </fo:table-body>
             </fo:table>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- Schema Diagram Section -->
+    <xsl:template name="schema-diagram-section">
+        <xsl:if test="$includeSchemaDiagram = 'true'">
+            <xsl:if test="xsd-documentation/schema-diagram/image-path">
+                <fo:block break-before="page"/>
+                <fo:block id="schema-diagram" font-size="20pt" font-weight="bold" color="{$color-primary}"
+                    space-before="5mm" space-after="10mm">
+                    Schema Diagram
+                </fo:block>
+
+                <fo:block font-size="11pt" space-after="10mm" color="{$color-secondary}">
+                    Visual representation of the complete schema structure starting from root element:
+                    <fo:inline font-weight="bold">
+                        <xsl:value-of select="xsd-documentation/schema-diagram/root-element"/>
+                    </fo:inline>
+                </fo:block>
+
+                <!-- Diagram image -->
+                <fo:block text-align="center" space-before="5mm">
+                    <fo:external-graphic
+                        src="{xsd-documentation/schema-diagram/image-path}"
+                        content-width="scale-to-fit"
+                        content-height="scale-to-fit"
+                        max-width="160mm"
+                        max-height="200mm"
+                        scaling="uniform"/>
+                </fo:block>
+
+                <!-- Caption -->
+                <fo:block font-size="10pt" font-style="italic" color="{$color-secondary}"
+                    text-align="center" space-before="3mm" space-after="8mm">
+                    Figure: Complete Schema Structure
+                </fo:block>
+
+                <fo:block break-after="page"/>
+            </xsl:if>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- Element Diagrams Section -->
+    <xsl:template name="element-diagrams-section">
+        <xsl:if test="$includeElementDiagrams = 'true'">
+            <xsl:if test="xsd-documentation/element-diagrams/diagram">
+                <fo:block break-before="page"/>
+                <fo:block id="element-diagrams" font-size="20pt" font-weight="bold" color="{$color-primary}"
+                    space-before="5mm" space-after="10mm">
+                    Element Diagrams
+                </fo:block>
+
+                <fo:block font-size="11pt" space-after="10mm" color="{$color-secondary}">
+                    Detailed visual representation of individual elements and their structure.
+                </fo:block>
+
+                <xsl:for-each select="xsd-documentation/element-diagrams/diagram">
+                    <fo:block space-before="8mm" space-after="4mm">
+                        <!-- Element name heading -->
+                        <fo:block font-size="16pt" font-weight="bold" color="{$color-primary}"
+                            space-after="2mm">
+                            <xsl:value-of select="element-name"/>
+                        </fo:block>
+
+                        <!-- Element info -->
+                        <fo:block font-size="10pt" color="{$color-secondary}" space-after="1mm">
+                            Path: <xsl:value-of select="path"/>
+                        </fo:block>
+                        <fo:block font-size="10pt" color="{$color-secondary}" space-after="3mm">
+                            Type: <xsl:value-of select="type"/>
+                        </fo:block>
+
+                        <!-- Diagram image -->
+                        <fo:block text-align="center">
+                            <fo:external-graphic
+                                src="{image-path}"
+                                content-width="scale-to-fit"
+                                content-height="scale-to-fit"
+                                max-width="160mm"
+                                max-height="100mm"
+                                scaling="uniform"/>
+                        </fo:block>
+
+                        <!-- Caption -->
+                        <fo:block font-size="9pt" font-style="italic" color="{$color-secondary}"
+                            text-align="center" space-before="2mm">
+                            Figure: Structure of <xsl:value-of select="element-name"/>
+                        </fo:block>
+                    </fo:block>
+                </xsl:for-each>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
 

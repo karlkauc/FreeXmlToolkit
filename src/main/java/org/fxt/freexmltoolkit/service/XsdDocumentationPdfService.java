@@ -124,7 +124,7 @@ public class XsdDocumentationPdfService {
         if (tempImageDir != null) {
             try {
                 Files.walk(tempImageDir)
-                        .sorted((a, b) -> b.compareTo(a)) // reverse order to delete files before dirs
+                        .sorted(Comparator.reverseOrder()) // reverse order to delete files before dirs
                         .forEach(path -> {
                             try {
                                 Files.deleteIfExists(path);
@@ -179,6 +179,43 @@ public class XsdDocumentationPdfService {
         addElement(doc, statistics, "global-simple-types", String.valueOf(documentationData.getGlobalSimpleTypes().size()));
         addElement(doc, statistics, "total-elements", String.valueOf(documentationData.getExtendedXsdElementMap().size()));
 
+        // Schema Diagram section (if configured)
+        if (config.isIncludeSchemaDiagram() && imageService != null && tempImageDir != null) {
+            Element schemaDiagramSection = doc.createElement("schema-diagram");
+            root.appendChild(schemaDiagramSection);
+
+            // Find root element (same logic as Word service)
+            var elementMap = documentationData.getExtendedXsdElementMap();
+            XsdExtendedElement rootElement = null;
+
+            for (var element : elementMap.values()) {
+                if (element.getLevel() == 0) {
+                    rootElement = element;
+                    break;
+                }
+            }
+
+            if (rootElement == null && !elementMap.isEmpty()) {
+                rootElement = elementMap.values().iterator().next();
+            }
+
+            if (rootElement != null) {
+                try {
+                    // Generate PNG image
+                    Path imagePath = tempImageDir.resolve("schema-diagram.png");
+                    String generatedPath = imageService.generateImage(rootElement, imagePath.toFile());
+
+                    if (generatedPath != null) {
+                        addElement(doc, schemaDiagramSection, "image-path", imagePath.toUri().toString());
+                        addElement(doc, schemaDiagramSection, "root-element", rootElement.getElementName());
+                        logger.info("Schema diagram generated for PDF document");
+                    }
+                } catch (Exception e) {
+                    logger.warn("Failed to generate schema diagram: {}", e.getMessage());
+                }
+            }
+        }
+
         // ComplexTypes section
         Element complexTypes = doc.createElement("complex-types");
         root.appendChild(complexTypes);
@@ -218,8 +255,8 @@ public class XsdDocumentationPdfService {
         Map<String, XsdExtendedElement> elementMap = documentationData.getExtendedXsdElementMap();
         List<XsdExtendedElement> sortedElements = new ArrayList<>(elementMap.values());
         // Filter out container elements (SEQUENCE, CHOICE, ALL) - they are internal structures
-        sortedElements.removeIf(e -> isContainerElement(e));
-        sortedElements.sort(Comparator.comparing(e -> getCleanXPath(e)));
+        sortedElements.removeIf(this::isContainerElement);
+        sortedElements.sort(Comparator.comparing(this::getCleanXPath));
 
         int totalElements = sortedElements.size();
         logger.info("Creating PDF data dictionary with {} elements (excluding container elements)", totalElements);
@@ -402,6 +439,7 @@ public class XsdDocumentationPdfService {
             transformer.setParameter("includeCoverPage", config.isIncludeCoverPage() ? "true" : "false");
             transformer.setParameter("includeToc", config.isIncludeToc() ? "true" : "false");
             transformer.setParameter("includeSchemaOverview", config.isIncludeSchemaOverview() ? "true" : "false");
+            transformer.setParameter("includeSchemaDiagram", config.isIncludeSchemaDiagram() ? "true" : "false");
             transformer.setParameter("includeComplexTypes", config.isIncludeComplexTypes() ? "true" : "false");
             transformer.setParameter("includeSimpleTypes", config.isIncludeSimpleTypes() ? "true" : "false");
             transformer.setParameter("includeDataDictionary", config.isIncludeDataDictionary() ? "true" : "false");
@@ -419,6 +457,9 @@ public class XsdDocumentationPdfService {
             // Watermark parameters
             transformer.setParameter("watermarkText", config.getWatermarkText());
             transformer.setParameter("hasWatermark", config.hasWatermark() ? "true" : "false");
+
+            // PDF Bookmarks parameter
+            transformer.setParameter("generateBookmarks", config.isGenerateBookmarks() ? "true" : "false");
 
             Source xmlSource = new DOMSource(intermediateXml);
             Result result = new SAXResult(fop.getDefaultHandler());
@@ -465,10 +506,12 @@ public class XsdDocumentationPdfService {
                     <xsl:param name="includeCoverPage">true</xsl:param>
                     <xsl:param name="includeToc">true</xsl:param>
                     <xsl:param name="includeSchemaOverview">true</xsl:param>
+                    <xsl:param name="includeSchemaDiagram">false</xsl:param>
                     <xsl:param name="includeComplexTypes">true</xsl:param>
                     <xsl:param name="includeSimpleTypes">true</xsl:param>
                     <xsl:param name="includeDataDictionary">true</xsl:param>
                     <xsl:param name="includeElementDiagrams">false</xsl:param>
+                    <xsl:param name="generateBookmarks">true</xsl:param>
 
                     <!-- Header & Footer parameters -->
                     <xsl:param name="headerStyle">STANDARD</xsl:param>
@@ -496,6 +539,57 @@ public class XsdDocumentationPdfService {
                                     <fo:region-after extent="15mm"/>
                                 </fo:simple-page-master>
                             </fo:layout-master-set>
+
+                            <!-- PDF Bookmarks / Outline -->
+                            <xsl:if test="$generateBookmarks = 'true'">
+                                <fo:bookmark-tree>
+                                    <xsl:if test="$includeSchemaOverview = 'true'">
+                                        <fo:bookmark internal-destination="schema-overview">
+                                            <fo:bookmark-title>Schema Overview</fo:bookmark-title>
+                                        </fo:bookmark>
+                                    </xsl:if>
+
+                                    <xsl:if test="$includeSchemaDiagram = 'true'">
+                                        <xsl:if test="xsd-documentation/schema-diagram/image-path">
+                                            <fo:bookmark internal-destination="schema-diagram">
+                                                <fo:bookmark-title>Schema Diagram</fo:bookmark-title>
+                                            </fo:bookmark>
+                                        </xsl:if>
+                                    </xsl:if>
+
+                                    <xsl:if test="$includeComplexTypes = 'true'">
+                                        <xsl:if test="xsd-documentation/complex-types/complex-type">
+                                            <fo:bookmark internal-destination="complex-types">
+                                                <fo:bookmark-title>Complex Types</fo:bookmark-title>
+                                            </fo:bookmark>
+                                        </xsl:if>
+                                    </xsl:if>
+
+                                    <xsl:if test="$includeSimpleTypes = 'true'">
+                                        <xsl:if test="xsd-documentation/simple-types/simple-type">
+                                            <fo:bookmark internal-destination="simple-types">
+                                                <fo:bookmark-title>Simple Types</fo:bookmark-title>
+                                            </fo:bookmark>
+                                        </xsl:if>
+                                    </xsl:if>
+
+                                    <xsl:if test="$includeDataDictionary = 'true'">
+                                        <xsl:if test="xsd-documentation/data-dictionary/element">
+                                            <fo:bookmark internal-destination="data-dictionary">
+                                                <fo:bookmark-title>Data Dictionary</fo:bookmark-title>
+                                            </fo:bookmark>
+                                        </xsl:if>
+                                    </xsl:if>
+
+                                    <xsl:if test="$includeElementDiagrams = 'true'">
+                                        <xsl:if test="xsd-documentation/element-diagrams/diagram">
+                                            <fo:bookmark internal-destination="element-diagrams">
+                                                <fo:bookmark-title>Element Diagrams</fo:bookmark-title>
+                                            </fo:bookmark>
+                                        </xsl:if>
+                                    </xsl:if>
+                                </fo:bookmark-tree>
+                            </xsl:if>
 
                             <!-- Document content -->
                             <fo:page-sequence master-reference="main">
@@ -575,7 +669,7 @@ public class XsdDocumentationPdfService {
 
                                     <!-- Schema Overview -->
                                     <xsl:if test="$includeSchemaOverview = 'true'">
-                                        <fo:block font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                        <fo:block id="schema-overview" font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
                                             text-decoration="{$headingUnderlined}"
                                             space-before="10mm" space-after="5mm">
                                             Schema Overview
@@ -661,9 +755,45 @@ public class XsdDocumentationPdfService {
                                         <fo:block break-after="page"/>
                                     </xsl:if>
 
+                                    <!-- Schema Diagram Section -->
+                                    <xsl:if test="$includeSchemaDiagram = 'true'">
+                                        <xsl:if test="xsd-documentation/schema-diagram/image-path">
+                                            <fo:block break-before="page"/>
+                                            <fo:block id="schema-diagram" font-size="18pt" font-weight="{$headingBold}"
+                                                color="{$headingColor}" text-decoration="{$headingUnderlined}"
+                                                space-before="5mm" space-after="5mm">
+                                                Schema Diagram
+                                            </fo:block>
+
+                                            <fo:block font-size="10pt" color="#6c757d" space-after="4mm">
+                                                Visual representation of the complete schema structure starting from root element:
+                                                <fo:inline font-weight="bold">
+                                                    <xsl:value-of select="xsd-documentation/schema-diagram/root-element"/>
+                                                </fo:inline>
+                                            </fo:block>
+
+                                            <!-- Diagram image -->
+                                            <fo:block text-align="center" space-before="5mm">
+                                                <fo:external-graphic
+                                                    src="{xsd-documentation/schema-diagram/image-path}"
+                                                    content-width="scale-to-fit"
+                                                    content-height="scale-to-fit"
+                                                    max-width="160mm"
+                                                    max-height="200mm"
+                                                    scaling="uniform"/>
+                                            </fo:block>
+
+                                            <!-- Caption -->
+                                            <fo:block font-size="9pt" font-style="italic" color="#6c757d"
+                                                text-align="center" space-before="3mm" space-after="8mm">
+                                                Figure: Complete Schema Structure
+                                            </fo:block>
+                                        </xsl:if>
+                                    </xsl:if>
+
                                     <!-- Complex Types -->
                                     <xsl:if test="$includeComplexTypes = 'true' and xsd-documentation/complex-types/complex-type">
-                                        <fo:block font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                        <fo:block id="complex-types" font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
                                             text-decoration="{$headingUnderlined}"
                                             space-before="5mm" space-after="5mm">
                                             Complex Types
@@ -709,7 +839,7 @@ public class XsdDocumentationPdfService {
 
                                     <!-- Simple Types -->
                                     <xsl:if test="$includeSimpleTypes = 'true' and xsd-documentation/simple-types/simple-type">
-                                        <fo:block font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                        <fo:block id="simple-types" font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
                                             text-decoration="{$headingUnderlined}"
                                             space-before="10mm" space-after="5mm">
                                             Simple Types
@@ -757,7 +887,7 @@ public class XsdDocumentationPdfService {
 
                                     <!-- Data Dictionary -->
                                     <xsl:if test="$includeDataDictionary = 'true'">
-                                        <fo:block font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                        <fo:block id="data-dictionary" font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
                                             text-decoration="{$headingUnderlined}"
                                             space-before="5mm" space-after="5mm">
                                             Data Dictionary
@@ -814,7 +944,7 @@ public class XsdDocumentationPdfService {
                                     <xsl:if test="$includeElementDiagrams = 'true'">
                                         <xsl:if test="xsd-documentation/element-diagrams/diagram">
                                             <fo:block break-before="page"/>
-                                            <fo:block font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                            <fo:block id="element-diagrams" font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
                                                 text-decoration="{$headingUnderlined}"
                                                 space-before="5mm" space-after="5mm">
                                                 Element Diagrams
@@ -946,7 +1076,7 @@ public class XsdDocumentationPdfService {
                         String facetName = facetElement.getLocalName();
                         if (facetName != null && !facetName.equals("annotation")) {
                             String facetValue = facetElement.getAttribute("value");
-                            if (facetValue != null && !facetValue.isEmpty()) {
+                            if (!facetValue.isEmpty()) {
                                 facets.add(facetName + ": " + facetValue);
                             } else {
                                 facets.add(facetName);
@@ -1041,7 +1171,7 @@ public class XsdDocumentationPdfService {
         // Traverse up the hierarchy and collect only non-container elements
         while (current != null) {
             if (!isContainerElement(current)) {
-                pathParts.add(0, current.getElementName());
+                pathParts.addFirst(current.getElementName());
             }
             String parentXpath = current.getParentXpath();
             current = (parentXpath != null) ?
@@ -1057,7 +1187,7 @@ public class XsdDocumentationPdfService {
     private String getNodeAttribute(Node node, String attrName, String defaultValue) {
         if (node instanceof Element elem) {
             String value = elem.getAttribute(attrName);
-            if (value != null && !value.isEmpty()) {
+            if (!value.isEmpty()) {
                 return value;
             }
         }
