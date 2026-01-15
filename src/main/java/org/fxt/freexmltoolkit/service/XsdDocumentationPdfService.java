@@ -179,6 +179,27 @@ public class XsdDocumentationPdfService {
         addElement(doc, statistics, "global-simple-types", String.valueOf(documentationData.getGlobalSimpleTypes().size()));
         addElement(doc, statistics, "total-elements", String.valueOf(documentationData.getExtendedXsdElementMap().size()));
 
+        // Namespace Overview section
+        Element namespaceOverview = doc.createElement("namespace-overview");
+        root.appendChild(namespaceOverview);
+
+        // Add target namespace
+        String targetNs = documentationData.getTargetNamespace();
+        if (targetNs != null && !targetNs.isEmpty()) {
+            Element ns = doc.createElement("namespace");
+            namespaceOverview.appendChild(ns);
+            addElement(doc, ns, "prefix", "tns");
+            addElement(doc, ns, "uri", targetNs);
+            addElement(doc, ns, "description", "Target Namespace");
+        }
+
+        // Add XSD namespace
+        Element xsdNs = doc.createElement("namespace");
+        namespaceOverview.appendChild(xsdNs);
+        addElement(doc, xsdNs, "prefix", "xs/xsd");
+        addElement(doc, xsdNs, "uri", "http://www.w3.org/2001/XMLSchema");
+        addElement(doc, xsdNs, "description", "XML Schema Definition");
+
         // Schema Diagram section (if configured)
         if (config.isIncludeSchemaDiagram() && imageService != null && tempImageDir != null) {
             Element schemaDiagramSection = doc.createElement("schema-diagram");
@@ -274,6 +295,9 @@ public class XsdDocumentationPdfService {
             addElement(doc, entry, "cardinality", getCardinality(xsdElement));
             addElement(doc, entry, "level", String.valueOf(xsdElement.getLevel()));
 
+            String restrictions = getRestrictionsSummary(xsdElement);
+            addElement(doc, entry, "restrictions", truncateString(restrictions, 50));
+
             String doc1 = getFirstDocumentation(xsdElement);
             addElement(doc, entry, "description", truncateString(doc1, 100));
 
@@ -335,6 +359,47 @@ public class XsdDocumentationPdfService {
 
             logger.info("PDF element diagrams prepared: {} diagrams", diagramCount);
         }
+
+        // Index section - alphabetically sorted list of all types and elements
+        Element index = doc.createElement("index");
+        root.appendChild(index);
+
+        // Collect all unique names (elements, complex types, simple types)
+        Set<String> allNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+
+        // Add element names
+        for (XsdExtendedElement element : elementMap.values()) {
+            if (!isContainerElement(element) && element.getElementName() != null) {
+                allNames.add(element.getElementName());
+            }
+        }
+
+        // Add complex type names
+        for (Node typeNode : documentationData.getGlobalComplexTypes()) {
+            if (typeNode instanceof org.w3c.dom.Element typeElement) {
+                String name = typeElement.getAttribute("name");
+                if (name != null && !name.isEmpty()) {
+                    allNames.add(name);
+                }
+            }
+        }
+
+        // Add simple type names
+        for (Node typeNode : documentationData.getGlobalSimpleTypes()) {
+            if (typeNode instanceof org.w3c.dom.Element typeElement) {
+                String name = typeElement.getAttribute("name");
+                if (name != null && !name.isEmpty()) {
+                    allNames.add(name);
+                }
+            }
+        }
+
+        // Add all names to the index
+        for (String name : allNames) {
+            addElement(doc, index, "entry", name);
+        }
+
+        logger.info("PDF index created with {} entries", allNames.size());
 
         return doc;
     }
@@ -549,6 +614,12 @@ public class XsdDocumentationPdfService {
                                         </fo:bookmark>
                                     </xsl:if>
 
+                                    <xsl:if test="xsd-documentation/namespace-overview/namespace">
+                                        <fo:bookmark internal-destination="namespace-overview">
+                                            <fo:bookmark-title>Namespace Overview</fo:bookmark-title>
+                                        </fo:bookmark>
+                                    </xsl:if>
+
                                     <xsl:if test="$includeSchemaDiagram = 'true'">
                                         <xsl:if test="xsd-documentation/schema-diagram/image-path">
                                             <fo:bookmark internal-destination="schema-diagram">
@@ -587,6 +658,12 @@ public class XsdDocumentationPdfService {
                                                 <fo:bookmark-title>Element Diagrams</fo:bookmark-title>
                                             </fo:bookmark>
                                         </xsl:if>
+                                    </xsl:if>
+
+                                    <xsl:if test="xsd-documentation/index/entry">
+                                        <fo:bookmark internal-destination="index">
+                                            <fo:bookmark-title>Index</fo:bookmark-title>
+                                        </fo:bookmark>
                                     </xsl:if>
                                 </fo:bookmark-tree>
                             </xsl:if>
@@ -755,6 +832,52 @@ public class XsdDocumentationPdfService {
                                         <fo:block break-after="page"/>
                                     </xsl:if>
 
+                                    <!-- Namespace Overview Section -->
+                                    <xsl:if test="xsd-documentation/namespace-overview/namespace">
+                                        <fo:block id="namespace-overview" font-size="14pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                            text-decoration="{$headingUnderlined}"
+                                            space-before="10mm" space-after="5mm">
+                                            Namespace Overview
+                                        </fo:block>
+
+                                        <fo:table table-layout="fixed" width="100%" border="0.5pt solid #CBD5E1">
+                                            <fo:table-column column-width="20%"/>
+                                            <fo:table-column column-width="50%"/>
+                                            <fo:table-column column-width="30%"/>
+                                            <fo:table-header>
+                                                <fo:table-row background-color="{$tableHeaderBg}">
+                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                        <fo:block font-weight="bold" font-size="9pt">Prefix</fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                        <fo:block font-weight="bold" font-size="9pt">URI</fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                        <fo:block font-weight="bold" font-size="9pt">Description</fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                            </fo:table-header>
+                                            <fo:table-body>
+                                                <xsl:for-each select="xsd-documentation/namespace-overview/namespace">
+                                                    <fo:table-row>
+                                                        <xsl:if test="$tableStyle = 'ZEBRA_STRIPES' and position() mod 2 = 0">
+                                                            <xsl:attribute name="background-color">#F9FAFB</xsl:attribute>
+                                                        </xsl:if>
+                                                        <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
+                                                            <fo:block font-size="9pt"><xsl:value-of select="prefix"/></fo:block>
+                                                        </fo:table-cell>
+                                                        <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
+                                                            <fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="uri"/></fo:block>
+                                                        </fo:table-cell>
+                                                        <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
+                                                            <fo:block font-size="9pt"><xsl:value-of select="description"/></fo:block>
+                                                        </fo:table-cell>
+                                                    </fo:table-row>
+                                                </xsl:for-each>
+                                            </fo:table-body>
+                                        </fo:table>
+                                    </xsl:if>
+
                                     <!-- Schema Diagram Section -->
                                     <xsl:if test="$includeSchemaDiagram = 'true'">
                                         <xsl:if test="xsd-documentation/schema-diagram/image-path">
@@ -895,10 +1018,11 @@ public class XsdDocumentationPdfService {
 
                                         <xsl:if test="xsd-documentation/data-dictionary/element">
                                             <fo:table table-layout="fixed" width="100%" border="0.5pt solid #CBD5E1">
-                                                <fo:table-column column-width="30%"/>
-                                                <fo:table-column column-width="20%"/>
+                                                <fo:table-column column-width="25%"/>
                                                 <fo:table-column column-width="15%"/>
-                                                <fo:table-column column-width="35%"/>
+                                                <fo:table-column column-width="12%"/>
+                                                <fo:table-column column-width="20%"/>
+                                                <fo:table-column column-width="28%"/>
                                                 <fo:table-header>
                                                     <fo:table-row background-color="{$tableHeaderBg}">
                                                         <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
@@ -909,6 +1033,9 @@ public class XsdDocumentationPdfService {
                                                         </fo:table-cell>
                                                         <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
                                                             <fo:block font-weight="bold" font-size="9pt">Cardinality</fo:block>
+                                                        </fo:table-cell>
+                                                        <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
+                                                            <fo:block font-weight="bold" font-size="9pt">Restrictions</fo:block>
                                                         </fo:table-cell>
                                                         <fo:table-cell padding="3mm" border="0.5pt solid #CBD5E1">
                                                             <fo:block font-weight="bold" font-size="9pt">Description</fo:block>
@@ -929,6 +1056,9 @@ public class XsdDocumentationPdfService {
                                                             </fo:table-cell>
                                                             <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
                                                                 <fo:block font-size="8pt"><xsl:value-of select="cardinality"/></fo:block>
+                                                            </fo:table-cell>
+                                                            <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
+                                                                <fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="restrictions"/></fo:block>
                                                             </fo:table-cell>
                                                             <fo:table-cell padding="2mm" border="0.5pt solid #CBD5E1">
                                                                 <fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="description"/></fo:block>
@@ -985,6 +1115,57 @@ public class XsdDocumentationPdfService {
                                                 </fo:block>
                                             </xsl:for-each>
                                         </xsl:if>
+                                    </xsl:if>
+
+                                    <!-- Index Section -->
+                                    <xsl:if test="xsd-documentation/index/entry">
+                                        <fo:block break-before="page"/>
+                                        <fo:block id="index" font-size="18pt" font-weight="{$headingBold}" color="{$headingColor}"
+                                            text-decoration="{$headingUnderlined}"
+                                            space-before="5mm" space-after="10mm">
+                                            Index
+                                        </fo:block>
+
+                                        <!-- 3-column layout for compact index display -->
+                                        <fo:table table-layout="fixed" width="100%">
+                                            <fo:table-column column-width="33%"/>
+                                            <fo:table-column column-width="33%"/>
+                                            <fo:table-column column-width="34%"/>
+                                            <fo:table-body>
+                                                <xsl:variable name="entries" select="xsd-documentation/index/entry"/>
+                                                <xsl:variable name="count" select="count($entries)"/>
+                                                <xsl:variable name="perColumn" select="ceiling($count div 3)"/>
+                                                <fo:table-row>
+                                                    <fo:table-cell padding="2mm">
+                                                        <fo:block>
+                                                            <xsl:for-each select="$entries[position() &lt;= $perColumn]">
+                                                                <fo:block font-size="9pt" space-after="1mm">
+                                                                    <xsl:value-of select="."/>
+                                                                </fo:block>
+                                                            </xsl:for-each>
+                                                        </fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="2mm">
+                                                        <fo:block>
+                                                            <xsl:for-each select="$entries[position() &gt; $perColumn and position() &lt;= ($perColumn * 2)]">
+                                                                <fo:block font-size="9pt" space-after="1mm">
+                                                                    <xsl:value-of select="."/>
+                                                                </fo:block>
+                                                            </xsl:for-each>
+                                                        </fo:block>
+                                                    </fo:table-cell>
+                                                    <fo:table-cell padding="2mm">
+                                                        <fo:block>
+                                                            <xsl:for-each select="$entries[position() &gt; ($perColumn * 2)]">
+                                                                <fo:block font-size="9pt" space-after="1mm">
+                                                                    <xsl:value-of select="."/>
+                                                                </fo:block>
+                                                            </xsl:for-each>
+                                                        </fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                            </fo:table-body>
+                                        </fo:table>
                                     </xsl:if>
 
                                 </fo:flow>
@@ -1099,14 +1280,69 @@ public class XsdDocumentationPdfService {
 
     private String getFirstDocumentation(XsdExtendedElement element) {
         Map<String, String> docs = element.getLanguageDocumentation();
-        if (docs != null && !docs.isEmpty()) {
-            String doc = docs.get("default");
-            if (doc == null) {
-                doc = docs.values().iterator().next();
-            }
-            // Strip HTML tags
-            return doc.replaceAll("<[^>]*>", "").trim();
+        if (docs == null || docs.isEmpty()) {
+            return "";
         }
+
+        // Apply language filter if set
+        if (includedLanguages != null && !includedLanguages.isEmpty()) {
+            for (String lang : includedLanguages) {
+                if (docs.containsKey(lang)) {
+                    return stripHtml(docs.get(lang));
+                }
+            }
+        }
+
+        // Fallback: default or first available language
+        String doc = docs.get("default");
+        if (doc == null) {
+            doc = docs.values().iterator().next();
+        }
+        return stripHtml(doc);
+    }
+
+    /**
+     * Strips HTML tags from a string.
+     */
+    private String stripHtml(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replaceAll("<[^>]*>", "").trim();
+    }
+
+    /**
+     * Gets a summary of restrictions for an element (facets, constraints, assertions).
+     */
+    private String getRestrictionsSummary(XsdExtendedElement element) {
+        if (element == null) {
+            return "";
+        }
+
+        // Get the restriction string from the element
+        String restrictionString = element.getXsdRestrictionString();
+        if (restrictionString != null && !restrictionString.isEmpty()) {
+            // Clean up and format the restriction string
+            return restrictionString.replaceAll("\\s+", " ").trim();
+        }
+
+        // Check for identity constraints
+        var constraints = element.getIdentityConstraints();
+        if (constraints != null && !constraints.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (var constraint : constraints) {
+                if (!sb.isEmpty()) sb.append("; ");
+                sb.append(constraint.getType()).append(": ").append(constraint.getName());
+            }
+            return sb.toString();
+        }
+
+        // Check for assertions (XSD 1.1)
+        var assertions = element.getAssertions();
+        if (assertions != null && !assertions.isEmpty()) {
+            return assertions.size() + " assertion(s)";
+        }
+
         return "";
     }
 
