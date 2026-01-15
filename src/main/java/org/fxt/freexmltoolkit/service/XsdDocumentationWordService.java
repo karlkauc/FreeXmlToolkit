@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.util.Units;
+import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
 import org.apache.poi.xwpf.usermodel.*;
 import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
@@ -50,11 +51,15 @@ public class XsdDocumentationWordService {
 
     private static final Logger logger = LogManager.getLogger(XsdDocumentationWordService.class);
 
-    // Style constants
-    private static final String COLOR_PRIMARY = "2563EB";      // Blue
-    private static final String COLOR_SECONDARY = "64748B";    // Slate
-    private static final String COLOR_HEADER_BG = "F1F5F9";    // Light gray
-    private static final String COLOR_TABLE_BORDER = "CBD5E1"; // Border gray
+    // Style color definitions for different HeaderStyles
+    private static final String[][] STYLE_COLORS = {
+            // PROFESSIONAL: Blue/Slate theme (index 0)
+            {"2563EB", "64748B", "F1F5F9", "CBD5E1"},  // primary, secondary, headerBg, tableBorder
+            // MINIMAL: Black/Gray theme (index 1)
+            {"374151", "6B7280", "F9FAFB", "E5E7EB"},  // dark gray, medium gray, very light, light border
+            // COLORFUL: Purple/Pink theme (index 2)
+            {"7C3AED", "EC4899", "FEF3C7", "DDD6FE"}   // purple, pink, light yellow, light purple
+    };
 
     private static final int TABLE_WIDTH_TWIPS = 9000;
 
@@ -63,6 +68,50 @@ public class XsdDocumentationWordService {
     private Set<String> includedLanguages;
     private TaskProgressListener progressListener;
     private WordDocumentationConfig config = new WordDocumentationConfig();
+
+    // ================= Style Color Helpers =================
+
+    /**
+     * Gets the style color array index based on the configured HeaderStyle.
+     */
+    private int getStyleIndex() {
+        if (config == null || config.getHeaderStyle() == null) {
+            return 0; // Default to PROFESSIONAL
+        }
+        return switch (config.getHeaderStyle()) {
+            case PROFESSIONAL -> 0;
+            case MINIMAL -> 1;
+            case COLORFUL -> 2;
+        };
+    }
+
+    /**
+     * Gets the primary color for headings based on the configured HeaderStyle.
+     */
+    private String getColorPrimary() {
+        return STYLE_COLORS[getStyleIndex()][0];
+    }
+
+    /**
+     * Gets the secondary color for captions and metadata based on the configured HeaderStyle.
+     */
+    private String getColorSecondary() {
+        return STYLE_COLORS[getStyleIndex()][1];
+    }
+
+    /**
+     * Gets the header background color for tables based on the configured HeaderStyle.
+     */
+    private String getColorHeaderBg() {
+        return STYLE_COLORS[getStyleIndex()][2];
+    }
+
+    /**
+     * Gets the table border color based on the configured HeaderStyle.
+     */
+    private String getColorTableBorder() {
+        return STYLE_COLORS[getStyleIndex()][3];
+    }
 
     /**
      * Generates a Word document from the XSD documentation data.
@@ -81,6 +130,9 @@ public class XsdDocumentationWordService {
             // Set page size and orientation based on config
             setPageLayout(document);
 
+            // Create header and footer with page numbers
+            createHeaderFooter(document);
+
             // Create cover page if configured
             if (config.isIncludeCoverPage()) {
                 reportProgress("Creating cover page");
@@ -96,6 +148,10 @@ public class XsdDocumentationWordService {
             // Create schema overview
             reportProgress("Creating schema overview");
             createSchemaOverview(document);
+
+            // Create namespace overview
+            reportProgress("Creating namespace overview");
+            createNamespaceOverview(document);
 
             // Embed schema diagram if available and configured
             if (config.isIncludeSchemaDiagram() && imageService != null) {
@@ -122,6 +178,10 @@ public class XsdDocumentationWordService {
                 reportProgress("Creating Element Diagrams");
                 createElementDiagramsSection(document);
             }
+
+            // Create Index section at the end
+            reportProgress("Creating Index");
+            createIndexSection(document);
 
             // Save the document
             reportProgress("Saving document");
@@ -186,6 +246,62 @@ public class XsdDocumentationWordService {
     }
 
     /**
+     * Creates header and footer for the document with page numbers.
+     * Header shows the schema name, footer shows page numbers and generation info.
+     */
+    private void createHeaderFooter(XWPFDocument document) {
+        try {
+            // Create header/footer policy
+            XWPFHeaderFooterPolicy policy = document.createHeaderFooterPolicy();
+
+            // Create header with schema name
+            XWPFHeader header = policy.createHeader(XWPFHeaderFooterPolicy.DEFAULT);
+            XWPFParagraph headerPara = header.createParagraph();
+            headerPara.setAlignment(ParagraphAlignment.RIGHT);
+
+            XWPFRun headerRun = headerPara.createRun();
+            String schemaName = extractSchemaName();
+            headerRun.setText("XSD Documentation: " + schemaName);
+            headerRun.setFontSize(9);
+            headerRun.setColor(getColorSecondary());
+            headerRun.setItalic(true);
+
+            // Create footer with page numbers
+            XWPFFooter footer = policy.createFooter(XWPFHeaderFooterPolicy.DEFAULT);
+            XWPFParagraph footerPara = footer.createParagraph();
+            footerPara.setAlignment(ParagraphAlignment.CENTER);
+
+            // Add "Page X of Y" with field codes
+            XWPFRun footerRun = footerPara.createRun();
+            footerRun.setText("Page ");
+            footerRun.setFontSize(9);
+            footerRun.setColor(getColorSecondary());
+
+            // PAGE field
+            footerPara.getCTP().addNewFldSimple().setInstr("PAGE");
+
+            XWPFRun footerRun2 = footerPara.createRun();
+            footerRun2.setText(" of ");
+            footerRun2.setFontSize(9);
+            footerRun2.setColor(getColorSecondary());
+
+            // NUMPAGES field
+            footerPara.getCTP().addNewFldSimple().setInstr("NUMPAGES");
+
+            // Add generation info line
+            XWPFParagraph footerLine2 = footer.createParagraph();
+            footerLine2.setAlignment(ParagraphAlignment.CENTER);
+            XWPFRun genRun = footerLine2.createRun();
+            genRun.setText("Generated by FreeXmlToolkit");
+            genRun.setFontSize(8);
+            genRun.setColor(getColorSecondary());
+
+        } catch (Exception e) {
+            logger.warn("Failed to create header/footer: {}", e.getMessage());
+        }
+    }
+
+    /**
      * Sets the document properties (metadata).
      */
     private void setDocumentProperties(XWPFDocument document) {
@@ -215,7 +331,7 @@ public class XsdDocumentationWordService {
         titleRun.setText("XSD Schema Documentation");
         titleRun.setBold(true);
         titleRun.setFontSize(28);
-        titleRun.setColor(COLOR_PRIMARY);
+        titleRun.setColor(getColorPrimary());
         titleRun.setFontFamily("Calibri");
 
         // Schema name
@@ -227,7 +343,7 @@ public class XsdDocumentationWordService {
         XWPFRun schemaRun = schemaPara.createRun();
         schemaRun.setText(schemaName);
         schemaRun.setFontSize(18);
-        schemaRun.setColor(COLOR_SECONDARY);
+        schemaRun.setColor(getColorSecondary());
         schemaRun.setFontFamily("Calibri");
 
         // Generated date
@@ -239,7 +355,7 @@ public class XsdDocumentationWordService {
         dateRun.setText("Generated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         dateRun.setFontSize(11);
         dateRun.setItalic(true);
-        dateRun.setColor(COLOR_SECONDARY);
+        dateRun.setColor(getColorSecondary());
 
         // Generator info
         XWPFParagraph genPara = document.createParagraph();
@@ -248,7 +364,7 @@ public class XsdDocumentationWordService {
         XWPFRun genRun = genPara.createRun();
         genRun.setText("Generated by FreeXmlToolkit");
         genRun.setFontSize(10);
-        genRun.setColor(COLOR_SECONDARY);
+        genRun.setColor(getColorSecondary());
 
         // Page break after title page
         XWPFParagraph breakPara = document.createParagraph();
@@ -279,7 +395,7 @@ public class XsdDocumentationWordService {
         instrRun.setText("(Right-click and select 'Update Field' to refresh the Table of Contents)");
         instrRun.setItalic(true);
         instrRun.setFontSize(9);
-        instrRun.setColor(COLOR_SECONDARY);
+        instrRun.setColor(getColorSecondary());
 
         // Page break
         XWPFParagraph breakPara = document.createParagraph();
@@ -350,6 +466,51 @@ public class XsdDocumentationWordService {
     }
 
     /**
+     * Creates the namespace overview section showing all namespaces used in the schema.
+     */
+    private void createNamespaceOverview(XWPFDocument document) {
+        Map<String, String> namespaces = documentationData.getNamespaces();
+
+        // Skip if no namespaces are defined
+        if (namespaces == null || namespaces.isEmpty()) {
+            return;
+        }
+
+        createHeading(document, "Namespace Overview", 2);
+
+        // Create table for namespaces
+        int rowCount = namespaces.size() + 1;
+        XWPFTable nsTable = document.createTable(rowCount, 2);
+        setTableStyle(nsTable);
+        setColumnWidths(nsTable, new int[]{2500, 6500});
+
+        // Header row
+        setTableCellWithZebra(nsTable.getRow(0), 0, "Prefix", 0);
+        setTableCellWithZebra(nsTable.getRow(0), 1, "Namespace URI", 0);
+
+        // Sort namespaces by prefix for consistent output
+        List<Map.Entry<String, String>> sortedNamespaces = new ArrayList<>(namespaces.entrySet());
+        sortedNamespaces.sort(Map.Entry.comparingByKey());
+
+        int row = 1;
+        for (Map.Entry<String, String> entry : sortedNamespaces) {
+            String prefix = entry.getKey();
+            String uri = entry.getValue();
+
+            // Mark default namespace
+            if (prefix == null || prefix.isEmpty()) {
+                prefix = "(default)";
+            }
+
+            setTableCellWithZebra(nsTable.getRow(row), 0, prefix, row);
+            setTableCellWithZebra(nsTable.getRow(row), 1, uri, row);
+            row++;
+        }
+
+        addParagraphSpacing(document);
+    }
+
+    /**
      * Embeds the schema diagram as a PNG image.
      */
     private void embedSchemaDiagram(XWPFDocument document) {
@@ -400,7 +561,7 @@ public class XsdDocumentationWordService {
                     captionRun.setText("Figure 1: Schema Structure Overview");
                     captionRun.setItalic(true);
                     captionRun.setFontSize(10);
-                    captionRun.setColor(COLOR_SECONDARY);
+                    captionRun.setColor(getColorSecondary());
                 }
             } catch (IOException | InvalidFormatException e) {
                 logger.warn("Failed to embed schema diagram: {}", e.getMessage());
@@ -409,14 +570,14 @@ public class XsdDocumentationWordService {
                 XWPFRun errorRun = errorPara.createRun();
                 errorRun.setText("(Schema diagram could not be generated)");
                 errorRun.setItalic(true);
-                errorRun.setColor(COLOR_SECONDARY);
+                errorRun.setColor(getColorSecondary());
             }
         } else {
             XWPFParagraph noDiagramPara = document.createParagraph();
             XWPFRun noDiagramRun = noDiagramPara.createRun();
             noDiagramRun.setText("(No diagram available)");
             noDiagramRun.setItalic(true);
-            noDiagramRun.setColor(COLOR_SECONDARY);
+            noDiagramRun.setColor(getColorSecondary());
         }
 
         // Page break
@@ -446,9 +607,9 @@ public class XsdDocumentationWordService {
         setColumnWidths(summaryTable, new int[]{3500, 3500, 2000});
 
         // Header row
-        setTableCell(summaryTable.getRow(0), 0, "Type Name", true, COLOR_HEADER_BG);
-        setTableCell(summaryTable.getRow(0), 1, "Base Type", true, COLOR_HEADER_BG);
-        setTableCell(summaryTable.getRow(0), 2, "Usage Count", true, COLOR_HEADER_BG);
+        setTableCell(summaryTable.getRow(0), 0, "Type Name", true, getColorHeaderBg());
+        setTableCell(summaryTable.getRow(0), 1, "Base Type", true, getColorHeaderBg());
+        setTableCell(summaryTable.getRow(0), 2, "Usage Count", true, getColorHeaderBg());
 
         int row = 1;
         for (Node typeNode : complexTypes) {
@@ -491,9 +652,9 @@ public class XsdDocumentationWordService {
         setColumnWidths(summaryTable, new int[]{3500, 3500, 2000});
 
         // Header row
-        setTableCell(summaryTable.getRow(0), 0, "Type Name", true, COLOR_HEADER_BG);
-        setTableCell(summaryTable.getRow(0), 1, "Base Type", true, COLOR_HEADER_BG);
-        setTableCell(summaryTable.getRow(0), 2, "Facets", true, COLOR_HEADER_BG);
+        setTableCell(summaryTable.getRow(0), 0, "Type Name", true, getColorHeaderBg());
+        setTableCell(summaryTable.getRow(0), 1, "Base Type", true, getColorHeaderBg());
+        setTableCell(summaryTable.getRow(0), 2, "Facets", true, getColorHeaderBg());
 
         int row = 1;
         for (Node typeNode : simpleTypes) {
@@ -539,15 +700,16 @@ public class XsdDocumentationWordService {
         int totalElements = sortedElements.size();
         logger.info("Creating Word data dictionary with {} elements (excluding container elements)", totalElements);
 
-        XWPFTable dictTable = document.createTable(totalElements + 1, 4);
+        XWPFTable dictTable = document.createTable(totalElements + 1, 5);
         setTableStyle(dictTable);
-        setColumnWidths(dictTable, new int[]{3000, 2000, 2000, 2000});
+        setColumnWidths(dictTable, new int[]{2500, 1800, 1200, 1800, 1700});
 
-        // Header row
-        setTableCell(dictTable.getRow(0), 0, "Element Path", true, COLOR_HEADER_BG);
-        setTableCell(dictTable.getRow(0), 1, "Type", true, COLOR_HEADER_BG);
-        setTableCell(dictTable.getRow(0), 2, "Cardinality", true, COLOR_HEADER_BG);
-        setTableCell(dictTable.getRow(0), 3, "Description", true, COLOR_HEADER_BG);
+        // Header row (row index 0)
+        setTableCellWithZebra(dictTable.getRow(0), 0, "Element Path", 0);
+        setTableCellWithZebra(dictTable.getRow(0), 1, "Type", 0);
+        setTableCellWithZebra(dictTable.getRow(0), 2, "Cardinality", 0);
+        setTableCellWithZebra(dictTable.getRow(0), 3, "Restrictions", 0);
+        setTableCellWithZebra(dictTable.getRow(0), 4, "Description", 0);
 
         int row = 1;
         int progressInterval = Math.max(1, totalElements / 10); // Report progress every 10%
@@ -558,20 +720,26 @@ public class XsdDocumentationWordService {
             String path = getCleanXPath(element);
             String type = element.getElementType() != null ? element.getElementType() : "-";
             String cardinality = getCardinality(element);
+            String restrictions = getRestrictionsSummary(element);
             String description = getFirstDocumentation(element);
 
             // Truncate long values for table display
-            if (path != null && path.length() > 50) {
-                path = "..." + path.substring(path.length() - 47);
+            if (path != null && path.length() > 40) {
+                path = "..." + path.substring(path.length() - 37);
             }
-            if (description != null && description.length() > 60) {
-                description = description.substring(0, 57) + "...";
+            if (restrictions != null && restrictions.length() > 35) {
+                restrictions = restrictions.substring(0, 32) + "...";
+            }
+            if (description != null && description.length() > 40) {
+                description = description.substring(0, 37) + "...";
             }
 
-            setTableCell(dictTable.getRow(row), 0, path != null ? path : "-", false);
-            setTableCell(dictTable.getRow(row), 1, type, false);
-            setTableCell(dictTable.getRow(row), 2, cardinality != null ? cardinality : "1", false);
-            setTableCell(dictTable.getRow(row), 3, description != null ? description : "-", false);
+            // Use zebra striping for better readability
+            setTableCellWithZebra(dictTable.getRow(row), 0, path != null ? path : "-", row);
+            setTableCellWithZebra(dictTable.getRow(row), 1, type, row);
+            setTableCellWithZebra(dictTable.getRow(row), 2, cardinality != null ? cardinality : "1", row);
+            setTableCellWithZebra(dictTable.getRow(row), 3, restrictions != null ? restrictions : "-", row);
+            setTableCellWithZebra(dictTable.getRow(row), 4, description != null ? description : "-", row);
             row++;
 
             // Report progress for large documents
@@ -635,14 +803,14 @@ public class XsdDocumentationWordService {
                 XWPFRun infoRun = infoPara.createRun();
                 infoRun.setText("Path: " + getCleanXPath(element));
                 infoRun.setFontSize(10);
-                infoRun.setColor(COLOR_SECONDARY);
+                infoRun.setColor(getColorSecondary());
 
                 if (element.getElementType() != null) {
                     infoPara = document.createParagraph();
                     infoRun = infoPara.createRun();
                     infoRun.setText("Type: " + element.getElementType());
                     infoRun.setFontSize(10);
-                    infoRun.setColor(COLOR_SECONDARY);
+                    infoRun.setColor(getColorSecondary());
                 }
 
                 // Generate and embed diagram
@@ -672,7 +840,7 @@ public class XsdDocumentationWordService {
                     captionRun.setText("Figure: Structure of " + element.getElementName());
                     captionRun.setItalic(true);
                     captionRun.setFontSize(9);
-                    captionRun.setColor(COLOR_SECONDARY);
+                    captionRun.setColor(getColorSecondary());
                 }
 
                 // Add some spacing
@@ -709,6 +877,96 @@ public class XsdDocumentationWordService {
         return false;
     }
 
+    /**
+     * Creates an alphabetical index of all types and elements at the end of the document.
+     */
+    private void createIndexSection(XWPFDocument document) {
+        // Page break before index
+        XWPFParagraph breakPara = document.createParagraph();
+        breakPara.createRun().addBreak(BreakType.PAGE);
+
+        createHeading(document, "Index", 1);
+
+        // Collect all items for the index
+        List<String> indexItems = new ArrayList<>();
+
+        // Add global elements
+        for (Node node : documentationData.getGlobalElements()) {
+            if (node instanceof Element elem) {
+                String name = elem.getAttribute("name");
+                if (name != null && !name.isEmpty()) {
+                    indexItems.add(name + " (Element)");
+                }
+            }
+        }
+
+        // Add complex types
+        for (Node node : documentationData.getGlobalComplexTypes()) {
+            if (node instanceof Element elem) {
+                String name = elem.getAttribute("name");
+                if (name != null && !name.isEmpty()) {
+                    indexItems.add(name + " (ComplexType)");
+                }
+            }
+        }
+
+        // Add simple types
+        for (Node node : documentationData.getGlobalSimpleTypes()) {
+            if (node instanceof Element elem) {
+                String name = elem.getAttribute("name");
+                if (name != null && !name.isEmpty()) {
+                    indexItems.add(name + " (SimpleType)");
+                }
+            }
+        }
+
+        // Sort alphabetically (case-insensitive)
+        indexItems.sort(String.CASE_INSENSITIVE_ORDER);
+
+        if (indexItems.isEmpty()) {
+            XWPFParagraph emptyPara = document.createParagraph();
+            XWPFRun emptyRun = emptyPara.createRun();
+            emptyRun.setText("No items to index.");
+            emptyRun.setItalic(true);
+            return;
+        }
+
+        // Create index in two columns using a table
+        int itemsPerColumn = (indexItems.size() + 1) / 2;
+        XWPFTable indexTable = document.createTable(itemsPerColumn, 2);
+        setColumnWidths(indexTable, new int[]{4500, 4500});
+
+        // Remove table borders for cleaner look
+        CTTblPr tblPr = indexTable.getCTTbl().getTblPr();
+        if (tblPr == null) {
+            tblPr = indexTable.getCTTbl().addNewTblPr();
+        }
+        CTTblBorders borders = tblPr.addNewTblBorders();
+        borders.addNewTop().setVal(STBorder.NIL);
+        borders.addNewBottom().setVal(STBorder.NIL);
+        borders.addNewLeft().setVal(STBorder.NIL);
+        borders.addNewRight().setVal(STBorder.NIL);
+        borders.addNewInsideH().setVal(STBorder.NIL);
+        borders.addNewInsideV().setVal(STBorder.NIL);
+
+        for (int i = 0; i < itemsPerColumn; i++) {
+            XWPFTableRow row = indexTable.getRow(i);
+
+            // Left column
+            if (i < indexItems.size()) {
+                setTableCell(row, 0, indexItems.get(i), false);
+            }
+
+            // Right column
+            int rightIndex = i + itemsPerColumn;
+            if (rightIndex < indexItems.size()) {
+                setTableCell(row, 1, indexItems.get(rightIndex), false);
+            }
+        }
+
+        logger.info("Index section created with {} items", indexItems.size());
+    }
+
     // ================= Helper Methods =================
 
     private void createHeading(XWPFDocument document, String text, int level) {
@@ -724,15 +982,15 @@ public class XsdDocumentationWordService {
         switch (level) {
             case 1 -> {
                 run.setFontSize(18);
-                run.setColor(COLOR_PRIMARY);
+                run.setColor(getColorPrimary());
             }
             case 2 -> {
                 run.setFontSize(14);
-                run.setColor(COLOR_PRIMARY);
+                run.setColor(getColorPrimary());
             }
             default -> {
                 run.setFontSize(12);
-                run.setColor(COLOR_SECONDARY);
+                run.setColor(getColorSecondary());
             }
         }
     }
@@ -750,32 +1008,32 @@ public class XsdDocumentationWordService {
         CTBorder border = borders.addNewTop();
         border.setVal(STBorder.SINGLE);
         border.setSz(BigInteger.valueOf(4));
-        border.setColor(COLOR_TABLE_BORDER);
+        border.setColor(getColorTableBorder());
 
         border = borders.addNewBottom();
         border.setVal(STBorder.SINGLE);
         border.setSz(BigInteger.valueOf(4));
-        border.setColor(COLOR_TABLE_BORDER);
+        border.setColor(getColorTableBorder());
 
         border = borders.addNewLeft();
         border.setVal(STBorder.SINGLE);
         border.setSz(BigInteger.valueOf(4));
-        border.setColor(COLOR_TABLE_BORDER);
+        border.setColor(getColorTableBorder());
 
         border = borders.addNewRight();
         border.setVal(STBorder.SINGLE);
         border.setSz(BigInteger.valueOf(4));
-        border.setColor(COLOR_TABLE_BORDER);
+        border.setColor(getColorTableBorder());
 
         border = borders.addNewInsideH();
         border.setVal(STBorder.SINGLE);
         border.setSz(BigInteger.valueOf(4));
-        border.setColor(COLOR_TABLE_BORDER);
+        border.setColor(getColorTableBorder());
 
         border = borders.addNewInsideV();
         border.setVal(STBorder.SINGLE);
         border.setSz(BigInteger.valueOf(4));
-        border.setColor(COLOR_TABLE_BORDER);
+        border.setColor(getColorTableBorder());
     }
 
     private void setColumnWidths(XWPFTable table, int[] widths) {
@@ -821,6 +1079,39 @@ public class XsdDocumentationWordService {
             CTShd shd = tcPr.addNewShd();
             shd.setFill(bgColor);
         }
+    }
+
+    /**
+     * Sets a table cell with zebra striping (alternating row colors).
+     * Even rows (index 0, 2, 4...) get the primary background, odd rows get a light tint.
+     *
+     * @param row       the table row
+     * @param cellIndex the cell index in the row
+     * @param text      the text to set
+     * @param rowIndex  the row index (0-based, where 0 is the header row)
+     */
+    private void setTableCellWithZebra(XWPFTableRow row, int cellIndex, String text, int rowIndex) {
+        // Header row (index 0) gets header background
+        // Data rows: even indices get very light background, odd get white
+        String bgColor = null;
+        if (rowIndex == 0) {
+            bgColor = getColorHeaderBg();
+        } else if (rowIndex % 2 == 0) {
+            // Even data rows get a very light tint based on style
+            bgColor = getZebraStripeColor();
+        }
+        setTableCell(row, cellIndex, text, rowIndex == 0, bgColor);
+    }
+
+    /**
+     * Gets the zebra stripe background color (lighter than header background).
+     */
+    private String getZebraStripeColor() {
+        return switch (config.getHeaderStyle()) {
+            case PROFESSIONAL -> "F8FAFC";  // Very light blue-gray
+            case MINIMAL -> "FAFAFA";       // Very light gray
+            case COLORFUL -> "FEFCE8";      // Very light yellow
+        };
     }
 
     private void addParagraphSpacing(XWPFDocument document) {
@@ -917,18 +1208,70 @@ public class XsdDocumentationWordService {
         return 0;
     }
 
+    /**
+     * Gets a summary of restrictions/facets for an element.
+     * Uses the restriction string from the element if available.
+     */
+    private String getRestrictionsSummary(XsdExtendedElement element) {
+        if (element == null) {
+            return null;
+        }
+
+        // Get the restriction string from the element
+        String restrictionString = element.getXsdRestrictionString();
+        if (restrictionString != null && !restrictionString.isEmpty()) {
+            // Clean up and format the restriction string
+            return restrictionString.replaceAll("\\s+", " ").trim();
+        }
+
+        // Check for identity constraints
+        var constraints = element.getIdentityConstraints();
+        if (constraints != null && !constraints.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (var constraint : constraints) {
+                if (sb.length() > 0) sb.append("; ");
+                sb.append(constraint.getType()).append(": ").append(constraint.getName());
+            }
+            return sb.toString();
+        }
+
+        // Check for assertions (XSD 1.1)
+        var assertions = element.getAssertions();
+        if (assertions != null && !assertions.isEmpty()) {
+            return assertions.size() + " assertion(s)";
+        }
+
+        return null;
+    }
+
     private String getFirstDocumentation(XsdExtendedElement element) {
         Map<String, String> docs = element.getLanguageDocumentation();
-        if (docs != null && !docs.isEmpty()) {
-            // Prefer default or first available
-            String doc = docs.get("default");
-            if (doc == null) {
-                doc = docs.values().iterator().next();
-            }
-            // Strip HTML tags
-            return doc.replaceAll("<[^>]*>", "").trim();
+        if (docs == null || docs.isEmpty()) {
+            return null;
         }
-        return null;
+
+        String doc = null;
+
+        // If language filter is set, try to find documentation in preferred languages
+        if (includedLanguages != null && !includedLanguages.isEmpty()) {
+            for (String lang : includedLanguages) {
+                if (docs.containsKey(lang)) {
+                    doc = docs.get(lang);
+                    break;
+                }
+            }
+        }
+
+        // Fallback: prefer "default" language, then any available
+        if (doc == null) {
+            doc = docs.get("default");
+        }
+        if (doc == null) {
+            doc = docs.values().iterator().next();
+        }
+
+        // Strip HTML tags and return
+        return doc.replaceAll("<[^>]*>", "").trim();
     }
 
     private void reportProgress(String message) {

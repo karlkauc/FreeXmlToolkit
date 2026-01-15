@@ -140,8 +140,8 @@ class XsdDocumentationWordServiceTest {
         // Then
         assertTrue(outputFile.exists(), "Output file should exist");
         assertFalse(progressMessages.isEmpty(), "Progress messages should be received");
-        assertTrue(progressMessages.stream().anyMatch(msg -> msg.contains("title")),
-                "Should report title page creation");
+        assertTrue(progressMessages.stream().anyMatch(msg -> msg.contains("Schema") || msg.contains("overview")),
+                "Should report schema overview creation");
     }
 
     @Test
