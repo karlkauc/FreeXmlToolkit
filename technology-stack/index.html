@@ -2466,7 +2466,7 @@
 <h1 id="technology-stack">Technology Stack<a class="headerlink" href="#technology-stack" title="Permanent link">&para;</a></h1>
 <p>FreeXmlToolkit is built using modern Java technologies and libraries to provide a robust, cross-platform XML and JSON processing environment.</p>
 <blockquote>
-<p><strong>Last Updated:</strong> January 2026 | <strong>Version:</strong> 1.2.1</p>
+<p><strong>Last Updated:</strong> January 2026 | <strong>Version:</strong> 1.2.3</p>
 </blockquote>
 <h2 id="core-technologies">Core Technologies<a class="headerlink" href="#core-technologies" title="Permanent link">&para;</a></h2>
 <h3 id="java-platform">Java Platform<a class="headerlink" href="#java-platform" title="Permanent link">&para;</a></h3>
@@ -2480,8 +2480,8 @@
 <li><strong>JavaFX:</strong> 24.0.1 for cross-platform desktop GUI (bundled with Liberica Full JDK)</li>
 <li><strong>FXML:</strong> Declarative UI layout with MVC architecture</li>
 <li><strong>AtlantaFX:</strong> 2.1.0 - Modern theme library for enhanced styling</li>
-<li><strong>RichTextFX:</strong> 0.11.6 - Advanced text editing component with syntax highlighting</li>
-<li><strong>ControlsFX:</strong> 11.2.2 - Extended JavaFX controls</li>
+<li><strong>RichTextFX:</strong> 0.11.7 - Advanced text editing component with syntax highlighting</li>
+<li><strong>ControlsFX:</strong> 11.2.3 - Extended JavaFX controls</li>
 </ul>
 <h2 id="key-libraries">Key Libraries<a class="headerlink" href="#key-libraries" title="Permanent link">&para;</a></h2>
 <h3 id="xml-processing">XML Processing<a class="headerlink" href="#xml-processing" title="Permanent link">&para;</a></h3>
@@ -2493,8 +2493,8 @@
 <h3 id="json-processing">JSON Processing<a class="headerlink" href="#json-processing" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Gson:</strong> 2.13.2 - JSON parsing and serialization</li>
-<li><strong>JSONPath:</strong> 2.9.0 (Jayway) - JSONPath query language support</li>
-<li><strong>JSON Schema Validator:</strong> 1.5.6 (NetworkNT) - JSON Schema validation (Draft 4-2020-12)</li>
+<li><strong>JSONPath:</strong> 2.10.0 (Jayway) - JSONPath query language support</li>
+<li><strong>JSON Schema Validator:</strong> 1.5.3 (NetworkNT) - JSON Schema validation (Draft 4-2020-12)</li>
 </ul>
 <h3 id="pdf-generation">PDF Generation<a class="headerlink" href="#pdf-generation" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2505,7 +2505,7 @@
 <h3 id="digital-signatures">Digital Signatures<a class="headerlink" href="#digital-signatures" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Apache Santuario:</strong> 4.0.4 - XML Security (XML-DSig)</li>
-<li><strong>BouncyCastle:</strong> 1.82 - Cryptographic operations for XML digital signatures</li>
+<li><strong>BouncyCastle:</strong> 1.83 - Cryptographic operations for XML digital signatures</li>
 <li><strong>Java Cryptography Architecture (JCA):</strong> Native Java crypto support</li>
 </ul>
 <h3 id="office-integration">Office Integration<a class="headerlink" href="#office-integration" title="Permanent link">&para;</a></h3>
@@ -2514,9 +2514,9 @@
 </ul>
 <h3 id="utilities">Utilities<a class="headerlink" href="#utilities" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Apache Commons Lang3:</strong> 3.19.0 - String manipulation and utilities</li>
-<li><strong>Apache Commons IO:</strong> 2.20.0 - File and IO utilities</li>
-<li><strong>Apache Commons Text:</strong> 1.14.0 - Text algorithms</li>
+<li><strong>Apache Commons Lang3:</strong> 3.20.0 - String manipulation and utilities</li>
+<li><strong>Apache Commons IO:</strong> 2.21.0 - File and IO utilities</li>
+<li><strong>Apache Commons Text:</strong> 1.15.0 - Text algorithms</li>
 <li><strong>Gson:</strong> 2.13.2 - JSON processing</li>
 </ul>
 <h3 id="testing-framework">Testing Framework<a class="headerlink" href="#testing-framework" title="Permanent link">&para;</a></h3>
@@ -2634,13 +2634,13 @@
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">&quot;org.apache.xmlgraphics:fop:2.11&quot;</span><span class="p">)</span>
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="c1">// UI Components</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">&quot;org.fxmisc.richtext:richtextfx:0.11.6&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">&quot;org.fxmisc.richtext:richtextfx:0.11.7&quot;</span><span class="p">)</span>
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">&quot;io.github.mkpaz:atlantafx-base:2.1.0&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">&quot;org.controlsfx:controlsfx:11.2.2&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">&quot;org.controlsfx:controlsfx:11.2.3&quot;</span><span class="p">)</span>
 <a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
 <a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="c1">// Security</span>
 <a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">&quot;org.apache.santuario:xmlsec:4.0.4&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">&quot;org.bouncycastle:bcpkix-jdk18on:1.82&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">&quot;org.bouncycastle:bcpkix-jdk18on:1.83&quot;</span><span class="p">)</span>
 <a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
 <a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">    </span><span class="c1">// Testing</span>
 <a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">&quot;org.junit.jupiter:junit-jupiter:5.x&quot;</span><span class="p">)</span>
