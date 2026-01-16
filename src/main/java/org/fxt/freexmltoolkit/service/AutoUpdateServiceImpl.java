@@ -411,11 +411,14 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             // Launch the updater script
             ProcessBuilder pb;
             if (isWindows()) {
-                pb = new ProcessBuilder("cmd.exe", "/c", "start", "/b",
-                        updaterScript.toString(),
-                        appDir.toString(),
-                        extractedDir.toString(),
-                        launcher.toString());
+                // IMPORTANT: "start /b" requires an empty title ("") before the command
+                // Without it, the first argument is interpreted as the window title!
+                // All paths must be quoted to handle spaces correctly
+                pb = new ProcessBuilder("cmd.exe", "/c", "start", "/b", "\"\"",
+                        "\"" + updaterScript.toString() + "\"",
+                        "\"" + appDir.toString() + "\"",
+                        "\"" + extractedDir.toString() + "\"",
+                        "\"" + launcher.toString() + "\"");
             } else {
                 // Make the script executable
                 setExecutable(updaterScript);
@@ -501,11 +504,18 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
     /**
      * Creates the Windows updater batch script content.
+     * Includes logging, parameter validation, and nested directory search.
      */
     private String createWindowsUpdaterScript() {
         return """
                 @echo off
                 setlocal enabledelayedexpansion
+
+                set "LOG_FILE=%TEMP%\\fxt-update.log"
+
+                echo ======================================== >> "%LOG_FILE%"
+                echo FreeXmlToolkit Updater - %DATE% %TIME% >> "%LOG_FILE%"
+                echo ======================================== >> "%LOG_FILE%"
 
                 set "APP_DIR=%~1"
                 set "UPDATE_DIR=%~2"
@@ -517,6 +527,30 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 echo Update directory: %UPDATE_DIR%
                 echo Launcher: %LAUNCHER%
 
+                echo APP_DIR=%APP_DIR% >> "%LOG_FILE%"
+                echo UPDATE_DIR=%UPDATE_DIR% >> "%LOG_FILE%"
+                echo LAUNCHER=%LAUNCHER% >> "%LOG_FILE%"
+
+                :: Validate parameters
+                if "%APP_DIR%"=="" (
+                    echo Error: Application directory not specified >> "%LOG_FILE%"
+                    echo Error: Application directory not specified
+                    exit /b 1
+                )
+
+                if "%UPDATE_DIR%"=="" (
+                    echo Error: Update directory not specified >> "%LOG_FILE%"
+                    echo Error: Update directory not specified
+                    exit /b 1
+                )
+
+                if "%LAUNCHER%"=="" (
+                    echo Error: Launcher path not specified >> "%LOG_FILE%"
+                    echo Error: Launcher path not specified
+                    exit /b 1
+                )
+
+                echo Waiting for application to exit... >> "%LOG_FILE%"
                 echo Waiting for application to exit...
 
                 :wait_loop
@@ -526,33 +560,71 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                     goto wait_loop
                 )
 
+                :: Additional wait to ensure all file handles are released
+                timeout /t 2 /nobreak >NUL
+
+                echo Application has exited. Installing update... >> "%LOG_FILE%"
                 echo Application has exited. Installing update...
 
-                :: Find the extracted app folder (should be FreeXmlToolkit)
+                :: Find the extracted app folder - check first level
+                set "UPDATE_APP_DIR="
                 for /d %%d in ("%UPDATE_DIR%\\*") do (
                     if exist "%%d\\FreeXmlToolkit.exe" (
+                        set "UPDATE_APP_DIR=%%d"
+                        echo Found update in: %%d >> "%LOG_FILE%"
                         echo Found update in: %%d
+                    )
+                )
 
-                        :: Copy new files
-                        echo Copying files...
-                        xcopy /E /Y /I "%%d\\*" "%APP_DIR%\\" >NUL
-
-                        if %ERRORLEVEL% neq 0 (
-                            echo Error copying files!
-                            pause
-                            exit /b 1
+                :: If not found, check second level (nested zip structure)
+                if "%UPDATE_APP_DIR%"=="" (
+                    for /d %%d in ("%UPDATE_DIR%\\*") do (
+                        for /d %%e in ("%%d\\*") do (
+                            if exist "%%e\\FreeXmlToolkit.exe" (
+                                set "UPDATE_APP_DIR=%%e"
+                                echo Found update in nested dir: %%e >> "%LOG_FILE%"
+                                echo Found update in nested dir: %%e
+                            )
                         )
                     )
                 )
 
+                if "%UPDATE_APP_DIR%"=="" (
+                    echo Error: Could not find update files with FreeXmlToolkit.exe >> "%LOG_FILE%"
+                    echo Error: Could not find update files with FreeXmlToolkit.exe
+                    echo Contents of update directory: >> "%LOG_FILE%"
+                    dir /b /s "%UPDATE_DIR%" >> "%LOG_FILE%" 2>&1
+                    exit /b 1
+                )
+
+                :: Copy new files
+                echo Copying files from %UPDATE_APP_DIR% to %APP_DIR% >> "%LOG_FILE%"
+                echo Copying files...
+                xcopy /E /Y /I "%UPDATE_APP_DIR%\\*" "%APP_DIR%\\" >NUL 2>&1
+
+                if %ERRORLEVEL% neq 0 (
+                    echo Error copying files! Error code: %ERRORLEVEL% >> "%LOG_FILE%"
+                    echo Error copying files! Try running as Administrator.
+                    exit /b 1
+                )
+
+                echo Files copied successfully >> "%LOG_FILE%"
+                echo Files copied successfully.
+
                 :: Cleanup update directory
+                echo Cleaning up... >> "%LOG_FILE%"
                 echo Cleaning up...
                 rmdir /S /Q "%UPDATE_DIR%" 2>NUL
 
+                :: Small delay before starting
+                timeout /t 1 /nobreak >NUL
+
                 :: Restart application
+                echo Starting updated application: %LAUNCHER% >> "%LOG_FILE%"
                 echo Starting updated application...
                 start "" "%LAUNCHER%"
 
+                echo Update completed successfully >> "%LOG_FILE%"
                 exit /b 0
                 """;
     }
