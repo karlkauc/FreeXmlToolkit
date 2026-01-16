@@ -364,13 +364,23 @@ public class XsdDocumentationPdfService {
         Element index = doc.createElement("index");
         root.appendChild(index);
 
-        // Collect all unique names (elements, complex types, simple types)
-        Set<String> allNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        // Use a record to store index entry data
+        record IndexEntry(String name, String entryType, String location) implements Comparable<IndexEntry> {
+            @Override
+            public int compareTo(IndexEntry other) {
+                return String.CASE_INSENSITIVE_ORDER.compare(this.name, other.name);
+            }
+        }
 
-        // Add element names
+        // Collect all index entries with their type and location
+        Set<IndexEntry> indexEntries = new TreeSet<>();
+
+        // Add element names with their XPath location
         for (XsdExtendedElement element : elementMap.values()) {
             if (!isContainerElement(element) && element.getElementName() != null) {
-                allNames.add(element.getElementName());
+                String xpath = element.getCurrentXpath();
+                String location = xpath != null ? xpath : "Global";
+                indexEntries.add(new IndexEntry(element.getElementName(), "Element", location));
             }
         }
 
@@ -379,7 +389,7 @@ public class XsdDocumentationPdfService {
             if (typeNode instanceof org.w3c.dom.Element typeElement) {
                 String name = typeElement.getAttribute("name");
                 if (name != null && !name.isEmpty()) {
-                    allNames.add(name);
+                    indexEntries.add(new IndexEntry(name, "ComplexType", "Global"));
                 }
             }
         }
@@ -389,17 +399,21 @@ public class XsdDocumentationPdfService {
             if (typeNode instanceof org.w3c.dom.Element typeElement) {
                 String name = typeElement.getAttribute("name");
                 if (name != null && !name.isEmpty()) {
-                    allNames.add(name);
+                    indexEntries.add(new IndexEntry(name, "SimpleType", "Global"));
                 }
             }
         }
 
-        // Add all names to the index
-        for (String name : allNames) {
-            addElement(doc, index, "entry", name);
+        // Create structured index entries
+        for (IndexEntry entry : indexEntries) {
+            Element entryElement = doc.createElement("entry");
+            addElement(doc, entryElement, "name", entry.name());
+            addElement(doc, entryElement, "entry-type", entry.entryType());
+            addElement(doc, entryElement, "location", entry.location());
+            index.appendChild(entryElement);
         }
 
-        logger.info("PDF index created with {} entries", allNames.size());
+        logger.info("PDF index created with {} entries", indexEntries.size());
 
         return doc;
     }

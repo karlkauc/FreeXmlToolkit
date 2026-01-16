@@ -2839,7 +2839,13 @@ public class XsdController implements FavoritesParentController {
 
                 // Generate documentation based on selected format
                 switch (outputFormat) {
-                    case HTML -> docService.generateXsdDocumentation(outputTarget);
+                    case HTML -> {
+                        docService.generateXsdDocumentation(outputTarget);
+                        // Export debug info for HTML
+                        DocumentationDebugExporter.exportDebugInfo(
+                                outputTarget, "HTML", docService.xsdDocumentationData,
+                                null, selectedLanguages, useMarkdown, showDocInSvg);
+                    }
                     case WORD -> {
                         // First process the XSD to get the data
                         docService.processXsd(useMarkdown);
@@ -2853,6 +2859,10 @@ public class XsdController implements FavoritesParentController {
                         imageService.setShowDocumentation(showDocInSvg);
                         wordService.setImageService(imageService);
                         wordService.generateWordDocumentation(outputTarget, docService.xsdDocumentationData);
+                        // Export debug info for Word
+                        DocumentationDebugExporter.exportDebugInfo(
+                                outputTarget, "WORD", docService.xsdDocumentationData,
+                                wordConfig, selectedLanguages, useMarkdown, showDocInSvg);
                     }
                     case PDF -> {
                         // First process the XSD to get the data
@@ -2866,6 +2876,10 @@ public class XsdController implements FavoritesParentController {
                         imageService.setShowDocumentation(showDocInSvg);
                         pdfService.setImageService(imageService);
                         pdfService.generatePdfDocumentation(outputTarget, docService.xsdDocumentationData);
+                        // Export debug info for PDF
+                        DocumentationDebugExporter.exportDebugInfo(
+                                outputTarget, "PDF", docService.xsdDocumentationData,
+                                pdfConfig, selectedLanguages, useMarkdown, showDocInSvg);
                     }
                 }
                 return null;
