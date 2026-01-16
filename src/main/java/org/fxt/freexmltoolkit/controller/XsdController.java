@@ -6239,6 +6239,7 @@ public class XsdController implements FavoritesParentController {
         applyButtonSettings(toolbarFormat, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toolbarAddFavorite, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toolbarShowFavorites, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarXPathQuery, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toolbarRecentFiles, displayMode, iconSize, buttonStyle);
         applyButtonSettings(toolbarHelp, displayMode, iconSize, buttonStyle);
 

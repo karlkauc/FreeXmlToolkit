@@ -981,10 +981,10 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
+            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
+            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
         }
         showMenu = !showMenu;
     }
@@ -1025,6 +1025,7 @@ public class MainController implements Initializable {
 
     private void restoreButtonText(Button button) {
         if (button == xmlUltimate) button.setText("XML Editor");
+        else if (button == json) button.setText("JSON Editor");
         else if (button == xsd) button.setText("XSD Editor");
         else if (button == xsdValidation) button.setText("XSD Validation");
         else if (button == schematron) button.setText("Schematron Editor");
@@ -1036,7 +1037,7 @@ public class MainController implements Initializable {
         else if (button == exit) button.setText("Exit");
         else if (button == xsltDeveloper) button.setText("XSLT Developer");
         else if (button == schemaGenerator) button.setText("Schema Generator");
-        // else if (button == templates) button.setText("Smart Templates"); // Removed from menu
+        else if (button == unifiedEditor) button.setText("Unified Editor");
     }
 
     @FXML
