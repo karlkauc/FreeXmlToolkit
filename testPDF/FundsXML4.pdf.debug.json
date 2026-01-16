@@ -1,0 +1,63 @@
+{
+  "generationInfo": {
+    "timestamp": "2026-01-16T09:28:41.158873",
+    "format": "PDF",
+    "outputFile": "/Users/karlkauc/src/testPDF/FundsXML4.pdf",
+    "xsdFile": "/Users/karlkauc/src/FundsXMLSchema 2/include_files/FundsXML4.xsd",
+    "generatorVersion": "1.2.3"
+  },
+  "xsdInfo": {
+    "targetNamespace": null,
+    "version": "4.2.10",
+    "elementFormDefault": "qualified",
+    "attributeFormDefault": "unqualified",
+    "globalElements": 1,
+    "globalComplexTypes": 267,
+    "globalSimpleTypes": 52,
+    "totalElements": 48072
+  },
+  "config": {
+    "type": "PDF",
+    "pageSize": "A3",
+    "orientation": "LANDSCAPE",
+    "margins": "NARROW",
+    "pageWidth": "420mm",
+    "pageHeight": "297mm",
+    "marginSize": "15mm",
+    "includeCoverPage": true,
+    "includeToc": true,
+    "includeSchemaOverview": true,
+    "includeSchemaDiagram": true,
+    "includeElementDiagrams": true,
+    "includeComplexTypes": true,
+    "includeSimpleTypes": true,
+    "includeDataDictionary": true,
+    "fontSize": "PT_9",
+    "fontSizeValue": "9pt",
+    "fontFamily": "TIMES",
+    "fontFamilyName": "Times",
+    "headingStyle": "BOLD_BLACK",
+    "lineSpacing": "RELAXED",
+    "lineHeightValue": "1.5",
+    "headerStyle": "NONE",
+    "footerStyle": "MINIMAL",
+    "includePageNumbers": true,
+    "pageNumberPosition": "RIGHT",
+    "colorScheme": "GREEN",
+    "primaryColor": "#059669",
+    "tableStyle": "ZEBRA_STRIPES",
+    "watermark": "DRAFT",
+    "watermarkText": "DRAFT",
+    "hasWatermark": true,
+    "generateBookmarks": true,
+    "title": null,
+    "author": null,
+    "subject": null,
+    "keywords": null
+  },
+  "languageSettings": {
+    "includedLanguages": [],
+    "useMarkdownRenderer": true,
+    "showDocumentationInDiagrams": false
+  }
+}
