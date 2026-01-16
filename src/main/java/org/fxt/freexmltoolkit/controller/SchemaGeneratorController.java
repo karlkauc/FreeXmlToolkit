@@ -429,6 +429,12 @@ public class SchemaGeneratorController implements FavoritesParentController {
         // Set initial button states
         if (exportSchemaBtn != null) exportSchemaBtn.setDisable(true);
         if (generationProgressBar != null) generationProgressBar.setVisible(false);
+
+        // Disable batch processing - feature not yet implemented
+        if (batchProcessBtn != null) {
+            batchProcessBtn.setDisable(true);
+            batchProcessBtn.setTooltip(new javafx.scene.control.Tooltip("Batch processing is not yet available"));
+        }
     }
 
     private void setupEventHandlers() {
@@ -693,8 +699,8 @@ public class SchemaGeneratorController implements FavoritesParentController {
 
     @FXML
     private void batchProcess() {
-        // TODO: Implement batch processing functionality
-        showInfo("Batch Process", "Batch processing feature coming soon!");
+        // Feature not yet implemented - button is disabled in initializeUI()
+        logger.debug("Batch processing requested but feature is not yet implemented");
     }
 
     private void filterTypeDefinitions() {

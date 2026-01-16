@@ -754,27 +754,51 @@ public class XsltTransformationEngine {
         }
     }
 
+    /**
+     * Extracts template matching information from the transformation result.
+     * <p>
+     * <b>BETA:</b> This method currently returns sample data for demonstration purposes.
+     * Full implementation using Saxon debugging APIs is planned for a future release.
+     *
+     * @param result the transformation result
+     * @return list of template match information (currently sample data)
+     */
     private List<TemplateMatchInfo> extractTemplateMatchingInfo(XsltTransformationResult result) {
-        // TODO: Implement template matching extraction using Saxon debugging APIs
+        // BETA: Returns sample data - Saxon debugging API integration planned
         List<TemplateMatchInfo> matches = new ArrayList<>();
-
-        // Mock implementation for now
         matches.add(new TemplateMatchInfo("match=\"/\"", "Template root", 1, 50));
         matches.add(new TemplateMatchInfo("match=\"//item\"", "Item template", 15, 200));
-
         return matches;
     }
 
+    /**
+     * Extracts variable values from the transformation result.
+     * <p>
+     * <b>BETA:</b> This method currently returns sample data for demonstration purposes.
+     * Full implementation using Saxon debugging APIs is planned for a future release.
+     *
+     * @param result the transformation result
+     * @return map of variable names to values (currently sample data)
+     */
     private Map<String, Object> extractVariableValues(XsltTransformationResult result) {
-        // TODO: Implement variable value extraction
+        // BETA: Returns sample data - Saxon debugging API integration planned
         Map<String, Object> variables = new HashMap<>();
         variables.put("$title", "Example Document");
         variables.put("$count", 42);
         return variables;
     }
 
+    /**
+     * Extracts the call stack from the transformation result.
+     * <p>
+     * <b>BETA:</b> This method currently returns sample data for demonstration purposes.
+     * Full implementation using Saxon debugging APIs is planned for a future release.
+     *
+     * @param result the transformation result
+     * @return list of call stack entries (currently sample data)
+     */
     private List<String> extractCallStack(XsltTransformationResult result) {
-        // TODO: Implement call stack extraction
+        // BETA: Returns sample data - Saxon debugging API integration planned
         List<String> callStack = new ArrayList<>();
         callStack.add("template match=\"/\" at line 10");
         callStack.add("call-template name=\"process-items\" at line 25");

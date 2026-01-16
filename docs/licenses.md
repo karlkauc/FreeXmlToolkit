@@ -1,6 +1,6 @@
 # Third-Party Libraries and Licenses
 
-FreeXmlToolkit (Version 1.2.1) uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.
+FreeXmlToolkit (Version 1.2.3) uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.
 
 > **Last Updated:** January 2026
 
@@ -16,8 +16,8 @@ FreeXmlToolkit (Version 1.2.1) uses several third-party libraries. The following
 
 | Library | Version | License |
 |---------|---------|---------|
-| **JSONPath** (com.jayway.jsonpath:json-path) | 2.9.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **JSON Schema Validator** (com.networknt:json-schema-validator) | 1.5.6 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **JSONPath** (com.jayway.jsonpath:json-path) | 2.10.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **JSON Schema Validator** (com.networknt:json-schema-validator) | 1.5.3 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## XML Validation (XSD 1.1 Support)
 
@@ -33,8 +33,8 @@ FreeXmlToolkit (Version 1.2.1) uses several third-party libraries. The following
 |---------|---------|---------|
 | **JavaFX** (Liberica Full JDK) | 24.0.1 | [GPL v2 with Classpath Exception](https://openjdk.java.net/legal/gplv2+ce.html) |
 | **AtlantaFX** (io.github.mkpaz:atlantafx-base) | 2.1.0 | [MIT License](https://opensource.org/licenses/MIT) |
-| **RichTextFX** (org.fxmisc.richtext:richtextfx) | 0.11.6 | [BSD-2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
-| **ControlsFX** (org.controlsfx:controlsfx) | 11.2.2 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
+| **RichTextFX** (org.fxmisc.richtext:richtextfx) | 0.11.7 | [BSD-2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
+| **ControlsFX** (org.controlsfx:controlsfx) | 11.2.3 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
 | **CSSFX** (fr.brouillard.oss:cssfx) | 11.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## Icons and Graphics
@@ -70,16 +70,16 @@ FreeXmlToolkit (Version 1.2.1) uses several third-party libraries. The following
 | Library | Version | License |
 |---------|---------|---------|
 | **Apache Santuario** (org.apache.santuario:xmlsec) | 4.0.4 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Bouncy Castle** (org.bouncycastle:bcpkix-jdk18on) | 1.82 | [MIT License](https://www.bouncycastle.org/licence.html) |
+| **Bouncy Castle** (org.bouncycastle:bcpkix-jdk18on) | 1.83 | [MIT License](https://www.bouncycastle.org/licence.html) |
 
 ## Utilities and Commons
 
 | Library | Version | License |
 |---------|---------|---------|
-| **Apache Commons Lang3** (org.apache.commons:commons-lang3) | 3.19.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache Commons IO** (commons-io:commons-io) | 2.20.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache Commons Text** (org.apache.commons:commons-text) | 1.14.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache Commons Validator** (commons-validator:commons-validator) | 1.10.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache Commons Lang3** (org.apache.commons:commons-lang3) | 3.20.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache Commons IO** (commons-io:commons-io) | 2.21.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache Commons Text** (org.apache.commons:commons-text) | 1.15.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache Commons Validator** (commons-validator:commons-validator) | 1.10.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## Templating and Markdown
 
@@ -93,7 +93,7 @@ FreeXmlToolkit (Version 1.2.1) uses several third-party libraries. The following
 | Library | Version | License |
 |---------|---------|---------|
 | **Generex** (com.github.mifmif:generex) | 1.0.2 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **RgxGen** (com.github.curious-odd-man:rgxgen) | 3.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **RgxGen** (com.github.curious-odd-man:rgxgen) | 3.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## Logging
 

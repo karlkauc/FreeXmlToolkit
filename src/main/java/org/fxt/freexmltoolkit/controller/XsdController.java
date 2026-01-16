@@ -4388,6 +4388,7 @@ public class XsdController implements FavoritesParentController {
 
         MenuItem manageFavoritesItem = new MenuItem("Manage Favorites...");
         manageFavoritesItem.setOnAction(e -> showXsdFavoritesManagement());
+        manageFavoritesItem.setDisable(true); // Feature not yet implemented
         menuButton.getItems().add(manageFavoritesItem);
     }
 
@@ -4452,8 +4453,8 @@ public class XsdController implements FavoritesParentController {
     }
 
     private void showXsdFavoritesManagement() {
-        // This will be implemented when we create the settings UI
-        showAlertDialog(Alert.AlertType.INFORMATION, "Coming Soon", "Favorites management will be available in Settings.");
+        // Feature not yet implemented - menu item is disabled
+        logger.debug("Favorites management requested but feature is not yet implemented");
     }
 
     @FXML

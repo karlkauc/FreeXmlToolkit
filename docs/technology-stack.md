@@ -2,7 +2,7 @@
 
 FreeXmlToolkit is built using modern Java technologies and libraries to provide a robust, cross-platform XML and JSON processing environment.
 
-> **Last Updated:** January 2026 | **Version:** 1.2.1
+> **Last Updated:** January 2026 | **Version:** 1.2.3
 
 ## Core Technologies
 
@@ -15,8 +15,8 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 - **JavaFX:** 24.0.1 for cross-platform desktop GUI (bundled with Liberica Full JDK)
 - **FXML:** Declarative UI layout with MVC architecture
 - **AtlantaFX:** 2.1.0 - Modern theme library for enhanced styling
-- **RichTextFX:** 0.11.6 - Advanced text editing component with syntax highlighting
-- **ControlsFX:** 11.2.2 - Extended JavaFX controls
+- **RichTextFX:** 0.11.7 - Advanced text editing component with syntax highlighting
+- **ControlsFX:** 11.2.3 - Extended JavaFX controls
 
 ## Key Libraries
 
@@ -27,8 +27,8 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 
 ### JSON Processing
 - **Gson:** 2.13.2 - JSON parsing and serialization
-- **JSONPath:** 2.9.0 (Jayway) - JSONPath query language support
-- **JSON Schema Validator:** 1.5.6 (NetworkNT) - JSON Schema validation (Draft 4-2020-12)
+- **JSONPath:** 2.10.0 (Jayway) - JSONPath query language support
+- **JSON Schema Validator:** 1.5.3 (NetworkNT) - JSON Schema validation (Draft 4-2020-12)
 
 ### PDF Generation
 - **Apache FOP:** 2.11 - XSL-FO to PDF transformation
@@ -37,16 +37,16 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 
 ### Digital Signatures
 - **Apache Santuario:** 4.0.4 - XML Security (XML-DSig)
-- **BouncyCastle:** 1.82 - Cryptographic operations for XML digital signatures
+- **BouncyCastle:** 1.83 - Cryptographic operations for XML digital signatures
 - **Java Cryptography Architecture (JCA):** Native Java crypto support
 
 ### Office Integration
 - **Apache POI:** 5.4.1 - Excel export for validation results
 
 ### Utilities
-- **Apache Commons Lang3:** 3.19.0 - String manipulation and utilities
-- **Apache Commons IO:** 2.20.0 - File and IO utilities
-- **Apache Commons Text:** 1.14.0 - Text algorithms
+- **Apache Commons Lang3:** 3.20.0 - String manipulation and utilities
+- **Apache Commons IO:** 2.21.0 - File and IO utilities
+- **Apache Commons Text:** 1.15.0 - Text algorithms
 - **Gson:** 2.13.2 - JSON processing
 
 ### Testing Framework
@@ -168,13 +168,13 @@ dependencies {
     implementation("org.apache.xmlgraphics:fop:2.11")
 
     // UI Components
-    implementation("org.fxmisc.richtext:richtextfx:0.11.6")
+    implementation("org.fxmisc.richtext:richtextfx:0.11.7")
     implementation("io.github.mkpaz:atlantafx-base:2.1.0")
-    implementation("org.controlsfx:controlsfx:11.2.2")
+    implementation("org.controlsfx:controlsfx:11.2.3")
 
     // Security
     implementation("org.apache.santuario:xmlsec:4.0.4")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.82")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.83")
 
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.x")

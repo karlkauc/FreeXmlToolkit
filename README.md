@@ -1,6 +1,6 @@
 # FreeXmlToolkit - Your Complete XML Workstation
 
-[![Java](https://img.shields.io/badge/Java-24+-orange.svg)](https://openjdk.org/)
+[![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/)
 [![JavaFX](https://img.shields.io/badge/JavaFX-24.0.1-blue.svg)](https://openjfx.io/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE.md)
 
