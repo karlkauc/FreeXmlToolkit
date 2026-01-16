@@ -548,6 +548,16 @@ $runtimeArg
 --enable-native-access=ALL-UNNAMED
 --java-options
 --enable-native-access=javafx.graphics
+--java-options
+-Xms128m
+--java-options
+-Xmx1g
+--java-options
+-XX:TieredStopAtLevel=1
+--java-options
+-XX:+UseParallelGC
+--java-options
+-Dprism.order=d3d,sw
 --verbose
 $platformArgs""".trimIndent())
             

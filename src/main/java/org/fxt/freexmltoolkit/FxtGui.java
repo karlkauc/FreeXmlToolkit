@@ -89,7 +89,15 @@ public class FxtGui extends Application {
 
     final static String APP_ICON_PATH = "img/logo.png";
 
-    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    // Lazy initialization - loaded on first access to improve startup time
+    private PropertiesService propertiesService;
+
+    private PropertiesService getPropertiesService() {
+        if (propertiesService == null) {
+            propertiesService = PropertiesServiceImpl.getInstance();
+        }
+        return propertiesService;
+    }
 
     MainController mainController;
 
@@ -110,10 +118,12 @@ public class FxtGui extends Application {
         ServiceRegistry.initialize();
         logger.info("Service registry initialization complete");
 
-        // Enable NTLM proxy authentication for corporate environments
-        // This must be called BEFORE any HTTP requests are made
-        logger.info("Enabling NTLM proxy authentication...");
-        SystemProxyDetector.enableNtlmAuthentication();
+        // Enable NTLM proxy authentication for corporate environments in background
+        // This runs asynchronously to improve startup time
+        executorService.submit(() -> {
+            logger.info("Enabling NTLM proxy authentication in background...");
+            SystemProxyDetector.enableNtlmAuthentication();
+        });
     }
 
     /**
@@ -177,7 +187,7 @@ public class FxtGui extends Application {
     @Override
     public void start(Stage primaryStage) {
         startWatch.start();
-        loadFonts();
+        loadFontsAsync();
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
@@ -226,27 +236,31 @@ public class FxtGui extends Application {
     }
 
     /**
-     * Loads custom Roboto font family from embedded resources.
+     * Loads custom Roboto font family from embedded resources asynchronously.
      *
      * <p>Attempts to load all variants of the Roboto font including:
      * Regular, Bold, Italic, Light, Thin, Medium, Black, and their italic variants.
      * Font loading failures are logged as warnings but do not prevent application startup.
      *
      * <p>Fonts are loaded at 10pt size and become available system-wide within the application.
+     * Loading happens in the background to improve startup time.
      */
-    private void loadFonts() {
-        String[] fonts = {
-                "Roboto-Regular", "Roboto-Bold", "Roboto-Italic", "Roboto-Light",
-                "Roboto-Thin", "Roboto-Medium", "Roboto-Black", "Roboto-BoldItalic",
-                "Roboto-LightItalic", "Roboto-MediumItalic", "Roboto-ThinItalic", "Roboto-BlackItalic"
-        };
-        for (String font : fonts) {
-            try {
-                Font.loadFont(getClass().getResourceAsStream("/css/fonts/" + font + ".ttf"), 10);
-            } catch (Exception e) {
-                logger.warn("Could not load font: {}.ttf", font, e);
+    private void loadFontsAsync() {
+        executorService.submit(() -> {
+            String[] fonts = {
+                    "Roboto-Regular", "Roboto-Bold", "Roboto-Italic", "Roboto-Light",
+                    "Roboto-Thin", "Roboto-Medium", "Roboto-Black", "Roboto-BoldItalic",
+                    "Roboto-LightItalic", "Roboto-MediumItalic", "Roboto-ThinItalic", "Roboto-BlackItalic"
+            };
+            for (String font : fonts) {
+                try {
+                    Font.loadFont(getClass().getResourceAsStream("/css/fonts/" + font + ".ttf"), 10);
+                } catch (Exception e) {
+                    logger.warn("Could not load font: {}.ttf", font, e);
+                }
             }
-        }
+            logger.debug("All fonts loaded in background");
+        });
     }
 
 
@@ -300,10 +314,10 @@ public class FxtGui extends Application {
         startWatch.stop();
         var currentDuration = startWatch.getDuration(); // / 1000;
 
-        var prop = propertiesService.loadProperties();
+        var prop = getPropertiesService().loadProperties();
         if (prop == null) {
-            propertiesService.createDefaultProperties();
-            prop = propertiesService.loadProperties();
+            getPropertiesService().createDefaultProperties();
+            prop = getPropertiesService().loadProperties();
         }
 
         // 1. Lesen Sie den Wert sicher aus. Wenn "usageDuration" nicht existiert,
@@ -315,7 +329,7 @@ public class FxtGui extends Application {
         var newSeconds = oldSeconds + currentDuration.getSeconds();
 
         prop.setProperty("usageDuration", String.valueOf(newSeconds));
-        propertiesService.saveProperties(prop);
+        getPropertiesService().saveProperties(prop);
         logger.debug("Duration: {}", currentDuration);
         logger.debug("Duration overall: {}", newSeconds);
 
