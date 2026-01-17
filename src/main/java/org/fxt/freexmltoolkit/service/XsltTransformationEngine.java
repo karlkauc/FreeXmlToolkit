@@ -192,8 +192,12 @@ public class XsltTransformationEngine {
                                               Map<String, Object> parameters, OutputFormat outputFormat) {
         long startTime = System.currentTimeMillis();
 
+        // Debug listeners (created only when debugging is enabled)
+        XsltDebugTraceListener traceListener = null;
+        XsltDebugMessageListener messageListener = null;
+
         try {
-            logger.debug("Starting XSLT transformation with {} output format", outputFormat);
+            logger.debug("Starting XSLT transformation with {} output format (debug={})", outputFormat, enableDebugging);
 
             // Create transformation context
             TransformationContext context = new TransformationContext(xmlContent, xsltContent,
@@ -208,6 +212,15 @@ public class XsltTransformationEngine {
             // Create transformer
             XsltTransformer transformer = executable.load();
             configureTransformer(transformer, parameters, outputFormat);
+
+            // Attach debug listeners when debugging is enabled
+            if (enableDebugging) {
+                traceListener = new XsltDebugTraceListener();
+                messageListener = new XsltDebugMessageListener();
+                transformer.setTraceListener(traceListener);
+                transformer.setMessageListener(messageListener);
+                logger.debug("Debug listeners attached to transformer");
+            }
 
             // Set up input source
             XdmNode sourceDoc = parseXmlDocument(xmlContent);
@@ -235,6 +248,32 @@ public class XsltTransformationEngine {
 
             result.setExecutionTime(System.currentTimeMillis() - startTime);
             result.setTransformationContext(context);
+
+            // Collect debug data from listeners
+            if (enableDebugging && traceListener != null) {
+                result.setTemplateMatches(traceListener.getTemplateMatches());
+                result.setVariableValues(traceListener.getVariableValues());
+                result.setCallStack(traceListener.getCallStack());
+
+                // Update profile with template execution data
+                if (profile != null) {
+                    profile.getTemplateExecutionTimes().putAll(traceListener.getTemplateExecutionTimes());
+                    profile.getTemplateExecutionCounts().putAll(traceListener.getTemplateExecutionCounts());
+                }
+
+                logger.debug("Debug data collected: {} templates, {} variables, {} call stack entries",
+                        result.getTemplateMatches().size(),
+                        result.getVariableValues().size(),
+                        result.getCallStack().size());
+            }
+
+            // Collect messages from message listener
+            if (enableDebugging && messageListener != null) {
+                result.setMessages(messageListener.getMessages());
+                if (!messageListener.getWarnings().isEmpty()) {
+                    result.getWarnings().addAll(messageListener.getWarnings());
+                }
+            }
 
             // Cache profile for analysis
             if (enableProfiling) {
@@ -640,18 +679,34 @@ public class XsltTransformationEngine {
     private XsltExecutable compileStylesheet(String xsltContent, TransformationContext context) {
         String cacheKey = context.getStylesheetCacheKey();
 
+        // Use separate cache key for debug compilations (tracing enabled)
+        if (enableDebugging) {
+            cacheKey = cacheKey + "_debug";
+        }
+
         // Check cache first
         XsltExecutable cached = compiledStylesheets.get(cacheKey);
         if (cached != null) {
-            logger.debug("Using cached XSLT executable for stylesheet");
+            logger.debug("Using cached XSLT executable for stylesheet (debug={})", enableDebugging);
             return cached;
         }
 
         try {
-            logger.debug("Compiling XSLT stylesheet");
+            logger.debug("Compiling XSLT stylesheet (debug={})", enableDebugging);
+
+            // Create a new compiler instance for this compilation
+            XsltCompiler compiler = saxonProcessor.newXsltCompiler();
+            compiler.setXsltLanguageVersion("3.0");
+
+            // CRITICAL: Enable tracing when debugging is enabled
+            // This is required for TraceListener to receive events
+            if (enableDebugging) {
+                compiler.setCompileWithTracing(true);
+                logger.debug("Tracing enabled for XSLT compilation");
+            }
 
             StreamSource source = new StreamSource(new StringReader(xsltContent));
-            XsltExecutable executable = xsltCompiler.compile(source);
+            XsltExecutable executable = compiler.compile(source);
 
             // Cache compiled stylesheet
             compiledStylesheets.put(cacheKey, executable);
@@ -756,53 +811,41 @@ public class XsltTransformationEngine {
 
     /**
      * Extracts template matching information from the transformation result.
-     * <p>
-     * <b>BETA:</b> This method currently returns sample data for demonstration purposes.
-     * Full implementation using Saxon debugging APIs is planned for a future release.
+     * Returns the template matches that were collected during transformation
+     * via the {@link XsltDebugTraceListener}.
      *
-     * @param result the transformation result
-     * @return list of template match information (currently sample data)
+     * @param result the transformation result containing collected debug data
+     * @return list of template match information, or empty list if no data available
      */
     private List<TemplateMatchInfo> extractTemplateMatchingInfo(XsltTransformationResult result) {
-        // BETA: Returns sample data - Saxon debugging API integration planned
-        List<TemplateMatchInfo> matches = new ArrayList<>();
-        matches.add(new TemplateMatchInfo("match=\"/\"", "Template root", 1, 50));
-        matches.add(new TemplateMatchInfo("match=\"//item\"", "Item template", 15, 200));
-        return matches;
+        List<TemplateMatchInfo> matches = result.getTemplateMatches();
+        return matches != null ? matches : new ArrayList<>();
     }
 
     /**
      * Extracts variable values from the transformation result.
-     * <p>
-     * <b>BETA:</b> This method currently returns sample data for demonstration purposes.
-     * Full implementation using Saxon debugging APIs is planned for a future release.
+     * Returns the variable values that were collected during transformation
+     * via the {@link XsltDebugTraceListener}.
      *
-     * @param result the transformation result
-     * @return map of variable names to values (currently sample data)
+     * @param result the transformation result containing collected debug data
+     * @return map of variable names to values, or empty map if no data available
      */
     private Map<String, Object> extractVariableValues(XsltTransformationResult result) {
-        // BETA: Returns sample data - Saxon debugging API integration planned
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("$title", "Example Document");
-        variables.put("$count", 42);
-        return variables;
+        Map<String, Object> variables = result.getVariableValues();
+        return variables != null ? variables : new HashMap<>();
     }
 
     /**
      * Extracts the call stack from the transformation result.
-     * <p>
-     * <b>BETA:</b> This method currently returns sample data for demonstration purposes.
-     * Full implementation using Saxon debugging APIs is planned for a future release.
+     * Returns the call stack history that was collected during transformation
+     * via the {@link XsltDebugTraceListener}.
      *
-     * @param result the transformation result
-     * @return list of call stack entries (currently sample data)
+     * @param result the transformation result containing collected debug data
+     * @return list of call stack entries, or empty list if no data available
      */
     private List<String> extractCallStack(XsltTransformationResult result) {
-        // BETA: Returns sample data - Saxon debugging API integration planned
-        List<String> callStack = new ArrayList<>();
-        callStack.add("template match=\"/\" at line 10");
-        callStack.add("call-template name=\"process-items\" at line 25");
-        return callStack;
+        List<String> callStack = result.getCallStack();
+        return callStack != null ? callStack : new ArrayList<>();
     }
 
     // ========== Cache Management ==========

@@ -41,6 +41,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
+import javafx.stage.Window;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
@@ -121,12 +122,8 @@ public class XsltDeveloperController implements FavoritesParentController {
     private Button loadXmlBtn;
     @FXML
     private Button validateXmlBtn;
-    @FXML
-    private Button loadXsltBtn;
-    @FXML
-    private Button saveXsltBtn;
-    @FXML
-    private Button validateXsltBtn;
+    // Note: loadXsltBtn, saveXsltBtn, validateXsltBtn are not in the FXML
+    // - use loadXmlBtn.getScene().getWindow() instead
 
     // UI Components - Parameters (Grid Layout)
     @FXML
@@ -963,6 +960,9 @@ public class XsltDeveloperController implements FavoritesParentController {
             return;
         }
 
+        // Check if debug mode is enabled
+        boolean debugEnabled = enableDebugMode != null && enableDebugMode.isSelected();
+
         Task<XsltTransformationResult> transformTask = new Task<>() {
             @Override
             protected XsltTransformationResult call() throws Exception {
@@ -970,7 +970,14 @@ public class XsltDeveloperController implements FavoritesParentController {
                 XsltTransformationEngine.OutputFormat format = XsltTransformationEngine.OutputFormat.valueOf(outputFormat.toUpperCase());
 
                 Map<String, Object> params = new HashMap<>(currentParameters);
-                return xsltEngine.transform(xmlContent, xsltContent, params, format);
+
+                // Use liveTransform with debugging when debug mode is enabled
+                if (debugEnabled) {
+                    logger.debug("Debug mode enabled - using liveTransform with debugging");
+                    return xsltEngine.liveTransform(xmlContent, xsltContent, params, format, true);
+                } else {
+                    return xsltEngine.transform(xmlContent, xsltContent, params, format);
+                }
             }
 
             @Override
@@ -1096,6 +1103,80 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         // Update features used (if available)
         updateFeaturesUsed(result, transformationType);
+
+        // Update debug information if debug mode is enabled
+        boolean debugEnabled = enableDebugMode != null && enableDebugMode.isSelected();
+        if (debugEnabled) {
+            updateDebugInformation(result);
+        }
+    }
+
+    private void updateDebugInformation(XsltTransformationResult result) {
+        // Update messages list
+        if (messagesListView != null) {
+            messagesListView.getItems().clear();
+            var messages = result.getMessages();
+            if (messages != null && !messages.isEmpty()) {
+                for (var msg : messages) {
+                    String messageText = String.format("[%s] Line %d: %s",
+                            msg.getLevel(), msg.getLineNumber(), msg.getMessage());
+                    messagesListView.getItems().add(messageText);
+                }
+            } else {
+                messagesListView.getItems().add("No xsl:message output captured");
+            }
+        }
+
+        // Update trace area with template matches, call stack, and variables
+        if (traceArea != null) {
+            StringBuilder trace = new StringBuilder();
+
+            // Template matches
+            var templateMatches = result.getTemplateMatches();
+            if (templateMatches != null && !templateMatches.isEmpty()) {
+                trace.append("=== Template Matches (").append(templateMatches.size()).append(") ===\n");
+                for (var match : templateMatches) {
+                    trace.append(String.format("  %s - %s (line %d, %dms)\n",
+                            match.pattern(), match.name(), match.lineNumber(), match.executionTime()));
+                }
+                trace.append("\n");
+            } else {
+                trace.append("=== Template Matches ===\nNo template matches captured\n\n");
+            }
+
+            // Variables
+            var variables = result.getVariableValues();
+            if (variables != null && !variables.isEmpty()) {
+                trace.append("=== Variables (").append(variables.size()).append(") ===\n");
+                for (var entry : variables.entrySet()) {
+                    String value = entry.getValue() != null ? entry.getValue().toString() : "null";
+                    if (value.length() > 100) {
+                        value = value.substring(0, 97) + "...";
+                    }
+                    trace.append(String.format("  %s = %s\n", entry.getKey(), value));
+                }
+                trace.append("\n");
+            } else {
+                trace.append("=== Variables ===\nNo global variables captured\n\n");
+            }
+
+            // Call stack
+            var callStack = result.getCallStack();
+            if (callStack != null && !callStack.isEmpty()) {
+                trace.append("=== Execution Trace (").append(callStack.size()).append(" entries) ===\n");
+                int maxEntries = Math.min(100, callStack.size());
+                for (int i = 0; i < maxEntries; i++) {
+                    trace.append(callStack.get(i)).append("\n");
+                }
+                if (callStack.size() > maxEntries) {
+                    trace.append("  ... and ").append(callStack.size() - maxEntries).append(" more entries\n");
+                }
+            } else {
+                trace.append("=== Execution Trace ===\nNo execution trace captured\n");
+            }
+
+            traceArea.setText(trace.toString());
+        }
     }
 
     private void updatePerformanceMetrics(XsltTransformationResult result, String transformationType) {
@@ -1328,7 +1409,9 @@ public class XsltDeveloperController implements FavoritesParentController {
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
 
-        File file = fileChooser.showOpenDialog(loadXsltBtn.getScene().getWindow());
+        // Use loadXmlBtn (which always exists) to get the window, since loadXsltBtn may not be injected
+        Window window = loadXmlBtn != null ? loadXmlBtn.getScene().getWindow() : null;
+        File file = fileChooser.showOpenDialog(window);
         if (file != null) {
             loadXsltFileInternal(file);
         }
@@ -1385,7 +1468,9 @@ public class XsltDeveloperController implements FavoritesParentController {
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
 
-        File file = fileChooser.showSaveDialog(saveXsltBtn.getScene().getWindow());
+        // Use loadXmlBtn (which always exists) to get the window
+        Window window = loadXmlBtn != null ? loadXmlBtn.getScene().getWindow() : null;
+        File file = fileChooser.showSaveDialog(window);
         if (file != null) {
             try {
                 // Add metadata before saving

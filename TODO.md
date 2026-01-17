@@ -2,14 +2,11 @@
 
 ## Existing Tasks (Original)
 
-* Help Seite - Tabs umbenennen
-* FOP: Help Alert Dialog grafisch anpassen
 * Schematron Editor: Zweite Button-Bar in erste Button-Bar integrieren
   * Wenn auf der Seite nicht möglich - Buttons deaktivieren
-* XSLT Developer - Help Dialog Alert anpassen
-* XSLT Developer - Button open XSLT Stylesheet
+* XSLT Developer - Button open XSLT Stylesheet neben "Open XML"
+* XSLT Developer - Recent mit hinzufügen
 * XSLT Developer - Parameter default leer
-* XSLT Viewer - Reload Button hat keinen Keyboard Shortcut (falsche Implementierung)
 
 ---
 
@@ -17,11 +14,11 @@
 
 ### High Priority - Beta/Mock Implementations
 
-#### XsltTransformationEngine.java (XSLT Debugging)
-* **extractTemplateMatchingInfo()** - Returns sample data instead of actual template matching info from Saxon
-* **extractVariableValues()** - Returns sample data instead of actual XSLT variable values
-* **extractCallStack()** - Returns sample data instead of actual transformation call stack
-* **Status:** Marked as BETA in code, returns demo data
+#### ~~XsltTransformationEngine.java (XSLT Debugging)~~ ✅ IMPLEMENTED
+* ~~**extractTemplateMatchingInfo()** - Returns sample data instead of actual template matching info from Saxon~~
+* ~~**extractVariableValues()** - Returns sample data instead of actual XSLT variable values~~
+* ~~**extractCallStack()** - Returns sample data instead of actual transformation call stack~~
+* **Status:** Fully implemented using Saxon TraceListener API (XsltDebugTraceListener, XsltDebugMessageListener)
 
 ### Medium Priority - Disabled Features
 
