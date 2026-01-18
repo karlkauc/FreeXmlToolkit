@@ -6,7 +6,7 @@
   * Wenn auf der Seite nicht möglich - Buttons deaktivieren
 * ~~XSLT Developer - Button open XSLT Stylesheet neben "Open XML"~~ ✅ DONE
 * ~~XSLT Developer - Recent mit hinzufügen~~ ✅ DONE
-* XSLT Developer - Parameter default leer
+* ~~XSLT Developer - Parameter default leer~~ ✅ DONE
 
 ---
 

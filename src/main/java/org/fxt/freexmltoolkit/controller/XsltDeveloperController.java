@@ -826,12 +826,7 @@ public class XsltDeveloperController implements FavoritesParentController {
             encodingCombo.setValue("UTF-8");
         }
 
-        // Add some sample parameters
-        if (parametersContainer != null && parameters.isEmpty()) {
-            addDefaultParameter("title", "Advanced Book Catalog", "xs:string");
-            addDefaultParameter("showGenre", "true", "xs:boolean");
-            addDefaultParameter("maxPrice", "50.00", "xs:decimal");
-        }
+        // Parameters start empty - user can add them as needed
     }
 
     /**
