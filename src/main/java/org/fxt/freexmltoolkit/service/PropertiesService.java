@@ -329,6 +329,27 @@ public interface PropertiesService {
      */
     void setXsltExtensionsAllowed(boolean allowed);
 
+    // XSLT Developer recent files
+
+    /**
+     * Gets the list of recently opened XSLT files.
+     *
+     * @return list of recently opened XSLT files
+     */
+    List<File> getRecentXsltFiles();
+
+    /**
+     * Adds an XSLT file to the recent files list.
+     *
+     * @param file the file to add
+     */
+    void addRecentXsltFile(File file);
+
+    /**
+     * Clears all recent XSLT files.
+     */
+    void clearRecentXsltFiles();
+
     // JSON Editor settings
 
     /**

@@ -5,7 +5,7 @@
 * Schematron Editor: Zweite Button-Bar in erste Button-Bar integrieren
   * Wenn auf der Seite nicht möglich - Buttons deaktivieren
 * ~~XSLT Developer - Button open XSLT Stylesheet neben "Open XML"~~ ✅ DONE
-* XSLT Developer - Recent mit hinzufügen
+* ~~XSLT Developer - Recent mit hinzufügen~~ ✅ DONE
 * XSLT Developer - Parameter default leer
 
 ---

@@ -511,6 +511,64 @@ public class PropertiesServiceImpl implements PropertiesService {
         }
     }
 
+    // XSLT Developer recent files implementation
+
+    private static final int MAX_RECENT_XSLT_FILES = 10;
+
+    @Override
+    public List<File> getRecentXsltFiles() {
+        List<File> recentFiles = new java.util.ArrayList<>();
+        for (int i = 0; i < MAX_RECENT_XSLT_FILES; i++) {
+            String path = properties.getProperty("xslt.recent.file." + i);
+            if (path != null && !path.isEmpty()) {
+                File file = new File(path);
+                if (file.exists()) {
+                    recentFiles.add(file);
+                }
+            }
+        }
+        return recentFiles;
+    }
+
+    @Override
+    public void addRecentXsltFile(File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
+
+        // Get current list and remove if already present
+        List<File> recentFiles = new java.util.ArrayList<>(getRecentXsltFiles());
+        recentFiles.removeIf(f -> f.getAbsolutePath().equals(file.getAbsolutePath()));
+
+        // Add to front
+        recentFiles.addFirst(file);
+
+        // Limit to max
+        while (recentFiles.size() > MAX_RECENT_XSLT_FILES) {
+            recentFiles.removeLast();
+        }
+
+        // Save to properties
+        for (int i = 0; i < MAX_RECENT_XSLT_FILES; i++) {
+            if (i < recentFiles.size()) {
+                properties.setProperty("xslt.recent.file." + i, recentFiles.get(i).getAbsolutePath());
+            } else {
+                properties.remove("xslt.recent.file." + i);
+            }
+        }
+        saveProperties(properties);
+        logger.debug("Added recent XSLT file: {}", file.getAbsolutePath());
+    }
+
+    @Override
+    public void clearRecentXsltFiles() {
+        for (int i = 0; i < MAX_RECENT_XSLT_FILES; i++) {
+            properties.remove("xslt.recent.file." + i);
+        }
+        saveProperties(properties);
+        logger.debug("Cleared all recent XSLT files");
+    }
+
     // JSON Editor settings implementation
 
     private static final int MAX_RECENT_JSON_FILES = 10;

@@ -49,6 +49,15 @@
             </tooltip>
         </Button>
 
+        <MenuButton fx:id="recentFilesMenuBtn" text="Recent" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Recently Opened XSLT Files"/>
+            </tooltip>
+        </MenuButton>
+
         <Separator orientation="VERTICAL"/>
 
         <!-- Transform Action -->

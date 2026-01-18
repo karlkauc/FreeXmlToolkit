@@ -29,7 +29,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -122,6 +124,8 @@ public class XsltDeveloperController implements FavoritesParentController {
     private Button loadXmlBtn;
     @FXML
     private Button loadXsltBtn;
+    @FXML
+    private MenuButton recentFilesMenuBtn;
     @FXML
     private Button validateXmlBtn;
 
@@ -293,6 +297,7 @@ public class XsltDeveloperController implements FavoritesParentController {
         initializeEmptyState();
         setupKeyboardShortcuts();
         setupDragAndDrop();
+        populateRecentFilesMenu();
 
         // Apply small icons setting from user preferences
         applySmallIconsSetting();
@@ -827,6 +832,56 @@ public class XsltDeveloperController implements FavoritesParentController {
             addDefaultParameter("showGenre", "true", "xs:boolean");
             addDefaultParameter("maxPrice", "50.00", "xs:decimal");
         }
+    }
+
+    /**
+     * Populates the Recent Files menu with recently opened XSLT files.
+     */
+    private void populateRecentFilesMenu() {
+        if (recentFilesMenuBtn == null) {
+            return;
+        }
+
+        recentFilesMenuBtn.getItems().clear();
+
+        PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+        List<File> recentFiles = propertiesService.getRecentXsltFiles();
+
+        if (recentFiles.isEmpty()) {
+            MenuItem emptyItem = new MenuItem("No recent files");
+            emptyItem.setDisable(true);
+            recentFilesMenuBtn.getItems().add(emptyItem);
+            return;
+        }
+
+        for (File file : recentFiles) {
+            MenuItem menuItem = new MenuItem(file.getName());
+            menuItem.setGraphic(new FontIcon("bi-file-earmark-code"));
+            menuItem.setOnAction(e -> {
+                loadXsltFileInternal(file);
+                showContent();
+            });
+            // Add tooltip with full path
+            Tooltip tooltip = new Tooltip(file.getAbsolutePath());
+            Tooltip.install(menuItem.getGraphic(), tooltip);
+            recentFilesMenuBtn.getItems().add(menuItem);
+        }
+
+        // Add separator and clear option
+        recentFilesMenuBtn.getItems().add(new SeparatorMenuItem());
+        MenuItem clearItem = new MenuItem("Clear Recent Files");
+        clearItem.setGraphic(new FontIcon("bi-trash"));
+        clearItem.setOnAction(e -> clearRecentFiles());
+        recentFilesMenuBtn.getItems().add(clearItem);
+    }
+
+    /**
+     * Clears the recent XSLT files list.
+     */
+    private void clearRecentFiles() {
+        PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+        propertiesService.clearRecentXsltFiles();
+        populateRecentFilesMenu();
     }
 
     /**
@@ -1444,6 +1499,11 @@ public class XsltDeveloperController implements FavoritesParentController {
             }
             currentXsltFile = file;
             logger.debug("Loaded XSLT file: {}", file.getAbsolutePath());
+
+            // Add to recent files
+            PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+            propertiesService.addRecentXsltFile(file);
+            populateRecentFilesMenu();
 
             // Show content when file is loaded
             showContent();
