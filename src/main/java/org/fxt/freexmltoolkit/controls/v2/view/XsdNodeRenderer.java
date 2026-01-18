@@ -1153,23 +1153,16 @@ public class XsdNodeRenderer {
                     }
                     return "bi-at";  // @ symbol
                 case COMPLEX_TYPE:
-                    // If simple content (base type found in detail), try to use the datatype icon
-                    if (detail != null && !detail.isEmpty()) {
-                        // Extract just the type name (remove flags if any)
-                        String typeName = detail.split("\\s*\\[")[0].trim();
-                        String icon = getDataTypeIcon(typeName);
-                        if (!"bi-code".equals(icon)) return icon;
-                    }
-                    return "bi-box-seam";  // Package/Container symbol
+                    // Use the custom ComplexType icon showing hierarchical structure
+                    return "xsd-complex-type";
                 case SIMPLE_TYPE:
-                    // Try to detect simple type from detail (base type)
+                    // Use custom SimpleType icons with "S" badge based on base type
                     if (detail != null && !detail.isEmpty()) {
                         // Extract just the type name (remove flags if any)
                         String typeName = detail.split("\\s*\\[")[0].trim();
-                        String icon = getDataTypeIcon(typeName);
-                        if (!"bi-code".equals(icon)) return icon;
+                        return getSimpleTypeIcon(typeName);
                     }
-                    return "bi-type";  // Type symbol (T)
+                    return "xsd-simple-generic";  // Generic SimpleType with "S" badge
                 case SEQUENCE:
                     return "bi-list-ol";  // Ordered list
                 case CHOICE:
@@ -1263,8 +1256,110 @@ public class XsdNodeRenderer {
                 return "bi-intersect";  // Intersection/Union symbol
             }
 
-            // Default fallback
-            return "bi-code";
+            // ComplexType references - types ending with "Type" that aren't primitive
+            // e.g., "ControlDataType", "PersonType", "AddressType"
+            if (lower.endsWith("type") && !isPrimitiveType(datatype)) {
+                return "xsd-element-complex";  // Element with complex content
+            }
+
+            // Any other custom type name (likely a ComplexType reference)
+            // If it contains namespace prefix and doesn't match primitives
+            if (datatype.contains(":") && !isPrimitiveType(datatype)) {
+                return "xsd-element-complex";
+            }
+
+            // Default fallback - use generic complex element icon
+            return "xsd-element-complex";
+        }
+
+        /**
+         * Maps specific XSD datatype strings to SimpleType icons with "S" badge.
+         * These icons look like their base type but are visually distinct as type definitions.
+         *
+         * @param datatype the base type string (e.g., "xs:string", "integer")
+         * @return the icon literal for the SimpleType (e.g., "xsd-simple-string")
+         */
+        private String getSimpleTypeIcon(String datatype) {
+            if (datatype == null || datatype.isEmpty()) {
+                return "xsd-simple-generic";
+            }
+
+            String lower = datatype.toLowerCase();
+
+            // ID / Keys
+            if (lower.endsWith(":id") || lower.equals("id") || lower.endsWith("idref")) {
+                return "xsd-simple-id";
+            }
+
+            // String & Text types
+            if (lower.endsWith("string")) {
+                return "xsd-simple-string";
+            }
+            if (lower.endsWith("token") || lower.endsWith("normalizedstring")) {
+                return "xsd-simple-token";
+            }
+            if (lower.endsWith("name") || lower.endsWith("ncname")) {
+                return "xsd-simple-name";
+            }
+            if (lower.endsWith("language")) {
+                return "xsd-simple-language";
+            }
+
+            // Numeric types - Integers
+            if (lower.endsWith("integer") || lower.endsWith("int") || lower.endsWith("short") ||
+                lower.endsWith("long") || lower.endsWith("byte") || lower.endsWith("unsignedint") ||
+                lower.endsWith("positiveinteger") || lower.endsWith("negativeinteger") ||
+                lower.endsWith("nonpositiveinteger") || lower.endsWith("nonnegativeinteger")) {
+                return "xsd-simple-number";
+            }
+
+            // Numeric types - Decimals / Floating point
+            if (lower.endsWith("decimal") || lower.endsWith("float") || lower.endsWith("double")) {
+                return "xsd-simple-decimal";
+            }
+
+            // Date & Time
+            if (lower.endsWith("datetime") || lower.endsWith("date") ||
+                lower.endsWith("gyear") || lower.endsWith("gmonth") || lower.endsWith("gday") ||
+                lower.endsWith("gyearmonth") || lower.endsWith("gmonthday")) {
+                return "xsd-simple-date";
+            }
+            if (lower.endsWith("time") || lower.endsWith("duration")) {
+                return "xsd-simple-time";
+            }
+
+            // Boolean
+            if (lower.endsWith("boolean")) {
+                return "xsd-simple-boolean";
+            }
+
+            // Binary Data
+            if (lower.endsWith("base64binary") || lower.endsWith("hexbinary")) {
+                return "xsd-simple-binary";
+            }
+
+            // URIs & Web
+            if (lower.endsWith("anyuri") || lower.endsWith("uri")) {
+                return "xsd-simple-uri";
+            }
+
+            // XML Specific types - use generic
+            if (lower.endsWith("qname") || lower.endsWith("notation")) {
+                return "xsd-simple-generic";
+            }
+
+            // List types - use generic
+            if (lower.endsWith("list")) {
+                return "xsd-simple-generic";
+            }
+
+            // Union types - use generic
+            if (lower.endsWith("union")) {
+                return "xsd-simple-generic";
+            }
+
+            // Default fallback - generic SimpleType
+            return "xsd-simple-generic";
         }
 
         /**

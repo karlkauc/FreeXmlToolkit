@@ -4,20 +4,22 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 /**
- * Renders icon symbols on JavaFX Canvas using geometric shapes.
- *
+ * Renders icon symbols on JavaFX Canvas using SVG path rendering and geometric shapes.
+ * <p>
  * This utility class provides efficient icon rendering for XSD node visualization.
- * Icons are rendered using Canvas primitives (rectangles, circles, lines, polygons)
- * rather than complex SVG path parsing, which provides better performance and
- * simplicity on Canvas.
- *
- * Icons represent Bootstrap Icon semantics through geometric shapes:
- * - Diagrams: geometric patterns representing structure
+ * It first attempts to render icons using real SVG path data from {@link BootstrapIconPaths},
+ * parsed and rendered via {@link SvgPathParser}. If no path data is available, it falls back
+ * to hand-coded geometric shapes for backwards compatibility.
+ * <p>
+ * Icons represent Bootstrap Icon semantics:
+ * - Diagrams: structure visualization
  * - Files: document-like shapes
  * - Attributes: @ symbol or specialized shapes
  * - Lists/Sequences: linear patterns
  * - Choice: branching patterns
  *
+ * @see BootstrapIconPaths
+ * @see SvgPathParser
  * @see <a href="https://github.com/twbs/icons">Bootstrap Icons Reference</a>
  */
 public class SvgIconRenderer {
@@ -28,13 +30,17 @@ public class SvgIconRenderer {
 
     /**
      * Renders an icon symbol on the given GraphicsContext.
+     * <p>
+     * This method first attempts to render the icon using real SVG path data from
+     * {@link BootstrapIconPaths}. If no path data is available, it falls back to
+     * hand-coded geometric shape rendering for backwards compatibility.
      *
-     * @param gc the GraphicsContext to draw on
+     * @param gc          the GraphicsContext to draw on
      * @param iconLiteral the icon identifier (e.g., "bi-diagram-3")
-     * @param x the x-coordinate for the top-left corner
-     * @param y the y-coordinate for the top-left corner
-     * @param size the size of the icon (width and height in pixels)
-     * @param color the color to render the icon in
+     * @param x           the x-coordinate for the top-left corner
+     * @param y           the y-coordinate for the top-left corner
+     * @param size        the size of the icon (width and height in pixels)
+     * @param color       the color to render the icon in
      */
     public static void renderIcon(GraphicsContext gc, String iconLiteral,
                                    double x, double y, double size, Color color) {
@@ -43,6 +49,12 @@ public class SvgIconRenderer {
             return;
         }
 
+        // First, try to render using real SVG path data
+        if (renderFromSvgPath(gc, iconLiteral, x, y, size, color)) {
+            return;
+        }
+
+        // Fall back to geometric shape rendering for icons without path data
         gc.save();
         gc.setFill(color);
         gc.setStroke(color);
@@ -538,6 +550,29 @@ public class SvgIconRenderer {
     }
 
     /**
+     * Attempts to render an icon using real SVG path data.
+     *
+     * @param gc          the GraphicsContext to draw on
+     * @param iconLiteral the icon identifier
+     * @param x           the x-coordinate
+     * @param y           the y-coordinate
+     * @param size        the desired size
+     * @param color       the color to render in
+     * @return true if the icon was rendered from SVG path data, false if no path data available
+     */
+    private static boolean renderFromSvgPath(GraphicsContext gc, String iconLiteral,
+                                              double x, double y, double size, Color color) {
+        String pathData = BootstrapIconPaths.getPath(iconLiteral);
+        if (pathData == null) {
+            return false;
+        }
+
+        // Use SvgPathParser to render the path with fill mode (Bootstrap Icons are typically filled)
+        SvgPathParser.renderPath(gc, pathData, x, y, size, color, true, BootstrapIconPaths.VIEWBOX_SIZE);
+        return true;
+    }
+
+    /**
      * Renders a hash/number-like icon (used for numeric datatypes).
      */
     private static void renderHash(GraphicsContext gc, double x, double y, double size) {
@@ -661,78 +696,5 @@ public class SvgIconRenderer {
                 new double[]{left, left + width, left + width / 2},
                 new double[]{top, top, top + height},
                 3);
-    }
-
-    /**
-     * Represents a parsed SVG path that can be rendered on Canvas.
-     * Uses JavaFX's SVGPath for parsing and renders via custom path implementation.
-     */
-    private static class SvgPath {
-        private final javafx.scene.shape.SVGPath svgPath;
-        private final String pathData;
-
-        SvgPath(String pathData) {
-            this.pathData = pathData;
-            this.svgPath = new javafx.scene.shape.SVGPath();
-            this.svgPath.setContent(pathData);
-        }
-
-        /**
-         * Renders this path on the given GraphicsContext using path tracing.
-         * Note: This is a simplified implementation that fills the path outline.
-         */
-        void render(GraphicsContext gc) {
-            try {
-                // Get the bounds and use them to render the path
-                javafx.geometry.Bounds bounds = svgPath.getBoundsInLocal();
-
-                if (bounds.isEmpty()) {
-                    return;
-                }
-
-                // Scale path to fit in 16x16 viewport (Bootstrap icon standard size)
-                double scale = 16.0 / Math.max(bounds.getWidth(), bounds.getHeight());
-
-                gc.save();
-
-                // Apply transformation
-                gc.scale(scale, scale);
-                gc.translate(-bounds.getMinX(), -bounds.getMinY());
-
-                // Render by tracing the path outline
-                // Since we can't directly render SVGPath on Canvas, we use basic shape approximation
-                renderPathApproximation(gc, pathData);
-
-                gc.restore();
-            } catch (Exception e) {
-                // Fallback to simple rectangle if rendering fails
-                gc.fillRect(0, 0, 16, 16);
-            }
-        }
-
-        /**
-         * Approximates path rendering by using basic geometric shapes.
-         * This is a simplified approach that works well for icon-sized graphics.
-         */
-        private void renderPathApproximation(GraphicsContext gc, String pathData) {
-            // For now, use a simple implementation that traces the path
-            // In a production version, this would use a full SVG path parser
-            try {
-                // Create a canvas image and render the SVGPath onto it
-                javafx.scene.image.WritableImage image = new javafx.scene.image.WritableImage(16, 16);
-                javafx.scene.SnapshotParameters params = new javafx.scene.SnapshotParameters();
-                params.setFill(javafx.scene.paint.Color.TRANSPARENT);
-
-                // Note: SVGPath rendering requires a Scene, so we use a workaround
-                // For simplicity, we'll use a basic approximation for the initial implementation
-
-                // This is a placeholder that draws a simple pattern
-                // The actual implementation would benefit from using a proper SVG rendering library
-                gc.fillRect(0, 0, 16, 16);
-
-            } catch (Exception e) {
-                gc.fillRect(0, 0, 16, 16);
-            }
-        }
     }
 }

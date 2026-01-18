@@ -834,6 +834,19 @@ class UpdateCheckServiceTest {
         @Override
         public void addRecentJsonFile(java.io.File file) {
         }
+
+        @Override
+        public java.util.List<java.io.File> getRecentXsltFiles() {
+            return java.util.List.of();
+        }
+
+        @Override
+        public void addRecentXsltFile(java.io.File file) {
+        }
+
+        @Override
+        public void clearRecentXsltFiles() {
+        }
     }
 
     /**

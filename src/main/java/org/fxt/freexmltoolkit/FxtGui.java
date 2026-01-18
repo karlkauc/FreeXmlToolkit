@@ -118,6 +118,10 @@ public class FxtGui extends Application {
         ServiceRegistry.initialize();
         logger.info("Service registry initialization complete");
 
+        // Register custom XSD type icons
+        logger.info("Registering XSD type icons...");
+        org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
+
         // Enable NTLM proxy authentication for corporate environments in background
         // This runs asynchronously to improve startup time
         executorService.submit(() -> {
