@@ -121,9 +121,9 @@ public class XsltDeveloperController implements FavoritesParentController {
     @FXML
     private Button loadXmlBtn;
     @FXML
+    private Button loadXsltBtn;
+    @FXML
     private Button validateXmlBtn;
-    // Note: loadXsltBtn, saveXsltBtn, validateXsltBtn are not in the FXML
-    // - use loadXmlBtn.getScene().getWindow() instead
 
     // UI Components - Parameters (Grid Layout)
     @FXML
@@ -1401,7 +1401,7 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     @FXML
-    private void loadXsltFile() {
+    public void loadXsltFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Load XSLT Stylesheet");
         fileChooser.getExtensionFilters().addAll(
@@ -1409,8 +1409,8 @@ public class XsltDeveloperController implements FavoritesParentController {
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
 
-        // Use loadXmlBtn (which always exists) to get the window, since loadXsltBtn may not be injected
-        Window window = loadXmlBtn != null ? loadXmlBtn.getScene().getWindow() : null;
+        Window window = loadXsltBtn != null ? loadXsltBtn.getScene().getWindow()
+                : (loadXmlBtn != null ? loadXmlBtn.getScene().getWindow() : null);
         File file = fileChooser.showOpenDialog(window);
         if (file != null) {
             loadXsltFileInternal(file);

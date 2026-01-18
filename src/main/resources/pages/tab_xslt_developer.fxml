@@ -40,6 +40,15 @@
             </tooltip>
         </Button>
 
+        <Button fx:id="loadXsltBtn" text="Open XSLT" contentDisplay="TOP" styleClass="toolbar-button" onAction="#loadXsltFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-filetype-xml" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-primary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Open XSLT Stylesheet"/>
+            </tooltip>
+        </Button>
+
         <Separator orientation="VERTICAL"/>
 
         <!-- Transform Action -->

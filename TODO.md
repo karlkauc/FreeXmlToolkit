@@ -4,23 +4,13 @@
 
 * Schematron Editor: Zweite Button-Bar in erste Button-Bar integrieren
   * Wenn auf der Seite nicht möglich - Buttons deaktivieren
-* XSLT Developer - Button open XSLT Stylesheet neben "Open XML"
+* ~~XSLT Developer - Button open XSLT Stylesheet neben "Open XML"~~ ✅ DONE
 * XSLT Developer - Recent mit hinzufügen
 * XSLT Developer - Parameter default leer
 
 ---
 
 ## Not Yet Implemented Features (Code TODOs)
-
-### High Priority - Beta/Mock Implementations
-
-#### ~~XsltTransformationEngine.java (XSLT Debugging)~~ ✅ IMPLEMENTED
-* ~~**extractTemplateMatchingInfo()** - Returns sample data instead of actual template matching info from Saxon~~
-* ~~**extractVariableValues()** - Returns sample data instead of actual XSLT variable values~~
-* ~~**extractCallStack()** - Returns sample data instead of actual transformation call stack~~
-* **Status:** Fully implemented using Saxon TraceListener API (XsltDebugTraceListener, XsltDebugMessageListener)
-
-### Medium Priority - Disabled Features
 
 #### SchemaGeneratorController.java
 * **Batch Processing** - Button disabled, feature not implemented
