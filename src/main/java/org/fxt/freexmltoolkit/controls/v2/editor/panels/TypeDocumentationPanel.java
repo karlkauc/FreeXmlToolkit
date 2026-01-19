@@ -49,7 +49,7 @@ import java.util.Optional;
  *
  * @since 2.0
  */
-public class TypeDocumentationPanel extends VBox implements PropertyChangeListener {
+public class TypeDocumentationPanel extends BorderPane implements PropertyChangeListener {
 
     private static final Logger logger = LogManager.getLogger(TypeDocumentationPanel.class);
 
@@ -68,6 +68,10 @@ public class TypeDocumentationPanel extends VBox implements PropertyChangeListen
     private TitledPane appInfoPane;
     private AppInfoEditorPanel appInfoPanel;
 
+    // Scroll container
+    private ScrollPane scrollPane;
+    private VBox contentBox;
+
     /**
      * Creates a new TypeDocumentationPanel.
      *
@@ -82,8 +86,9 @@ public class TypeDocumentationPanel extends VBox implements PropertyChangeListen
      * Initializes the UI components.
      */
     private void initializeUI() {
-        setSpacing(10);
-        setPadding(new Insets(10));
+        // Create content container
+        contentBox = new VBox(10);
+        contentBox.setPadding(new Insets(10));
 
         // Documentation TitledPane
         documentationPane = createDocumentationPane();
@@ -93,7 +98,15 @@ public class TypeDocumentationPanel extends VBox implements PropertyChangeListen
         appInfoPane = createAppInfoPane();
         appInfoPane.setExpanded(false);
 
-        getChildren().addAll(documentationPane, appInfoPane);
+        contentBox.getChildren().addAll(documentationPane, appInfoPane);
+
+        // Wrap in ScrollPane for scrollability
+        scrollPane = new ScrollPane(contentBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        setCenter(scrollPane);
     }
 
     /**
