@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -48,12 +49,16 @@ import java.util.Optional;
  *
  * @since 2.0
  */
-public class XsdPropertiesPanel extends VBox {
+public class XsdPropertiesPanel extends BorderPane {
 
     private static final Logger logger = LogManager.getLogger(XsdPropertiesPanel.class);
 
     private final XsdEditorContext editorContext;
     private VisualNode currentNode;
+
+    // Scroll container
+    private ScrollPane scrollPane;
+    private VBox contentBox;
 
     // General section controls
     private TextField nameField;
@@ -143,8 +148,9 @@ public class XsdPropertiesPanel extends VBox {
      * Initializes the UI components.
      */
     private void initializeUI() {
-        setPadding(new Insets(10));
-        setSpacing(10);
+        // Create content container
+        contentBox = new VBox(10);
+        contentBox.setPadding(new Insets(10));
 
         // Title
         Label titleLabel = new Label("Properties");
@@ -159,7 +165,7 @@ public class XsdPropertiesPanel extends VBox {
         // Create TabPane for specific constraint properties
         tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-        
+
         // Add tabs - only the four specified constraint tabs
         tabPane.getTabs().addAll(
                 createFacetsTab(),
@@ -170,16 +176,24 @@ public class XsdPropertiesPanel extends VBox {
 
         VBox.setVgrow(tabPane, Priority.ALWAYS);
 
-        getChildren().addAll(
-                titleLabel, 
-                new Separator(), 
-                generalPane, 
+        contentBox.getChildren().addAll(
+                titleLabel,
+                new Separator(),
+                generalPane,
                 documentationPane,
                 constraintsPane,
                 advancedPane,
                 new Separator(),
                 tabPane
         );
+
+        // Wrap in ScrollPane for scrollability
+        scrollPane = new ScrollPane(contentBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        setCenter(scrollPane);
 
         // Initially disabled until a node is selected
         setDisable(true);
