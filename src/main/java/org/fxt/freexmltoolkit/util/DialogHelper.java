@@ -214,7 +214,8 @@ public class DialogHelper {
         root.setCenter(contentContainer);
 
         dialogPane.setContent(root);
-        dialogPane.getStylesheets().add(
+        dialogPane.getStylesheets().addAll(
+            DialogHelper.class.getResource("/css/app-theme.css").toExternalForm(),
             DialogHelper.class.getResource("/css/dialog-theme.css").toExternalForm()
         );
 
@@ -435,7 +436,8 @@ public class DialogHelper {
 
         // Apply dialog theme stylesheet
         DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(
+        dialogPane.getStylesheets().addAll(
+            DialogHelper.class.getResource("/css/app-theme.css").toExternalForm(),
             DialogHelper.class.getResource("/css/dialog-theme.css").toExternalForm()
         );
 
@@ -546,7 +548,8 @@ public class DialogHelper {
         dialog.initModality(Modality.APPLICATION_MODAL);
 
         DialogPane dialogPane = dialog.getDialogPane();
-        dialogPane.getStylesheets().add(
+        dialogPane.getStylesheets().addAll(
+                DialogHelper.class.getResource("/css/app-theme.css").toExternalForm(),
                 DialogHelper.class.getResource("/css/dialog-theme.css").toExternalForm()
         );
 

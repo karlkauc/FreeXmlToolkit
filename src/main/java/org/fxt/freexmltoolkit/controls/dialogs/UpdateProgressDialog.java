@@ -96,7 +96,8 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
 
         // Load CSS
         try {
-            dialogPane.getStylesheets().add(
+            dialogPane.getStylesheets().addAll(
+                    getClass().getResource("/css/app-theme.css").toExternalForm(),
                     getClass().getResource("/css/dialog-theme.css").toExternalForm()
             );
         } catch (Exception e) {

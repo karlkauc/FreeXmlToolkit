@@ -28,7 +28,7 @@
     -fx-background-color: -bg-secondary;
     -fx-border-color: -border-light;
     -fx-border-width: 1 0 0 0;
-    -fx-padding: 16px -spacing-lg;
+    -fx-padding: 16px 20px;
     -fx-spacing: 16px;
 }
 
@@ -40,7 +40,7 @@
 .dialog-pane .button {
     -fx-font-size: 13px;
     -fx-font-weight: 500;
-    -fx-padding: 8px -spacing-lg;
+    -fx-padding: 8px 20px;
     -fx-background-radius: 4px;
     -fx-cursor: hand;
 }
@@ -148,7 +148,7 @@
 
 /* Alert icon styling */
 .dialog-pane .graphic-container {
-    -fx-padding: 0 -spacing-md 0 0;
+    -fx-padding: 0 16px 0 0;
 }
 
 /* Information Alert */
@@ -205,7 +205,7 @@
     -fx-background-color: -color-success;
     -fx-text-fill: white;
     -fx-font-weight: 700;
-    -fx-padding: 8px -spacing-md;
+    -fx-padding: 8px 16px;
     -fx-background-radius: 4px;
 }
 
@@ -217,7 +217,7 @@
     -fx-background-color: -color-warning;
     -fx-text-fill: -color-gray-900;
     -fx-font-weight: 700;
-    -fx-padding: 8px -spacing-md;
+    -fx-padding: 8px 16px;
     -fx-background-radius: 4px;
 }
 
@@ -229,7 +229,7 @@
     -fx-background-color: -color-primary;
     -fx-text-fill: white;
     -fx-font-weight: 700;
-    -fx-padding: 8px -spacing-md;
+    -fx-padding: 8px 16px;
     -fx-background-radius: 4px;
 }
 
@@ -405,7 +405,7 @@
 .dialog-action-bar .button {
     -fx-font-size: 13px;
     -fx-font-weight: 700;
-    -fx-padding: 8px -spacing-xl;
+    -fx-padding: 8px 24px;
     -fx-background-radius: 4px;
 }
 
@@ -470,7 +470,7 @@
 
 .dialog-pane.text-input-dialog .text-field {
     -fx-font-size: 13px;
-    -fx-padding: 8px -spacing-md;
+    -fx-padding: 8px 16px;
     -fx-background-radius: 4px;
     -fx-border-radius: 4px;
 }
