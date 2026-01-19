@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.FacetsPanel;
+import org.fxt.freexmltoolkit.controls.v2.editor.panels.TypeDocumentationPanel;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -53,6 +54,9 @@ public class SimpleTypeEditorView extends BorderPane {
     private ListView<String> enumerationsListView;
     private ListView<String> patternsListView;
     private ListView<String> assertionsListView;
+
+    // Annotation Panel
+    private TypeDocumentationPanel typeDocumentationPanel;
 
     /**
      * Creates a new SimpleType editor view.
@@ -1316,94 +1320,34 @@ public class SimpleTypeEditorView extends BorderPane {
     }
 
     /**
-     * Creates the Annotation panel.
-     * Real implementation with documentation and appinfo support.
+     * Creates the Annotation panel using the reusable TypeDocumentationPanel.
+     * Provides multi-language documentation editing and structured AppInfo editing.
+     *
+     * @return the annotation panel
      */
-    private VBox createAnnotationPanel() {
-        VBox panel = new VBox(15);
-        panel.setPadding(new Insets(20));
+    private javafx.scene.Node createAnnotationPanel() {
+        VBox panel = new VBox(10);
+        panel.setPadding(new Insets(15));
 
+        // Title
         Label title = new Label("Annotation");
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        // Documentation section
-        Label docLabel = new Label("Documentation:");
-        docLabel.setStyle("-fx-font-weight: bold;");
-
-        TextArea docArea = new TextArea();
-        docArea.setPrefRowCount(5);
-        docArea.setWrapText(true);
-        docArea.setPromptText("Enter user-facing documentation for this type...");
-
-        // Load existing documentation
-        if (simpleType.getDocumentation() != null) {
-            docArea.setText(simpleType.getDocumentation());
-        }
-
-        // Listen to changes
-        docArea.textProperty().addListener((obs, oldVal, newVal) -> {
-            logger.debug("Documentation changed");
-            simpleType.setDocumentation(newVal);
-
-            // Trigger change callback
-            if (onChangeCallback != null) {
-                onChangeCallback.run();
-            }
-        });
-
-        Label docDescription = new Label(
-                "Documentation is user-facing text that describes this type's purpose and usage.\n" +
-                "It will appear in generated documentation and tooltips."
+        // Description
+        Label description = new Label(
+                "Manage documentation and application-specific metadata for this type. " +
+                "Documentation supports multiple languages."
         );
-        docDescription.setWrapText(true);
-        docDescription.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+        description.setWrapText(true);
+        description.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
 
-        VBox.setVgrow(docArea, Priority.ALWAYS);
+        // TypeDocumentationPanel - reusable component for multi-language docs and AppInfo
+        typeDocumentationPanel = new TypeDocumentationPanel(editorContext);
+        typeDocumentationPanel.setNode(simpleType);
+        typeDocumentationPanel.setEditMode(true);
+        VBox.setVgrow(typeDocumentationPanel, Priority.ALWAYS);
 
-        // AppInfo section
-        Label appInfoLabel = new Label("Application Info:");
-        appInfoLabel.setStyle("-fx-font-weight: bold;");
-
-        TextArea appInfoArea = new TextArea();
-        appInfoArea.setPrefRowCount(3);
-        appInfoArea.setWrapText(true);
-        appInfoArea.setPromptText("Enter application-specific information...");
-
-        // Load existing appinfo
-        String existingAppInfo = simpleType.getAppinfoAsString();
-        if (existingAppInfo != null && !existingAppInfo.isEmpty()) {
-            appInfoArea.setText(existingAppInfo);
-        }
-
-        // Listen to changes
-        appInfoArea.textProperty().addListener((obs, oldVal, newVal) -> {
-            logger.debug("AppInfo changed");
-            simpleType.setAppinfoFromString(newVal);
-
-            // Trigger change callback
-            if (onChangeCallback != null) {
-                onChangeCallback.run();
-            }
-        });
-
-        Label appInfoDescription = new Label(
-                "AppInfo contains application-specific metadata.\n" +
-                "This can include validation rules, UI hints, or other custom information."
-        );
-        appInfoDescription.setWrapText(true);
-        appInfoDescription.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
-
-        panel.getChildren().addAll(
-                title,
-                new Label(""),
-                docLabel,
-                docArea,
-                docDescription,
-                new Label(""),
-                appInfoLabel,
-                appInfoArea,
-                appInfoDescription
-        );
+        panel.getChildren().addAll(title, description, new Separator(), typeDocumentationPanel);
 
         return panel;
     }
