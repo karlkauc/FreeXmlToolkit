@@ -145,15 +145,72 @@ public class ConnectionServiceImpl implements ConnectionService {
                 }
             }
 
-            // Execute request
+            // Execute request and follow redirects manually (including HTTP→HTTPS)
             int responseCode = connection.getResponseCode();
-            String responseBody = readResponse(connection);
+            String responseBody = "";
+            URI finalUri = uri;
+            int maxRedirects = 5;
+            int redirectCount = 0;
 
-            logger.debug("HTTP request completed: {} - Status: {}, Response length: {}",
-                    uri, responseCode, responseBody.length());
+            while (responseCode >= 300 && responseCode < 400 && redirectCount < maxRedirects) {
+                String location = connection.getHeaderField("Location");
+                if (location == null || location.isEmpty()) {
+                    logger.warn("Redirect response {} without Location header for: {}", responseCode, finalUri);
+                    break;
+                }
+
+                // Close current connection
+                connection.disconnect();
+
+                // Parse redirect location (can be relative or absolute)
+                URI redirectUri;
+                if (location.startsWith("http://") || location.startsWith("https://")) {
+                    redirectUri = new URI(location);
+                } else {
+                    // Relative URL - resolve against current URL
+                    redirectUri = finalUri.resolve(location);
+                }
+
+                logger.debug("Following redirect {} → {} ({})", responseCode, redirectUri, redirectCount + 1);
+
+                // Create new connection for redirect
+                url = redirectUri.toURL();
+                if (proxy != null) {
+                    connection = (HttpURLConnection) url.openConnection(proxy);
+                } else {
+                    connection = (HttpURLConnection) url.openConnection();
+                }
+
+                // Configure connection
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(30000);
+                connection.setReadTimeout(30000);
+                connection.setRequestProperty("User-Agent", "FreeXmlToolkit/2.0");
+                connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+                // Apply SSL settings if redirected to HTTPS
+                if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
+                    try {
+                        applySslBypassToConnection(httpsConnection);
+                    } catch (Exception sslEx) {
+                        logger.warn("Failed to apply SSL bypass to redirect connection: {}", sslEx.getMessage());
+                    }
+                }
+
+                // Get response
+                responseCode = connection.getResponseCode();
+                finalUri = redirectUri;
+                redirectCount++;
+            }
+
+            // Read final response
+            responseBody = readResponse(connection);
+
+            logger.debug("HTTP request completed: {} - Status: {}, Response length: {} (after {} redirects)",
+                    finalUri, responseCode, responseBody.length(), redirectCount);
 
             return new ConnectionResult(
-                    uri,
+                    finalUri,
                     responseCode,
                     System.currentTimeMillis() - start,
                     getHeaders(connection),
