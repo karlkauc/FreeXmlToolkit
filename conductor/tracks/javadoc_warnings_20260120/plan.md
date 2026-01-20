@@ -1,8 +1,8 @@
 # Implementation Plan - Fix Javadoc Warnings
 
 ## Phase 1: Analysis & Setup
-- [ ] Task: Run `./gradlew javadoc` to generate the baseline report of all warnings.
-- [ ] Task: Analyze the report and categorize warnings (e.g., missing params, invalid tags).
+- [x] Task: Run `./gradlew javadoc` to generate the baseline report of all warnings. dab8930
+- [x] Task: Analyze the report and categorize warnings (e.g., missing params, invalid tags). dab8930
 - [ ] Task: Conductor - User Manual Verification 'Analysis & Setup' (Protocol in workflow.md)
 
 ## Phase 2: Fix Warnings (Core & Utils)
