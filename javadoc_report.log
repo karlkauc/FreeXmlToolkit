@@ -1,0 +1,318 @@
+
+> Task :compileJava
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/XsltTransformationEngine.java:221: Warnung: [deprecation] setMessageListener(MessageListener2) in AbstractXsltTransformer ist veraltet
+                transformer.setMessageListener(messageListener);
+                           ^
+1 Warnung
+
+> Task :processResources UP-TO-DATE
+> Task :classes
+
+> Task :javadoc
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/commands/AbstractConstraintCommand.java:24: Warnung: kein Kommentar
+    protected final XsdEditorContext editorContext;
+                                     ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/commands/AbstractConstraintCommand.java:25: Warnung: kein Kommentar
+    protected final XsdElement element;
+                               ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/commands/AbstractConstraintCommand.java:22: Warnung: kein Kommentar
+    protected static final Logger logger = LogManager.getLogger(AbstractConstraintCommand.class);
+                                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/commands/AbstractConstraintCommand.java:26: Warnung: kein Kommentar
+    protected final String value;
+                           ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/tabs/AbstractTypeEditorTab.java:20: Warnung: kein Kommentar
+    protected boolean isDirty = false;
+                      ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/tabs/AbstractTypeEditorTab.java:21: Warnung: kein Kommentar
+    protected final XsdNode typeNode;
+                            ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/unified/AbstractUnifiedEditorTab.java:33: Warnung: kein Kommentar
+    protected final BooleanProperty dirty = new SimpleBooleanProperty(false);
+                                    ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/unified/AbstractUnifiedEditorTab.java:32: Warnung: kein Kommentar
+    protected final UnifiedEditorFileType fileType;
+                                          ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/unified/AbstractUnifiedEditorTab.java:31: Warnung: kein Kommentar
+    protected final File sourceFile;
+                         ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/panels/AppInfoEditorPanel.java:24: Warnung: Keine Referenz angegeben
+ * Supports {@link} autocomplete for element references.
+            ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:414: Warnung: kein @return
+    public Map<String, Object> getUsageStatistics() {
+                               ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:445: Warnung: kein @param für requiredThreshold
+    public boolean shouldBeRequired(double requiredThreshold) {
+                   ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:445: Warnung: kein @return
+    public boolean shouldBeRequired(double requiredThreshold) {
+                   ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:64: Warnung: kein Kommentar
+    public AttributeInfo() {
+           ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:69: Warnung: kein Kommentar
+    public AttributeInfo(String name) {
+           ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:75: Warnung: kein Kommentar
+    public AttributeInfo(String name, String namespace) {
+           ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:709: Warnung: kein Kommentar
+    public int getAnalysisDepth() {
+               ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:725: Warnung: kein Kommentar
+    public LocalDateTime getAnalyzedAt() {
+                         ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:701: Warnung: kein Kommentar
+    public Map<String, String> getAnnotations() {
+                               ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:693: Warnung: kein Kommentar
+    public List<String> getComments() {
+                        ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:485: Warnung: kein Kommentar
+    public String getDefaultValue() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:573: Warnung: kein Kommentar
+    public Set<String> getDetectedPatterns() {
+                       ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:685: Warnung: kein Kommentar
+    public String getDocumentation() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:565: Warnung: kein Kommentar
+    public int getEmptyOccurrences() {
+               ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:637: Warnung: kein Kommentar
+    public Set<String> getEnumerationValues() {
+                       ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:661: Warnung: kein Kommentar
+    public LocalDateTime getFirstSeen() {
+                         ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:493: Warnung: kein Kommentar
+    public String getFixedValue() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:501: Warnung: kein Kommentar
+    public String getInferredType() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:669: Warnung: kein Kommentar
+    public LocalDateTime getLastSeen() {
+                         ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:613: Warnung: kein Kommentar
+    public Integer getMaxLength() {
+                   ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:629: Warnung: kein Kommentar
+    public String getMaxValue() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:605: Warnung: kein Kommentar
+    public Integer getMinLength() {
+                   ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:621: Warnung: kein Kommentar
+    public String getMinValue() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:589: Warnung: kein Kommentar
+    public String getMostCommonPattern() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:453: Warnung: kein Kommentar
+    public String getName() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:461: Warnung: kein Kommentar
+    public String getNamespace() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:557: Warnung: kein Kommentar
+    public int getNullOccurrences() {
+               ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:533: Warnung: kein Kommentar
+    public Set<String> getObservedValues() {
+                       ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:509: Warnung: kein Kommentar
+    public String getOriginalType() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:597: Warnung: kein Kommentar
+    public double getPatternConfidence() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:581: Warnung: kein Kommentar
+    public Map<String, Integer> getPatternCounts() {
+                                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:525: Warnung: kein Kommentar
+    public Set<String> getPossibleTypes() {
+                       ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:469: Warnung: kein Kommentar
+    public String getQualifiedName() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:645: Warnung: kein Kommentar
+    public String getRestrictionPattern() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:541: Warnung: kein Kommentar
+    public List<String> getSampleValues() {
+                        ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:733: Warnung: kein Kommentar
+    public String getSourceDocument() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:653: Warnung: kein Kommentar
+    public Map<String, Object> getStatistics() {
+                               ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:549: Warnung: kein Kommentar
+    public int getTotalOccurrences() {
+               ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:517: Warnung: kein Kommentar
+    public double getTypeConfidence() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:677: Warnung: kein Kommentar
+    public Map<String, Integer> getValueFrequency() {
+                                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:717: Warnung: kein Kommentar
+    public boolean isAnalyzed() {
+                   ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:477: Warnung: kein Kommentar
+    public boolean isRequired() {
+                   ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:713: Warnung: kein Kommentar
+    public void setAnalysisDepth(int analysisDepth) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:721: Warnung: kein Kommentar
+    public void setAnalyzed(boolean analyzed) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:729: Warnung: kein Kommentar
+    public void setAnalyzedAt(LocalDateTime analyzedAt) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:705: Warnung: kein Kommentar
+    public void setAnnotations(Map<String, String> annotations) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:697: Warnung: kein Kommentar
+    public void setComments(List<String> comments) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:489: Warnung: kein Kommentar
+    public void setDefaultValue(String defaultValue) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:577: Warnung: kein Kommentar
+    public void setDetectedPatterns(Set<String> detectedPatterns) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:689: Warnung: kein Kommentar
+    public void setDocumentation(String documentation) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:569: Warnung: kein Kommentar
+    public void setEmptyOccurrences(int emptyOccurrences) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:641: Warnung: kein Kommentar
+    public void setEnumerationValues(Set<String> enumerationValues) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:665: Warnung: kein Kommentar
+    public void setFirstSeen(LocalDateTime firstSeen) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:497: Warnung: kein Kommentar
+    public void setFixedValue(String fixedValue) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:505: Warnung: kein Kommentar
+    public void setInferredType(String inferredType) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:673: Warnung: kein Kommentar
+    public void setLastSeen(LocalDateTime lastSeen) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:617: Warnung: kein Kommentar
+    public void setMaxLength(Integer maxLength) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:633: Warnung: kein Kommentar
+    public void setMaxValue(String maxValue) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:609: Warnung: kein Kommentar
+    public void setMinLength(Integer minLength) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:625: Warnung: kein Kommentar
+    public void setMinValue(String minValue) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:593: Warnung: kein Kommentar
+    public void setMostCommonPattern(String mostCommonPattern) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:457: Warnung: kein Kommentar
+    public void setName(String name) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:465: Warnung: kein Kommentar
+    public void setNamespace(String namespace) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:561: Warnung: kein Kommentar
+    public void setNullOccurrences(int nullOccurrences) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:537: Warnung: kein Kommentar
+    public void setObservedValues(Set<String> observedValues) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:513: Warnung: kein Kommentar
+    public void setOriginalType(String originalType) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:601: Warnung: kein Kommentar
+    public void setPatternConfidence(double patternConfidence) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:585: Warnung: kein Kommentar
+    public void setPatternCounts(Map<String, Integer> patternCounts) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:529: Warnung: kein Kommentar
+    public void setPossibleTypes(Set<String> possibleTypes) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:473: Warnung: kein Kommentar
+    public void setQualifiedName(String qualifiedName) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:481: Warnung: kein Kommentar
+    public void setRequired(boolean required) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:649: Warnung: kein Kommentar
+    public void setRestrictionPattern(String restrictionPattern) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:545: Warnung: kein Kommentar
+    public void setSampleValues(List<String> sampleValues) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:737: Warnung: kein Kommentar
+    public void setSourceDocument(String sourceDocument) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:657: Warnung: kein Kommentar
+    public void setStatistics(Map<String, Object> statistics) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:553: Warnung: kein Kommentar
+    public void setTotalOccurrences(int totalOccurrences) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:521: Warnung: kein Kommentar
+    public void setTypeConfidence(double typeConfidence) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AttributeInfo.java:681: Warnung: kein Kommentar
+    public void setValueFrequency(Map<String, Integer> valueFrequency) {
+                ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AutoUpdateService.java:105: Warnung: kein Kommentar
+        public static UpdateResult success(Path extractedDir) {
+                                   ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/AutoUpdateService.java:109: Warnung: kein Kommentar
+        public static UpdateResult failure(String errorMessage) {
+                                   ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/BatchTransformationResult.java:153: Warnung: kein @return
+    public String getSummaryText() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/BatchTransformationResult.java:176: Warnung: kein @return
+    public String getSummaryHtml() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/BatchTransformationResult.java:54: Warnung: kein Kommentar
+    public BatchTransformationResult() {
+           ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/BatchTransformationResult.java:234: Warnung: kein Kommentar
+    public String getCombinedOutput() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/BatchTransformationResult.java:294: Warnung: kein Kommentar
+    public int getErrorCount() {
+               ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/BatchTransformationResult.java:242: Warnung: kein Kommentar
+    public String getErrorMessage() {
+                  ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/BatchTransformationResult.java:250: Warnung: kein Kommentar
+    public LocalDateTime getExecutedAt() {
+                         ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/BatchTransformationResult.java:310: Warnung: kein Kommentar
+    public XsltTransformationEngine.OutputFormat getOutputFormat() {
+                                                 ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/BatchTransformationResult.java:270: Warnung: kein Kommentar
+    public Map<File, String> getPerFileErrors() {
+                             ^
+/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/java/org/fxt/freexmltoolkit/service/BatchTransformationResult.java:274: Warnung: kein Kommentar
+    public Map<File, Long> getPerFileExecutionTimes() {
+                           ^
+100 Warnungen
+
+[Incubating] Problems report is available at: file:///Users/karlkauc/IdeaProjects/FreeXmlToolkit/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 17s
+3 actionable tasks: 2 executed, 1 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html
