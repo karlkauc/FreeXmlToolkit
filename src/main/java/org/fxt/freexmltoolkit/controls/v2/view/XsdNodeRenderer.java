@@ -844,18 +844,18 @@ public class XsdNodeRenderer {
 
     /**
      * Gets the icon literal for rendering the node icon.
-     * Returns Bootstrap Icons names (e.g., "bi-diagram-3", "bi-file-earmark-code").
+     * Returns Bootstrap Icons names or custom XSD type icons.
      */
     private String getIconLiteral(NodeWrapperType type) {
         return switch (type) {
-            case SCHEMA -> "bi-diagram-3";
+            case SCHEMA -> "bi-hdd-stack";
             case ELEMENT -> "bi-file-earmark-code";
             case ATTRIBUTE -> "bi-at";
-            case COMPLEX_TYPE -> "bi-diagram-2";
-            case SIMPLE_TYPE -> "bi-diagram-3";
-            case SEQUENCE -> "bi-list-check";
-            case CHOICE -> "bi-signpost-2";
-            case ALL -> "bi-asterisk";
+            case COMPLEX_TYPE -> "xsd-complex-type";  // Custom ComplexType icon
+            case SIMPLE_TYPE -> "xsd-simple-generic"; // Custom SimpleType icon with S-badge
+            case SEQUENCE -> "bi-list-ol";
+            case CHOICE -> "bi-signpost-split";
+            case ALL -> "bi-collection";
             default -> "bi-diagram-2";
         };
     }
@@ -1752,26 +1752,19 @@ public class XsdNodeRenderer {
 
             // Handle based on actual model object type
             if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType) {
-                // SimpleType: extract base type and determine icon
+                // SimpleType: extract base type and determine icon with S-badge
                 org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType =
                     (org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType) this.modelObject;
                 String baseType = extractBaseTypeFromSimpleType(simpleType);
                 if (baseType != null) {
-                    String icon = getDataTypeIcon(baseType);
-                    if (!"bi-code".equals(icon)) return icon;
+                    // Use getSimpleTypeIcon for SimpleType definitions (with S-badge)
+                    return getSimpleTypeIcon(baseType);
                 }
-                return "bi-type";  // Fallback for SimpleType
+                return "xsd-simple-generic";  // Fallback for SimpleType with generic S-badge
             }
             else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType) {
-                // ComplexType: check for SimpleContent base type
-                org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType =
-                    (org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType) this.modelObject;
-                String baseType = extractBaseTypeFromComplexType(complexType);
-                if (baseType != null) {
-                    String icon = getDataTypeIcon(baseType);
-                    if (!"bi-code".equals(icon)) return icon;
-                }
-                return "bi-box-seam";  // Fallback for ComplexType
+                // ComplexType: use the custom ComplexType icon
+                return "xsd-complex-type";
             }
             else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement) {
                 // Element: extract type and determine icon

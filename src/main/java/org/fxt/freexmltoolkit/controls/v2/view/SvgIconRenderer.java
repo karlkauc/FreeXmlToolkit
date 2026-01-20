@@ -1,7 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 
 /**
  * Renders icon symbols on JavaFX Canvas using SVG path rendering and geometric shapes.
@@ -34,6 +38,9 @@ public class SvgIconRenderer {
      * This method first attempts to render the icon using real SVG path data from
      * {@link BootstrapIconPaths}. If no path data is available, it falls back to
      * hand-coded geometric shape rendering for backwards compatibility.
+     * <p>
+     * For XSD SimpleType icons (xsd-simple-*), a special two-layer rendering is used
+     * to show an "S" badge with proper contrast.
      *
      * @param gc          the GraphicsContext to draw on
      * @param iconLiteral the icon identifier (e.g., "bi-diagram-3")
@@ -46,6 +53,12 @@ public class SvgIconRenderer {
                                    double x, double y, double size, Color color) {
         if (iconLiteral == null || iconLiteral.isEmpty()) {
             renderPlaceholder(gc, x, y, size, color);
+            return;
+        }
+
+        // Special handling for XSD SimpleType icons with S-badge
+        if (XsdTypeIconPaths.isSimpleTypeIcon(iconLiteral)) {
+            renderSimpleTypeIcon(gc, iconLiteral, x, y, size, color);
             return;
         }
 
@@ -570,6 +583,62 @@ public class SvgIconRenderer {
         // Use SvgPathParser to render the path with fill mode (Bootstrap Icons are typically filled)
         SvgPathParser.renderPath(gc, pathData, x, y, size, color, true, BootstrapIconPaths.VIEWBOX_SIZE);
         return true;
+    }
+
+    /**
+     * Renders an XSD SimpleType icon with a distinctive "S" badge.
+     * <p>
+     * This method renders in three layers:
+     * <ol>
+     *   <li>The base icon (type indicator) in the main color</li>
+     *   <li>A white circle as badge background (bottom-right corner)</li>
+     *   <li>The letter "S" in a dark color on top of the white circle</li>
+     * </ol>
+     *
+     * @param gc          the GraphicsContext to draw on
+     * @param iconLiteral the SimpleType icon name (e.g., "xsd-simple-string")
+     * @param x           the x-coordinate
+     * @param y           the y-coordinate
+     * @param size        the icon size
+     * @param color       the main icon color
+     */
+    private static void renderSimpleTypeIcon(GraphicsContext gc, String iconLiteral,
+                                              double x, double y, double size, Color color) {
+        // 1. Render the base icon (without badge) in the main color
+        String basePathData = XsdTypeIconPaths.getBaseIconPath(iconLiteral);
+        if (basePathData != null) {
+            SvgPathParser.renderPath(gc, basePathData, x, y, size, color, true, BootstrapIconPaths.VIEWBOX_SIZE);
+        }
+
+        // 2. Draw badge using direct Java2D for reliability
+        // Badge position: bottom-right corner (scaled from 16x16 viewBox)
+        double scale = size / 16.0;
+        double badgeRadius = 3.5 * scale;  // Slightly larger for visibility
+        double badgeCenterX = x + 13 * scale;  // Position at x=13 in viewBox
+        double badgeCenterY = y + 12.5 * scale;  // Position at y=12.5 in viewBox
+
+        gc.save();
+
+        // Draw white circle background with dark border
+        gc.setFill(Color.WHITE);
+        gc.fillOval(badgeCenterX - badgeRadius, badgeCenterY - badgeRadius,
+                    badgeRadius * 2, badgeRadius * 2);
+
+        // Draw border around badge for better visibility
+        gc.setStroke(color.darker());
+        gc.setLineWidth(Math.max(0.5, scale * 0.5));
+        gc.strokeOval(badgeCenterX - badgeRadius, badgeCenterY - badgeRadius,
+                      badgeRadius * 2, badgeRadius * 2);
+
+        // Draw "S" letter
+        gc.setFill(color.darker().darker());
+        gc.setFont(Font.font("System", FontWeight.BOLD, badgeRadius * 1.4));
+        // Center the "S" in the badge
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.CENTER);
+        gc.fillText("S", badgeCenterX, badgeCenterY);
+
+        gc.restore();
     }
 
     /**

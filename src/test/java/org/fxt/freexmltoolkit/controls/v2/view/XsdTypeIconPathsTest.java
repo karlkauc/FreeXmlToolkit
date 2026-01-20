@@ -136,9 +136,8 @@ class XsdTypeIconPathsTest {
     }
 
     @Test
-    @DisplayName("SimpleType icons contain S badge path data")
-    void simpleTypeIconsContainSBadge() {
-        // All SimpleType icons should contain the S badge which includes a circle at position 10,10
+    @DisplayName("SimpleType icons have separate base paths for badge rendering")
+    void simpleTypeIconsHaveBasePaths() {
         String[] simpleTypeIcons = {
             "xsd-simple-generic",
             "xsd-simple-string",
@@ -146,13 +145,29 @@ class XsdTypeIconPathsTest {
         };
 
         for (String iconName : simpleTypeIcons) {
-            String path = BootstrapIconPaths.getPath(iconName);
-            assertNotNull(path);
+            assertTrue(XsdTypeIconPaths.isSimpleTypeIcon(iconName),
+                iconName + " should be identified as SimpleType icon");
 
-            // The S badge starts with "M10 10" or similar - check for the badge circle
-            assertTrue(path.contains("10") && path.contains("13"),
-                iconName + " should contain S badge path data");
+            String basePath = XsdTypeIconPaths.getBaseIconPath(iconName);
+            assertNotNull(basePath,
+                iconName + " should have a base path");
+            assertFalse(basePath.isEmpty(),
+                iconName + " base path should not be empty");
         }
+    }
+
+    @Test
+    @DisplayName("S badge components are valid SVG paths")
+    void sBadgeComponentsAreValid() {
+        // Badge circle
+        assertNotNull(XsdTypeIconPaths.S_BADGE_CIRCLE);
+        List<SvgPathParser.PathCommand> circleCommands = SvgPathParser.parse(XsdTypeIconPaths.S_BADGE_CIRCLE);
+        assertFalse(circleCommands.isEmpty(), "Badge circle should parse to commands");
+
+        // Badge letter
+        assertNotNull(XsdTypeIconPaths.S_BADGE_LETTER);
+        List<SvgPathParser.PathCommand> letterCommands = SvgPathParser.parse(XsdTypeIconPaths.S_BADGE_LETTER);
+        assertFalse(letterCommands.isEmpty(), "Badge letter should parse to commands");
     }
 
     @Test
