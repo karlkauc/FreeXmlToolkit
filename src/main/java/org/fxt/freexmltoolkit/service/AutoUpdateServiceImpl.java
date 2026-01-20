@@ -409,23 +409,17 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             Path updaterScript = createUpdaterScript(extractedDir, appDir, launcher);
 
             // Launch the updater script
+            // Note: Paths are embedded directly in the script, so no arguments needed.
+            // This avoids all quoting issues with ProcessBuilder and cmd.exe argument parsing.
             ProcessBuilder pb;
             if (isWindows()) {
-                // IMPORTANT: "start /b" requires an empty title ("") before the command
-                // Without it, the first argument is interpreted as the window title!
-                // All paths must be quoted to handle spaces correctly
-                pb = new ProcessBuilder("cmd.exe", "/c", "start", "/b", "\"\"",
-                        "\"" + updaterScript.toString() + "\"",
-                        "\"" + appDir.toString() + "\"",
-                        "\"" + extractedDir.toString() + "\"",
-                        "\"" + launcher.toString() + "\"");
+                // Simple call: script has all paths embedded, no argument parsing needed
+                pb = new ProcessBuilder("cmd.exe", "/c", updaterScript.toString());
             } else {
                 // Make the script executable
                 setExecutable(updaterScript);
-                pb = new ProcessBuilder("/bin/bash", updaterScript.toString(),
-                        appDir.toString(),
-                        extractedDir.toString(),
-                        launcher.toString());
+                // Simple call: script has all paths embedded, no argument parsing needed
+                pb = new ProcessBuilder("/bin/bash", updaterScript.toString());
             }
 
             pb.directory(extractedDir.toFile());
@@ -483,6 +477,14 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
     /**
      * Creates the updater script in the temp directory.
+     * <p>
+     * Paths are embedded directly into the generated script to avoid
+     * quoting issues with ProcessBuilder and shell argument parsing.
+     *
+     * @param extractedDir Directory containing the extracted update
+     * @param appDir Application installation directory
+     * @param launcher Path to the application launcher executable
+     * @return Path to the created updater script
      */
     private Path createUpdaterScript(Path extractedDir, Path appDir, Path launcher) throws IOException {
         String scriptContent;
@@ -490,10 +492,10 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
         if (isWindows()) {
             scriptPath = extractedDir.resolve("updater.bat");
-            scriptContent = createWindowsUpdaterScript();
+            scriptContent = createWindowsUpdaterScript(appDir, extractedDir, launcher);
         } else {
             scriptPath = extractedDir.resolve("updater.sh");
-            scriptContent = createUnixUpdaterScript();
+            scriptContent = createUnixUpdaterScript(appDir, extractedDir, launcher);
         }
 
         Files.writeString(scriptPath, scriptContent);
@@ -505,57 +507,53 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
     /**
      * Creates the Windows updater batch script content.
      * Includes logging, parameter validation, and nested directory search.
+     * <p>
+     * Paths are embedded directly into the script to avoid quoting issues
+     * with Windows cmd.exe and ProcessBuilder.
+     *
+     * @param appDir Application installation directory
+     * @param extractedDir Directory containing the extracted update
+     * @param launcher Path to the application launcher executable
+     * @return The batch script content with embedded paths
      */
-    private String createWindowsUpdaterScript() {
-        return """
+    private String createWindowsUpdaterScript(Path appDir, Path extractedDir, Path launcher) {
+        String appDirStr = appDir.toString();
+        String updateDirStr = extractedDir.toString();
+        String launcherStr = launcher.toString();
+
+        // Use String.format with text block to embed paths directly into the script.
+        // This avoids all quoting issues with ProcessBuilder and cmd.exe argument parsing.
+        return String.format("""
                 @echo off
                 setlocal enabledelayedexpansion
 
-                set "LOG_FILE=%TEMP%\\fxt-update.log"
+                set "LOG_FILE=%%TEMP%%\\fxt-update.log"
 
-                echo ======================================== >> "%LOG_FILE%"
-                echo FreeXmlToolkit Updater - %DATE% %TIME% >> "%LOG_FILE%"
-                echo ======================================== >> "%LOG_FILE%"
+                echo ======================================== >> "%%LOG_FILE%%"
+                echo FreeXmlToolkit Updater - %%DATE%% %%TIME%% >> "%%LOG_FILE%%"
+                echo ======================================== >> "%%LOG_FILE%%"
 
-                set "APP_DIR=%~1"
-                set "UPDATE_DIR=%~2"
-                set "LAUNCHER=%~3"
+                :: Paths are embedded directly (no command-line argument parsing needed)
+                set "APP_DIR=%s"
+                set "UPDATE_DIR=%s"
+                set "LAUNCHER=%s"
 
                 echo FreeXmlToolkit Updater
                 echo ======================
-                echo Application directory: %APP_DIR%
-                echo Update directory: %UPDATE_DIR%
-                echo Launcher: %LAUNCHER%
+                echo Application directory: %%APP_DIR%%
+                echo Update directory: %%UPDATE_DIR%%
+                echo Launcher: %%LAUNCHER%%
 
-                echo APP_DIR=%APP_DIR% >> "%LOG_FILE%"
-                echo UPDATE_DIR=%UPDATE_DIR% >> "%LOG_FILE%"
-                echo LAUNCHER=%LAUNCHER% >> "%LOG_FILE%"
+                echo APP_DIR=%%APP_DIR%% >> "%%LOG_FILE%%"
+                echo UPDATE_DIR=%%UPDATE_DIR%% >> "%%LOG_FILE%%"
+                echo LAUNCHER=%%LAUNCHER%% >> "%%LOG_FILE%%"
 
-                :: Validate parameters
-                if "%APP_DIR%"=="" (
-                    echo Error: Application directory not specified >> "%LOG_FILE%"
-                    echo Error: Application directory not specified
-                    exit /b 1
-                )
-
-                if "%UPDATE_DIR%"=="" (
-                    echo Error: Update directory not specified >> "%LOG_FILE%"
-                    echo Error: Update directory not specified
-                    exit /b 1
-                )
-
-                if "%LAUNCHER%"=="" (
-                    echo Error: Launcher path not specified >> "%LOG_FILE%"
-                    echo Error: Launcher path not specified
-                    exit /b 1
-                )
-
-                echo Waiting for application to exit... >> "%LOG_FILE%"
+                echo Waiting for application to exit... >> "%%LOG_FILE%%"
                 echo Waiting for application to exit...
 
                 :wait_loop
                 tasklist /FI "IMAGENAME eq FreeXmlToolkit.exe" 2>NUL | find /I "FreeXmlToolkit.exe" >NUL
-                if %ERRORLEVEL%==0 (
+                if %%ERRORLEVEL%%==0 (
                     timeout /t 1 /nobreak >NUL
                     goto wait_loop
                 )
@@ -563,82 +561,95 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 :: Additional wait to ensure all file handles are released
                 timeout /t 2 /nobreak >NUL
 
-                echo Application has exited. Installing update... >> "%LOG_FILE%"
+                echo Application has exited. Installing update... >> "%%LOG_FILE%%"
                 echo Application has exited. Installing update...
 
                 :: Find the extracted app folder - check first level
                 set "UPDATE_APP_DIR="
-                for /d %%d in ("%UPDATE_DIR%\\*") do (
-                    if exist "%%d\\FreeXmlToolkit.exe" (
-                        set "UPDATE_APP_DIR=%%d"
-                        echo Found update in: %%d >> "%LOG_FILE%"
-                        echo Found update in: %%d
+                for /d %%%%d in ("%%UPDATE_DIR%%\\*") do (
+                    if exist "%%%%d\\FreeXmlToolkit.exe" (
+                        set "UPDATE_APP_DIR=%%%%d"
+                        echo Found update in: %%%%d >> "%%LOG_FILE%%"
+                        echo Found update in: %%%%d
                     )
                 )
 
                 :: If not found, check second level (nested zip structure)
-                if "%UPDATE_APP_DIR%"=="" (
-                    for /d %%d in ("%UPDATE_DIR%\\*") do (
-                        for /d %%e in ("%%d\\*") do (
-                            if exist "%%e\\FreeXmlToolkit.exe" (
-                                set "UPDATE_APP_DIR=%%e"
-                                echo Found update in nested dir: %%e >> "%LOG_FILE%"
-                                echo Found update in nested dir: %%e
+                if "%%UPDATE_APP_DIR%%"=="" (
+                    for /d %%%%d in ("%%UPDATE_DIR%%\\*") do (
+                        for /d %%%%e in ("%%%%d\\*") do (
+                            if exist "%%%%e\\FreeXmlToolkit.exe" (
+                                set "UPDATE_APP_DIR=%%%%e"
+                                echo Found update in nested dir: %%%%e >> "%%LOG_FILE%%"
+                                echo Found update in nested dir: %%%%e
                             )
                         )
                     )
                 )
 
-                if "%UPDATE_APP_DIR%"=="" (
-                    echo Error: Could not find update files with FreeXmlToolkit.exe >> "%LOG_FILE%"
+                if "%%UPDATE_APP_DIR%%"=="" (
+                    echo Error: Could not find update files with FreeXmlToolkit.exe >> "%%LOG_FILE%%"
                     echo Error: Could not find update files with FreeXmlToolkit.exe
-                    echo Contents of update directory: >> "%LOG_FILE%"
-                    dir /b /s "%UPDATE_DIR%" >> "%LOG_FILE%" 2>&1
+                    echo Contents of update directory: >> "%%LOG_FILE%%"
+                    dir /b /s "%%UPDATE_DIR%%" >> "%%LOG_FILE%%" 2>&1
                     exit /b 1
                 )
 
                 :: Copy new files
-                echo Copying files from %UPDATE_APP_DIR% to %APP_DIR% >> "%LOG_FILE%"
+                echo Copying files from %%UPDATE_APP_DIR%% to %%APP_DIR%% >> "%%LOG_FILE%%"
                 echo Copying files...
-                xcopy /E /Y /I "%UPDATE_APP_DIR%\\*" "%APP_DIR%\\" >NUL 2>&1
+                xcopy /E /Y /I "%%UPDATE_APP_DIR%%\\*" "%%APP_DIR%%\\" >NUL 2>&1
 
-                if %ERRORLEVEL% neq 0 (
-                    echo Error copying files! Error code: %ERRORLEVEL% >> "%LOG_FILE%"
+                if %%ERRORLEVEL%% neq 0 (
+                    echo Error copying files! Error code: %%ERRORLEVEL%% >> "%%LOG_FILE%%"
                     echo Error copying files! Try running as Administrator.
                     exit /b 1
                 )
 
-                echo Files copied successfully >> "%LOG_FILE%"
+                echo Files copied successfully >> "%%LOG_FILE%%"
                 echo Files copied successfully.
 
                 :: Cleanup update directory
-                echo Cleaning up... >> "%LOG_FILE%"
+                echo Cleaning up... >> "%%LOG_FILE%%"
                 echo Cleaning up...
-                rmdir /S /Q "%UPDATE_DIR%" 2>NUL
+                rmdir /S /Q "%%UPDATE_DIR%%" 2>NUL
 
                 :: Small delay before starting
                 timeout /t 1 /nobreak >NUL
 
                 :: Restart application
-                echo Starting updated application: %LAUNCHER% >> "%LOG_FILE%"
+                echo Starting updated application: %%LAUNCHER%% >> "%%LOG_FILE%%"
                 echo Starting updated application...
-                start "" "%LAUNCHER%"
+                start "" "%%LAUNCHER%%"
 
-                echo Update completed successfully >> "%LOG_FILE%"
+                echo Update completed successfully >> "%%LOG_FILE%%"
                 exit /b 0
-                """;
+                """, appDirStr, updateDirStr, launcherStr);
     }
 
     /**
      * Creates the Unix (macOS/Linux) updater shell script content.
+     * <p>
+     * Paths are embedded directly into the script for consistency with
+     * the Windows implementation.
+     *
+     * @param appDir Application installation directory
+     * @param extractedDir Directory containing the extracted update
+     * @param launcher Path to the application launcher executable
+     * @return The shell script content with embedded paths
      */
-    private String createUnixUpdaterScript() {
-        return """
+    private String createUnixUpdaterScript(Path appDir, Path extractedDir, Path launcher) {
+        String appDirStr = appDir.toString();
+        String updateDirStr = extractedDir.toString();
+        String launcherStr = launcher.toString();
+
+        return String.format("""
                 #!/bin/bash
 
-                APP_DIR="$1"
-                UPDATE_DIR="$2"
-                LAUNCHER="$3"
+                # Paths are embedded directly (no command-line argument parsing needed)
+                APP_DIR="%s"
+                UPDATE_DIR="%s"
+                LAUNCHER="%s"
 
                 echo "FreeXmlToolkit Updater"
                 echo "======================"
@@ -700,7 +711,7 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 "$LAUNCHER" &
 
                 exit 0
-                """;
+                """, appDirStr, updateDirStr, launcherStr);
     }
 
     /**
