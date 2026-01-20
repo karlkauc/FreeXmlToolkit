@@ -808,7 +808,7 @@ public class XsdModelAdapter {
                 ParsedSchema includedSchema = include.parsedSchema();
 
                 if (options.getIncludeMode() == XsdParseOptions.IncludeMode.FLATTEN) {
-                    // Inline content from included schema
+                    // Inline content from included schema - do NOT add XsdInclude node
                     if (includeTracker != null && include.resolvedPath() != null) {
                         includeTracker.pushContext(xsdInclude, include.resolvedPath());
                     }
@@ -820,17 +820,21 @@ public class XsdModelAdapter {
                             includeTracker.popContext();
                         }
                     }
+                    // In FLATTEN mode: content is inlined, XsdInclude node is NOT added to schema
                 } else {
-                    // Create reference to included schema
+                    // Create reference to included schema and add to schema
                     XsdSchema includedRef = new XsdSchema();
                     includedRef.setMainSchemaPath(include.resolvedPath());
                     xsdInclude.setIncludedSchema(includedRef);
+                    schema.addChild(xsdInclude);
                 }
             } else if (include.error() != null) {
+                // Resolution failed - add include with error marker (only in PRESERVE_STRUCTURE mode)
                 xsdInclude.markResolutionFailed(include.error());
+                if (options.getIncludeMode() != XsdParseOptions.IncludeMode.FLATTEN) {
+                    schema.addChild(xsdInclude);
+                }
             }
-
-            schema.addChild(xsdInclude);
         }
     }
 

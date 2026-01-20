@@ -36,11 +36,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.DocumentationOutputFormat;
-import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
-import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
-import org.fxt.freexmltoolkit.domain.XsdDocInfo;
-import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
+import org.fxt.freexmltoolkit.domain.*;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
@@ -123,6 +119,16 @@ public class XsdController implements FavoritesParentController {
     private CodeArea flattenedXsdTextArea;
     @FXML
     private ProgressIndicator flattenProgress;
+    @FXML
+    public CheckBox flattenIncludesCheckBox;
+    @FXML
+    public CheckBox flattenImportsCheckBox;
+    @FXML
+    public RadioButton flattenSortTypeBeforeName;
+    @FXML
+    public RadioButton flattenSortNameBeforeType;
+    @FXML
+    public ToggleGroup flattenSortOrderGroup;
 
     // ExecutorService for background tasks
     private final ExecutorService executorService = Executors.newFixedThreadPool(2, r -> {
@@ -765,6 +771,16 @@ public class XsdController implements FavoritesParentController {
 
         // Check initial state
         updateButtonState.run();
+
+        // Initialize flatten options from settings
+        if (propertiesService != null && flattenSortTypeBeforeName != null && flattenSortNameBeforeType != null) {
+            String savedSortOrder = propertiesService.getXsdSortOrder();
+            if ("TYPE_BEFORE_NAME".equals(savedSortOrder)) {
+                flattenSortTypeBeforeName.setSelected(true);
+            } else {
+                flattenSortNameBeforeType.setSelected(true);
+            }
+        }
 
         logger.debug("Flatten button initialized with text field listeners");
     }
@@ -4101,6 +4117,15 @@ public class XsdController implements FavoritesParentController {
         File sourceFile = new File(sourcePath);
         File destinationFile = new File(destinationPath);
 
+        // Get options from UI checkboxes and radio buttons
+        boolean flattenIncludes = flattenIncludesCheckBox == null || flattenIncludesCheckBox.isSelected();
+        boolean flattenImports = flattenImportsCheckBox != null && flattenImportsCheckBox.isSelected();
+        XsdSortOrder sortOrder = (flattenSortTypeBeforeName != null && flattenSortTypeBeforeName.isSelected())
+                ? XsdSortOrder.TYPE_BEFORE_NAME
+                : XsdSortOrder.NAME_BEFORE_TYPE;
+
+        logger.info("Flatten options - includes: {}, imports: {}, sortOrder: {}", flattenIncludes, flattenImports, sortOrder);
+
         flattenProgress.setVisible(true);
         flattenStatusLabel.setText("Flattening in progress...");
         flattenedXsdTextArea.clear();
@@ -4108,19 +4133,23 @@ public class XsdController implements FavoritesParentController {
         Task<String> flattenTask = new Task<>() {
             @Override
             protected String call() throws Exception {
-                // Use new unified XsdParsingService with FLATTEN mode
-                XsdParsingService parsingService = new XsdParsingServiceImpl();
-                XsdParseOptions options = XsdParseOptions.forFlattening();
+                // Build parse options from UI settings
+                XsdParseOptions options = XsdParseOptions.builder()
+                        .includeMode(flattenIncludes
+                                ? XsdParseOptions.IncludeMode.FLATTEN
+                                : XsdParseOptions.IncludeMode.PRESERVE_STRUCTURE)
+                        .resolveImports(flattenImports)
+                        .build();
 
+                // Use new unified XsdParsingService
+                XsdParsingService parsingService = new XsdParsingServiceImpl();
                 ParsedSchema parsedSchema = parsingService.parse(sourceFile.toPath(), options);
 
                 // Convert to XsdSchema model for proper serialization with sorting
                 XsdModelAdapter modelAdapter = new XsdModelAdapter(options);
                 XsdSchema xsdModel = modelAdapter.toXsdModel(parsedSchema);
 
-                // Get sort order from settings
-                XsdSortOrder sortOrder = getSortOrderFromSettings();
-                logger.info("Using sort order from settings: {}", sortOrder);
+                logger.info("Using sort order from UI: {}", sortOrder);
 
                 // Serialize with XsdSerializer which respects sort order
                 XsdSerializer serializer = new XsdSerializer();

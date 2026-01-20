@@ -1138,11 +1138,47 @@
                             </Button>
                         </HBox>
 
+                        <Label text="Flattening Options:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <HBox spacing="20" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <CheckBox fx:id="flattenIncludesCheckBox" selected="true" text="Flatten xs:include">
+                                <tooltip>
+                                    <Tooltip text="Inline content from xs:include directives (same namespace)"/>
+                                </tooltip>
+                            </CheckBox>
+                            <CheckBox fx:id="flattenImportsCheckBox" selected="false" text="Flatten xs:import">
+                                <tooltip>
+                                    <Tooltip text="Inline content from xs:import directives (different namespace)"/>
+                                </tooltip>
+                            </CheckBox>
+                        </HBox>
+
+                        <Label text="Sort Order:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                        <HBox spacing="20" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                            <fx:define>
+                                <ToggleGroup fx:id="flattenSortOrderGroup"/>
+                            </fx:define>
+                            <RadioButton fx:id="flattenSortTypeBeforeName" text="Type before Name"
+                                         toggleGroup="$flattenSortOrderGroup">
+                                <tooltip>
+                                    <Tooltip
+                                            text="Sort by XSD construct type first (attributeGroup, complexType, etc.), then by name"/>
+                                </tooltip>
+                            </RadioButton>
+                            <RadioButton fx:id="flattenSortNameBeforeType" text="Name before Type"
+                                         toggleGroup="$flattenSortOrderGroup">
+                                <tooltip>
+                                    <Tooltip text="Sort elements purely by name (alphabetically)"/>
+                                </tooltip>
+                            </RadioButton>
+                        </HBox>
+
                         <columnConstraints>
                             <ColumnConstraints hgrow="NEVER" minWidth="180.0"/>
                             <ColumnConstraints hgrow="ALWAYS"/>
                         </columnConstraints>
                         <rowConstraints>
+                            <RowConstraints/>
+                            <RowConstraints/>
                             <RowConstraints/>
                             <RowConstraints/>
                         </rowConstraints>
