@@ -102,10 +102,22 @@ public interface AutoUpdateService {
             String errorMessage,
             Path extractedDir
     ) {
+        /**
+         * Creates a successful result.
+         *
+         * @param extractedDir The path to the extracted files.
+         * @return A successful UpdateResult.
+         */
         public static UpdateResult success(Path extractedDir) {
             return new UpdateResult(true, null, extractedDir);
         }
 
+        /**
+         * Creates a failed result.
+         *
+         * @param errorMessage The error message.
+         * @return A failed UpdateResult.
+         */
         public static UpdateResult failure(String errorMessage) {
             return new UpdateResult(false, errorMessage, null);
         }

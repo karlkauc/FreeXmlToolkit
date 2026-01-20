@@ -61,17 +61,31 @@ public class AttributeInfo {
     private LocalDateTime analyzedAt;
     private String sourceDocument;
 
+    /**
+     * Default constructor. Initializes timestamps.
+     */
     public AttributeInfo() {
         this.firstSeen = LocalDateTime.now();
         this.lastSeen = LocalDateTime.now();
     }
 
+    /**
+     * Constructor with name.
+     *
+     * @param name The name of the attribute.
+     */
     public AttributeInfo(String name) {
         this();
         this.name = name;
         this.qualifiedName = name;
     }
 
+    /**
+     * Constructor with name and namespace.
+     *
+     * @param name      The name of the attribute.
+     * @param namespace The namespace of the attribute.
+     */
     public AttributeInfo(String name, String namespace) {
         this(name);
         this.namespace = namespace;
@@ -409,7 +423,9 @@ public class AttributeInfo {
     }
 
     /**
-     * Get usage statistics
+     * Get usage statistics.
+     *
+     * @return A map containing usage statistics.
      */
     public Map<String, Object> getUsageStatistics() {
         Map<String, Object> stats = new HashMap<>();
@@ -440,7 +456,10 @@ public class AttributeInfo {
     }
 
     /**
-     * Check if attribute should be marked as required
+     * Check if attribute should be marked as required.
+     *
+     * @param requiredThreshold The threshold ratio (0.0 to 1.0) for considering an attribute required.
+     * @return True if the attribute presence ratio meets or exceeds the threshold.
      */
     public boolean shouldBeRequired(double requiredThreshold) {
         if (totalOccurrences == 0) return false;
@@ -450,290 +469,650 @@ public class AttributeInfo {
 
     // ========== Getters and Setters ==========
 
+    /**
+     * Gets the name of the attribute.
+     *
+     * @return The name.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name of the attribute.
+     *
+     * @param name The name to set.
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Gets the namespace of the attribute.
+     *
+     * @return The namespace.
+     */
     public String getNamespace() {
         return namespace;
     }
 
+    /**
+     * Sets the namespace of the attribute.
+     *
+     * @param namespace The namespace to set.
+     */
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
 
+    /**
+     * Gets the qualified name of the attribute.
+     *
+     * @return The qualified name.
+     */
     public String getQualifiedName() {
         return qualifiedName;
     }
 
+    /**
+     * Sets the qualified name of the attribute.
+     *
+     * @param qualifiedName The qualified name to set.
+     */
     public void setQualifiedName(String qualifiedName) {
         this.qualifiedName = qualifiedName;
     }
 
+    /**
+     * Checks if the attribute is required.
+     *
+     * @return True if required, false otherwise.
+     */
     public boolean isRequired() {
         return required;
     }
 
+    /**
+     * Sets whether the attribute is required.
+     *
+     * @param required True if required.
+     */
     public void setRequired(boolean required) {
         this.required = required;
     }
 
+    /**
+     * Gets the default value of the attribute.
+     *
+     * @return The default value.
+     */
     public String getDefaultValue() {
         return defaultValue;
     }
 
+    /**
+     * Sets the default value of the attribute.
+     *
+     * @param defaultValue The default value to set.
+     */
     public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
     }
 
+    /**
+     * Gets the fixed value of the attribute.
+     *
+     * @return The fixed value.
+     */
     public String getFixedValue() {
         return fixedValue;
     }
 
+    /**
+     * Sets the fixed value of the attribute.
+     *
+     * @param fixedValue The fixed value to set.
+     */
     public void setFixedValue(String fixedValue) {
         this.fixedValue = fixedValue;
     }
 
+    /**
+     * Gets the inferred type of the attribute.
+     *
+     * @return The inferred type (e.g., "xs:string").
+     */
     public String getInferredType() {
         return inferredType;
     }
 
+    /**
+     * Sets the inferred type of the attribute.
+     *
+     * @param inferredType The inferred type to set.
+     */
     public void setInferredType(String inferredType) {
         this.inferredType = inferredType;
     }
 
+    /**
+     * Gets the original type specified in the source.
+     *
+     * @return The original type.
+     */
     public String getOriginalType() {
         return originalType;
     }
 
+    /**
+     * Sets the original type specified in the source.
+     *
+     * @param originalType The original type to set.
+     */
     public void setOriginalType(String originalType) {
         this.originalType = originalType;
     }
 
+    /**
+     * Gets the confidence level of the inferred type.
+     *
+     * @return The confidence level (0.0 to 1.0).
+     */
     public double getTypeConfidence() {
         return typeConfidence;
     }
 
+    /**
+     * Sets the confidence level of the inferred type.
+     *
+     * @param typeConfidence The confidence level to set.
+     */
     public void setTypeConfidence(double typeConfidence) {
         this.typeConfidence = typeConfidence;
     }
 
+    /**
+     * Gets the set of possible types for the attribute.
+     *
+     * @return The set of possible types.
+     */
     public Set<String> getPossibleTypes() {
         return possibleTypes;
     }
 
+    /**
+     * Sets the set of possible types for the attribute.
+     *
+     * @param possibleTypes The set of possible types to set.
+     */
     public void setPossibleTypes(Set<String> possibleTypes) {
         this.possibleTypes = possibleTypes;
     }
 
+    /**
+     * Gets the set of observed values.
+     *
+     * @return The set of observed values.
+     */
     public Set<String> getObservedValues() {
         return observedValues;
     }
 
+    /**
+     * Sets the set of observed values.
+     *
+     * @param observedValues The set of observed values to set.
+     */
     public void setObservedValues(Set<String> observedValues) {
         this.observedValues = observedValues;
     }
 
+    /**
+     * Gets the list of sample values.
+     *
+     * @return The list of sample values.
+     */
     public List<String> getSampleValues() {
         return sampleValues;
     }
 
+    /**
+     * Sets the list of sample values.
+     *
+     * @param sampleValues The list of sample values to set.
+     */
     public void setSampleValues(List<String> sampleValues) {
         this.sampleValues = sampleValues;
     }
 
+    /**
+     * Gets the total number of occurrences of the attribute.
+     *
+     * @return The total occurrences.
+     */
     public int getTotalOccurrences() {
         return totalOccurrences;
     }
 
+    /**
+     * Sets the total number of occurrences of the attribute.
+     *
+     * @param totalOccurrences The total occurrences to set.
+     */
     public void setTotalOccurrences(int totalOccurrences) {
         this.totalOccurrences = totalOccurrences;
     }
 
+    /**
+     * Gets the number of null occurrences.
+     *
+     * @return The number of null occurrences.
+     */
     public int getNullOccurrences() {
         return nullOccurrences;
     }
 
+    /**
+     * Sets the number of null occurrences.
+     *
+     * @param nullOccurrences The number of null occurrences to set.
+     */
     public void setNullOccurrences(int nullOccurrences) {
         this.nullOccurrences = nullOccurrences;
     }
 
+    /**
+     * Gets the number of empty occurrences.
+     *
+     * @return The number of empty occurrences.
+     */
     public int getEmptyOccurrences() {
         return emptyOccurrences;
     }
 
+    /**
+     * Sets the number of empty occurrences.
+     *
+     * @param emptyOccurrences The number of empty occurrences to set.
+     */
     public void setEmptyOccurrences(int emptyOccurrences) {
         this.emptyOccurrences = emptyOccurrences;
     }
 
+    /**
+     * Gets the set of detected patterns.
+     *
+     * @return The set of detected patterns.
+     */
     public Set<String> getDetectedPatterns() {
         return detectedPatterns;
     }
 
+    /**
+     * Sets the set of detected patterns.
+     *
+     * @param detectedPatterns The set of detected patterns to set.
+     */
     public void setDetectedPatterns(Set<String> detectedPatterns) {
         this.detectedPatterns = detectedPatterns;
     }
 
+    /**
+     * Gets the counts of detected patterns.
+     *
+     * @return The pattern counts.
+     */
     public Map<String, Integer> getPatternCounts() {
         return patternCounts;
     }
 
+    /**
+     * Sets the counts of detected patterns.
+     *
+     * @param patternCounts The pattern counts to set.
+     */
     public void setPatternCounts(Map<String, Integer> patternCounts) {
         this.patternCounts = patternCounts;
     }
 
+    /**
+     * Gets the most common pattern detected.
+     *
+     * @return The most common pattern.
+     */
     public String getMostCommonPattern() {
         return mostCommonPattern;
     }
 
+    /**
+     * Sets the most common pattern detected.
+     *
+     * @param mostCommonPattern The most common pattern to set.
+     */
     public void setMostCommonPattern(String mostCommonPattern) {
         this.mostCommonPattern = mostCommonPattern;
     }
 
+    /**
+     * Gets the confidence level of the detected pattern.
+     *
+     * @return The confidence level (0.0 to 1.0).
+     */
     public double getPatternConfidence() {
         return patternConfidence;
     }
 
+    /**
+     * Sets the confidence level of the detected pattern.
+     *
+     * @param patternConfidence The confidence level to set.
+     */
     public void setPatternConfidence(double patternConfidence) {
         this.patternConfidence = patternConfidence;
     }
 
+    /**
+     * Gets the minimum length of the attribute value.
+     *
+     * @return The minimum length.
+     */
     public Integer getMinLength() {
         return minLength;
     }
 
+    /**
+     * Sets the minimum length of the attribute value.
+     *
+     * @param minLength The minimum length to set.
+     */
     public void setMinLength(Integer minLength) {
         this.minLength = minLength;
     }
 
+    /**
+     * Gets the maximum length of the attribute value.
+     *
+     * @return The maximum length.
+     */
     public Integer getMaxLength() {
         return maxLength;
     }
 
+    /**
+     * Sets the maximum length of the attribute value.
+     *
+     * @param maxLength The maximum length to set.
+     */
     public void setMaxLength(Integer maxLength) {
         this.maxLength = maxLength;
     }
 
+    /**
+     * Gets the minimum value observed (for numeric types).
+     *
+     * @return The minimum value.
+     */
     public String getMinValue() {
         return minValue;
     }
 
+    /**
+     * Sets the minimum value observed.
+     *
+     * @param minValue The minimum value to set.
+     */
     public void setMinValue(String minValue) {
         this.minValue = minValue;
     }
 
+    /**
+     * Gets the maximum value observed (for numeric types).
+     *
+     * @return The maximum value.
+     */
     public String getMaxValue() {
         return maxValue;
     }
 
+    /**
+     * Sets the maximum value observed.
+     *
+     * @param maxValue The maximum value to set.
+     */
     public void setMaxValue(String maxValue) {
         this.maxValue = maxValue;
     }
 
+    /**
+     * Gets the set of enumeration values (if detected).
+     *
+     * @return The set of enumeration values.
+     */
     public Set<String> getEnumerationValues() {
         return enumerationValues;
     }
 
+    /**
+     * Sets the set of enumeration values.
+     *
+     * @param enumerationValues The set of enumeration values to set.
+     */
     public void setEnumerationValues(Set<String> enumerationValues) {
         this.enumerationValues = enumerationValues;
     }
 
+    /**
+     * Gets the restriction pattern (regex).
+     *
+     * @return The restriction pattern.
+     */
     public String getRestrictionPattern() {
         return restrictionPattern;
     }
 
+    /**
+     * Sets the restriction pattern.
+     *
+     * @param restrictionPattern The restriction pattern to set.
+     */
     public void setRestrictionPattern(String restrictionPattern) {
         this.restrictionPattern = restrictionPattern;
     }
 
+    /**
+     * Gets the statistical information.
+     *
+     * @return The statistics map.
+     */
     public Map<String, Object> getStatistics() {
         return statistics;
     }
 
+    /**
+     * Sets the statistical information.
+     *
+     * @param statistics The statistics map to set.
+     */
     public void setStatistics(Map<String, Object> statistics) {
         this.statistics = statistics;
     }
 
+    /**
+     * Gets the timestamp when the attribute was first seen.
+     *
+     * @return The first seen timestamp.
+     */
     public LocalDateTime getFirstSeen() {
         return firstSeen;
     }
 
+    /**
+     * Sets the timestamp when the attribute was first seen.
+     *
+     * @param firstSeen The first seen timestamp to set.
+     */
     public void setFirstSeen(LocalDateTime firstSeen) {
         this.firstSeen = firstSeen;
     }
 
+    /**
+     * Gets the timestamp when the attribute was last seen.
+     *
+     * @return The last seen timestamp.
+     */
     public LocalDateTime getLastSeen() {
         return lastSeen;
     }
 
+    /**
+     * Sets the timestamp when the attribute was last seen.
+     *
+     * @param lastSeen The last seen timestamp to set.
+     */
     public void setLastSeen(LocalDateTime lastSeen) {
         this.lastSeen = lastSeen;
     }
 
+    /**
+     * Gets the frequency of each observed value.
+     *
+     * @return The value frequency map.
+     */
     public Map<String, Integer> getValueFrequency() {
         return valueFrequency;
     }
 
+    /**
+     * Sets the frequency of each observed value.
+     *
+     * @param valueFrequency The value frequency map to set.
+     */
     public void setValueFrequency(Map<String, Integer> valueFrequency) {
         this.valueFrequency = valueFrequency;
     }
 
+    /**
+     * Gets the documentation for the attribute.
+     *
+     * @return The documentation string.
+     */
     public String getDocumentation() {
         return documentation;
     }
 
+    /**
+     * Sets the documentation for the attribute.
+     *
+     * @param documentation The documentation string to set.
+     */
     public void setDocumentation(String documentation) {
         this.documentation = documentation;
     }
 
+    /**
+     * Gets the list of comments associated with the attribute.
+     *
+     * @return The list of comments.
+     */
     public List<String> getComments() {
         return comments;
     }
 
+    /**
+     * Sets the list of comments associated with the attribute.
+     *
+     * @param comments The list of comments to set.
+     */
     public void setComments(List<String> comments) {
         this.comments = comments;
     }
 
+    /**
+     * Gets the annotations associated with the attribute.
+     *
+     * @return The annotations map.
+     */
     public Map<String, String> getAnnotations() {
         return annotations;
     }
 
+    /**
+     * Sets the annotations associated with the attribute.
+     *
+     * @param annotations The annotations map to set.
+     */
     public void setAnnotations(Map<String, String> annotations) {
         this.annotations = annotations;
     }
 
+    /**
+     * Gets the depth of analysis performed.
+     *
+     * @return The analysis depth.
+     */
     public int getAnalysisDepth() {
         return analysisDepth;
     }
 
+    /**
+     * Sets the depth of analysis performed.
+     *
+     * @param analysisDepth The analysis depth to set.
+     */
     public void setAnalysisDepth(int analysisDepth) {
         this.analysisDepth = analysisDepth;
     }
 
+    /**
+     * Checks if the attribute has been analyzed.
+     *
+     * @return True if analyzed, false otherwise.
+     */
     public boolean isAnalyzed() {
         return analyzed;
     }
 
+    /**
+     * Sets whether the attribute has been analyzed.
+     *
+     * @param analyzed True if analyzed.
+     */
     public void setAnalyzed(boolean analyzed) {
         this.analyzed = analyzed;
     }
 
+    /**
+     * Gets the timestamp when analysis was performed.
+     *
+     * @return The analysis timestamp.
+     */
     public LocalDateTime getAnalyzedAt() {
         return analyzedAt;
     }
 
+    /**
+     * Sets the timestamp when analysis was performed.
+     *
+     * @param analyzedAt The analysis timestamp to set.
+     */
     public void setAnalyzedAt(LocalDateTime analyzedAt) {
         this.analyzedAt = analyzedAt;
     }
 
+    /**
+     * Gets the source document identifier.
+     *
+     * @return The source document identifier.
+     */
     public String getSourceDocument() {
         return sourceDocument;
     }
 
+    /**
+     * Sets the source document identifier.
+     *
+     * @param sourceDocument The source document identifier to set.
+     */
     public void setSourceDocument(String sourceDocument) {
         this.sourceDocument = sourceDocument;
     }

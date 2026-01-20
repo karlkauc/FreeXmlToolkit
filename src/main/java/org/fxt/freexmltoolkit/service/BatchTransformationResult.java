@@ -51,6 +51,9 @@ public class BatchTransformationResult {
     // Output format
     private XsltTransformationEngine.OutputFormat outputFormat;
 
+    /**
+     * Default constructor.
+     */
     public BatchTransformationResult() {
         this.executedAt = LocalDateTime.now();
         this.success = false;
@@ -149,6 +152,8 @@ public class BatchTransformationResult {
 
     /**
      * Get summary statistics as formatted text.
+     *
+     * @return The summary text.
      */
     public String getSummaryText() {
         StringBuilder sb = new StringBuilder();
@@ -172,6 +177,8 @@ public class BatchTransformationResult {
 
     /**
      * Get summary as HTML for preview.
+     *
+     * @return The summary HTML.
      */
     public String getSummaryHtml() {
         StringBuilder sb = new StringBuilder();
@@ -223,94 +230,209 @@ public class BatchTransformationResult {
 
     // ========== Getters and Setters ==========
 
+    /**
+     * Checks if the batch transformation was successful.
+     *
+     * @return True if successful, false otherwise.
+     */
     public boolean isSuccess() {
         return success;
     }
 
+    /**
+     * Sets the success status of the batch transformation.
+     *
+     * @param success True if successful.
+     */
     public void setSuccess(boolean success) {
         this.success = success;
     }
 
+    /**
+     * Gets the combined output of the transformation.
+     *
+     * @return The combined output string.
+     */
     public String getCombinedOutput() {
         return combinedOutput;
     }
 
+    /**
+     * Sets the combined output of the transformation.
+     *
+     * @param combinedOutput The combined output string to set.
+     */
     public void setCombinedOutput(String combinedOutput) {
         this.combinedOutput = combinedOutput;
     }
 
+    /**
+     * Gets the error message if the transformation failed.
+     *
+     * @return The error message.
+     */
     public String getErrorMessage() {
         return errorMessage;
     }
 
+    /**
+     * Sets the error message.
+     *
+     * @param errorMessage The error message to set.
+     */
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
 
+    /**
+     * Gets the timestamp when the transformation was executed.
+     *
+     * @return The execution timestamp.
+     */
     public LocalDateTime getExecutedAt() {
         return executedAt;
     }
 
+    /**
+     * Sets the execution timestamp.
+     *
+     * @param executedAt The timestamp to set.
+     */
     public void setExecutedAt(LocalDateTime executedAt) {
         this.executedAt = executedAt;
     }
 
+    /**
+     * Gets the total execution time in milliseconds.
+     *
+     * @return The total execution time.
+     */
     public long getTotalExecutionTime() {
         return totalExecutionTime;
     }
 
+    /**
+     * Sets the total execution time in milliseconds.
+     *
+     * @param totalExecutionTime The execution time to set.
+     */
     public void setTotalExecutionTime(long totalExecutionTime) {
         this.totalExecutionTime = totalExecutionTime;
     }
 
+    /**
+     * Gets the map of per-file results.
+     *
+     * @return A map of file to result string.
+     */
     public Map<File, String> getPerFileResults() {
         return new LinkedHashMap<>(perFileResults);
     }
 
+    /**
+     * Gets the map of per-file errors.
+     *
+     * @return A map of file to error message.
+     */
     public Map<File, String> getPerFileErrors() {
         return new LinkedHashMap<>(perFileErrors);
     }
 
+    /**
+     * Gets the map of per-file execution times.
+     *
+     * @return A map of file to execution time in milliseconds.
+     */
     public Map<File, Long> getPerFileExecutionTimes() {
         return new LinkedHashMap<>(perFileExecutionTimes);
     }
 
+    /**
+     * Gets the total number of files processed.
+     *
+     * @return The total files count.
+     */
     public int getTotalFiles() {
         return totalFiles;
     }
 
+    /**
+     * Sets the total number of files processed.
+     *
+     * @param totalFiles The total files count to set.
+     */
     public void setTotalFiles(int totalFiles) {
         this.totalFiles = totalFiles;
     }
 
+    /**
+     * Gets the number of successfully processed files.
+     *
+     * @return The success count.
+     */
     public int getSuccessCount() {
         return successCount;
     }
 
+    /**
+     * Sets the number of successfully processed files.
+     *
+     * @param successCount The success count to set.
+     */
     public void setSuccessCount(int successCount) {
         this.successCount = successCount;
     }
 
+    /**
+     * Gets the number of files that failed processing.
+     *
+     * @return The error count.
+     */
     public int getErrorCount() {
         return errorCount;
     }
 
+    /**
+     * Sets the number of files that failed processing.
+     *
+     * @param errorCount The error count to set.
+     */
     public void setErrorCount(int errorCount) {
         this.errorCount = errorCount;
     }
 
+    /**
+     * Gets the number of skipped files.
+     *
+     * @return The skipped count.
+     */
     public int getSkippedCount() {
         return skippedCount;
     }
 
+    /**
+     * Sets the number of skipped files.
+     *
+     * @param skippedCount The skipped count to set.
+     */
     public void setSkippedCount(int skippedCount) {
         this.skippedCount = skippedCount;
     }
 
+    /**
+     * Gets the output format used for the transformation.
+     *
+     * @return The output format.
+     */
     public XsltTransformationEngine.OutputFormat getOutputFormat() {
         return outputFormat;
     }
 
+    /**
+     * Sets the output format used for the transformation.
+     *
+     * @param outputFormat The output format to set.
+     */
     public void setOutputFormat(XsltTransformationEngine.OutputFormat outputFormat) {
         this.outputFormat = outputFormat;
     }
