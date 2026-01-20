@@ -6,8 +6,8 @@
 - [x] Task: Conductor - User Manual Verification 'Analysis & Setup' (Protocol in workflow.md) 135e679
 
 ## Phase 2: Fix Warnings (Core & Utils)
-- [ ] Task: Fix Javadoc warnings in utility and helper packages (e.g., `org.fxt.freexmltoolkit.util`).
-- [ ] Task: Fix Javadoc warnings in core logic packages.
+- [x] Task: Fix Javadoc warnings in utility and helper packages (e.g., `org.fxt.freexmltoolkit.util`). c306937
+- [x] Task: Fix Javadoc warnings in core logic packages. c306937
 - [ ] Task: Conductor - User Manual Verification 'Fix Warnings (Core & Utils)' (Protocol in workflow.md)
 
 ## Phase 3: Fix Warnings (UI & Controllers)
