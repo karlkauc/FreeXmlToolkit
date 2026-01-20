@@ -425,14 +425,21 @@ public class TransformationProfile {
     // ========== Inner Classes ==========
 
     /**
-         * Profile event for detailed analysis
-         */
-        public record ProfileEvent(String type, String description, long timestamp) {
+     * Profile event for detailed analysis
+     * @param type The event type
+     * @param description The event description
+     * @param timestamp The event timestamp
+     */
+    public record ProfileEvent(String type, String description, long timestamp) {
     }
 
     /**
-         * Template performance information
-         */
-        public record TemplatePerformanceInfo(String name, long totalTime, long averageTime, int executionCount) {
+     * Template performance information
+     * @param name The template name
+     * @param totalTime Total execution time
+     * @param averageTime Average execution time
+     * @param executionCount Number of executions
+     */
+    public record TemplatePerformanceInfo(String name, long totalTime, long averageTime, int executionCount) {
     }
 }

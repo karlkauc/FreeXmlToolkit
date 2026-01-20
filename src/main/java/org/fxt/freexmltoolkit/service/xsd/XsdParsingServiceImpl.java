@@ -38,7 +38,6 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li>xs:import resolution (as references)</li>
  *   <li>Caching for improved performance</li>
  * </ul>
- * </p>
  */
 public class XsdParsingServiceImpl implements XsdParsingService {
 

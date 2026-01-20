@@ -140,10 +140,15 @@ public class TestFile {
     /**
      * Inner class to represent individual test results
      *
+     * @param ruleId The rule ID
+     * @param message The error message
+     * @param location The location of the error
      * @param type "assert", "report", "error"
+     * @param pattern The pattern ID
+     * @param lineNumber The line number
      */
-        public record TestResult(String ruleId, String message, String location, String type, String pattern,
-                                 int lineNumber) {
+    public record TestResult(String ruleId, String message, String location, String type, String pattern,
+                             int lineNumber) {
 
         @Override
             public String toString() {

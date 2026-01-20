@@ -333,9 +333,13 @@ public class SchematronXmlIntegrationService {
     }
 
     /**
-         * Validation result container
-         */
-        public record ValidationResult(boolean valid, String message, List<String> errors, List<String> warnings) {
+     * Validation result container
+     * @param valid Whether the validation was successful
+     * @param message The validation message
+     * @param errors List of errors
+     * @param warnings List of warnings
+     */
+    public record ValidationResult(boolean valid, String message, List<String> errors, List<String> warnings) {
             public ValidationResult(boolean valid, String message, List<String> errors, List<String> warnings) {
                 this.valid = valid;
                 this.message = message;
@@ -355,9 +359,12 @@ public class SchematronXmlIntegrationService {
         }
 
     /**
-         * Integration status container
-         */
-        public record IntegrationStatus(File xmlFile, File schematronFile, boolean autoValidationEnabled) {
+     * Integration status container
+     * @param xmlFile The currently loaded XML file
+     * @param schematronFile The currently loaded Schematron file
+     * @param autoValidationEnabled Whether auto-validation is enabled
+     */
+    public record IntegrationStatus(File xmlFile, File schematronFile, boolean autoValidationEnabled) {
 
         public boolean isBothFilesLoaded() {
                 return xmlFile != null && schematronFile != null;

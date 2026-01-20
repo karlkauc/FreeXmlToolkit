@@ -5,6 +5,18 @@ import java.util.List;
 /**
  * Represents metadata about a global type definition in an XSD schema.
  * Used by the Type Library Panel to display and manage global types.
+ *
+ * @param name The type name
+ * @param category The type category (SIMPLE_TYPE or COMPLEX_TYPE)
+ * @param baseType The base type name
+ * @param usageCount Number of times the type is used
+ * @param documentation The type documentation
+ * @param xpath The XPath of the type definition
+ * @param isAbstract Whether the type is abstract
+ * @param isMixed Whether the type has mixed content
+ * @param derivationType The derivation method (extension/restriction)
+ * @param contentModel The content model description
+ * @param usageXPaths List of XPaths where the type is used
  */
 public record TypeInfo(
         String name,

@@ -20,7 +20,7 @@ import java.util.List;
  * Supported formats:
  * - CSV (Comma-Separated Values)
  * - Excel (XLSX)
- * - HTML (styled with XMLSpy look & feel)
+ * - HTML (styled with XMLSpy look &amp; feel)
  * - JSON
  * - XML
  * - Markdown

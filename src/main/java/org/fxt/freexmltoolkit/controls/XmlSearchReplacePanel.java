@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * Advanced Search & Replace Panel for XML Editor with professional features.
+ * Advanced Search &amp; Replace Panel for XML Editor with professional features.
  * Provides regex support, XML-specific search, scope selection, and preview functionality.
  */
 public class XmlSearchReplacePanel extends VBox {
@@ -63,12 +63,17 @@ public class XmlSearchReplacePanel extends VBox {
     private SearchScope currentScope = SearchScope.DOCUMENT;
     private XmlSearchType currentXmlSearchType = XmlSearchType.CONTENT;
 
-    /**
-         * Search result representation
-         */
-        public record SearchResult(int startIndex, int endIndex, String matchedText, String context, int lineNumber,
-                                   SearchResultType type) {
-            public enum SearchResultType {
+            /**
+             * Search result representation
+             * @param startIndex The start index of the match
+             * @param endIndex The end index of the match
+             * @param matchedText The text that was matched
+             * @param context The context around the match
+             * @param lineNumber The line number of the match
+             * @param type The type of match
+             */
+            public record SearchResult(int startIndex, int endIndex, String matchedText, String context, int lineNumber,
+                                       SearchResultType type) {            public enum SearchResultType {
                 TEXT, ELEMENT_NAME, ATTRIBUTE_NAME, ATTRIBUTE_VALUE, COMMENT, CDATA
             }
 

@@ -172,21 +172,10 @@ public class FxtGui extends Application {
     }
 
     /**
-     * Initializes and starts the JavaFX application.
-     *
-     * <p>This method performs the following initialization steps:
-     * <ul>
-     *   <li>Loads custom fonts (Roboto family)</li>
-     *   <li>Loads the main FXML layout and initializes controllers</li>
-     *   <li>Sets up platform-specific taskbar icons (macOS and Windows)</li>
-     *   <li>Configures CSS hot-reloading for development</li>
-     *   <li>Sets up the primary stage with maximized window</li>
-     *   <li>Configures application shutdown behavior</li>
-     * </ul>
+     * Starts the application.
      *
      * @param primaryStage the primary stage for this application, onto which
      *                     the application scene can be set
-     * @throws IOException if the FXML file cannot be loaded
      */
     @Override
     public void start(Stage primaryStage) {

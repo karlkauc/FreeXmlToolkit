@@ -962,9 +962,13 @@ public class XsltTransformationEngine {
     }
 
     /**
-         * Template matching information for debugging
-         */
-        public record TemplateMatchInfo(String pattern, String name, int lineNumber, long executionTime) {
+     * Template matching information for debugging
+     * @param pattern The template match pattern
+     * @param name The template name (if any)
+     * @param lineNumber The line number in the stylesheet
+     * @param executionTime The execution time in nanoseconds
+     */
+    public record TemplateMatchInfo(String pattern, String name, int lineNumber, long executionTime) {
     }
 
     /**

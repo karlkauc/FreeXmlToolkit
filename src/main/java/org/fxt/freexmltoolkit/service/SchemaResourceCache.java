@@ -62,7 +62,6 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li>Manual cache clearing</li>
  *   <li>Persistent metadata index (cache-index.json)</li>
  * </ul>
- * </p>
  */
 public class SchemaResourceCache {
 
@@ -565,6 +564,11 @@ public class SchemaResourceCache {
 
     /**
      * Cache statistics record.
+     * @param cacheHits Number of cache hits
+     * @param cacheMisses Number of cache misses
+     * @param downloadErrors Number of download errors
+     * @param totalFiles Total number of cached files
+     * @param totalSizeBytes Total size of cached files in bytes
      */
     public record CacheStats(
             long cacheHits,

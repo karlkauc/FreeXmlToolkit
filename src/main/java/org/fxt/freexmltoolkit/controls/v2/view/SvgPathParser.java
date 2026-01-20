@@ -474,6 +474,12 @@ public class SvgPathParser {
     /**
      * Represents a single path command with its arguments.
      */
+    /**
+     * Represents a parsed SVG path command.
+     * @param type The command type
+     * @param args The command arguments
+     * @param relative Whether the command is relative
+     */
     public record PathCommand(CommandType type, double[] args, boolean relative) {
     }
 }

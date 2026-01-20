@@ -353,9 +353,12 @@ public class TemplateEngine {
     }
 
     /**
-         * Template validation result
-         */
-        public record TemplateValidationResult(boolean valid, List<String> errors, List<String> warnings) {
+     * Template validation result
+     * @param valid Whether the template is valid
+     * @param errors List of error messages
+     * @param warnings List of warning messages
+     */
+    public record TemplateValidationResult(boolean valid, List<String> errors, List<String> warnings) {
             public TemplateValidationResult(boolean valid, List<String> errors) {
                 this(valid, errors, new ArrayList<>());
             }
@@ -417,9 +420,11 @@ public class TemplateEngine {
     }
 
     /**
-         * Batch processing item
-         */
-        public record TemplateBatchItem(String templateId, Map<String, String> parameters) {
+     * Batch processing item
+     * @param templateId The template ID
+     * @param parameters The parameters for the template
+     */
+    public record TemplateBatchItem(String templateId, Map<String, String> parameters) {
     }
 
     /**
@@ -551,9 +556,11 @@ public class TemplateEngine {
     }
 
     /**
-         * Template performance information
-         */
-        public record TemplatePerformanceInfo(String templateId, ProcessingStats stats) {
+     * Template performance information
+     * @param templateId The template ID
+     * @param stats The processing statistics
+     */
+    public record TemplatePerformanceInfo(String templateId, ProcessingStats stats) {
 
         public double getAverageProcessingTime() {
                 return stats.getAverageProcessingTime();

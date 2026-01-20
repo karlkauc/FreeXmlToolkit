@@ -49,6 +49,13 @@ public class XsdXPathValidator {
 
     /**
      * Result of XPath validation.
+     * @param severity The severity of the validation result
+     * @param xpath The XPath expression
+     * @param constraintName The name of the constraint
+     * @param source The source of the XPath
+     * @param message The validation message
+     * @param matchCount The number of matches in sample XML (-1 if not tested)
+     * @param sourceNode The source node in the schema
      */
     public record XPathValidationIssue(
             Severity severity,
@@ -100,7 +107,13 @@ public class XsdXPathValidator {
     }
 
     /**
-     * Overall validation result.
+     * Result of XPath validation.
+     * @param issues List of validation issues
+     * @param totalXPaths Total number of XPaths checked
+     * @param validCount Number of valid XPaths
+     * @param errorCount Number of XPaths with errors
+     * @param warningCount Number of XPaths with warnings
+     * @param infoCount Number of XPaths with info
      */
     public record ValidationResult(
             List<XPathValidationIssue> issues,

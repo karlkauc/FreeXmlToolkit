@@ -202,6 +202,8 @@ public class XPathAnalyzer {
 
     /**
      * Record representing element information.
+     * @param name The element name
+     * @param type The element type name
      */
     public record ElementInfo(String name, String type) {
     }

@@ -32,6 +32,16 @@ import java.util.List;
  *   <li>Schema-specific information (namespace, version, imports)</li>
  *   <li>Usage statistics (access count, last access time)</li>
  * </ul>
+ *
+ * @param localFilename The local filename
+ * @param remoteUrl The remote URL
+ * @param downloadTimestamp The download timestamp
+ * @param fileSizeBytes The file size in bytes
+ * @param md5Hash The MD5 hash of the file
+ * @param sha256Hash The SHA-256 hash of the file
+ * @param http HTTP response information
+ * @param schema Schema-specific information
+ * @param usage Usage statistics
  */
 public record SchemaCacheEntry(
         String localFilename,
@@ -47,6 +57,12 @@ public record SchemaCacheEntry(
 
     /**
      * HTTP response information captured during download.
+     * @param statusCode The HTTP status code
+     * @param contentType The Content-Type header
+     * @param lastModified The Last-Modified header
+     * @param etag The ETag header
+     * @param contentLength The Content-Length header
+     * @param downloadDurationMs The download duration in milliseconds
      */
     public record HttpInfo(
             int statusCode,
@@ -66,6 +82,11 @@ public record SchemaCacheEntry(
 
     /**
      * Schema-specific information extracted from the XSD file.
+     * @param targetNamespace The target namespace
+     * @param xsdVersion The XSD version (1.0 or 1.1)
+     * @param imports List of imported schema locations
+     * @param includes List of included schema locations
+     * @param redefines List of redefined schema locations
      */
     public record SchemaInfo(
             String targetNamespace,
@@ -98,6 +119,9 @@ public record SchemaCacheEntry(
 
     /**
      * Usage statistics for the cached schema.
+     * @param lastAccessTimestamp The timestamp of the last access
+     * @param accessCount The total number of accesses
+     * @param referencedBy List of URLs that reference this schema
      */
     public record UsageInfo(
             Instant lastAccessTimestamp,

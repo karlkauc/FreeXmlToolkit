@@ -1199,6 +1199,10 @@ public class XsdDocumentationService {
 
     /**
      * Helper record to hold information about mandatory child elements.
+     * @param name The name of the child element
+     * @param minOccurs The minimum occurrences
+     * @param maxOccurs The maximum occurrences
+     * @param children List of nested mandatory children
      */
     public record MandatoryChildInfo(
             String name,
@@ -2054,7 +2058,10 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Result of XML validation against XSD schema.
+     * Result of a validation operation.
+     * @param isValid Whether the validation was successful
+     * @param message The validation message
+     * @param errors List of validation errors
      */
     public record ValidationResult(boolean isValid, String message, List<ValidationError> errors) {
         public ValidationResult(boolean isValid, String message) {
@@ -2063,7 +2070,11 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Represents a single validation error with details.
+     * Represents a validation error.
+     * @param message The error message
+     * @param lineNumber The line number
+     * @param columnNumber The column number
+     * @param severity The severity level
      */
     public record ValidationError(
             int lineNumber,

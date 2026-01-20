@@ -37,11 +37,15 @@ import java.io.Reader;
  *   <li>{@code baseURI} - The base URI for resolving relative references within this resource</li>
  *   <li>{@code byteStream} - The input stream containing the resource content</li>
  * </ul>
- * </p>
  *
  * <p>The {@code baseURI} is critical for supporting nested imports - when a schema
  * imports another schema that itself has imports, the resolver needs to know the
  * base location of each schema to resolve its relative references correctly.</p>
+ *
+ * @param publicId The public identifier of the resource
+ * @param systemId The system identifier (typically a file path or URL)
+ * @param baseURI The base URI for resolving relative references within this resource
+ * @param byteStream The input stream containing the resource content
  */
 public record LSInputImpl(
         String publicId,

@@ -117,6 +117,17 @@ public interface XmlSchemaProvider {
 
     /**
      * Information about an element's type.
+     * @param name The element name
+     * @param typeName The name of the type
+     * @param xsdType The XSD type category
+     * @param isMandatory Whether the element is mandatory
+     * @param minOccurs The minimum occurrences
+     * @param maxOccurs The maximum occurrences
+     * @param enumerationValues List of allowed values
+     * @param facets Map of other facets
+     * @param defaultValue The default value
+     * @param fixedValue The fixed value
+     * @param documentation The documentation text
      */
     record ElementTypeInfo(
             String name,
@@ -155,6 +166,15 @@ public interface XmlSchemaProvider {
 
     /**
      * Information about an attribute's type.
+     * @param name The attribute name
+     * @param typeName The name of the type
+     * @param xsdType The XSD type category
+     * @param isRequired Whether the attribute is required
+     * @param enumerationValues List of allowed values
+     * @param facets Map of other facets
+     * @param defaultValue The default value
+     * @param fixedValue The fixed value
+     * @param documentation The documentation text
      */
     record AttributeTypeInfo(
             String name,
@@ -191,6 +211,9 @@ public interface XmlSchemaProvider {
 
     /**
      * Result of a validation operation.
+     * @param isValid Whether the value is valid
+     * @param errorMessage The error message (if any)
+     * @param severity The severity of the validation result
      */
     record ValidationResult(
             boolean isValid,

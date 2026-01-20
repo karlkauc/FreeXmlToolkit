@@ -1212,7 +1212,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     }
 
     /**
-     * Load a specific XML file programmatically (used for recent files, drag & drop, etc.)
+     * Load a specific XML file programmatically (used for recent files, drag &amp; drop, etc.)
      */
     public void loadXmlFile(File file) {
         if (file == null || !file.exists()) {

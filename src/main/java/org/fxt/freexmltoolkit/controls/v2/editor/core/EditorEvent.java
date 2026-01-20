@@ -33,7 +33,7 @@ public abstract class EditorEvent {
         /** Folding regions have been updated */
         FOLDING_UPDATED,
 
-        /** Find & Replace dialog requested */
+        /** Find &amp; Replace dialog requested */
         FIND_REPLACE_REQUESTED,
 
         /** Validation requested from context menu */
@@ -183,7 +183,7 @@ public abstract class EditorEvent {
     }
 
     /**
-     * Event fired when Find & Replace dialog is requested.
+     * Event fired when Find &amp; Replace dialog is requested.
      */
     public static class FindReplaceRequestedEvent extends EditorEvent {
         public FindReplaceRequestedEvent() {

@@ -3,10 +3,10 @@ package org.fxt.freexmltoolkit.controls.v2.model;
 import java.util.Objects;
 
 /**
- * Represents a {@link XPath} tag in XSD documentation.
+ * Represents a {@code XPath} tag in XSD documentation.
  * Used within @see or @deprecated annotations to create clickable links to other elements.
  * <p>
- * Example: {@link /FundsXML4/ControlData/RelatedDocumentIDs/RelatedDocumentID}
+ * Example: {@code {@link /FundsXML4/ControlData/RelatedDocumentIDs/RelatedDocumentID}}
  *
  * @since 2.0
  */

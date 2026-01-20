@@ -209,6 +209,8 @@ public class JsonValidationService {
 
     /**
      * Result of a validation operation.
+     * @param valid Whether the validation was successful
+     * @param errors List of validation errors
      */
     public record ValidationResult(boolean valid, List<ValidationError> errors) {
 
@@ -234,6 +236,9 @@ public class JsonValidationService {
 
     /**
      * A single validation error.
+     * @param message The error message
+     * @param path The JSON path to the error
+     * @param lineNumber The estimated line number
      */
     public record ValidationError(String message, String path, int lineNumber) {
 

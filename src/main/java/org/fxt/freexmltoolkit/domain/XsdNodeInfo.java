@@ -9,6 +9,18 @@ import java.util.Map;
  * Each node can contain a list of child nodes (also XsdNodeInfo).
  *
  * Extended for XSD 1.1 support with additional attributes.
+ *
+ * @param name The name of the node
+ * @param type The type of the node
+ * @param xpath The XPath of the node
+ * @param documentation The documentation for the node
+ * @param children The list of child nodes
+ * @param exampleValues Example values for the node
+ * @param minOccurs The minimum occurrences
+ * @param maxOccurs The maximum occurrences
+ * @param nodeType The type of node (element, attribute, etc.)
+ * @param xpathExpression XPath expression for assertions/alternatives
+ * @param xsd11Attributes Additional XSD 1.1 attributes
  */
 public record XsdNodeInfo(
         String name,

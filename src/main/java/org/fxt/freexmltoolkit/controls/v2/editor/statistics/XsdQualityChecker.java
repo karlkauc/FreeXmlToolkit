@@ -73,6 +73,17 @@ public class XsdQualityChecker {
     /**
      * Quality issue record.
      */
+    /**
+     * Represents a quality issue found in the schema.
+     * @param category The issue category
+     * @param severity The severity level
+     * @param message The issue message
+     * @param suggestion Suggestion for fixing
+     * @param affectedElements List of affected element names
+     * @param sourceNode The source node in the DOM
+     * @param xpath The XPath to the source node
+     * @param sourceFile The source file path
+     */
     public record QualityIssue(
             IssueCategory category,
             IssueSeverity severity,
@@ -189,6 +200,15 @@ public class XsdQualityChecker {
 
     /**
      * Quality check result.
+     */
+    /**
+     * Result of quality analysis.
+     * @param score The quality score
+     * @param dominantNamingConvention The dominant naming convention
+     * @param namingDistribution Distribution of naming conventions
+     * @param issues List of quality issues
+     * @param totalChecks Total number of checks performed
+     * @param passedChecks Number of passed checks
      */
     public record QualityResult(
             int score,

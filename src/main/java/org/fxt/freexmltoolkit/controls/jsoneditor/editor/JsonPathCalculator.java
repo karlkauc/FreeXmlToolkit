@@ -34,6 +34,11 @@ public class JsonPathCalculator {
 
     /**
      * Result of JSONPath calculation containing path and metadata.
+     * @param jsonPath The calculated JSON path
+     * @param valueType The type of the value
+     * @param value The value content
+     * @param key The property key name
+     * @param depth The nesting depth
      */
     public record JsonHoverInfo(
             String jsonPath,

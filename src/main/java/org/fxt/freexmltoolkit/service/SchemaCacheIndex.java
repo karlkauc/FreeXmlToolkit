@@ -398,6 +398,11 @@ public class SchemaCacheIndex {
 
     /**
      * Statistics record for the cache.
+     * @param totalEntries Total number of cache entries
+     * @param totalSizeBytes Total size of all cached files
+     * @param totalCacheHits Total number of cache hits
+     * @param totalCacheMisses Total number of cache misses
+     * @param totalDownloadErrors Total number of download errors
      */
     public record CacheStatistics(
             long totalEntries,

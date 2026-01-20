@@ -556,9 +556,14 @@ public class SchematronErrorDetector {
     }
 
     /**
-         * Represents a single error/warning/info issue
-         */
-        public record SchematronError(ErrorType type, int line, int column, String message, ErrorSeverity severity) {
+     * Represents a single error/warning/info issue
+     * @param type The type of error
+     * @param line The line number
+     * @param column The column number
+     * @param message The error message
+     * @param severity The severity level
+     */
+    public record SchematronError(ErrorType type, int line, int column, String message, ErrorSeverity severity) {
 
         @Override
             public String toString() {

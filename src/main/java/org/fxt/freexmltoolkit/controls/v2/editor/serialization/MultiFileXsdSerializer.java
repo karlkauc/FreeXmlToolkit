@@ -46,6 +46,11 @@ public class MultiFileXsdSerializer {
 
     /**
      * Result of saving a single file.
+     * @param filePath The path to the file
+     * @param success Whether the save was successful
+     * @param errorMessage The error message (if any)
+     * @param backupPath The path to the backup file (if created)
+     * @param nodeCount The number of nodes saved
      */
     public record SaveResult(
             Path filePath,

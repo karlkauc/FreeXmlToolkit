@@ -13,8 +13,8 @@ import java.util.regex.Pattern;
  * <p>
  * These annotations are stored in XSD files as:
  * &lt;xs:appinfo source="@since 4.0.0"/&gt;
- * &lt;xs:appinfo source="@see {@link /Path/To/Element}"/&gt;
- * &lt;xs:appinfo source="@deprecated use {@link /Path/To/New/Element} instead"/&gt;
+ * &lt;xs:appinfo source="@see &#123;@link /Path/To/Element&#125;"/&gt;
+ * &lt;xs:appinfo source="@deprecated use &#123;@link /Path/To/New/Element&#125; instead"/&gt;
  *
  * @since 2.0
  */
@@ -157,6 +157,8 @@ public class XsdDocInfo {
 
     /**
          * Represents a @see reference.
+         * @param text The text content
+         * @param linkTags List of link tags in the reference
          */
         public record SeeReference(String text, List<XsdLinkTag> linkTags) {
             public SeeReference(String text, List<XsdLinkTag> linkTags) {
@@ -194,6 +196,8 @@ public class XsdDocInfo {
 
     /**
          * Represents deprecation information.
+         * @param message The deprecation message
+         * @param replacementLinks List of suggested replacement links
          */
         public record DeprecationInfo(String message, List<XsdLinkTag> replacementLinks) {
             public DeprecationInfo(String message, List<XsdLinkTag> replacementLinks) {

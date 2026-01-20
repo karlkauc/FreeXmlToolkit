@@ -14,6 +14,13 @@ public class SkillTracker {
 
     /**
      * Feature definition with metadata
+     * @param id The feature ID
+     * @param name The feature name
+     * @param category The feature category
+     * @param description The feature description
+     * @param iconLiteral The icon literal for the feature
+     * @param pageLink The page link for the feature
+     * @param skillPoints The skill points awarded for this feature
      */
     public record FeatureDefinition(
         String id,
@@ -27,6 +34,9 @@ public class SkillTracker {
 
     /**
      * Category with grouped features
+     * @param name The category name
+     * @param iconLiteral The icon literal for the category
+     * @param features List of features in this category
      */
     public record FeatureCategory(
         String name,

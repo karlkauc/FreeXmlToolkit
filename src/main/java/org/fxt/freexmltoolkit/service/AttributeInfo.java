@@ -83,6 +83,7 @@ public class AttributeInfo {
 
     /**
      * Add an observed value for analysis
+     * @param value The observed attribute value
      */
     public void addObservedValue(String value) {
         if (value == null) {

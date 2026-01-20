@@ -750,6 +750,11 @@ public class WelcomeController {
 
     /**
      * Record for recent file entries.
+     * @param fileName The name of the file
+     * @param fileType The type of the file
+     * @param path The path to the file
+     * @param lastModified The last modified date
+     * @param fullPath The full path to the file
      */
     public record RecentFileEntry(String fileName, String fileType, String path, String lastModified, String fullPath) {
     }

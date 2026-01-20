@@ -6,6 +6,11 @@ import java.util.Map;
 /**
  * Represents a validation constraint in XSD schema
  * Used for transferring validation information between UI and domain layer
+ *
+ * @param constraintType The constraint type (e.g., "pattern", "enumeration")
+ * @param value The constraint value
+ * @param description Human-readable description
+ * @param attributes Additional attributes
  */
 public record ValidationConstraint(
         String constraintType,  // "pattern", "enumeration", "minInclusive", etc.

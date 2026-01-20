@@ -10,6 +10,31 @@ import java.util.*;
  * Immutable data model containing comprehensive statistics about an XSD schema.
  * Uses the Builder pattern for construction.
  *
+ * @param xsdVersion The XSD version
+ * @param targetNamespace The target namespace
+ * @param elementFormDefault The element form default
+ * @param attributeFormDefault The attribute form default
+ * @param namespaceCount The number of namespaces
+ * @param fileCount The number of files
+ * @param mainSchemaPath The main schema path
+ * @param includedFiles The set of included files
+ * @param nodeCountsByType Map of node counts by type
+ * @param totalNodeCount The total number of nodes
+ * @param nodesWithDocumentation Number of nodes with documentation
+ * @param nodesWithAppInfo Number of nodes with app info
+ * @param documentationCoveragePercent Documentation coverage percentage
+ * @param appInfoTagCounts Map of app info tag counts
+ * @param documentationLanguages Set of documentation languages
+ * @param typeUsageCounts Map of type usage counts
+ * @param topUsedTypes List of top used types
+ * @param unusedTypes Set of unused types
+ * @param optionalElements Number of optional elements
+ * @param requiredElements Number of required elements
+ * @param unboundedElements Number of unbounded elements
+ * @param schemaReferences List of schema references
+ * @param nodeCountsByFile Map of node counts by file
+ * @param unresolvedReferencesCount Number of unresolved references
+ * @param collectedAt Timestamp when statistics were collected
  * @since 2.0
  */
 public record XsdStatistics(
@@ -54,6 +79,8 @@ public record XsdStatistics(
 ) {
     /**
      * Entry for type usage statistics.
+     * @param typeName The type name
+     * @param usageCount The usage count
      */
     public record TypeUsageEntry(String typeName, int usageCount) implements Comparable<TypeUsageEntry> {
         @Override

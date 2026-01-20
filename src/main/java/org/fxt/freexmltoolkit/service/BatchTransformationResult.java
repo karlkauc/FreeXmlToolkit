@@ -60,6 +60,9 @@ public class BatchTransformationResult {
 
     /**
      * Create a successful batch result with combined output.
+     * @param combinedOutput The combined output string
+     * @param totalFiles The total number of files processed
+     * @return The result object
      */
     public static BatchTransformationResult success(String combinedOutput, int totalFiles) {
         BatchTransformationResult result = new BatchTransformationResult();
@@ -72,6 +75,8 @@ public class BatchTransformationResult {
 
     /**
      * Create an error result for batch processing failure.
+     * @param errorMessage The error message
+     * @return The error result
      */
     public static BatchTransformationResult error(String errorMessage) {
         BatchTransformationResult result = new BatchTransformationResult();
@@ -84,6 +89,9 @@ public class BatchTransformationResult {
 
     /**
      * Add a successful result for a specific file.
+     * @param file The processed file
+     * @param output The output content
+     * @param executionTime The execution time in milliseconds
      */
     public void addFileResult(File file, String output, long executionTime) {
         perFileResults.put(file, output);
@@ -93,6 +101,8 @@ public class BatchTransformationResult {
 
     /**
      * Add an error result for a specific file.
+     * @param file The processed file
+     * @param error The error message
      */
     public void addFileError(File file, String error) {
         perFileErrors.put(file, error);
@@ -101,6 +111,8 @@ public class BatchTransformationResult {
 
     /**
      * Get the result for a specific file.
+     * @param file The file to lookup
+     * @return The result output or null
      */
     public String getFileResult(File file) {
         return perFileResults.get(file);
@@ -108,6 +120,8 @@ public class BatchTransformationResult {
 
     /**
      * Get the error for a specific file.
+     * @param file The file to lookup
+     * @return The error message or null
      */
     public String getFileError(File file) {
         return perFileErrors.get(file);
@@ -115,6 +129,8 @@ public class BatchTransformationResult {
 
     /**
      * Check if a specific file was processed successfully.
+     * @param file The file to check
+     * @return true if successful
      */
     public boolean isFileSuccess(File file) {
         return perFileResults.containsKey(file);
@@ -122,6 +138,8 @@ public class BatchTransformationResult {
 
     /**
      * Check if a specific file had an error.
+     * @param file The file to check
+     * @return true if error occurred
      */
     public boolean isFileError(File file) {
         return perFileErrors.containsKey(file);

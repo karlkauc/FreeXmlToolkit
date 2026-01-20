@@ -244,6 +244,9 @@ public class XsdElementPathExtractor {
 
     /**
      * Represents a link suggestion for autocomplete.
+     * @param displayText The text to display in the suggestion
+     * @param insertText The text to insert when selected
+     * @param type The type of suggestion (e.g., "XPath", "Element")
      */
     public record LinkSuggestion(String displayText, String insertText, String type) {
         @Override

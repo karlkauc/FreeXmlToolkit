@@ -29,7 +29,7 @@ import java.util.Objects;
  *   <li>Testable design with no tight coupling</li>
  * </ul>
  *
- * <p>Target: <400 lines - only coordination logic here.</p>
+ * <p>Target: &lt;400 lines - only coordination logic here.</p>
  */
 public class XmlCodeEditorV2 extends VBox {
 

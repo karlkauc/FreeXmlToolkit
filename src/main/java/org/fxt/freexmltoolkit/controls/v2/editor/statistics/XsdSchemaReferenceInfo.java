@@ -9,6 +9,15 @@ import java.nio.file.Path;
  * Used by the schema analysis feature to display the status and statistics
  * of all referenced schemas.
  *
+ * @param type The type of schema reference (INCLUDE or IMPORT).
+ * @param schemaLocation The original schemaLocation attribute value.
+ * @param namespace The target namespace for imports (null for includes).
+ * @param resolvedPath The resolved absolute path to the schema file (null if unresolved or remote).
+ * @param resolved Whether the reference was successfully resolved.
+ * @param errorMessage Error message if resolution failed (null if resolved).
+ * @param elementCount Number of elements found in the referenced schema.
+ * @param typeCount Number of types (complex and simple) found in the referenced schema.
+ * @param groupCount Number of groups (group and attributeGroup) found in the referenced schema.
  * @since 2.0
  */
 public record XsdSchemaReferenceInfo(

@@ -10,7 +10,7 @@ public enum ContextType {
     UNKNOWN,
 
     /**
-     * Inside element tags, after '<' character.
+     * Inside element tags, after '&lt;' character.
      * Example: &lt;|
      */
     ELEMENT,

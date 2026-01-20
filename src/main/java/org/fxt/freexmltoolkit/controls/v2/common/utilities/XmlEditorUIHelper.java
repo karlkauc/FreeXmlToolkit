@@ -157,6 +157,9 @@ public class XmlEditorUIHelper {
 
     /**
      * Record representing a tag match with position, name, and type.
+     * @param position The position in the document
+     * @param name The tag name
+     * @param type The type of tag (OPEN, CLOSE, SELF_CLOSING)
      */
     public static record TagMatch(int position, String name, TagType type) {
     }

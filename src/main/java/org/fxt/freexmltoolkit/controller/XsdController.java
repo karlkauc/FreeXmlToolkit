@@ -1748,6 +1748,11 @@ public class XsdController implements FavoritesParentController {
 
     /**
      * Data transfer object for new XSD creation parameters
+     *
+     * @param schemaName The name of the schema
+     * @param targetNamespace The target namespace URI
+     * @param rootElement The name of the root element
+     * @param template The template to use for generation
      */
     private record NewXsdResult(String schemaName, String targetNamespace, String rootElement, String template) {
     }
@@ -3333,7 +3338,8 @@ public class XsdController implements FavoritesParentController {
 
     /**
      * Handles UI updates after the documentation has been successfully generated.
-     * @param outputDir The directory where the documentation was created.
+     * @param outputTarget The directory or file where the documentation was created.
+     * @param format The format of the generated documentation.
      */
     private void handleDocumentationSuccess(File outputTarget, DocumentationOutputFormat format) {
         // Stop the timer

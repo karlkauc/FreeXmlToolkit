@@ -12,6 +12,11 @@ public class Xsd11BuiltinTypes {
 
     /**
      * Information about a built-in type
+     * @param name The type name
+     * @param baseType The base type name
+     * @param description The type description
+     * @param example An example value
+     * @param isXsd11Only Whether the type is XSD 1.1 only
      */
     public record TypeInfo(
             String name,

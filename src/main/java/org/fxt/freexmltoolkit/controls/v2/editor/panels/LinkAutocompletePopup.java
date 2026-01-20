@@ -101,7 +101,7 @@ public class LinkAutocompletePopup extends Popup {
      * Shows the popup for the given text control.
      *
      * @param control         the text control (TextField or TextArea)
-     * @param caretPosition   the caret position where {@link was typed
+     * @param caretPosition   the caret position where {@code {@link} } was typed
      * @param onSelectHandler callback when a suggestion is selected
      */
     public void showFor(TextInputControl control, int caretPosition, Consumer<String> onSelectHandler) {
@@ -229,7 +229,7 @@ public class LinkAutocompletePopup extends Popup {
      * Checks if the given text ends with the link trigger.
      *
      * @param text the text to check
-     * @return true if it ends with {@link
+     * @return true if it ends with {@code {@link}}
      */
     public static boolean isLinkTrigger(String text) {
         return text != null && text.endsWith(LINK_TRIGGER);

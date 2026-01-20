@@ -43,6 +43,8 @@ public class XsdSampleDataGenerator {
 
     /**
      * Holds the resolved type information: base XML type and merged restrictions.
+     * @param baseType The base XML type name
+     * @param mergedRestriction The merged restriction info
      */
     public record ResolvedType(String baseType, RestrictionInfo mergedRestriction) {}
 

@@ -21,7 +21,7 @@ import java.util.Optional;
 
 /**
  * Visual Rule Builder for creating Schematron rules through a graphical interface.
- * Provides drag & drop functionality and form-based rule creation.
+ * Provides drag &amp; drop functionality and form-based rule creation.
  */
 public class SchematronVisualBuilder extends VBox {
 

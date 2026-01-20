@@ -502,6 +502,10 @@ public class XmlCodeFoldingManager {
 
     /**
          * Represents a foldable region in the code
+         * @param startLine The starting line number
+         * @param endLine The ending line number
+         * @param elementName The name of the element
+         * @param indentLevel The indentation level
          */
         public record FoldingRegion(int startLine, int endLine, String elementName, int indentLevel) {
 

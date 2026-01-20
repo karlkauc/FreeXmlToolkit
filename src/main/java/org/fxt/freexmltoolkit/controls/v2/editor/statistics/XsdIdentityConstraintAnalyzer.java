@@ -37,6 +37,17 @@ public class XsdIdentityConstraintAnalyzer {
 
     /**
      * Information about an identity constraint.
+     * @param type The type of constraint
+     * @param name The constraint name
+     * @param parentElementName The parent element name
+     * @param selectorXPath The selector XPath
+     * @param fieldXPaths List of field XPaths
+     * @param referTo The referred key name (for KeyRef)
+     * @param testExpression The test expression (for Assert)
+     * @param status The validation status
+     * @param statusMessage The validation message
+     * @param sourceNode The source node in the schema
+     * @param sourceFile The source file path
      */
     public record IdentityConstraintInfo(
             ConstraintType type,
@@ -182,6 +193,13 @@ public class XsdIdentityConstraintAnalyzer {
 
     /**
      * Analysis result containing all constraint information.
+     * @param keys List of Key constraints
+     * @param keyRefs List of KeyRef constraints
+     * @param uniques List of Unique constraints
+     * @param asserts List of Assert constraints
+     * @param totalCount Total number of constraints
+     * @param errorCount Number of constraints with errors
+     * @param warningCount Number of constraints with warnings
      */
     public record AnalysisResult(
             List<IdentityConstraintInfo> keys,

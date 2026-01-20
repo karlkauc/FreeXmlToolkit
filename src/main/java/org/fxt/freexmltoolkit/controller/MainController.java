@@ -1853,7 +1853,7 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Handle Find & Replace menu action - activates find/replace in current editor.
+     * Handle Find &amp; Replace menu action - activates find/replace in current editor.
      * Note: Replace functionality is available in the search bar.
      */
     @FXML

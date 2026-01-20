@@ -600,9 +600,10 @@ public class SchematronTester extends VBox {
     // ========== Inner Classes ==========
 
     /**
-         * Represents a test file in the list
-         */
-        public record TestFile(File file) {
+     * Represents a test file in the list
+     * @param file The file to test
+     */
+    public record TestFile(File file) {
 
         @Override
             public String toString() {

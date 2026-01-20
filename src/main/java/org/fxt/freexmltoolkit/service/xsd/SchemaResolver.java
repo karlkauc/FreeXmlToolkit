@@ -685,6 +685,12 @@ public class SchemaResolver {
 
     /**
      * Statistics about schema resolution.
+     * @param resolvedIncludes Number of resolved includes
+     * @param failedIncludes Number of failed includes
+     * @param resolvedImports Number of resolved imports
+     * @param failedImports Number of failed imports
+     * @param cachedIncludes Number of cached includes used
+     * @param cachedImports Number of cached imports used
      */
     public record ResolutionStatistics(
             int resolvedIncludes,

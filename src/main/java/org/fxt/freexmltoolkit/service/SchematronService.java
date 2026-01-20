@@ -82,6 +82,12 @@ public interface SchematronService {
 
     /**
      * Represents a Schematron validation error with detailed information.
+     * @param message The error message
+     * @param ruleId The rule ID
+     * @param context The context path
+     * @param lineNumber The line number
+     * @param columnNumber The column number
+     * @param severity The severity level
      */
     record SchematronValidationError(
             String message,

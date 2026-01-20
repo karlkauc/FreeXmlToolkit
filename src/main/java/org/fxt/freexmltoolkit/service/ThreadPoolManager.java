@@ -432,6 +432,12 @@ public class ThreadPoolManager {
 
     /**
      * Performance statistics record.
+     * @param tasksSubmitted Total tasks submitted
+     * @param tasksCompleted Total tasks completed
+     * @param tasksFailed Total tasks failed
+     * @param runningTasks Currently running tasks
+     * @param averageExecutionTimeMs Average execution time in milliseconds
+     * @param poolStats Statistics for individual pools
      */
     public record ThreadPoolStats(
             long tasksSubmitted,
@@ -445,6 +451,11 @@ public class ThreadPoolManager {
 
     /**
      * Individual pool statistics.
+     * @param uiActiveThreads Active threads in UI pool
+     * @param cpuActiveThreads Active threads in CPU pool
+     * @param ioActiveThreads Active threads in I/O pool
+     * @param backgroundActiveThreads Active threads in Background pool
+     * @param cpuQueuedTasks Tasks queued in CPU pool
      */
     public record PoolStats(
             int uiActiveThreads,

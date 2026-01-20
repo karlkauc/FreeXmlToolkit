@@ -356,21 +356,31 @@ public class XPathValidator {
     }
 
     /**
-         * Represents a highlighted span within an XPath expression
-         */
-        public record XPathHighlightSpan(int start, int end, String styleClass, String text) {
+     * Represents a highlighted span within an XPath expression
+     * @param start The start index
+     * @param end The end index
+     * @param styleClass The style class
+     * @param text The text content
+     */
+    public record XPathHighlightSpan(int start, int end, String styleClass, String text) {
     }
 
     /**
-         * Represents the location of an XPath expression in Schematron text
-         */
-        public record XPathLocation(String expression, String attributeName, int start, int end) {
+     * Represents the location of an XPath expression in Schematron text
+     * @param expression The XPath expression
+     * @param attributeName The attribute name containing the expression
+     * @param start The start index
+     * @param end The end index
+     */
+    public record XPathLocation(String expression, String attributeName, int start, int end) {
     }
 
     /**
-         * Represents a namespace declaration
-         */
-        public record NamespaceDeclaration(String prefix, String uri) {
+     * Represents a namespace declaration
+     * @param prefix The namespace prefix
+     * @param uri The namespace URI
+     */
+    public record NamespaceDeclaration(String prefix, String uri) {
 
         @Override
             public String toString() {

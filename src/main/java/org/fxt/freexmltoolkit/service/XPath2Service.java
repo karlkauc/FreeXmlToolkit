@@ -27,6 +27,10 @@ public class XPath2Service {
 
     /**
      * Result of an XPath 2.0 evaluation
+     * @param success Whether the evaluation was successful
+     * @param values List of result values as strings
+     * @param errorMessage The error message (if any)
+     * @param xdmValue The raw XdmValue result
      */
     public record XPath2Result(
             boolean success,
@@ -61,6 +65,10 @@ public class XPath2Service {
 
     /**
      * Validation result for an XPath 2.0 expression
+     * @param valid Whether the expression is valid
+     * @param errorMessage The error message (if any)
+     * @param errorLine The line number of the error
+     * @param errorColumn The column number of the error
      */
     public record ValidationResult(
             boolean valid,

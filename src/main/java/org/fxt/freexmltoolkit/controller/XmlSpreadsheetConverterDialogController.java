@@ -54,7 +54,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
- * Controller for the XML<->Spreadsheet Converter Dialog
+ * Controller for the XML&lt;-&gt;Spreadsheet Converter Dialog
  */
 public class XmlSpreadsheetConverterDialogController implements Initializable {
     private static final Logger logger = LogManager.getLogger(XmlSpreadsheetConverterDialogController.class);
