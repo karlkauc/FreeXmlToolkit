@@ -26,28 +26,40 @@ public class XmlContextMenuManager {
      * Interface for handling context menu actions.
      */
     public interface XmlContextActions {
+        /** Toggles line comments for the selected lines. */
         void toggleLineComment();
 
+        /** Cuts the selected text to the clipboard. */
         void cutToClipboard();
 
+        /** Copies the selected text to the clipboard. */
         void copyToClipboard();
 
+        /** Pastes text from the clipboard. */
         void pasteFromClipboard();
 
+        /** Copies the XPath of the current element to the clipboard. */
         void copyXPathToClipboard();
 
+        /** Navigates to the definition of the element under cursor. */
         void goToDefinition();
 
+        /** Selects all text in the editor. */
         void selectAllText();
 
+        /** Opens the find and replace dialog. */
         void openFindReplace();
 
+        /** Formats (pretty-prints) the XML content. */
         void formatXmlContent();
 
+        /** Validates the XML content. */
         void validateXmlContent();
 
+        /** Expands all code folds. */
         void expandAllFolds();
 
+        /** Collapses all code folds. */
         void collapseAllFolds();
     }
 

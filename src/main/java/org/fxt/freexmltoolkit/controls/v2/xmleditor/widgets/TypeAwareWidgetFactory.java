@@ -241,16 +241,22 @@ public class TypeAwareWidgetFactory {
     public interface EditWidget {
         /**
          * Gets the JavaFX node for this widget.
+         *
+         * @return The JavaFX node.
          */
         Node getNode();
 
         /**
          * Gets the current value.
+         *
+         * @return The current value.
          */
         String getValue();
 
         /**
          * Sets the value.
+         *
+         * @param value The value to set.
          */
         void setValue(String value);
 
@@ -261,6 +267,8 @@ public class TypeAwareWidgetFactory {
 
         /**
          * Gets the validation state.
+         *
+         * @return The validation result.
          */
         default ValidationResult getValidationResult() {
             return ValidationResult.valid();
@@ -268,6 +276,8 @@ public class TypeAwareWidgetFactory {
 
         /**
          * Checks if the widget is valid.
+         *
+         * @return True if valid, false otherwise.
          */
         default boolean isValid() {
             return getValidationResult().isValid();
@@ -281,6 +291,11 @@ public class TypeAwareWidgetFactory {
         private final TextField textField;
         private final String fixedValue;
 
+        /**
+         * Creates a new FixedValueWidget.
+         *
+         * @param fixedValue The fixed value.
+         */
         public FixedValueWidget(String fixedValue) {
             this.fixedValue = fixedValue;
             this.textField = new TextField(fixedValue);
@@ -288,21 +303,33 @@ public class TypeAwareWidgetFactory {
             this.textField.setStyle("-fx-background-color: #fff3cd; -fx-text-fill: #856404;");
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public Node getNode() {
             return textField;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public String getValue() {
             return fixedValue;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void setValue(String value) {
             // Fixed - cannot change
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void focus() {
             textField.requestFocus();

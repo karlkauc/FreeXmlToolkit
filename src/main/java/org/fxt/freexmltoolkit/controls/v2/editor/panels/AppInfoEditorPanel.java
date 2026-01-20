@@ -21,7 +21,7 @@ import java.util.Objects;
 /**
  * Structured editor panel for XSD AppInfo annotations (XsdDoc).
  * Provides form-based editing for @since, @version, @author, @see, and @deprecated tags.
- * Supports {@link} autocomplete for element references.
+ * Supports {@code {@link}} autocomplete for element references.
  *
  * @since 2.0
  */

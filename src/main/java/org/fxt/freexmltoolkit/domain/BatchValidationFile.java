@@ -61,10 +61,20 @@ public class BatchValidationFile {
     }
 
     // XML File property
+    /**
+     * Gets the XML file.
+     *
+     * @return The XML file.
+     */
     public File getXmlFile() {
         return xmlFile.get();
     }
 
+    /**
+     * Sets the XML file.
+     *
+     * @param file The XML file to set.
+     */
     public void setXmlFile(File file) {
         this.xmlFile.set(file);
     }
@@ -74,10 +84,20 @@ public class BatchValidationFile {
     }
 
     // XSD File property
+    /**
+     * Gets the XSD file.
+     *
+     * @return The XSD file.
+     */
     public File getXsdFile() {
         return xsdFile.get();
     }
 
+    /**
+     * Sets the XSD file.
+     *
+     * @param file The XSD file to set.
+     */
     public void setXsdFile(File file) {
         this.xsdFile.set(file);
     }
@@ -87,10 +107,20 @@ public class BatchValidationFile {
     }
 
     // Status property
+    /**
+     * Gets the validation status.
+     *
+     * @return The status.
+     */
     public ValidationStatus getStatus() {
         return status.get();
     }
 
+    /**
+     * Sets the validation status.
+     *
+     * @param status The status to set.
+     */
     public void setStatus(ValidationStatus status) {
         this.status.set(status);
     }
@@ -100,10 +130,20 @@ public class BatchValidationFile {
     }
 
     // Error count property
+    /**
+     * Gets the error count.
+     *
+     * @return The error count.
+     */
     public int getErrorCount() {
         return errorCount.get();
     }
 
+    /**
+     * Sets the error count.
+     *
+     * @param count The error count to set.
+     */
     public void setErrorCount(int count) {
         this.errorCount.set(count);
     }
@@ -113,10 +153,20 @@ public class BatchValidationFile {
     }
 
     // Validation time property
+    /**
+     * Gets the validation time in milliseconds.
+     *
+     * @return The validation time.
+     */
     public long getValidationTimeMs() {
         return validationTimeMs.get();
     }
 
+    /**
+     * Sets the validation time in milliseconds.
+     *
+     * @param timeMs The validation time to set.
+     */
     public void setValidationTimeMs(long timeMs) {
         this.validationTimeMs.set(timeMs);
     }
@@ -126,10 +176,20 @@ public class BatchValidationFile {
     }
 
     // Error message property (for non-validation errors)
+    /**
+     * Gets the error message.
+     *
+     * @return The error message.
+     */
     public String getErrorMessage() {
         return errorMessage.get();
     }
 
+    /**
+     * Sets the error message.
+     *
+     * @param message The error message to set.
+     */
     public void setErrorMessage(String message) {
         this.errorMessage.set(message);
     }
@@ -139,10 +199,20 @@ public class BatchValidationFile {
     }
 
     // Errors list (not a JavaFX property, stored separately)
+    /**
+     * Gets the list of validation errors.
+     *
+     * @return The list of errors.
+     */
     public List<SAXParseException> getErrors() {
         return errors;
     }
 
+    /**
+     * Sets the list of validation errors.
+     *
+     * @param errors The list of errors to set.
+     */
     public void setErrors(List<SAXParseException> errors) {
         this.errors = errors != null ? errors : new ArrayList<>();
         this.errorCount.set(this.errors.size());

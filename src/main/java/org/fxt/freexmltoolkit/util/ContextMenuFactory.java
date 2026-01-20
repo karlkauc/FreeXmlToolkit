@@ -26,24 +26,35 @@ public class ContextMenuFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(ContextMenuFactory.class);
 
-    /**
-     * Semantic colors for menu icons (matching Bootstrap theme)
-     */
-    public static final String COLOR_SUCCESS = "#28a745";   // Green
-    public static final String COLOR_DANGER = "#dc3545";    // Red
-    public static final String COLOR_WARNING = "#ffc107";   // Yellow/Orange
-    public static final String COLOR_INFO = "#17a2b8";      // Cyan
-    public static final String COLOR_PRIMARY = "#007bff";   // Blue
-    public static final String COLOR_SECONDARY = "#6c757d"; // Gray
-    public static final String COLOR_ORANGE = "#fd7e14";    // Orange
-    public static final String COLOR_PURPLE = "#6f42c1";    // Purple
-    public static final String COLOR_TEAL = "#20c997";      // Teal
-    public static final String COLOR_INDIGO = "#6610f2";    // Indigo
+    /** Semantic color: Green. */
+    public static final String COLOR_SUCCESS = "#28a745";
+    /** Semantic color: Red. */
+    public static final String COLOR_DANGER = "#dc3545";
+    /** Semantic color: Yellow/Orange. */
+    public static final String COLOR_WARNING = "#ffc107";
+    /** Semantic color: Cyan. */
+    public static final String COLOR_INFO = "#17a2b8";
+    /** Semantic color: Blue. */
+    public static final String COLOR_PRIMARY = "#007bff";
+    /** Semantic color: Gray. */
+    public static final String COLOR_SECONDARY = "#6c757d";
+    /** Semantic color: Orange. */
+    public static final String COLOR_ORANGE = "#fd7e14";
+    /** Semantic color: Purple. */
+    public static final String COLOR_PURPLE = "#6f42c1";
+    /** Semantic color: Teal. */
+    public static final String COLOR_TEAL = "#20c997";
+    /** Semantic color: Indigo. */
+    public static final String COLOR_INDIGO = "#6610f2";
 
     /**
      * Standard icon size for menu items (12px as per design system)
      */
     public static final int ICON_SIZE = 12;
+
+    private ContextMenuFactory() {
+        // Utility class
+    }
 
     // ============================================
     // CONTEXT MENU CREATION
@@ -164,6 +175,10 @@ public class ContextMenuFactory {
 
     /**
      * Creates an "Add" menu item with green icon.
+     *
+     * @param text The menu item text.
+     * @param action The action to execute.
+     * @return The created menu item.
      */
     public static MenuItem createAddItem(String text, Runnable action) {
         return createItem(text, "bi-plus-circle", COLOR_SUCCESS, action);
@@ -171,6 +186,10 @@ public class ContextMenuFactory {
 
     /**
      * Creates an "Edit" menu item with orange icon.
+     *
+     * @param text The menu item text.
+     * @param action The action to execute.
+     * @return The created menu item.
      */
     public static MenuItem createEditItem(String text, Runnable action) {
         return createItem(text, "bi-pencil", COLOR_ORANGE, action);
@@ -178,6 +197,10 @@ public class ContextMenuFactory {
 
     /**
      * Creates a "Delete" menu item with red icon.
+     *
+     * @param text The menu item text.
+     * @param action The action to execute.
+     * @return The created menu item.
      */
     public static MenuItem createDeleteItem(String text, Runnable action) {
         return createItem(text, "bi-trash", COLOR_DANGER, action);
@@ -185,6 +208,10 @@ public class ContextMenuFactory {
 
     /**
      * Creates a "Copy" / "Duplicate" menu item with teal icon.
+     *
+     * @param text The menu item text.
+     * @param action The action to execute.
+     * @return The created menu item.
      */
     public static MenuItem createCopyItem(String text, Runnable action) {
         return createItem(text, "bi-files", COLOR_TEAL, action);
@@ -192,6 +219,10 @@ public class ContextMenuFactory {
 
     /**
      * Creates a "Rename" menu item with orange icon.
+     *
+     * @param text The menu item text.
+     * @param action The action to execute.
+     * @return The created menu item.
      */
     public static MenuItem createRenameItem(String text, Runnable action) {
         return createItem(text, "bi-pencil-square", COLOR_ORANGE, action);
@@ -199,6 +230,10 @@ public class ContextMenuFactory {
 
     /**
      * Creates a "Change" / "Modify" menu item with blue icon.
+     *
+     * @param text The menu item text.
+     * @param action The action to execute.
+     * @return The created menu item.
      */
     public static MenuItem createChangeItem(String text, Runnable action) {
         return createItem(text, "bi-arrow-left-right", COLOR_PRIMARY, action);
@@ -206,6 +241,10 @@ public class ContextMenuFactory {
 
     /**
      * Creates an "Open" menu item with primary blue icon.
+     *
+     * @param text The menu item text.
+     * @param action The action to execute.
+     * @return The created menu item.
      */
     public static MenuItem createOpenItem(String text, Runnable action) {
         return createItem(text, "bi-folder2-open", COLOR_PRIMARY, action);
@@ -213,6 +252,10 @@ public class ContextMenuFactory {
 
     /**
      * Creates a "Save" menu item with green icon.
+     *
+     * @param text The menu item text.
+     * @param action The action to execute.
+     * @return The created menu item.
      */
     public static MenuItem createSaveItem(String text, Runnable action) {
         return createItem(text, "bi-save", COLOR_SUCCESS, action);
@@ -220,6 +263,10 @@ public class ContextMenuFactory {
 
     /**
      * Creates an "Info" / "Properties" menu item with cyan icon.
+     *
+     * @param text The menu item text.
+     * @param action The action to execute.
+     * @return The created menu item.
      */
     public static MenuItem createInfoItem(String text, Runnable action) {
         return createItem(text, "bi-info-circle", COLOR_INFO, action);
@@ -227,6 +274,10 @@ public class ContextMenuFactory {
 
     /**
      * Creates a "Settings" menu item with secondary gray icon.
+     *
+     * @param text The menu item text.
+     * @param action The action to execute.
+     * @return The created menu item.
      */
     public static MenuItem createSettingsItem(String text, Runnable action) {
         return createItem(text, "bi-gear", COLOR_SECONDARY, action);
@@ -262,6 +313,9 @@ public class ContextMenuFactory {
 
     /**
      * Creates an "Add" submenu with green icon.
+     *
+     * @param text The submenu text.
+     * @return The created submenu.
      */
     public static Menu createAddSubmenu(String text) {
         return createSubmenu(text, "bi-plus-circle", COLOR_SUCCESS);
@@ -387,6 +441,9 @@ public class ContextMenuFactory {
 
     /**
      * Creates a success (green) icon.
+     *
+     * @param iconLiteral The icon literal.
+     * @return The configured FontIcon.
      */
     public static FontIcon createSuccessIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_SUCCESS);
@@ -394,6 +451,9 @@ public class ContextMenuFactory {
 
     /**
      * Creates a danger (red) icon.
+     *
+     * @param iconLiteral The icon literal.
+     * @return The configured FontIcon.
      */
     public static FontIcon createDangerIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_DANGER);
@@ -401,6 +461,9 @@ public class ContextMenuFactory {
 
     /**
      * Creates a warning (yellow) icon.
+     *
+     * @param iconLiteral The icon literal.
+     * @return The configured FontIcon.
      */
     public static FontIcon createWarningIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_WARNING);
@@ -408,6 +471,9 @@ public class ContextMenuFactory {
 
     /**
      * Creates an info (cyan) icon.
+     *
+     * @param iconLiteral The icon literal.
+     * @return The configured FontIcon.
      */
     public static FontIcon createInfoIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_INFO);
@@ -415,6 +481,9 @@ public class ContextMenuFactory {
 
     /**
      * Creates a primary (blue) icon.
+     *
+     * @param iconLiteral The icon literal.
+     * @return The configured FontIcon.
      */
     public static FontIcon createPrimaryIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_PRIMARY);
@@ -443,61 +512,141 @@ public class ContextMenuFactory {
             this.menu = createContextMenu();
         }
 
+        /**
+         * Adds an item with text.
+         *
+         * @param text The item text.
+         * @param action The action.
+         * @return The builder.
+         */
         public Builder addItem(String text, Runnable action) {
             menu.getItems().add(createItem(text, action));
             return this;
         }
 
+        /**
+         * Adds an item with icon.
+         *
+         * @param text The item text.
+         * @param iconLiteral The icon literal.
+         * @param iconColor The icon color.
+         * @param action The action.
+         * @return The builder.
+         */
         public Builder addItem(String text, String iconLiteral, String iconColor, Runnable action) {
             menu.getItems().add(createItem(text, iconLiteral, iconColor, action));
             return this;
         }
 
+        /**
+         * Adds a custom menu item.
+         *
+         * @param item The menu item.
+         * @return The builder.
+         */
         public Builder addItem(MenuItem item) {
             menu.getItems().add(item);
             return this;
         }
 
+        /**
+         * Adds an "Add" item.
+         *
+         * @param text The item text.
+         * @param action The action.
+         * @return The builder.
+         */
         public Builder addAddItem(String text, Runnable action) {
             menu.getItems().add(createAddItem(text, action));
             return this;
         }
 
+        /**
+         * Adds an "Edit" item.
+         *
+         * @param text The item text.
+         * @param action The action.
+         * @return The builder.
+         */
         public Builder addEditItem(String text, Runnable action) {
             menu.getItems().add(createEditItem(text, action));
             return this;
         }
 
+        /**
+         * Adds a "Delete" item.
+         *
+         * @param text The item text.
+         * @param action The action.
+         * @return The builder.
+         */
         public Builder addDeleteItem(String text, Runnable action) {
             menu.getItems().add(createDeleteItem(text, action));
             return this;
         }
 
+        /**
+         * Adds a "Copy" item.
+         *
+         * @param text The item text.
+         * @param action The action.
+         * @return The builder.
+         */
         public Builder addCopyItem(String text, Runnable action) {
             menu.getItems().add(createCopyItem(text, action));
             return this;
         }
 
+        /**
+         * Adds a submenu.
+         *
+         * @param submenu The submenu.
+         * @return The builder.
+         */
         public Builder addSubmenu(Menu submenu) {
             menu.getItems().add(submenu);
             return this;
         }
 
+        /**
+         * Adds a separator.
+         *
+         * @return The builder.
+         */
         public Builder addSeparator() {
             menu.getItems().add(createSeparator());
             return this;
         }
 
+        /**
+         * Adds a header item.
+         *
+         * @param text The header text.
+         * @return The builder.
+         */
         public Builder addHeader(String text) {
             menu.getItems().add(createHeader(text));
             return this;
         }
 
+        /**
+         * Adds a check item.
+         *
+         * @param text The item text.
+         * @param selected Initial selection state.
+         * @param action The action.
+         * @return The builder.
+         */
         public Builder addCheckItem(String text, boolean selected, Runnable action) {
             menu.getItems().add(createCheckItem(text, selected, action));
             return this;
         }
 
+        /**
+         * Builds the context menu.
+         *
+         * @return The built ContextMenu.
+         */
         public ContextMenu build() {
             return menu;
         }

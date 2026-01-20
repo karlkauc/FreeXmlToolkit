@@ -49,30 +49,65 @@ public class CompletionItem {
         this.examples = Collections.unmodifiableList(new ArrayList<>(builder.examples));
     }
 
+    /**
+     * Gets the label to display in the completion list.
+     *
+     * @return The label.
+     */
     public String getLabel() {
         return label;
     }
 
+    /**
+     * Gets the text to insert when this item is selected.
+     *
+     * @return The insert text.
+     */
     public String getInsertText() {
         return insertText;
     }
 
+    /**
+     * Gets the type of the completion item.
+     *
+     * @return The completion item type.
+     */
     public CompletionItemType getType() {
         return type;
     }
 
+    /**
+     * Gets the description of the item (for documentation).
+     *
+     * @return The description.
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Gets the data type of the item (e.g., "xs:string").
+     *
+     * @return The data type.
+     */
     public String getDataType() {
         return dataType;
     }
 
+    /**
+     * Checks if the item corresponds to a required element or attribute.
+     *
+     * @return True if required, false otherwise.
+     */
     public boolean isRequired() {
         return required;
     }
 
+    /**
+     * Gets the relevance score for sorting.
+     *
+     * @return The relevance score (higher is better).
+     */
     public int getRelevanceScore() {
         return relevanceScore;
     }
@@ -81,6 +116,8 @@ public class CompletionItem {
 
     /**
      * Gets the cardinality string (e.g., "1", "0..1", "1..*", "0..*").
+     *
+     * @return The cardinality string.
      */
     public String getCardinality() {
         return cardinality;
@@ -88,6 +125,8 @@ public class CompletionItem {
 
     /**
      * Gets the default value from XSD.
+     *
+     * @return The default value.
      */
     public String getDefaultValue() {
         return defaultValue;
@@ -95,6 +134,8 @@ public class CompletionItem {
 
     /**
      * Gets facet hints (e.g., ["pattern", "maxLength:100"]).
+     *
+     * @return The list of facet hints.
      */
     public List<String> getFacetHints() {
         return facetHints;
@@ -102,6 +143,8 @@ public class CompletionItem {
 
     /**
      * Gets required attributes for ELEMENT type items.
+     *
+     * @return The list of required attributes.
      */
     public List<String> getRequiredAttributes() {
         return requiredAttributes;
@@ -109,6 +152,8 @@ public class CompletionItem {
 
     /**
      * Gets optional attributes for ELEMENT type items.
+     *
+     * @return The list of optional attributes.
      */
     public List<String> getOptionalAttributes() {
         return optionalAttributes;
@@ -116,6 +161,8 @@ public class CompletionItem {
 
     /**
      * Gets the namespace URI.
+     *
+     * @return The namespace URI.
      */
     public String getNamespace() {
         return namespace;
@@ -123,6 +170,8 @@ public class CompletionItem {
 
     /**
      * Gets the namespace prefix.
+     *
+     * @return The namespace prefix.
      */
     public String getPrefix() {
         return prefix;
@@ -130,6 +179,8 @@ public class CompletionItem {
 
     /**
      * Gets example values.
+     *
+     * @return The list of example values.
      */
     public List<String> getExamples() {
         return examples;
@@ -137,6 +188,8 @@ public class CompletionItem {
 
     /**
      * Checks if this item has extended information to display.
+     *
+     * @return True if extended info exists, false otherwise.
      */
     public boolean hasExtendedInfo() {
         return (cardinality != null && !cardinality.isEmpty()) ||
@@ -191,27 +244,58 @@ public class CompletionItem {
         private String prefix = "";
         private List<String> examples = new ArrayList<>();
 
+        /**
+         * Creates a new Builder.
+         *
+         * @param label      The label to display.
+         * @param insertText The text to insert.
+         * @param type       The completion type.
+         */
         public Builder(String label, String insertText, CompletionItemType type) {
             this.label = Objects.requireNonNull(label, "Label cannot be null");
             this.insertText = insertText != null ? insertText : label;
             this.type = Objects.requireNonNull(type, "Type cannot be null");
         }
 
+        /**
+         * Sets the description.
+         *
+         * @param description The description.
+         * @return The builder.
+         */
         public Builder description(String description) {
             this.description = description != null ? description : "";
             return this;
         }
 
+        /**
+         * Sets the data type.
+         *
+         * @param dataType The data type.
+         * @return The builder.
+         */
         public Builder dataType(String dataType) {
             this.dataType = dataType != null ? dataType : "";
             return this;
         }
 
+        /**
+         * Sets whether the item is required.
+         *
+         * @param required True if required.
+         * @return The builder.
+         */
         public Builder required(boolean required) {
             this.required = required;
             return this;
         }
 
+        /**
+         * Sets the relevance score.
+         *
+         * @param score The score.
+         * @return The builder.
+         */
         public Builder relevanceScore(int score) {
             this.relevanceScore = score;
             return this;
@@ -221,6 +305,9 @@ public class CompletionItem {
 
         /**
          * Sets the cardinality string (e.g., "1", "0..1", "1..*", "0..*").
+         *
+         * @param cardinality The cardinality string.
+         * @return The builder.
          */
         public Builder cardinality(String cardinality) {
             this.cardinality = cardinality != null ? cardinality : "";
@@ -229,6 +316,9 @@ public class CompletionItem {
 
         /**
          * Sets the default value from XSD.
+         *
+         * @param defaultValue The default value.
+         * @return The builder.
          */
         public Builder defaultValue(String defaultValue) {
             this.defaultValue = defaultValue != null ? defaultValue : "";
@@ -237,6 +327,9 @@ public class CompletionItem {
 
         /**
          * Sets facet hints (e.g., ["pattern", "maxLength:100"]).
+         *
+         * @param facetHints The list of facet hints.
+         * @return The builder.
          */
         public Builder facetHints(List<String> facetHints) {
             this.facetHints = facetHints != null ? new ArrayList<>(facetHints) : new ArrayList<>();
@@ -245,6 +338,9 @@ public class CompletionItem {
 
         /**
          * Sets required attributes for ELEMENT type items.
+         *
+         * @param requiredAttributes The list of required attributes.
+         * @return The builder.
          */
         public Builder requiredAttributes(List<String> requiredAttributes) {
             this.requiredAttributes = requiredAttributes != null ? new ArrayList<>(requiredAttributes) : new ArrayList<>();
@@ -253,6 +349,9 @@ public class CompletionItem {
 
         /**
          * Sets optional attributes for ELEMENT type items.
+         *
+         * @param optionalAttributes The list of optional attributes.
+         * @return The builder.
          */
         public Builder optionalAttributes(List<String> optionalAttributes) {
             this.optionalAttributes = optionalAttributes != null ? new ArrayList<>(optionalAttributes) : new ArrayList<>();
@@ -261,6 +360,9 @@ public class CompletionItem {
 
         /**
          * Sets the namespace URI.
+         *
+         * @param namespace The namespace URI.
+         * @return The builder.
          */
         public Builder namespace(String namespace) {
             this.namespace = namespace != null ? namespace : "";
@@ -269,6 +371,9 @@ public class CompletionItem {
 
         /**
          * Sets the namespace prefix.
+         *
+         * @param prefix The namespace prefix.
+         * @return The builder.
          */
         public Builder prefix(String prefix) {
             this.prefix = prefix != null ? prefix : "";
@@ -277,12 +382,20 @@ public class CompletionItem {
 
         /**
          * Sets example values.
+         *
+         * @param examples The list of example values.
+         * @return The builder.
          */
         public Builder examples(List<String> examples) {
             this.examples = examples != null ? new ArrayList<>(examples) : new ArrayList<>();
             return this;
         }
 
+        /**
+         * Builds the CompletionItem.
+         *
+         * @return The new CompletionItem.
+         */
         public CompletionItem build() {
             return new CompletionItem(this);
         }

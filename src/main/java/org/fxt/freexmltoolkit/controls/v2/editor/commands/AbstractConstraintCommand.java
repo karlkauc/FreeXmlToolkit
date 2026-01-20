@@ -19,10 +19,14 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
  */
 public abstract class AbstractConstraintCommand implements XsdCommand {
 
+    /** Logger for this class. */
     protected static final Logger logger = LogManager.getLogger(AbstractConstraintCommand.class);
 
+    /** The editor context. */
     protected final XsdEditorContext editorContext;
+    /** The target XSD element. */
     protected final XsdElement element;
+    /** The constraint value. */
     protected final String value;
 
     /**

@@ -17,7 +17,9 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
  */
 public abstract class AbstractTypeEditorTab extends Tab {
 
+    /** Flag indicating if the tab has unsaved changes. */
     protected boolean isDirty = false;
+    /** The type node being edited. */
     protected final XsdNode typeNode;
     private final String originalTitle;
 

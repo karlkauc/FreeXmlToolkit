@@ -49,16 +49,26 @@ public class CardinalityIndicator {
     private static final String MULTI_COLOR = "#007bff";      // Blue
     private static final String UNBOUNDED_COLOR = "#17a2b8";  // Teal
 
+    private CardinalityIndicator() {
+        // Utility class
+    }
+
     /**
      * Cardinality type enumeration.
      */
     public enum CardinalityType {
-        EXACTLY_ONE,      // [1] - Required, exactly one
-        OPTIONAL,         // [0..1] - Optional, zero or one
-        REQUIRED_MULTI,   // [1..*] - Required, one or more
-        OPTIONAL_MULTI,   // [0..*] - Optional, any number
-        BOUNDED,          // [n..m] - Bounded range
-        UNKNOWN           // Unknown or unspecified
+        /** [1] - Required, exactly one. */
+        EXACTLY_ONE,
+        /** [0..1] - Optional, zero or one. */
+        OPTIONAL,
+        /** [1..*] - Required, one or more. */
+        REQUIRED_MULTI,
+        /** [0..*] - Optional, any number. */
+        OPTIONAL_MULTI,
+        /** [n..m] - Bounded range. */
+        BOUNDED,
+        /** Unknown or unspecified. */
+        UNKNOWN
     }
 
     /**

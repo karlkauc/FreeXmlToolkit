@@ -28,8 +28,11 @@ import java.util.List;
  */
 public abstract class AbstractUnifiedEditorTab extends Tab {
 
+    /** The source file being edited. */
     protected final File sourceFile;
+    /** The type of file being edited. */
     protected final UnifiedEditorFileType fileType;
+    /** Property tracking the dirty state (unsaved changes). */
     protected final BooleanProperty dirty = new SimpleBooleanProperty(false);
     private final String originalTitle;
 
@@ -168,11 +171,6 @@ public abstract class AbstractUnifiedEditorTab extends Tab {
         this.dirty.set(dirty);
     }
 
-    /**
-     * Gets the dirty property for binding.
-     *
-     * @return the dirty property
-     */
     public BooleanProperty dirtyProperty() {
         return dirty;
     }
