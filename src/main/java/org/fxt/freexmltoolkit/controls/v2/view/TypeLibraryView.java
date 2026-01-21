@@ -45,6 +45,11 @@ public class TypeLibraryView extends BorderPane {
     private String schemaName = "Unknown Schema";
     private TypeEditorTabManager typeEditorTabManager;
 
+    /**
+     * Creates a new TypeLibraryView.
+     *
+     * @param schema The schema to display types for
+     */
     public TypeLibraryView(XsdSchema schema) {
         this.schema = schema;
         if (schema != null && schema.getTargetNamespace() != null) {
@@ -55,7 +60,9 @@ public class TypeLibraryView extends BorderPane {
     }
 
     /**
-     * Set the schema name for export file naming
+     * Set the schema name for export file naming.
+     *
+     * @param schemaName The name of the schema
      */
     public void setSchemaName(String schemaName) {
         this.schemaName = schemaName;
@@ -64,6 +71,8 @@ public class TypeLibraryView extends BorderPane {
     /**
      * Set the TypeEditorTabManager for creating new types.
      * Required for the "Create New Type" buttons to work.
+     *
+     * @param typeEditorTabManager The manager for type editor tabs
      */
     public void setTypeEditorTabManager(TypeEditorTabManager typeEditorTabManager) {
         this.typeEditorTabManager = typeEditorTabManager;
@@ -868,6 +877,8 @@ public class TypeLibraryView extends BorderPane {
 
     /**
      * Updates the view with a new schema.
+     *
+     * @param newSchema The new schema to display
      */
     public void setSchema(XsdSchema newSchema) {
         populateTypes();
@@ -888,15 +899,29 @@ public class TypeLibraryView extends BorderPane {
     }
 
     /**
-     * Type information holder
+     * Type information holder.
      */
     private static class TypeInfo {
-        String kind; // "Simple" or "Complex"
+        /** The kind of type (Simple/Complex). */
+        String kind;
+        /** The name of the type. */
         String name;
+        /** The base type name. */
         String baseType;
+        /** The documentation for the type. */
         String documentation;
+        /** The number of times the type is used. */
         int usageCount = 0;
+        /** List of XPaths where the type is used. */
         List<String> usageLocations = new ArrayList<>();
-        XsdNode node; // Reference to actual node
+        /** Reference to actual node. */
+        XsdNode node;
+
+        /**
+         * Creates a new TypeInfo instance.
+         */
+        public TypeInfo() {
+        }
     }
 }
+

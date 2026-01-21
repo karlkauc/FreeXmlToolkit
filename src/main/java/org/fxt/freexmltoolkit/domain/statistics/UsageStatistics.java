@@ -48,6 +48,8 @@ public class UsageStatistics {
     // Getters and Setters
 
     /**
+     * Gets the first launch time.
+     *
      * @return The date and time of the first launch
      */
     public LocalDateTime getFirstLaunch() {
@@ -55,6 +57,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets the first launch time.
+     *
      * @param firstLaunch The date and time of the first launch
      */
     public void setFirstLaunch(LocalDateTime firstLaunch) {
@@ -62,6 +66,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets the last launch time.
+     *
      * @return The date and time of the last launch
      */
     public LocalDateTime getLastLaunch() {
@@ -69,6 +75,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets the last launch time.
+     *
      * @param lastLaunch The date and time of the last launch
      */
     public void setLastLaunch(LocalDateTime lastLaunch) {
@@ -76,6 +84,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets total usage seconds.
+     *
      * @return The total usage time in seconds
      */
     public long getTotalUsageSeconds() {
@@ -83,6 +93,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets total usage seconds.
+     *
      * @param totalUsageSeconds The total usage time in seconds
      */
     public void setTotalUsageSeconds(long totalUsageSeconds) {
@@ -99,6 +111,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets total launches.
+     *
      * @return The total number of application launches
      */
     public int getTotalLaunches() {
@@ -106,6 +120,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets total launches.
+     *
      * @param totalLaunches The total number of application launches
      */
     public void setTotalLaunches(int totalLaunches) {
@@ -120,6 +136,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets files validated count.
+     *
      * @return The number of files validated
      */
     public int getFilesValidated() {
@@ -127,6 +145,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets files validated count.
+     *
      * @param filesValidated The number of files validated
      */
     public void setFilesValidated(int filesValidated) {
@@ -141,6 +161,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets validation errors count.
+     *
      * @return The number of validation errors found
      */
     public int getValidationErrors() {
@@ -148,6 +170,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets validation errors count.
+     *
      * @param validationErrors The number of validation errors found
      */
     public void setValidationErrors(int validationErrors) {
@@ -164,6 +188,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets errors corrected count.
+     *
      * @return The number of errors corrected
      */
     public int getErrorsCorrected() {
@@ -171,6 +197,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets errors corrected count.
+     *
      * @param errorsCorrected The number of errors corrected
      */
     public void setErrorsCorrected(int errorsCorrected) {
@@ -187,6 +215,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets transformations performed count.
+     *
      * @return The number of transformations performed
      */
     public int getTransformationsPerformed() {
@@ -194,6 +224,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets transformations performed count.
+     *
      * @param transformationsPerformed The number of transformations performed
      */
     public void setTransformationsPerformed(int transformationsPerformed) {
@@ -208,6 +240,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets documents formatted count.
+     *
      * @return The number of documents formatted
      */
     public int getDocumentsFormatted() {
@@ -215,6 +249,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets documents formatted count.
+     *
      * @param documentsFormatted The number of documents formatted
      */
     public void setDocumentsFormatted(int documentsFormatted) {
@@ -229,6 +265,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets XPath queries executed count.
+     *
      * @return The number of XPath queries executed
      */
     public int getXpathQueriesExecuted() {
@@ -236,6 +274,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets XPath queries executed count.
+     *
      * @param xpathQueriesExecuted The number of XPath queries executed
      */
     public void setXpathQueriesExecuted(int xpathQueriesExecuted) {
@@ -250,6 +290,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets XQuery executions count.
+     *
      * @return The number of XQuery executions
      */
     public int getXqueryExecutions() {
@@ -257,6 +299,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets XQuery executions count.
+     *
      * @param xqueryExecutions The number of XQuery executions
      */
     public void setXqueryExecutions(int xqueryExecutions) {
@@ -271,6 +315,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets Schematron validations count.
+     *
      * @return The number of Schematron validations performed
      */
     public int getSchematronValidations() {
@@ -278,6 +324,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets Schematron validations count.
+     *
      * @param schematronValidations The number of Schematron validations performed
      */
     public void setSchematronValidations(int schematronValidations) {
@@ -292,6 +340,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets schemas generated count.
+     *
      * @return The number of schemas generated
      */
     public int getSchemasGenerated() {
@@ -299,6 +349,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets schemas generated count.
+     *
      * @param schemasGenerated The number of schemas generated
      */
     public void setSchemasGenerated(int schemasGenerated) {
@@ -313,6 +365,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets signatures created count.
+     *
      * @return The number of signatures created
      */
     public int getSignaturesCreated() {
@@ -320,6 +374,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets signatures created count.
+     *
      * @param signaturesCreated The number of signatures created
      */
     public void setSignaturesCreated(int signaturesCreated) {
@@ -334,6 +390,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets signatures verified count.
+     *
      * @return The number of signatures verified
      */
     public int getSignaturesVerified() {
@@ -341,6 +399,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets signatures verified count.
+     *
      * @param signaturesVerified The number of signatures verified
      */
     public void setSignaturesVerified(int signaturesVerified) {
@@ -355,6 +415,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets PDFs generated count.
+     *
      * @return The number of PDFs generated
      */
     public int getPdfsGenerated() {
@@ -362,6 +424,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets PDFs generated count.
+     *
      * @param pdfsGenerated The number of PDFs generated
      */
     public void setPdfsGenerated(int pdfsGenerated) {
@@ -376,6 +440,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets files opened count.
+     *
      * @return The number of files opened
      */
     public int getFilesOpened() {
@@ -383,6 +449,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets files opened count.
+     *
      * @param filesOpened The number of files opened
      */
     public void setFilesOpened(int filesOpened) {
@@ -397,6 +465,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets daily statistics map.
+     *
      * @return A map of daily statistics
      */
     public Map<LocalDate, DailyStatistics> getDailyStats() {
@@ -404,6 +474,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets daily statistics map.
+     *
      * @param dailyStats A map of daily statistics
      */
     public void setDailyStats(Map<LocalDate, DailyStatistics> dailyStats) {
@@ -411,6 +483,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets statistics for today.
+     *
      * @return The statistics for today (creates new if absent)
      */
     public DailyStatistics getTodayStats() {
@@ -419,6 +493,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Gets feature usage map.
+     *
      * @return A map of feature usage statistics
      */
     public Map<String, FeatureUsage> getFeatureUsage() {
@@ -426,6 +502,8 @@ public class UsageStatistics {
     }
 
     /**
+     * Sets feature usage map.
+     *
      * @param featureUsage A map of feature usage statistics
      */
     public void setFeatureUsage(Map<String, FeatureUsage> featureUsage) {

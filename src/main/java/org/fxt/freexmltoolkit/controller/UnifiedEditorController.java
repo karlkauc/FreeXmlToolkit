@@ -646,6 +646,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     /**
      * Opens a new XSD tab with the given content.
      * Used by the schema generator to open generated schemas.
+     *
+     * @param xsdContent The content of the XSD schema to open
      */
     public void openNewXsdTab(String xsdContent) {
         if (xsdContent != null && !xsdContent.isEmpty()) {
@@ -688,6 +690,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     /**
      * Shows or hides the XPath panel.
+     *
+     * @param visible true to show the panel, false to hide it
      */
     public void setXPathPanelVisible(boolean visible) {
         if (xpathPanel == null) {
@@ -738,6 +742,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     /**
      * Gets the XPath panel.
+     *
+     * @return The XPath panel
      */
     public UnifiedXPathQueryPanel getXPathPanel() {
         return xpathPanel;
@@ -745,6 +751,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     /**
      * Checks if the XPath panel is visible.
+     *
+     * @return true if the panel is visible
      */
     public boolean isXPathPanelVisible() {
         return xpathPanel != null && xpathPanel.isVisible();
@@ -892,6 +900,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     /**
      * Gets the multi-functional side pane.
+     *
+     * @return The multi-functional side pane
      */
     public MultiFunctionalSidePane getMultiFunctionalPane() {
         return multiFunctionalPane;
