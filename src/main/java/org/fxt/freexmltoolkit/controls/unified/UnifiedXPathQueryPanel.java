@@ -473,6 +473,8 @@ public class UnifiedXPathQueryPanel extends VBox {
 
     /**
      * Gets the XPath CodeArea for external access.
+     *
+     * @return The CodeArea used for XPath input
      */
     public CodeArea getXpathCodeArea() {
         return xpathCodeArea;
@@ -480,6 +482,8 @@ public class UnifiedXPathQueryPanel extends VBox {
 
     /**
      * Gets the XQuery CodeArea for external access.
+     *
+     * @return The CodeArea used for XQuery input
      */
     public CodeArea getXqueryCodeArea() {
         return xqueryCodeArea;
@@ -487,6 +491,8 @@ public class UnifiedXPathQueryPanel extends VBox {
 
     /**
      * Gets the result CodeArea for external access.
+     *
+     * @return The CodeArea used for result display
      */
     public CodeArea getResultCodeArea() {
         return resultCodeArea;
