@@ -11,6 +11,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -848,30 +849,76 @@ public class XsdModelAdapter {
 
     /**
      * Handles import processing.
+     *
+     * <p>If resolveImports option was enabled, the imports have been resolved and their
+     * content can be inlined. If not, we still need to preserve the xs:import statements
+     * by parsing them directly from the DOM.</p>
      */
     private void handleImports(ParsedSchema parsedSchema, XsdSchema schema) {
-        for (ParsedSchema.ResolvedImport imp : parsedSchema.getResolvedImports()) {
-            XsdImport xsdImport = new XsdImport();
-            xsdImport.setNamespace(imp.namespace());
-            xsdImport.setSchemaLocation(imp.schemaLocation());
+        List<ParsedSchema.ResolvedImport> resolvedImports = parsedSchema.getResolvedImports();
 
-            if (imp.resolvedPath() != null) {
-                xsdImport.setResolvedPath(imp.resolvedPath());
+        if (!resolvedImports.isEmpty()) {
+            // Imports were resolved - process them (may include inlined content)
+            for (ParsedSchema.ResolvedImport imp : resolvedImports) {
+                XsdImport xsdImport = new XsdImport();
+                xsdImport.setNamespace(imp.namespace());
+                xsdImport.setSchemaLocation(imp.schemaLocation());
+
+                if (imp.resolvedPath() != null) {
+                    xsdImport.setResolvedPath(imp.resolvedPath());
+                }
+
+                if (imp.isLoaded() && imp.parsedSchema() != null) {
+                    // Create reference to imported schema
+                    XsdSchema importedSchema = toXsdModelInternal(imp.parsedSchema());
+                    xsdImport.setImportedSchema(importedSchema);
+
+                    // Register in schema's imported schemas map
+                    String key = imp.namespace() != null ? imp.namespace() : imp.schemaLocation();
+                    schema.addImportedSchema(key, importedSchema);
+                } else if (imp.error() != null) {
+                    xsdImport.markResolutionFailed(imp.error());
+                }
+
+                schema.addChild(xsdImport);
+            }
+        } else {
+            // Imports were NOT resolved - parse xs:import elements directly from DOM
+            // to preserve them in the output
+            parseImportsFromDom(parsedSchema.getSchemaElement(), schema);
+        }
+    }
+
+    /**
+     * Parses xs:import elements directly from the DOM when imports are not being resolved.
+     * This preserves the import statements in the flattened output.
+     */
+    private void parseImportsFromDom(Element schemaElement, XsdSchema schema) {
+        NodeList children = schemaElement.getChildNodes();
+
+        for (int i = 0; i < children.getLength(); i++) {
+            Node node = children.item(i);
+            if (!(node instanceof Element element)) {
+                continue;
             }
 
-            if (imp.isLoaded() && imp.parsedSchema() != null) {
-                // Create reference to imported schema
-                XsdSchema importedSchema = toXsdModelInternal(imp.parsedSchema());
-                xsdImport.setImportedSchema(importedSchema);
+            if (XSD_NS.equals(element.getNamespaceURI()) && "import".equals(element.getLocalName())) {
+                XsdImport xsdImport = new XsdImport();
 
-                // Register in schema's imported schemas map
-                String key = imp.namespace() != null ? imp.namespace() : imp.schemaLocation();
-                schema.addImportedSchema(key, importedSchema);
-            } else if (imp.error() != null) {
-                xsdImport.markResolutionFailed(imp.error());
+                String namespace = element.getAttribute("namespace");
+                if (namespace != null && !namespace.isEmpty()) {
+                    xsdImport.setNamespace(namespace);
+                }
+
+                String schemaLocation = element.getAttribute("schemaLocation");
+                if (schemaLocation != null && !schemaLocation.isEmpty()) {
+                    xsdImport.setSchemaLocation(schemaLocation);
+                }
+
+                schema.addChild(xsdImport);
+                logger.debug("Preserved xs:import from DOM: namespace={}, schemaLocation={}",
+                        namespace, schemaLocation);
             }
-
-            schema.addChild(xsdImport);
         }
     }
 

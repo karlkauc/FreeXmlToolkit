@@ -365,6 +365,148 @@ class XsdFlatteningDuplicateTypesTest {
                 "Found duplicate simpleTypes in flattened FundsXML4: " + duplicateSimpleTypes);
     }
 
+    @Test
+    void testImportPreservedWhenNotFlattening() throws Exception {
+        // Test that xs:import statements are preserved when resolveImports is false
+        String importedXsd = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                       targetNamespace="http://www.w3.org/2000/09/xmldsig#">
+              <xs:element name="Signature" type="ds:SignatureType"/>
+              <xs:complexType name="SignatureType">
+                <xs:sequence>
+                  <xs:element name="SignedInfo" type="xs:string"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+
+        String mainXsd = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+              <xs:import namespace="http://www.w3.org/2000/09/xmldsig#"
+                         schemaLocation="xmldsig.xsd"/>
+              <xs:element name="Root">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Data" type="xs:string"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:schema>
+            """;
+
+        Path tempDir = java.nio.file.Files.createTempDirectory("xsd-import-test");
+        Path importedFile = tempDir.resolve("xmldsig.xsd");
+        Path mainFile = tempDir.resolve("main.xsd");
+
+        try {
+            java.nio.file.Files.writeString(importedFile, importedXsd);
+            java.nio.file.Files.writeString(mainFile, mainXsd);
+
+            // Parse with FLATTEN mode but WITHOUT resolving imports
+            XsdParseOptions options = XsdParseOptions.builder()
+                    .includeMode(XsdParseOptions.IncludeMode.FLATTEN)
+                    .resolveImports(false)  // Do NOT flatten imports
+                    .build();
+
+            XsdParsingService parsingService = new XsdParsingServiceImpl();
+            ParsedSchema parsed = parsingService.parse(mainFile, options);
+
+            XsdModelAdapter adapter = new XsdModelAdapter(options);
+            XsdSchema schema = adapter.toXsdModel(parsed);
+
+            // Serialize to XSD
+            XsdSerializer serializer = new XsdSerializer();
+            String serialized = serializer.serialize(schema);
+
+            // The xs:import statement should be preserved in the output
+            assertTrue(serialized.contains("xs:import"),
+                    "xs:import statement should be preserved when resolveImports is false");
+            assertTrue(serialized.contains("namespace=\"http://www.w3.org/2000/09/xmldsig#\""),
+                    "Import namespace should be preserved");
+            assertTrue(serialized.contains("schemaLocation=\"xmldsig.xsd\""),
+                    "Import schemaLocation should be preserved");
+
+            // The content of the imported schema should NOT be in the output
+            assertFalse(serialized.contains("SignatureType"),
+                    "Imported schema content should NOT be inlined when resolveImports is false");
+
+        } finally {
+            java.nio.file.Files.deleteIfExists(importedFile);
+            java.nio.file.Files.deleteIfExists(mainFile);
+            java.nio.file.Files.deleteIfExists(tempDir);
+        }
+    }
+
+    @Test
+    void testImportFlattenedWhenOptionEnabled() throws Exception {
+        // Test that xs:import content is inlined when resolveImports is true
+        String importedXsd = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       targetNamespace="http://example.com/imported">
+              <xs:complexType name="ImportedType">
+                <xs:sequence>
+                  <xs:element name="Value" type="xs:string"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+
+        String mainXsd = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns:imp="http://example.com/imported">
+              <xs:import namespace="http://example.com/imported"
+                         schemaLocation="imported.xsd"/>
+              <xs:element name="Root" type="xs:string"/>
+            </xs:schema>
+            """;
+
+        Path tempDir = java.nio.file.Files.createTempDirectory("xsd-import-flatten-test");
+        Path importedFile = tempDir.resolve("imported.xsd");
+        Path mainFile = tempDir.resolve("main.xsd");
+
+        try {
+            java.nio.file.Files.writeString(importedFile, importedXsd);
+            java.nio.file.Files.writeString(mainFile, mainXsd);
+
+            // Parse with resolveImports enabled
+            XsdParseOptions options = XsdParseOptions.builder()
+                    .includeMode(XsdParseOptions.IncludeMode.FLATTEN)
+                    .resolveImports(true)  // DO flatten imports
+                    .build();
+
+            XsdParsingService parsingService = new XsdParsingServiceImpl();
+            ParsedSchema parsed = parsingService.parse(mainFile, options);
+
+            XsdModelAdapter adapter = new XsdModelAdapter(options);
+            XsdSchema schema = adapter.toXsdModel(parsed);
+
+            // Check that import was resolved
+            boolean hasImportNode = schema.getChildren().stream()
+                    .anyMatch(n -> n instanceof XsdImport);
+            assertTrue(hasImportNode, "Should have XsdImport node");
+
+            // The XsdImport should have the imported schema content loaded
+            XsdImport xsdImport = (XsdImport) schema.getChildren().stream()
+                    .filter(n -> n instanceof XsdImport)
+                    .findFirst()
+                    .orElseThrow();
+
+            assertNotNull(xsdImport.getImportedSchema(),
+                    "Imported schema should be loaded when resolveImports is true");
+
+        } finally {
+            java.nio.file.Files.deleteIfExists(importedFile);
+            java.nio.file.Files.deleteIfExists(mainFile);
+            java.nio.file.Files.deleteIfExists(tempDir);
+        }
+    }
+
     private int countOccurrences(String text, String pattern) {
         Pattern p = Pattern.compile(Pattern.quote(pattern));
         Matcher m = p.matcher(text);
