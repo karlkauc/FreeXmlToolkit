@@ -34,9 +34,18 @@ public class TypeAlternative implements Serializable {
     private String documentation;     // Optional documentation from xs:annotation
     private String xpathDefaultNamespace; // Optional xpath-default-namespace attribute
 
+    /**
+     * Creates a new empty TypeAlternative.
+     */
     public TypeAlternative() {
     }
 
+    /**
+     * Creates a new TypeAlternative with the specified test and type.
+     *
+     * @param test The XPath 2.0 test expression (or null for default)
+     * @param type The type to assign if the test passes
+     */
     public TypeAlternative(String test, String type) {
         this.test = test;
         this.type = type;
@@ -44,40 +53,66 @@ public class TypeAlternative implements Serializable {
 
     // Getters and setters
 
+    /**
+     * @return The XPath 2.0 boolean test expression
+     */
     public String getTest() {
         return test;
     }
 
+    /**
+     * @param test The XPath 2.0 boolean test expression
+     */
     public void setTest(String test) {
         this.test = test;
     }
 
+    /**
+     * @return The name of the type to use
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * @param type The name of the type to use
+     */
     public void setType(String type) {
         this.type = type;
     }
 
+    /**
+     * @return Documentation associated with this alternative
+     */
     public String getDocumentation() {
         return documentation;
     }
 
+    /**
+     * @param documentation Documentation associated with this alternative
+     */
     public void setDocumentation(String documentation) {
         this.documentation = documentation;
     }
 
+    /**
+     * @return The default namespace for XPath expressions
+     */
     public String getXpathDefaultNamespace() {
         return xpathDefaultNamespace;
     }
 
+    /**
+     * @param xpathDefaultNamespace The default namespace for XPath expressions
+     */
     public void setXpathDefaultNamespace(String xpathDefaultNamespace) {
         this.xpathDefaultNamespace = xpathDefaultNamespace;
     }
 
     /**
      * Checks if this is the default alternative (no test condition).
+     *
+     * @return true if this is the default alternative, false otherwise
      */
     public boolean isDefault() {
         return test == null || test.isEmpty();
@@ -85,6 +120,8 @@ public class TypeAlternative implements Serializable {
 
     /**
      * Gets a display string for the alternative.
+     *
+     * @return A human-readable description of the condition
      */
     public String getDisplayCondition() {
         if (isDefault()) {

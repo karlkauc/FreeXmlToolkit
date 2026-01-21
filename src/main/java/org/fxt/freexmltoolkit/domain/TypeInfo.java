@@ -44,6 +44,9 @@ public record TypeInfo(
             this.displayName = displayName;
         }
 
+        /**
+         * @return The display name of the category
+         */
         public String getDisplayName() {
             return displayName;
         }
@@ -51,6 +54,13 @@ public record TypeInfo(
 
     /**
      * Creates a TypeInfo for a simple type.
+     *
+     * @param name The type name
+     * @param baseType The base type name
+     * @param usageCount The number of times the type is used
+     * @param documentation The type documentation
+     * @param xpath The XPath of the type definition
+     * @return A new TypeInfo instance
      */
     public static TypeInfo simpleType(String name, String baseType, int usageCount,
                                       String documentation, String xpath) {
@@ -60,6 +70,14 @@ public record TypeInfo(
 
     /**
      * Creates a TypeInfo for a simple type with usage XPaths.
+     *
+     * @param name The type name
+     * @param baseType The base type name
+     * @param usageCount The number of times the type is used
+     * @param documentation The type documentation
+     * @param xpath The XPath of the type definition
+     * @param usageXPaths List of XPaths where the type is used
+     * @return A new TypeInfo instance
      */
     public static TypeInfo simpleType(String name, String baseType, int usageCount,
                                       String documentation, String xpath, List<String> usageXPaths) {
@@ -69,6 +87,17 @@ public record TypeInfo(
 
     /**
      * Creates a TypeInfo for a complex type.
+     *
+     * @param name The type name
+     * @param baseType The base type name
+     * @param usageCount The number of times the type is used
+     * @param documentation The type documentation
+     * @param xpath The XPath of the type definition
+     * @param isAbstract Whether the type is abstract
+     * @param isMixed Whether the type has mixed content
+     * @param derivationType The derivation method (extension/restriction)
+     * @param contentModel The content model description
+     * @return A new TypeInfo instance
      */
     public static TypeInfo complexType(String name, String baseType, int usageCount,
                                        String documentation, String xpath, boolean isAbstract,
@@ -79,6 +108,18 @@ public record TypeInfo(
 
     /**
      * Creates a TypeInfo for a complex type with usage XPaths.
+     *
+     * @param name The type name
+     * @param baseType The base type name
+     * @param usageCount The number of times the type is used
+     * @param documentation The type documentation
+     * @param xpath The XPath of the type definition
+     * @param isAbstract Whether the type is abstract
+     * @param isMixed Whether the type has mixed content
+     * @param derivationType The derivation method (extension/restriction)
+     * @param contentModel The content model description
+     * @param usageXPaths List of XPaths where the type is used
+     * @return A new TypeInfo instance
      */
     public static TypeInfo complexType(String name, String baseType, int usageCount,
                                        String documentation, String xpath, boolean isAbstract,
@@ -90,6 +131,8 @@ public record TypeInfo(
 
     /**
      * Gets a formatted description of the type for display purposes.
+     *
+     * @return A description of the type
      */
     public String getTypeDescription() {
         StringBuilder desc = new StringBuilder();
@@ -116,6 +159,8 @@ public record TypeInfo(
 
     /**
      * Gets usage information as a formatted string.
+     *
+     * @return A formatted usage string
      */
     public String getUsageInfo() {
         if (usageCount == 0) {
@@ -129,6 +174,8 @@ public record TypeInfo(
 
     /**
      * Gets all usage XPaths as a formatted string for display.
+     *
+     * @return A formatted string of usage XPaths
      */
     public String getUsageXPathsFormatted() {
         if (usageXPaths == null || usageXPaths.isEmpty()) {
@@ -139,6 +186,8 @@ public record TypeInfo(
 
     /**
      * Gets all usage XPaths as a formatted string for CSV export.
+     *
+     * @return A newline-separated string of usage XPaths
      */
     public String getUsageXPathsForCsv() {
         if (usageXPaths == null || usageXPaths.isEmpty()) {
