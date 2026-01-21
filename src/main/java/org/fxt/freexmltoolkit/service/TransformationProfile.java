@@ -38,6 +38,9 @@ public class TransformationProfile {
     private long cpuTime;
     private int ioOperations;
 
+    /**
+     * Creates a new TransformationProfile instance initialized with empty collections and the current timestamp.
+     */
     public TransformationProfile() {
         this.templateExecutionTimes = new HashMap<>();
         this.templateExecutionCounts = new HashMap<>();
@@ -118,6 +121,9 @@ public class TransformationProfile {
 
     /**
      * Record template execution
+     *
+     * @param templateName The name of the executed template
+     * @param executionTime The time taken to execute the template in nanoseconds
      */
     public void recordTemplateExecution(String templateName, long executionTime) {
         templateExecutionTimes.put(templateName,
@@ -130,6 +136,10 @@ public class TransformationProfile {
 
     /**
      * Record template matching
+     *
+     * @param pattern The pattern that was matched
+     * @param nodeName The name of the matched node
+     * @param matchTime The time taken to match in nanoseconds
      */
     public void recordTemplateMatch(String pattern, String nodeName, long matchTime) {
         String eventKey = "match_" + pattern.replaceAll("[^a-zA-Z0-9]", "_");
@@ -140,6 +150,8 @@ public class TransformationProfile {
 
     /**
      * Record memory checkpoint
+     *
+     * @param checkpoint The name of the checkpoint
      */
     public void recordMemoryCheckpoint(String checkpoint) {
         long currentMemory = getCurrentMemoryUsage();
@@ -182,6 +194,8 @@ public class TransformationProfile {
 
     /**
      * Get total execution time in milliseconds
+     *
+     * @return The total execution time in milliseconds
      */
     public long getTotalExecutionTime() {
         if (startTime == 0 || endTime == 0) return 0;
@@ -190,6 +204,8 @@ public class TransformationProfile {
 
     /**
      * Get memory usage delta
+     *
+     * @return The memory usage delta in bytes
      */
     public long getMemoryDelta() {
         if (memoryBefore == 0 || memoryAfter == 0) return 0;
@@ -198,6 +214,9 @@ public class TransformationProfile {
 
     /**
      * Get most expensive templates
+     *
+     * @param limit The maximum number of templates to return
+     * @return A list of the most expensive templates
      */
     public List<TemplatePerformanceInfo> getMostExpensiveTemplates(int limit) {
         List<TemplatePerformanceInfo> templateInfo = new ArrayList<>();
@@ -219,6 +238,8 @@ public class TransformationProfile {
 
     /**
      * Get performance summary
+     *
+     * @return A summary of the performance profile
      */
     public String getPerformanceSummary() {
         StringBuilder summary = new StringBuilder();
@@ -268,6 +289,8 @@ public class TransformationProfile {
 
     /**
      * Get detailed event log
+     *
+     * @return A detailed event log
      */
     public String getDetailedEventLog() {
         StringBuilder log = new StringBuilder();
@@ -285,6 +308,8 @@ public class TransformationProfile {
 
     /**
      * Check for performance issues
+     *
+     * @return A list of performance warnings
      */
     public List<String> getPerformanceWarnings() {
         List<String> warnings = new ArrayList<>();
@@ -330,94 +355,163 @@ public class TransformationProfile {
 
     // ========== Getters and Setters ==========
 
+    /**
+     * @return The start time in nanoseconds
+     */
     public long getStartTime() {
         return startTime;
     }
 
+    /**
+     * @return The end time in nanoseconds
+     */
     public long getEndTime() {
         return endTime;
     }
 
+    /**
+     * @return The compilation time in milliseconds
+     */
     public long getCompilationTime() {
         return compilationTime;
     }
 
+    /**
+     * @return The transformation time in milliseconds
+     */
     public long getTransformationTime() {
         return transformationTime;
     }
 
+    /**
+     * @return The serialization time in milliseconds
+     */
     public long getSerializationTime() {
         return serializationTime;
     }
 
+    /**
+     * @return The timestamp when profiling started
+     */
     public LocalDateTime getProfiledAt() {
         return profiledAt;
     }
 
+    /**
+     * @return The memory usage before transformation in bytes
+     */
     public long getMemoryBefore() {
         return memoryBefore;
     }
 
+    /**
+     * @return The memory usage after transformation in bytes
+     */
     public long getMemoryAfter() {
         return memoryAfter;
     }
 
+    /**
+     * @return The peak memory usage during profiling in bytes
+     */
     public long getPeakMemoryUsage() {
         return peakMemoryUsage;
     }
 
+    /**
+     * @return The size of input data in bytes
+     */
     public int getInputSize() {
         return inputSize;
     }
 
+    /**
+     * @param inputSize The size of input data in bytes
+     */
     public void setInputSize(int inputSize) {
         this.inputSize = inputSize;
     }
 
+    /**
+     * @return The size of output data in bytes
+     */
     public int getOutputSize() {
         return outputSize;
     }
 
+    /**
+     * @param outputSize The size of output data in bytes
+     */
     public void setOutputSize(int outputSize) {
         this.outputSize = outputSize;
     }
 
+    /**
+     * @return A map of template names to their total execution times
+     */
     public Map<String, Long> getTemplateExecutionTimes() {
         return templateExecutionTimes;
     }
 
+    /**
+     * @return A map of template names to their execution counts
+     */
     public Map<String, Integer> getTemplateExecutionCounts() {
         return templateExecutionCounts;
     }
 
+    /**
+     * @return The list of profile events
+     */
     public List<ProfileEvent> getEvents() {
         return events;
     }
 
+    /**
+     * @return A map of custom metrics
+     */
     public Map<String, Object> getCustomMetrics() {
         return customMetrics;
     }
 
+    /**
+     * @return The number of threads used
+     */
     public int getThreadCount() {
         return threadCount;
     }
 
+    /**
+     * @param threadCount The number of threads used
+     */
     public void setThreadCount(int threadCount) {
         this.threadCount = threadCount;
     }
 
+    /**
+     * @return The CPU time in milliseconds
+     */
     public long getCpuTime() {
         return cpuTime;
     }
 
+    /**
+     * @param cpuTime The CPU time in milliseconds
+     */
     public void setCpuTime(long cpuTime) {
         this.cpuTime = cpuTime;
     }
 
+    /**
+     * @return The number of IO operations
+     */
     public int getIoOperations() {
         return ioOperations;
     }
 
+    /**
+     * @param ioOperations The number of IO operations
+     */
     public void setIoOperations(int ioOperations) {
         this.ioOperations = ioOperations;
     }

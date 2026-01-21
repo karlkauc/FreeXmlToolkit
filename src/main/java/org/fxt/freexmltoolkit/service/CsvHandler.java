@@ -320,6 +320,11 @@ public class CsvHandler {
 
     /**
      * Writes CSV header
+     *
+     * @param writer The buffered writer to write to
+     * @param csvConfig The CSV configuration
+     * @param conversionConfig The conversion configuration
+     * @throws IOException If an I/O error occurs
      */
     private void writeHeader(BufferedWriter writer, CsvConfig csvConfig, ConversionConfig conversionConfig)
             throws IOException {
@@ -336,6 +341,12 @@ public class CsvHandler {
 
     /**
      * Writes a single CSV row
+     *
+     * @param writer The buffered writer to write to
+     * @param row The row data to write
+     * @param csvConfig The CSV configuration
+     * @param conversionConfig The conversion configuration
+     * @throws IOException If an I/O error occurs
      */
     private void writeCsvRow(BufferedWriter writer, RowData row, CsvConfig csvConfig, ConversionConfig conversionConfig)
             throws IOException {
@@ -352,6 +363,11 @@ public class CsvHandler {
 
     /**
      * Writes a line of CSV data
+     *
+     * @param writer The buffered writer to write to
+     * @param fields The list of fields to write
+     * @param csvConfig The CSV configuration
+     * @throws IOException If an I/O error occurs
      */
     private void writeCsvLine(BufferedWriter writer, List<String> fields, CsvConfig csvConfig) throws IOException {
         for (int i = 0; i < fields.size(); i++) {
@@ -368,6 +384,10 @@ public class CsvHandler {
 
     /**
      * Escapes a field value for CSV format
+     *
+     * @param value The value to escape
+     * @param csvConfig The CSV configuration
+     * @return The escaped value
      */
     private String escapeValue(String value, CsvConfig csvConfig) {
         if (value == null) {
@@ -403,6 +423,10 @@ public class CsvHandler {
 
     /**
      * Parses a CSV line into fields
+     *
+     * @param line The CSV line to parse
+     * @param csvConfig The CSV configuration
+     * @return A list of parsed fields
      */
     private List<String> parseCsvLine(String line, CsvConfig csvConfig) {
         List<String> fields = new ArrayList<>();
@@ -444,6 +468,9 @@ public class CsvHandler {
 
     /**
      * Infers node type from XPath when type column is not available
+     *
+     * @param xpath The XPath to analyze
+     * @return The inferred node type
      */
     private String inferTypeFromXPath(String xpath) {
         if (xpath.contains("/@")) return "attribute";
