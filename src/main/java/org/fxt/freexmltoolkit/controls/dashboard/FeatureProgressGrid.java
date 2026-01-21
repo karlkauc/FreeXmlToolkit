@@ -24,6 +24,9 @@ public class FeatureProgressGrid extends VBox {
     private final ProgressBar progressBar;
     private Consumer<String> onFeatureClick;
 
+    /**
+     * Creates a new FeatureProgressGrid component.
+     */
     public FeatureProgressGrid() {
         getStyleClass().add("feature-progress-grid");
         setSpacing(12);
@@ -59,7 +62,9 @@ public class FeatureProgressGrid extends VBox {
     }
 
     /**
-     * Update the grid with current feature usage data
+     * Update the grid with current feature usage data.
+     *
+     * @param features the list of feature usage data
      */
     public void updateFeatures(List<FeatureUsage> features) {
         featurePane.getChildren().clear();
@@ -141,7 +146,9 @@ public class FeatureProgressGrid extends VBox {
     }
 
     /**
-     * Set the callback for when a feature chip is clicked
+     * Set the callback for when a feature chip is clicked.
+     *
+     * @param callback the callback to invoke with the page link
      */
     public void setOnFeatureClick(Consumer<String> callback) {
         this.onFeatureClick = callback;

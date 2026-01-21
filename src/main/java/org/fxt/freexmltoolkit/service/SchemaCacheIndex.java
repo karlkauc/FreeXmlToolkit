@@ -348,49 +348,109 @@ public class SchemaCacheIndex {
 
     // Getters and setters for Gson
 
+    /**
+     * Returns the version of the cache index format.
+     *
+     * @return the index format version string
+     */
     public String getVersion() {
         return version;
     }
 
+    /**
+     * Sets the version of the cache index format.
+     *
+     * @param version the index format version string
+     */
     public void setVersion(String version) {
         this.version = version;
     }
 
+    /**
+     * Returns the timestamp when the index was last updated.
+     *
+     * @return the last update timestamp, or {@code null} if never updated
+     */
     public Instant getLastUpdated() {
         return lastUpdated;
     }
 
+    /**
+     * Sets the timestamp when the index was last updated.
+     *
+     * @param lastUpdated the last update timestamp
+     */
     public void setLastUpdated(Instant lastUpdated) {
         this.lastUpdated = lastUpdated;
     }
 
+    /**
+     * Returns the path to the cache directory.
+     *
+     * @return the cache directory path as a string
+     */
     public String getCacheDirectory() {
         return cacheDirectory;
     }
 
+    /**
+     * Sets the path to the cache directory.
+     *
+     * @param cacheDirectory the cache directory path as a string
+     */
     public void setCacheDirectory(String cacheDirectory) {
         this.cacheDirectory = cacheDirectory;
     }
 
+    /**
+     * Returns a copy of all entries in the index.
+     *
+     * <p>The returned map is a defensive copy and modifications to it
+     * will not affect the internal index.</p>
+     *
+     * @return a map of local filenames to their corresponding cache entries
+     */
     public Map<String, SchemaCacheEntry> getEntries() {
         return new HashMap<>(entries);
     }
 
+    /**
+     * Sets the entries in the index.
+     *
+     * <p>The provided map is copied into a thread-safe {@link ConcurrentHashMap}.</p>
+     *
+     * @param entries the map of local filenames to cache entries, or {@code null} to clear
+     */
     public void setEntries(Map<String, SchemaCacheEntry> entries) {
         this.entries = entries != null ? new ConcurrentHashMap<>(entries) : new ConcurrentHashMap<>();
     }
 
+    /**
+     * Returns the current cache statistics.
+     *
+     * <p>This method updates the statistics before returning them to ensure
+     * they reflect the current state of the cache.</p>
+     *
+     * @return the current cache statistics
+     */
     public CacheStatistics getStatistics() {
         updateStatistics();
         return statistics;
     }
 
+    /**
+     * Sets the cache statistics.
+     *
+     * @param statistics the cache statistics, or {@code null} to reset to empty statistics
+     */
     public void setStatistics(CacheStatistics statistics) {
         this.statistics = statistics != null ? statistics : new CacheStatistics();
     }
 
     /**
      * Returns the number of entries in the index.
+     *
+     * @return the number of cached schema entries
      */
     public int size() {
         return entries.size();
@@ -398,11 +458,15 @@ public class SchemaCacheIndex {
 
     /**
      * Statistics record for the cache.
-     * @param totalEntries Total number of cache entries
-     * @param totalSizeBytes Total size of all cached files
-     * @param totalCacheHits Total number of cache hits
-     * @param totalCacheMisses Total number of cache misses
-     * @param totalDownloadErrors Total number of download errors
+     *
+     * <p>This immutable record holds cumulative statistics about cache operations,
+     * including entries, size, hits, misses, and download errors.</p>
+     *
+     * @param totalEntries        the total number of cache entries
+     * @param totalSizeBytes      the total size of all cached files in bytes
+     * @param totalCacheHits      the total number of cache hits (successful lookups)
+     * @param totalCacheMisses    the total number of cache misses (failed lookups requiring download)
+     * @param totalDownloadErrors the total number of download errors encountered
      */
     public record CacheStatistics(
             long totalEntries,
@@ -411,12 +475,26 @@ public class SchemaCacheIndex {
             long totalCacheMisses,
             long totalDownloadErrors
     ) {
+        /**
+         * Creates a new CacheStatistics instance with all values set to zero.
+         *
+         * <p>This is the canonical constructor for creating empty statistics.</p>
+         */
         public CacheStatistics() {
             this(0, 0, 0, 0, 0);
         }
 
         /**
-         * Returns the total size in a human-readable format.
+         * Returns the total cache size in a human-readable format.
+         *
+         * <p>The size is automatically formatted with appropriate units:
+         * <ul>
+         *   <li>Bytes (B) for sizes less than 1 KB</li>
+         *   <li>Kilobytes (KB) for sizes less than 1 MB</li>
+         *   <li>Megabytes (MB) for larger sizes</li>
+         * </ul>
+         *
+         * @return the formatted size string with unit suffix (e.g., "512 B", "1.5 KB", "10.3 MB")
          */
         public String getTotalSizeFormatted() {
             if (totalSizeBytes < 1024) {
@@ -429,7 +507,12 @@ public class SchemaCacheIndex {
         }
 
         /**
-         * Returns the cache hit ratio as a percentage.
+         * Calculates and returns the cache hit ratio as a percentage.
+         *
+         * <p>The hit ratio is calculated as:
+         * {@code (totalCacheHits * 100.0) / (totalCacheHits + totalCacheMisses)}</p>
+         *
+         * @return the cache hit ratio as a percentage (0.0 to 100.0), or 0.0 if no cache operations have occurred
          */
         public double getHitRatio() {
             long total = totalCacheHits + totalCacheMisses;

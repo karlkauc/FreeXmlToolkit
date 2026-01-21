@@ -49,6 +49,9 @@ public class JsonService {
     // Cached JSON Schema factory
     private JsonSchemaFactory schemaFactory;
 
+    /**
+     * Creates a new JsonService with default Gson configurations.
+     */
     public JsonService() {
         // Standard Gson for JSON
         this.gson = new GsonBuilder().create();

@@ -33,10 +33,18 @@ import java.nio.file.Files;
 
 /**
  * Factory for creating JsonNode trees from JSON text or Gson JsonElement.
+ * This class provides static methods and should not be instantiated.
  */
 public class JsonNodeFactory {
 
     private static final Logger logger = LogManager.getLogger(JsonNodeFactory.class);
+
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
+    private JsonNodeFactory() {
+        // Utility class
+    }
 
     /**
      * Parses a JSON string into a JsonDocument.
@@ -180,6 +188,8 @@ public class JsonNodeFactory {
 
     /**
      * Creates an empty JsonObject.
+     *
+     * @return a new empty JsonObject instance
      */
     public static JsonObject createObject() {
         return new JsonObject();
@@ -187,6 +197,8 @@ public class JsonNodeFactory {
 
     /**
      * Creates an empty JsonArray.
+     *
+     * @return a new empty JsonArray instance
      */
     public static JsonArray createArray() {
         return new JsonArray();
@@ -194,6 +206,9 @@ public class JsonNodeFactory {
 
     /**
      * Creates a string primitive.
+     *
+     * @param value the string value
+     * @return a new JsonPrimitive containing the string value
      */
     public static JsonPrimitive createString(String value) {
         return new JsonPrimitive(value);
@@ -201,6 +216,9 @@ public class JsonNodeFactory {
 
     /**
      * Creates a number primitive.
+     *
+     * @param value the number value
+     * @return a new JsonPrimitive containing the number value
      */
     public static JsonPrimitive createNumber(Number value) {
         return new JsonPrimitive(value);
@@ -208,6 +226,9 @@ public class JsonNodeFactory {
 
     /**
      * Creates a boolean primitive.
+     *
+     * @param value the boolean value
+     * @return a new JsonPrimitive containing the boolean value
      */
     public static JsonPrimitive createBoolean(boolean value) {
         return new JsonPrimitive(value);
@@ -215,13 +236,17 @@ public class JsonNodeFactory {
 
     /**
      * Creates a null primitive.
+     *
+     * @return a new JsonPrimitive representing a JSON null value
      */
     public static JsonPrimitive createNull() {
         return JsonPrimitive.nullValue();
     }
 
     /**
-     * Creates a new empty document.
+     * Creates a new empty document with an empty object as root.
+     *
+     * @return a new JsonDocument with an empty JsonObject as root
      */
     public static JsonDocument createEmptyDocument() {
         JsonDocument doc = new JsonDocument();
@@ -230,7 +255,11 @@ public class JsonNodeFactory {
     }
 
     /**
-     * Creates a document from a simple key-value object.
+     * Creates a document from simple key-value string pairs.
+     * The key-value pairs should be provided as alternating key and value arguments.
+     *
+     * @param keyValues alternating key and value strings (key1, value1, key2, value2, ...)
+     * @return a new JsonDocument containing an object with the specified properties
      */
     public static JsonDocument createSimpleDocument(String... keyValues) {
         JsonObject root = new JsonObject();

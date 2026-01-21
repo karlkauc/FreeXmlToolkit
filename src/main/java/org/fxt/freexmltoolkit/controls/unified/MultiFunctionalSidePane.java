@@ -78,9 +78,23 @@ public class MultiFunctionalSidePane extends VBox {
      * States for the multi-functional side pane.
      */
     public enum SidePaneState {
-        HIDDEN,      // Pane not visible
-        PROPERTIES,  // Showing context-sensitive properties
-        FAVORITES    // Temporarily showing favorites
+        /**
+         * The pane is not visible to the user.
+         * In this state, the pane takes up no screen space.
+         */
+        HIDDEN,
+
+        /**
+         * The pane is showing context-sensitive properties for the current editor.
+         * The displayed content depends on the active editor type (XML, XSD, XSLT, etc.).
+         */
+        PROPERTIES,
+
+        /**
+         * The pane is temporarily showing the favorites panel overlay.
+         * When dismissed, the pane returns to its previous state.
+         */
+        FAVORITES
     }
 
     // UI Components
@@ -570,6 +584,8 @@ public class MultiFunctionalSidePane extends VBox {
 
     /**
      * Sets the parent SplitPane for divider management.
+     *
+     * @param splitPane the parent SplitPane to use for divider management
      */
     public void setParentSplitPane(javafx.scene.control.SplitPane splitPane) {
         this.parentSplitPane = splitPane;
@@ -579,6 +595,8 @@ public class MultiFunctionalSidePane extends VBox {
 
     /**
      * Gets the current state of the pane.
+     *
+     * @return the current side pane state
      */
     public SidePaneState getCurrentState() {
         return currentState;
@@ -586,6 +604,8 @@ public class MultiFunctionalSidePane extends VBox {
 
     /**
      * Gets the XML sidebar controller for integration.
+     *
+     * @return the XML sidebar controller, or null if not initialized
      */
     public XmlEditorSidebarController getXmlSidebarController() {
         return xmlSidebarController;
@@ -593,6 +613,8 @@ public class MultiFunctionalSidePane extends VBox {
 
     /**
      * Gets the favorites panel controller.
+     *
+     * @return the favorites panel controller, or null if not loaded
      */
     public FavoritesPanelController getFavoritesPanelController() {
         return favoritesPanelController;
@@ -600,6 +622,8 @@ public class MultiFunctionalSidePane extends VBox {
 
     /**
      * Sets the callback for when a favorite file is selected.
+     *
+     * @param callback the callback to run when a favorite is selected
      */
     public void setOnFavoriteSelected(Consumer<File> callback) {
         this.onFavoriteSelected = callback;
@@ -607,6 +631,8 @@ public class MultiFunctionalSidePane extends VBox {
 
     /**
      * Sets the callback for when visibility changes.
+     *
+     * @param callback the callback to run when visibility changes
      */
     public void setOnVisibilityChanged(Runnable callback) {
         this.onVisibilityChanged = callback;
@@ -615,6 +641,8 @@ public class MultiFunctionalSidePane extends VBox {
     /**
      * Sets the callback for when the pane is shown.
      * Used by the controller to reconnect to the current tab.
+     *
+     * @param callback the callback to run when the pane is shown
      */
     public void setOnPaneShown(Runnable callback) {
         this.onPaneShown = callback;
@@ -622,6 +650,8 @@ public class MultiFunctionalSidePane extends VBox {
 
     /**
      * Checks if favorites is currently showing.
+     *
+     * @return true if the favorites panel is currently displayed
      */
     public boolean isFavoritesShowing() {
         return currentState == SidePaneState.FAVORITES;
@@ -629,6 +659,8 @@ public class MultiFunctionalSidePane extends VBox {
 
     /**
      * Gets the current editor type being displayed.
+     *
+     * @return the current editor type, or null if not set
      */
     public UnifiedEditorFileType getCurrentEditorType() {
         return currentEditorType;

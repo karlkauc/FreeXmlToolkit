@@ -667,6 +667,8 @@ public class SchemaResolver {
     }
 
     /**
+     * Gets the count of successfully resolved include statements.
+     *
      * @return the number of successfully resolved includes
      */
     public int getResolvedIncludeCount() {
@@ -674,6 +676,8 @@ public class SchemaResolver {
     }
 
     /**
+     * Gets the count of successfully resolved import statements.
+     *
      * @return the number of successfully resolved imports
      */
     public int getResolvedImportCount() {
@@ -681,6 +685,8 @@ public class SchemaResolver {
     }
 
     /**
+     * Gets the count of failed include resolution attempts.
+     *
      * @return the number of failed include resolutions
      */
     public int getFailedIncludeCount() {

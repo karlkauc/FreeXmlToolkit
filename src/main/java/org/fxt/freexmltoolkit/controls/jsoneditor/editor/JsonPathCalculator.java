@@ -33,6 +33,13 @@ public class JsonPathCalculator {
     private static final Logger logger = LogManager.getLogger(JsonPathCalculator.class);
 
     /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
+    private JsonPathCalculator() {
+        // Utility class
+    }
+
+    /**
      * Result of JSONPath calculation containing path and metadata.
      * @param jsonPath The calculated JSON path
      * @param valueType The type of the value
@@ -47,6 +54,11 @@ public class JsonPathCalculator {
             String key,
             int depth
     ) {
+        /**
+         * Checks if this hover info contains valid path information.
+         *
+         * @return true if the JSON path is not null and not empty
+         */
         public boolean isValid() {
             return jsonPath != null && !jsonPath.isEmpty();
         }

@@ -23,6 +23,14 @@ public class ProviderRegistry {
     private final List<CompletionProvider> providers = new CopyOnWriteArrayList<>();
 
     /**
+     * Creates a new ProviderRegistry with an empty list of providers.
+     * Providers can be added using the {@link #registerProvider(CompletionProvider)} method.
+     */
+    public ProviderRegistry() {
+        // Default constructor - providers list is initialized inline
+    }
+
+    /**
      * Registers a completion provider.
      *
      * @param provider the provider to register

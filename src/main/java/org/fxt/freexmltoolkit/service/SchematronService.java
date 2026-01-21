@@ -49,32 +49,72 @@ public interface SchematronService {
     boolean isValidSchematronFile(File file);
 
     /**
-     * Comprehensive validation result containing errors and warnings
+     * Comprehensive validation result containing errors and warnings.
+     * This class collects validation issues found during Schematron validation
+     * and provides methods to query the validation state.
      */
     class SchematronValidationResult {
         private final List<String> errors = new ArrayList<>();
         private final List<String> warnings = new ArrayList<>();
 
+        /**
+         * Creates a new empty validation result.
+         * Initially, the result contains no errors or warnings.
+         */
+        public SchematronValidationResult() {
+            // Default constructor - lists are already initialized
+        }
+
+        /**
+         * Adds an error message to this validation result.
+         *
+         * @param error the error message to add
+         */
         public void addError(String error) {
             errors.add(error);
         }
 
+        /**
+         * Adds a warning message to this validation result.
+         *
+         * @param warning the warning message to add
+         */
         public void addWarning(String warning) {
             warnings.add(warning);
         }
 
+        /**
+         * Returns a copy of all error messages in this validation result.
+         *
+         * @return a new list containing all error messages
+         */
         public List<String> getErrors() {
             return new ArrayList<>(errors);
         }
 
+        /**
+         * Returns a copy of all warning messages in this validation result.
+         *
+         * @return a new list containing all warning messages
+         */
         public List<String> getWarnings() {
             return new ArrayList<>(warnings);
         }
 
+        /**
+         * Checks if this validation result contains any errors.
+         *
+         * @return true if there is at least one error, false otherwise
+         */
         public boolean hasErrors() {
             return !errors.isEmpty();
         }
 
+        /**
+         * Checks if this validation result contains any warnings.
+         *
+         * @return true if there is at least one warning, false otherwise
+         */
         public boolean hasWarnings() {
             return !warnings.isEmpty();
         }

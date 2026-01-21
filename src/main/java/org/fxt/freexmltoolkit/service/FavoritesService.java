@@ -73,6 +73,11 @@ public class FavoritesService {
         loadFavorites();
     }
     
+    /**
+     * Gets the singleton instance of the FavoritesService.
+     *
+     * @return the singleton FavoritesService instance
+     */
     public static synchronized FavoritesService getInstance() {
         if (instance == null) {
             instance = new FavoritesService();
@@ -132,7 +137,9 @@ public class FavoritesService {
     }
     
     /**
-     * Add a new favorite
+     * Add a new favorite.
+     *
+     * @param favorite the favorite to add
      */
     public void addFavorite(FileFavorite favorite) {
         if (favorite == null || favorite.getFilePath() == null) {
@@ -156,7 +163,11 @@ public class FavoritesService {
     }
     
     /**
-     * Add a file to favorites with a custom name
+     * Add a file to favorites with a custom name.
+     *
+     * @param filePath the path to the file
+     * @param name the display name for the favorite
+     * @param folderName the folder to place the favorite in
      */
     public void addFavorite(String filePath, String name, String folderName) {
         FileFavorite favorite = new FileFavorite(name, filePath, folderName);
@@ -164,7 +175,9 @@ public class FavoritesService {
     }
     
     /**
-     * Add a file to favorites with auto-generated name
+     * Add a file to favorites with auto-generated name.
+     *
+     * @param file the file to add as a favorite
      */
     public void addFavorite(File file) {
         if (file == null || !file.exists()) {
@@ -184,7 +197,9 @@ public class FavoritesService {
     }
     
     /**
-     * Remove a favorite by ID
+     * Remove a favorite by ID.
+     *
+     * @param id the ID of the favorite to remove
      */
     public void removeFavorite(String id) {
         favorites.removeIf(f -> f.getId().equals(id));
@@ -194,7 +209,9 @@ public class FavoritesService {
     }
 
     /**
-     * Remove a favorite object
+     * Remove a favorite object.
+     *
+     * @param favorite the favorite to remove
      */
     public void removeFavorite(FileFavorite favorite) {
         if (favorite != null && favorite.getId() != null) {
@@ -203,7 +220,9 @@ public class FavoritesService {
     }
     
     /**
-     * Remove a favorite by file path
+     * Remove a favorite by file path.
+     *
+     * @param filePath the file path of the favorite to remove
      */
     public void removeFavoriteByPath(String filePath) {
         favorites.removeIf(f -> f.getFilePath().equals(filePath));
@@ -213,7 +232,9 @@ public class FavoritesService {
     }
     
     /**
-     * Update a favorite
+     * Update a favorite.
+     *
+     * @param favorite the favorite with updated values
      */
     public void updateFavorite(FileFavorite favorite) {
         if (favorite == null || favorite.getId() == null) return;
@@ -230,7 +251,10 @@ public class FavoritesService {
     }
     
     /**
-     * Move a favorite to a different folder
+     * Move a favorite to a different folder.
+     *
+     * @param favoriteId the ID of the favorite to move
+     * @param newFolder the target folder name
      */
     public void moveFavoriteToFolder(String favoriteId, String newFolder) {
         FileFavorite favorite = getFavoriteById(favoriteId);
@@ -241,28 +265,38 @@ public class FavoritesService {
     }
     
     /**
-     * Get all favorites
+     * Get all favorites.
+     *
+     * @return list of all favorites
      */
     public List<FileFavorite> getAllFavorites() {
         return new ArrayList<>(favorites);
     }
     
     /**
-     * Get favorites by folder
+     * Get favorites by folder.
+     *
+     * @param folderName the folder name to filter by
+     * @return list of favorites in the specified folder
      */
     public List<FileFavorite> getFavoritesByFolder(String folderName) {
         return favoritesByFolder.getOrDefault(folderName, new ArrayList<>());
     }
     
     /**
-     * Get all folder names
+     * Get all folder names.
+     *
+     * @return set of all folder names
      */
     public Set<String> getAllFolders() {
         return new HashSet<>(favoritesByFolder.keySet());
     }
     
     /**
-     * Get a favorite by ID
+     * Get a favorite by ID.
+     *
+     * @param id the ID of the favorite
+     * @return the favorite, or null if not found
      */
     public FileFavorite getFavoriteById(String id) {
         return favorites.stream()
@@ -272,7 +306,10 @@ public class FavoritesService {
     }
     
     /**
-     * Check if a file is in favorites
+     * Check if a file is in favorites.
+     *
+     * @param filePath the file path to check
+     * @return true if the file is a favorite, false otherwise
      */
     public boolean isFavorite(String filePath) {
         return favorites.stream()
@@ -280,7 +317,10 @@ public class FavoritesService {
     }
     
     /**
-     * Get favorites by file type
+     * Get favorites by file type.
+     *
+     * @param type the file type to filter by
+     * @return list of favorites of the specified type
      */
     public List<FileFavorite> getFavoritesByType(FileFavorite.FileType type) {
         return favorites.stream()
@@ -289,7 +329,9 @@ public class FavoritesService {
     }
     
     /**
-     * Create a new folder
+     * Create a new folder.
+     *
+     * @param folderName the name of the folder to create
      */
     public void createFolder(String folderName) {
         if (folderName != null && !folderName.isEmpty()) {
@@ -299,7 +341,10 @@ public class FavoritesService {
     }
     
     /**
-     * Rename a folder
+     * Rename a folder.
+     *
+     * @param oldName the current folder name
+     * @param newName the new folder name
      */
     public void renameFolder(String oldName, String newName) {
         if (oldName == null || newName == null || oldName.equals(newName)) return;
@@ -314,7 +359,9 @@ public class FavoritesService {
     }
     
     /**
-     * Delete a folder (moves favorites to Uncategorized)
+     * Delete a folder (moves favorites to Uncategorized).
+     *
+     * @param folderName the name of the folder to delete
      */
     public void deleteFolder(String folderName) {
         if (folderName == null || "Uncategorized".equals(folderName)) return;
@@ -346,6 +393,8 @@ public class FavoritesService {
 
     /**
      * Get the XPath queries directory.
+     *
+     * @return the path to the XPath queries directory
      */
     public Path getXPathQueriesDir() {
         return xpathDir;
@@ -353,6 +402,8 @@ public class FavoritesService {
 
     /**
      * Get the XQuery queries directory.
+     *
+     * @return the path to the XQuery queries directory
      */
     public Path getXQueryQueriesDir() {
         return xqueryDir;
@@ -476,6 +527,9 @@ public class FavoritesService {
 
     /**
      * Get query name from file (without extension).
+     *
+     * @param file the query file
+     * @return the query name without extension, or empty string if file is null
      */
     public static String getQueryName(File file) {
         if (file == null) return "";

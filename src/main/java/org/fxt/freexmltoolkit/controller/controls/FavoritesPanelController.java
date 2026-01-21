@@ -36,6 +36,13 @@ import java.util.stream.Collectors;
  */
 public class FavoritesPanelController implements Initializable {
 
+    /**
+     * Default constructor.
+     */
+    public FavoritesPanelController() {
+        // Default constructor for FXML
+    }
+
     private static final Logger logger = LogManager.getLogger(FavoritesPanelController.class);
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -570,6 +577,11 @@ public class FavoritesPanelController implements Initializable {
         alert.showAndWait();
     }
 
+    /**
+     * Sets the parent controller for callback operations.
+     *
+     * @param controller the parent controller
+     */
     public void setParentController(FavoritesParentController controller) {
         this.parentController = controller;
     }

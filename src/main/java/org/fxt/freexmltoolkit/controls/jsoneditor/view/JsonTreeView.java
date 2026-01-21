@@ -54,6 +54,9 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
     // Selection callback
     private java.util.function.Consumer<JsonNode> onSelectionChanged;
 
+    /**
+     * Creates a new JsonTreeView with search capability and node navigation.
+     */
     public JsonTreeView() {
         super(8);
         setPadding(new Insets(8));
@@ -94,7 +97,9 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
     }
 
     /**
-     * Sets the JSON document to display.
+     * Sets the JSON document to display in the tree view.
+     *
+     * @param document the JSON document to display, or null to clear the view
      */
     public void setDocument(JsonDocument document) {
         // Remove old listener
@@ -114,7 +119,9 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
     }
 
     /**
-     * Gets the current document.
+     * Gets the current JSON document being displayed.
+     *
+     * @return the current document, or null if no document is set
      */
     public JsonDocument getDocument() {
         return document;
@@ -241,7 +248,9 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
     }
 
     /**
-     * Selects a node in the tree.
+     * Selects a node in the tree view, expanding parent nodes as needed.
+     *
+     * @param node the node to select, or null to clear selection
      */
     public void selectNode(JsonNode node) {
         if (node == null) {
@@ -263,7 +272,9 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
     }
 
     /**
-     * Gets the currently selected node.
+     * Gets the currently selected node in the tree view.
+     *
+     * @return the selected node, or null if no node is selected
      */
     public JsonNode getSelectedNode() {
         TreeItem<JsonNode> selected = treeView.getSelectionModel().getSelectedItem();
@@ -305,7 +316,9 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
     }
 
     /**
-     * Sets the selection change callback.
+     * Sets the callback to invoke when the tree selection changes.
+     *
+     * @param callback the callback consumer that receives the newly selected node
      */
     public void setOnSelectionChanged(java.util.function.Consumer<JsonNode> callback) {
         this.onSelectionChanged = callback;

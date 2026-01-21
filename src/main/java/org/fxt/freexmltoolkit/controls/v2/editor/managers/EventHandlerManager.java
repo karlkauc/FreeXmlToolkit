@@ -36,6 +36,11 @@ public class EventHandlerManager {
     private Runnable onDecreaseFontSize;
     private Runnable onResetFontSize;
 
+    /**
+     * Creates a new EventHandlerManager with the given editor context.
+     *
+     * @param editorContext the editor context
+     */
     public EventHandlerManager(EditorContext editorContext) {
         this.editorContext = editorContext;
         this.codeArea = editorContext.getCodeArea();
@@ -44,6 +49,8 @@ public class EventHandlerManager {
 
     /**
      * Sets the IntelliSense engine.
+     *
+     * @param engine the IntelliSense engine
      */
     public void setIntelliSenseEngine(IntelliSenseEngine engine) {
         this.intelliSenseEngine = engine;

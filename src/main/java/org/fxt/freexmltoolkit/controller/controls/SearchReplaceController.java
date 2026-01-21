@@ -6,6 +6,19 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 
+/**
+ * Controller for the Search and Replace panel.
+ *
+ * <p>This controller manages the search and replace functionality for XML editors.
+ * It provides separate tabs for search-only and search-and-replace operations,
+ * with synchronized search fields between both tabs.</p>
+ *
+ * <p><strong>Note:</strong> This controller is deprecated as of version 2.0.
+ * Search and replace functionality is now handled directly by {@code XmlCodeEditorV2}.
+ * This class is retained only for backward compatibility with legacy components.</p>
+ *
+ * @deprecated Since 2.0, search/replace is handled by XmlCodeEditorV2
+ */
 public class SearchReplaceController {
 
     @FXML
@@ -29,6 +42,10 @@ public class SearchReplaceController {
     // SearchReplaceController is no longer used with V2 editor
     // Search/Replace functionality is now handled by XmlCodeEditorV2
 
+    /**
+     * Initializes the controller after FXML injection.
+     * Sets up bidirectional binding between search fields.
+     */
     @FXML
     public void initialize() {
         // Synchronize the find fields

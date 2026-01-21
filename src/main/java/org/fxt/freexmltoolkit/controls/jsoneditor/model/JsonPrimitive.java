@@ -29,21 +29,39 @@ public class JsonPrimitive extends JsonNode {
     private Object value;
     private JsonNodeType type;
 
+    /**
+     * Creates a new JSON null primitive.
+     */
     public JsonPrimitive() {
         this.type = JsonNodeType.NULL;
         this.value = null;
     }
 
+    /**
+     * Creates a new JSON string primitive.
+     *
+     * @param value the string value
+     */
     public JsonPrimitive(String value) {
         this.type = JsonNodeType.STRING;
         this.value = value;
     }
 
+    /**
+     * Creates a new JSON number primitive.
+     *
+     * @param value the numeric value
+     */
     public JsonPrimitive(Number value) {
         this.type = JsonNodeType.NUMBER;
         this.value = value;
     }
 
+    /**
+     * Creates a new JSON boolean primitive.
+     *
+     * @param value the boolean value
+     */
     public JsonPrimitive(Boolean value) {
         this.type = JsonNodeType.BOOLEAN;
         this.value = value;
@@ -51,6 +69,8 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Creates a null primitive.
+     *
+     * @return a new JsonPrimitive representing a JSON null value
      */
     public static JsonPrimitive nullValue() {
         return new JsonPrimitive();
@@ -63,13 +83,17 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Gets the raw value.
+     *
+     * @return the underlying value object (String, Number, Boolean, or null)
      */
     public Object getValue() {
         return value;
     }
 
     /**
-     * Sets the value (and updates type accordingly).
+     * Sets the value and updates the type accordingly.
+     *
+     * @param value the new value (String, Number, Boolean, or null)
      */
     public void setValue(Object value) {
         Object oldValue = this.value;
@@ -100,6 +124,8 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Checks if this is a null value.
+     *
+     * @return true if this primitive represents a JSON null value
      */
     public boolean isNull() {
         return type == JsonNodeType.NULL;
@@ -107,6 +133,8 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Checks if this is a string value.
+     *
+     * @return true if this primitive contains a string value
      */
     public boolean isString() {
         return type == JsonNodeType.STRING;
@@ -114,6 +142,8 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Checks if this is a number value.
+     *
+     * @return true if this primitive contains a numeric value
      */
     public boolean isNumber() {
         return type == JsonNodeType.NUMBER;
@@ -121,6 +151,8 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Checks if this is a boolean value.
+     *
+     * @return true if this primitive contains a boolean value
      */
     public boolean isBoolean() {
         return type == JsonNodeType.BOOLEAN;
@@ -128,6 +160,8 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Gets the value as a string.
+     *
+     * @return the string representation of the value, or null if the value is null
      */
     public String getAsString() {
         if (value == null) return null;
@@ -136,6 +170,9 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Gets the value as an integer.
+     *
+     * @return the integer value
+     * @throws IllegalStateException if the value is not a number
      */
     public int getAsInt() {
         if (value instanceof Number) {
@@ -146,6 +183,9 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Gets the value as a long.
+     *
+     * @return the long value
+     * @throws IllegalStateException if the value is not a number
      */
     public long getAsLong() {
         if (value instanceof Number) {
@@ -156,6 +196,9 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Gets the value as a double.
+     *
+     * @return the double value
+     * @throws IllegalStateException if the value is not a number
      */
     public double getAsDouble() {
         if (value instanceof Number) {
@@ -166,6 +209,9 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Gets the value as a BigDecimal.
+     *
+     * @return the BigDecimal value
+     * @throws IllegalStateException if the value is not a number
      */
     public BigDecimal getAsBigDecimal() {
         if (value instanceof BigDecimal) {
@@ -179,6 +225,9 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Gets the value as a BigInteger.
+     *
+     * @return the BigInteger value
+     * @throws IllegalStateException if the value is not a number
      */
     public BigInteger getAsBigInteger() {
         if (value instanceof BigInteger) {
@@ -192,6 +241,9 @@ public class JsonPrimitive extends JsonNode {
 
     /**
      * Gets the value as a boolean.
+     *
+     * @return the boolean value
+     * @throws IllegalStateException if the value is not a boolean
      */
     public boolean getAsBoolean() {
         if (value instanceof Boolean) {

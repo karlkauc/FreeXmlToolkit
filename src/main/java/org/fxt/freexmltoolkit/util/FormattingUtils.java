@@ -23,11 +23,25 @@ import java.util.Locale;
 
 /**
  * Utility class for common formatting operations.
- * These methods are extracted from controllers to enable unit testing
+ *
+ * <p>This class provides static methods for:
+ * <ul>
+ *   <li>Time formatting (elapsed time in MM:SS or HH:MM:SS format)</li>
+ *   <li>File size formatting (bytes to human-readable format)</li>
+ *   <li>CSV and JSON escaping</li>
+ *   <li>File extension extraction</li>
+ * </ul>
+ *
+ * <p>These methods are extracted from controllers to enable unit testing
  * without JavaFX dependencies.
+ *
+ * @since 2.0
  */
 public final class FormattingUtils {
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
     private FormattingUtils() {
         // Utility class - no instantiation
     }

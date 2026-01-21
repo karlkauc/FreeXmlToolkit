@@ -85,17 +85,31 @@ public class ElementInfo {
     private LocalDateTime analyzedAt;
     private Map<String, Object> analysisContext = new HashMap<>();
 
+    /**
+     * Creates a new ElementInfo with default values.
+     */
     public ElementInfo() {
         this.firstSeen = LocalDateTime.now();
         this.lastSeen = LocalDateTime.now();
     }
 
+    /**
+     * Creates a new ElementInfo with the specified name.
+     *
+     * @param name the element name
+     */
     public ElementInfo(String name) {
         this();
         this.name = name;
         this.qualifiedName = name;
     }
 
+    /**
+     * Creates a new ElementInfo with the specified name and namespace.
+     *
+     * @param name the element name
+     * @param namespace the namespace URI, may be null
+     */
     public ElementInfo(String name, String namespace) {
         this(name);
         this.namespace = namespace;
@@ -106,7 +120,9 @@ public class ElementInfo {
     // ========== Content Analysis Methods ==========
 
     /**
-     * Add text content for analysis
+     * Adds text content for analysis. Updates content type and infers type from the content.
+     *
+     * @param text the text content to add
      */
     public void addTextContent(String text) {
         if (text == null || text.trim().isEmpty()) {
@@ -134,7 +150,9 @@ public class ElementInfo {
     }
 
     /**
-     * Add a child element
+     * Adds a child element to this element.
+     *
+     * @param child the child element to add
      */
     public void addChildElement(ElementInfo child) {
         if (child == null) return;
@@ -159,7 +177,9 @@ public class ElementInfo {
     }
 
     /**
-     * Add an attribute
+     * Adds an attribute to this element.
+     *
+     * @param attribute the attribute to add
      */
     public void addAttribute(AttributeInfo attribute) {
         if (attribute == null) return;
@@ -393,7 +413,9 @@ public class ElementInfo {
     // ========== Occurrence Analysis ==========
 
     /**
-     * Record an occurrence of this element
+     * Records an occurrence of this element in a document.
+     *
+     * @param documentId the identifier of the document where this element occurred
      */
     public void recordOccurrence(String documentId) {
         totalOccurrences++;
@@ -404,7 +426,9 @@ public class ElementInfo {
     }
 
     /**
-     * Analyze occurrence patterns
+     * Analyzes occurrence patterns across all documents.
+     *
+     * @param totalDocuments the total number of documents analyzed
      */
     public void analyzeOccurrences(int totalDocuments) {
         documentOccurrences = sourceDocuments.size();
@@ -601,7 +625,10 @@ public class ElementInfo {
     }
 
     /**
-     * Get element complexity score
+     * Calculates the complexity score of this element based on content type,
+     * child elements, attributes, depth, and occurrence patterns.
+     *
+     * @return the complexity score as a double value
      */
     public double getComplexityScore() {
         double score = 0.0;
@@ -640,7 +667,10 @@ public class ElementInfo {
     }
 
     /**
-     * Get usage statistics
+     * Returns usage statistics including occurrence counts, confidence levels,
+     * and structural information.
+     *
+     * @return a map containing various usage statistics
      */
     public Map<String, Object> getUsageStatistics() {
         Map<String, Object> stats = new HashMap<>();
@@ -660,7 +690,11 @@ public class ElementInfo {
     }
 
     /**
-     * Check if element structure matches another element (for type reuse)
+     * Checks if this element's structure is compatible with another element for type reuse.
+     * Elements are compatible if they have the same content type, child elements, and attributes.
+     *
+     * @param other the other element to compare with
+     * @return true if the structures are compatible, false otherwise
      */
     public boolean isStructurallyCompatible(ElementInfo other) {
         if (other == null) return false;
@@ -694,434 +728,954 @@ public class ElementInfo {
 
     // ========== Getters and Setters ==========
 
+    /**
+     * Returns the element name.
+     *
+     * @return the element name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the element name.
+     *
+     * @param name the element name
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the namespace URI.
+     *
+     * @return the namespace URI, may be null
+     */
     public String getNamespace() {
         return namespace;
     }
 
+    /**
+     * Sets the namespace URI.
+     *
+     * @param namespace the namespace URI
+     */
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
 
+    /**
+     * Returns the qualified name (namespace:name).
+     *
+     * @return the qualified name
+     */
     public String getQualifiedName() {
         return qualifiedName;
     }
 
+    /**
+     * Sets the qualified name.
+     *
+     * @param qualifiedName the qualified name
+     */
     public void setQualifiedName(String qualifiedName) {
         this.qualifiedName = qualifiedName;
     }
 
+    /**
+     * Returns the nesting depth of this element.
+     *
+     * @return the depth level (0 for root elements)
+     */
     public int getDepth() {
         return depth;
     }
 
+    /**
+     * Sets the nesting depth.
+     *
+     * @param depth the depth level
+     */
     public void setDepth(int depth) {
         this.depth = depth;
     }
 
+    /**
+     * Returns the XPath expression to this element.
+     *
+     * @return the XPath expression
+     */
     public String getXpath() {
         return xpath;
     }
 
+    /**
+     * Sets the XPath expression.
+     *
+     * @param xpath the XPath expression
+     */
     public void setXpath(String xpath) {
         this.xpath = xpath;
     }
 
+    /**
+     * Returns the content type (empty, simple, complex, or mixed).
+     *
+     * @return the content type
+     */
     public String getContentType() {
         return contentType;
     }
 
+    /**
+     * Sets the content type.
+     *
+     * @param contentType the content type
+     */
     public void setContentType(String contentType) {
         this.contentType = contentType;
     }
 
+    /**
+     * Returns the text content of this element.
+     *
+     * @return the text content, may be null
+     */
     public String getTextContent() {
         return textContent;
     }
 
+    /**
+     * Sets the text content.
+     *
+     * @param textContent the text content
+     */
     public void setTextContent(String textContent) {
         this.textContent = textContent;
     }
 
+    /**
+     * Checks if element has attributes.
+     * @return true if element has attributes
+     */
     public boolean isHasAttributes() {
         return hasAttributes;
     }
 
+    /**
+     * Sets whether element has attributes.
+     * @param hasAttributes whether element has attributes
+     */
     public void setHasAttributes(boolean hasAttributes) {
         this.hasAttributes = hasAttributes;
     }
 
+    /**
+     * Checks if element has child elements.
+     * @return true if element has child elements
+     */
     public boolean isHasChildElements() {
         return hasChildElements;
     }
 
+    /**
+     * Sets whether element has child elements.
+     * @param hasChildElements whether element has child elements
+     */
     public void setHasChildElements(boolean hasChildElements) {
         this.hasChildElements = hasChildElements;
     }
 
+    /**
+     * Checks if element has text content.
+     * @return true if element has text content
+     */
     public boolean isHasTextContent() {
         return hasTextContent;
     }
 
+    /**
+     * Sets whether element has text content.
+     * @param hasTextContent whether element has text content
+     */
     public void setHasTextContent(boolean hasTextContent) {
         this.hasTextContent = hasTextContent;
     }
 
+    /**
+     * Checks if element has mixed content.
+     * @return true if element has mixed content
+     */
     public boolean isHasMixedContent() {
         return hasMixedContent;
     }
 
+    /**
+     * Sets whether element has mixed content.
+     * @param hasMixedContent whether element has mixed content
+     */
     public void setHasMixedContent(boolean hasMixedContent) {
         this.hasMixedContent = hasMixedContent;
     }
 
+    /**
+     * Returns the inferred XSD type.
+     * @return the inferred XSD type
+     */
     public String getInferredType() {
         return inferredType;
     }
 
+    /**
+     * Sets the inferred XSD type.
+     * @param inferredType the inferred XSD type
+     */
     public void setInferredType(String inferredType) {
         this.inferredType = inferredType;
     }
 
+    /**
+     * Returns the original type from schema.
+     * @return the original type from schema
+     */
     public String getOriginalType() {
         return originalType;
     }
 
+    /**
+     * Sets the original type from schema.
+     * @param originalType the original type from schema
+     */
     public void setOriginalType(String originalType) {
         this.originalType = originalType;
     }
 
+    /**
+     * Returns the confidence level for type inference.
+     * @return the confidence level (0.0-1.0)
+     */
     public double getTypeConfidence() {
         return typeConfidence;
     }
 
+    /**
+     * Sets the confidence level for type inference.
+     * @param typeConfidence the confidence level
+     */
     public void setTypeConfidence(double typeConfidence) {
         this.typeConfidence = typeConfidence;
     }
 
+    /**
+     * Returns the set of possible XSD types.
+     * @return set of possible XSD types
+     */
     public Set<String> getPossibleTypes() {
         return possibleTypes;
     }
 
+    /**
+     * Sets the set of possible XSD types.
+     * @param possibleTypes set of possible XSD types
+     */
     public void setPossibleTypes(Set<String> possibleTypes) {
         this.possibleTypes = possibleTypes;
     }
 
+    /**
+     * Checks if element has complex type.
+     * @return true if element has complex type
+     */
     public boolean isComplexType() {
         return isComplexType;
     }
 
+    /**
+     * Sets whether element has complex type.
+     * @param complexType whether element has complex type
+     */
     public void setComplexType(boolean complexType) {
         isComplexType = complexType;
     }
 
+    /**
+     * Returns the complex type name.
+     * @return the complex type name
+     */
     public String getComplexTypeName() {
         return complexTypeName;
     }
 
+    /**
+     * Sets the complex type name.
+     * @param complexTypeName the complex type name
+     */
     public void setComplexTypeName(String complexTypeName) {
         this.complexTypeName = complexTypeName;
     }
 
+    /**
+     * Returns the map of child element names to their occurrences.
+     *
+     * @return map of child element names to their occurrences
+     */
     public Map<String, List<ElementInfo>> getChildElements() {
         return childElements;
     }
 
+    /**
+     * Sets the map of child element names to their occurrences.
+     *
+     * @param childElements map of child element names to their occurrences
+     */
     public void setChildElements(Map<String, List<ElementInfo>> childElements) {
         this.childElements = childElements;
     }
 
+    /**
+     * Returns the map of attribute names to their info.
+     *
+     * @return map of attribute names to their info
+     */
     public Map<String, AttributeInfo> getAttributes() {
         return attributes;
     }
 
+    /**
+     * Sets the map of attribute names to their info.
+     *
+     * @param attributes map of attribute names to their info
+     */
     public void setAttributes(Map<String, AttributeInfo> attributes) {
         this.attributes = attributes;
     }
 
+    /**
+     * Returns the list of all child elements.
+     *
+     * @return list of all child elements
+     */
     public List<ElementInfo> getAllChildren() {
         return allChildren;
     }
 
+    /**
+     * Sets the list of all child elements.
+     *
+     * @param allChildren list of all child elements
+     */
     public void setAllChildren(List<ElementInfo> allChildren) {
         this.allChildren = allChildren;
     }
 
+    /**
+     * Returns the minimum occurrences.
+     *
+     * @return minimum occurrences
+     */
     public int getMinOccurs() {
         return minOccurs;
     }
 
+    /**
+     * Sets the minimum occurrences.
+     *
+     * @param minOccurs minimum occurrences
+     */
     public void setMinOccurs(int minOccurs) {
         this.minOccurs = minOccurs;
     }
 
+    /**
+     * Returns the maximum occurrences (-1 for unbounded).
+     *
+     * @return maximum occurrences (-1 for unbounded)
+     */
     public int getMaxOccurs() {
         return maxOccurs;
     }
 
+    /**
+     * Sets the maximum occurrences.
+     *
+     * @param maxOccurs maximum occurrences
+     */
     public void setMaxOccurs(int maxOccurs) {
         this.maxOccurs = maxOccurs;
     }
 
+    /**
+     * Checks if occurrences are unbounded.
+     *
+     * @return true if occurrences are unbounded
+     */
     public boolean isUnbounded() {
         return unbounded;
     }
 
+    /**
+     * Sets whether occurrences are unbounded.
+     *
+     * @param unbounded whether occurrences are unbounded
+     */
     public void setUnbounded(boolean unbounded) {
         this.unbounded = unbounded;
     }
 
+    /**
+     * Returns the total number of occurrences across all documents.
+     *
+     * @return total number of occurrences across all documents
+     */
     public int getTotalOccurrences() {
         return totalOccurrences;
     }
 
+    /**
+     * Sets the total number of occurrences.
+     *
+     * @param totalOccurrences total number of occurrences
+     */
     public void setTotalOccurrences(int totalOccurrences) {
         this.totalOccurrences = totalOccurrences;
     }
 
+    /**
+     * Returns the number of documents containing this element.
+     *
+     * @return number of documents containing this element
+     */
     public int getDocumentOccurrences() {
         return documentOccurrences;
     }
 
+    /**
+     * Sets the number of documents containing this element.
+     *
+     * @param documentOccurrences number of documents containing this element
+     */
     public void setDocumentOccurrences(int documentOccurrences) {
         this.documentOccurrences = documentOccurrences;
     }
 
+    /**
+     * Returns the confidence level for occurrence patterns (0.0-1.0).
+     *
+     * @return confidence level for occurrence patterns (0.0-1.0)
+     */
     public double getOccurrenceConfidence() {
         return occurrenceConfidence;
     }
 
+    /**
+     * Sets the confidence level for occurrence patterns.
+     *
+     * @param occurrenceConfidence confidence level for occurrence patterns
+     */
     public void setOccurrenceConfidence(double occurrenceConfidence) {
         this.occurrenceConfidence = occurrenceConfidence;
     }
 
+    /**
+     * Returns the set of observed values for this element.
+     *
+     * @return set of observed values for this element
+     */
     public Set<String> getObservedValues() {
         return observedValues;
     }
 
+    /**
+     * Sets the set of observed values.
+     *
+     * @param observedValues set of observed values
+     */
     public void setObservedValues(Set<String> observedValues) {
         this.observedValues = observedValues;
     }
 
+    /**
+     * Returns the list of sample values (limited size).
+     *
+     * @return list of sample values (limited size)
+     */
     public List<String> getSampleValues() {
         return sampleValues;
     }
 
+    /**
+     * Sets the list of sample values.
+     *
+     * @param sampleValues list of sample values
+     */
     public void setSampleValues(List<String> sampleValues) {
         this.sampleValues = sampleValues;
     }
 
+    /**
+     * Returns the map of values to their frequency counts.
+     *
+     * @return map of values to their frequency counts
+     */
     public Map<String, Integer> getValueFrequency() {
         return valueFrequency;
     }
 
+    /**
+     * Sets the map of values to their frequency counts.
+     *
+     * @param valueFrequency map of values to their frequency counts
+     */
     public void setValueFrequency(Map<String, Integer> valueFrequency) {
         this.valueFrequency = valueFrequency;
     }
 
+    /**
+     * Returns the set of detected patterns.
+     *
+     * @return set of detected patterns
+     */
     public Set<String> getDetectedPatterns() {
         return detectedPatterns;
     }
 
+    /**
+     * Sets the set of detected patterns.
+     *
+     * @param detectedPatterns set of detected patterns
+     */
     public void setDetectedPatterns(Set<String> detectedPatterns) {
         this.detectedPatterns = detectedPatterns;
     }
 
+    /**
+     * Returns the map of pattern names to their counts.
+     *
+     * @return map of pattern names to their counts
+     */
     public Map<String, Integer> getPatternCounts() {
         return patternCounts;
     }
 
+    /**
+     * Sets the map of pattern names to their counts.
+     *
+     * @param patternCounts map of pattern names to their counts
+     */
     public void setPatternCounts(Map<String, Integer> patternCounts) {
         this.patternCounts = patternCounts;
     }
 
+    /**
+     * Returns the most commonly detected pattern.
+     *
+     * @return the most commonly detected pattern
+     */
     public String getMostCommonPattern() {
         return mostCommonPattern;
     }
 
+    /**
+     * Sets the most commonly detected pattern.
+     *
+     * @param mostCommonPattern the most commonly detected pattern
+     */
     public void setMostCommonPattern(String mostCommonPattern) {
         this.mostCommonPattern = mostCommonPattern;
     }
 
+    /**
+     * Returns the confidence level for pattern detection (0.0-1.0).
+     *
+     * @return confidence level for pattern detection (0.0-1.0)
+     */
     public double getPatternConfidence() {
         return patternConfidence;
     }
 
+    /**
+     * Sets the confidence level for pattern detection.
+     *
+     * @param patternConfidence confidence level for pattern detection
+     */
     public void setPatternConfidence(double patternConfidence) {
         this.patternConfidence = patternConfidence;
     }
 
+    /**
+     * Returns the minimum length constraint.
+     *
+     * @return minimum length constraint
+     */
     public Integer getMinLength() {
         return minLength;
     }
 
+    /**
+     * Sets the minimum length constraint.
+     *
+     * @param minLength minimum length constraint
+     */
     public void setMinLength(Integer minLength) {
         this.minLength = minLength;
     }
 
+    /**
+     * Returns the maximum length constraint.
+     *
+     * @return maximum length constraint
+     */
     public Integer getMaxLength() {
         return maxLength;
     }
 
+    /**
+     * Sets the maximum length constraint.
+     *
+     * @param maxLength maximum length constraint
+     */
     public void setMaxLength(Integer maxLength) {
         this.maxLength = maxLength;
     }
 
+    /**
+     * Returns the minimum value constraint.
+     *
+     * @return minimum value constraint
+     */
     public String getMinValue() {
         return minValue;
     }
 
+    /**
+     * Sets the minimum value constraint.
+     *
+     * @param minValue minimum value constraint
+     */
     public void setMinValue(String minValue) {
         this.minValue = minValue;
     }
 
+    /**
+     * Returns the maximum value constraint.
+     *
+     * @return maximum value constraint
+     */
     public String getMaxValue() {
         return maxValue;
     }
 
+    /**
+     * Sets the maximum value constraint.
+     *
+     * @param maxValue maximum value constraint
+     */
     public void setMaxValue(String maxValue) {
         this.maxValue = maxValue;
     }
 
+    /**
+     * Returns the set of enumeration values.
+     *
+     * @return set of enumeration values
+     */
     public Set<String> getEnumerationValues() {
         return enumerationValues;
     }
 
+    /**
+     * Sets the set of enumeration values.
+     *
+     * @param enumerationValues set of enumeration values
+     */
     public void setEnumerationValues(Set<String> enumerationValues) {
         this.enumerationValues = enumerationValues;
     }
 
+    /**
+     * Returns the regex restriction pattern.
+     *
+     * @return the regex restriction pattern
+     */
     public String getRestrictionPattern() {
         return restrictionPattern;
     }
 
+    /**
+     * Sets the regex restriction pattern.
+     *
+     * @param restrictionPattern the regex restriction pattern
+     */
     public void setRestrictionPattern(String restrictionPattern) {
         this.restrictionPattern = restrictionPattern;
     }
 
+    /**
+     * Checks if element is nillable.
+     *
+     * @return true if element is nillable
+     */
     public boolean isNillable() {
         return nillable;
     }
 
+    /**
+     * Sets whether element is nillable.
+     *
+     * @param nillable whether element is nillable
+     */
     public void setNillable(boolean nillable) {
         this.nillable = nillable;
     }
 
+    /**
+     * Returns the map of statistics.
+     *
+     * @return map of statistics
+     */
     public Map<String, Object> getStatistics() {
         return statistics;
     }
 
+    /**
+     * Sets the map of statistics.
+     *
+     * @param statistics map of statistics
+     */
     public void setStatistics(Map<String, Object> statistics) {
         this.statistics = statistics;
     }
 
+    /**
+     * Returns the timestamp when element was first seen.
+     *
+     * @return timestamp when element was first seen
+     */
     public LocalDateTime getFirstSeen() {
         return firstSeen;
     }
 
+    /**
+     * Sets the timestamp when element was first seen.
+     *
+     * @param firstSeen timestamp when element was first seen
+     */
     public void setFirstSeen(LocalDateTime firstSeen) {
         this.firstSeen = firstSeen;
     }
 
+    /**
+     * Returns the timestamp when element was last seen.
+     *
+     * @return timestamp when element was last seen
+     */
     public LocalDateTime getLastSeen() {
         return lastSeen;
     }
 
+    /**
+     * Sets the timestamp when element was last seen.
+     *
+     * @param lastSeen timestamp when element was last seen
+     */
     public void setLastSeen(LocalDateTime lastSeen) {
         this.lastSeen = lastSeen;
     }
 
+    /**
+     * Returns the average number of child elements.
+     *
+     * @return average number of child elements
+     */
     public int getAverageChildCount() {
         return averageChildCount;
     }
 
+    /**
+     * Sets the average number of child elements.
+     *
+     * @param averageChildCount average number of child elements
+     */
     public void setAverageChildCount(int averageChildCount) {
         this.averageChildCount = averageChildCount;
     }
 
+    /**
+     * Returns the maximum number of child elements observed.
+     *
+     * @return maximum number of child elements observed
+     */
     public int getMaxChildCount() {
         return maxChildCount;
     }
 
+    /**
+     * Sets the maximum number of child elements.
+     *
+     * @param maxChildCount maximum number of child elements
+     */
     public void setMaxChildCount(int maxChildCount) {
         this.maxChildCount = maxChildCount;
     }
 
+    /**
+     * Returns the map of child names to their occurrence frequencies.
+     *
+     * @return map of child names to their occurrence frequencies
+     */
     public Map<String, Double> getChildFrequencies() {
         return childFrequencies;
     }
 
+    /**
+     * Sets the map of child names to their occurrence frequencies.
+     *
+     * @param childFrequencies map of child names to their occurrence frequencies
+     */
     public void setChildFrequencies(Map<String, Double> childFrequencies) {
         this.childFrequencies = childFrequencies;
     }
 
+    /**
+     * Returns the documentation string.
+     *
+     * @return the documentation string
+     */
     public String getDocumentation() {
         return documentation;
     }
 
+    /**
+     * Sets the documentation string.
+     *
+     * @param documentation the documentation string
+     */
     public void setDocumentation(String documentation) {
         this.documentation = documentation;
     }
 
+    /**
+     * Returns the list of comments.
+     *
+     * @return list of comments
+     */
     public List<String> getComments() {
         return comments;
     }
 
+    /**
+     * Sets the list of comments.
+     *
+     * @param comments list of comments
+     */
     public void setComments(List<String> comments) {
         this.comments = comments;
     }
 
+    /**
+     * Returns the map of annotations.
+     *
+     * @return map of annotations
+     */
     public Map<String, String> getAnnotations() {
         return annotations;
     }
 
+    /**
+     * Sets the map of annotations.
+     *
+     * @param annotations map of annotations
+     */
     public void setAnnotations(Map<String, String> annotations) {
         this.annotations = annotations;
     }
 
+    /**
+     * Returns the set of source document identifiers.
+     *
+     * @return set of source document identifiers
+     */
     public Set<String> getSourceDocuments() {
         return sourceDocuments;
     }
 
+    /**
+     * Sets the set of source document identifiers.
+     *
+     * @param sourceDocuments set of source document identifiers
+     */
     public void setSourceDocuments(Set<String> sourceDocuments) {
         this.sourceDocuments = sourceDocuments;
     }
 
+    /**
+     * Returns the analysis depth level.
+     *
+     * @return the analysis depth level
+     */
     public int getAnalysisDepth() {
         return analysisDepth;
     }
 
+    /**
+     * Sets the analysis depth level.
+     *
+     * @param analysisDepth the analysis depth level
+     */
     public void setAnalysisDepth(int analysisDepth) {
         this.analysisDepth = analysisDepth;
     }
 
+    /**
+     * Checks if element has been analyzed.
+     *
+     * @return true if element has been analyzed
+     */
     public boolean isAnalyzed() {
         return analyzed;
     }
 
+    /**
+     * Sets whether element has been analyzed.
+     *
+     * @param analyzed whether element has been analyzed
+     */
     public void setAnalyzed(boolean analyzed) {
         this.analyzed = analyzed;
     }
 
+    /**
+     * Returns the timestamp when analysis was performed.
+     *
+     * @return timestamp when analysis was performed
+     */
     public LocalDateTime getAnalyzedAt() {
         return analyzedAt;
     }
 
+    /**
+     * Sets the timestamp when analysis was performed.
+     *
+     * @param analyzedAt timestamp when analysis was performed
+     */
     public void setAnalyzedAt(LocalDateTime analyzedAt) {
         this.analyzedAt = analyzedAt;
     }
 
+    /**
+     * Returns the map of analysis context data.
+     *
+     * @return map of analysis context data
+     */
     public Map<String, Object> getAnalysisContext() {
         return analysisContext;
     }
 
+    /**
+     * Sets the map of analysis context data.
+     *
+     * @param analysisContext map of analysis context data
+     */
     public void setAnalysisContext(Map<String, Object> analysisContext) {
         this.analysisContext = analysisContext;
     }

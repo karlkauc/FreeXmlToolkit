@@ -69,6 +69,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class FxtGui extends Application {
 
+    /**
+     * Creates a new FxtGui application instance.
+     */
+    public FxtGui() {
+        // Default constructor
+    }
+
     static {
         configureLogging();
     }
@@ -77,6 +84,9 @@ public class FxtGui extends Application {
 
     private static final java.util.concurrent.atomic.AtomicInteger threadCounter = new java.util.concurrent.atomic.AtomicInteger(1);
 
+    /**
+     * Global executor service for background tasks.
+     */
     public static ExecutorService executorService = Executors.newFixedThreadPool(
             Runtime.getRuntime().availableProcessors(),
             runnable -> {

@@ -466,16 +466,54 @@ public class IntelliSenseAdapter {
     // ========== Data Classes ==========
 
     /**
-     * Schema information for IntelliSense.
+     * Contains schema information for IntelliSense/autocomplete features.
+     *
+     * <p>This class aggregates all relevant schema data needed for providing
+     * code completion suggestions in XML editors, including elements, attributes,
+     * types, and imported schemas.</p>
      */
     public static class SchemaInfo {
+        /**
+         * The target namespace of the schema, or {@code null} if not specified.
+         */
         public String targetNamespace;
+
+        /**
+         * Map of namespace prefixes to namespace URIs declared in the schema.
+         */
         public final Map<String, String> namespaces = new LinkedHashMap<>();
+
+        /**
+         * List of global elements declared in the schema.
+         */
         public final List<ElementInfo> elements = new ArrayList<>();
+
+        /**
+         * List of global attributes declared in the schema.
+         */
         public final List<AttributeInfo> attributes = new ArrayList<>();
+
+        /**
+         * Map of complex type names to their information.
+         */
         public final Map<String, ComplexTypeInfo> complexTypes = new LinkedHashMap<>();
+
+        /**
+         * Map of simple type names to their information.
+         */
         public final Map<String, SimpleTypeInfo> simpleTypes = new LinkedHashMap<>();
+
+        /**
+         * Map of imported schema identifiers (namespace or location) to their SchemaInfo.
+         */
         public final Map<String, SchemaInfo> importedSchemas = new LinkedHashMap<>();
+
+        /**
+         * Creates a new empty SchemaInfo instance.
+         */
+        public SchemaInfo() {
+            // Default constructor
+        }
 
         /**
          * Gets completion items for a given context.
@@ -536,68 +574,261 @@ public class IntelliSenseAdapter {
     }
 
     /**
-     * Element information for completion.
+     * Contains information about an XSD element for IntelliSense completion.
+     *
+     * <p>This class holds all relevant element metadata including name, type,
+     * occurrence constraints, and documentation that can be displayed in
+     * autocomplete suggestions.</p>
      */
     public static class ElementInfo {
+        /**
+         * The name of the element, or the reference name if this is a reference.
+         */
         public String name;
+
+        /**
+         * The type of the element (e.g., "xs:string", "PersonType"), or empty if anonymous.
+         */
         public String type;
+
+        /**
+         * Documentation text extracted from xs:documentation, or {@code null} if not present.
+         */
         public String documentation;
+
+        /**
+         * Minimum number of occurrences (default is 1).
+         */
         public int minOccurs = 1;
+
+        /**
+         * Maximum number of occurrences (default is 1, -1 means unbounded).
+         */
         public int maxOccurs = 1;
+
+        /**
+         * Whether this element is required (minOccurs greater than 0).
+         */
         public boolean required;
+
+        /**
+         * Whether this element can have a nil value (xsi:nil="true").
+         */
         public boolean nillable;
+
+        /**
+         * Whether this is a reference to another element (uses ref attribute).
+         */
         public boolean isRef;
+
+        /**
+         * The default value for this element, or empty if not specified.
+         */
         public String defaultValue;
+
+        /**
+         * The fixed value for this element, or empty if not specified.
+         */
         public String fixedValue;
+
+        /**
+         * The substitution group this element belongs to, or empty if none.
+         */
         public String substitutionGroup;
+
+        /**
+         * Creates a new empty ElementInfo instance.
+         */
+        public ElementInfo() {
+            // Default constructor
+        }
     }
 
     /**
-     * Attribute information for completion.
+     * Contains information about an XSD attribute for IntelliSense completion.
+     *
+     * <p>This class holds all relevant attribute metadata including name, type,
+     * use constraints, and documentation that can be displayed in
+     * autocomplete suggestions.</p>
      */
     public static class AttributeInfo {
+        /**
+         * The name of the attribute, or the reference name if this is a reference.
+         */
         public String name;
+
+        /**
+         * The type of the attribute (e.g., "xs:string", "StatusType"), or empty if not specified.
+         */
         public String type;
+
+        /**
+         * Documentation text extracted from xs:documentation, or {@code null} if not present.
+         */
         public String documentation;
+
+        /**
+         * Whether this attribute is required (use="required").
+         */
         public boolean required;
+
+        /**
+         * Whether this attribute is prohibited (use="prohibited").
+         */
         public boolean prohibited;
+
+        /**
+         * Whether this is a reference to another attribute (uses ref attribute).
+         */
         public boolean isRef;
+
+        /**
+         * The default value for this attribute, or empty if not specified.
+         */
         public String defaultValue;
+
+        /**
+         * The fixed value for this attribute, or empty if not specified.
+         */
         public String fixedValue;
+
+        /**
+         * Creates a new empty AttributeInfo instance.
+         */
+        public AttributeInfo() {
+            // Default constructor
+        }
     }
 
     /**
-     * Complex type information.
+     * Contains information about an XSD complex type for IntelliSense.
+     *
+     * <p>This class holds metadata about complex types including their
+     * child elements, attributes, and inheritance information that is
+     * used to provide context-aware completion suggestions.</p>
      */
     public static class ComplexTypeInfo {
+        /**
+         * The name of the complex type.
+         */
         public String name;
+
+        /**
+         * Documentation text extracted from xs:documentation, or {@code null} if not present.
+         */
         public String documentation;
+
+        /**
+         * Whether this type is abstract and cannot be instantiated directly.
+         */
         public boolean isAbstract;
+
+        /**
+         * Whether this type allows mixed content (text and elements).
+         */
         public boolean isMixed;
+
+        /**
+         * The base type this complex type extends or restricts, or {@code null} if none.
+         */
         public String baseType;
+
+        /**
+         * List of child elements allowed in this complex type.
+         */
         public final List<ElementInfo> childElements = new ArrayList<>();
+
+        /**
+         * List of attributes defined for this complex type.
+         */
         public final List<AttributeInfo> attributes = new ArrayList<>();
+
+        /**
+         * Creates a new empty ComplexTypeInfo instance.
+         */
+        public ComplexTypeInfo() {
+            // Default constructor
+        }
     }
 
     /**
-     * Simple type information.
+     * Contains information about an XSD simple type for IntelliSense.
+     *
+     * <p>This class holds metadata about simple types including their
+     * restriction base, facets, enumerations, and list/union characteristics
+     * that is used to provide value completion suggestions.</p>
      */
     public static class SimpleTypeInfo {
+        /**
+         * The name of the simple type.
+         */
         public String name;
+
+        /**
+         * Documentation text extracted from xs:documentation, or {@code null} if not present.
+         */
         public String documentation;
+
+        /**
+         * The base type this simple type restricts (e.g., "xs:string").
+         */
         public String baseType;
+
+        /**
+         * Whether this is a list type (xs:list).
+         */
         public boolean isList;
+
+        /**
+         * Whether this is a union type (xs:union).
+         */
         public boolean isUnion;
+
+        /**
+         * List of member type names if this is a union type, or {@code null} if not a union.
+         */
         public List<String> unionMemberTypes;
+
+        /**
+         * List of enumeration values if this type has enumeration facets.
+         */
         public final List<EnumerationValue> enumerationValues = new ArrayList<>();
+
+        /**
+         * Map of facet names to their values (e.g., "minLength" to "1").
+         */
         public final Map<String, String> facets = new LinkedHashMap<>();
+
+        /**
+         * Creates a new empty SimpleTypeInfo instance.
+         */
+        public SimpleTypeInfo() {
+            // Default constructor
+        }
     }
 
     /**
-     * Enumeration value.
+     * Represents an enumeration value from an XSD simple type restriction.
+     *
+     * <p>This class holds both the value itself and any associated documentation
+     * that can be displayed in autocomplete suggestions.</p>
      */
     public static class EnumerationValue {
+        /**
+         * The enumeration value string.
+         */
         public String value;
+
+        /**
+         * Documentation text for this enumeration value, or {@code null} if not present.
+         */
         public String documentation;
+
+        /**
+         * Creates a new empty EnumerationValue instance.
+         */
+        public EnumerationValue() {
+            // Default constructor
+        }
     }
 }

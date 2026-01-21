@@ -382,7 +382,9 @@ public class IdentityConstraintsView extends BorderPane {
     }
 
     /**
-     * Gets the current result.
+     * Gets the current analysis result.
+     *
+     * @return the current analysis result
      */
     public AnalysisResult getCurrentResult() {
         return currentResult;

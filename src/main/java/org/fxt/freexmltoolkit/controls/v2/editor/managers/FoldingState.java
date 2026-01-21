@@ -11,6 +11,13 @@ import java.util.Set;
  */
 public class FoldingState {
 
+    /**
+     * Creates a new FoldingState instance.
+     */
+    public FoldingState() {
+        // Default constructor
+    }
+
     // Maps start line -> original folded text (lines between start and end)
     private final Map<Integer, String[]> foldedTextStorage = new HashMap<>();
 

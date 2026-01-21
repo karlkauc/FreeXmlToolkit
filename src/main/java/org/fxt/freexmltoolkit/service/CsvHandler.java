@@ -36,6 +36,13 @@ public class CsvHandler {
     private static final Logger logger = LogManager.getLogger(CsvHandler.class);
 
     /**
+     * Creates a new CsvHandler instance.
+     */
+    public CsvHandler() {
+        // Default constructor
+    }
+
+    /**
      * CSV configuration settings
      */
     public static class CsvConfig {
@@ -46,78 +53,165 @@ public class CsvHandler {
         private String charset = "UTF-8";
         private String lineEnding = System.lineSeparator();
 
-        // Constructors
+        /**
+         * Default constructor.
+         */
         public CsvConfig() {
         }
 
+        /**
+         * Constructor with delimiter.
+         *
+         * @param delimiter The delimiter character.
+         */
         public CsvConfig(char delimiter) {
             this.delimiter = delimiter;
         }
 
         // Predefined configurations
+        /**
+         * Creates a comma-delimited configuration.
+         *
+         * @return A CsvConfig with comma delimiter.
+         */
         public static CsvConfig comma() {
             return new CsvConfig(',');
         }
 
+        /**
+         * Creates a semicolon-delimited configuration.
+         *
+         * @return A CsvConfig with semicolon delimiter.
+         */
         public static CsvConfig semicolon() {
             CsvConfig config = new CsvConfig(';');
             config.setIncludeBOM(true); // For German Excel compatibility
             return config;
         }
 
+        /**
+         * Creates a tab-delimited configuration.
+         *
+         * @return A CsvConfig with tab delimiter.
+         */
         public static CsvConfig tab() {
             return new CsvConfig('\t');
         }
 
+        /**
+         * Creates a pipe-delimited configuration.
+         *
+         * @return A CsvConfig with pipe delimiter.
+         */
         public static CsvConfig pipe() {
             return new CsvConfig('|');
         }
 
         // Getters and setters
+        /**
+         * Gets the delimiter character.
+         *
+         * @return The delimiter.
+         */
         public char getDelimiter() {
             return delimiter;
         }
 
+        /**
+         * Sets the delimiter character.
+         *
+         * @param delimiter The delimiter to set.
+         */
         public void setDelimiter(char delimiter) {
             this.delimiter = delimiter;
         }
 
+        /**
+         * Gets the quote character.
+         *
+         * @return The quote character.
+         */
         public char getQuoteChar() {
             return quoteChar;
         }
 
+        /**
+         * Sets the quote character.
+         *
+         * @param quoteChar The quote character to set.
+         */
         public void setQuoteChar(char quoteChar) {
             this.quoteChar = quoteChar;
         }
 
+        /**
+         * Checks if values should always be quoted.
+         *
+         * @return True if always quoted.
+         */
         public boolean isAlwaysQuote() {
             return alwaysQuote;
         }
 
+        /**
+         * Sets whether values should always be quoted.
+         *
+         * @param alwaysQuote True to always quote.
+         */
         public void setAlwaysQuote(boolean alwaysQuote) {
             this.alwaysQuote = alwaysQuote;
         }
 
+        /**
+         * Checks if BOM should be included.
+         *
+         * @return True if BOM included.
+         */
         public boolean isIncludeBOM() {
             return includeBOM;
         }
 
+        /**
+         * Sets whether BOM should be included.
+         *
+         * @param includeBOM True to include BOM.
+         */
         public void setIncludeBOM(boolean includeBOM) {
             this.includeBOM = includeBOM;
         }
 
+        /**
+         * Gets the charset.
+         *
+         * @return The charset string.
+         */
         public String getCharset() {
             return charset;
         }
 
+        /**
+         * Sets the charset.
+         *
+         * @param charset The charset to set.
+         */
         public void setCharset(String charset) {
             this.charset = charset;
         }
 
+        /**
+         * Gets the line ending.
+         *
+         * @return The line ending string.
+         */
         public String getLineEnding() {
             return lineEnding;
         }
 
+        /**
+         * Sets the line ending.
+         *
+         * @param lineEnding The line ending to set.
+         */
         public void setLineEnding(String lineEnding) {
             this.lineEnding = lineEnding;
         }
@@ -130,7 +224,13 @@ public class CsvHandler {
     }
 
     /**
-     * Writes row data to CSV file
+     * Writes row data to CSV file.
+     *
+     * @param rows The list of rows to write.
+     * @param outputFile The file to write to.
+     * @param csvConfig The CSV configuration.
+     * @param conversionConfig The conversion configuration.
+     * @throws IOException If an I/O error occurs.
      */
     public void writeCsv(List<RowData> rows, File outputFile, CsvConfig csvConfig, ConversionConfig conversionConfig)
             throws IOException {
@@ -158,7 +258,13 @@ public class CsvHandler {
     }
 
     /**
-     * Reads CSV file and returns row data
+     * Reads CSV file and returns row data.
+     *
+     * @param csvFile The CSV file to read.
+     * @param csvConfig The CSV configuration.
+     * @param conversionConfig The conversion configuration.
+     * @return The list of parsed rows.
+     * @throws IOException If an I/O error occurs.
      */
     public List<RowData> readCsv(File csvFile, CsvConfig csvConfig, ConversionConfig conversionConfig)
             throws IOException {
@@ -348,7 +454,11 @@ public class CsvHandler {
     }
 
     /**
-     * Detects CSV delimiter from file content
+     * Detects CSV delimiter from file content.
+     *
+     * @param csvFile The CSV file to analyze.
+     * @return The detected delimiter character.
+     * @throws IOException If an I/O error occurs.
      */
     public static char detectDelimiter(File csvFile) throws IOException {
         char[] delimiters = {',', ';', '\t', '|'};
@@ -388,7 +498,12 @@ public class CsvHandler {
     }
 
     /**
-     * Validates CSV file structure
+     * Validates CSV file structure.
+     *
+     * @param csvFile The CSV file to validate.
+     * @param csvConfig The CSV configuration.
+     * @return True if valid, false otherwise.
+     * @throws IOException If an I/O error occurs.
      */
     public static boolean isValidCsvStructure(File csvFile, CsvConfig csvConfig) throws IOException {
         try (BufferedReader reader = new BufferedReader(

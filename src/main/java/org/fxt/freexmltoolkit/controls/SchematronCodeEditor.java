@@ -65,6 +65,11 @@ public class SchematronCodeEditor extends StackPane {
     // Callback for validation result changes
     private Consumer<SchematronSyntaxHighlighter.SchematronValidationResult> onValidationComplete;
 
+    /**
+     * Creates a new SchematronCodeEditor with default settings.
+     * Initializes the code area with syntax highlighting, auto-indentation,
+     * and validation status bar.
+     */
     public SchematronCodeEditor() {
         // Initialize executor for background tasks
         executor = Executors.newSingleThreadExecutor(r -> {
@@ -519,7 +524,10 @@ public class SchematronCodeEditor extends StackPane {
     }
 
     /**
-     * Insert text at current cursor position
+     * Inserts the specified text at the current cursor position.
+     * The cursor is moved to the end of the inserted text.
+     *
+     * @param text the text to insert at the cursor position
      */
     public void insertTextAtCursor(String text) {
         int caretPosition = codeArea.getCaretPosition();
@@ -530,7 +538,10 @@ public class SchematronCodeEditor extends StackPane {
     }
 
     /**
-     * Insert template with proper indentation
+     * Inserts a template at the current cursor position with proper indentation.
+     * The template is adjusted to match the current line's indentation level.
+     *
+     * @param template the template text to insert
      */
     public void insertTemplate(String template) {
         int caretPosition = codeArea.getCaretPosition();
@@ -663,7 +674,10 @@ public class SchematronCodeEditor extends StackPane {
     }
 
     /**
-     * Go to specific line
+     * Navigates to a specific line in the editor and selects it.
+     * The editor receives focus after navigation.
+     *
+     * @param lineNumber the 1-based line number to navigate to
      */
     public void goToLine(int lineNumber) {
         if (lineNumber >= 1 && lineNumber <= codeArea.getParagraphs().size()) {
@@ -676,7 +690,10 @@ public class SchematronCodeEditor extends StackPane {
     }
 
     /**
-     * Find and highlight text
+     * Finds and highlights the next occurrence of the specified text.
+     * The search starts from the current cursor position.
+     *
+     * @param searchText the text to search for
      */
     public void findText(String searchText) {
         if (searchText == null || searchText.isEmpty()) {
@@ -694,14 +711,30 @@ public class SchematronCodeEditor extends StackPane {
 
     // ========== Getters and Setters ==========
 
+    /**
+     * Returns the underlying CodeArea component.
+     *
+     * @return the CodeArea used for editing
+     */
     public CodeArea getCodeArea() {
         return codeArea;
     }
 
+    /**
+     * Returns the current text content of the editor.
+     *
+     * @return the text content
+     */
     public String getText() {
         return codeArea.getText();
     }
 
+    /**
+     * Sets the text content of the editor.
+     * For large files (over 50KB), performance optimization is automatically enabled.
+     *
+     * @param text the text to set, or null to clear the editor
+     */
     public void setText(String text) {
         if (text == null) {
             text = "";
@@ -759,14 +792,28 @@ public class SchematronCodeEditor extends StackPane {
         }
     }
 
+    /**
+     * Clears all text content from the editor.
+     */
     public void clear() {
         codeArea.clear();
     }
 
+    /**
+     * Returns whether syntax highlighting is currently enabled.
+     *
+     * @return true if syntax highlighting is enabled, false otherwise
+     */
     public boolean isSyntaxHighlightingEnabled() {
         return syntaxHighlightingEnabled;
     }
 
+    /**
+     * Enables or disables syntax highlighting.
+     * When enabled, the highlighting is set up immediately.
+     *
+     * @param enabled true to enable syntax highlighting, false to disable
+     */
     public void setSyntaxHighlightingEnabled(boolean enabled) {
         this.syntaxHighlightingEnabled = enabled;
         if (enabled) {
@@ -774,10 +821,20 @@ public class SchematronCodeEditor extends StackPane {
         }
     }
 
+    /**
+     * Returns whether validation is currently enabled.
+     *
+     * @return true if validation is enabled, false otherwise
+     */
     public boolean isValidationEnabled() {
         return validationEnabled;
     }
 
+    /**
+     * Enables or disables validation of Schematron content.
+     *
+     * @param enabled true to enable validation, false to disable
+     */
     public void setValidationEnabled(boolean enabled) {
         this.validationEnabled = enabled;
     }
@@ -852,11 +909,14 @@ public class SchematronCodeEditor extends StackPane {
     // ========== Nested Types ==========
 
     /**
-     * Enum for validation issue types
+     * Enum for validation issue types representing the severity of validation issues.
      */
     public enum ValidationIssueType {
+        /** Indicates a critical validation error that prevents processing. */
         ERROR,
+        /** Indicates a validation warning that should be reviewed but allows processing. */
         WARNING,
+        /** Indicates an informational message about the validation. */
         INFO
     }
 

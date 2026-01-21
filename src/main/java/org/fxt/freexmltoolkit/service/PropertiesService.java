@@ -24,23 +24,100 @@ import java.io.File;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * Service interface for managing application properties and user preferences.
+ *
+ * <p>This service handles persistence of user settings including recent files,
+ * directory preferences, XML/XSD configuration, and various application options.
+ * Properties are typically stored in a user-specific configuration file.
+ */
 public interface PropertiesService {
+
+    /**
+     * Loads application properties from the persistent storage.
+     *
+     * <p>If the properties file does not exist or cannot be read,
+     * default properties will be created and returned.
+     *
+     * @return the loaded properties, or default properties if loading fails
+     */
     Properties loadProperties();
 
+    /**
+     * Saves application properties to persistent storage.
+     *
+     * <p>This method persists all properties to the configuration file,
+     * overwriting any existing content.
+     *
+     * @param save the properties to save
+     */
     void saveProperties(Properties save);
 
+    /**
+     * Creates and saves default application properties.
+     *
+     * <p>This method initializes all properties with their default values
+     * and persists them to storage. Typically called on first application launch
+     * or when resetting settings.
+     */
     void createDefaultProperties();
 
+    /**
+     * Gets the list of recently opened files.
+     *
+     * <p>The list is ordered by most recently opened first and is limited
+     * to a maximum number of entries (typically 10).
+     *
+     * @return a list of recently opened files, may be empty but never null
+     */
     List<File> getLastOpenFiles();
 
+    /**
+     * Adds a file to the recently opened files list.
+     *
+     * <p>If the file already exists in the list, it is moved to the front.
+     * If the list exceeds the maximum size, the oldest entry is removed.
+     *
+     * @param file the file to add to the recent files list
+     */
     void addLastOpenFile(File file);
 
+    /**
+     * Gets the last directory that was opened by the file chooser.
+     *
+     * <p>This is used to remember the user's preferred directory location
+     * between file operations.
+     *
+     * @return the path to the last opened directory, or null if not set
+     */
     String getLastOpenDirectory();
 
+    /**
+     * Sets the last opened directory path.
+     *
+     * <p>This should be called after a successful file operation to remember
+     * the directory for subsequent file chooser dialogs.
+     *
+     * @param path the directory path to save
+     */
     void setLastOpenDirectory(String path);
 
+    /**
+     * Gets a property value by its key.
+     *
+     * @param key the property key
+     * @return the property value, or null if the key does not exist
+     */
     String get(String key);
 
+    /**
+     * Sets a property value.
+     *
+     * <p>The change is persisted immediately to storage.
+     *
+     * @param key the property key
+     * @param value the property value to set
+     */
     void set(String key, String value);
 
     /**

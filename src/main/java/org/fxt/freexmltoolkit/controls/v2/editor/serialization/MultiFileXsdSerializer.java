@@ -38,6 +38,20 @@ public class MultiFileXsdSerializer {
 
     private static final Logger logger = LogManager.getLogger(MultiFileXsdSerializer.class);
 
+    /**
+     * Creates a new MultiFileXsdSerializer with default settings.
+     * <p>
+     * The default settings are:
+     * <ul>
+     *   <li>Indentation: 4 spaces</li>
+     *   <li>Create backups: true</li>
+     *   <li>Sort order: from application settings (or NAME_BEFORE_TYPE if not configured)</li>
+     * </ul>
+     */
+    public MultiFileXsdSerializer() {
+        // Default constructor with default settings
+    }
+
     private static final String DEFAULT_INDENT = "    "; // 4 spaces
 
     private String indentString = DEFAULT_INDENT;
@@ -59,10 +73,32 @@ public class MultiFileXsdSerializer {
             Path backupPath,
             int nodeCount
     ) {
+        /**
+         * Creates a successful save result.
+         * <p>
+         * This factory method creates a SaveResult indicating that the file was saved
+         * successfully. The success flag is set to true and the error message is null.
+         *
+         * @param filePath   the path to the file that was saved
+         * @param backupPath the path to the backup file that was created before saving,
+         *                   or null if no backup was created
+         * @param nodeCount  the number of XSD nodes that were written to the file
+         * @return a new SaveResult indicating successful save
+         */
         public static SaveResult success(Path filePath, Path backupPath, int nodeCount) {
             return new SaveResult(filePath, true, null, backupPath, nodeCount);
         }
 
+        /**
+         * Creates a failed save result.
+         * <p>
+         * This factory method creates a SaveResult indicating that the file save operation
+         * failed. The success flag is set to false, backupPath is null, and nodeCount is 0.
+         *
+         * @param filePath     the path to the file that failed to save
+         * @param errorMessage the error message describing why the save failed
+         * @return a new SaveResult indicating failed save
+         */
         public static SaveResult failure(Path filePath, String errorMessage) {
             return new SaveResult(filePath, false, errorMessage, null, 0);
         }
@@ -1084,6 +1120,8 @@ public class MultiFileXsdSerializer {
 
     /**
      * Sets the indentation string.
+     *
+     * @param indentString the indentation string to use, or null for default (4 spaces)
      */
     public void setIndentString(String indentString) {
         this.indentString = indentString != null ? indentString : DEFAULT_INDENT;
@@ -1091,6 +1129,8 @@ public class MultiFileXsdSerializer {
 
     /**
      * Sets whether backups should be created by default.
+     *
+     * @param createBackups true to create backups before overwriting files
      */
     public void setCreateBackups(boolean createBackups) {
         this.createBackups = createBackups;

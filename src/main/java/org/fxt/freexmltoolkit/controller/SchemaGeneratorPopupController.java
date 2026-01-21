@@ -146,6 +146,12 @@ public class SchemaGeneratorPopupController implements Initializable {
     private SchemaGenerationResult lastResult;
     private final List<File> selectedFiles = new ArrayList<>();
 
+    /**
+     * Creates a new SchemaGeneratorPopupController with the specified content provider and schema engine.
+     *
+     * @param contentProvider the provider for accessing current XML editor content
+     * @param schemaEngine the engine used to generate XSD schemas from XML documents
+     */
     public SchemaGeneratorPopupController(XmlContentProvider contentProvider,
                                           SchemaGenerationEngine schemaEngine) {
         this.contentProvider = contentProvider;

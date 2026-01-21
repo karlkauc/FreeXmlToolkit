@@ -52,6 +52,9 @@ public class ContextMenuFactory {
      */
     public static final int ICON_SIZE = 12;
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
     private ContextMenuFactory() {
         // Utility class
     }
@@ -508,6 +511,9 @@ public class ContextMenuFactory {
     public static class Builder {
         private final ContextMenu menu;
 
+        /**
+         * Private constructor - use {@link ContextMenuFactory#builder()} to create instances.
+         */
         private Builder() {
             this.menu = createContextMenu();
         }

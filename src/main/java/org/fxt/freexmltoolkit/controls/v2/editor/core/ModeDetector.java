@@ -14,6 +14,13 @@ public class ModeDetector {
 
     private static final Logger logger = LogManager.getLogger(ModeDetector.class);
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
+    private ModeDetector() {
+        // Utility class
+    }
+
     // Patterns for detecting document types
     private static final Pattern ROOT_ELEMENT_PATTERN = Pattern.compile(
         "<\\s*([a-zA-Z_][\\w:.-]*)(?:\\s+[^>]*)?>",

@@ -51,6 +51,15 @@ import java.util.List;
  * Provides functionality for editing, validating, and formatting JSON files.
  */
 public class JsonController {
+
+    /**
+     * Default constructor for JsonController.
+     * Creates a new instance with default service dependencies initialized.
+     */
+    public JsonController() {
+        // Default constructor - services are initialized inline
+    }
+
     private static final Logger logger = LogManager.getLogger(JsonController.class);
 
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
@@ -84,14 +93,20 @@ public class JsonController {
     @FXML private Button redoBtn;
 
     /**
-     * Sets the parent controller.
+     * Sets the parent controller for this JSON controller.
+     * The parent controller provides access to application-level functionality.
+     *
+     * @param parentController the main controller instance to set as parent
      */
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
 
     /**
-     * Gets the parent controller.
+     * Gets the parent controller for this JSON controller.
+     * The parent controller provides access to application-level functionality.
+     *
+     * @return the main controller instance, or null if not set
      */
     public MainController getParentController() {
         return parentController;
@@ -305,6 +320,10 @@ public class JsonController {
 
     /**
      * Loads a JSON file into the editor.
+     * The file content is read using UTF-8 encoding and displayed in the editor.
+     * Also updates recent files list and the tree view if visible.
+     *
+     * @param file the JSON file to load into the editor
      */
     public void loadJsonFile(File file) {
         if (file == null || !file.exists()) {

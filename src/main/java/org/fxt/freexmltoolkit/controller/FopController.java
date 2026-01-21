@@ -50,6 +50,14 @@ import java.util.Map;
  * Controller class for handling FOP (Formatting Objects Processor) related actions.
  */
 public class FopController implements FavoritesParentController {
+
+    /**
+     * Creates a new FopController instance.
+     */
+    public FopController() {
+        // Default constructor
+    }
+
     private static final Logger logger = LogManager.getLogger(FopController.class);
     private final FOPService fopService = new FOPService();
     private final XmlService xmlService = ServiceRegistry.get(XmlService.class);

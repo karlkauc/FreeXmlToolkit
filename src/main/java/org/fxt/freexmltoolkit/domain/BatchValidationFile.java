@@ -79,6 +79,11 @@ public class BatchValidationFile {
         this.xmlFile.set(file);
     }
 
+    /**
+     * Returns the XML file property for binding.
+     *
+     * @return the XML file property for binding
+     */
     public ObjectProperty<File> xmlFileProperty() {
         return xmlFile;
     }
@@ -102,6 +107,11 @@ public class BatchValidationFile {
         this.xsdFile.set(file);
     }
 
+    /**
+     * Returns the XSD file property for binding.
+     *
+     * @return the XSD file property for binding
+     */
     public ObjectProperty<File> xsdFileProperty() {
         return xsdFile;
     }
@@ -125,6 +135,11 @@ public class BatchValidationFile {
         this.status.set(status);
     }
 
+    /**
+     * Returns the validation status property for binding.
+     *
+     * @return the validation status property for binding
+     */
     public ObjectProperty<ValidationStatus> statusProperty() {
         return status;
     }
@@ -148,6 +163,11 @@ public class BatchValidationFile {
         this.errorCount.set(count);
     }
 
+    /**
+     * Returns the error count property for binding.
+     *
+     * @return the error count property for binding
+     */
     public IntegerProperty errorCountProperty() {
         return errorCount;
     }
@@ -171,6 +191,11 @@ public class BatchValidationFile {
         this.validationTimeMs.set(timeMs);
     }
 
+    /**
+     * Returns the validation time property for binding.
+     *
+     * @return the validation time property for binding
+     */
     public LongProperty validationTimeMsProperty() {
         return validationTimeMs;
     }
@@ -194,6 +219,11 @@ public class BatchValidationFile {
         this.errorMessage.set(message);
     }
 
+    /**
+     * Returns the error message property for binding.
+     *
+     * @return the error message property for binding
+     */
     public StringProperty errorMessageProperty() {
         return errorMessage;
     }

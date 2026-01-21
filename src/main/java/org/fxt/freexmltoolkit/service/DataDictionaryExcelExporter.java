@@ -75,6 +75,12 @@ public class DataDictionaryExcelExporter {
     private CellStyle labelStyle;
     private CellStyle valueStyle;
 
+    /**
+     * Creates a new exporter.
+     *
+     * @param xsdDocumentationData The documentation data.
+     * @param htmlService The HTML service.
+     */
     public DataDictionaryExcelExporter(XsdDocumentationData xsdDocumentationData,
                                        XsdDocumentationHtmlService htmlService) {
         this.xsdDocumentationData = xsdDocumentationData;

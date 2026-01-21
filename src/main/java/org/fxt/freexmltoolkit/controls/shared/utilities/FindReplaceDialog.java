@@ -31,6 +31,10 @@ import org.fxmisc.richtext.CodeArea;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Dialog for finding and replacing text in a CodeArea.
+ * Supports case-sensitive search, whole word matching, and regular expressions.
+ */
 public class FindReplaceDialog extends Dialog<Void> {
 
     private final CodeArea codeArea;
@@ -42,6 +46,11 @@ public class FindReplaceDialog extends Dialog<Void> {
 
     private int lastFoundIndex = -1;
 
+    /**
+     * Creates a new FindReplaceDialog for the given CodeArea.
+     *
+     * @param codeArea the CodeArea to search and replace in
+     */
     public FindReplaceDialog(CodeArea codeArea) {
         this.codeArea = codeArea;
         setTitle("Find and Replace");

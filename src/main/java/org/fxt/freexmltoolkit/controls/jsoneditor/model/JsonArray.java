@@ -20,26 +20,54 @@ package org.fxt.freexmltoolkit.controls.jsoneditor.model;
 
 /**
  * Represents a JSON array (ordered list of values).
+ *
+ * <p>This class models a JSON array, which is an ordered collection of JSON values.
+ * Arrays can contain any combination of JSON nodes including objects, other arrays,
+ * and primitive values. The class provides methods for accessing, modifying,
+ * and iterating over array elements.</p>
+ *
+ * <p>Example JSON array: {@code [1, "hello", true, null, {"key": "value"}]}</p>
  */
 public class JsonArray extends JsonNode {
 
+    /**
+     * Creates a new empty JSON array.
+     *
+     * <p>The array is initialized with no elements and can be populated
+     * using the {@link #add(JsonNode)} or {@link #add(int, JsonNode)} methods.</p>
+     */
     public JsonArray() {
     }
 
+    /**
+     * Returns the node type for this JSON array.
+     *
+     * @return {@link JsonNodeType#ARRAY} indicating this is an array node
+     */
     @Override
     public JsonNodeType getNodeType() {
         return JsonNodeType.ARRAY;
     }
 
     /**
-     * Gets an element at a specific index.
+     * Gets an element at a specific index in the array.
+     *
+     * @param index the zero-based index of the element to retrieve
+     * @return the JSON node at the specified index, or null if the index is out of bounds
      */
     public JsonNode get(int index) {
         return getChild(index);
     }
 
     /**
-     * Sets an element at a specific index.
+     * Sets an element at a specific index in the array, replacing any existing element.
+     *
+     * <p>If the index is valid (within the current array bounds), the existing element
+     * at that position is replaced with the new value. The old element's parent reference
+     * is cleared, and the new element's parent is set to this array.</p>
+     *
+     * @param index the zero-based index at which to set the element
+     * @param value the JSON node to place at the specified index
      */
     public void set(int index, JsonNode value) {
         if (index >= 0 && index < children.size()) {
@@ -52,39 +80,66 @@ public class JsonArray extends JsonNode {
 
     /**
      * Adds an element to the end of the array.
+     *
+     * <p>The element is appended after all existing elements in the array.</p>
+     *
+     * @param value the JSON node to add to the array
      */
     public void add(JsonNode value) {
         addChild(value);
     }
 
     /**
-     * Adds an element at a specific index.
+     * Adds an element at a specific index in the array.
+     *
+     * <p>Elements at or after the specified index are shifted to make room
+     * for the new element.</p>
+     *
+     * @param index the zero-based index at which to insert the element
+     * @param value the JSON node to insert into the array
      */
     public void add(int index, JsonNode value) {
         addChild(index, value);
     }
 
     /**
-     * Removes an element at a specific index.
+     * Removes and returns the element at a specific index in the array.
+     *
+     * <p>Elements after the removed element are shifted to fill the gap.</p>
+     *
+     * @param index the zero-based index of the element to remove
+     * @return the removed JSON node, or null if the index is out of bounds
      */
     public JsonNode remove(int index) {
         return removeChild(index);
     }
 
     /**
-     * Gets the size of the array.
+     * Gets the number of elements in the array.
+     *
+     * @return the count of elements in this array
      */
     public int size() {
         return getChildCount();
     }
 
     /**
-     * Checks if the array is empty.
+     * Checks if the array contains no elements.
+     *
+     * @return true if the array has no elements, false otherwise
      */
     public boolean isEmpty() {
         return children.isEmpty();
     }
 
+    /**
+     * Creates a deep copy of this JSON array and all its contained elements.
+     *
+     * <p>The copy includes recursively copied versions of all child nodes,
+     * ensuring that modifications to the copy do not affect the original.</p>
+     *
+     * @return a new JsonArray instance that is a deep copy of this array
+     */
     @Override
     public JsonNode deepCopy() {
         JsonArray copy = new JsonArray();
@@ -95,6 +150,20 @@ public class JsonArray extends JsonNode {
         return copy;
     }
 
+    /**
+     * Serializes this JSON array to a formatted JSON string.
+     *
+     * <p>The output format depends on the array contents:
+     * <ul>
+     *   <li>Empty arrays are serialized as {@code []}</li>
+     *   <li>Small arrays (5 or fewer elements) containing only primitives use compact format</li>
+     *   <li>Other arrays use multi-line format with proper indentation</li>
+     * </ul>
+     *
+     * @param indent the number of spaces to use for each indentation level
+     * @param currentIndent the current indentation level (number of spaces from left margin)
+     * @return the JSON string representation of this array
+     */
     @Override
     public String serialize(int indent, int currentIndent) {
         if (children.isEmpty()) {
@@ -139,6 +208,14 @@ public class JsonArray extends JsonNode {
         return sb.toString();
     }
 
+    /**
+     * Returns a display label for this array suitable for use in tree views.
+     *
+     * <p>The label includes the array's key (if set) followed by {@code [...]}
+     * to indicate that this is an array node.</p>
+     *
+     * @return a human-readable label for this array, e.g., "items [...]" or "[...]"
+     */
     @Override
     public String getDisplayLabel() {
         String key = getKey();
@@ -148,6 +225,13 @@ public class JsonArray extends JsonNode {
         return "[...]";
     }
 
+    /**
+     * Returns a string representation of the array's value for display purposes.
+     *
+     * <p>Shows the element count rather than the actual contents.</p>
+     *
+     * @return a string indicating the number of items, e.g., "[5 items]"
+     */
     @Override
     public String getValueAsString() {
         return "[" + getChildCount() + " items]";

@@ -14,46 +14,134 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
- * Revolutionary Schema Generation Engine - Auto-generates XSD from XML with intelligent analysis.
- * Features:
- * - Smart type inference from XML content
- * - Multiple XML document analysis for pattern detection
- * - Occurrence pattern analysis (minOccurs/maxOccurs)
- * - Namespace handling and optimization
- * - Schema optimization and flattening
- * - Documentation generation
+ * Revolutionary Schema Generation Engine that auto-generates XSD schemas from XML documents
+ * using intelligent analysis techniques.
+ *
+ * <p>This engine provides comprehensive schema generation capabilities including:</p>
+ * <ul>
+ *   <li>Smart type inference from XML content (integers, decimals, dates, booleans, URIs, etc.)</li>
+ *   <li>Multiple XML document analysis for improved pattern detection</li>
+ *   <li>Occurrence pattern analysis to determine minOccurs/maxOccurs constraints</li>
+ *   <li>Namespace handling and optimization</li>
+ *   <li>Schema optimization and flattening</li>
+ *   <li>Automatic documentation generation</li>
+ * </ul>
+ *
+ * <p>The engine uses a singleton pattern and can be obtained via {@link #getInstance()}.
+ * It supports both single-document and multi-document analysis modes for enhanced
+ * pattern detection and more accurate schema generation.</p>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * SchemaGenerationEngine engine = SchemaGenerationEngine.getInstance();
+ * SchemaGenerationOptions options = new SchemaGenerationOptions();
+ * SchemaGenerationResult result = engine.generateSchema(xmlContent, options);
+ * if (result.isSuccess()) {
+ *     String xsdContent = result.getSchemaContent();
+ * }
+ * }</pre>
+ *
+ * @see SchemaGenerationResult
+ * @see SchemaGenerationOptions
+ * @see SchemaAnalysisResult
  */
 public class SchemaGenerationEngine {
 
     private static final Logger logger = LogManager.getLogger(SchemaGenerationEngine.class);
 
-    // Singleton instance
+    /**
+     * Singleton instance of the schema generation engine.
+     */
     private static SchemaGenerationEngine instance;
 
-    // Type inference patterns
+    /**
+     * Regular expression pattern for detecting integer values (with optional negative sign).
+     */
     private static final Pattern INTEGER_PATTERN = Pattern.compile("^-?\\d+$");
+
+    /**
+     * Regular expression pattern for detecting decimal values (with optional negative sign).
+     */
     private static final Pattern DECIMAL_PATTERN = Pattern.compile("^-?\\d*\\.\\d+$");
+
+    /**
+     * Regular expression pattern for detecting ISO 8601 date values (YYYY-MM-DD).
+     */
     private static final Pattern DATE_PATTERN = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}$");
+
+    /**
+     * Regular expression pattern for detecting ISO 8601 datetime values.
+     */
     private static final Pattern DATETIME_PATTERN = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*$");
+
+    /**
+     * Regular expression pattern for detecting time values (HH:MM:SS with optional timezone).
+     */
     private static final Pattern TIME_PATTERN = Pattern.compile("^\\d{2}:\\d{2}:\\d{2}.*$");
+
+    /**
+     * Regular expression pattern for detecting boolean values (true, false, 0, or 1).
+     */
     private static final Pattern BOOLEAN_PATTERN = Pattern.compile("^(true|false|0|1)$");
+
+    /**
+     * Regular expression pattern for detecting email addresses.
+     */
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+
+    /**
+     * Regular expression pattern for detecting HTTP/HTTPS URLs.
+     */
     private static final Pattern URL_PATTERN = Pattern.compile("^https?://.*$");
 
-    // Analysis configuration
+    /**
+     * Flag indicating whether smart type inference is enabled.
+     * When enabled, the engine analyzes content values to determine appropriate XSD types.
+     */
     private boolean enableSmartTypeInference = true;
+
+    /**
+     * Flag indicating whether pattern detection is enabled.
+     * When enabled, the engine detects common patterns like email, URL, postal codes, etc.
+     */
     private boolean enablePatternDetection = true;
+
+    /**
+     * Flag indicating whether documentation generation is enabled.
+     * When enabled, the generated schema includes annotation elements with documentation.
+     */
     private final boolean enableDocumentationGeneration = true;
+
+    /**
+     * Flag indicating whether schema optimization is enabled.
+     * When enabled, the engine optimizes the generated schema structure.
+     */
     private boolean optimizeSchema = true;
+
+    /**
+     * Maximum number of sample values to collect for analysis.
+     */
     private final int maxSampleValues = 10;
 
-    // Analysis results cache
+    /**
+     * Cache for storing schema analysis results to improve performance on repeated analyses.
+     */
     private final Map<String, SchemaAnalysisResult> analysisCache = new ConcurrentHashMap<>();
 
+    /**
+     * Creates a new instance of the Schema Generation Engine.
+     * Initializes the engine with default configuration settings.
+     */
     public SchemaGenerationEngine() {
         logger.info("Schema Generation Engine initialized");
     }
 
+    /**
+     * Returns the singleton instance of the Schema Generation Engine.
+     * Creates a new instance if one does not already exist.
+     *
+     * @return the singleton instance of {@code SchemaGenerationEngine}
+     */
     public static synchronized SchemaGenerationEngine getInstance() {
         if (instance == null) {
             instance = new SchemaGenerationEngine();
@@ -64,7 +152,21 @@ public class SchemaGenerationEngine {
     // ========== Main Schema Generation Methods ==========
 
     /**
-     * Generate XSD schema from single XML document
+     * Generates an XSD schema from a single XML document.
+     *
+     * <p>This method analyzes the structure and content of the provided XML document
+     * to automatically generate a corresponding XSD schema. The generation process includes:</p>
+     * <ul>
+     *   <li>Parsing and validating the XML document</li>
+     *   <li>Analyzing the XML structure (elements, attributes, nesting)</li>
+     *   <li>Inferring appropriate XSD data types from content values</li>
+     *   <li>Detecting namespaces and handling them appropriately</li>
+     *   <li>Generating the final XSD schema with optional documentation</li>
+     * </ul>
+     *
+     * @param xmlContent the XML document content as a string to analyze and generate schema from
+     * @param options    the schema generation options controlling the generation behavior
+     * @return a {@link SchemaGenerationResult} containing the generated XSD schema or error information
      */
     public SchemaGenerationResult generateSchema(String xmlContent, SchemaGenerationOptions options) {
         long startTime = System.currentTimeMillis();
@@ -99,7 +201,24 @@ public class SchemaGenerationEngine {
     }
 
     /**
-     * Generate XSD schema from multiple XML documents for pattern analysis
+     * Generates an XSD schema from multiple XML documents using advanced pattern analysis.
+     *
+     * <p>This method analyzes multiple XML documents to generate a more comprehensive and accurate
+     * XSD schema. By examining multiple instances of the same structure, the engine can:</p>
+     * <ul>
+     *   <li>Detect optional vs. required elements based on their presence across documents</li>
+     *   <li>Determine accurate minOccurs/maxOccurs constraints from actual usage patterns</li>
+     *   <li>Identify common patterns and variations in the document structure</li>
+     *   <li>Infer more precise data types by analyzing multiple sample values</li>
+     *   <li>Optimize the schema based on cross-document analysis</li>
+     * </ul>
+     *
+     * <p>This method is recommended when you have multiple sample XML documents that conform
+     * to the same schema, as it produces more accurate results than single-document analysis.</p>
+     *
+     * @param xmlDocuments a list of XML document contents as strings to analyze
+     * @param options      the schema generation options controlling the generation behavior
+     * @return a {@link SchemaGenerationResult} containing the generated XSD schema or error information
      */
     public SchemaGenerationResult generateSchemaFromMultipleDocuments(List<String> xmlDocuments,
                                                                       SchemaGenerationOptions options) {
@@ -657,21 +776,66 @@ public class SchemaGenerationEngine {
 
     // ========== Configuration Methods ==========
 
+    /**
+     * Enables or disables smart type inference.
+     *
+     * <p>When smart type inference is enabled, the engine analyzes the content values
+     * of elements and attributes to determine the most appropriate XSD data types
+     * (e.g., xs:integer, xs:decimal, xs:date, xs:boolean, xs:anyURI).</p>
+     *
+     * <p>When disabled, all content will be typed as xs:string.</p>
+     *
+     * @param enabled {@code true} to enable smart type inference, {@code false} to disable
+     */
     public void setSmartTypeInference(boolean enabled) {
         this.enableSmartTypeInference = enabled;
         logger.debug("Smart type inference {}", enabled ? "enabled" : "disabled");
     }
 
+    /**
+     * Enables or disables pattern detection.
+     *
+     * <p>When pattern detection is enabled, the engine analyzes text content to detect
+     * common patterns such as:</p>
+     * <ul>
+     *   <li>Email addresses</li>
+     *   <li>URLs</li>
+     *   <li>Country codes</li>
+     *   <li>Postal codes</li>
+     *   <li>Other format-specific patterns</li>
+     * </ul>
+     *
+     * <p>Detected patterns can be used to add pattern restrictions to the generated schema.</p>
+     *
+     * @param enabled {@code true} to enable pattern detection, {@code false} to disable
+     */
     public void setPatternDetection(boolean enabled) {
         this.enablePatternDetection = enabled;
         logger.debug("Pattern detection {}", enabled ? "enabled" : "disabled");
     }
 
+    /**
+     * Enables or disables schema optimization.
+     *
+     * <p>When schema optimization is enabled, the engine applies various optimization
+     * techniques to the generated schema to reduce redundancy and improve structure.
+     * Optimizations may include reusing common type definitions and simplifying
+     * complex structures.</p>
+     *
+     * @param enabled {@code true} to enable schema optimization, {@code false} to disable
+     */
     public void setSchemaOptimization(boolean enabled) {
         this.optimizeSchema = enabled;
         logger.debug("Schema optimization {}", enabled ? "enabled" : "disabled");
     }
 
+    /**
+     * Clears the internal analysis cache.
+     *
+     * <p>The engine caches analysis results to improve performance when analyzing
+     * similar documents. Call this method to free memory or force re-analysis
+     * of previously analyzed documents.</p>
+     */
     public void clearCache() {
         analysisCache.clear();
         logger.info("Schema analysis cache cleared");

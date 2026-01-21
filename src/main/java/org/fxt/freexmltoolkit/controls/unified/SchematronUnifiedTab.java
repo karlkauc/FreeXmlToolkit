@@ -805,6 +805,8 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
 
     /**
      * Gets the underlying code editor.
+     *
+     * @return the XmlCodeEditorV2 instance used for Schematron code editing
      */
     public XmlCodeEditorV2 getCodeEditor() {
         return codeEditor;
@@ -812,6 +814,8 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
 
     /**
      * Gets the code area for direct access.
+     *
+     * @return the CodeArea instance from the underlying code editor
      */
     public CodeArea getCodeArea() {
         return codeEditor.getCodeArea();
@@ -819,6 +823,8 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
 
     /**
      * Gets the visual builder component.
+     *
+     * @return the SchematronVisualBuilder instance for graphical rule creation
      */
     public SchematronVisualBuilder getVisualBuilder() {
         return visualBuilder;
@@ -826,6 +832,8 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
 
     /**
      * Gets the tester component.
+     *
+     * @return the SchematronTester instance for testing rules against XML files
      */
     public SchematronTester getTester() {
         return tester;
@@ -833,6 +841,8 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
 
     /**
      * Gets the documentation generator component.
+     *
+     * @return the SchematronDocumentationGenerator instance for creating comprehensive documentation
      */
     public SchematronDocumentationGenerator getDocumentationGenerator() {
         return documentationGenerator;
@@ -856,6 +866,8 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
 
     /**
      * Deprecated method for backward compatibility.
+     *
+     * @return the XmlCodeEditorV2 instance used for Schematron code editing
      * @deprecated Use getCodeEditor() instead
      */
     @Deprecated(since = "2.0", forRemoval = true)

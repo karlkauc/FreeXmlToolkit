@@ -47,10 +47,29 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Controller for the Intelligent Schema Generator - Revolutionary Feature #3
- * Auto-generates XSD schemas with advanced type inference and optimization
+ * Controller for the Intelligent Schema Generator - Revolutionary Feature #3.
+ * Auto-generates XSD schemas with advanced type inference and optimization.
+ *
+ * <p>This controller manages the schema generation workflow including:
+ * <ul>
+ *   <li>Loading XML files for analysis</li>
+ *   <li>Configuring type inference and optimization options</li>
+ *   <li>Generating XSD schemas from XML input</li>
+ *   <li>Exporting generated schemas to files</li>
+ * </ul>
+ *
+ * @see SchemaGenerationEngine
+ * @see SchemaGenerationOptions
  */
 public class SchemaGeneratorController implements FavoritesParentController {
+
+    /**
+     * Default constructor for SchemaGeneratorController.
+     * Initializes the controller with default settings for schema generation.
+     */
+    public SchemaGeneratorController() {
+        // Default constructor - initialization done in initialize() method
+    }
     private static final Logger logger = LogManager.getLogger(SchemaGeneratorController.class);
 
     // Revolutionary Services
@@ -354,6 +373,14 @@ public class SchemaGeneratorController implements FavoritesParentController {
 
     // FavoritesParentController interface implementation
 
+    /**
+     * Loads a file from the favorites list into the XML input area.
+     *
+     * <p>This method is called when a user selects a file from the favorites panel.
+     * The file content is loaded into the input text area for schema generation.
+     *
+     * @param file the file to load from favorites
+     */
     @Override
     public void loadFileToNewTab(File file) {
         if (file == null || !file.exists()) {
@@ -375,6 +402,11 @@ public class SchemaGeneratorController implements FavoritesParentController {
         }
     }
 
+    /**
+     * Returns the currently loaded XML file.
+     *
+     * @return the current XML file, or null if no file is loaded
+     */
     @Override
     public File getCurrentFile() {
         return currentXmlFile;
@@ -465,6 +497,20 @@ public class SchemaGeneratorController implements FavoritesParentController {
         if (addComments != null) addComments.setSelected(true);
     }
 
+    /**
+     * Generates an XSD schema from the XML content in the input area.
+     *
+     * <p>This method performs the following steps:
+     * <ol>
+     *   <li>Validates that XML content is present in the input area</li>
+     *   <li>Builds generation options from the current UI settings</li>
+     *   <li>Executes schema generation asynchronously in a background thread</li>
+     *   <li>Displays results in the output area upon completion</li>
+     * </ol>
+     *
+     * <p>The generation progress is shown via a progress bar, and the generate button
+     * is disabled during processing to prevent concurrent operations.
+     */
     @FXML
     public void generateSchema() {
         String xmlContent = xmlInputArea != null ? xmlInputArea.getText().trim() : "";
@@ -731,14 +777,39 @@ public class SchemaGeneratorController implements FavoritesParentController {
         alert.showAndWait();
     }
 
-    // Inner class for Type Definitions
+    /**
+     * Represents a type definition entry for display in the type definitions table.
+     *
+     * <p>This class encapsulates information about XSD types (complex or simple)
+     * that are generated during schema creation, including their name, kind,
+     * base type, usage count, and description.
+     */
     public static class TypeDefinition {
+
+        /** The name of the type definition. */
         private String name;
+
+        /** The kind of type (e.g., "complexType", "simpleType"). */
         private String kind;
+
+        /** The base type from which this type is derived, if any. */
         private String baseType;
+
+        /** The number of times this type is referenced in the schema. */
         private int usageCount;
+
+        /** A human-readable description of the type. */
         private String description;
 
+        /**
+         * Constructs a new TypeDefinition with the specified properties.
+         *
+         * @param name        the name of the type definition
+         * @param kind        the kind of type (e.g., "complexType", "simpleType")
+         * @param baseType    the base type from which this type is derived, or null if none
+         * @param usageCount  the number of times this type is referenced in the schema
+         * @param description a human-readable description of the type
+         */
         public TypeDefinition(String name, String kind, String baseType, int usageCount, String description) {
             this.name = name;
             this.kind = kind;
@@ -747,49 +818,104 @@ public class SchemaGeneratorController implements FavoritesParentController {
             this.description = description;
         }
 
-        // Getters and setters
+        /**
+         * Returns the name of this type definition.
+         *
+         * @return the type name
+         */
         public String getName() {
             return name;
         }
 
+        /**
+         * Sets the name of this type definition.
+         *
+         * @param name the new type name
+         */
         public void setName(String name) {
             this.name = name;
         }
 
+        /**
+         * Returns the kind of this type (e.g., "complexType", "simpleType").
+         *
+         * @return the type kind
+         */
         public String getKind() {
             return kind;
         }
 
+        /**
+         * Sets the kind of this type.
+         *
+         * @param kind the new type kind
+         */
         public void setKind(String kind) {
             this.kind = kind;
         }
 
+        /**
+         * Returns the base type from which this type is derived.
+         *
+         * @return the base type name, or null if this type has no base type
+         */
         public String getBaseType() {
             return baseType;
         }
 
+        /**
+         * Sets the base type from which this type is derived.
+         *
+         * @param baseType the new base type name
+         */
         public void setBaseType(String baseType) {
             this.baseType = baseType;
         }
 
+        /**
+         * Returns the number of times this type is referenced in the schema.
+         *
+         * @return the usage count
+         */
         public int getUsageCount() {
             return usageCount;
         }
 
+        /**
+         * Sets the number of times this type is referenced in the schema.
+         *
+         * @param usageCount the new usage count
+         */
         public void setUsageCount(int usageCount) {
             this.usageCount = usageCount;
         }
 
+        /**
+         * Returns the human-readable description of this type.
+         *
+         * @return the type description
+         */
         public String getDescription() {
             return description;
         }
 
+        /**
+         * Sets the human-readable description of this type.
+         *
+         * @param description the new type description
+         */
         public void setDescription(String description) {
             this.description = description;
         }
     }
 
-    // Lifecycle
+    /**
+     * Shuts down the controller and releases resources.
+     *
+     * <p>This method should be called when the controller is no longer needed,
+     * typically during application shutdown. It gracefully terminates the
+     * background executor service used for schema generation tasks.
+     */
     public void shutdown() {
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();

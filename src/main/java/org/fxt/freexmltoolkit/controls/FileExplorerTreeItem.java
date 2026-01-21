@@ -29,6 +29,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * A lazy-loading TreeItem implementation for file system browsing.
+ * This class provides efficient navigation of file system directories
+ * by loading child items on demand rather than eagerly.
+ *
+ * <p>Features include:</p>
+ * <ul>
+ *   <li>Lazy loading of directory contents</li>
+ *   <li>Optional file extension filtering</li>
+ *   <li>Caching of subdirectory counts</li>
+ *   <li>Refresh and force refresh capabilities</li>
+ *   <li>Expand-and-find functionality for path navigation</li>
+ * </ul>
+ *
+ * <p>Directories are always shown before files, and both are sorted
+ * alphabetically (case-insensitive).</p>
+ *
+ * @see javafx.scene.control.TreeItem
+ * @see FileExplorer
+ */
 public class FileExplorerTreeItem extends TreeItem<Path> {
 
     private static final Logger logger = LogManager.getLogger(FileExplorerTreeItem.class);
@@ -42,10 +62,23 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
 
     private final List<String> allowedExtensions;
 
+    /**
+     * Creates a new FileExplorerTreeItem with the specified path.
+     * No file extension filtering is applied.
+     *
+     * @param value the file system path represented by this tree item
+     */
     public FileExplorerTreeItem(Path value) {
         this(value, null);
     }
 
+    /**
+     * Creates a new FileExplorerTreeItem with the specified path and extension filter.
+     *
+     * @param value             the file system path represented by this tree item
+     * @param allowedExtensions list of allowed file extensions (without dot, e.g., "xml", "xsd"),
+     *                          or null/empty to allow all files
+     */
     public FileExplorerTreeItem(Path value, List<String> allowedExtensions) {
         super(value);
         this.allowedExtensions = allowedExtensions;
@@ -92,6 +125,11 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
     }
 
 
+    /**
+     * Returns the count of subdirectories in this directory.
+     *
+     * @return the number of subdirectories
+     */
     public long getSubdirectoryCount() {
         if (this.subdirectoryCount == -1) { // Nur beim ersten Mal berechnen
             Path path = getValue();

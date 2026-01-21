@@ -397,7 +397,9 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
     // ==================== Accessors ====================
 
     /**
-     * Gets the underlying text editor.
+     * Gets the underlying text editor component.
+     *
+     * @return the JsonCodeEditor instance
      */
     public JsonCodeEditor getTextEditor() {
         return textEditor;
@@ -405,6 +407,8 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
 
     /**
      * Gets the code area for direct access.
+     *
+     * @return the CodeArea instance from the text editor
      */
     public CodeArea getCodeArea() {
         return textEditor.getCodeArea();
@@ -416,7 +420,9 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
     }
 
     /**
-     * Gets the tree view component.
+     * Gets the tree view component for hierarchical JSON navigation.
+     *
+     * @return the JsonTreeView instance
      */
     public JsonTreeView getTreeView() {
         return treeView;
@@ -424,6 +430,8 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
 
     /**
      * Gets the current JSON document model.
+     *
+     * @return the JsonDocument instance, or null if no document is loaded
      */
     public JsonDocument getJsonDocument() {
         return jsonDocument;

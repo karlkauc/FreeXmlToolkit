@@ -52,8 +52,19 @@ public class JsonContextMenuManager {
      * Interface for handling JSON context menu actions.
      */
     public interface JsonContextActions {
+        /**
+         * Formats the JSON content with proper indentation.
+         */
         void formatJson();
+
+        /**
+         * Minifies the JSON content by removing whitespace.
+         */
         void minifyJson();
+
+        /**
+         * Validates the JSON content and reports any errors.
+         */
         void validateJson();
     }
 

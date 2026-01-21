@@ -16,96 +16,230 @@ import java.util.prefs.Preferences;
  */
 public class ModernXmlThemeManager {
 
+    /**
+     * Logger instance for this class.
+     */
     private static final Logger logger = LogManager.getLogger(ModernXmlThemeManager.class);
 
+    /**
+     * Singleton instance of the theme manager.
+     */
     private static ModernXmlThemeManager instance;
+
+    /**
+     * Map of all registered themes, keyed by theme name.
+     */
     private final Map<String, XmlHighlightTheme> themes = new HashMap<>();
+
+    /**
+     * The currently active theme.
+     */
     private XmlHighlightTheme currentTheme;
+
+    /**
+     * List of listeners that are notified when the theme changes.
+     */
     private final ObservableList<ThemeChangeListener> listeners = FXCollections.observableArrayList();
+
+    /**
+     * User preferences storage for persisting theme selection.
+     */
     private final Preferences preferences = Preferences.userNodeForPackage(ModernXmlThemeManager.class);
 
-    // Theme preference key
+    /**
+     * Preference key for storing the current theme name.
+     */
     private static final String CURRENT_THEME_KEY = "xml_editor_theme";
+
+    /**
+     * Default theme name used when no theme is selected or the selected theme is not found.
+     */
     private static final String DEFAULT_THEME_NAME = "Modern Light";
 
     /**
-     * XML Highlight Theme definition
+     * XML Highlight Theme definition.
+     * Defines a complete theme for XML syntax highlighting including colors, styles, and base editor appearance.
      */
     public static class XmlHighlightTheme {
+
+        /**
+         * Internal unique name of the theme (e.g., "modern-light").
+         */
         private final String name;
+
+        /**
+         * Human-readable display name of the theme (e.g., "Modern Light").
+         */
         private final String displayName;
+
+        /**
+         * Indicates whether this is a dark theme.
+         */
         private final boolean isDark;
+
+        /**
+         * Map of highlight styles for each highlight type.
+         */
         private final Map<HighlightType, HighlightStyle> styles = new HashMap<>();
+
+        /**
+         * Map of base editor styles (background, text, selection, caret, line numbers).
+         */
         private final Map<String, String> baseStyles = new HashMap<>();
 
+        /**
+         * Enumeration of all highlight types supported by the XML syntax highlighter.
+         * Each type represents a different syntactic element that can be styled.
+         */
         public enum HighlightType {
             // XML Structure
+            /** XML declaration (e.g., &lt;?xml version="1.0"?&gt;). */
             XML_DECLARATION("XML Declaration"),
+            /** Opening element tag bracket and angle brackets. */
             XML_ELEMENT_TAG("Element Tag"),
+            /** Element name within a tag. */
             XML_ELEMENT_NAME("Element Name"),
+            /** Closing element tag (e.g., &lt;/element&gt;). */
             XML_CLOSING_TAG("Closing Tag"),
+            /** Self-closing element tag (e.g., &lt;element/&gt;). */
             XML_SELF_CLOSING("Self-Closing Tag"),
 
             // Attributes
+            /** Attribute name within an element. */
             XML_ATTRIBUTE_NAME("Attribute Name"),
+            /** Attribute value (the content within quotes). */
             XML_ATTRIBUTE_VALUE("Attribute Value"),
+            /** Equals sign between attribute name and value. */
             XML_ATTRIBUTE_EQUALS("Attribute Equals"),
+            /** Quote characters surrounding attribute values. */
             XML_ATTRIBUTE_QUOTES("Attribute Quotes"),
 
             // Content
+            /** Text content between elements. */
             XML_TEXT_CONTENT("Text Content"),
+            /** CDATA section content. */
             XML_CDATA("CDATA Section"),
+            /** XML comment content. */
             XML_COMMENT("Comment"),
+            /** Processing instruction (e.g., &lt;?target data?&gt;). */
             XML_PROCESSING_INSTRUCTION("Processing Instruction"),
 
             // Special
+            /** Namespace prefix and declaration. */
             XML_NAMESPACE("Namespace"),
+            /** Entity reference (e.g., &amp;amp;). */
             XML_ENTITY("Entity Reference"),
+            /** Whitespace characters. */
             XML_WHITESPACE("Whitespace"),
 
             // Error States
+            /** Syntax error highlighting. */
             XML_ERROR("Syntax Error"),
+            /** Warning highlighting. */
             XML_WARNING("Warning"),
+            /** Deprecated element highlighting. */
             XML_DEPRECATED("Deprecated"),
 
             // Line Elements
+            /** Line number gutter style. */
             LINE_NUMBER("Line Number"),
+            /** Current line highlight. */
             CURRENT_LINE("Current Line"),
+            /** Text selection highlight. */
             SELECTION("Selection"),
 
             // Search & Replace
+            /** Search result match highlight. */
             SEARCH_MATCH("Search Match"),
+            /** Currently focused search match highlight. */
             SEARCH_CURRENT("Current Search Match"),
 
             // Folding
+            /** Folded text placeholder style. */
             FOLDED_TEXT("Folded Text"),
+            /** Fold indicator gutter style. */
             FOLD_INDICATOR("Fold Indicator");
 
+            /**
+             * Human-readable display name for this highlight type.
+             */
             private final String displayName;
 
+            /**
+             * Constructs a HighlightType with the specified display name.
+             *
+             * @param displayName the human-readable name to display in the UI
+             */
             HighlightType(String displayName) {
                 this.displayName = displayName;
             }
 
+            /**
+             * Returns the human-readable display name for this highlight type.
+             *
+             * @return the display name
+             */
             public String getDisplayName() {
                 return displayName;
             }
         }
 
         /**
-         * Highlight style definition
+         * Highlight style definition.
+         * Defines the visual appearance for a single highlight type including colors, font styles, and decorations.
          */
         public static class HighlightStyle {
+
+            /**
+             * Text foreground color in CSS format (e.g., "#007bff" or "rgba(0,0,0,0.5)").
+             */
             private final String textColor;
+
+            /**
+             * Background color in CSS format, or null for no background.
+             */
             private String backgroundColor;
+
+            /**
+             * Whether the text should be rendered in bold.
+             */
             private boolean bold;
+
+            /**
+             * Whether the text should be rendered in italic.
+             */
             private boolean italic;
+
+            /**
+             * Whether the text should be underlined.
+             */
             private boolean underline;
+
+            /**
+             * Border color for the highlighted region, or null for no border.
+             */
             private String borderColor;
+
+            /**
+             * Border style (e.g., "solid", "dashed", "dotted"), or null for no border.
+             */
             private String borderStyle;
+
+            /**
+             * Font family name, or null to use the default editor font.
+             */
             private String fontFamily;
+
+            /**
+             * Font size in pixels, or null to use the default editor font size.
+             */
             private Integer fontSize;
 
+            /**
+             * Constructs a HighlightStyle with only a text color.
+             *
+             * @param textColor the text foreground color in CSS format
+             */
             public HighlightStyle(String textColor) {
                 this.textColor = textColor;
                 this.bold = false;
@@ -113,83 +247,179 @@ public class ModernXmlThemeManager {
                 this.underline = false;
             }
 
+            /**
+             * Constructs a HighlightStyle with a text color and bold setting.
+             *
+             * @param textColor the text foreground color in CSS format
+             * @param bold      whether the text should be bold
+             */
             public HighlightStyle(String textColor, boolean bold) {
                 this(textColor);
                 this.bold = bold;
             }
 
+            /**
+             * Constructs a HighlightStyle with text color, bold, and italic settings.
+             *
+             * @param textColor the text foreground color in CSS format
+             * @param bold      whether the text should be bold
+             * @param italic    whether the text should be italic
+             */
             public HighlightStyle(String textColor, boolean bold, boolean italic) {
                 this(textColor, bold);
                 this.italic = italic;
             }
 
+            /**
+             * Constructs a HighlightStyle with text color, background color, bold, and italic settings.
+             *
+             * @param textColor       the text foreground color in CSS format
+             * @param backgroundColor the background color in CSS format, or null for no background
+             * @param bold            whether the text should be bold
+             * @param italic          whether the text should be italic
+             */
             public HighlightStyle(String textColor, String backgroundColor, boolean bold, boolean italic) {
                 this(textColor, bold, italic);
                 this.backgroundColor = backgroundColor;
             }
 
-            // Builder methods
+            /**
+             * Sets the background color for this style.
+             * This method supports fluent chaining.
+             *
+             * @param backgroundColor the background color in CSS format
+             * @return this HighlightStyle instance for method chaining
+             */
             public HighlightStyle withBackground(String backgroundColor) {
                 this.backgroundColor = backgroundColor;
                 return this;
             }
 
+            /**
+             * Sets the border properties for this style.
+             * This method supports fluent chaining.
+             *
+             * @param borderColor the border color in CSS format
+             * @param borderStyle the border style (e.g., "solid", "dashed", "dotted")
+             * @return this HighlightStyle instance for method chaining
+             */
             public HighlightStyle withBorder(String borderColor, String borderStyle) {
                 this.borderColor = borderColor;
                 this.borderStyle = borderStyle;
                 return this;
             }
 
+            /**
+             * Enables underline decoration for this style.
+             * This method supports fluent chaining.
+             *
+             * @return this HighlightStyle instance for method chaining
+             */
             public HighlightStyle withUnderline() {
                 this.underline = true;
                 return this;
             }
 
+            /**
+             * Sets the font family and size for this style.
+             * This method supports fluent chaining.
+             *
+             * @param fontFamily the font family name, or null to use the default
+             * @param fontSize   the font size in pixels, or null to use the default
+             * @return this HighlightStyle instance for method chaining
+             */
             public HighlightStyle withFont(String fontFamily, Integer fontSize) {
                 this.fontFamily = fontFamily;
                 this.fontSize = fontSize;
                 return this;
             }
 
-            // Getters
+            /**
+             * Returns the text foreground color.
+             *
+             * @return the text color in CSS format
+             */
             public String getTextColor() {
                 return textColor;
             }
 
+            /**
+             * Returns the background color.
+             *
+             * @return the background color in CSS format, or null if not set
+             */
             public String getBackgroundColor() {
                 return backgroundColor;
             }
 
+            /**
+             * Returns whether the text should be bold.
+             *
+             * @return true if bold, false otherwise
+             */
             public boolean isBold() {
                 return bold;
             }
 
+            /**
+             * Returns whether the text should be italic.
+             *
+             * @return true if italic, false otherwise
+             */
             public boolean isItalic() {
                 return italic;
             }
 
+            /**
+             * Returns whether the text should be underlined.
+             *
+             * @return true if underlined, false otherwise
+             */
             public boolean isUnderline() {
                 return underline;
             }
 
+            /**
+             * Returns the border color.
+             *
+             * @return the border color in CSS format, or null if not set
+             */
             public String getBorderColor() {
                 return borderColor;
             }
 
+            /**
+             * Returns the border style.
+             *
+             * @return the border style (e.g., "solid", "dashed"), or null if not set
+             */
             public String getBorderStyle() {
                 return borderStyle;
             }
 
+            /**
+             * Returns the font family name.
+             *
+             * @return the font family, or null if using the default
+             */
             public String getFontFamily() {
                 return fontFamily;
             }
 
+            /**
+             * Returns the font size.
+             *
+             * @return the font size in pixels, or null if using the default
+             */
             public Integer getFontSize() {
                 return fontSize;
             }
 
             /**
-             * Generate CSS style string
+             * Generates a CSS style string from this highlight style.
+             * The generated string includes all non-null style properties.
+             *
+             * @return the CSS style string
              */
             public String toCssStyle() {
                 StringBuilder css = new StringBuilder();
@@ -224,13 +454,24 @@ public class ModernXmlThemeManager {
             }
 
             /**
-             * Create CSS class definition
+             * Creates a CSS class definition string for this highlight style.
+             *
+             * @param className the CSS class name (without the leading dot)
+             * @return the complete CSS class definition
              */
             public String toCssClass(String className) {
                 return "." + className + " { " + toCssStyle() + " }";
             }
         }
 
+        /**
+         * Constructs a new XmlHighlightTheme with the specified properties.
+         * Initializes base styles based on whether this is a dark or light theme.
+         *
+         * @param name        the internal unique name of the theme
+         * @param displayName the human-readable display name
+         * @param isDark      true if this is a dark theme, false for a light theme
+         */
         public XmlHighlightTheme(String name, String displayName, boolean isDark) {
             this.name = name;
             this.displayName = displayName;
@@ -252,46 +493,97 @@ public class ModernXmlThemeManager {
             }
         }
 
-        // Getters
+        /**
+         * Returns the internal unique name of this theme.
+         *
+         * @return the theme name
+         */
         public String getName() {
             return name;
         }
 
+        /**
+         * Returns the human-readable display name of this theme.
+         *
+         * @return the display name
+         */
         public String getDisplayName() {
             return displayName;
         }
 
+        /**
+         * Returns whether this is a dark theme.
+         *
+         * @return true if this is a dark theme, false otherwise
+         */
         public boolean isDark() {
             return isDark;
         }
 
+        /**
+         * Returns a copy of all highlight styles defined in this theme.
+         *
+         * @return a map of highlight types to their styles
+         */
         public Map<HighlightType, HighlightStyle> getStyles() {
             return new HashMap<>(styles);
         }
 
+        /**
+         * Returns a copy of all base editor styles defined in this theme.
+         *
+         * @return a map of style names to their CSS values
+         */
         public Map<String, String> getBaseStyles() {
             return new HashMap<>(baseStyles);
         }
 
-        // Style management
+        /**
+         * Sets the highlight style for a specific highlight type.
+         *
+         * @param type  the highlight type to style
+         * @param style the style to apply
+         */
         public void setStyle(HighlightType type, HighlightStyle style) {
             styles.put(type, style);
         }
 
+        /**
+         * Returns the highlight style for a specific highlight type.
+         *
+         * @param type the highlight type
+         * @return the style for the given type, or null if not defined
+         */
         public HighlightStyle getStyle(HighlightType type) {
             return styles.get(type);
         }
 
+        /**
+         * Sets a base editor style value.
+         *
+         * @param key   the style key (e.g., "background", "text", "selection")
+         * @param value the CSS value for the style
+         */
         public void setBaseStyle(String key, String value) {
             baseStyles.put(key, value);
         }
 
+        /**
+         * Returns a base editor style value.
+         *
+         * @param key the style key
+         * @return the CSS value for the style, or null if not defined
+         */
         public String getBaseStyle(String key) {
             return baseStyles.get(key);
         }
 
         /**
-         * Generate complete CSS for this theme
+         * Generates complete CSS stylesheet for this theme.
+         * Includes base code area styles, selection styles, line number styles,
+         * and all syntax highlighting classes.
+         *
+         * @return the complete CSS stylesheet as a string
          */
         public String generateThemeCss() {
             StringBuilder css = new StringBuilder();
@@ -326,7 +618,12 @@ public class ModernXmlThemeManager {
         }
 
         /**
-         * Adjust color brightness for theme variations
+         * Adjusts the brightness of a hex color by a given factor.
+         * Positive factors lighten the color, negative factors darken it.
+         *
+         * @param hexColor the color in hex format (e.g., "#ffffff")
+         * @param factor   the brightness adjustment factor (-1.0 to 1.0)
+         * @return the adjusted color in hex format, or the original color if parsing fails
          */
         private String adjustBrightness(String hexColor, float factor) {
             if (hexColor == null || !hexColor.startsWith("#")) {
@@ -351,17 +648,34 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Theme change listener interface
+     * Listener interface for theme change events.
+     * Implementations receive notifications when the current theme is changed.
      */
     public interface ThemeChangeListener {
+        /**
+         * Called when the theme is changed.
+         *
+         * @param oldTheme the previously active theme
+         * @param newTheme the newly active theme
+         */
         void onThemeChanged(XmlHighlightTheme oldTheme, XmlHighlightTheme newTheme);
     }
 
+    /**
+     * Private constructor to enforce singleton pattern.
+     * Initializes built-in themes and loads the current theme from preferences.
+     */
     private ModernXmlThemeManager() {
         initializeBuiltInThemes();
         loadCurrentTheme();
     }
 
+    /**
+     * Returns the singleton instance of the ModernXmlThemeManager.
+     * Creates the instance if it does not already exist.
+     *
+     * @return the singleton instance
+     */
     public static ModernXmlThemeManager getInstance() {
         if (instance == null) {
             instance = new ModernXmlThemeManager();
@@ -370,7 +684,8 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Initialize built-in themes
+     * Initializes all built-in themes.
+     * Called during construction to populate the themes map with default themes.
      */
     private void initializeBuiltInThemes() {
         createModernLightTheme();
@@ -386,7 +701,8 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Create Modern Light theme (default)
+     * Creates the Modern Light theme (the default theme).
+     * A clean, modern light theme with blue element names and purple attribute names.
      */
     private void createModernLightTheme() {
         XmlHighlightTheme theme = new XmlHighlightTheme("modern-light", "Modern Light", false);
@@ -427,12 +743,13 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Create Modern Dark theme
+     * Creates the Modern Dark theme.
+     * A sleek dark theme with soft blue element names and purple attribute names.
      */
     private void createModernDarkTheme() {
         XmlHighlightTheme theme = new XmlHighlightTheme("modern-dark", "Modern Dark", true);
 
-        // XML Structure  
+        // XML Structure
         theme.setStyle(XmlHighlightTheme.HighlightType.XML_DECLARATION, new XmlHighlightTheme.HighlightStyle("#bb86fc", true));
         theme.setStyle(XmlHighlightTheme.HighlightType.XML_ELEMENT_TAG, new XmlHighlightTheme.HighlightStyle("#64b5f6"));
         theme.setStyle(XmlHighlightTheme.HighlightType.XML_ELEMENT_NAME, new XmlHighlightTheme.HighlightStyle("#64b5f6", true));
@@ -464,7 +781,8 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Create High Contrast theme
+     * Creates the High Contrast theme.
+     * A high-contrast dark theme designed for accessibility with maximum color contrast.
      */
     private void createHighContrastTheme() {
         XmlHighlightTheme theme = new XmlHighlightTheme("high-contrast", "High Contrast", true);
@@ -486,7 +804,8 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Create Solarized Light theme
+     * Creates the Solarized Light theme.
+     * Based on the popular Solarized color scheme by Ethan Schoonover (light variant).
      */
     private void createSolarizedLightTheme() {
         XmlHighlightTheme theme = new XmlHighlightTheme("solarized-light", "Solarized Light", false);
@@ -503,7 +822,8 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Create Solarized Dark theme
+     * Creates the Solarized Dark theme.
+     * Based on the popular Solarized color scheme by Ethan Schoonover (dark variant).
      */
     private void createSolarizedDarkTheme() {
         XmlHighlightTheme theme = new XmlHighlightTheme("solarized-dark", "Solarized Dark", true);
@@ -520,7 +840,8 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Create Monokai theme
+     * Creates the Monokai theme.
+     * Based on the popular Monokai color scheme originally for TextMate.
      */
     private void createMonokaiTheme() {
         XmlHighlightTheme theme = new XmlHighlightTheme("monokai", "Monokai", true);
@@ -537,7 +858,8 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Create Tomorrow Night theme
+     * Creates the Tomorrow Night theme.
+     * Based on the Tomorrow Night color scheme from the Tomorrow theme family.
      */
     private void createTomorrowNightTheme() {
         XmlHighlightTheme theme = new XmlHighlightTheme("tomorrow-night", "Tomorrow Night", true);
@@ -554,7 +876,8 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Create Visual Studio theme
+     * Creates the Visual Studio theme.
+     * Based on the classic Visual Studio light color scheme.
      */
     private void createVisualStudioTheme() {
         XmlHighlightTheme theme = new XmlHighlightTheme("visual-studio", "Visual Studio", false);
@@ -573,14 +896,18 @@ public class ModernXmlThemeManager {
     // ========== Public API ==========
 
     /**
-     * Get all available themes
+     * Returns a list of all available themes.
+     *
+     * @return a list containing all registered themes
      */
     public List<XmlHighlightTheme> getAvailableThemes() {
         return new ArrayList<>(themes.values());
     }
 
     /**
-     * Get theme names
+     * Returns a sorted list of all theme display names.
+     *
+     * @return a list of theme display names sorted alphabetically
      */
     public List<String> getThemeNames() {
         return themes.values().stream()
@@ -590,14 +917,20 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Get theme by name
+     * Returns the theme with the specified internal name.
+     *
+     * @param name the internal theme name (e.g., "modern-light")
+     * @return the theme, or null if not found
      */
     public XmlHighlightTheme getTheme(String name) {
         return themes.get(name);
     }
 
     /**
-     * Get theme by display name
+     * Returns the theme with the specified display name.
+     *
+     * @param displayName the display name (e.g., "Modern Light")
+     * @return the theme, or null if not found
      */
     public XmlHighlightTheme getThemeByDisplayName(String displayName) {
         return themes.values().stream()
@@ -607,14 +940,19 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Get current theme
+     * Returns the currently active theme.
+     *
+     * @return the current theme
      */
     public XmlHighlightTheme getCurrentTheme() {
         return currentTheme;
     }
 
     /**
-     * Set current theme
+     * Sets the current theme and notifies all listeners.
+     * The theme selection is persisted to user preferences.
+     *
+     * @param theme the theme to set as current
      */
     public void setCurrentTheme(XmlHighlightTheme theme) {
         if (theme != null && !theme.equals(currentTheme)) {
@@ -632,7 +970,10 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Set current theme by name
+     * Sets the current theme by internal name.
+     * If the theme is not found, logs a warning and does nothing.
+     *
+     * @param themeName the internal theme name (e.g., "modern-light")
      */
     public void setCurrentTheme(String themeName) {
         XmlHighlightTheme theme = getTheme(themeName);
@@ -644,7 +985,10 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Set current theme by display name
+     * Sets the current theme by display name.
+     * If the theme is not found, logs a warning and does nothing.
+     *
+     * @param displayName the display name (e.g., "Modern Light")
      */
     public void setCurrentThemeByDisplayName(String displayName) {
         XmlHighlightTheme theme = getThemeByDisplayName(displayName);
@@ -656,7 +1000,10 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Add custom theme
+     * Adds a custom theme to the available themes.
+     * If a theme with the same name already exists, it will be replaced.
+     *
+     * @param theme the custom theme to add
      */
     public void addCustomTheme(XmlHighlightTheme theme) {
         if (theme != null) {
@@ -666,7 +1013,11 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Remove theme
+     * Removes a theme from the available themes.
+     * If the removed theme was the current theme, switches to the default theme.
+     *
+     * @param themeName the internal name of the theme to remove
+     * @return true if the theme was removed, false if it was not found
      */
     public boolean removeTheme(String themeName) {
         XmlHighlightTheme removed = themes.remove(themeName);
@@ -681,14 +1032,16 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Reset to default theme
+     * Resets the current theme to the default theme (Modern Light).
      */
     public void resetToDefault() {
         setCurrentTheme(themes.get(DEFAULT_THEME_NAME.toLowerCase().replace(" ", "-")));
     }
 
     /**
-     * Add theme change listener
+     * Adds a listener to be notified when the current theme changes.
+     *
+     * @param listener the listener to add
      */
     public void addThemeChangeListener(ThemeChangeListener listener) {
         if (listener != null && !listeners.contains(listener)) {
@@ -697,21 +1050,29 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Remove theme change listener
+     * Removes a theme change listener.
+     *
+     * @param listener the listener to remove
      */
     public void removeThemeChangeListener(ThemeChangeListener listener) {
         listeners.remove(listener);
     }
 
     /**
-     * Generate CSS for current theme
+     * Generates the CSS stylesheet for the current theme.
+     *
+     * @return the CSS stylesheet, or an empty string if no theme is set
      */
     public String getCurrentThemeCss() {
         return currentTheme != null ? currentTheme.generateThemeCss() : "";
     }
 
     /**
-     * Export theme to properties format
+     * Exports a theme to a Properties object for persistence or sharing.
+     * The resulting Properties can be saved to a file or transmitted.
+     *
+     * @param theme the theme to export
+     * @return a Properties object containing all theme settings
      */
     public Properties exportTheme(XmlHighlightTheme theme) {
         Properties props = new Properties();
@@ -746,7 +1107,10 @@ public class ModernXmlThemeManager {
     // ========== Private Methods ==========
 
     /**
-     * Load current theme from preferences
+     * Loads the current theme from user preferences.
+     * First tries to load from PropertiesService for consistency with other settings,
+     * then falls back to Java Preferences API.
+     * If the saved theme is not found, defaults to Modern Light.
      */
     private void loadCurrentTheme() {
         // First try to load from properties service for consistency
@@ -781,7 +1145,12 @@ public class ModernXmlThemeManager {
     }
 
     /**
-     * Notify theme change listeners
+     * Notifies all registered listeners about a theme change.
+     * Catches and logs any exceptions thrown by listeners to prevent
+     * one faulty listener from affecting others.
+     *
+     * @param oldTheme the previously active theme
+     * @param newTheme the newly active theme
      */
     private void notifyThemeChanged(XmlHighlightTheme oldTheme, XmlHighlightTheme newTheme) {
         for (ThemeChangeListener listener : listeners) {

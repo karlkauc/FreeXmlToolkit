@@ -26,6 +26,9 @@ import java.util.Map;
  */
 public class JsonObject extends JsonNode {
 
+    /**
+     * Creates a new empty JSON object.
+     */
     public JsonObject() {
     }
 
@@ -36,6 +39,9 @@ public class JsonObject extends JsonNode {
 
     /**
      * Gets a property value by key.
+     *
+     * @param key the property key to look up
+     * @return the property value, or null if not found
      */
     public JsonNode getProperty(String key) {
         for (JsonNode child : children) {
@@ -47,7 +53,10 @@ public class JsonObject extends JsonNode {
     }
 
     /**
-     * Sets a property. Replaces existing property with the same key.
+     * Sets a property, replacing any existing property with the same key.
+     *
+     * @param key   the property key
+     * @param value the property value
      */
     public void setProperty(String key, JsonNode value) {
         // Remove existing property with same key
@@ -60,6 +69,9 @@ public class JsonObject extends JsonNode {
 
     /**
      * Removes a property by key.
+     *
+     * @param key the property key to remove
+     * @return true if the property was found and removed, false otherwise
      */
     public boolean removeProperty(String key) {
         JsonNode toRemove = getProperty(key);
@@ -70,14 +82,19 @@ public class JsonObject extends JsonNode {
     }
 
     /**
-     * Checks if a property exists.
+     * Checks if a property exists with the specified key.
+     *
+     * @param key the property key to check
+     * @return true if a property with this key exists, false otherwise
      */
     public boolean hasProperty(String key) {
         return getProperty(key) != null;
     }
 
     /**
-     * Gets all property keys.
+     * Gets all property keys in this object.
+     *
+     * @return an iterable of property key strings
      */
     public Iterable<String> getPropertyKeys() {
         return children.stream()
@@ -87,7 +104,9 @@ public class JsonObject extends JsonNode {
     }
 
     /**
-     * Gets all properties as a map.
+     * Gets all properties as a map, preserving insertion order.
+     *
+     * @return a LinkedHashMap of property keys to their values
      */
     public Map<String, JsonNode> getProperties() {
         Map<String, JsonNode> result = new LinkedHashMap<>();

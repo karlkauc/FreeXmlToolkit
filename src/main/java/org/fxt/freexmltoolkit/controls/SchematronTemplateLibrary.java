@@ -422,7 +422,10 @@ public class SchematronTemplateLibrary extends VBox {
     }
 
     /**
-     * Set callback for template insertion
+     * Sets the callback function that will be invoked when a template is inserted.
+     * The callback receives the template content as a string.
+     *
+     * @param callback the consumer function to handle template insertion
      */
     public void setTemplateInsertCallback(Consumer<String> callback) {
         this.templateInsertCallback = callback;
@@ -627,6 +630,14 @@ public class SchematronTemplateLibrary extends VBox {
         private final StringProperty description = new SimpleStringProperty();
         private final String template;
 
+        /**
+         * Creates a new template item with the specified properties.
+         *
+         * @param name        the display name of the template
+         * @param category    the category for filtering templates
+         * @param description a brief description of what the template does
+         * @param template    the actual Schematron template content
+         */
         public TemplateItem(String name, String category, String description, String template) {
             this.name.set(name);
             this.category.set(category);
@@ -634,31 +645,65 @@ public class SchematronTemplateLibrary extends VBox {
             this.template = template;
         }
 
-        // Property getters for TableView
+        /**
+         * Gets the template name.
+         *
+         * @return the template name
+         */
         public String getName() {
             return name.get();
         }
 
+        /**
+         * Returns the name property for JavaFX binding.
+         *
+         * @return the name StringProperty
+         */
         public StringProperty nameProperty() {
             return name;
         }
 
+        /**
+         * Gets the template category.
+         *
+         * @return the template category
+         */
         public String getCategory() {
             return category.get();
         }
 
+        /**
+         * Returns the category property for JavaFX binding.
+         *
+         * @return the category StringProperty
+         */
         public StringProperty categoryProperty() {
             return category;
         }
 
+        /**
+         * Gets the template description.
+         *
+         * @return the template description
+         */
         public String getDescription() {
             return description.get();
         }
 
+        /**
+         * Returns the description property for JavaFX binding.
+         *
+         * @return the description StringProperty
+         */
         public StringProperty descriptionProperty() {
             return description;
         }
 
+        /**
+         * Gets the Schematron template content.
+         *
+         * @return the template content string
+         */
         public String getTemplate() {
             return template;
         }

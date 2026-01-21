@@ -36,30 +36,48 @@ import java.util.stream.Stream;
  */
 public class DragDropService {
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
+    private DragDropService() {
+        // Utility class
+    }
+
     private static final Logger logger = LogManager.getLogger(DragDropService.class);
 
     // File extension constants
+    /** XML file extensions. */
     public static final List<String> XML_EXTENSIONS = List.of(".xml");
+    /** XSD file extensions. */
     public static final List<String> XSD_EXTENSIONS = List.of(".xsd");
+    /** XSLT file extensions. */
     public static final List<String> XSLT_EXTENSIONS = List.of(".xsl", ".xslt");
+    /** XQuery file extensions. */
     public static final List<String> XQUERY_EXTENSIONS = List.of(".xq", ".xquery", ".xqm");
+    /** Schematron file extensions. */
     public static final List<String> SCHEMATRON_EXTENSIONS = List.of(".sch", ".schematron");
+    /** Keystore file extensions. */
     public static final List<String> KEYSTORE_EXTENSIONS = List.of(".jks", ".keystore", ".p12", ".pfx");
+    /** WSDL file extensions. */
     public static final List<String> WSDL_EXTENSIONS = List.of(".wsdl");
 
     // Combined extension lists for convenience
+    /** All XML-related file extensions. */
     public static final List<String> ALL_XML_RELATED = Stream.of(
             XML_EXTENSIONS, XSD_EXTENSIONS, XSLT_EXTENSIONS, XQUERY_EXTENSIONS, SCHEMATRON_EXTENSIONS, WSDL_EXTENSIONS
     ).flatMap(List::stream).toList();
 
+    /** XML and XSLT file extensions. */
     public static final List<String> XML_AND_XSLT = Stream.of(
             XML_EXTENSIONS, XSLT_EXTENSIONS
     ).flatMap(List::stream).toList();
 
+    /** XML, XSLT, and XQuery file extensions. */
     public static final List<String> XML_AND_XSLT_AND_XQUERY = Stream.of(
             XML_EXTENSIONS, XSLT_EXTENSIONS, XQUERY_EXTENSIONS
     ).flatMap(List::stream).toList();
 
+    /** XML and Schematron file extensions. */
     public static final List<String> XML_AND_SCHEMATRON = Stream.of(
             XML_EXTENSIONS, SCHEMATRON_EXTENSIONS
     ).flatMap(List::stream).toList();
@@ -80,6 +98,9 @@ public class DragDropService {
 
     /**
      * Handles drag over event - accepts the drag if files match allowed extensions.
+     *
+     * @param event The drag event.
+     * @param allowedExtensions List of allowed file extensions.
      */
     public static void handleDragOver(DragEvent event, List<String> allowedExtensions) {
         Dragboard dragboard = event.getDragboard();
@@ -91,6 +112,10 @@ public class DragDropService {
 
     /**
      * Handles drag dropped event - filters files and passes them to handler.
+     *
+     * @param event The drag event.
+     * @param allowedExtensions List of allowed file extensions.
+     * @param fileHandler Consumer that handles the dropped files.
      */
     public static void handleDragDropped(DragEvent event,
                                          List<String> allowedExtensions,
@@ -137,6 +162,10 @@ public class DragDropService {
 
     /**
      * Checks if a file matches any of the given extensions.
+     *
+     * @param file the file to check
+     * @param extensions list of allowed extensions (with dot, e.g., ".xml")
+     * @return true if the file matches any extension
      */
     public static boolean matchesExtension(File file, List<String> extensions) {
         String fileName = file.getName().toLowerCase();
@@ -174,13 +203,21 @@ public class DragDropService {
      * File type enumeration for routing decisions.
      */
     public enum FileType {
+        /** XML document file */
         XML,
+        /** XSD schema file */
         XSD,
+        /** XSLT transformation file */
         XSLT,
+        /** XQuery file */
         XQUERY,
+        /** Schematron validation file */
         SCHEMATRON,
+        /** WSDL service definition file */
         WSDL,
+        /** Java keystore file */
         KEYSTORE,
+        /** Unknown or unsupported file type */
         UNKNOWN
     }
 }

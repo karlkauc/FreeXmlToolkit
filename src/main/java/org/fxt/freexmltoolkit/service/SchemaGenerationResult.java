@@ -59,7 +59,11 @@ public class SchemaGenerationResult {
     // ========== Factory Methods ==========
 
     /**
-     * Create successful generation result
+     * Creates a successful generation result with the given XSD content and analysis result.
+     *
+     * @param xsdContent     the generated XSD content as a string
+     * @param analysisResult the schema analysis result containing element and type information
+     * @return a new SchemaGenerationResult instance indicating success
      */
     public static SchemaGenerationResult success(String xsdContent, SchemaAnalysisResult analysisResult) {
         SchemaGenerationResult result = new SchemaGenerationResult(true);
@@ -84,7 +88,12 @@ public class SchemaGenerationResult {
     }
 
     /**
-     * Create successful generation result with formatted content
+     * Creates a successful generation result with formatted XSD content.
+     *
+     * @param xsdContent     the generated XSD content as a string
+     * @param formattedXsd   the formatted (pretty-printed) version of the XSD content
+     * @param analysisResult the schema analysis result containing element and type information
+     * @return a new SchemaGenerationResult instance indicating success with formatted content
      */
     public static SchemaGenerationResult success(String xsdContent, String formattedXsd, SchemaAnalysisResult analysisResult) {
         SchemaGenerationResult result = success(xsdContent, analysisResult);
@@ -93,7 +102,10 @@ public class SchemaGenerationResult {
     }
 
     /**
-     * Create error result
+     * Creates an error result with the given error message.
+     *
+     * @param errorMessage the error message describing what went wrong
+     * @return a new SchemaGenerationResult instance indicating failure
      */
     public static SchemaGenerationResult error(String errorMessage) {
         SchemaGenerationResult result = new SchemaGenerationResult(false);
@@ -102,7 +114,11 @@ public class SchemaGenerationResult {
     }
 
     /**
-     * Create error result with exception details
+     * Creates an error result with exception details for debugging purposes.
+     *
+     * @param errorMessage the error message describing what went wrong
+     * @param throwable    the exception that caused the error, may be null
+     * @return a new SchemaGenerationResult instance indicating failure with exception details
      */
     public static SchemaGenerationResult error(String errorMessage, Throwable throwable) {
         SchemaGenerationResult result = error(errorMessage);
@@ -124,49 +140,64 @@ public class SchemaGenerationResult {
     // ========== Processing Tracking Methods ==========
 
     /**
-     * Add processing step
+     * Adds a processing step with timestamp to the processing history.
+     *
+     * @param step the description of the processing step
      */
     public void addProcessingStep(String step) {
         processingSteps.add(LocalDateTime.now() + ": " + step);
     }
 
     /**
-     * Record step timing
+     * Records the timing for a specific processing step.
+     *
+     * @param stepName the name of the processing step
+     * @param timeMs   the time taken in milliseconds
      */
     public void recordStepTiming(String stepName, long timeMs) {
         stepTimings.put(stepName, timeMs);
     }
 
     /**
-     * Add applied optimization
+     * Adds an optimization that was applied during schema generation.
+     *
+     * @param optimization the description of the applied optimization
      */
     public void addAppliedOptimization(String optimization) {
         appliedOptimizations.add(optimization);
     }
 
     /**
-     * Add warning message
+     * Adds a warning message to the generation result.
+     *
+     * @param warning the warning message to add
      */
     public void addWarning(String warning) {
         warnings.add(warning);
     }
 
     /**
-     * Add informational message
+     * Adds an informational message to the generation result.
+     *
+     * @param info the informational message to add
      */
     public void addInfo(String info) {
         informationalMessages.add(info);
     }
 
     /**
-     * Add validation issue
+     * Adds a validation issue found during schema validation.
+     *
+     * @param issue the validation issue description
      */
     public void addValidationIssue(String issue) {
         validationIssues.add(issue);
     }
 
     /**
-     * Add optimization suggestion
+     * Adds a suggestion for optimizing the generated schema.
+     *
+     * @param suggestion the optimization suggestion
      */
     public void addOptimizationSuggestion(String suggestion) {
         optimizationSuggestions.add(suggestion);
@@ -175,7 +206,10 @@ public class SchemaGenerationResult {
     // ========== Quality Analysis Methods ==========
 
     /**
-     * Calculate schema quality score
+     * Calculates and sets the schema quality score based on various metrics.
+     * The score is calculated from analysis confidence, complexity, type reuse,
+     * warnings, validation issues, and applied optimizations.
+     * The resulting score is normalized to a 0-100 scale.
      */
     public void calculateQualityScore() {
         if (analysisResult == null) {
@@ -303,7 +337,9 @@ public class SchemaGenerationResult {
     // ========== Validation Methods ==========
 
     /**
-     * Validate generated XSD content
+     * Validates the generated XSD content for well-formedness and required elements.
+     *
+     * @return true if the generated schema is valid, false otherwise
      */
     public boolean validateGeneratedSchema() {
         if (!success || xsdContent == null || xsdContent.isEmpty()) {
@@ -356,7 +392,9 @@ public class SchemaGenerationResult {
     // ========== Summary Methods ==========
 
     /**
-     * Get generation summary
+     * Generates a human-readable summary of the schema generation process.
+     *
+     * @return a formatted string containing generation statistics and quality assessment
      */
     public String getGenerationSummary() {
         StringBuilder summary = new StringBuilder();
@@ -403,7 +441,9 @@ public class SchemaGenerationResult {
     }
 
     /**
-     * Get detailed report including warnings and suggestions
+     * Generates a detailed report including warnings, validation issues, and suggestions.
+     *
+     * @return a formatted string containing the full generation report
      */
     public String getDetailedReport() {
         StringBuilder report = new StringBuilder();
@@ -451,42 +491,92 @@ public class SchemaGenerationResult {
 
     // ========== Getters and Setters ==========
 
+    /**
+     * Returns whether the schema generation was successful.
+     *
+     * @return true if generation succeeded, false otherwise
+     */
     public boolean isSuccess() {
         return success;
     }
 
+    /**
+     * Sets the success status of the generation.
+     *
+     * @param success true if generation succeeded, false otherwise
+     */
     public void setSuccess(boolean success) {
         this.success = success;
     }
 
+    /**
+     * Returns the error message if generation failed.
+     *
+     * @return the error message, or null if generation was successful
+     */
     public String getErrorMessage() {
         return errorMessage;
     }
 
+    /**
+     * Sets the error message for a failed generation.
+     *
+     * @param errorMessage the error message describing what went wrong
+     */
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
 
+    /**
+     * Returns the list of warning messages generated during schema creation.
+     *
+     * @return the list of warning messages
+     */
     public List<String> getWarnings() {
         return warnings;
     }
 
+    /**
+     * Sets the list of warning messages.
+     *
+     * @param warnings the list of warning messages
+     */
     public void setWarnings(List<String> warnings) {
         this.warnings = warnings;
     }
 
+    /**
+     * Returns the list of informational messages.
+     *
+     * @return the list of informational messages
+     */
     public List<String> getInformationalMessages() {
         return informationalMessages;
     }
 
+    /**
+     * Sets the list of informational messages.
+     *
+     * @param informationalMessages the list of informational messages
+     */
     public void setInformationalMessages(List<String> informationalMessages) {
         this.informationalMessages = informationalMessages;
     }
 
+    /**
+     * Returns the generated XSD content as a string.
+     *
+     * @return the XSD content
+     */
     public String getXsdContent() {
         return xsdContent;
     }
 
+    /**
+     * Sets the generated XSD content and updates related statistics.
+     *
+     * @param xsdContent the XSD content to set
+     */
     public void setXsdContent(String xsdContent) {
         this.xsdContent = xsdContent;
         this.generatedContentLength = xsdContent != null ? xsdContent.length() : 0;
@@ -495,187 +585,418 @@ public class SchemaGenerationResult {
         }
     }
 
+    /**
+     * Returns the formatted (pretty-printed) XSD content.
+     * Falls back to the regular XSD content if formatted content is not available.
+     *
+     * @return the formatted XSD content, or regular XSD content if not available
+     */
     public String getFormattedXsdContent() {
         // Fall back to xsdContent if formattedXsdContent is not set
         return formattedXsdContent != null ? formattedXsdContent : xsdContent;
     }
 
+    /**
+     * Sets the formatted (pretty-printed) XSD content.
+     *
+     * @param formattedXsdContent the formatted XSD content
+     */
     public void setFormattedXsdContent(String formattedXsdContent) {
         this.formattedXsdContent = formattedXsdContent;
     }
 
+    /**
+     * Returns the map of additional schemas generated for split schema scenarios.
+     *
+     * @return the map of schema name to schema content
+     */
     public Map<String, String> getAdditionalSchemas() {
         return additionalSchemas;
     }
 
+    /**
+     * Sets the map of additional schemas.
+     *
+     * @param additionalSchemas the map of schema name to schema content
+     */
     public void setAdditionalSchemas(Map<String, String> additionalSchemas) {
         this.additionalSchemas = additionalSchemas;
     }
 
+    /**
+     * Returns the length of the generated XSD content in characters.
+     *
+     * @return the content length in characters
+     */
     public long getGeneratedContentLength() {
         return generatedContentLength;
     }
 
+    /**
+     * Sets the length of the generated content.
+     *
+     * @param generatedContentLength the content length in characters
+     */
     public void setGeneratedContentLength(long generatedContentLength) {
         this.generatedContentLength = generatedContentLength;
     }
 
+    /**
+     * Returns the schema analysis result containing element and type information.
+     *
+     * @return the schema analysis result
+     */
     public SchemaAnalysisResult getAnalysisResult() {
         return analysisResult;
     }
 
+    /**
+     * Sets the schema analysis result.
+     *
+     * @param analysisResult the schema analysis result
+     */
     public void setAnalysisResult(SchemaAnalysisResult analysisResult) {
         this.analysisResult = analysisResult;
     }
 
+    /**
+     * Returns the analysis metadata map containing additional analysis information.
+     *
+     * @return the analysis metadata map
+     */
     public Map<String, Object> getAnalysisMetadata() {
         return analysisMetadata;
     }
 
+    /**
+     * Sets the analysis metadata map.
+     *
+     * @param analysisMetadata the analysis metadata map
+     */
     public void setAnalysisMetadata(Map<String, Object> analysisMetadata) {
         this.analysisMetadata = analysisMetadata;
     }
 
+    /**
+     * Returns the unique identifier for this generation operation.
+     *
+     * @return the generation ID (UUID)
+     */
     public String getGenerationId() {
         return generationId;
     }
 
+    /**
+     * Sets the unique identifier for this generation.
+     *
+     * @param generationId the generation ID
+     */
     public void setGenerationId(String generationId) {
         this.generationId = generationId;
     }
 
+    /**
+     * Returns the timestamp when the schema was generated.
+     *
+     * @return the generation timestamp
+     */
     public LocalDateTime getGeneratedAt() {
         return generatedAt;
     }
 
+    /**
+     * Sets the timestamp when the schema was generated.
+     *
+     * @param generatedAt the generation timestamp
+     */
     public void setGeneratedAt(LocalDateTime generatedAt) {
         this.generatedAt = generatedAt;
     }
 
+    /**
+     * Returns the total time taken for schema generation in milliseconds.
+     *
+     * @return the generation time in milliseconds
+     */
     public long getGenerationTimeMs() {
         return generationTimeMs;
     }
 
+    /**
+     * Sets the total generation time.
+     *
+     * @param generationTimeMs the generation time in milliseconds
+     */
     public void setGenerationTimeMs(long generationTimeMs) {
         this.generationTimeMs = generationTimeMs;
     }
 
+    /**
+     * Returns the generation options that were used to create this schema.
+     *
+     * @return the generation options used
+     */
     public SchemaGenerationOptions getUsedOptions() {
         return usedOptions;
     }
 
+    /**
+     * Sets the generation options that were used.
+     *
+     * @param usedOptions the generation options
+     */
     public void setUsedOptions(SchemaGenerationOptions usedOptions) {
         this.usedOptions = usedOptions;
     }
 
+    /**
+     * Returns the version of the schema generator used.
+     *
+     * @return the generator version string
+     */
     public String getGeneratorVersion() {
         return generatorVersion;
     }
 
+    /**
+     * Sets the generator version.
+     *
+     * @param generatorVersion the generator version string
+     */
     public void setGeneratorVersion(String generatorVersion) {
         this.generatorVersion = generatorVersion;
     }
 
+    /**
+     * Returns the overall schema quality score (0-100 scale).
+     *
+     * @return the quality score
+     */
     public double getSchemaQualityScore() {
         return schemaQualityScore;
     }
 
+    /**
+     * Sets the schema quality score.
+     *
+     * @param schemaQualityScore the quality score (0-100 scale)
+     */
     public void setSchemaQualityScore(double schemaQualityScore) {
         this.schemaQualityScore = schemaQualityScore;
     }
 
+    /**
+     * Returns the map of detailed quality metrics.
+     *
+     * @return the quality metrics map (metric name to value)
+     */
     public Map<String, Double> getQualityMetrics() {
         return qualityMetrics;
     }
 
+    /**
+     * Sets the quality metrics map.
+     *
+     * @param qualityMetrics the quality metrics map
+     */
     public void setQualityMetrics(Map<String, Double> qualityMetrics) {
         this.qualityMetrics = qualityMetrics;
     }
 
+    /**
+     * Returns the list of optimization suggestions for the generated schema.
+     *
+     * @return the list of optimization suggestions
+     */
     public List<String> getOptimizationSuggestions() {
         return optimizationSuggestions;
     }
 
+    /**
+     * Sets the list of optimization suggestions.
+     *
+     * @param optimizationSuggestions the list of optimization suggestions
+     */
     public void setOptimizationSuggestions(List<String> optimizationSuggestions) {
         this.optimizationSuggestions = optimizationSuggestions;
     }
 
+    /**
+     * Returns the list of validation issues found in the generated schema.
+     *
+     * @return the list of validation issues
+     */
     public List<String> getValidationIssues() {
         return validationIssues;
     }
 
+    /**
+     * Sets the list of validation issues.
+     *
+     * @param validationIssues the list of validation issues
+     */
     public void setValidationIssues(List<String> validationIssues) {
         this.validationIssues = validationIssues;
     }
 
+    /**
+     * Returns the map of generation statistics.
+     *
+     * @return the generation statistics map (statistic name to count)
+     */
     public Map<String, Integer> getGenerationStatistics() {
         return generationStatistics;
     }
 
+    /**
+     * Sets the generation statistics map.
+     *
+     * @param generationStatistics the generation statistics map
+     */
     public void setGenerationStatistics(Map<String, Integer> generationStatistics) {
         this.generationStatistics = generationStatistics;
     }
 
+    /**
+     * Returns the total number of elements generated in the schema.
+     *
+     * @return the total element count
+     */
     public int getTotalElementsGenerated() {
         return totalElementsGenerated;
     }
 
+    /**
+     * Sets the total number of elements generated.
+     *
+     * @param totalElementsGenerated the total element count
+     */
     public void setTotalElementsGenerated(int totalElementsGenerated) {
         this.totalElementsGenerated = totalElementsGenerated;
     }
 
+    /**
+     * Returns the total number of attributes generated in the schema.
+     *
+     * @return the total attribute count
+     */
     public int getTotalAttributesGenerated() {
         return totalAttributesGenerated;
     }
 
+    /**
+     * Sets the total number of attributes generated.
+     *
+     * @param totalAttributesGenerated the total attribute count
+     */
     public void setTotalAttributesGenerated(int totalAttributesGenerated) {
         this.totalAttributesGenerated = totalAttributesGenerated;
     }
 
+    /**
+     * Returns the total number of complex types generated in the schema.
+     *
+     * @return the total complex type count
+     */
     public int getTotalComplexTypesGenerated() {
         return totalComplexTypesGenerated;
     }
 
+    /**
+     * Sets the total number of complex types generated.
+     *
+     * @param totalComplexTypesGenerated the total complex type count
+     */
     public void setTotalComplexTypesGenerated(int totalComplexTypesGenerated) {
         this.totalComplexTypesGenerated = totalComplexTypesGenerated;
     }
 
+    /**
+     * Returns the total number of simple types generated in the schema.
+     *
+     * @return the total simple type count
+     */
     public int getTotalSimpleTypesGenerated() {
         return totalSimpleTypesGenerated;
     }
 
+    /**
+     * Sets the total number of simple types generated.
+     *
+     * @param totalSimpleTypesGenerated the total simple type count
+     */
     public void setTotalSimpleTypesGenerated(int totalSimpleTypesGenerated) {
         this.totalSimpleTypesGenerated = totalSimpleTypesGenerated;
     }
 
+    /**
+     * Returns the total number of lines in the generated XSD.
+     *
+     * @return the total line count
+     */
     public int getTotalLinesGenerated() {
         return totalLinesGenerated;
     }
 
+    /**
+     * Sets the total number of lines generated.
+     *
+     * @param totalLinesGenerated the total line count
+     */
     public void setTotalLinesGenerated(int totalLinesGenerated) {
         this.totalLinesGenerated = totalLinesGenerated;
     }
 
+    /**
+     * Returns the list of processing steps executed during generation.
+     *
+     * @return the list of processing steps with timestamps
+     */
     public List<String> getProcessingSteps() {
         return processingSteps;
     }
 
+    /**
+     * Sets the list of processing steps.
+     *
+     * @param processingSteps the list of processing steps
+     */
     public void setProcessingSteps(List<String> processingSteps) {
         this.processingSteps = processingSteps;
     }
 
+    /**
+     * Returns the map of step timings recording how long each step took.
+     *
+     * @return the step timings map (step name to time in milliseconds)
+     */
     public Map<String, Long> getStepTimings() {
         return stepTimings;
     }
 
+    /**
+     * Sets the step timings map.
+     *
+     * @param stepTimings the step timings map
+     */
     public void setStepTimings(Map<String, Long> stepTimings) {
         this.stepTimings = stepTimings;
     }
 
+    /**
+     * Returns the list of optimizations that were applied during generation.
+     *
+     * @return the list of applied optimizations
+     */
     public List<String> getAppliedOptimizations() {
         return appliedOptimizations;
     }
 
+    /**
+     * Sets the list of applied optimizations.
+     *
+     * @param appliedOptimizations the list of applied optimizations
+     */
     public void setAppliedOptimizations(List<String> appliedOptimizations) {
         this.appliedOptimizations = appliedOptimizations;
     }

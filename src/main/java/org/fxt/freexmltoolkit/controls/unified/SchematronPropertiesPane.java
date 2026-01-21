@@ -259,6 +259,9 @@ public class SchematronPropertiesPane extends VBox {
 
     /**
      * Sets the callback for template insertion.
+     * The callback receives the template string when a user clicks a template button.
+     *
+     * @param callback the callback to invoke when a template is selected, or null to disable
      */
     public void setOnInsertTemplate(Consumer<String> callback) {
         this.onInsertTemplate = callback;
@@ -266,13 +269,19 @@ public class SchematronPropertiesPane extends VBox {
 
     /**
      * Sets the callback for XPath testing.
+     * The callback receives the XPath expression string when the user tests an expression.
+     *
+     * @param callback the callback to invoke when an XPath test is requested, or null to disable
      */
     public void setOnXPathTest(Consumer<String> callback) {
         this.onXPathTest = callback;
     }
 
     /**
-     * Updates the XPath result.
+     * Updates the XPath result display area.
+     * This is typically called after evaluating an XPath expression to show the result.
+     *
+     * @param result the result text to display in the XPath result area
      */
     public void setXPathResult(String result) {
         xpathResult.setText(result);
@@ -287,6 +296,10 @@ public class SchematronPropertiesPane extends VBox {
 
     /**
      * Adds a pattern to the structure tree.
+     * The pattern is displayed as a top-level item under the root node.
+     *
+     * @param patternId the unique identifier of the pattern
+     * @param title the human-readable title of the pattern, or null to use the patternId
      */
     public void addPattern(String patternId, String title) {
         TreeItem<String> patternItem = new TreeItem<>("Pattern: " + (title != null ? title : patternId));
@@ -299,6 +312,9 @@ public class SchematronPropertiesPane extends VBox {
 
     /**
      * Adds a rule to the last pattern in the structure tree.
+     * The rule is added as a child of the most recently added pattern.
+     *
+     * @param context the XPath context expression of the rule
      */
     public void addRule(String context) {
         if (!rootItem.getChildren().isEmpty()) {
@@ -312,7 +328,10 @@ public class SchematronPropertiesPane extends VBox {
     }
 
     /**
-     * Gets the structure tree.
+     * Gets the structure tree component.
+     * This can be used to access or manipulate the tree view directly.
+     *
+     * @return the TreeView component showing the Schematron document structure
      */
     public TreeView<String> getStructureTree() {
         return structureTree;

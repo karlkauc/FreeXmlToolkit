@@ -14,6 +14,14 @@ import java.util.regex.Pattern;
  */
 public class SchematronSyntaxHighlighter {
 
+    /**
+     * Private constructor to prevent instantiation.
+     * This class contains only static utility methods.
+     */
+    private SchematronSyntaxHighlighter() {
+        // Utility class - not meant to be instantiated
+    }
+
     // Schematron-specific elements
     private static final String[] SCHEMATRON_ELEMENTS = {
             "schema", "pattern", "rule", "assert", "report", "let", "param",
@@ -377,36 +385,80 @@ public class SchematronSyntaxHighlighter {
     }
 
     /**
-     * Simple validation result class
+     * Simple validation result class containing errors and warnings
+     * from Schematron structure validation.
      */
     public static class SchematronValidationResult {
         private final java.util.List<String> errors = new java.util.ArrayList<>();
         private final java.util.List<String> warnings = new java.util.ArrayList<>();
 
+        /**
+         * Creates a new empty validation result.
+         */
+        public SchematronValidationResult() {
+            // Default constructor
+        }
+
+        /**
+         * Adds an error message to the validation result.
+         *
+         * @param error the error message to add
+         */
         public void addError(String error) {
             errors.add(error);
         }
 
+        /**
+         * Adds a warning message to the validation result.
+         *
+         * @param warning the warning message to add
+         */
         public void addWarning(String warning) {
             warnings.add(warning);
         }
 
+        /**
+         * Returns the list of error messages.
+         *
+         * @return the list of errors, never null
+         */
         public java.util.List<String> getErrors() {
             return errors;
         }
 
+        /**
+         * Returns the list of warning messages.
+         *
+         * @return the list of warnings, never null
+         */
         public java.util.List<String> getWarnings() {
             return warnings;
         }
 
+        /**
+         * Checks if there are any errors in the validation result.
+         *
+         * @return true if there is at least one error, false otherwise
+         */
         public boolean hasErrors() {
             return !errors.isEmpty();
         }
 
+        /**
+         * Checks if there are any warnings in the validation result.
+         *
+         * @return true if there is at least one warning, false otherwise
+         */
         public boolean hasWarnings() {
             return !warnings.isEmpty();
         }
 
+        /**
+         * Checks if the validation result indicates a valid Schematron structure.
+         * A result is valid if there are no errors (warnings are allowed).
+         *
+         * @return true if there are no errors, false otherwise
+         */
         public boolean isValid() {
             return errors.isEmpty();
         }

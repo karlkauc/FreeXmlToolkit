@@ -41,10 +41,18 @@ public class JsonValidationService {
 
     private final JsonSchemaProvider schemaProvider;
 
+    /**
+     * Creates a new JsonValidationService with a default schema provider.
+     */
     public JsonValidationService() {
         this.schemaProvider = new JsonSchemaProvider();
     }
 
+    /**
+     * Creates a new JsonValidationService with a custom schema provider.
+     *
+     * @param schemaProvider the schema provider to use for loading schemas
+     */
     public JsonValidationService(JsonSchemaProvider schemaProvider) {
         this.schemaProvider = schemaProvider;
     }
@@ -215,7 +223,9 @@ public class JsonValidationService {
     public record ValidationResult(boolean valid, List<ValidationError> errors) {
 
         /**
-         * Gets a summary message.
+         * Gets a summary message describing the validation outcome.
+         *
+         * @return a human-readable summary message
          */
         public String getSummary() {
             if (valid) {
@@ -225,7 +235,9 @@ public class JsonValidationService {
         }
 
         /**
-         * Gets errors as formatted strings.
+         * Gets the validation errors as formatted strings.
+         *
+         * @return a list of error messages formatted for display
          */
         public List<String> getErrorMessages() {
             return errors.stream()

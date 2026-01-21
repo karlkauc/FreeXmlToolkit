@@ -574,7 +574,9 @@ public class SchematronTester extends VBox {
     }
 
     /**
-     * Set the current Schematron file for testing
+     * Sets the current Schematron file for testing.
+     *
+     * @param schematronFile the Schematron file to use for validation, or null to clear
      */
     public void setSchematronFile(File schematronFile) {
         this.currentSchematronFile = schematronFile;
@@ -649,6 +651,17 @@ public class SchematronTester extends VBox {
         private final StringProperty timestamp = new SimpleStringProperty();
         private final String details;
 
+        /**
+         * Creates a new test result with all relevant information.
+         *
+         * @param fileName the name of the tested file
+         * @param status the test status (Passed, Failed, or Error)
+         * @param errorCount the number of errors found
+         * @param warningCount the number of warnings found
+         * @param duration the test execution duration
+         * @param timestamp the time when the test was executed
+         * @param details detailed information about the test results
+         */
         public TestResult(String fileName, String status, Integer errorCount,
                           Integer warningCount, String duration, String timestamp, String details) {
             this.fileName.set(fileName);
@@ -660,47 +673,101 @@ public class SchematronTester extends VBox {
             this.details = details;
         }
 
-        // Property getters for TableView
+        /**
+         * Returns the name of the tested file.
+         *
+         * @return the file name
+         */
         public String getFileName() {
             return fileName.get();
         }
 
+        /**
+         * Returns the file name property for JavaFX binding.
+         *
+         * @return the file name property
+         */
         public StringProperty fileNameProperty() {
             return fileName;
         }
 
+        /**
+         * Returns the test status.
+         *
+         * @return the status (Passed, Failed, or Error)
+         */
         public String getStatus() {
             return status.get();
         }
 
+        /**
+         * Returns the status property for JavaFX binding.
+         *
+         * @return the status property
+         */
         public StringProperty statusProperty() {
             return status;
         }
 
+        /**
+         * Returns the number of errors found during testing.
+         *
+         * @return the error count
+         */
         public Integer getErrorCount() {
             return errorCount;
         }
 
+        /**
+         * Returns the number of warnings found during testing.
+         *
+         * @return the warning count
+         */
         public Integer getWarningCount() {
             return warningCount;
         }
 
+        /**
+         * Returns the test execution duration.
+         *
+         * @return the duration string (e.g., "123ms")
+         */
         public String getDuration() {
             return duration.get();
         }
 
+        /**
+         * Returns the duration property for JavaFX binding.
+         *
+         * @return the duration property
+         */
         public StringProperty durationProperty() {
             return duration;
         }
 
+        /**
+         * Returns the timestamp when the test was executed.
+         *
+         * @return the timestamp string
+         */
         public String getTimestamp() {
             return timestamp.get();
         }
 
+        /**
+         * Returns the timestamp property for JavaFX binding.
+         *
+         * @return the timestamp property
+         */
         public StringProperty timestampProperty() {
             return timestamp;
         }
 
+        /**
+         * Returns detailed information about the test results.
+         *
+         * @return the details string containing error and warning messages
+         */
         public String getDetails() {
             return details;
         }

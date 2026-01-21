@@ -72,6 +72,8 @@ public enum JsonNodeType {
 
     /**
      * Gets the icon literal for this node type.
+     *
+     * @return the Bootstrap icon literal string (e.g., "bi-braces")
      */
     public String getIcon() {
         return icon;
@@ -79,6 +81,8 @@ public enum JsonNodeType {
 
     /**
      * Gets the color for this node type.
+     *
+     * @return the hex color string (e.g., "#007bff")
      */
     public String getColor() {
         return color;

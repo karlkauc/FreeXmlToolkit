@@ -85,16 +85,32 @@ public abstract class EditorEvent {
         private final String oldText;
         private final String newText;
 
+        /**
+         * Creates a new text changed event.
+         *
+         * @param oldText the text before the change
+         * @param newText the text after the change
+         */
         public TextChangedEvent(String oldText, String newText) {
             super(Type.TEXT_CHANGED);
             this.oldText = oldText;
             this.newText = newText;
         }
 
+        /**
+         * Returns the text before the change.
+         *
+         * @return the text before the change
+         */
         public String getOldText() {
             return oldText;
         }
 
+        /**
+         * Returns the text after the change.
+         *
+         * @return the text after the change
+         */
         public String getNewText() {
             return newText;
         }
@@ -107,16 +123,32 @@ public abstract class EditorEvent {
         private final int oldPosition;
         private final int newPosition;
 
+        /**
+         * Creates a new caret moved event.
+         *
+         * @param oldPosition the caret position before the move
+         * @param newPosition the caret position after the move
+         */
         public CaretMovedEvent(int oldPosition, int newPosition) {
             super(Type.CARET_MOVED);
             this.oldPosition = oldPosition;
             this.newPosition = newPosition;
         }
 
+        /**
+         * Returns the caret position before the move.
+         *
+         * @return the caret position before the move
+         */
         public int getOldPosition() {
             return oldPosition;
         }
 
+        /**
+         * Returns the caret position after the move.
+         *
+         * @return the caret position after the move
+         */
         public int getNewPosition() {
             return newPosition;
         }
@@ -129,16 +161,32 @@ public abstract class EditorEvent {
         private final EditorMode oldMode;
         private final EditorMode newMode;
 
+        /**
+         * Creates a new mode changed event.
+         *
+         * @param oldMode the editor mode before the change
+         * @param newMode the editor mode after the change
+         */
         public ModeChangedEvent(EditorMode oldMode, EditorMode newMode) {
             super(Type.MODE_CHANGED);
             this.oldMode = oldMode;
             this.newMode = newMode;
         }
 
+        /**
+         * Returns the editor mode before the change.
+         *
+         * @return the editor mode before the change
+         */
         public EditorMode getOldMode() {
             return oldMode;
         }
 
+        /**
+         * Returns the editor mode after the change.
+         *
+         * @return the editor mode after the change
+         */
         public EditorMode getNewMode() {
             return newMode;
         }
@@ -150,11 +198,21 @@ public abstract class EditorEvent {
     public static class SchemaChangedEvent extends EditorEvent {
         private final boolean hasSchema;
 
+        /**
+         * Creates a new schema changed event.
+         *
+         * @param hasSchema true if a schema is now loaded, false otherwise
+         */
         public SchemaChangedEvent(boolean hasSchema) {
             super(Type.SCHEMA_CHANGED);
             this.hasSchema = hasSchema;
         }
 
+        /**
+         * Checks if a schema is loaded.
+         *
+         * @return true if a schema is loaded
+         */
         public boolean hasSchema() {
             return hasSchema;
         }
@@ -167,16 +225,32 @@ public abstract class EditorEvent {
         private final boolean hasErrors;
         private final int errorCount;
 
+        /**
+         * Creates a new validation completed event.
+         *
+         * @param hasErrors true if validation found errors
+         * @param errorCount the number of validation errors found
+         */
         public ValidationCompletedEvent(boolean hasErrors, int errorCount) {
             super(Type.VALIDATION_COMPLETED);
             this.hasErrors = hasErrors;
             this.errorCount = errorCount;
         }
 
+        /**
+         * Checks if validation found errors.
+         *
+         * @return true if validation found errors
+         */
         public boolean hasErrors() {
             return hasErrors;
         }
 
+        /**
+         * Returns the number of validation errors.
+         *
+         * @return the number of validation errors
+         */
         public int getErrorCount() {
             return errorCount;
         }
@@ -186,6 +260,9 @@ public abstract class EditorEvent {
      * Event fired when Find &amp; Replace dialog is requested.
      */
     public static class FindReplaceRequestedEvent extends EditorEvent {
+        /**
+         * Creates a new find and replace requested event.
+         */
         public FindReplaceRequestedEvent() {
             super(Type.FIND_REPLACE_REQUESTED);
         }
@@ -195,6 +272,9 @@ public abstract class EditorEvent {
      * Event fired when validation is requested from context menu.
      */
     public static class ValidationRequestedEvent extends EditorEvent {
+        /**
+         * Creates a new validation requested event.
+         */
         public ValidationRequestedEvent() {
             super(Type.VALIDATION_REQUESTED);
         }

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Popup for autocomplete suggestions when typing {@link} references.
+ * Popup for autocomplete suggestions when typing link references.
  * Shows XPath or element name suggestions from the schema.
  *
  * @since 2.0

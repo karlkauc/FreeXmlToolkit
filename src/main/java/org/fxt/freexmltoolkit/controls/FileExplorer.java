@@ -76,6 +76,14 @@ public class FileExplorer extends VBox {
         init();
     }
 
+    /**
+     * Sets the list of allowed file extensions for filtering displayed files.
+     * When set, only files with matching extensions (case-insensitive) will be shown
+     * in the file explorer. Directories are always shown regardless of this setting.
+     *
+     * @param extensions the list of allowed file extensions (e.g., "xml", "xsd"),
+     *                   or null to show all files without filtering
+     */
     public void setAllowedFileExtensions(List<String> extensions) {
         // Wir speichern die Endungen in Kleinbuchstaben, um den Vergleich robust zu machen.
         if (extensions != null) {
@@ -337,10 +345,22 @@ public class FileExplorer extends VBox {
         }
     }
 
+    /**
+     * Returns the currently selected file path in the file explorer.
+     * This value is updated whenever the user selects a file or directory in the tree view.
+     *
+     * @return the currently selected file path, or null if no file is selected
+     */
     public Path getSelectedFile() {
         return selectedFile;
     }
 
+    /**
+     * Sets the selected file and navigates to it in the file explorer.
+     * The tree will be expanded as necessary to show the specified file.
+     *
+     * @param selectedFile the path to select and navigate to in the file explorer
+     */
     public void setSelectedFile(Path selectedFile) {
         this.selectedFile = selectedFile;
         selectPath(selectedFile);
@@ -354,6 +374,13 @@ public class FileExplorer extends VBox {
         this.displayText.set(displayText);
     }
 
+    /**
+     * Returns the display text property for JavaFX property binding.
+     * This property can be bound to other UI elements to display a custom label
+     * in the file explorer header.
+     *
+     * @return the StringProperty representing the display text
+     */
     public StringProperty displayTextProperty() {
         return displayText;
     }

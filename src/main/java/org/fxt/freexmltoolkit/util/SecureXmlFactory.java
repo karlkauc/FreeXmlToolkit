@@ -55,6 +55,9 @@ public final class SecureXmlFactory {
     private static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
     private static final String FEATURE_LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
     private SecureXmlFactory() {
         // Utility class - prevent instantiation
     }

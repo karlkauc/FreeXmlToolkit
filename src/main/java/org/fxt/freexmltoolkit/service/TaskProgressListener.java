@@ -19,22 +19,32 @@
 package org.fxt.freexmltoolkit.service;
 
 /**
- * Eine Listener-Schnittstelle, um Fortschritts-Updates von langlaufenden Tasks zu erhalten.
- * Die UI-Schicht kann diese Schnittstelle implementieren, um dem Benutzer detaillierten Fortschritt anzuzeigen.
+ * A listener interface for receiving progress updates from long-running tasks.
+ *
+ * <p>The UI layer can implement this interface to display detailed progress information
+ * to the user during lengthy operations.</p>
  */
 @FunctionalInterface
 public interface TaskProgressListener {
 
     /**
-     * Ein Datenobjekt, das Fortschrittsinformationen enthält.
+     * A data object containing progress information.
      *
-     * @param taskName Der Name des Tasks.
-     * @param status Der aktuelle Status (STARTED oder FINISHED).
-     * @param durationMillis Die Dauer des Tasks in Millisekunden (nur bei FINISHED relevant).
+     * @param taskName       the name of the task
+     * @param status         the current status (STARTED, RUNNING, FAILED, or FINISHED)
+     * @param durationMillis the duration of the task in milliseconds (only relevant when status is FINISHED)
      */
     record ProgressUpdate(String taskName, Status status, long durationMillis) {
+        /**
+         * The possible states of a task.
+         */
         public enum Status {STARTED, RUNNING, FAILED, FINISHED}
     }
 
+    /**
+     * Called when a progress update is available.
+     *
+     * @param update the progress update containing task name, status, and duration
+     */
     void onProgressUpdate(ProgressUpdate update);
 }

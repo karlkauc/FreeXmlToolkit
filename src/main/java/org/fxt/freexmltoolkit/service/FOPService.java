@@ -46,6 +46,13 @@ import java.util.HashMap;
  */
 public class FOPService {
 
+    /**
+     * Creates a new FOPService instance.
+     */
+    public FOPService() {
+        // Default constructor
+    }
+
     private final static Logger logger = LogManager.getLogger(FOPService.class);
 
     HashMap<String, String> defaultParameter;

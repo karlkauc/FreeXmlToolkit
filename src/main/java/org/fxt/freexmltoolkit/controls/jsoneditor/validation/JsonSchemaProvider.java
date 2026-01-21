@@ -52,6 +52,10 @@ public class JsonSchemaProvider {
     // Cache TTL in milliseconds (5 minutes)
     private static final long CACHE_TTL = 5 * 60 * 1000;
 
+    /**
+     * Creates a new JsonSchemaProvider with an empty cache.
+     * Schema factories are initialized lazily when needed.
+     */
     public JsonSchemaProvider() {
         // Initialize factories lazily
     }
@@ -159,13 +163,17 @@ public class JsonSchemaProvider {
 
     /**
      * Removes a specific schema from cache.
+     *
+     * @param schemaFile the schema file to remove from cache
      */
     public void invalidateCache(File schemaFile) {
         schemaCache.remove(schemaFile.getAbsolutePath());
     }
 
     /**
-     * Gets the cache size.
+     * Gets the number of schemas currently in the cache.
+     *
+     * @return the number of cached schemas
      */
     public int getCacheSize() {
         return schemaCache.size();
@@ -177,7 +185,17 @@ public class JsonSchemaProvider {
     public static class Templates {
 
         /**
-         * Creates a minimal schema with type.
+         * Private constructor to prevent instantiation of this utility class.
+         */
+        private Templates() {
+            // Utility class
+        }
+
+        /**
+         * Creates a minimal schema with the specified type.
+         *
+         * @param type the JSON type (e.g., "string", "number", "object", "array")
+         * @return a JSON Schema string with the specified type
          */
         public static String createTypeSchema(String type) {
             return """
@@ -190,6 +208,9 @@ public class JsonSchemaProvider {
 
         /**
          * Creates an object schema with required properties.
+         *
+         * @param properties the property names to include as required
+         * @return a JSON Schema string for an object with the specified required properties
          */
         public static String createObjectSchema(String... properties) {
             StringBuilder sb = new StringBuilder();
@@ -230,7 +251,10 @@ public class JsonSchemaProvider {
         }
 
         /**
-         * Creates an array schema with item type.
+         * Creates an array schema with the specified item type.
+         *
+         * @param itemType the JSON type for array items (e.g., "string", "number")
+         * @return a JSON Schema string for an array with the specified item type
          */
         public static String createArraySchema(String itemType) {
             return """

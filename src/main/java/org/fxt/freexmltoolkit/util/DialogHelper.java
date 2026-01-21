@@ -35,14 +35,30 @@ public class DialogHelper {
     private static final Logger logger = LoggerFactory.getLogger(DialogHelper.class);
 
     /**
-     * Dialog header color themes
+     * Private constructor to prevent instantiation of this utility class.
+     */
+    private DialogHelper() {
+        // Utility class
+    }
+
+    /**
+     * Enumeration of dialog header color themes.
+     *
+     * <p>Each theme provides a consistent color scheme for dialog headers,
+     * including CSS style class and hex color code.
      */
     public enum HeaderTheme {
+        /** Primary blue theme for main actions */
         PRIMARY("dialog-header-primary", "#007bff"),
+        /** Success green theme for confirmations */
         SUCCESS("dialog-header-success", "#28a745"),
+        /** Info cyan theme for informational dialogs */
         INFO("dialog-header-info", "#17a2b8"),
+        /** Warning yellow theme for cautions */
         WARNING("dialog-header-warning", "#ffc107"),
+        /** Danger red theme for errors and destructive actions */
         DANGER("dialog-header-danger", "#dc3545"),
+        /** Purple theme for special dialogs */
         PURPLE("dialog-header-purple", "#9c27b0");
 
         private final String styleClass;
@@ -53,17 +69,35 @@ public class DialogHelper {
             this.color = color;
         }
 
+        /**
+         * Gets the style class.
+         *
+         * @return The style class.
+         */
         public String getStyleClass() { return styleClass; }
+
+        /**
+         * Gets the color.
+         *
+         * @return The color hex string.
+         */
         public String getColor() { return color; }
     }
 
     /**
-     * Info box variants
+     * Enumeration of info box type variants.
+     *
+     * <p>Each type provides a visual style for information boxes including
+     * CSS style class and icon literal.
      */
     public enum InfoBoxType {
+        /** Info style with circle icon */
         INFO("dialog-info-box-info", "bi-info-circle"),
+        /** Success style with check icon */
         SUCCESS("dialog-info-box-success", "bi-check-circle"),
+        /** Warning style with exclamation icon */
         WARNING("dialog-info-box-warning", "bi-exclamation-triangle"),
+        /** Danger style with X icon */
         DANGER("dialog-info-box-danger", "bi-x-circle");
 
         private final String styleClass;
@@ -74,7 +108,18 @@ public class DialogHelper {
             this.iconLiteral = iconLiteral;
         }
 
+        /**
+         * Gets the style class.
+         *
+         * @return The style class.
+         */
         public String getStyleClass() { return styleClass; }
+
+        /**
+         * Gets the icon literal.
+         *
+         * @return The icon literal.
+         */
         public String getIconLiteral() { return iconLiteral; }
     }
 
@@ -400,7 +445,13 @@ public class DialogHelper {
     // ============================================
 
     /**
-     * Creates and shows a standard alert.
+     * Creates and shows a standard alert dialog.
+     *
+     * @param type        the alert type
+     * @param title       the alert window title
+     * @param header      the alert header text
+     * @param content     the alert content text
+     * @param iconLiteral the Bootstrap icon literal for the alert graphic
      */
     private static void showAlert(Alert.AlertType type, String title, String header,
                                  String content, String iconLiteral) {
@@ -409,7 +460,14 @@ public class DialogHelper {
     }
 
     /**
-     * Creates a standard alert with icon.
+     * Creates a standard alert with icon and themed styling.
+     *
+     * @param type        the alert type (INFORMATION, WARNING, ERROR, CONFIRMATION)
+     * @param title       the alert window title
+     * @param header      the alert header text
+     * @param content     the alert content text
+     * @param iconLiteral the Bootstrap icon literal for the alert graphic
+     * @return the configured Alert instance
      */
     private static Alert createAlert(Alert.AlertType type, String title, String header,
                                     String content, String iconLiteral) {
@@ -655,7 +713,13 @@ public class DialogHelper {
     }
 
     /**
-     * Converts exception stack trace to string.
+     * Converts an exception's stack trace to a formatted string representation.
+     *
+     * <p>The output includes the exception class, message, full stack trace,
+     * and any chained causes with their stack traces.
+     *
+     * @param exception the exception to convert
+     * @return the formatted stack trace string
      */
     private static String getStackTraceAsString(Exception exception) {
         StringBuilder sb = new StringBuilder();

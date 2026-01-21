@@ -20,7 +20,9 @@ public record NamespaceResult(
 ) {
 
     /**
-     * Creates a default NamespaceResult with common XSD namespaces
+     * Creates a default NamespaceResult with common XSD namespaces.
+     *
+     * @return a new NamespaceResult with standard XSD and XSI namespace mappings
      */
     public static NamespaceResult createDefault() {
         return new NamespaceResult(

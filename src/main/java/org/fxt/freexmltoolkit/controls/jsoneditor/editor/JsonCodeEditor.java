@@ -395,6 +395,8 @@ public class JsonCodeEditor extends VBox {
 
     /**
      * Sets a callback for when a file is dropped onto the editor.
+     *
+     * @param callback the callback to invoke when a file is dropped, receives the dropped file
      */
     public void setOnFileDropped(Consumer<File> callback) {
         this.onFileDropped = callback;
@@ -439,7 +441,9 @@ public class JsonCodeEditor extends VBox {
     // ==================== Public API ====================
 
     /**
-     * Sets the text content.
+     * Sets the text content of the editor.
+     *
+     * @param text the text content to set, or null to clear the editor
      */
     public void setText(String text) {
         codeArea.replaceText(text != null ? text : "");
@@ -453,14 +457,18 @@ public class JsonCodeEditor extends VBox {
     }
 
     /**
-     * Gets the current text content.
+     * Gets the current text content of the editor.
+     *
+     * @return the current text content
      */
     public String getText() {
         return codeArea.getText();
     }
 
     /**
-     * Gets the code area component.
+     * Gets the underlying CodeArea component for advanced operations.
+     *
+     * @return the CodeArea component used by this editor
      */
     public CodeArea getCodeArea() {
         return codeArea;
@@ -468,34 +476,44 @@ public class JsonCodeEditor extends VBox {
 
     /**
      * Checks if the editor has unsaved changes.
+     *
+     * @return true if there are unsaved changes, false otherwise
      */
     public boolean isDirty() {
         return dirty;
     }
 
     /**
-     * Sets the dirty flag.
+     * Sets the dirty flag indicating whether there are unsaved changes.
+     *
+     * @param dirty true to mark as having unsaved changes, false otherwise
      */
     public void setDirty(boolean dirty) {
         this.dirty = dirty;
     }
 
     /**
-     * Sets the document path.
+     * Sets the file path associated with this document.
+     *
+     * @param path the absolute file path, or null if not associated with a file
      */
     public void setDocumentPath(String path) {
         this.documentPath = path;
     }
 
     /**
-     * Gets the document path.
+     * Gets the file path associated with this document.
+     *
+     * @return the absolute file path, or null if not associated with a file
      */
     public String getDocumentPath() {
         return documentPath;
     }
 
     /**
-     * Gets the detected JSON format (json, jsonc, json5).
+     * Gets the detected JSON format based on the content analysis.
+     *
+     * @return the detected format: "json", "jsonc", or "json5"
      */
     public String getDetectedFormat() {
         return detectedFormat;
@@ -526,14 +544,18 @@ public class JsonCodeEditor extends VBox {
     }
 
     /**
-     * Checks if undo is available.
+     * Checks if an undo operation is available.
+     *
+     * @return true if undo is available, false otherwise
      */
     public boolean canUndo() {
         return codeArea.isUndoAvailable();
     }
 
     /**
-     * Checks if redo is available.
+     * Checks if a redo operation is available.
+     *
+     * @return true if redo is available, false otherwise
      */
     public boolean canRedo() {
         return codeArea.isRedoAvailable();
@@ -568,14 +590,18 @@ public class JsonCodeEditor extends VBox {
     }
 
     /**
-     * Gets selected text.
+     * Gets the currently selected text in the editor.
+     *
+     * @return the selected text, or an empty string if nothing is selected
      */
     public String getSelectedText() {
         return codeArea.getSelectedText();
     }
 
     /**
-     * Replaces selected text.
+     * Replaces the currently selected text with the specified text.
+     *
+     * @param text the text to replace the selection with
      */
     public void replaceSelection(String text) {
         codeArea.replaceSelection(text);
@@ -622,7 +648,9 @@ public class JsonCodeEditor extends VBox {
     }
 
     /**
-     * Moves the caret to the specified position.
+     * Moves the caret to the specified character position in the document.
+     *
+     * @param position the character position to move to (0-based index)
      */
     public void moveTo(int position) {
         if (position >= 0 && position <= codeArea.getText().length()) {
@@ -634,14 +662,18 @@ public class JsonCodeEditor extends VBox {
     }
 
     /**
-     * Gets the current caret position.
+     * Gets the current caret position in the document.
+     *
+     * @return the current caret position (0-based character index)
      */
     public int getCaretPosition() {
         return codeArea.getCaretPosition();
     }
 
     /**
-     * Gets the text property for observing changes.
+     * Gets the text property for observing content changes.
+     *
+     * @return the observable text property that can be used for binding or listeners
      */
     public javafx.beans.value.ObservableValue<String> textProperty() {
         return codeArea.textProperty();

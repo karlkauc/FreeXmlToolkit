@@ -73,12 +73,17 @@ public class ExportMetadataService {
 
     private final PropertiesService propertiesService;
 
+    /**
+     * Creates a new ExportMetadataService using the service registry.
+     */
     public ExportMetadataService() {
         this.propertiesService = ServiceRegistry.get(PropertiesService.class);
     }
 
     /**
      * Constructor for testing with injected PropertiesService.
+     *
+     * @param propertiesService the properties service to use
      */
     public ExportMetadataService(PropertiesService propertiesService) {
         this.propertiesService = propertiesService;

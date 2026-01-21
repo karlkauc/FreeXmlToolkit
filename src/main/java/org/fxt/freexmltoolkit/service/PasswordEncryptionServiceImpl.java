@@ -80,6 +80,18 @@ public class PasswordEncryptionServiceImpl implements PasswordEncryptionService 
     private boolean keyDerivationFailed = false;
 
     /**
+     * Private default constructor for singleton pattern.
+     *
+     * <p>This constructor initializes the service instance without deriving the encryption key.
+     * The encryption key is derived lazily on first use via {@link #ensureKeyInitialized()}.
+     *
+     * <p>Use {@link #getInstance()} to obtain the singleton instance.
+     */
+    private PasswordEncryptionServiceImpl() {
+        // Default constructor - encryption key is derived lazily on first use
+    }
+
+    /**
      * Returns the singleton instance of PasswordEncryptionServiceImpl.
      *
      * @return the singleton instance

@@ -36,11 +36,40 @@ public class RepeatingElementsTable {
 
     // ==================== Layout Constants ====================
 
+    /**
+     * The height of the table header row in pixels.
+     * This header displays the element name and count (e.g., "items (3x)").
+     */
     public static final double HEADER_HEIGHT = 28;
+
+    /**
+     * The height of each data row in pixels.
+     * This also applies to the column header row.
+     */
     public static final double ROW_HEIGHT = 24;
+
+    /**
+     * The minimum width of a table column in pixels.
+     * Columns will not be narrower than this value even if content is shorter.
+     */
     public static final double MIN_COLUMN_WIDTH = 80;
+
+    /**
+     * The maximum width of a table column in pixels.
+     * Columns will not be wider than this value unless they contain expanded cells.
+     */
     public static final double MAX_COLUMN_WIDTH = 250;
+
+    /**
+     * The padding around the grid content in pixels.
+     * Applied to all sides of the table.
+     */
     public static final double GRID_PADDING = 8;
+
+    /**
+     * The padding inside each cell in pixels.
+     * Applied horizontally to cell content.
+     */
     public static final double CELL_PADDING = 6;
 
     // ==================== Column Order Cache ====================
@@ -60,11 +89,28 @@ public class RepeatingElementsTable {
 
     /**
      * Stores sort state (column and direction) for persistence across rebuilds.
+     *
+     * <p>This inner class holds the sorting configuration for a table, including
+     * which column is sorted and the sort direction. It is used to restore
+     * the sort state when the table is rebuilt (e.g., after editing).</p>
      */
     private static class SortState {
+        /**
+         * The name of the column that is sorted.
+         */
         final String columnName;
+
+        /**
+         * True if sorting is ascending, false if descending.
+         */
         final boolean ascending;
 
+        /**
+         * Constructs a new SortState with the specified column and direction.
+         *
+         * @param columnName the name of the sorted column
+         * @param ascending  true for ascending sort, false for descending
+         */
         SortState(String columnName, boolean ascending) {
             this.columnName = columnName;
             this.ascending = ascending;
@@ -123,68 +169,230 @@ public class RepeatingElementsTable {
 
     // ==================== Column Definition ====================
 
+    /**
+     * Represents a column in the repeating elements table.
+     *
+     * <p>Each column corresponds to either an attribute or a first-level child element
+     * of the repeating XML elements. The column stores its name, type, and current width.</p>
+     */
     public static class TableColumn {
+        /**
+         * The name of the column (attribute name or child element name).
+         */
         private final String name;
+
+        /**
+         * The type of this column (attribute, child element, or text content).
+         */
         private final ColumnType type;
+
+        /**
+         * The current width of this column in pixels.
+         */
         private double width;
 
+        /**
+         * Constructs a new TableColumn with the specified name and type.
+         *
+         * @param name the column name (attribute name or element name)
+         * @param type the type of data this column represents
+         */
         public TableColumn(String name, ColumnType type) {
             this.name = name;
             this.type = type;
             this.width = MIN_COLUMN_WIDTH;
         }
 
+        /**
+         * Returns the name of this column.
+         *
+         * @return the column name
+         */
         public String getName() { return name; }
+
+        /**
+         * Returns the type of this column.
+         *
+         * @return the column type
+         */
         public ColumnType getType() { return type; }
+
+        /**
+         * Returns the current width of this column in pixels.
+         *
+         * @return the column width
+         */
         public double getWidth() { return width; }
+
+        /**
+         * Sets the width of this column.
+         *
+         * @param width the new width in pixels
+         */
         public void setWidth(double width) { this.width = width; }
 
+        /**
+         * Returns the display name for this column header.
+         * Attribute columns are prefixed with "@" to distinguish them from elements.
+         *
+         * @return the display name (e.g., "@id" for attributes, "name" for elements)
+         */
         public String getDisplayName() {
             return type == ColumnType.ATTRIBUTE ? "@" + name : name;
         }
     }
 
+    /**
+     * Enumeration of column types in the repeating elements table.
+     *
+     * <p>Columns can represent different types of XML data:</p>
+     * <ul>
+     *   <li>{@link #ATTRIBUTE} - Data from an element's attribute</li>
+     *   <li>{@link #CHILD_ELEMENT} - Text content from a first-level child element</li>
+     *   <li>{@link #TEXT_CONTENT} - Direct text content of the element</li>
+     * </ul>
+     */
     public enum ColumnType {
-        ATTRIBUTE,      // From element attribute
-        CHILD_ELEMENT,  // From first-level child element text
-        TEXT_CONTENT    // Direct text content of element
+        /**
+         * Column data comes from an XML attribute.
+         */
+        ATTRIBUTE,
+
+        /**
+         * Column data comes from the text content of a first-level child element.
+         */
+        CHILD_ELEMENT,
+
+        /**
+         * Column data comes from the direct text content of the element.
+         */
+        TEXT_CONTENT
     }
 
     // ==================== Row Definition ====================
 
+    /**
+     * Represents a single row in the repeating elements table.
+     *
+     * <p>Each row corresponds to one XML element from the repeating group.
+     * The row stores the column values extracted from the element's attributes
+     * and child elements, as well as any expanded child grids for complex content.</p>
+     */
     public static class TableRow {
+        /**
+         * The XML element that this row represents.
+         */
         private final XmlElement element;
-        private final Map<String, String> values = new LinkedHashMap<>();
-        private final Map<String, XmlElement> complexChildren = new LinkedHashMap<>();
-        private final Map<String, NestedGridNode> expandedChildGrids = new LinkedHashMap<>();
-        private final Set<String> expandedColumns = new HashSet<>();
-        private boolean expanded = false;  // Is this row expanded to show details?
 
+        /**
+         * Map of column names to their string values.
+         */
+        private final Map<String, String> values = new LinkedHashMap<>();
+
+        /**
+         * Map of column names to complex child elements (elements with nested structure).
+         */
+        private final Map<String, XmlElement> complexChildren = new LinkedHashMap<>();
+
+        /**
+         * Map of column names to expanded child grid nodes.
+         */
+        private final Map<String, NestedGridNode> expandedChildGrids = new LinkedHashMap<>();
+
+        /**
+         * Set of column names that are currently expanded to show nested content.
+         */
+        private final Set<String> expandedColumns = new HashSet<>();
+
+        /**
+         * Whether this row is expanded to show additional details.
+         */
+        private boolean expanded = false;
+
+        /**
+         * Constructs a new TableRow for the specified XML element.
+         *
+         * @param element the XML element this row represents
+         */
         public TableRow(XmlElement element) {
             this.element = element;
         }
 
+        /**
+         * Returns the XML element that this row represents.
+         *
+         * @return the underlying XML element
+         */
         public XmlElement getElement() { return element; }
+
+        /**
+         * Returns the map of column names to their string values.
+         *
+         * @return the values map
+         */
         public Map<String, String> getValues() { return values; }
+
+        /**
+         * Returns the map of column names to complex child elements.
+         *
+         * @return the complex children map
+         */
         public Map<String, XmlElement> getComplexChildren() { return complexChildren; }
+
+        /**
+         * Returns the map of column names to expanded child grid nodes.
+         *
+         * @return the expanded child grids map
+         */
         public Map<String, NestedGridNode> getExpandedChildGrids() { return expandedChildGrids; }
 
+        /**
+         * Returns the value for a specific column.
+         *
+         * @param columnName the name of the column
+         * @return the value for the column, or empty string if not found
+         */
         public String getValue(String columnName) {
             return values.getOrDefault(columnName, "");
         }
 
+        /**
+         * Checks if this row has a complex child element for the specified column.
+         *
+         * @param columnName the column name to check
+         * @return true if the column contains a complex child element
+         */
         public boolean hasComplexChild(String columnName) {
             return complexChildren.containsKey(columnName);
         }
 
+        /**
+         * Returns the complex child element for the specified column.
+         *
+         * @param columnName the column name
+         * @return the complex child element, or null if not found
+         */
         public XmlElement getComplexChild(String columnName) {
             return complexChildren.get(columnName);
         }
 
+        /**
+         * Checks if the specified column is currently expanded.
+         *
+         * @param columnName the column name to check
+         * @return true if the column is expanded to show nested content
+         */
         public boolean isColumnExpanded(String columnName) {
             return expandedColumns.contains(columnName);
         }
 
+        /**
+         * Toggles the expansion state of a column.
+         * If expanded, collapses it and removes the child grid.
+         * If collapsed, marks it as expanded.
+         *
+         * @param columnName the column name to toggle
+         */
         public void toggleColumnExpanded(String columnName) {
             if (expandedColumns.contains(columnName)) {
                 expandedColumns.remove(columnName);
@@ -194,11 +402,39 @@ public class RepeatingElementsTable {
             }
         }
 
+        /**
+         * Returns the set of column names that are currently expanded.
+         *
+         * @return the set of expanded column names
+         */
         public Set<String> getExpandedColumns() { return expandedColumns; }
 
+        /**
+         * Checks if this row is expanded to show additional details.
+         *
+         * @return true if the row is expanded
+         */
         public boolean isExpanded() { return expanded; }
+
+        /**
+         * Sets the expansion state of this row.
+         *
+         * @param expanded true to expand, false to collapse
+         */
         public void setExpanded(boolean expanded) { this.expanded = expanded; }
 
+        /**
+         * Gets or creates a child grid for the specified column.
+         *
+         * <p>If a child grid does not exist for the column, one is created using
+         * {@link NestedGridNode#buildChildrenOnly} to show only the children
+         * (not the element itself, since the column header already shows the element name).</p>
+         *
+         * @param columnName              the column name
+         * @param depth                   the current nesting depth
+         * @param onLayoutChangedCallback callback to invoke when layout changes
+         * @return the child grid for the column, or null if no complex child exists
+         */
         public NestedGridNode getOrCreateChildGrid(String columnName, int depth, Runnable onLayoutChangedCallback) {
             if (!expandedChildGrids.containsKey(columnName)) {
                 XmlElement childElement = complexChildren.get(columnName);
@@ -215,6 +451,19 @@ public class RepeatingElementsTable {
 
     // ==================== Constructor ====================
 
+    /**
+     * Constructs a new RepeatingElementsTable for a group of repeating XML elements.
+     *
+     * <p>The constructor analyzes the structure of all elements to determine columns,
+     * builds table rows from the elements, calculates optimal column widths, and
+     * restores any previously saved sort state from the cache.</p>
+     *
+     * @param elementName             the common name of all elements in this table
+     * @param elements                the list of XML elements to display in the table
+     * @param parentNode              the parent NestedGridNode containing this table
+     * @param depth                   the nesting depth of this table
+     * @param onLayoutChangedCallback callback to invoke when the layout changes
+     */
     public RepeatingElementsTable(String elementName, List<XmlElement> elements,
                                    NestedGridNode parentNode, int depth, Runnable onLayoutChangedCallback) {
         this.elementName = elementName;
@@ -578,8 +827,13 @@ public class RepeatingElementsTable {
 
     /**
      * Recalculates column widths considering expanded child grids inside cells.
-     * This should be called after a cell is expanded to ensure the column is wide enough
-     * to accommodate the nested content.
+     *
+     * <p>This method should be called after a cell is expanded to ensure the column
+     * is wide enough to accommodate the nested content. It iterates through all columns
+     * and rows, checking both text content width and expanded child grid width.</p>
+     *
+     * <p>Columns with expanded cells are allowed a larger maximum width (500px) compared
+     * to regular columns ({@link #MAX_COLUMN_WIDTH}).</p>
      */
     public void recalculateColumnWidthsWithExpandedCells() {
         for (TableColumn col : columns) {
@@ -660,6 +914,12 @@ public class RepeatingElementsTable {
 
     /**
      * Calculates the height of this table, including any expanded child grids inside cells.
+     *
+     * <p>When collapsed, returns only the header height plus padding.
+     * When expanded, includes the column header row and all data rows with
+     * their variable heights (accounting for expanded cells).</p>
+     *
+     * @return the calculated height in pixels
      */
     public double calculateHeight() {
         if (!expanded) {
@@ -700,6 +960,12 @@ public class RepeatingElementsTable {
 
     /**
      * Gets the Y position of a specific row within this table.
+     *
+     * <p>The Y position accounts for variable row heights caused by expanded cells.
+     * It starts after the table header and column header rows.</p>
+     *
+     * @param rowIndex the zero-based index of the row
+     * @return the Y coordinate of the row's top edge in pixels
      */
     public double getRowY(int rowIndex) {
         double rowY = y + HEADER_HEIGHT + ROW_HEIGHT;  // After table header + column headers
@@ -714,6 +980,12 @@ public class RepeatingElementsTable {
 
     /**
      * Gets the row index at a specific Y position.
+     *
+     * <p>This method accounts for variable row heights caused by expanded cells.
+     * Returns -1 if the Y position is in the header area or outside the table.</p>
+     *
+     * @param py the Y coordinate to test
+     * @return the zero-based row index, or -1 if in header area or outside
      */
     public int getRowIndexAtY(double py) {
         if (py < y + HEADER_HEIGHT + ROW_HEIGHT) {
@@ -737,7 +1009,14 @@ public class RepeatingElementsTable {
 
     /**
      * Checks if a point is within an expanded child grid area (inside a cell).
-     * Returns the child grid if found, null otherwise.
+     *
+     * <p>This method is used for hit testing to determine if mouse events
+     * should be delegated to a nested child grid. It checks if the point
+     * is within the expanded cell area (below the text row) of any row.</p>
+     *
+     * @param px the X coordinate to test
+     * @param py the Y coordinate to test
+     * @return the child grid at the specified point, or null if not in a child grid
      */
     public NestedGridNode getChildGridAt(double px, double py) {
         if (!expanded) return null;
@@ -777,7 +1056,13 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Calculates the width of this table.
+     * Calculates the width of this table based on column widths.
+     *
+     * <p>The table width is the sum of all column widths plus padding on both sides.
+     * The minimum width is enforced from {@link NestedGridNode#MIN_GRID_WIDTH}.</p>
+     *
+     * @param availableWidth the available width (currently unused, for future expansion)
+     * @return the calculated width in pixels
      */
     public double calculateWidth(double availableWidth) {
         double totalColWidth = 0;
@@ -790,7 +1075,9 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Gets the total columns width.
+     * Gets the total width of all columns combined.
+     *
+     * @return the sum of all column widths in pixels
      */
     public double getTotalColumnsWidth() {
         double total = 0;
@@ -803,7 +1090,13 @@ public class RepeatingElementsTable {
     // ==================== Hit Testing ====================
 
     /**
-     * Tests if a point is inside this table's header.
+     * Tests if a point is inside this table's header area.
+     *
+     * <p>The header is the top row that displays the element name and count.</p>
+     *
+     * @param px the X coordinate to test
+     * @param py the Y coordinate to test
+     * @return true if the point is within the header bounds
      */
     public boolean isHeaderHit(double px, double py) {
         return px >= x && px <= x + width &&
@@ -811,8 +1104,14 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Tests if a point is inside the column headers row (below table header, above data rows).
-     * This is the row that shows column names like "@sku", "@qty", "name", etc.
+     * Tests if a point is inside the column headers row.
+     *
+     * <p>The column header row is positioned below the table header and above the data rows.
+     * It displays column names like "@sku", "@qty", "name", etc.</p>
+     *
+     * @param px the X coordinate to test
+     * @param py the Y coordinate to test
+     * @return true if the point is within the column header row bounds
      */
     public boolean isColumnHeaderHit(double px, double py) {
         double columnHeaderY = y + HEADER_HEIGHT;
@@ -821,7 +1120,11 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Tests if a point is inside this table.
+     * Tests if a point is inside this table's bounds.
+     *
+     * @param px the X coordinate to test
+     * @param py the Y coordinate to test
+     * @return true if the point is within the table's bounding rectangle
      */
     public boolean containsPoint(double px, double py) {
         return px >= x && px <= x + width &&
@@ -829,8 +1132,13 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Gets the row index at a given Y coordinate.
-     * @return row index (0-based for data rows), or -1 if header/outside
+     * Gets the row index at a given Y coordinate using fixed row height calculation.
+     *
+     * <p>Note: This method uses a simplified calculation assuming fixed row heights.
+     * For accurate results with expanded cells, use {@link #getRowIndexAtY(double)}.</p>
+     *
+     * @param py the Y coordinate to test
+     * @return the zero-based row index, or -1 if in header area or outside
      */
     public int getRowIndexAt(double py) {
         if (!expanded) return -1;
@@ -847,6 +1155,9 @@ public class RepeatingElementsTable {
 
     /**
      * Gets the column index at a given X coordinate.
+     *
+     * @param px the X coordinate to test
+     * @return the zero-based column index, or -1 if outside column bounds
      */
     public int getColumnIndexAt(double px) {
         double colX = x + GRID_PADDING;
@@ -861,7 +1172,10 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Gets the X position of a column by name.
+     * Gets the X position of a column by its name.
+     *
+     * @param columnName the name of the column to find
+     * @return the X coordinate of the column's left edge, or the default position if not found
      */
     public double getColumnX(String columnName) {
         double colX = x + GRID_PADDING;
@@ -875,7 +1189,10 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Gets the width of a column by name.
+     * Gets the width of a column by its name.
+     *
+     * @param columnName the name of the column to find
+     * @return the width of the column in pixels, or {@link #MIN_COLUMN_WIDTH} if not found
      */
     public double getColumnWidth(String columnName) {
         for (TableColumn col : columns) {
@@ -889,7 +1206,13 @@ public class RepeatingElementsTable {
     // ==================== Visibility ====================
 
     /**
-     * Tests if this table is visible in the viewport.
+     * Tests if this table is visible within the given viewport bounds.
+     *
+     * <p>A table is considered visible if any part of it overlaps with the viewport.</p>
+     *
+     * @param viewportTop    the Y coordinate of the viewport's top edge
+     * @param viewportBottom the Y coordinate of the viewport's bottom edge
+     * @return true if the table is at least partially visible
      */
     public boolean isVisible(double viewportTop, double viewportBottom) {
         double nodeTop = y;
@@ -899,52 +1222,214 @@ public class RepeatingElementsTable {
 
     // ==================== Getters and Setters ====================
 
+    /**
+     * Returns the common name of all elements in this table.
+     *
+     * @return the element name
+     */
     public String getElementName() { return elementName; }
+
+    /**
+     * Returns the list of XML elements displayed in this table.
+     *
+     * @return the list of elements
+     */
     public List<XmlElement> getElements() { return elements; }
+
+    /**
+     * Returns the number of elements in this table.
+     *
+     * @return the element count
+     */
     public int getElementCount() { return elements.size(); }
+
+    /**
+     * Returns the list of columns in this table.
+     *
+     * @return the list of table columns
+     */
     public List<TableColumn> getColumns() { return columns; }
+
+    /**
+     * Returns the list of rows in this table.
+     *
+     * @return the list of table rows
+     */
     public List<TableRow> getRows() { return rows; }
+
+    /**
+     * Returns the parent NestedGridNode containing this table.
+     *
+     * @return the parent node
+     */
     public NestedGridNode getParentNode() { return parentNode; }
+
+    /**
+     * Returns the nesting depth of this table.
+     *
+     * @return the depth level
+     */
     public int getDepth() { return depth; }
 
+    /**
+     * Returns the X coordinate of this table.
+     *
+     * @return the X position in pixels
+     */
     public double getX() { return x; }
+
+    /**
+     * Sets the X coordinate of this table.
+     *
+     * @param x the new X position in pixels
+     */
     public void setX(double x) { this.x = x; }
+
+    /**
+     * Returns the Y coordinate of this table.
+     *
+     * @return the Y position in pixels
+     */
     public double getY() { return y; }
+
+    /**
+     * Sets the Y coordinate of this table.
+     *
+     * @param y the new Y position in pixels
+     */
     public void setY(double y) { this.y = y; }
+
+    /**
+     * Returns the width of this table.
+     *
+     * @return the width in pixels
+     */
     public double getWidth() { return width; }
+
+    /**
+     * Sets the width of this table.
+     *
+     * @param width the new width in pixels
+     */
     public void setWidth(double width) { this.width = width; }
+
+    /**
+     * Returns the height of this table.
+     *
+     * @return the height in pixels
+     */
     public double getHeight() { return height; }
+
+    /**
+     * Sets the height of this table.
+     *
+     * @param height the new height in pixels
+     */
     public void setHeight(double height) { this.height = height; }
 
+    /**
+     * Checks if this table is expanded to show all rows.
+     *
+     * @return true if expanded, false if collapsed
+     */
     public boolean isExpanded() { return expanded; }
+
+    /**
+     * Sets the expansion state of this table.
+     * Fires a property change event for "expanded".
+     *
+     * @param expanded true to expand, false to collapse
+     */
     public void setExpanded(boolean expanded) {
         boolean old = this.expanded;
         this.expanded = expanded;
         pcs.firePropertyChange("expanded", old, expanded);
     }
+
+    /**
+     * Toggles the expansion state of this table.
+     */
     public void toggleExpanded() { setExpanded(!expanded); }
 
+    /**
+     * Checks if this table is currently selected.
+     *
+     * @return true if selected
+     */
     public boolean isSelected() { return selected; }
+
+    /**
+     * Sets the selection state of this table.
+     * Fires a property change event for "selected".
+     *
+     * @param selected true to select, false to deselect
+     */
     public void setSelected(boolean selected) {
         boolean old = this.selected;
         this.selected = selected;
         pcs.firePropertyChange("selected", old, selected);
     }
 
+    /**
+     * Checks if this table is currently hovered by the mouse.
+     *
+     * @return true if hovered
+     */
     public boolean isHovered() { return hovered; }
+
+    /**
+     * Sets the hover state of this table.
+     * Fires a property change event for "hovered".
+     *
+     * @param hovered true if mouse is over the table
+     */
     public void setHovered(boolean hovered) {
         boolean old = this.hovered;
         this.hovered = hovered;
         pcs.firePropertyChange("hovered", old, hovered);
     }
 
+    /**
+     * Returns the index of the currently hovered row.
+     *
+     * @return the hovered row index, or -1 if no row is hovered
+     */
     public int getHoveredRowIndex() { return hoveredRowIndex; }
+
+    /**
+     * Sets the index of the hovered row.
+     *
+     * @param index the row index, or -1 if no row is hovered
+     */
     public void setHoveredRowIndex(int index) { this.hoveredRowIndex = index; }
 
+    /**
+     * Returns the index of the currently hovered column.
+     *
+     * @return the hovered column index, or -1 if no column is hovered
+     */
     public int getHoveredColumnIndex() { return hoveredColumnIndex; }
+
+    /**
+     * Sets the index of the hovered column.
+     *
+     * @param index the column index, or -1 if no column is hovered
+     */
     public void setHoveredColumnIndex(int index) { this.hoveredColumnIndex = index; }
 
+    /**
+     * Returns the index of the currently selected row.
+     *
+     * @return the selected row index, or -1 if no row is selected
+     */
     public int getSelectedRowIndex() { return selectedRowIndex; }
+
+    /**
+     * Sets the index of the selected row.
+     * Fires a property change event for "selectedRowIndex".
+     *
+     * @param index the row index to select, or -1 to deselect
+     */
     public void setSelectedRowIndex(int index) {
         int old = this.selectedRowIndex;
         this.selectedRowIndex = index;
@@ -955,11 +1440,15 @@ public class RepeatingElementsTable {
 
     /**
      * Returns the name of the column currently sorted by, or null if not sorted.
+     *
+     * @return the sorted column name, or null if the table is not sorted
      */
     public String getSortedColumnName() { return sortedColumnName; }
 
     /**
      * Returns true if sorting is ascending, false if descending.
+     *
+     * @return true for ascending sort order, false for descending
      */
     public boolean isSortAscending() { return sortAscending; }
 
@@ -1016,6 +1505,11 @@ public class RepeatingElementsTable {
         return columnName != null && columnName.equals(sortedColumnName);
     }
 
+    /**
+     * Returns the XML element of the currently selected row.
+     *
+     * @return the selected XML element, or null if no row is selected
+     */
     public XmlElement getSelectedElement() {
         if (selectedRowIndex >= 0 && selectedRowIndex < rows.size()) {
             return rows.get(selectedRowIndex).getElement();
@@ -1024,10 +1518,17 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Toggles expansion of a complex cell and creates/removes the child grid.
-     * @param rowIndex Row index
-     * @param columnName Column name
-     * @return true if the cell was expanded/collapsed, false if not a complex cell
+     * Toggles expansion of a complex cell and creates or removes the child grid.
+     *
+     * <p>When a cell containing complex content is expanded, a child grid is created
+     * to display the nested XML structure. When collapsed, the child grid is removed.</p>
+     *
+     * <p>After toggling, column widths are recalculated to accommodate the expanded content.</p>
+     *
+     * @param rowIndex   the zero-based index of the row
+     * @param columnName the name of the column containing the complex cell
+     * @return true if the cell was successfully expanded or collapsed, false if the cell
+     *         does not contain complex content or the row index is invalid
      */
     public boolean toggleCellExpansion(int rowIndex, String columnName) {
         if (rowIndex < 0 || rowIndex >= rows.size()) return false;
@@ -1055,6 +1556,9 @@ public class RepeatingElementsTable {
 
     /**
      * Gets a column by its name.
+     *
+     * @param name the name of the column to find
+     * @return the TableColumn with the specified name, or null if not found
      */
     public TableColumn getColumn(String name) {
         for (TableColumn col : columns) {
@@ -1067,6 +1571,9 @@ public class RepeatingElementsTable {
 
     /**
      * Gets a column by its index.
+     *
+     * @param index the zero-based index of the column
+     * @return the TableColumn at the specified index, or null if index is out of bounds
      */
     public TableColumn getColumn(int index) {
         if (index >= 0 && index < columns.size()) {
@@ -1075,10 +1582,23 @@ public class RepeatingElementsTable {
         return null;
     }
 
+    /**
+     * Adds a property change listener to this table.
+     *
+     * <p>Listeners will be notified of changes to properties such as "expanded",
+     * "selected", "hovered", "selectedRowIndex", "sortState", and "cellExpansion".</p>
+     *
+     * @param listener the listener to add
+     */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(listener);
     }
 
+    /**
+     * Removes a property change listener from this table.
+     *
+     * @param listener the listener to remove
+     */
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         pcs.removePropertyChangeListener(listener);
     }
@@ -1086,12 +1606,30 @@ public class RepeatingElementsTable {
     // ==================== Sorting Support ====================
 
     /**
-     * Data types for smart sorting.
+     * Data types used for smart column sorting.
+     *
+     * <p>The data type determines how values are compared during sorting:</p>
+     * <ul>
+     *   <li>{@link #STRING} - Alphabetical comparison, case-insensitive</li>
+     *   <li>{@link #NUMERIC} - Numeric comparison after parsing</li>
+     *   <li>{@link #DATE} - Chronological comparison</li>
+     * </ul>
      */
     public enum ColumnDataType {
-        STRING,   // Alphabetical sort (case-insensitive)
-        NUMERIC,  // Numeric sort
-        DATE      // Date sort
+        /**
+         * String data type for alphabetical sorting (case-insensitive).
+         */
+        STRING,
+
+        /**
+         * Numeric data type for numerical sorting.
+         */
+        NUMERIC,
+
+        /**
+         * Date data type for chronological sorting.
+         */
+        DATE
     }
 
     /**
@@ -1197,10 +1735,18 @@ public class RepeatingElementsTable {
     /**
      * Groups child elements by name and creates tables for repeating elements.
      *
-     * @param children List of child nodes
-     * @param parentNode Parent grid node
-     * @param depth Current depth
-     * @return Map of element name to table (only for elements appearing 2+ times)
+     * <p>This factory method analyzes a list of child nodes, groups XML elements
+     * by their tag name, and creates a RepeatingElementsTable for each group
+     * that contains 2 or more elements with the same name.</p>
+     *
+     * <p>Elements that appear only once are not included in the returned map
+     * and should be displayed as individual nested grids instead.</p>
+     *
+     * @param children                the list of child nodes to analyze
+     * @param parentNode              the parent grid node that will contain the tables
+     * @param depth                   the current nesting depth
+     * @param onLayoutChangedCallback callback to invoke when layout changes
+     * @return a map of element names to tables, containing only elements that appear 2 or more times
      */
     public static Map<String, RepeatingElementsTable> groupRepeatingElements(
             List<XmlNode> children, NestedGridNode parentNode, int depth, Runnable onLayoutChangedCallback) {

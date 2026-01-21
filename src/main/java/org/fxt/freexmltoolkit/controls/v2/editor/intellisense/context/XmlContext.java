@@ -41,42 +41,92 @@ public class XmlContext {
 
     // Getters
 
+    /**
+     * Gets the caret position where this context was analyzed.
+     *
+     * @return the caret position
+     */
     public int getCaretPosition() {
         return caretPosition;
     }
 
+    /**
+     * Gets the text before the caret position.
+     *
+     * @return the text before caret
+     */
     public String getTextBeforeCaret() {
         return textBeforeCaret;
     }
 
+    /**
+     * Gets the context type (e.g., element, attribute, value).
+     *
+     * @return the context type
+     */
     public ContextType getType() {
         return type;
     }
 
+    /**
+     * Gets the parent element name at this position.
+     *
+     * @return the parent element name, or null if not in an element
+     */
     public String getParentElement() {
         return parentElement;
     }
 
+    /**
+     * Gets the current element name at this position.
+     *
+     * @return the current element name, or null if not in an element
+     */
     public String getCurrentElement() {
         return currentElement;
     }
 
+    /**
+     * Gets the current attribute name at this position.
+     *
+     * @return the current attribute name, or null if not in an attribute
+     */
     public String getCurrentAttribute() {
         return currentAttribute;
     }
 
+    /**
+     * Gets the XPath context for this position.
+     *
+     * @return the XPath context, or null if not available
+     */
     public XPathContext getXPathContext() {
         return xpathContext;
     }
 
+    /**
+     * Checks if the caret is inside a comment.
+     *
+     * @return true if inside a comment
+     */
     public boolean isInComment() {
         return inComment;
     }
 
+    /**
+     * Checks if the caret is inside a CDATA section.
+     *
+     * @return true if inside a CDATA section
+     */
     public boolean isInCData() {
         return inCData;
     }
 
+    /**
+     * Gets the start position for completion text replacement.
+     *
+     * @return the completion start position
+     */
     public int getCompletionStartPosition() {
         return completionStartPosition;
     }
@@ -145,56 +195,121 @@ public class XmlContext {
         private boolean inCData;
         private int completionStartPosition;
 
+        /**
+         * Sets the caret position.
+         *
+         * @param caretPosition the caret position
+         * @return this builder for chaining
+         */
         public Builder caretPosition(int caretPosition) {
             this.caretPosition = caretPosition;
             return this;
         }
 
+        /**
+         * Sets the text before the caret.
+         *
+         * @param textBeforeCaret the text before caret
+         * @return this builder for chaining
+         */
         public Builder textBeforeCaret(String textBeforeCaret) {
             this.textBeforeCaret = textBeforeCaret;
             return this;
         }
 
+        /**
+         * Sets the context type.
+         *
+         * @param type the context type
+         * @return this builder for chaining
+         */
         public Builder type(ContextType type) {
             this.type = type;
             return this;
         }
 
+        /**
+         * Sets the parent element name.
+         *
+         * @param parentElement the parent element name
+         * @return this builder for chaining
+         */
         public Builder parentElement(String parentElement) {
             this.parentElement = parentElement;
             return this;
         }
 
+        /**
+         * Sets the current element name.
+         *
+         * @param currentElement the current element name
+         * @return this builder for chaining
+         */
         public Builder currentElement(String currentElement) {
             this.currentElement = currentElement;
             return this;
         }
 
+        /**
+         * Sets the current attribute name.
+         *
+         * @param currentAttribute the current attribute name
+         * @return this builder for chaining
+         */
         public Builder currentAttribute(String currentAttribute) {
             this.currentAttribute = currentAttribute;
             return this;
         }
 
+        /**
+         * Sets the XPath context.
+         *
+         * @param xpathContext the XPath context
+         * @return this builder for chaining
+         */
         public Builder xpathContext(XPathContext xpathContext) {
             this.xpathContext = xpathContext;
             return this;
         }
 
+        /**
+         * Sets whether the caret is inside a comment.
+         *
+         * @param inComment true if inside a comment
+         * @return this builder for chaining
+         */
         public Builder inComment(boolean inComment) {
             this.inComment = inComment;
             return this;
         }
 
+        /**
+         * Sets whether the caret is inside a CDATA section.
+         *
+         * @param inCData true if inside a CDATA section
+         * @return this builder for chaining
+         */
         public Builder inCData(boolean inCData) {
             this.inCData = inCData;
             return this;
         }
 
+        /**
+         * Sets the completion start position.
+         *
+         * @param completionStartPosition the completion start position
+         * @return this builder for chaining
+         */
         public Builder completionStartPosition(int completionStartPosition) {
             this.completionStartPosition = completionStartPosition;
             return this;
         }
 
+        /**
+         * Builds the XmlContext instance.
+         *
+         * @return the built XmlContext
+         */
         public XmlContext build() {
             return new XmlContext(this);
         }

@@ -20,6 +20,17 @@ package org.fxt.freexmltoolkit.domain;
 
 import java.util.HashMap;
 
+/**
+ * Record holding PDF metadata settings for document generation.
+ *
+ * @param customParameter custom parameters as key-value pairs
+ * @param producer        the PDF producer name
+ * @param author          the document author
+ * @param creator         the application that created the document
+ * @param creationDate    the creation date of the document
+ * @param title           the document title
+ * @param keywords        keywords associated with the document
+ */
 public record PDFSettings(HashMap<String, String> customParameter, String producer, String author, String creator,
                           String creationDate, String title, String keywords) {
 }

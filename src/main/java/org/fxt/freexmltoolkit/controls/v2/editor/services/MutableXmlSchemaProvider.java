@@ -209,6 +209,10 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     /**
      * Calculates a match score between clean path segments and an XSD map key.
      * Higher score means better match.
+     *
+     * @param cleanSegments the cleaned path segments to match
+     * @param mapKey        the XSD map key to compare against
+     * @return the match score (higher is better)
      */
     private int calculatePathMatchScore(java.util.List<String> cleanSegments, String mapKey) {
         // Extract real element names from the map key (filter out SEQUENCE_X, CHOICE_X, etc.)
@@ -237,7 +241,10 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     }
 
     /**
-     * Checks if an element name is an XSD compositor (SEQUENCE_X, CHOICE_X, ALL_X, etc.)
+     * Checks if an element name is an XSD compositor (SEQUENCE_X, CHOICE_X, ALL_X, etc.).
+     *
+     * @param name the element name to check
+     * @return true if the name represents a compositor element
      */
     private boolean isCompositorElement(String name) {
         return name.startsWith("SEQUENCE_") ||
@@ -247,7 +254,10 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     }
 
     /**
-     * Extracts the element name from an XPath.
+     * Extracts the element name from an XPath expression.
+     *
+     * @param xpath the XPath expression
+     * @return the extracted element name, or null if none found
      */
     private String extractElementName(String xpath) {
         if (xpath == null || xpath.isEmpty()) {
@@ -268,7 +278,9 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     }
 
     /**
-     * Adds a property change listener.
+     * Adds a property change listener for schema changes.
+     *
+     * @param listener the listener to add
      */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(listener);
@@ -276,6 +288,8 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
 
     /**
      * Removes a property change listener.
+     *
+     * @param listener the listener to remove
      */
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         pcs.removePropertyChangeListener(listener);

@@ -35,6 +35,22 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * Service for generating SVG-based XSD documentation.
+ *
+ * <p>This service creates interactive SVG diagrams from XSD schema documentation data,
+ * rendering the schema structure with visual representations of elements, attributes,
+ * compositors (sequence, choice, all), and their relationships.</p>
+ *
+ * <p>Features include:</p>
+ * <ul>
+ *   <li>Type-specific icons and colors matching XsdDiagramView styles</li>
+ *   <li>Visual indicators for cardinality (optional, mandatory, repeatable)</li>
+ *   <li>Badges for XSD 1.1 features (assertions, type alternatives, open content)</li>
+ *   <li>Interactive zoom and pan support via embedded JavaScript</li>
+ *   <li>Gradient fills and drop shadows for professional appearance</li>
+ * </ul>
+ */
 public class XsdDocumentationSvgService {
 
     private static final Logger logger = LogManager.getLogger(XsdDocumentationSvgService.class);

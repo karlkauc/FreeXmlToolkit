@@ -56,21 +56,78 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Main controller for the FreeXMLToolkit application.
+ * Manages the tab-based navigation and coordinates all sub-controllers
+ * for XML, XSD, XSLT, Schematron, FOP, and JSON editing.
+ */
 public class MainController implements Initializable {
+
+    /**
+     * Creates a new MainController instance.
+     * This constructor is called by the FXML loader when loading the main view.
+     */
+    public MainController() {
+        // Default constructor for FXML initialization
+    }
 
     private final static Logger logger = LogManager.getLogger(MainController.class);
 
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+
+    /**
+     * Controller for XML editing functionality.
+     */
     XmlUltimateController xmlUltimateController;
+
+    /**
+     * Controller for XSD schema visualization and documentation.
+     */
     XsdController xsdController;
+
+    /**
+     * Controller for Schematron validation.
+     */
     SchematronController schematronController;
+
+    /**
+     * Controller for XSD validation operations.
+     */
     XsdValidationController xsdValidationController;
+
+    /**
+     * Controller for FOP (Formatting Objects Processor) PDF generation.
+     */
     FopController fopController;
+
+    /**
+     * Controller for XSLT transformations.
+     */
     XsltController xsltController;
+
+    /**
+     * Controller for advanced XSLT development features.
+     */
     XsltDeveloperController xsltDeveloperController;
+
+    /**
+     * Controller for intelligent schema generation from XML samples.
+     */
     SchemaGeneratorController schemaGeneratorController;
+
+    /**
+     * Controller for smart templates functionality.
+     */
     TemplatesController templatesController;
+
+    /**
+     * Controller for unified editor view combining multiple editing modes.
+     */
     UnifiedEditorController unifiedEditorController;
+
+    /**
+     * Controller for JSON editing and conversion functionality.
+     */
     JsonController jsonController;
 
     // Track currently active tab
@@ -79,84 +136,165 @@ public class MainController implements Initializable {
     // Integration service for cross-controller communication
     private org.fxt.freexmltoolkit.service.SchematronXmlIntegrationService integrationService;
 
+    /**
+     * Scheduled executor service for periodic background tasks such as memory monitoring.
+     */
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
+
+    /**
+     * Cached thread pool executor service for general background tasks.
+     */
     public final ExecutorService service = Executors.newCachedThreadPool();
     final Runtime runtime = Runtime.getRuntime();
     private boolean shutdownCalled = false;
 
+    /**
+     * Label displaying the application version and memory usage status.
+     */
     @FXML
     Label version;
 
+    /**
+     * Main content pane where tab pages are loaded.
+     */
     @FXML
     AnchorPane contentPane;
 
+    /**
+     * Navigation buttons for switching between different editor tabs.
+     */
     @FXML
     Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, unifiedEditor, json; // templates removed
 
+    /**
+     * Menu item for exiting the application.
+     */
     @FXML
     MenuItem menuItemExit;
 
+    /**
+     * Menu containing recently opened files.
+     */
     @FXML
     Menu lastOpenFilesMenu;
 
+    /**
+     * Check menu item for toggling the XML editor sidebar visibility.
+     */
     @FXML
     CheckMenuItem xmlEditorSidebarMenuItem;
 
+    /**
+     * Check menu item for toggling the XPath query pane visibility.
+     */
     @FXML
     CheckMenuItem xpathQueryPaneMenuItem;
 
-
+    /**
+     * Labels displaying menu text in the left navigation panel.
+     */
     @FXML
     Label menuText1, menuText2;
 
+    /**
+     * Left menu VBox container for navigation buttons.
+     */
     @FXML
     VBox leftMenu;
 
+    /**
+     * ImageView displaying the application logo in the left menu.
+     */
     @FXML
     ImageView logoImageView;
 
+    /**
+     * Menu item for undo operation.
+     */
     @FXML
     MenuItem menuItemUndo;
 
+    /**
+     * Menu item for redo operation.
+     */
     @FXML
     MenuItem menuItemRedo;
 
+    /**
+     * Menu item for save operation.
+     */
     @FXML
     MenuItem menuItemSave;
 
+    /**
+     * Menu item for save as operation.
+     */
     @FXML
     MenuItem menuItemSaveAs;
 
+    /**
+     * Menu item for close operation.
+     */
     @FXML
     MenuItem menuItemClose;
 
+    /**
+     * Menu item for close all operation.
+     */
     @FXML
     MenuItem menuItemCloseAll;
 
+    /**
+     * Menu item for opening settings.
+     */
     @FXML
     MenuItem menuItemSettings;
 
+    /**
+     * Menu item for find operation.
+     */
     @FXML
     MenuItem menuItemFind;
 
+    /**
+     * Menu item for find and replace operation.
+     */
     @FXML
     MenuItem menuItemFindReplace;
 
+    /**
+     * Menu item for toggling full screen mode.
+     */
     @FXML
     MenuItem menuItemFullScreen;
 
+    /**
+     * Menu item for opening the user guide.
+     */
     @FXML
     MenuItem menuItemUserGuide;
 
+    /**
+     * Menu item for showing keyboard shortcuts.
+     */
     @FXML
     MenuItem menuItemKeyboardShortcuts;
 
+    /**
+     * Menu item for checking for updates.
+     */
     @FXML
     MenuItem menuItemCheckUpdates;
 
+    /**
+     * Menu item for reporting an issue.
+     */
     @FXML
     MenuItem menuItemReportIssue;
 
+    /**
+     * Menu item for showing the about dialog.
+     */
     @FXML
     MenuItem menuItemAbout;
 
@@ -166,6 +304,10 @@ public class MainController implements Initializable {
 
     FXMLLoader loader;
 
+    /**
+     * Applies the current theme (light or dark) to the application based on user preferences.
+     * This method loads the appropriate CSS stylesheet for the selected theme.
+     */
     public void applyTheme() {
         try {
             Scene scene = contentPane.getScene();
@@ -240,6 +382,10 @@ public class MainController implements Initializable {
         Platform.runLater(() -> version.setText(statusText));
     }
 
+    /**
+     * Shuts down all executor services and controllers gracefully.
+     * This method is called when the application is closing to ensure proper cleanup.
+     */
     @FXML
     public void shutdown() {
         // Prevent double shutdown
@@ -453,11 +599,22 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Adds a file to the list of recently opened files and refreshes the menu.
+     *
+     * @param file the file to add to the recent files list
+     */
     public void addFileToRecentFiles(File file) {
         propertiesService.addLastOpenFile(file);
         loadLastOpenFiles();
     }
 
+    /**
+     * Handles navigation button clicks to load the corresponding page.
+     * Maps button IDs to their respective FXML pages and updates the UI.
+     *
+     * @param ae the action event from the clicked button
+     */
     @FXML
     public void loadPage(ActionEvent ae) {
         Button currentButton = (Button) ae.getSource();
@@ -564,6 +721,9 @@ public class MainController implements Initializable {
 
     /**
      * Returns the menu button associated with a page ID.
+     *
+     * @param pageId the page identifier
+     * @return the corresponding Button, or null if not found
      */
     private Button getButtonForPageId(String pageId) {
         return switch (pageId) {
@@ -595,6 +755,11 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Switches to the XML editor view and loads the specified file.
+     *
+     * @param fileToLoad the XML file to load
+     */
     public void switchToXmlViewAndLoadFile(File fileToLoad) {
         if (xmlUltimate == null) {
             logger.error("XML-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
@@ -616,6 +781,11 @@ public class MainController implements Initializable {
         });
     }
 
+    /**
+     * Switches to the XSD editor view and loads the specified file.
+     *
+     * @param fileToLoad the XSD file to load
+     */
     public void switchToXsdViewAndLoadFile(File fileToLoad) {
         if (xsd == null) {
             logger.error("XSD-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
@@ -636,6 +806,11 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Switches to the Schematron editor view and loads the specified file.
+     *
+     * @param fileToLoad the Schematron file to load
+     */
     public void switchToSchematronViewAndLoadFile(File fileToLoad) {
         if (schematron == null) {
             logger.error("Schematron-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
@@ -777,12 +952,18 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Get the integration service for cross-controller communication
+     * Gets the integration service for cross-controller communication.
+     * This service enables coordination between XML and Schematron controllers.
+     *
+     * @return the SchematronXmlIntegrationService instance, or null if not initialized
      */
     public org.fxt.freexmltoolkit.service.SchematronXmlIntegrationService getIntegrationService() {
         return integrationService;
     }
 
+    /**
+     * Handles the About menu action by displaying the application information dialog.
+     */
     @FXML
     private void handleAboutAction() {
         Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
@@ -830,31 +1011,49 @@ public class MainController implements Initializable {
 
     // --- XSD Tools Menu Handlers ---
 
+    /**
+     * Opens the Type Library tab in the XSD editor.
+     */
     @FXML
     public void openTypeLibrary() {
         switchToXsdAndSelectSubTab("typeLibraryTab");
     }
 
+    /**
+     * Opens the Type Editor tab in the XSD editor.
+     */
     @FXML
     public void openTypeEditor() {
         switchToXsdAndSelectSubTab("typeEditorTab");
     }
 
+    /**
+     * Opens the Schema Analysis tab in the XSD editor.
+     */
     @FXML
     public void openSchemaAnalysis() {
         switchToXsdAndSelectSubTab("schemaAnalysisTab");
     }
 
+    /**
+     * Opens the Documentation tab in the XSD editor.
+     */
     @FXML
     public void openXsdDocumentation() {
         switchToXsdAndSelectSubTab("documentation");
     }
 
+    /**
+     * Opens the Generate Example Data tab in the XSD editor.
+     */
     @FXML
     public void openGenerateExampleData() {
         switchToXsdAndSelectSubTab("generateExampleData");
     }
 
+    /**
+     * Opens the Flatten Schema tab in the XSD editor.
+     */
     @FXML
     public void openFlattenSchema() {
         switchToXsdAndSelectSubTab("flattenTab");
@@ -862,21 +1061,33 @@ public class MainController implements Initializable {
 
     // --- XML Tools Menu Handlers ---
 
+    /**
+     * Opens the XSLT Developer tab in the XML Ultimate editor.
+     */
     @FXML
     public void openXsltDeveloper() {
         switchToXmlUltimateAndSelectSubTab("xsltDevTab");
     }
 
+    /**
+     * Opens the Template Builder tab in the XML Ultimate editor.
+     */
     @FXML
     public void openTemplateBuilder() {
         switchToXmlUltimateAndSelectSubTab("templateTab");
     }
 
+    /**
+     * Opens the XML to CSV converter tab in the XML Ultimate editor.
+     */
     @FXML
     public void openXmlToCsv() {
         switchToXmlUltimateAndSelectSubTab("convertTab");
     }
 
+    /**
+     * Opens the Generate Schema tab in the XML Ultimate editor.
+     */
     @FXML
     public void openGenerateSchema() {
         switchToXmlUltimateAndSelectSubTab("generatorTab");
@@ -884,16 +1095,25 @@ public class MainController implements Initializable {
 
     // --- Schematron Tools Menu Handlers ---
 
+    /**
+     * Opens the Visual Builder tab in the Schematron editor.
+     */
     @FXML
     public void openSchematronBuilder() {
         switchToSchematronAndSelectSubTab("visualBuilderTab");
     }
 
+    /**
+     * Opens the Test tab in the Schematron editor.
+     */
     @FXML
     public void openSchematronTest() {
         switchToSchematronAndSelectSubTab("testTab");
     }
 
+    /**
+     * Opens the Documentation tab in the Schematron editor.
+     */
     @FXML
     public void openSchematronDocumentation() {
         switchToSchematronAndSelectSubTab("documentationTab");
@@ -901,6 +1121,9 @@ public class MainController implements Initializable {
 
     // --- PDF & Signatures Menu Handlers ---
 
+    /**
+     * Opens the PDF Generation page.
+     */
     @FXML
     public void openGeneratePdf() {
         removeActiveFromAllMenuButtons();
@@ -908,21 +1131,33 @@ public class MainController implements Initializable {
         loadPageFromPath("/pages/tab_fop.fxml");
     }
 
+    /**
+     * Opens the Create Certificate tab in the Signature editor.
+     */
     @FXML
     public void openCreateCertificate() {
         switchToSignatureAndSelectSubTab("createCertificateTab");
     }
 
+    /**
+     * Opens the Sign XML tab in the Signature editor.
+     */
     @FXML
     public void openSignXml() {
         switchToSignatureAndSelectSubTab("signXmlTab");
     }
 
+    /**
+     * Opens the Validate Signature tab in the Signature editor.
+     */
     @FXML
     public void openValidateSignature() {
         switchToSignatureAndSelectSubTab("validateTab");
     }
 
+    /**
+     * Opens the Expert Signing Mode tab in the Signature editor.
+     */
     @FXML
     public void openExpertSigning() {
         switchToSignatureAndSelectSubTab("expertModeTab");
@@ -976,6 +1211,9 @@ public class MainController implements Initializable {
         });
     }
 
+    /**
+     * Toggles the left menu bar between expanded and collapsed states.
+     */
     @FXML
     private void toggleMenuBar() {
         logger.debug("Show Menu: {}", showMenu);
@@ -1040,6 +1278,9 @@ public class MainController implements Initializable {
         else if (button == unifiedEditor) button.setText("Unified Editor");
     }
 
+    /**
+     * Toggles the visibility of the XML editor sidebar and persists the preference.
+     */
     @FXML
     private void toggleXmlEditorSidebar() {
         if (xmlEditorSidebarMenuItem == null) {
@@ -1055,11 +1296,22 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Checks if the XML editor sidebar should be visible based on user preferences.
+     *
+     * @return true if the sidebar should be visible, false otherwise
+     */
     public boolean isXmlEditorSidebarVisible() {
         String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
         return sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
     }
 
+    /**
+     * Toggles the XML editor sidebar visibility from the sidebar button.
+     * Updates the menu checkbox state and persists the preference.
+     *
+     * @param visible whether the sidebar should be visible
+     */
     public void toggleXmlEditorSidebarFromSidebar(boolean visible) {
         logger.debug("Toggle XML Editor Sidebar from sidebar button: {}", visible);
 
@@ -1074,6 +1326,9 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Toggles the visibility of the XPath query pane and persists the preference.
+     */
     @FXML
     private void toggleXPathQueryPane() {
         if (xpathQueryPaneMenuItem == null) {
@@ -1091,6 +1346,11 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Checks if the XPath query pane should be visible based on user preferences.
+     *
+     * @return true if the pane should be visible, false otherwise
+     */
     public boolean isXPathQueryPaneVisible() {
         String paneVisible = propertiesService.get("xpathQueryPane.visible");
         return paneVisible == null || Boolean.parseBoolean(paneVisible);
@@ -1115,6 +1375,9 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Handles the New File menu action by showing a dialog to select file type.
+     */
     @FXML
     private void handleNewFile() {
         logger.debug("New file action triggered");
@@ -1145,6 +1408,9 @@ public class MainController implements Initializable {
         });
     }
 
+    /**
+     * Handles the Undo menu action by delegating to the active tab controller.
+     */
     @FXML
     private void handleUndo() {
         logger.debug("Undo action triggered");
@@ -1155,6 +1421,9 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Handles the Redo menu action by delegating to the active tab controller.
+     */
     @FXML
     private void handleRedo() {
         logger.debug("Redo action triggered");
@@ -1164,7 +1433,10 @@ public class MainController implements Initializable {
             xsdController.performRedo();
         }
     }
-    
+
+    /**
+     * Handles the Open File menu action by showing a file chooser dialog.
+     */
     @FXML
     private void handleOpenFile() {
         logger.debug("Open file action triggered");
@@ -1239,6 +1511,11 @@ public class MainController implements Initializable {
 
     // Methods for opening files in specific editors (used by SettingsController for favorites)
 
+    /**
+     * Opens the specified XML file in the XML editor.
+     *
+     * @param file the XML file to open
+     */
     public void openXmlFileInEditor(File file) {
         if (file != null && xmlUltimateController != null) {
             xmlUltimate.fire(); // Switch to XML tab
@@ -1247,6 +1524,11 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Opens the specified XSD file in the XSD editor.
+     *
+     * @param file the XSD file to open
+     */
     public void openXsdFileInEditor(File file) {
         if (file != null && xsdController != null) {
             xsd.fire(); // Switch to XSD tab
@@ -1255,6 +1537,11 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Opens the specified Schematron file in the Schematron editor.
+     *
+     * @param file the Schematron file to open
+     */
     public void openSchematronFileInEditor(File file) {
         if (file != null && schematronController != null) {
             schematron.fire(); // Switch to Schematron tab
@@ -1491,14 +1778,20 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Check if the list of files contains at least one XML file
+     * Checks if the list of files contains at least one XML-related file.
+     *
+     * @param files the list of files to check
+     * @return true if at least one file is an XML-related file, false otherwise
      */
     private boolean hasXmlFiles(java.util.List<java.io.File> files) {
         return files.stream().anyMatch(this::isXmlFile);
     }
 
     /**
-     * Check if a file is an XML file based on its extension
+     * Checks if a file is an XML-related file based on its extension.
+     *
+     * @param file the file to check
+     * @return true if the file has an XML-related extension, false otherwise
      */
     private boolean isXmlFile(java.io.File file) {
         String fileName = file.getName().toLowerCase();

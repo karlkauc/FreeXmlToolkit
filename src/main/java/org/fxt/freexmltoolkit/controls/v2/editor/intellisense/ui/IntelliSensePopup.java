@@ -40,6 +40,9 @@ public class IntelliSensePopup {
     private final ListView<CompletionItem> listView;
     private Consumer<CompletionItem> onItemSelected;
 
+    /**
+     * Creates a new IntelliSensePopup instance.
+     */
     public IntelliSensePopup() {
         this.popup = new Popup();
         this.listView = new ListView<>();

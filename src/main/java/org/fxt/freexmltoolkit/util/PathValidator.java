@@ -47,6 +47,9 @@ public final class PathValidator {
      */
     public static final int MAX_REDIRECTS = 5;
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
     private PathValidator() {
         // Utility class - prevent instantiation
     }

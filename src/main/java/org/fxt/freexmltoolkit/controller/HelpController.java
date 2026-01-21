@@ -37,7 +37,34 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Properties;
 
+/**
+ * Controller for the Help tab providing access to documentation and external resources.
+ *
+ * <p>This controller manages multiple WebView components that display:
+ * <ul>
+ *     <li>FreeXmlToolkit documentation (GitHub Pages)</li>
+ *     <li>FundsXML official website</li>
+ *     <li>FundsXML schema migration guide</li>
+ * </ul>
+ *
+ * <p>The controller configures WebEngine instances with appropriate proxy and SSL settings
+ * based on the application's connection configuration, ensuring compatibility with
+ * various network environments including corporate proxies.
+ *
+ * @author FreeXmlToolkit Team
+ * @since 1.0
+ */
 public class HelpController {
+
+    /**
+     * Creates a new HelpController instance.
+     *
+     * <p>The controller is instantiated by the JavaFX FXML loader. Initialization
+     * of WebView components and connection settings occurs in the {@link #initialize()} method.
+     */
+    public HelpController() {
+        // Default constructor for FXML instantiation
+    }
 
     private static final Logger logger = LogManager.getLogger(HelpController.class);
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
@@ -51,6 +78,25 @@ public class HelpController {
     @FXML
     Tab tabFXTDoc, tabFundsXMlSite, tabMigrationGuide;
 
+    /**
+     * Initializes the Help controller after FXML injection is complete.
+     *
+     * <p>This method performs the following initialization tasks:
+     * <ol>
+     *     <li>Configures global WebEngine proxy and SSL settings based on application properties</li>
+     *     <li>Initializes each WebView component with individual SSL configurations</li>
+     *     <li>Loads the documentation URLs into their respective WebView components</li>
+     * </ol>
+     *
+     * <p>The following URLs are loaded:
+     * <ul>
+     *     <li>FXT Documentation: https://karlkauc.github.io/FreeXmlToolkit</li>
+     *     <li>FundsXML Website: http://www.fundsxml.org</li>
+     *     <li>Migration Guide: https://fundsxml.github.io/</li>
+     * </ul>
+     *
+     * <p>Error handling is implemented with retry capability for network issues.
+     */
     @FXML
     public void initialize() {
         logger.info("Initializing HelpController with connection settings");
