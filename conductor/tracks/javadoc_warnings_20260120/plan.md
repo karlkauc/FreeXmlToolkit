@@ -17,7 +17,7 @@
 
 ## Phase 4: Fix Remaining Warnings
 - [x] Task: Fix Javadoc warnings in remaining service classes (`CsvHandler`, `DragDropService`, etc.). cec6bc6
-- [ ] Task: Fix Javadoc warnings in domain classes (`DailyStatistics`, `BatchValidationFile`, etc.).
+- [x] Task: Fix Javadoc warnings in domain classes (`DailyStatistics`, `BatchValidationFile`, etc.). 62ece3a
 - [ ] Task: Fix Javadoc warnings in util classes (`DialogHelper`, etc.).
 - [ ] Task: Conductor - User Manual Verification 'Fix Remaining Warnings' (Protocol in workflow.md)
 
