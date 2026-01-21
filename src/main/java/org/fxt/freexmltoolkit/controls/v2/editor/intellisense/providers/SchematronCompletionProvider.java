@@ -27,6 +27,14 @@ public class SchematronCompletionProvider implements CompletionProvider {
 
     private static final String SCHEMATRON_NS = "http://purl.oclc.org/dsdl/schematron";
 
+    /**
+     * Constructs a new SchematronCompletionProvider with default settings.
+     * Initializes the provider to supply IntelliSense completions for Schematron documents.
+     */
+    public SchematronCompletionProvider() {
+        // Default constructor
+    }
+
     // Schematron elements
     private static final String[] SCHEMATRON_ELEMENTS = {
         "schema", "pattern", "rule", "assert", "report",

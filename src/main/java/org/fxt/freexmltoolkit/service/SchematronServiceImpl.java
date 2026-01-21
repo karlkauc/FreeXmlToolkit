@@ -45,6 +45,10 @@ public class SchematronServiceImpl implements SchematronService {
         XSLT_COMPILER.setURIResolver(new ClasspathURIResolver());
     }
 
+    /**
+     * Constructs a new SchematronServiceImpl with default settings.
+     * Initializes the internal compiled Schematron cache.
+     */
     public SchematronServiceImpl() {
         // Constructor
     }

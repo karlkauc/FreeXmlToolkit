@@ -13,14 +13,22 @@ import java.util.stream.Collectors;
 public class SkillTracker {
 
     /**
-     * Feature definition with metadata
-     * @param id The feature ID
-     * @param name The feature name
-     * @param category The feature category
-     * @param description The feature description
-     * @param iconLiteral The icon literal for the feature
-     * @param pageLink The page link for the feature
-     * @param skillPoints The skill points awarded for this feature
+     * Private constructor to prevent instantiation of this utility class.
+     */
+    private SkillTracker() {
+        // Utility class - no instantiation
+    }
+
+    /**
+     * Feature definition with metadata containing all information about a discoverable feature.
+     *
+     * @param id unique identifier for the feature
+     * @param name display name of the feature
+     * @param category category grouping for the feature
+     * @param description human-readable description of what the feature does
+     * @param iconLiteral Ikonli Bootstrap icon literal for the feature
+     * @param pageLink page link identifier for navigation
+     * @param skillPoints skill points awarded when this feature is discovered
      */
     public record FeatureDefinition(
         String id,
@@ -33,10 +41,11 @@ public class SkillTracker {
     ) {}
 
     /**
-     * Category with grouped features
-     * @param name The category name
-     * @param iconLiteral The icon literal for the category
-     * @param features List of features in this category
+     * Category containing grouped features for organized display.
+     *
+     * @param name display name of the category
+     * @param iconLiteral Ikonli Bootstrap icon literal for the category
+     * @param features list of feature definitions belonging to this category
      */
     public record FeatureCategory(
         String name,
@@ -141,21 +150,28 @@ public class SkillTracker {
     }
 
     /**
-     * Get all feature definitions
+     * Returns all feature definitions available in the application.
+     *
+     * @return collection of all feature definitions
      */
     public static Collection<FeatureDefinition> getAllFeatureDefinitions() {
         return FEATURES.values();
     }
 
     /**
-     * Get feature definition by ID
+     * Returns the feature definition for the specified feature ID.
+     *
+     * @param featureId the unique identifier of the feature
+     * @return the feature definition, or null if not found
      */
     public static FeatureDefinition getFeatureDefinition(String featureId) {
         return FEATURES.get(featureId);
     }
 
     /**
-     * Get features grouped by category
+     * Returns all features organized by category with predefined ordering.
+     *
+     * @return list of feature categories with their associated features
      */
     public static List<FeatureCategory> getFeaturesByCategory() {
         Map<String, List<FeatureDefinition>> grouped = FEATURES.values().stream()
@@ -193,7 +209,12 @@ public class SkillTracker {
     }
 
     /**
-     * Calculate skill progress for a category (0-100%)
+     * Calculates the skill progress percentage for a specific category.
+     * Progress is determined by the ratio of discovered features to total features in the category.
+     *
+     * @param category the category name to calculate progress for
+     * @param stats the usage statistics containing discovered features
+     * @return progress percentage from 0 to 100
      */
     public static double getCategoryProgress(String category, UsageStatistics stats) {
         List<FeatureDefinition> categoryFeatures = FEATURES.values().stream()
@@ -213,7 +234,11 @@ public class SkillTracker {
     }
 
     /**
-     * Calculate overall skill progress (0-100%)
+     * Calculates the overall skill progress percentage across all features.
+     * Progress is determined by the ratio of discovered features to total available features.
+     *
+     * @param stats the usage statistics containing discovered features
+     * @return progress percentage from 0 to 100
      */
     public static double getOverallProgress(UsageStatistics stats) {
         if (FEATURES.isEmpty()) return 0;
@@ -226,7 +251,11 @@ public class SkillTracker {
     }
 
     /**
-     * Get total skill points earned
+     * Returns the total skill points earned based on discovered features.
+     * Each feature has an assigned skill point value awarded upon discovery.
+     *
+     * @param stats the usage statistics containing discovered features
+     * @return total skill points earned
      */
     public static int getTotalSkillPoints(UsageStatistics stats) {
         return stats.getFeatureUsage().values().stream()
@@ -239,7 +268,10 @@ public class SkillTracker {
     }
 
     /**
-     * Get maximum possible skill points
+     * Returns the maximum possible skill points that can be earned.
+     * This is the sum of all skill points from all available features.
+     *
+     * @return maximum achievable skill points
      */
     public static int getMaxSkillPoints() {
         return FEATURES.values().stream()
@@ -248,7 +280,12 @@ public class SkillTracker {
     }
 
     /**
-     * Get recommended next feature to try based on current usage
+     * Returns a recommended feature for the user to try next based on their current usage patterns.
+     * Prioritizes undiscovered features in categories the user has already explored,
+     * then suggests high-value features from new categories.
+     *
+     * @param stats the usage statistics containing discovered features
+     * @return an optional containing the recommended feature, or empty if all features are discovered
      */
     public static Optional<FeatureDefinition> getRecommendedFeature(UsageStatistics stats) {
         // Priority order: features in categories user already uses, but hasn't discovered yet
@@ -281,7 +318,12 @@ public class SkillTracker {
     }
 
     /**
-     * Get skill level title based on progress
+     * Returns a skill level title based on the user's progress percentage.
+     * Titles range from "Newcomer" for new users to "XML Master" for those
+     * who have discovered 90% or more of the available features.
+     *
+     * @param progress the progress percentage from 0 to 100
+     * @return a descriptive title for the user's skill level
      */
     public static String getSkillLevelTitle(double progress) {
         if (progress >= 90) return "XML Master";

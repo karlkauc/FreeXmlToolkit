@@ -576,6 +576,14 @@ public class SchematronErrorDetector {
         private final List<SchematronError> infos = new ArrayList<>();
 
         /**
+         * Constructs a new empty SchematronErrorResult.
+         * Initializes empty lists for errors, warnings, and informational issues.
+         */
+        public SchematronErrorResult() {
+            // Default constructor
+        }
+
+        /**
          * Adds an error to the appropriate category based on its severity.
          *
          * @param error the error to add

@@ -38,7 +38,27 @@ public interface TaskProgressListener {
         /**
          * The possible states of a task.
          */
-        public enum Status {STARTED, RUNNING, FAILED, FINISHED}
+        public enum Status {
+            /**
+             * Task has been started but processing has not begun yet.
+             */
+            STARTED,
+
+            /**
+             * Task is currently running and processing.
+             */
+            RUNNING,
+
+            /**
+             * Task has failed due to an error.
+             */
+            FAILED,
+
+            /**
+             * Task has completed successfully.
+             */
+            FINISHED
+        }
     }
 
     /**

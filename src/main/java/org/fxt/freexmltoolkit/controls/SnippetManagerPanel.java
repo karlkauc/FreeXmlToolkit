@@ -62,6 +62,10 @@ public class SnippetManagerPanel extends VBox {
     private String currentXmlContent;
     private Consumer<XPathExecutionResult> resultCallback;
 
+    /**
+     * Creates a new SnippetManagerPanel with default configuration.
+     * Initializes the snippet repository, execution engine, and UI components.
+     */
     public SnippetManagerPanel() {
         this.snippetRepository = XPathSnippetRepository.getInstance();
         this.executionEngine = new XPathExecutionEngine();
@@ -480,7 +484,10 @@ public class SnippetManagerPanel extends VBox {
     // ========== Public API ==========
 
     /**
-     * Set the current XML content for snippet execution
+     * Sets the current XML content for snippet execution.
+     * This content is used as the input document when executing XPath/XQuery snippets.
+     *
+     * @param xmlContent the XML content to use for snippet execution, may be null or empty
      */
     public void setXmlContent(String xmlContent) {
         this.currentXmlContent = xmlContent;
@@ -488,14 +495,21 @@ public class SnippetManagerPanel extends VBox {
     }
 
     /**
-     * Set callback for execution results
+     * Sets the callback to be invoked when a snippet execution completes.
+     * The callback receives the execution result containing either the query results or error information.
+     *
+     * @param callback the consumer to receive execution results, or null to disable callbacks
      */
     public void setResultCallback(Consumer<XPathExecutionResult> callback) {
         this.resultCallback = callback;
     }
 
     /**
-     * Execute snippet by name (for context menu integration)
+     * Executes a snippet by its name.
+     * This method is useful for context menu integration where snippets can be executed
+     * directly by their name without requiring manual selection.
+     *
+     * @param snippetName the name of the snippet to execute
      */
     public void executeSnippetByName(String snippetName) {
         XPathSnippet snippet = snippetRepository.getSnippetByName(snippetName);
@@ -506,7 +520,12 @@ public class SnippetManagerPanel extends VBox {
     }
 
     /**
-     * Get context-aware snippet suggestions
+     * Returns context-aware snippet suggestions based on the provided XML context.
+     * The suggestions are determined by analyzing the XML content and returning
+     * snippets that are most relevant to the current editing context.
+     *
+     * @param xmlContext the XML context to analyze for snippet suggestions
+     * @return a list of snippets that are relevant to the given context
      */
     public List<XPathSnippet> getContextSuggestions(String xmlContext) {
         // TODO: Implement smart context-aware suggestions
@@ -514,25 +533,40 @@ public class SnippetManagerPanel extends VBox {
     }
 
     /**
-     * Add custom snippet
+     * Adds a custom snippet to the repository.
+     * The snippet is persisted and becomes immediately available in the snippet list.
+     *
+     * @param snippet the custom snippet to add to the repository
      */
     public void addCustomSnippet(XPathSnippet snippet) {
         snippetRepository.saveSnippet(snippet);
         loadSnippets();
     }
 
+    /**
+     * Shuts down the panel and releases all resources.
+     * This method should be called when the panel is no longer needed
+     * to properly terminate the background executor service.
+     */
     public void shutdown() {
         executorService.shutdown();
     }
 
     // ========== Custom List Cell ==========
 
+    /**
+     * Custom list cell for displaying XPath snippets in the snippet list view.
+     * Displays the snippet name, description, and tags with appropriate styling.
+     */
     private static class SnippetListCell extends ListCell<XPathSnippet> {
         private final Label nameLabel = new Label();
         private final Label descriptionLabel = new Label();
         private final Label tagsLabel = new Label();
         private final VBox container = new VBox(2);
 
+        /**
+         * Creates a new snippet list cell with styled labels for displaying snippet information.
+         */
         public SnippetListCell() {
             nameLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
             descriptionLabel.setFont(Font.font("System", 10));
@@ -543,6 +577,13 @@ public class SnippetManagerPanel extends VBox {
             container.getChildren().addAll(nameLabel, descriptionLabel, tagsLabel);
         }
 
+        /**
+         * Updates the cell content when the item changes.
+         * Displays the snippet name (with favorite indicator), description, and tags.
+         *
+         * @param snippet the XPath snippet to display, or null if the cell is empty
+         * @param empty true if this cell does not contain any content
+         */
         @Override
         protected void updateItem(XPathSnippet snippet, boolean empty) {
             super.updateItem(snippet, empty);

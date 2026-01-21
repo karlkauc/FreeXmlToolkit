@@ -58,7 +58,9 @@ public class SchematronDocumentationGenerator extends VBox {
     private DocumentationFormat selectedFormat = DocumentationFormat.HTML;
 
     /**
-     * Constructor - Initialize the Documentation Generator
+     * Creates a new SchematronDocumentationGenerator instance.
+     * Initializes the executor service, UI components, layout, and event handlers
+     * for generating comprehensive documentation from Schematron schemas.
      */
     public SchematronDocumentationGenerator() {
         this.executor = Executors.newSingleThreadExecutor(r -> {
@@ -160,7 +162,11 @@ public class SchematronDocumentationGenerator extends VBox {
     }
 
     /**
-     * Create a titled section with content
+     * Creates a titled section containing the specified content.
+     *
+     * @param title   the title to display at the top of the section
+     * @param content the VBox containing the section content
+     * @return a VBox containing the titled section with proper styling
      */
     private VBox createSection(String title, VBox content) {
         VBox section = new VBox(5);
@@ -836,7 +842,10 @@ public class SchematronDocumentationGenerator extends VBox {
     }
 
     /**
-     * Set the current Schematron file for documentation
+     * Sets the current Schematron file for documentation generation.
+     * Updates the file field display to show the selected file path.
+     *
+     * @param schematronFile the Schematron file to document, or null to clear the selection
      */
     public void setSchematronFile(File schematronFile) {
         this.currentSchematronFile = schematronFile;
@@ -910,10 +919,15 @@ public class SchematronDocumentationGenerator extends VBox {
     // ========== Data Classes ==========
 
     /**
-     * Documentation format options
+     * Enumeration of supported documentation output formats.
      */
     public enum DocumentationFormat {
-        HTML, MARKDOWN, PLAIN_TEXT
+        /** HTML format with CSS styling for web display */
+        HTML,
+        /** Markdown format for documentation systems */
+        MARKDOWN,
+        /** Plain text format for simple output */
+        PLAIN_TEXT
     }
 
     /**

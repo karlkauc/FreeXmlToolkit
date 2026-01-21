@@ -792,6 +792,8 @@ public class SchemaStatisticsView extends BorderPane {
 
     /**
      * Gets the current statistics.
+     *
+     * @return the current XSD statistics, or null if not yet collected
      */
     public XsdStatistics getCurrentStatistics() {
         return currentStatistics;

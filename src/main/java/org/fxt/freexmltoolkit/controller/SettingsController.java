@@ -54,7 +54,27 @@ import java.net.URI;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * Controller for the application settings panel.
+ * Manages user preferences including proxy configuration, temp folder settings,
+ * XML formatting options, XSD editor preferences, favorites management,
+ * theme selection, and cache management.
+ *
+ * <p>This controller handles the persistence of settings via the {@link PropertiesService}
+ * and provides UI for configuring all application-wide preferences.</p>
+ *
+ * @author FreeXmlToolkit
+ * @since 1.0
+ */
 public class SettingsController {
+
+    /**
+     * Creates a new SettingsController instance.
+     * The controller is initialized by JavaFX via FXML loading.
+     */
+    public SettingsController() {
+        // Default constructor for FXML instantiation
+    }
 
     Properties props;
     private final static Logger logger = LogManager.getLogger(SettingsController.class);
@@ -181,10 +201,23 @@ public class SettingsController {
 
     private MainController parentController;
 
+    /**
+     * Sets the parent controller for this settings controller.
+     * The parent controller is used to apply settings changes immediately,
+     * such as theme changes and toolbar icon size adjustments.
+     *
+     * @param parentController the main application controller
+     */
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
 
+    /**
+     * Initializes the settings controller.
+     * Sets up spinner value factories, initializes combo boxes for themes and parsers,
+     * configures the favorites table, loads current settings, and registers
+     * property change listeners for dynamic UI updates.
+     */
     @FXML
     public void initialize() {
         portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 65535, 8080));

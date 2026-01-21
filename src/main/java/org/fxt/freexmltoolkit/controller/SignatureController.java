@@ -36,9 +36,36 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 
 import java.io.File;
 
+/**
+ * Controller for XML digital signature operations.
+ *
+ * <p>This controller provides a complete workflow for XML digital signatures according to
+ * W3C XML-DSig standards, including:</p>
+ * <ul>
+ *     <li>Creating self-signed certificates and JKS keystores</li>
+ *     <li>Signing XML documents with enveloped signatures</li>
+ *     <li>Validating signed XML documents</li>
+ *     <li>Expert mode with advanced algorithm configuration</li>
+ * </ul>
+ *
+ * <p>Supported algorithms include RSA, DSA, EC, and ECDSA with various key sizes,
+ * and SHA1/SHA256/SHA384/SHA512 digest algorithms.</p>
+ *
+ * @see SignatureService
+ */
 public class SignatureController {
     private final static Logger logger = LogManager.getLogger(SignatureController.class);
     private final SignatureService signatureService = new SignatureService();
+
+    /**
+     * Creates a new SignatureController instance.
+     *
+     * <p>Initializes the signature service for handling certificate creation,
+     * document signing, and signature validation operations.</p>
+     */
+    public SignatureController() {
+        // Default constructor - SignatureService is initialized inline
+    }
 
     @FXML
     private TextField commonName, organizationUnit, organizationName, localityName, streetName, country, email,
@@ -99,6 +126,14 @@ public class SignatureController {
 
     private MainController parentController;
 
+    /**
+     * Sets the parent controller for navigation and coordination.
+     *
+     * <p>This method establishes the connection to the main application controller,
+     * allowing this controller to communicate with other parts of the application.</p>
+     *
+     * @param parentController the main controller instance
+     */
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
@@ -282,6 +317,20 @@ public class SignatureController {
         }
     }
 
+    /**
+     * Creates a new self-signed certificate and saves it to a JKS keystore.
+     *
+     * <p>This method collects identity information from the form fields (common name,
+     * organization, country, etc.) and generates a new X.509 certificate using BouncyCastle.
+     * The certificate is stored in a newly created JKS keystore file.</p>
+     *
+     * <p>Required fields are:</p>
+     * <ul>
+     *     <li>Alias - identifier for the certificate in the keystore</li>
+     *     <li>Keystore Password - password to protect the keystore file</li>
+     *     <li>Alias Password - password to protect the private key</li>
+     * </ul>
+     */
     @FXML
     public void createNewSignatureFile() {
         final var aliasText = createCertificateAlias.getText();
@@ -313,6 +362,23 @@ public class SignatureController {
         }
     }
 
+    /**
+     * Signs an XML document using a certificate from a JKS keystore.
+     *
+     * <p>This method creates an enveloped XML digital signature according to W3C XML-DSig
+     * standards. The signature is embedded within the original XML document, and a new
+     * signed file is created with the specified suffix.</p>
+     *
+     * <p>Prerequisites:</p>
+     * <ul>
+     *     <li>An XML file must be loaded</li>
+     *     <li>A JKS keystore file must be loaded</li>
+     *     <li>Keystore alias and passwords must be provided</li>
+     * </ul>
+     *
+     * <p>Upon successful signing, the newly created signed document is automatically
+     * loaded for validation.</p>
+     */
     @FXML
     public void signDocument() {
         final var keystoreAlias = signKeystoreAlias.getText();
@@ -340,6 +406,22 @@ public class SignatureController {
         }
     }
 
+    /**
+     * Validates the digital signature in a signed XML document.
+     *
+     * <p>This method verifies the cryptographic integrity of an XML-DSig signature
+     * by checking that the signature value matches the signed content and that the
+     * signature has not been tampered with.</p>
+     *
+     * <p>The validation checks:</p>
+     * <ul>
+     *     <li>Signature cryptographic validity</li>
+     *     <li>Document integrity (no modifications since signing)</li>
+     *     <li>Reference digest values</li>
+     * </ul>
+     *
+     * <p>A signed XML file must be loaded before calling this method.</p>
+     */
     @FXML
     public void validateSignedDocument() {
         if (this.xmlFile == null) {
@@ -527,7 +609,21 @@ public class SignatureController {
         }
     }
 
-    // Expert Mode Action Methods
+    /**
+     * Creates a certificate with advanced expert mode options.
+     *
+     * <p>This method provides full control over certificate generation parameters,
+     * allowing selection of:</p>
+     * <ul>
+     *     <li>Key algorithm (RSA, DSA, EC, ECDSA)</li>
+     *     <li>Key size (1024-4096 bits for RSA/DSA, 256-521 bits for EC)</li>
+     *     <li>Signature algorithm (SHA1/SHA256/SHA384/SHA512 with RSA/DSA/ECDSA)</li>
+     *     <li>Certificate validity period in days</li>
+     *     <li>Subject Alternative Names (SANs)</li>
+     * </ul>
+     *
+     * <p>Results and progress are logged to the expert results text area.</p>
+     */
     @FXML
     public void expertCreateCertificate() {
         appendToExpertResults("=== Advanced Certificate Generation Started ===");
@@ -609,6 +705,27 @@ public class SignatureController {
         }
     }
 
+    /**
+     * Signs an XML document with advanced expert mode options.
+     *
+     * <p>This method provides full control over the XML-DSig signing process,
+     * allowing configuration of:</p>
+     * <ul>
+     *     <li>Canonicalization method (C14N, Exclusive C14N, C14N 1.1)</li>
+     *     <li>Transform method (enveloped-signature, C14N, XPath, etc.)</li>
+     *     <li>Digest method (SHA1, SHA256, SHA384, SHA512, MD5)</li>
+     *     <li>Signature type (Enveloped, Enveloping, Detached)</li>
+     * </ul>
+     *
+     * <p>Prerequisites:</p>
+     * <ul>
+     *     <li>An XML file must be loaded in expert mode</li>
+     *     <li>A keystore file must be loaded in expert mode</li>
+     *     <li>Keystore credentials must be provided</li>
+     * </ul>
+     *
+     * <p>Results and progress are logged to the expert results text area.</p>
+     */
     @FXML
     public void expertSignDocument() {
         appendToExpertResults("=== Advanced XML Signing Started ===");
@@ -656,6 +773,23 @@ public class SignatureController {
         }
     }
 
+    /**
+     * Validates a signed XML document with advanced expert mode options.
+     *
+     * <p>This method provides comprehensive signature validation with configurable
+     * verification options:</p>
+     * <ul>
+     *     <li>Certificate chain validation - verify the certificate hierarchy</li>
+     *     <li>Trust anchor validation - check against trusted root certificates</li>
+     *     <li>Revocation checking - verify certificate status via OCSP/CRL</li>
+     *     <li>Timestamp validation - verify signing timestamps if present</li>
+     *     <li>Detailed report generation - comprehensive validation output</li>
+     * </ul>
+     *
+     * <p>A signed XML file must be loaded in expert mode before validation.</p>
+     *
+     * <p>Results and detailed reports are logged to the expert results text area.</p>
+     */
     @FXML
     public void expertValidateDocument() {
         appendToExpertResults("=== Advanced Signature Validation Started ===");

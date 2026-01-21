@@ -115,7 +115,10 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Create the assertions table
+     * Creates and configures the assertions table with editable columns
+     * for test expression, message, flag, and delete action.
+     *
+     * @return the configured TableView for assertion items
      */
     private TableView<AssertionItem> createAssertionsTable() {
         TableView<AssertionItem> table = new TableView<>();
@@ -185,7 +188,10 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Create the reports table
+     * Creates and configures the reports table with editable columns
+     * for test expression, message, flag, and delete action.
+     *
+     * @return the configured TableView for report items
      */
     private TableView<ReportItem> createReportsTable() {
         TableView<ReportItem> table = new TableView<>();
@@ -295,7 +301,12 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Create a titled section with content
+     * Creates a titled section with the specified content.
+     * Each section has a bold title label and styled container.
+     *
+     * @param title the title text for the section
+     * @param content the VBox containing the section content
+     * @return the configured VBox container for the section
      */
     private VBox createSection(String title, VBox content) {
         VBox section = new VBox(5);
@@ -312,7 +323,10 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Create pattern configuration controls
+     * Creates the pattern configuration controls including pattern selector,
+     * ID field, title field, and add button.
+     *
+     * @return the VBox containing pattern configuration controls
      */
     private VBox createPatternControls() {
         HBox patternRow1 = new HBox(10);
@@ -336,7 +350,10 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Create rule configuration controls
+     * Creates the rule configuration controls including context field,
+     * ID field, and add rule button.
+     *
+     * @return the VBox containing rule configuration controls
      */
     private VBox createRuleControls() {
         HBox ruleRow = new HBox(10);
@@ -354,7 +371,10 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Create assertions section controls
+     * Creates the assertions section controls including the add assertion button
+     * and the assertions table.
+     *
+     * @return the VBox containing assertions section controls
      */
     private VBox createAssertionsControls() {
         HBox buttonRow = new HBox(10);
@@ -368,7 +388,10 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Create reports section controls
+     * Creates the reports section controls including the add report button
+     * and the reports table.
+     *
+     * @return the VBox containing reports section controls
      */
     private VBox createReportsControls() {
         HBox buttonRow = new HBox(10);
@@ -382,7 +405,10 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Create preview section controls
+     * Creates the preview section controls including the generate button
+     * and the code preview text area.
+     *
+     * @return the VBox containing preview section controls
      */
     private VBox createPreviewControls() {
         HBox buttonRow = new HBox(10);
@@ -573,14 +599,20 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Get the generated Schematron code
+     * Returns the generated Schematron code based on the current configuration.
+     * This method builds a complete Schematron schema document from the patterns,
+     * rules, assertions, and reports defined through the visual builder interface.
+     *
+     * @return the complete Schematron XML code as a string
      */
     public String getGeneratedCode() {
         return generateSchematronCode();
     }
 
     /**
-     * Clear all form data
+     * Clears all form data and resets the visual builder to its initial state.
+     * This includes clearing pattern, rule, assertion, and report fields,
+     * as well as the preview area.
      */
     public void clearAll() {
         patternIdField.clear();
@@ -597,7 +629,9 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Show an alert dialog
+     * Shows a warning alert dialog with the specified message.
+     *
+     * @param message the message to display in the alert dialog
      */
     private void showAlert(String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -610,142 +644,284 @@ public class SchematronVisualBuilder extends VBox {
     // ========== Inner Classes ==========
 
     /**
-     * Pattern data model
+     * Pattern data model that represents a Schematron pattern
+     * with an optional ID and a required title.
      */
     public static class PatternItem {
         private final String id;
         private final String title;
 
+        /**
+         * Creates a new pattern item with the specified ID and title.
+         *
+         * @param id the optional pattern ID, may be null
+         * @param title the pattern title
+         */
         public PatternItem(String id, String title) {
             this.id = id;
             this.title = title;
         }
 
+        /**
+         * Returns the pattern ID.
+         *
+         * @return the pattern ID, or null if not set
+         */
         public String getId() {
             return id;
         }
 
+        /**
+         * Returns the pattern title.
+         *
+         * @return the pattern title
+         */
         public String getTitle() {
             return title;
         }
 
+        /**
+         * Returns the display name for this pattern.
+         * Format is "title (id)" if ID is present, otherwise just "title".
+         *
+         * @return the formatted display name
+         */
         public String getDisplayName() {
             return id != null ? title + " (" + id + ")" : title;
         }
     }
 
     /**
-     * Assertion data model
+     * Assertion data model that represents a Schematron assertion rule.
+     * An assertion contains an XPath test expression, a message to display
+     * when the test fails, and an optional flag attribute.
      */
     public static class AssertionItem {
         private final StringProperty test = new SimpleStringProperty("");
         private final StringProperty message = new SimpleStringProperty("");
         private final StringProperty flag = new SimpleStringProperty("");
 
+        /**
+         * Creates a new empty assertion item with default values.
+         */
         public AssertionItem() {
         }
 
+        /**
+         * Creates a new assertion item with the specified values.
+         *
+         * @param test the XPath test expression
+         * @param message the error message displayed when the test fails
+         * @param flag the optional flag attribute
+         */
         public AssertionItem(String test, String message, String flag) {
             this.test.set(test);
             this.message.set(message);
             this.flag.set(flag);
         }
 
+        /**
+         * Returns the XPath test expression.
+         *
+         * @return the test expression
+         */
         public String getTest() {
             return test.get();
         }
 
+        /**
+         * Sets the XPath test expression.
+         *
+         * @param test the test expression to set
+         */
         public void setTest(String test) {
             this.test.set(test);
         }
 
+        /**
+         * Returns the test property for JavaFX binding.
+         *
+         * @return the test StringProperty
+         */
         public StringProperty testProperty() {
             return test;
         }
 
+        /**
+         * Returns the error message.
+         *
+         * @return the error message
+         */
         public String getMessage() {
             return message.get();
         }
 
+        /**
+         * Sets the error message.
+         *
+         * @param message the error message to set
+         */
         public void setMessage(String message) {
             this.message.set(message);
         }
 
+        /**
+         * Returns the message property for JavaFX binding.
+         *
+         * @return the message StringProperty
+         */
         public StringProperty messageProperty() {
             return message;
         }
 
+        /**
+         * Returns the flag attribute value.
+         *
+         * @return the flag attribute value
+         */
         public String getFlag() {
             return flag.get();
         }
 
+        /**
+         * Sets the flag attribute value.
+         *
+         * @param flag the flag attribute value to set
+         */
         public void setFlag(String flag) {
             this.flag.set(flag);
         }
 
+        /**
+         * Returns the flag property for JavaFX binding.
+         *
+         * @return the flag StringProperty
+         */
         public StringProperty flagProperty() {
             return flag;
         }
     }
 
     /**
-     * Report data model
+     * Report data model that represents a Schematron report rule.
+     * A report contains an XPath test expression, a warning message to display
+     * when the test evaluates to true, and an optional flag attribute.
      */
     public static class ReportItem {
         private final StringProperty test = new SimpleStringProperty("");
         private final StringProperty message = new SimpleStringProperty("");
         private final StringProperty flag = new SimpleStringProperty("");
 
+        /**
+         * Creates a new empty report item with default values.
+         */
         public ReportItem() {
         }
 
+        /**
+         * Creates a new report item with the specified values.
+         *
+         * @param test the XPath test expression
+         * @param message the warning message displayed when the test is true
+         * @param flag the optional flag attribute
+         */
         public ReportItem(String test, String message, String flag) {
             this.test.set(test);
             this.message.set(message);
             this.flag.set(flag);
         }
 
+        /**
+         * Returns the XPath test expression.
+         *
+         * @return the test expression
+         */
         public String getTest() {
             return test.get();
         }
 
+        /**
+         * Sets the XPath test expression.
+         *
+         * @param test the test expression to set
+         */
         public void setTest(String test) {
             this.test.set(test);
         }
 
+        /**
+         * Returns the test property for JavaFX binding.
+         *
+         * @return the test StringProperty
+         */
         public StringProperty testProperty() {
             return test;
         }
 
+        /**
+         * Returns the warning message.
+         *
+         * @return the warning message
+         */
         public String getMessage() {
             return message.get();
         }
 
+        /**
+         * Sets the warning message.
+         *
+         * @param message the warning message to set
+         */
         public void setMessage(String message) {
             this.message.set(message);
         }
 
+        /**
+         * Returns the message property for JavaFX binding.
+         *
+         * @return the message StringProperty
+         */
         public StringProperty messageProperty() {
             return message;
         }
 
+        /**
+         * Returns the flag attribute value.
+         *
+         * @return the flag attribute value
+         */
         public String getFlag() {
             return flag.get();
         }
 
+        /**
+         * Sets the flag attribute value.
+         *
+         * @param flag the flag attribute value to set
+         */
         public void setFlag(String flag) {
             this.flag.set(flag);
         }
 
+        /**
+         * Returns the flag property for JavaFX binding.
+         *
+         * @return the flag StringProperty
+         */
         public StringProperty flagProperty() {
             return flag;
         }
     }
 
     /**
-     * Dialog for adding new assertions
+     * Dialog for adding new assertions.
+     * Provides a form-based interface for creating new assertion rules
+     * with test expression, message, and optional flag fields.
      */
     private static class AssertionDialog extends Dialog<AssertionItem> {
+        /**
+         * Creates a new assertion dialog with input fields for test, message, and flag.
+         */
         public AssertionDialog() {
             setTitle("Add Assertion");
             setHeaderText("Create a new assertion rule");
@@ -789,9 +965,14 @@ public class SchematronVisualBuilder extends VBox {
     }
 
     /**
-     * Dialog for adding new reports
+     * Dialog for adding new reports.
+     * Provides a form-based interface for creating new report rules
+     * with test expression, message, and optional flag fields.
      */
     private static class ReportDialog extends Dialog<ReportItem> {
+        /**
+         * Creates a new report dialog with input fields for test, message, and flag.
+         */
         public ReportDialog() {
             setTitle("Add Report");
             setHeaderText("Create a new report rule");

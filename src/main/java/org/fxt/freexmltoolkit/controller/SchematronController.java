@@ -48,6 +48,14 @@ import java.util.stream.Collectors;
  */
 public class SchematronController implements FavoritesParentController {
 
+    /**
+     * Creates a new SchematronController instance.
+     * The controller is initialized by JavaFX via FXML injection.
+     */
+    public SchematronController() {
+        // Default constructor required for FXML initialization
+    }
+
     private static final Logger logger = LogManager.getLogger(SchematronController.class);
 
     @FXML
@@ -545,7 +553,10 @@ public class SchematronController implements FavoritesParentController {
     }
 
     /**
-     * Load a Schematron file into the editor
+     * Loads a Schematron file into the editor.
+     * Supports both small files (loaded directly) and large files (loaded with progress indication).
+     *
+     * @param file the Schematron file to load into the editor
      */
     public void loadSchematronFile(File file) {
         if (file == null || !file.exists()) {
@@ -1243,7 +1254,10 @@ public class SchematronController implements FavoritesParentController {
     }
 
     /**
-     * Set the parent controller reference
+     * Sets the parent controller reference.
+     * This is used for inter-controller communication and navigation.
+     *
+     * @param parentController the main application controller
      */
     public void setParentController(MainController parentController) {
         this.parentController = parentController;

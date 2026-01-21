@@ -578,7 +578,12 @@ public class SchemaResourceCache {
             long totalSizeBytes
     ) {
         /**
-         * Returns the total size in a human-readable format.
+         * Formats the total cache size as a human-readable string with appropriate units.
+         *
+         * <p>The method automatically selects the most appropriate unit (B, KB, or MB)
+         * based on the total size to provide a clear and concise representation.</p>
+         *
+         * @return formatted size string with units (e.g., "512 B", "1.5 KB", "2.3 MB")
          */
         public String getTotalSizeFormatted() {
             if (totalSizeBytes < 1024) {
@@ -591,7 +596,13 @@ public class SchemaResourceCache {
         }
 
         /**
-         * Returns the cache hit ratio as a percentage.
+         * Calculates the cache hit ratio as a percentage value.
+         *
+         * <p>The hit ratio represents the proportion of cache accesses that resulted
+         * in a hit (found in cache) versus the total number of accesses. A higher
+         * ratio indicates better cache effectiveness.</p>
+         *
+         * @return cache hit ratio as a percentage (0.0 to 100.0), or 0.0 if no accesses
          */
         public double getHitRatio() {
             long total = cacheHits + cacheMisses;

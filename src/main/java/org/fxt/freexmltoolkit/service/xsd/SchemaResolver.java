@@ -230,6 +230,10 @@ public class SchemaResolver {
 
     /**
      * Finds a resolved include matching the given schema location.
+     *
+     * @param includes       the list of resolved includes to search
+     * @param schemaLocation the schema location to match
+     * @return the matching resolved include, or null if not found
      */
     private ParsedSchema.ResolvedInclude findMatchingInclude(List<ParsedSchema.ResolvedInclude> includes, String schemaLocation) {
         if (schemaLocation == null || includes == null) {
@@ -420,6 +424,10 @@ public class SchemaResolver {
 
     /**
      * Resolves all xs:import directives in a schema element.
+     *
+     * @param schemaElement the schema element containing import directives
+     * @param baseDir       the base directory for resolving relative schema locations
+     * @return list of resolved imports with their status and parsed schemas
      */
     private List<ParsedSchema.ResolvedImport> resolveImports(Element schemaElement, Path baseDir) {
         List<ParsedSchema.ResolvedImport> resolved = new ArrayList<>();
@@ -445,6 +453,10 @@ public class SchemaResolver {
 
     /**
      * Resolves a single xs:import directive.
+     *
+     * @param importElement the xs:import element to resolve
+     * @param baseDir       the base directory for resolving relative schema locations
+     * @return the resolved import containing the parsed schema or error information
      */
     private ParsedSchema.ResolvedImport resolveImport(Element importElement, Path baseDir) {
         String namespace = importElement.getAttribute("namespace");
@@ -694,6 +706,8 @@ public class SchemaResolver {
     }
 
     /**
+     * Gets the count of failed import resolution attempts.
+     *
      * @return the number of failed import resolutions
      */
     public int getFailedImportCount() {
@@ -701,7 +715,9 @@ public class SchemaResolver {
     }
 
     /**
-     * @return statistics about resolution results
+     * Gets comprehensive statistics about all schema resolution operations performed.
+     *
+     * @return statistics about resolution results including counts of resolved, failed, and cached schemas
      */
     public ResolutionStatistics getStatistics() {
         return new ResolutionStatistics(
@@ -728,10 +744,20 @@ public class SchemaResolver {
             int cachedIncludes,
             int cachedImports
     ) {
+        /**
+         * Gets the total count of successfully resolved schemas (includes and imports combined).
+         *
+         * @return the sum of resolved includes and resolved imports
+         */
         public int totalResolved() {
             return resolvedIncludes + resolvedImports;
         }
 
+        /**
+         * Gets the total count of failed schema resolutions (includes and imports combined).
+         *
+         * @return the sum of failed includes and failed imports
+         */
         public int totalFailed() {
             return failedIncludes + failedImports;
         }
@@ -764,6 +790,11 @@ public class SchemaResolver {
         private final ThreadLocal<Set<String>> visitedUris = ThreadLocal.withInitial(java.util.HashSet::new);
         private final org.fxt.freexmltoolkit.service.SchemaResourceCache cache;
 
+        /**
+         * Creates a new ValidationResourceResolver with the specified base directory.
+         *
+         * @param baseDir the base directory for resolving relative schema paths
+         */
         public ValidationResourceResolver(Path baseDir) {
             this.baseDir = baseDir;
             this.cache = new org.fxt.freexmltoolkit.service.SchemaResourceCache();

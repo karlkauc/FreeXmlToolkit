@@ -14,6 +14,22 @@ import java.util.regex.Pattern;
 /**
  * Advanced template processing engine with parameter substitution,
  * context awareness, and intelligent template suggestion.
+ *
+ * <p>This engine provides comprehensive template management capabilities including:
+ * <ul>
+ *   <li>Template processing with parameter substitution</li>
+ *   <li>Context-aware parameter filling</li>
+ *   <li>Batch template processing</li>
+ *   <li>Intelligent template suggestions based on XML context</li>
+ *   <li>Template validation and preview</li>
+ *   <li>Performance monitoring and statistics</li>
+ *   <li>Processing cache management</li>
+ * </ul>
+ *
+ * <p>The engine follows the singleton pattern and can be obtained via {@link #getInstance()}.
+ *
+ * @see XmlTemplate
+ * @see TemplateRepository
  */
 public class TemplateEngine {
 
@@ -37,6 +53,10 @@ public class TemplateEngine {
     // Performance monitoring
     private final Map<String, ProcessingStats> performanceStats = new ConcurrentHashMap<>();
 
+    /**
+     * Private constructor for singleton pattern.
+     * Initializes the template repository, suggestion engine, and context analyzer.
+     */
     private TemplateEngine() {
         this.templateRepository = TemplateRepository.getInstance();
         this.suggestionEngine = new TemplateSuggestionEngine();
@@ -45,6 +65,12 @@ public class TemplateEngine {
         logger.info("Template Engine initialized");
     }
 
+    /**
+     * Returns the singleton instance of the TemplateEngine.
+     * Creates a new instance if one does not already exist.
+     *
+     * @return the singleton TemplateEngine instance
+     */
     public static synchronized TemplateEngine getInstance() {
         if (instance == null) {
             instance = new TemplateEngine();
@@ -55,7 +81,13 @@ public class TemplateEngine {
     // ========== Template Processing ==========
 
     /**
-     * Process template with parameters
+     * Processes a template with the given parameters.
+     * Validates parameters, processes the template content, records usage statistics,
+     * and returns the processing result.
+     *
+     * @param templateId the unique identifier of the template to process
+     * @param parameters a map of parameter names to their values for substitution
+     * @return the processing result containing the processed content or error information
      */
     public TemplateProcessingResult processTemplate(String templateId, Map<String, String> parameters) {
         long startTime = System.currentTimeMillis();
@@ -98,7 +130,14 @@ public class TemplateEngine {
     }
 
     /**
-     * Process template with context-aware parameter filling
+     * Processes a template with context-aware parameter filling.
+     * Enhances the provided parameters with values derived from the given context
+     * before processing the template.
+     *
+     * @param templateId the unique identifier of the template to process
+     * @param parameters a map of parameter names to their values for substitution
+     * @param context the template context containing information for parameter derivation
+     * @return the processing result containing the processed content or error information
      */
     public TemplateProcessingResult processTemplateWithContext(String templateId,
                                                                Map<String, String> parameters,
@@ -121,7 +160,11 @@ public class TemplateEngine {
     }
 
     /**
-     * Batch process multiple templates
+     * Processes multiple templates in batch.
+     * Each batch item contains a template ID and its corresponding parameters.
+     *
+     * @param batchItems the list of batch items containing template IDs and parameters
+     * @return a list of processing results corresponding to each batch item
      */
     public List<TemplateProcessingResult> processTemplates(List<TemplateBatchItem> batchItems) {
         List<TemplateProcessingResult> results = new ArrayList<>();
@@ -137,14 +180,26 @@ public class TemplateEngine {
     // ========== Template Suggestions ==========
 
     /**
-     * Get template suggestions based on context
+     * Returns template suggestions based on the given context.
+     * Uses the internal suggestion engine to analyze the context and recommend
+     * appropriate templates.
+     *
+     * @param context the template context for generating suggestions
+     * @return a list of template suggestions sorted by relevance
      */
     public List<TemplateSuggestion> getTemplateSuggestions(TemplateContext context) {
         return suggestionEngine.getSuggestions(context);
     }
 
     /**
-     * Get template suggestions for current cursor position
+     * Returns contextual template suggestions based on the current cursor position in XML content.
+     * Analyzes the XML structure at the cursor position and suggests templates
+     * that are appropriate for that context.
+     *
+     * @param xmlContent the XML content being edited
+     * @param cursorPosition the current cursor position within the XML content
+     * @param availableNamespaces the set of namespaces available in the document
+     * @return a list of template suggestions sorted by relevance score
      */
     public List<TemplateSuggestion> getContextualSuggestions(String xmlContent,
                                                              int cursorPosition,
@@ -161,7 +216,13 @@ public class TemplateEngine {
     }
 
     /**
-     * Get smart parameter suggestions
+     * Returns smart parameter suggestions for a specific template based on context.
+     * Analyzes the template parameters and the current context to suggest
+     * appropriate values for each parameter.
+     *
+     * @param templateId the unique identifier of the template
+     * @param context the template context for generating parameter suggestions
+     * @return a map of parameter names to lists of suggested values
      */
     public Map<String, List<String>> getParameterSuggestions(String templateId, TemplateContext context) {
         XmlTemplate template = templateRepository.getTemplate(templateId);
@@ -184,7 +245,13 @@ public class TemplateEngine {
     // ========== Template Validation ==========
 
     /**
-     * Validate template before processing
+     * Validates a template with the given parameters before processing.
+     * Checks for missing required parameters, validates parameter values,
+     * and identifies unused parameters.
+     *
+     * @param templateId the unique identifier of the template to validate
+     * @param parameters a map of parameter names to their values
+     * @return the validation result containing validity status, errors, and warnings
      */
     public TemplateValidationResult validateTemplate(String templateId, Map<String, String> parameters) {
         XmlTemplate template = templateRepository.getTemplate(templateId);
@@ -219,7 +286,12 @@ public class TemplateEngine {
     }
 
     /**
-     * Get template preview without full processing
+     * Returns a preview of the template with the given parameters without full processing.
+     * Useful for displaying a quick preview to users before committing to full processing.
+     *
+     * @param templateId the unique identifier of the template
+     * @param parameters a map of parameter names to their values
+     * @return the template preview string, or an error message if the template is not found
      */
     public String getTemplatePreview(String templateId, Map<String, String> parameters) {
         XmlTemplate template = templateRepository.getTemplate(templateId);
@@ -232,20 +304,32 @@ public class TemplateEngine {
 
     // ========== Performance Monitoring ==========
 
+    /**
+     * Updates performance statistics for a template processing operation.
+     *
+     * @param templateId the unique identifier of the template
+     * @param processingTime the time taken to process the template in milliseconds
+     * @param success whether the processing was successful
+     */
     private void updatePerformanceStats(String templateId, long processingTime, boolean success) {
         ProcessingStats stats = performanceStats.computeIfAbsent(templateId, k -> new ProcessingStats());
         stats.recordProcessing(processingTime, success);
     }
 
     /**
-     * Get performance statistics
+     * Returns the performance statistics for all processed templates.
+     *
+     * @return a map of template IDs to their processing statistics
      */
     public Map<String, ProcessingStats> getPerformanceStats() {
         return new HashMap<>(performanceStats);
     }
 
     /**
-     * Get slowest templates
+     * Returns the slowest templates based on average processing time.
+     *
+     * @param limit the maximum number of templates to return
+     * @return a list of template performance information sorted by processing time descending
      */
     public List<TemplatePerformanceInfo> getSlowestTemplates(int limit) {
         return performanceStats.entrySet().stream()
@@ -258,7 +342,9 @@ public class TemplateEngine {
     // ========== Cache Management ==========
 
     /**
-     * Clear processing cache
+     * Clears the template processing cache.
+     * This removes all cached processing results, forcing fresh processing
+     * on subsequent requests.
      */
     public void clearCache() {
         processingCache.clear();
@@ -266,7 +352,9 @@ public class TemplateEngine {
     }
 
     /**
-     * Get cache statistics
+     * Returns cache statistics including size and hit rate.
+     *
+     * @return a map containing cache statistics
      */
     public Map<String, Object> getCacheStats() {
         Map<String, Object> stats = new HashMap<>();
@@ -275,6 +363,11 @@ public class TemplateEngine {
         return stats;
     }
 
+    /**
+     * Calculates the cache hit rate.
+     *
+     * @return the cache hit rate as a decimal between 0.0 and 1.0
+     */
     private double calculateCacheHitRate() {
         // Simplified cache hit rate calculation
         return processingCache.size() > 0 ? 0.75 : 0.0; // Placeholder
@@ -283,7 +376,8 @@ public class TemplateEngine {
     // ========== Inner Classes ==========
 
     /**
-     * Template processing result
+     * Represents the result of a template processing operation.
+     * Contains the processed content, any errors or warnings, and processing metadata.
      */
     public static class TemplateProcessingResult {
         private final boolean success;
@@ -294,6 +388,16 @@ public class TemplateEngine {
         private final Map<String, String> parameters;
         private long processingTimeMs;
 
+        /**
+         * Constructs a new TemplateProcessingResult.
+         *
+         * @param success whether the processing was successful
+         * @param content the processed content, or null if processing failed
+         * @param errors the list of error messages, or null if none
+         * @param warnings the list of warning messages, or null if none
+         * @param template the template that was processed, or null if not found
+         * @param parameters the parameters used for processing, or null if none
+         */
         private TemplateProcessingResult(boolean success, String content,
                                          List<String> errors, List<String> warnings,
                                          XmlTemplate template, Map<String, String> parameters) {
@@ -305,73 +409,151 @@ public class TemplateEngine {
             this.parameters = parameters != null ? parameters : new HashMap<>();
         }
 
+        /**
+         * Creates a successful processing result.
+         *
+         * @param content the processed content
+         * @param template the template that was processed
+         * @param parameters the parameters used for processing
+         * @return a successful TemplateProcessingResult
+         */
         public static TemplateProcessingResult success(String content, XmlTemplate template,
                                                        Map<String, String> parameters) {
             return new TemplateProcessingResult(true, content, null, null, template, parameters);
         }
 
+        /**
+         * Creates an error processing result with a single error message.
+         *
+         * @param error the error message
+         * @return an error TemplateProcessingResult
+         */
         public static TemplateProcessingResult error(String error) {
             return new TemplateProcessingResult(false, null, Collections.singletonList(error), null, null, null);
         }
 
+        /**
+         * Creates a validation error processing result with multiple error messages.
+         *
+         * @param errors the list of validation error messages
+         * @return a validation error TemplateProcessingResult
+         */
         public static TemplateProcessingResult validationError(List<String> errors) {
             return new TemplateProcessingResult(false, null, errors, null, null, null);
         }
 
-        // Getters
+        /**
+         * Returns whether the processing was successful.
+         *
+         * @return true if processing succeeded, false otherwise
+         */
         public boolean isSuccess() {
             return success;
         }
 
+        /**
+         * Returns the processed content.
+         *
+         * @return the processed content, or null if processing failed
+         */
         public String getContent() {
             return content;
         }
 
+        /**
+         * Returns the list of error messages.
+         *
+         * @return the list of error messages, empty if none
+         */
         public List<String> getErrors() {
             return errors;
         }
 
+        /**
+         * Returns the list of warning messages.
+         *
+         * @return the list of warning messages, empty if none
+         */
         public List<String> getWarnings() {
             return warnings;
         }
 
+        /**
+         * Returns the template that was processed.
+         *
+         * @return the template, or null if not found
+         */
         public XmlTemplate getTemplate() {
             return template;
         }
 
+        /**
+         * Returns the parameters used for processing.
+         *
+         * @return the parameters map, empty if none
+         */
         public Map<String, String> getParameters() {
             return parameters;
         }
 
+        /**
+         * Returns the processing time in milliseconds.
+         *
+         * @return the processing time in milliseconds
+         */
         public long getProcessingTimeMs() {
             return processingTimeMs;
         }
 
+        /**
+         * Sets the processing time in milliseconds.
+         *
+         * @param processingTimeMs the processing time to set
+         */
         public void setProcessingTimeMs(long processingTimeMs) {
             this.processingTimeMs = processingTimeMs;
         }
     }
 
     /**
-     * Template validation result
-     * @param valid Whether the template is valid
-     * @param errors List of error messages
-     * @param warnings List of warning messages
+     * Represents the result of template validation.
+     * Contains validation status, error messages, and warning messages.
+     *
+     * @param valid whether the template is valid with the given parameters
+     * @param errors the list of validation error messages
+     * @param warnings the list of warning messages
      */
     public record TemplateValidationResult(boolean valid, List<String> errors, List<String> warnings) {
-            public TemplateValidationResult(boolean valid, List<String> errors) {
-                this(valid, errors, new ArrayList<>());
-            }
 
-            public TemplateValidationResult(boolean valid, List<String> errors, List<String> warnings) {
-                this.valid = valid;
-                this.errors = errors != null ? errors : new ArrayList<>();
-                this.warnings = warnings != null ? warnings : new ArrayList<>();
-            }
+        /**
+         * Constructs a TemplateValidationResult with only validity status and errors.
+         *
+         * @param valid whether the template is valid
+         * @param errors the list of error messages
+         */
+        public TemplateValidationResult(boolean valid, List<String> errors) {
+            this(valid, errors, new ArrayList<>());
         }
 
+        /**
+         * Constructs a TemplateValidationResult with all fields.
+         * Null lists are converted to empty lists.
+         *
+         * @param valid whether the template is valid
+         * @param errors the list of error messages, or null
+         * @param warnings the list of warning messages, or null
+         */
+        public TemplateValidationResult(boolean valid, List<String> errors, List<String> warnings) {
+            this.valid = valid;
+            this.errors = errors != null ? errors : new ArrayList<>();
+            this.warnings = warnings != null ? warnings : new ArrayList<>();
+        }
+    }
+
     /**
-     * Template suggestion
+     * Represents a template suggestion with relevance information.
+     * Contains the suggested template, the context it was suggested for,
+     * and a relevance score indicating how appropriate the suggestion is.
      */
     public static class TemplateSuggestion {
         private final XmlTemplate template;
@@ -379,6 +561,13 @@ public class TemplateEngine {
         private final double relevanceScore;
         private final String description;
 
+        /**
+         * Constructs a new TemplateSuggestion.
+         * Calculates the relevance score based on the template and context.
+         *
+         * @param template the suggested template
+         * @param context the context for which the template is suggested
+         */
         public TemplateSuggestion(XmlTemplate template, TemplateContext context) {
             this.template = template;
             this.context = context;
@@ -387,6 +576,11 @@ public class TemplateEngine {
             this.description = generateDescription();
         }
 
+        /**
+         * Generates a human-readable description of the suggestion.
+         *
+         * @return the generated description
+         */
         private String generateDescription() {
             StringBuilder desc = new StringBuilder();
             desc.append(template.getName());
@@ -402,33 +596,56 @@ public class TemplateEngine {
             return desc.toString();
         }
 
+        /**
+         * Returns the suggested template.
+         *
+         * @return the template
+         */
         public XmlTemplate getTemplate() {
             return template;
         }
 
+        /**
+         * Returns the context for which this suggestion was generated.
+         *
+         * @return the template context
+         */
         public TemplateContext getContext() {
             return context;
         }
 
+        /**
+         * Returns the relevance score of this suggestion.
+         * Higher scores indicate more relevant suggestions.
+         *
+         * @return the relevance score
+         */
         public double getRelevanceScore() {
             return relevanceScore;
         }
 
+        /**
+         * Returns the human-readable description of this suggestion.
+         *
+         * @return the description
+         */
         public String getDescription() {
             return description;
         }
     }
 
     /**
-     * Batch processing item
-     * @param templateId The template ID
-     * @param parameters The parameters for the template
+     * Represents a batch processing item containing a template ID and its parameters.
+     *
+     * @param templateId the unique identifier of the template to process
+     * @param parameters the map of parameter names to their values for substitution
      */
     public record TemplateBatchItem(String templateId, Map<String, String> parameters) {
     }
 
     /**
-     * Template context information
+     * Represents template context information used for intelligent template suggestion
+     * and context-aware parameter filling.
      */
     public static class TemplateContext {
         private XmlTemplate.TemplateContext templateContext;
@@ -438,57 +655,118 @@ public class TemplateEngine {
         private int cursorPosition;
         private Map<String, String> contextVariables = new HashMap<>();
 
+        /**
+         * Returns the template context type.
+         *
+         * @return the template context type
+         */
         public XmlTemplate.TemplateContext getTemplateContext() {
             return templateContext;
         }
 
+        /**
+         * Sets the template context type.
+         *
+         * @param templateContext the template context type to set
+         */
         public void setTemplateContext(XmlTemplate.TemplateContext templateContext) {
             this.templateContext = templateContext;
         }
 
+        /**
+         * Returns the name of the current element at the cursor position.
+         *
+         * @return the current element name, or null if not within an element
+         */
         public String getCurrentElement() {
             return currentElement;
         }
 
+        /**
+         * Sets the name of the current element.
+         *
+         * @param currentElement the current element name to set
+         */
         public void setCurrentElement(String currentElement) {
             this.currentElement = currentElement;
         }
 
+        /**
+         * Returns the set of available namespaces in the document.
+         *
+         * @return the set of namespace URIs
+         */
         public Set<String> getAvailableNamespaces() {
             return availableNamespaces;
         }
 
+        /**
+         * Sets the available namespaces.
+         *
+         * @param availableNamespaces the set of namespace URIs to set
+         */
         public void setAvailableNamespaces(Set<String> availableNamespaces) {
             this.availableNamespaces = availableNamespaces;
         }
 
+        /**
+         * Returns the XML content being edited.
+         *
+         * @return the XML content
+         */
         public String getXmlContent() {
             return xmlContent;
         }
 
+        /**
+         * Sets the XML content.
+         *
+         * @param xmlContent the XML content to set
+         */
         public void setXmlContent(String xmlContent) {
             this.xmlContent = xmlContent;
         }
 
+        /**
+         * Returns the current cursor position within the XML content.
+         *
+         * @return the cursor position
+         */
         public int getCursorPosition() {
             return cursorPosition;
         }
 
+        /**
+         * Sets the cursor position.
+         *
+         * @param cursorPosition the cursor position to set
+         */
         public void setCursorPosition(int cursorPosition) {
             this.cursorPosition = cursorPosition;
         }
 
+        /**
+         * Returns the context variables map.
+         *
+         * @return the map of context variable names to their values
+         */
         public Map<String, String> getContextVariables() {
             return contextVariables;
         }
 
+        /**
+         * Sets the context variables.
+         *
+         * @param contextVariables the map of context variable names to their values
+         */
         public void setContextVariables(Map<String, String> contextVariables) {
             this.contextVariables = contextVariables;
         }
     }
 
     /**
-     * Processing statistics
+     * Represents processing statistics for a template.
+     * Tracks processing counts, times, and success rates.
      */
     public static class ProcessingStats {
         private int totalProcessings = 0;
@@ -499,6 +777,12 @@ public class TemplateEngine {
         private LocalDateTime firstProcessing;
         private LocalDateTime lastProcessing;
 
+        /**
+         * Records a processing operation with its time and success status.
+         *
+         * @param processingTime the time taken for processing in milliseconds
+         * @param success whether the processing was successful
+         */
         public void recordProcessing(long processingTime, boolean success) {
             totalProcessings++;
             totalProcessingTime += processingTime;
@@ -517,76 +801,151 @@ public class TemplateEngine {
             lastProcessing = now;
         }
 
+        /**
+         * Calculates the average processing time.
+         *
+         * @return the average processing time in milliseconds, or 0.0 if no processings recorded
+         */
         public double getAverageProcessingTime() {
             return totalProcessings > 0 ? (double) totalProcessingTime / totalProcessings : 0.0;
         }
 
+        /**
+         * Calculates the success rate of processings.
+         *
+         * @return the success rate as a decimal between 0.0 and 1.0, or 0.0 if no processings recorded
+         */
         public double getSuccessRate() {
             return totalProcessings > 0 ? (double) successfulProcessings / totalProcessings : 0.0;
         }
 
-        // Getters
+        /**
+         * Returns the total number of processing operations.
+         *
+         * @return the total processing count
+         */
         public int getTotalProcessings() {
             return totalProcessings;
         }
 
+        /**
+         * Returns the number of successful processing operations.
+         *
+         * @return the successful processing count
+         */
         public int getSuccessfulProcessings() {
             return successfulProcessings;
         }
 
+        /**
+         * Returns the total processing time for all operations.
+         *
+         * @return the total processing time in milliseconds
+         */
         public long getTotalProcessingTime() {
             return totalProcessingTime;
         }
 
+        /**
+         * Returns the minimum processing time recorded.
+         *
+         * @return the minimum processing time in milliseconds, or 0 if no processings recorded
+         */
         public long getMinProcessingTime() {
             return minProcessingTime == Long.MAX_VALUE ? 0 : minProcessingTime;
         }
 
+        /**
+         * Returns the maximum processing time recorded.
+         *
+         * @return the maximum processing time in milliseconds
+         */
         public long getMaxProcessingTime() {
             return maxProcessingTime;
         }
 
+        /**
+         * Returns the timestamp of the first processing operation.
+         *
+         * @return the first processing timestamp, or null if no processings recorded
+         */
         public LocalDateTime getFirstProcessing() {
             return firstProcessing;
         }
 
+        /**
+         * Returns the timestamp of the last processing operation.
+         *
+         * @return the last processing timestamp, or null if no processings recorded
+         */
         public LocalDateTime getLastProcessing() {
             return lastProcessing;
         }
     }
 
     /**
-     * Template performance information
-     * @param templateId The template ID
-     * @param stats The processing statistics
+     * Represents performance information for a template.
+     * Combines the template ID with its processing statistics.
+     *
+     * @param templateId the unique identifier of the template
+     * @param stats the processing statistics for the template
      */
     public record TemplatePerformanceInfo(String templateId, ProcessingStats stats) {
 
+        /**
+         * Returns the average processing time for this template.
+         *
+         * @return the average processing time in milliseconds
+         */
         public double getAverageProcessingTime() {
-                return stats.getAverageProcessingTime();
-            }
-
-            public double getSuccessRate() {
-                return stats.getSuccessRate();
-            }
-
-            public int getTotalProcessings() {
-                return stats.getTotalProcessings();
-            }
+            return stats.getAverageProcessingTime();
         }
+
+        /**
+         * Returns the success rate for this template.
+         *
+         * @return the success rate as a decimal between 0.0 and 1.0
+         */
+        public double getSuccessRate() {
+            return stats.getSuccessRate();
+        }
+
+        /**
+         * Returns the total number of processings for this template.
+         *
+         * @return the total processing count
+         */
+        public int getTotalProcessings() {
+            return stats.getTotalProcessings();
+        }
+    }
 
     // ========== Helper Classes ==========
 
     /**
-     * Template suggestion engine
+     * Internal engine for generating template suggestions based on context.
+     * Analyzes the current editing context and recommends appropriate templates.
      */
     private static class TemplateSuggestionEngine {
 
+        /**
+         * Returns template suggestions based on the given context.
+         *
+         * @param context the template context for generating suggestions
+         * @return a list of template suggestions
+         */
         public List<TemplateSuggestion> getSuggestions(TemplateContext context) {
             // Implement intelligent template suggestions based on context
             return new ArrayList<>();
         }
 
+        /**
+         * Returns parameter value suggestions for a specific parameter based on context.
+         *
+         * @param parameter the template parameter to suggest values for
+         * @param context the template context for generating suggestions
+         * @return a list of suggested parameter values
+         */
         public List<String> getParameterSuggestions(TemplateParameter parameter, TemplateContext context) {
             List<String> suggestions = new ArrayList<>();
 
@@ -616,6 +975,12 @@ public class TemplateEngine {
             return suggestions;
         }
 
+        /**
+         * Returns element name suggestions based on context.
+         *
+         * @param context the template context
+         * @return a list of suggested element names
+         */
         private List<String> getElementNameSuggestions(TemplateContext context) {
             // Extract element names from context
             if (context.getCurrentElement() != null) {
@@ -626,10 +991,18 @@ public class TemplateEngine {
     }
 
     /**
-     * Template context analyzer
+     * Internal analyzer for understanding template context from XML content.
+     * Analyzes cursor position, extracts element information, and derives parameter values.
      */
     private static class TemplateContextAnalyzer {
 
+        /**
+         * Analyzes the XML content at the given cursor position to determine context.
+         *
+         * @param xmlContent the XML content being edited
+         * @param cursorPosition the current cursor position
+         * @return the analyzed template context
+         */
         public TemplateContext analyzeContext(String xmlContent, int cursorPosition) {
             TemplateContext context = new TemplateContext();
             context.setXmlContent(xmlContent);
@@ -660,6 +1033,12 @@ public class TemplateEngine {
             return context;
         }
 
+        /**
+         * Extracts the current element name from XML content before the cursor.
+         *
+         * @param xmlContent the XML content before the cursor position
+         * @return the current element name, or null if not found
+         */
         private String extractCurrentElement(String xmlContent) {
             // Simple extraction of current element name
             Pattern pattern = Pattern.compile("<(\\w+)[^>]*>?$");
@@ -672,6 +1051,12 @@ public class TemplateEngine {
             return null;
         }
 
+        /**
+         * Extracts namespace URIs from XML content.
+         *
+         * @param xmlContent the full XML content
+         * @return the set of namespace URIs found in the content
+         */
         private Set<String> extractNamespaces(String xmlContent) {
             Set<String> namespaces = new HashSet<>();
 
@@ -690,6 +1075,14 @@ public class TemplateEngine {
             return namespaces;
         }
 
+        /**
+         * Derives parameter values from the template and context.
+         * Auto-fills timestamp and element name parameters based on context information.
+         *
+         * @param template the template whose parameters should be filled
+         * @param context the template context for deriving values
+         * @return a map of parameter names to their derived values
+         */
         public Map<String, String> deriveParameters(XmlTemplate template, TemplateContext context) {
             Map<String, String> derivedParams = new HashMap<>();
 

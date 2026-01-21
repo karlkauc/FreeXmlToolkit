@@ -230,7 +230,9 @@ public class SimpleTypesListView extends BorderPane {
     }
 
     /**
-     * Creates the filter and sort bar.
+     * Creates the filter and sort bar containing the filter text field and sort combo box.
+     *
+     * @return the filter bar HBox
      */
     private HBox createFilterBar() {
         HBox filterBar = new HBox(15);
@@ -263,7 +265,10 @@ public class SimpleTypesListView extends BorderPane {
     }
 
     /**
-     * Creates the table view.
+     * Creates the table view displaying SimpleType information with columns for
+     * name, base type, facets, usage count, and action buttons.
+     *
+     * @return the configured TableView
      */
     private TableView<SimpleTypeRow> createTable() {
         TableView<SimpleTypeRow> table = new TableView<>();
@@ -344,7 +349,9 @@ public class SimpleTypesListView extends BorderPane {
     }
 
     /**
-     * Creates the preview panel.
+     * Creates the preview panel showing XSD representation of the selected type.
+     *
+     * @return the preview panel VBox
      */
     private VBox createPreviewPanel() {
         VBox panel = new VBox(5);
@@ -365,7 +372,9 @@ public class SimpleTypesListView extends BorderPane {
     }
 
     /**
-     * Creates the action toolbar.
+     * Creates the action toolbar with Edit, Duplicate, Find Usage, and Delete buttons.
+     *
+     * @return the action toolbar
      */
     private ToolBar createActionToolbar() {
         ToolBar toolbar = new ToolBar();
@@ -659,7 +668,8 @@ public class SimpleTypesListView extends BorderPane {
     }
 
     /**
-     * Row model for the table.
+     * Row model for the table representing a single SimpleType entry.
+     * Contains display information and a reference to the underlying XsdSimpleType.
      */
     public static class SimpleTypeRow {
         private final String name;
@@ -668,6 +678,15 @@ public class SimpleTypesListView extends BorderPane {
         private final int usage;
         private final XsdSimpleType simpleType;
 
+        /**
+         * Creates a new SimpleTypeRow with the specified values.
+         *
+         * @param name the name of the SimpleType
+         * @param baseType the base type string
+         * @param facets the facets string representation
+         * @param usage the usage count
+         * @param simpleType the underlying XsdSimpleType
+         */
         public SimpleTypeRow(String name, String baseType, String facets, int usage, XsdSimpleType simpleType) {
             this.name = name;
             this.baseType = baseType;
@@ -676,10 +695,39 @@ public class SimpleTypesListView extends BorderPane {
             this.simpleType = simpleType;
         }
 
+        /**
+         * Returns the name of the SimpleType.
+         *
+         * @return the name
+         */
         public String getName() { return name; }
+
+        /**
+         * Returns the base type string.
+         *
+         * @return the base type
+         */
         public String getBaseType() { return baseType; }
+
+        /**
+         * Returns the facets string representation.
+         *
+         * @return the facets string
+         */
         public String getFacets() { return facets; }
+
+        /**
+         * Returns the usage count of this type in the schema.
+         *
+         * @return the usage count
+         */
         public int getUsage() { return usage; }
+
+        /**
+         * Returns the underlying XsdSimpleType instance.
+         *
+         * @return the XsdSimpleType
+         */
         public XsdSimpleType getSimpleType() { return simpleType; }
     }
 }

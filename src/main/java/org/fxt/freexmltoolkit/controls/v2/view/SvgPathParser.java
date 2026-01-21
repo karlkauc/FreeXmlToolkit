@@ -64,6 +64,9 @@ public class SvgPathParser {
             "-?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?"
     );
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
     private SvgPathParser() {
         // Utility class
     }
@@ -100,6 +103,9 @@ public class SvgPathParser {
 
     /**
      * Extracts all numbers from an argument string.
+     *
+     * @param args the argument string containing numbers separated by whitespace or commas
+     * @return an array of parsed double values
      */
     private static double[] parseNumbers(String args) {
         if (args == null || args.isEmpty()) {
@@ -122,6 +128,10 @@ public class SvgPathParser {
 
     /**
      * Parses a single command and adds it to the command list.
+     *
+     * @param commands the list to which parsed commands will be added
+     * @param type the command character (e.g., 'M', 'L', 'C')
+     * @param args the numeric arguments for the command
      */
     private static void parseCommand(List<PathCommand> commands, char type, double[] args) {
         boolean relative = Character.isLowerCase(type);
@@ -141,6 +151,14 @@ public class SvgPathParser {
         }
     }
 
+    /**
+     * Parses a moveto command and adds it to the command list.
+     * Subsequent coordinate pairs are treated as implicit lineto commands.
+     *
+     * @param commands the list to which parsed commands will be added
+     * @param args the coordinate pairs for the command
+     * @param relative true if coordinates are relative to current position
+     */
     private static void parseMoveTo(List<PathCommand> commands, double[] args, boolean relative) {
         for (int i = 0; i + 1 < args.length; i += 2) {
             CommandType type = (i == 0) ? CommandType.MOVE_TO : CommandType.LINE_TO;
@@ -148,24 +166,52 @@ public class SvgPathParser {
         }
     }
 
+    /**
+     * Parses a lineto command and adds it to the command list.
+     *
+     * @param commands the list to which parsed commands will be added
+     * @param args the coordinate pairs for the line endpoints
+     * @param relative true if coordinates are relative to current position
+     */
     private static void parseLineTo(List<PathCommand> commands, double[] args, boolean relative) {
         for (int i = 0; i + 1 < args.length; i += 2) {
             commands.add(new PathCommand(CommandType.LINE_TO, new double[]{args[i], args[i + 1]}, relative));
         }
     }
 
+    /**
+     * Parses a horizontal lineto command and adds it to the command list.
+     *
+     * @param commands the list to which parsed commands will be added
+     * @param args the x-coordinates for the horizontal line endpoints
+     * @param relative true if coordinates are relative to current position
+     */
     private static void parseHorizontalLineTo(List<PathCommand> commands, double[] args, boolean relative) {
         for (double arg : args) {
             commands.add(new PathCommand(CommandType.HORIZONTAL_LINE_TO, new double[]{arg}, relative));
         }
     }
 
+    /**
+     * Parses a vertical lineto command and adds it to the command list.
+     *
+     * @param commands the list to which parsed commands will be added
+     * @param args the y-coordinates for the vertical line endpoints
+     * @param relative true if coordinates are relative to current position
+     */
     private static void parseVerticalLineTo(List<PathCommand> commands, double[] args, boolean relative) {
         for (double arg : args) {
             commands.add(new PathCommand(CommandType.VERTICAL_LINE_TO, new double[]{arg}, relative));
         }
     }
 
+    /**
+     * Parses a cubic Bezier curve command and adds it to the command list.
+     *
+     * @param commands the list to which parsed commands will be added
+     * @param args the control points and endpoint coordinates (cp1x, cp1y, cp2x, cp2y, x, y)
+     * @param relative true if coordinates are relative to current position
+     */
     private static void parseCubicCurve(List<PathCommand> commands, double[] args, boolean relative) {
         for (int i = 0; i + 5 < args.length; i += 6) {
             commands.add(new PathCommand(CommandType.CUBIC_CURVE,
@@ -173,6 +219,14 @@ public class SvgPathParser {
         }
     }
 
+    /**
+     * Parses a smooth cubic Bezier curve command and adds it to the command list.
+     * The first control point is the reflection of the previous command's control point.
+     *
+     * @param commands the list to which parsed commands will be added
+     * @param args the second control point and endpoint coordinates (cp2x, cp2y, x, y)
+     * @param relative true if coordinates are relative to current position
+     */
     private static void parseSmoothCubicCurve(List<PathCommand> commands, double[] args, boolean relative) {
         for (int i = 0; i + 3 < args.length; i += 4) {
             commands.add(new PathCommand(CommandType.SMOOTH_CUBIC_CURVE,
@@ -180,6 +234,13 @@ public class SvgPathParser {
         }
     }
 
+    /**
+     * Parses a quadratic Bezier curve command and adds it to the command list.
+     *
+     * @param commands the list to which parsed commands will be added
+     * @param args the control point and endpoint coordinates (cpx, cpy, x, y)
+     * @param relative true if coordinates are relative to current position
+     */
     private static void parseQuadraticCurve(List<PathCommand> commands, double[] args, boolean relative) {
         for (int i = 0; i + 3 < args.length; i += 4) {
             commands.add(new PathCommand(CommandType.QUADRATIC_CURVE,
@@ -187,6 +248,14 @@ public class SvgPathParser {
         }
     }
 
+    /**
+     * Parses a smooth quadratic Bezier curve command and adds it to the command list.
+     * The control point is the reflection of the previous command's control point.
+     *
+     * @param commands the list to which parsed commands will be added
+     * @param args the endpoint coordinates (x, y)
+     * @param relative true if coordinates are relative to current position
+     */
     private static void parseSmoothQuadraticCurve(List<PathCommand> commands, double[] args, boolean relative) {
         for (int i = 0; i + 1 < args.length; i += 2) {
             commands.add(new PathCommand(CommandType.SMOOTH_QUADRATIC_CURVE,
@@ -194,6 +263,13 @@ public class SvgPathParser {
         }
     }
 
+    /**
+     * Parses an elliptical arc command and adds it to the command list.
+     *
+     * @param commands the list to which parsed commands will be added
+     * @param args the arc parameters (rx, ry, rotation, large-arc-flag, sweep-flag, x, y)
+     * @param relative true if endpoint coordinates are relative to current position
+     */
     private static void parseArc(List<PathCommand> commands, double[] args, boolean relative) {
         for (int i = 0; i + 6 < args.length; i += 7) {
             commands.add(new PathCommand(CommandType.ARC,
@@ -390,6 +466,20 @@ public class SvgPathParser {
     /**
      * Renders an elliptical arc as bezier curves (approximation).
      * This is a simplified implementation for common use cases.
+     *
+     * @param gc the GraphicsContext to render on
+     * @param offsetX the x offset for rendering
+     * @param offsetY the y offset for rendering
+     * @param scale the scale factor for rendering
+     * @param x1 the starting x coordinate
+     * @param y1 the starting y coordinate
+     * @param rx the x-axis radius of the ellipse
+     * @param ry the y-axis radius of the ellipse
+     * @param rotation the rotation angle of the ellipse in degrees
+     * @param largeArc true to use the large arc, false for the small arc
+     * @param sweep true for positive angle sweep, false for negative
+     * @param x2 the ending x coordinate
+     * @param y2 the ending y coordinate
      */
     private static void renderArcAsBezier(GraphicsContext gc, double offsetX, double offsetY, double scale,
                                           double x1, double y1, double rx, double ry, double rotation,
@@ -456,7 +546,8 @@ public class SvgPathParser {
     }
 
     /**
-     * Path command types.
+     * Enumeration of all supported SVG path command types.
+     * Each type corresponds to a specific SVG path command letter.
      */
     public enum CommandType {
         MOVE_TO,
@@ -472,13 +563,11 @@ public class SvgPathParser {
     }
 
     /**
-     * Represents a single path command with its arguments.
-     */
-    /**
-     * Represents a parsed SVG path command.
-     * @param type The command type
-     * @param args The command arguments
-     * @param relative Whether the command is relative
+     * Represents a parsed SVG path command with its type, arguments, and positioning mode.
+     *
+     * @param type the command type (e.g., MOVE_TO, LINE_TO, CUBIC_CURVE)
+     * @param args the numeric arguments for the command
+     * @param relative true if coordinates are relative to current position, false for absolute
      */
     public record PathCommand(CommandType type, double[] args, boolean relative) {
     }

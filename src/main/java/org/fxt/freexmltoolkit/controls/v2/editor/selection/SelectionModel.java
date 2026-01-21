@@ -23,6 +23,14 @@ public class SelectionModel {
     private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
     /**
+     * Constructs a new SelectionModel with an empty selection.
+     * Initializes the internal selection tracking structures.
+     */
+    public SelectionModel() {
+        // Default constructor
+    }
+
+    /**
      * Selects a single node, clearing previous selection.
      *
      * @param node the node to select

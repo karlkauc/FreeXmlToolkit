@@ -76,24 +76,45 @@ public class SignatureService {
 
     private static final Logger logger = LogManager.getLogger(SignatureService.class);
 
-    // --- KRYPTOGRAFISCHE KONSTANTEN ---
+    // --- CRYPTOGRAPHIC CONSTANTS ---
+
+    /** The key size for RSA key generation (2048 bits). */
     public static final int KEY_SIZE = 2048;
+
+    /** The algorithm used for key generation (RSA). */
     public static final String KEY_ALGORITHM = "RSA";
+
+    /** The keystore type (JKS - Java KeyStore). */
     public static final String KEYSTORE_TYPE = "JKS";
+
+    /** The security provider identifier (BC - BouncyCastle). */
     public static final String SECURITY_PROVIDER = "BC";
 
-    // Algorithmen für die Zertifikat- und XML-Signatur
-    public static final String SIGNATURE_ALGORITHM_BC = "SHA256withRSA"; // BouncyCastle-Name
-    public static final String SIGNATURE_METHOD_XML = SignatureMethod.RSA_SHA256; // JSR 105 Name
-    public static final String DIGEST_METHOD_XML = DigestMethod.SHA256; // JSR 105 Name
+    // Certificate and XML signature algorithms
 
-    // Algorithmus für die Verschlüsselung des privaten Schlüssels im PEM-Format
+    /** The signature algorithm for BouncyCastle (SHA256withRSA). */
+    public static final String SIGNATURE_ALGORITHM_BC = "SHA256withRSA";
+
+    /** The XML signature method (RSA-SHA256, JSR 105 compliant). */
+    public static final String SIGNATURE_METHOD_XML = SignatureMethod.RSA_SHA256;
+
+    /** The XML digest method (SHA-256, JSR 105 compliant). */
+    public static final String DIGEST_METHOD_XML = DigestMethod.SHA256;
+
+    // Encryption algorithm for PEM-encoded private keys
+
+    /** The encryption algorithm for private key PEM files (AES-256-CFB). */
     public static final String PEM_ENCRYPT_ALGORITHM = "AES-256-CFB";
 
     private final DocumentBuilderFactory dbf;
 
+    /**
+     * Creates a new SignatureService instance.
+     * Registers the BouncyCastle security provider if not already present and initializes
+     * a secure DocumentBuilderFactory configured to prevent XXE attacks.
+     */
     public SignatureService() {
-        // Bouncy Castle Provider hinzufügen, falls noch nicht geschehen
+        // Add BouncyCastle provider if not already registered
         if (Security.getProvider(SECURITY_PROVIDER) == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
@@ -186,8 +207,8 @@ public class SignatureService {
             }
             Node signatureNode = signatureNodeList.item(0);
 
-            // KORREKTUR: Strikte Prüfung auf schwache Algorithmen.
-            // Wenn ein schwacher Algorithmus gefunden wird, wird die Validierung sofort abgebrochen.
+            // Strict check for weak algorithms.
+            // If a weak algorithm is detected, validation is immediately aborted.
             if (isWeakAlgorithmUsed(signatureNode)) {
                 throw new SignatureServiceException("Weak algorithm detected. Validation aborted for security reasons.", new SecurityException("Usage of SHA1 is forbidden."));
             }
@@ -207,7 +228,7 @@ public class SignatureService {
 
         } catch (MarshalException | XMLSignatureException | ParserConfigurationException | SAXException |
                  IOException e) {
-            // Fange die Exception, die durch die Sicherheitsrichtlinie ausgelöst wird, und gib eine klare Meldung aus.
+            // Catch exceptions triggered by security policy violations and provide a clear message.
             if (e.getCause() instanceof SecurityException) {
                 logger.error("Validation failed due to security policy: {}", e.getCause().getMessage(), e);
                 throw new SignatureServiceException("Validation forbidden by security policy: " + e.getCause().getMessage(), e);
@@ -218,7 +239,12 @@ public class SignatureService {
     }
 
     /**
-     * Helper method to inspect the DOM and check for weak signature or digest algorithms.
+     * Inspects the DOM signature node to check for weak signature or digest algorithms.
+     * This method checks for the presence of SHA-1 based algorithms which are considered
+     * cryptographically weak and should not be used for XML signatures.
+     *
+     * @param signatureNode the Signature element from the XML DOM to inspect
+     * @return true if a weak algorithm (such as RSA-SHA1 or SHA1 digest) is detected, false otherwise
      */
     private boolean isWeakAlgorithmUsed(Node signatureNode) {
         if (signatureNode instanceof Element) {
@@ -272,6 +298,14 @@ public class SignatureService {
         }
     }
 
+    /**
+     * Generates a new RSA key pair using the BouncyCastle security provider.
+     * The key pair is generated with the configured key size (2048 bits by default).
+     *
+     * @return a newly generated RSA key pair
+     * @throws NoSuchProviderException  if the BouncyCastle provider is not available
+     * @throws NoSuchAlgorithmException if the RSA algorithm is not available
+     */
     private KeyPair generateKeyPair() throws NoSuchProviderException, NoSuchAlgorithmException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KEY_ALGORITHM, SECURITY_PROVIDER);
         keyPairGenerator.initialize(KEY_SIZE, new SecureRandom());
@@ -279,6 +313,16 @@ public class SignatureService {
         return keyPairGenerator.generateKeyPair();
     }
 
+    /**
+     * Creates a self-signed X.509 certificate for the given key pair.
+     * The certificate is valid for one year from the time of creation.
+     *
+     * @param keyPair            the key pair to create the certificate for
+     * @param subjectNameBuilder the X500NameBuilder containing the subject's distinguished name,
+     *                           or null to use a default CN (FreeXmlToolkitDefault)
+     * @return the generated self-signed X.509 certificate
+     * @throws Exception if certificate creation fails
+     */
     private X509Certificate createSelfSignedCertificate(KeyPair keyPair, X500NameBuilder subjectNameBuilder) throws Exception {
         long now = System.currentTimeMillis();
         Date startDate = new Date(now);
@@ -296,6 +340,19 @@ public class SignatureService {
         return new JcaX509CertificateConverter().setProvider(SECURITY_PROVIDER).getCertificate(certBuilder.build(contentSigner));
     }
 
+    /**
+     * Writes PEM-encoded certificate and private key files along with a summary file.
+     * Creates three files in the output directory: a summary text file, a public key (certificate)
+     * PEM file, and an encrypted private key PEM file.
+     *
+     * @param outputDir        the directory where the files will be written
+     * @param alias            the alias used in file naming and summary content
+     * @param certificate      the X.509 certificate to write as public key PEM
+     * @param keyPair          the key pair containing the private key to encrypt and write
+     * @param keystorePassword the password used to encrypt the private key PEM file
+     * @param aliasPassword    the alias password included in the summary file
+     * @throws IOException if file writing operations fail
+     */
     private void writePemAndSummaryFiles(Path outputDir, String alias, X509Certificate certificate, KeyPair keyPair, String keystorePassword, String aliasPassword) throws IOException {
         // Write summary file
         Path summaryFile = outputDir.resolve("summary.txt");
@@ -320,6 +377,22 @@ public class SignatureService {
         logger.info("PEM files and summary written to '{}'", outputDir.toAbsolutePath());
     }
 
+    /**
+     * Creates and saves a Java KeyStore (JKS) file containing the key pair and certificate.
+     * The keystore is saved with the specified alias and passwords.
+     *
+     * @param outputDir        the directory where the keystore file will be saved
+     * @param alias            the alias for the key entry in the keystore
+     * @param keyPair          the key pair to store (contains both public and private keys)
+     * @param certificate      the X.509 certificate to store
+     * @param aliasPassword    the password protecting the key entry
+     * @param keystorePassword the password protecting the keystore file
+     * @return the created keystore file
+     * @throws KeyStoreException        if keystore operations fail
+     * @throws IOException              if file operations fail
+     * @throws NoSuchAlgorithmException if the keystore algorithm is not available
+     * @throws CertificateException     if certificate operations fail
+     */
     private File createAndSaveKeyStore(Path outputDir, String alias, KeyPair keyPair, X509Certificate certificate, String aliasPassword, String keystorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
         keyStore.load(null, null); // Initialize new, empty keystore
@@ -335,20 +408,40 @@ public class SignatureService {
     }
 
     /**
-     * Custom exception for service-specific errors.
+     * Custom exception for service-specific signature operation errors.
+     * This runtime exception wraps underlying cryptographic, I/O, or parsing exceptions
+     * that occur during signature operations.
      */
     public static class SignatureServiceException extends RuntimeException {
+        /**
+         * Creates a new SignatureServiceException with the specified message and cause.
+         *
+         * @param message the detail message explaining the error
+         * @param cause   the underlying cause of this exception
+         */
         public SignatureServiceException(String message, Throwable cause) {
             super(message, cause);
         }
     }
 
     /**
-     * A KeySelector that selects the public key from the X509Data within the KeyInfo structure.
+     * A KeySelector implementation that extracts the public key from X509Data within the KeyInfo structure.
      * This implementation trusts the key embedded in the signature. For higher security,
      * one might want to validate the certificate against a truststore.
      */
     private static class X509KeySelector extends KeySelector {
+        /**
+         * Selects a public key from the KeyInfo structure for XML signature validation.
+         * This method iterates through the KeyInfo content looking for X509Data elements,
+         * then extracts the X509Certificate and returns its public key if the algorithm is compatible.
+         *
+         * @param keyInfo the KeyInfo structure from the XML signature
+         * @param purpose the key purpose (typically for signature validation)
+         * @param method  the algorithm method to validate compatibility with
+         * @param context the XML crypto context
+         * @return a KeySelectorResult containing the selected public key
+         * @throws KeySelectorException if no suitable key is found or keyInfo is null
+         */
         @Override
         public KeySelectorResult select(KeyInfo keyInfo, Purpose purpose, AlgorithmMethod method, XMLCryptoContext context) throws KeySelectorException {
             if (keyInfo == null) {
@@ -371,26 +464,46 @@ public class SignatureService {
             throw new KeySelectorException("No key found!");
         }
 
+        /**
+         * Checks if the signature algorithm is compatible with the key algorithm.
+         * This method validates that RSA keys can be used with RSA-SHA256 or RSA-SHA512 signatures.
+         * Support for the insecure RSA-SHA1 algorithm has been intentionally removed.
+         *
+         * @param sigAlg the signature algorithm URI from the XML signature
+         * @param keyAlg the key algorithm name (e.g., "RSA")
+         * @return true if the algorithms are compatible, false otherwise
+         */
         private boolean algEquals(String sigAlg, String keyAlg) {
             // Allow RSA keys for SHA256 and SHA512 signatures
             return (sigAlg.equalsIgnoreCase(SignatureMethod.RSA_SHA256) ||
                     sigAlg.equalsIgnoreCase(SignatureMethod.RSA_SHA512)) &&
                     keyAlg.equalsIgnoreCase("RSA");
-            // Die Unterstützung für den unsicheren RSA-SHA1-Algorithmus wurde entfernt.
+            // Support for the insecure RSA-SHA1 algorithm has been removed.
             // Add other algorithm compatibility checks if needed
         }
     }
 
     /**
-     * A simple implementation of KeySelectorResult.
+     * A simple implementation of KeySelectorResult that wraps a single key.
+     * This class is used to return the selected public key from the X509KeySelector.
      */
     private static class SimpleKeySelectorResult implements KeySelectorResult {
         private final Key key;
 
+        /**
+         * Creates a new SimpleKeySelectorResult with the specified key.
+         *
+         * @param key the cryptographic key to wrap
+         */
         SimpleKeySelectorResult(Key key) {
             this.key = key;
         }
 
+        /**
+         * Returns the key that was selected.
+         *
+         * @return the selected cryptographic key
+         */
         @Override
         public Key getKey() {
             return key;

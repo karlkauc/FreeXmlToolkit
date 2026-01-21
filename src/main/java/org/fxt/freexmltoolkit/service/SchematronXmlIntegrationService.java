@@ -15,6 +15,10 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Service for integrating XML Editor and Schematron Editor functionality.
  * Provides cross-linking, validation workflows, and enhanced user experience.
+ *
+ * <p>This service manages the relationship between XML files and Schematron files,
+ * enabling automatic validation when either file changes, and provides methods
+ * to navigate between editors and trigger validation workflows.</p>
  */
 public class SchematronXmlIntegrationService {
 
@@ -31,14 +35,22 @@ public class SchematronXmlIntegrationService {
     private final List<IntegrationListener> listeners = new ArrayList<>();
 
     /**
-     * Constructor
+     * Creates a new SchematronXmlIntegrationService instance.
+     * The service is initialized with auto-validation enabled by default.
+     * Call {@link #initialize(MainController, XmlUltimateController, SchematronController)}
+     * to set up the controllers before using the service.
      */
     public SchematronXmlIntegrationService() {
         logger.debug("SchematronXmlIntegrationService initialized");
     }
 
     /**
-     * Initialize the integration service with controllers
+     * Initializes the integration service with the required controllers.
+     * This method must be called before using any integration features.
+     *
+     * @param mainController the main application controller for navigation
+     * @param xmlController the XML editor controller
+     * @param schematronController the Schematron editor controller
      */
     public void initialize(MainController mainController, XmlUltimateController xmlController,
                            SchematronController schematronController) {
@@ -50,7 +62,11 @@ public class SchematronXmlIntegrationService {
     }
 
     /**
-     * Set the current XML file and trigger integrations
+     * Sets the current XML file and triggers integration workflows.
+     * If auto-validation is enabled and a Schematron file is loaded,
+     * validation will be performed automatically.
+     *
+     * @param xmlFile the XML file to set as current, or null to clear
      */
     public void setCurrentXmlFile(File xmlFile) {
         this.currentXmlFile = xmlFile;
@@ -64,7 +80,11 @@ public class SchematronXmlIntegrationService {
     }
 
     /**
-     * Set the current Schematron file and trigger integrations
+     * Sets the current Schematron file and triggers integration workflows.
+     * If auto-validation is enabled and an XML file is loaded,
+     * validation will be performed automatically.
+     *
+     * @param schematronFile the Schematron file to set as current, or null to clear
      */
     public void setCurrentSchematronFile(File schematronFile) {
         this.currentSchematronFile = schematronFile;
@@ -78,7 +98,11 @@ public class SchematronXmlIntegrationService {
     }
 
     /**
-     * Validate current XML file against current Schematron file
+     * Validates the current XML file against the current Schematron file asynchronously.
+     * Both files must be loaded for validation to proceed. Listeners are notified
+     * when validation completes.
+     *
+     * @return a CompletableFuture containing the validation result
      */
     public CompletableFuture<ValidationResult> validateCurrentFiles() {
         return CompletableFuture.supplyAsync(() -> {
@@ -113,7 +137,10 @@ public class SchematronXmlIntegrationService {
     }
 
     /**
-     * Switch to XML editor with specific file
+     * Opens the specified XML file in the XML editor.
+     * Switches to the XML editor tab and loads the file.
+     *
+     * @param xmlFile the XML file to open in the editor
      */
     public void openXmlInEditor(File xmlFile) {
         if (mainController != null) {
@@ -125,7 +152,10 @@ public class SchematronXmlIntegrationService {
     }
 
     /**
-     * Switch to Schematron editor with specific file
+     * Opens the specified Schematron file in the Schematron editor.
+     * Switches to the Schematron editor tab and loads the file.
+     *
+     * @param schematronFile the Schematron file to open in the editor
      */
     public void openSchematronInEditor(File schematronFile) {
         if (mainController != null) {
@@ -137,7 +167,11 @@ public class SchematronXmlIntegrationService {
     }
 
     /**
-     * Quick validate - validate current XML against a specific Schematron file
+     * Performs a quick validation of an XML file against a Schematron file.
+     * The validation runs asynchronously and results are displayed to the user.
+     *
+     * @param xmlFile the XML file to validate
+     * @param schematronFile the Schematron file containing the validation rules
      */
     public void quickValidate(File xmlFile, File schematronFile) {
         CompletableFuture.runAsync(() -> {
@@ -165,7 +199,11 @@ public class SchematronXmlIntegrationService {
     }
 
     /**
-     * Generate Schematron rules from XML structure
+     * Generates a basic Schematron template from an XML file structure.
+     * The generated template includes placeholder rules that can be customized.
+     *
+     * @param xmlFile the XML file to analyze for generating Schematron rules
+     * @return a CompletableFuture containing the generated Schematron XML as a string
      */
     public CompletableFuture<String> generateSchematronFromXml(File xmlFile) {
         return CompletableFuture.supplyAsync(() -> {
@@ -205,21 +243,30 @@ public class SchematronXmlIntegrationService {
     }
 
     /**
-     * Add integration listener
+     * Adds an integration listener to receive notifications about file changes
+     * and validation events.
+     *
+     * @param listener the listener to add
      */
     public void addIntegrationListener(IntegrationListener listener) {
         listeners.add(listener);
     }
 
     /**
-     * Remove integration listener
+     * Removes a previously registered integration listener.
+     *
+     * @param listener the listener to remove
      */
     public void removeIntegrationListener(IntegrationListener listener) {
         listeners.remove(listener);
     }
 
     /**
-     * Enable/disable automatic validation
+     * Enables or disables automatic validation.
+     * When enabled, validation is triggered automatically when either
+     * the XML or Schematron file changes.
+     *
+     * @param enabled true to enable auto-validation, false to disable
      */
     public void setAutoValidationEnabled(boolean enabled) {
         this.autoValidationEnabled = enabled;
@@ -227,7 +274,10 @@ public class SchematronXmlIntegrationService {
     }
 
     /**
-     * Get current files info
+     * Gets the current integration status including loaded files
+     * and auto-validation state.
+     *
+     * @return the current integration status
      */
     public IntegrationStatus getStatus() {
         return new IntegrationStatus(currentXmlFile, currentSchematronFile, autoValidationEnabled);
@@ -319,55 +369,101 @@ public class SchematronXmlIntegrationService {
     // ========== Inner Classes and Interfaces ==========
 
     /**
-     * Interface for integration event listeners
+     * Interface for receiving integration event notifications.
+     * Implement this interface to be notified when XML or Schematron files change,
+     * or when validation completes.
      */
     public interface IntegrationListener {
+        /**
+         * Called when the current XML file changes.
+         *
+         * @param xmlFile the new XML file, or null if cleared
+         */
         default void onXmlFileChanged(File xmlFile) {
         }
 
+        /**
+         * Called when the current Schematron file changes.
+         *
+         * @param schematronFile the new Schematron file, or null if cleared
+         */
         default void onSchematronFileChanged(File schematronFile) {
         }
 
+        /**
+         * Called when a validation operation completes.
+         *
+         * @param result the validation result containing success status, messages, errors, and warnings
+         */
         default void onValidationComplete(ValidationResult result) {
         }
     }
 
     /**
-     * Validation result container
-     * @param valid Whether the validation was successful
-     * @param message The validation message
-     * @param errors List of errors
-     * @param warnings List of warnings
+     * Container for Schematron validation results.
+     * This record holds the outcome of a validation operation including
+     * the validation status, descriptive message, and any errors or warnings found.
+     *
+     * @param valid true if validation passed with no errors, false otherwise
+     * @param message a descriptive message about the validation outcome
+     * @param errors list of error messages found during validation
+     * @param warnings list of warning messages found during validation
      */
     public record ValidationResult(boolean valid, String message, List<String> errors, List<String> warnings) {
-            public ValidationResult(boolean valid, String message, List<String> errors, List<String> warnings) {
-                this.valid = valid;
-                this.message = message;
-                this.errors = new ArrayList<>(errors);
-                this.warnings = new ArrayList<>(warnings);
-            }
-
-            @Override
-            public List<String> errors() {
-                return new ArrayList<>(errors);
-            }
-
-            @Override
-            public List<String> warnings() {
-                return new ArrayList<>(warnings);
-            }
+        /**
+         * Creates a new ValidationResult with defensive copies of the error and warning lists.
+         *
+         * @param valid true if validation passed with no errors, false otherwise
+         * @param message a descriptive message about the validation outcome
+         * @param errors list of error messages found during validation
+         * @param warnings list of warning messages found during validation
+         */
+        public ValidationResult(boolean valid, String message, List<String> errors, List<String> warnings) {
+            this.valid = valid;
+            this.message = message;
+            this.errors = new ArrayList<>(errors);
+            this.warnings = new ArrayList<>(warnings);
         }
 
+        /**
+         * Returns a defensive copy of the errors list.
+         *
+         * @return a new list containing all error messages
+         */
+        @Override
+        public List<String> errors() {
+            return new ArrayList<>(errors);
+        }
+
+        /**
+         * Returns a defensive copy of the warnings list.
+         *
+         * @return a new list containing all warning messages
+         */
+        @Override
+        public List<String> warnings() {
+            return new ArrayList<>(warnings);
+        }
+    }
+
     /**
-     * Integration status container
-     * @param xmlFile The currently loaded XML file
-     * @param schematronFile The currently loaded Schematron file
-     * @param autoValidationEnabled Whether auto-validation is enabled
+     * Container for the current integration status.
+     * Provides information about which files are currently loaded
+     * and whether automatic validation is enabled.
+     *
+     * @param xmlFile the currently loaded XML file, or null if none
+     * @param schematronFile the currently loaded Schematron file, or null if none
+     * @param autoValidationEnabled true if automatic validation is enabled
      */
     public record IntegrationStatus(File xmlFile, File schematronFile, boolean autoValidationEnabled) {
 
+        /**
+         * Checks whether both XML and Schematron files are loaded.
+         *
+         * @return true if both files are loaded, false otherwise
+         */
         public boolean isBothFilesLoaded() {
-                return xmlFile != null && schematronFile != null;
-            }
+            return xmlFile != null && schematronFile != null;
         }
+    }
 }

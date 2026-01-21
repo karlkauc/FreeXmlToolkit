@@ -22,6 +22,11 @@ public class SnippetContextMenu {
     private BiConsumer<XPathSnippet, String> executeCallback;
     private Consumer<String> insertCallback;
 
+    /**
+     * Creates a new snippet context menu with default configuration.
+     * Initializes the snippet repository and builds the menu structure with
+     * favorite and popular snippets, category-based submenus, and insert options.
+     */
     public SnippetContextMenu() {
         this.snippetRepository = XPathSnippetRepository.getInstance();
         this.contextMenu = new ContextMenu();
@@ -226,7 +231,15 @@ public class SnippetContextMenu {
     }
 
     /**
-     * Show context menu with context-aware suggestions
+     * Shows the context menu with context-aware suggestions at the specified screen position.
+     * Updates the menu with intelligent suggestions based on the selected text and XML context
+     * before displaying.
+     *
+     * @param node         the control node to anchor the context menu to
+     * @param screenX      the X coordinate on screen where the menu should appear
+     * @param screenY      the Y coordinate on screen where the menu should appear
+     * @param selectedText the currently selected text in the editor, may be null or empty
+     * @param xmlContext   the surrounding XML context for intelligent suggestions
      */
     public void showContextMenu(Control node, double screenX, double screenY, String selectedText, String xmlContext) {
         // Update menu with context-aware suggestions
@@ -278,35 +291,49 @@ public class SnippetContextMenu {
     }
 
     /**
-     * Set callback for snippet execution
+     * Sets the callback to be invoked when a snippet is executed from the context menu.
+     * The callback receives the selected snippet and its query string.
+     *
+     * @param callback the bi-consumer callback that handles snippet execution,
+     *                 receiving the XPathSnippet and its query string
      */
     public void setExecuteCallback(BiConsumer<XPathSnippet, String> callback) {
         this.executeCallback = callback;
     }
 
     /**
-     * Set callback for text insertion
+     * Sets the callback to be invoked when an XPath expression should be inserted into the editor.
+     * This is used for insert operations that do not immediately execute the snippet.
+     *
+     * @param callback the consumer callback that handles text insertion,
+     *                 receiving the XPath expression string to insert
      */
     public void setInsertCallback(Consumer<String> callback) {
         this.insertCallback = callback;
     }
 
     /**
-     * Get the context menu instance
+     * Returns the underlying JavaFX ContextMenu instance.
+     * Can be used to attach the menu to controls or for additional customization.
+     *
+     * @return the ContextMenu instance managed by this SnippetContextMenu
      */
     public ContextMenu getContextMenu() {
         return contextMenu;
     }
 
     /**
-     * Hide the context menu
+     * Hides the context menu if it is currently showing.
+     * This method delegates to the underlying ContextMenu's hide method.
      */
     public void hide() {
         contextMenu.hide();
     }
 
     /**
-     * Refresh menu items with latest snippets
+     * Refreshes the menu items by rebuilding the entire menu structure.
+     * This should be called when the snippet repository has been modified
+     * to ensure the menu reflects the latest snippets, favorites, and usage statistics.
      */
     public void refresh() {
         buildMenu();

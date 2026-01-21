@@ -31,11 +31,27 @@ public class StatusLineManagerV2 {
 
     /**
      * Enumeration for XSD status states.
+     * Represents the different states an XSD schema can be in during the editor lifecycle.
      */
     public enum XsdStatus {
+        /**
+         * No XSD schema is associated with the current document.
+         */
         NONE("No XSD", "gray", "⚫"),
+
+        /**
+         * XSD schema is currently being loaded.
+         */
         LOADING("Loading XSD...", "#e67e00", "⏳"),
+
+        /**
+         * XSD schema has been successfully loaded and is available for validation.
+         */
         LOADED("XSD: ✓", "green", "✓"),
+
+        /**
+         * XSD schema loading failed or the schema contains errors.
+         */
         ERROR("XSD: ✗", "red", "✗");
 
         private final String text;
@@ -48,8 +64,25 @@ public class StatusLineManagerV2 {
             this.icon = icon;
         }
 
+        /**
+         * Returns the display text for this status.
+         *
+         * @return the human-readable status text
+         */
         public String getText() { return text; }
+
+        /**
+         * Returns the color associated with this status.
+         *
+         * @return the CSS color value for this status
+         */
         public String getColor() { return color; }
+
+        /**
+         * Returns the icon character for this status.
+         *
+         * @return the Unicode icon character representing this status
+         */
         public String getIcon() { return icon; }
     }
 
