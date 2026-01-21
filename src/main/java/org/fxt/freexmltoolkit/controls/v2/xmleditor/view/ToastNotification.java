@@ -27,10 +27,14 @@ public class ToastNotification extends HBox {
      * Toast types with different styling.
      */
     public enum Type {
-        INFO(BootstrapIcons.INFO_CIRCLE, "#3b82f6", "#eff6ff"),      // Blue
-        SUCCESS(BootstrapIcons.CHECK_CIRCLE, "#22c55e", "#f0fdf4"),  // Green
-        WARNING(BootstrapIcons.EXCLAMATION_TRIANGLE, "#f59e0b", "#fffbeb"),  // Orange
-        ERROR(BootstrapIcons.X_CIRCLE, "#ef4444", "#fef2f2");       // Red
+        /** Informational message (blue). */
+        INFO(BootstrapIcons.INFO_CIRCLE, "#3b82f6", "#eff6ff"),
+        /** Success message (green). */
+        SUCCESS(BootstrapIcons.CHECK_CIRCLE, "#22c55e", "#f0fdf4"),
+        /** Warning message (orange). */
+        WARNING(BootstrapIcons.EXCLAMATION_TRIANGLE, "#f59e0b", "#fffbeb"),
+        /** Error message (red). */
+        ERROR(BootstrapIcons.X_CIRCLE, "#ef4444", "#fef2f2");
 
         final Ikon icon;
         final String iconColor;

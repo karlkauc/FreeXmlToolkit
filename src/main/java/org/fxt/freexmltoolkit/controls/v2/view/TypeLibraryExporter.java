@@ -30,15 +30,36 @@ import java.util.List;
 public class TypeLibraryExporter {
 
     /**
-     * Type information data structure
+     * Private constructor to prevent instantiation.
+     */
+    private TypeLibraryExporter() {
+        // Utility class
+    }
+
+    /**
+     * Type information data structure.
      */
     public static class TypeInfo {
+        /**
+         * The kind of type (Simple/Complex).
+         */
         public String kind;
+        /** The name of the type. */
         public String name;
+        /** The base type name. */
         public String baseType;
+        /** The documentation for the type. */
         public String documentation;
+        /** The number of times the type is used. */
         public int usageCount;
+        /** List of XPaths where the type is used. */
         public List<String> usageLocations;
+
+        /**
+         * Creates a new TypeInfo instance.
+         */
+        public TypeInfo() {
+        }
     }
 
     /**

@@ -356,6 +356,8 @@ public class TransformationProfile {
     // ========== Getters and Setters ==========
 
     /**
+     * Gets the start time.
+     *
      * @return The start time in nanoseconds
      */
     public long getStartTime() {
@@ -363,6 +365,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the end time.
+     *
      * @return The end time in nanoseconds
      */
     public long getEndTime() {
@@ -370,6 +374,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the compilation time.
+     *
      * @return The compilation time in milliseconds
      */
     public long getCompilationTime() {
@@ -377,6 +383,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the transformation time.
+     *
      * @return The transformation time in milliseconds
      */
     public long getTransformationTime() {
@@ -384,6 +392,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the serialization time.
+     *
      * @return The serialization time in milliseconds
      */
     public long getSerializationTime() {
@@ -391,6 +401,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the profile timestamp.
+     *
      * @return The timestamp when profiling started
      */
     public LocalDateTime getProfiledAt() {
@@ -398,6 +410,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the memory usage before transformation.
+     *
      * @return The memory usage before transformation in bytes
      */
     public long getMemoryBefore() {
@@ -405,6 +419,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the memory usage after transformation.
+     *
      * @return The memory usage after transformation in bytes
      */
     public long getMemoryAfter() {
@@ -412,6 +428,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the peak memory usage.
+     *
      * @return The peak memory usage during profiling in bytes
      */
     public long getPeakMemoryUsage() {
@@ -419,6 +437,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the input size.
+     *
      * @return The size of input data in bytes
      */
     public int getInputSize() {
@@ -426,6 +446,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Sets the input size.
+     *
      * @param inputSize The size of input data in bytes
      */
     public void setInputSize(int inputSize) {
@@ -433,6 +455,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the output size.
+     *
      * @return The size of output data in bytes
      */
     public int getOutputSize() {
@@ -440,6 +464,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Sets the output size.
+     *
      * @param outputSize The size of output data in bytes
      */
     public void setOutputSize(int outputSize) {
@@ -447,6 +473,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the template execution times.
+     *
      * @return A map of template names to their total execution times
      */
     public Map<String, Long> getTemplateExecutionTimes() {
@@ -454,6 +482,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the template execution counts.
+     *
      * @return A map of template names to their execution counts
      */
     public Map<String, Integer> getTemplateExecutionCounts() {
@@ -461,6 +491,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the profile events.
+     *
      * @return The list of profile events
      */
     public List<ProfileEvent> getEvents() {
@@ -468,6 +500,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets custom metrics.
+     *
      * @return A map of custom metrics
      */
     public Map<String, Object> getCustomMetrics() {
@@ -475,6 +509,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the thread count.
+     *
      * @return The number of threads used
      */
     public int getThreadCount() {
@@ -482,6 +518,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Sets the thread count.
+     *
      * @param threadCount The number of threads used
      */
     public void setThreadCount(int threadCount) {
@@ -489,6 +527,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the CPU time.
+     *
      * @return The CPU time in milliseconds
      */
     public long getCpuTime() {
@@ -496,6 +536,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Sets the CPU time.
+     *
      * @param cpuTime The CPU time in milliseconds
      */
     public void setCpuTime(long cpuTime) {
@@ -503,6 +545,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Gets the number of IO operations.
+     *
      * @return The number of IO operations
      */
     public int getIoOperations() {
@@ -510,6 +554,8 @@ public class TransformationProfile {
     }
 
     /**
+     * Sets the number of IO operations.
+     *
      * @param ioOperations The number of IO operations
      */
     public void setIoOperations(int ioOperations) {
