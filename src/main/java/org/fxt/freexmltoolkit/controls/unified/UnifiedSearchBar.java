@@ -35,6 +35,9 @@ public class UnifiedSearchBar extends HBox {
 
     private boolean replaceMode = false;
 
+    /**
+     * Creates a new UnifiedSearchBar.
+     */
     public UnifiedSearchBar() {
         setSpacing(8);
         setPadding(new Insets(6, 10, 6, 10));

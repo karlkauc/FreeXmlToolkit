@@ -37,6 +37,9 @@ public class UsageStatistics {
     // Feature usage tracking
     private Map<String, FeatureUsage> featureUsage;
 
+    /**
+     * Creates a new UsageStatistics instance.
+     */
     public UsageStatistics() {
         this.firstLaunch = LocalDateTime.now();
         this.lastLaunch = LocalDateTime.now();
