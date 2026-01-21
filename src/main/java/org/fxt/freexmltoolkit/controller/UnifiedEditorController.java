@@ -263,36 +263,54 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     // ==================== File Operations ====================
 
+    /**
+     * Creates a new XML file tab.
+     */
     @FXML
     public void newXmlFile() {
         tabManager.createNewTab(UnifiedEditorFileType.XML);
         updateStatus("Created new XML file");
     }
 
+    /**
+     * Creates a new XSD file tab.
+     */
     @FXML
     public void newXsdFile() {
         tabManager.createNewTab(UnifiedEditorFileType.XSD);
         updateStatus("Created new XSD file");
     }
 
+    /**
+     * Creates a new XSLT file tab.
+     */
     @FXML
     public void newXsltFile() {
         tabManager.createNewTab(UnifiedEditorFileType.XSLT);
         updateStatus("Created new XSLT file");
     }
 
+    /**
+     * Creates a new Schematron file tab.
+     */
     @FXML
     public void newSchematronFile() {
         tabManager.createNewTab(UnifiedEditorFileType.SCHEMATRON);
         updateStatus("Created new Schematron file");
     }
 
+    /**
+     * Creates a new JSON file tab.
+     */
     @FXML
     public void newJsonFile() {
         tabManager.createNewTab(UnifiedEditorFileType.JSON);
         updateStatus("Created new JSON file");
     }
 
+    /**
+     * Opens a file chooser to select and open a file.
+     */
     @FXML
     public void openFile() {
         FileChooser fileChooser = new FileChooser();
@@ -351,6 +369,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         updateStatus("Opened " + files.size() + " file(s)");
     }
 
+    /**
+     * Saves the current tab's file.
+     */
     @FXML
     public void saveCurrentTab() {
         if (tabManager.saveCurrentTab()) {
@@ -360,6 +381,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         }
     }
 
+    /**
+     * Saves all open tabs.
+     */
     @FXML
     public void saveAllTabs() {
         if (tabManager.saveAllTabs()) {
@@ -369,6 +393,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         }
     }
 
+    /**
+     * Closes the current tab.
+     */
     @FXML
     public void closeCurrentTab() {
         tabManager.closeCurrentTab();
@@ -376,6 +403,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     // ==================== Edit Operations ====================
 
+    /**
+     * Validates the current tab's content.
+     */
     @FXML
     public void validateCurrentTab() {
         AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
@@ -418,12 +448,18 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         }
     }
 
+    /**
+     * Formats the current tab's content.
+     */
     @FXML
     public void formatCurrentTab() {
         tabManager.formatCurrentTab();
         updateStatus("Document formatted");
     }
 
+    /**
+     * Undoes the last action in the current tab.
+     */
     @FXML
     public void undo() {
         AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
@@ -433,6 +469,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         }
     }
 
+    /**
+     * Redoes the last undone action in the current tab.
+     */
     @FXML
     public void redo() {
         AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
@@ -633,6 +672,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     // ==================== XPath/XQuery Panel ====================
 
+    /**
+     * Toggles the visibility of the XPath/XQuery panel.
+     */
     @FXML
     public void toggleXPathPanel() {
         if (xpathPanelToggle != null) {
@@ -710,6 +752,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     // ==================== Linked Files ====================
 
+    /**
+     * Toggles the visibility of the linked files panel.
+     */
     @FXML
     public void toggleLinkedFilesPanel() {
         boolean show = linkedFilesToggle.isSelected();
@@ -756,6 +801,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         }
     }
 
+    /**
+     * Opens the selected linked file.
+     */
     @FXML
     public void openSelectedLinkedFile() {
         LinkedFileInfo selected = linkedFilesList.getSelectionModel().getSelectedItem();
@@ -764,6 +812,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         }
     }
 
+    /**
+     * Opens all resolved linked files.
+     */
     @FXML
     public void openAllLinkedFiles() {
         for (LinkedFileInfo link : linkedFiles) {
@@ -1248,6 +1299,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     // ==================== Help ====================
 
+    /**
+     * Shows the help dialog.
+     */
     @FXML
     public void showHelp() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
