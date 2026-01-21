@@ -3473,6 +3473,14 @@ public class XsdDocumentationService {
 
     private String getAttributeValue(Node node, String attrName, String defaultValue) {
         if (node == null || node.getAttributes() == null) return defaultValue;
+
+        // Special handling for namespace-qualified attributes like xml:lang
+        if ("xml:lang".equals(attrName) && node instanceof Element) {
+            Element element = (Element) node;
+            String value = element.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang");
+            return (value != null && !value.isEmpty()) ? value : defaultValue;
+        }
+
         Node attrNode = node.getAttributes().getNamedItem(attrName);
         return (attrNode != null) ? attrNode.getNodeValue() : defaultValue;
     }

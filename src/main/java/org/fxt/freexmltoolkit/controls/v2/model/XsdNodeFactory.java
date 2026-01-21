@@ -1328,7 +1328,8 @@ public class XsdNodeFactory {
             if (isXsdElement(childElement, "documentation")) {
                 String text = childElement.getTextContent();
                 if (text != null && !text.trim().isEmpty()) {
-                    String lang = childElement.getAttribute("xml:lang");
+                    // Use getAttributeNS for namespace-qualified attributes like xml:lang
+                    String lang = childElement.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang");
                     String source = childElement.getAttribute("source");
 
                     // Check if this is a legacy format with [lang] markers

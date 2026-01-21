@@ -104,7 +104,9 @@ public class SchemaResolver {
 
         // In FLATTEN mode, inline the content of included schemas into the main document
         if (options.getIncludeMode() == XsdParseOptions.IncludeMode.FLATTEN) {
-            flattenIncludes(document, schemaElement, resolvedIncludes);
+            // Track processed schemas to avoid duplicates
+            Set<Path> processedSchemas = new HashSet<>();
+            flattenIncludes(document, schemaElement, resolvedIncludes, processedSchemas);
         }
 
         ParsedSchema.Builder builder = ParsedSchema.builder()
@@ -130,12 +132,16 @@ public class SchemaResolver {
     /**
      * Flattens includes by inlining their content into the main schema.
      * Removes xs:include elements and inserts the children of the included schema.
+     * Uses deduplication to prevent the same schema from being included multiple times.
      *
-     * @param document      the main document
-     * @param schemaElement the main schema element
-     * @param includes      the resolved includes
+     * @param document         the main document
+     * @param schemaElement    the main schema element
+     * @param includes         the resolved includes
+     * @param processedSchemas set of already processed schema paths (for deduplication)
      */
-    private void flattenIncludes(Document document, Element schemaElement, List<ParsedSchema.ResolvedInclude> includes) {
+    private void flattenIncludes(Document document, Element schemaElement,
+                                 List<ParsedSchema.ResolvedInclude> includes,
+                                 Set<Path> processedSchemas) {
         // Find and process all xs:include elements
         NodeList children = schemaElement.getChildNodes();
         List<Element> includeElements = new ArrayList<>();
@@ -156,13 +162,29 @@ public class SchemaResolver {
             ParsedSchema.ResolvedInclude resolvedInclude = findMatchingInclude(includes, schemaLocation);
 
             if (resolvedInclude != null && resolvedInclude.isResolved() && resolvedInclude.parsedSchema() != null) {
+                Path includedSchemaPath = resolvedInclude.resolvedPath();
+
+                // Check if this schema has already been processed (deduplication)
+                if (includedSchemaPath != null && processedSchemas.contains(includedSchemaPath)) {
+                    logger.debug("Skipping already processed schema: {}", includedSchemaPath.getFileName());
+                    // Remove the xs:include element but don't re-insert the content
+                    schemaElement.removeChild(includeElement);
+                    continue;
+                }
+
+                // Mark this schema as processed
+                if (includedSchemaPath != null) {
+                    processedSchemas.add(includedSchemaPath);
+                }
+
                 // Get the content from the included schema
                 Element includedSchemaElement = resolvedInclude.parsedSchema().getSchemaElement();
 
                 // First, recursively flatten any nested includes in the included schema
                 List<ParsedSchema.ResolvedInclude> nestedIncludes = resolvedInclude.parsedSchema().getResolvedIncludes();
                 if (nestedIncludes != null && !nestedIncludes.isEmpty()) {
-                    flattenIncludes(resolvedInclude.parsedSchema().getDocument(), includedSchemaElement, nestedIncludes);
+                    flattenIncludes(resolvedInclude.parsedSchema().getDocument(),
+                                  includedSchemaElement, nestedIncludes, processedSchemas);
                 }
 
                 // Insert the children of the included schema before the include element

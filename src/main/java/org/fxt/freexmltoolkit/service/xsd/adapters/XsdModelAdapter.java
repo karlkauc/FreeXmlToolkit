@@ -233,11 +233,13 @@ public class XsdModelAdapter {
 
     /**
      * Parses an xs:complexType.
+     * Anonymous (inline) complexTypes have no name attribute.
      */
     private XsdComplexType parseComplexType(Element element) {
         String name = element.getAttribute("name");
-        if (name == null || name.isEmpty()) {
-            name = "complexType";
+        // Anonymous/inline complexTypes should have null name (no name attribute)
+        if (name != null && name.isEmpty()) {
+            name = null;
         }
 
         XsdComplexType complexType = new XsdComplexType(name);
@@ -261,11 +263,13 @@ public class XsdModelAdapter {
 
     /**
      * Parses an xs:simpleType.
+     * Anonymous (inline) simpleTypes have no name attribute.
      */
     private XsdSimpleType parseSimpleType(Element element) {
         String name = element.getAttribute("name");
-        if (name == null || name.isEmpty()) {
-            name = "simpleType";
+        // Anonymous/inline simpleTypes should have null name (no name attribute)
+        if (name != null && name.isEmpty()) {
+            name = null;
         }
 
         XsdSimpleType simpleType = new XsdSimpleType(name);
@@ -762,7 +766,8 @@ public class XsdModelAdapter {
     }
 
     /**
-     * Parses annotation and sets documentation.
+     * Parses annotation and sets documentation with multi-language support.
+     * Supports multiple xs:documentation elements with xml:lang attributes.
      */
     private void parseAnnotation(Element element, XsdNode node) {
         NodeList children = element.getChildNodes();
@@ -781,7 +786,17 @@ public class XsdModelAdapter {
                             "documentation".equals(docEl.getLocalName())) {
                         String doc = docEl.getTextContent();
                         if (doc != null && !doc.isBlank()) {
-                            node.setDocumentation(doc.trim());
+                            // Use getAttributeNS for namespace-qualified attributes like xml:lang
+                            String lang = docEl.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang");
+                            String source = docEl.getAttribute("source");
+
+                            // Create XsdDocumentation object with language support
+                            XsdDocumentation documentation = new XsdDocumentation(
+                                doc.trim(),
+                                (lang != null && !lang.isEmpty()) ? lang : null,
+                                (source != null && !source.isEmpty()) ? source : null
+                            );
+                            node.addDocumentation(documentation);
                         }
                     }
                 }
