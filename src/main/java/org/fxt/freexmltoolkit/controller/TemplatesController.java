@@ -52,10 +52,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Controller for the Smart Templates System - Revolutionary Feature #4
- * Provides professional XML template management with intelligent parameter validation
+ * Controller for the Smart Templates System - Revolutionary Feature #4.
+ * Provides professional XML template management with intelligent parameter validation.
+ *
+ * @author FreeXmlToolkit
  */
 public class TemplatesController {
+
+    /**
+     * Creates a new TemplatesController.
+     * The controller is initialized via FXML injection.
+     */
+    public TemplatesController() {
+        // Default constructor for FXML
+    }
     private static final Logger logger = LogManager.getLogger(TemplatesController.class);
 
     // Revolutionary Services
@@ -666,7 +676,10 @@ public class TemplatesController {
         alert.showAndWait();
     }
 
-    // Lifecycle
+    /**
+     * Shuts down the controller and releases resources.
+     * Terminates the background executor service used for template operations.
+     */
     public void shutdown() {
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
@@ -736,6 +749,12 @@ public class TemplatesController {
 
     /**
      * Helper method to apply display mode, icon size, and style to a button.
+     * Configures the button's content display, style, and updates the icon size if applicable.
+     *
+     * @param button the button to configure, ignored if null
+     * @param displayMode the content display mode (GRAPHIC_ONLY or TOP)
+     * @param iconSize the icon size in pixels
+     * @param style the CSS style string to apply to the button
      */
     private void applyButtonSettings(ButtonBase button, ContentDisplay displayMode, int iconSize, String style) {
         if (button == null) return;

@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 /**
  * Service for loading and saving XML templates from/to the file system.
  * Templates are stored as simple text files with properties format.
+ * This service follows the singleton pattern for centralized template management.
  */
 public class TemplateFileService {
 
@@ -26,6 +27,10 @@ public class TemplateFileService {
     private static TemplateFileService instance;
     private final Path templatesDirectory;
 
+    /**
+     * Private constructor for singleton pattern.
+     * Initializes the templates directory and creates it if it does not exist.
+     */
     private TemplateFileService() {
         // Use release/examples/templates as the templates directory
         this.templatesDirectory = getTemplatesDirectory();
@@ -38,6 +43,12 @@ public class TemplateFileService {
         }
     }
 
+    /**
+     * Returns the singleton instance of the TemplateFileService.
+     * Creates a new instance if one does not already exist.
+     *
+     * @return the singleton instance of TemplateFileService
+     */
     public static synchronized TemplateFileService getInstance() {
         if (instance == null) {
             instance = new TemplateFileService();
@@ -46,7 +57,11 @@ public class TemplateFileService {
     }
 
     /**
-     * Get the templates directory path
+     * Determines and returns the templates directory path.
+     * Searches for the directory in various possible locations and falls back
+     * to the user home directory if none are found.
+     *
+     * @return the path to the templates directory
      */
     private Path getTemplatesDirectory() {
         // Try to find the project root and use release/examples/templates
@@ -74,6 +89,12 @@ public class TemplateFileService {
         return fallback;
     }
 
+    /**
+     * Attempts to create a directory at the specified path.
+     *
+     * @param path the path where the directory should be created
+     * @return true if the directory was successfully created, false otherwise
+     */
     private boolean tryCreateDirectory(Path path) {
         try {
             Files.createDirectories(path);
@@ -84,7 +105,10 @@ public class TemplateFileService {
     }
 
     /**
-     * Load all templates from the templates directory
+     * Loads all templates from the templates directory.
+     * Each template file with the .template extension is parsed and returned.
+     *
+     * @return a list of all loaded XmlTemplate objects, or an empty list if none found
      */
     public List<XmlTemplate> loadTemplatesFromDirectory() {
         List<XmlTemplate> templates = new ArrayList<>();
@@ -116,7 +140,14 @@ public class TemplateFileService {
     }
 
     /**
-     * Load a single template from a properties file
+     * Loads a single template from a properties file.
+     * The file format uses a custom format with key-value pairs for metadata
+     * and CONTENT_START/CONTENT_END markers for the template content.
+     *
+     * @param filePath the path to the template file
+     * @return the loaded XmlTemplate object
+     * @throws IOException if the file cannot be read
+     * @throws IllegalArgumentException if the template is missing required fields (id, name, or content)
      */
     public XmlTemplate loadTemplateFromFile(Path filePath) throws IOException {
         Properties props = new Properties();
@@ -181,7 +212,12 @@ public class TemplateFileService {
     }
 
     /**
-     * Save a template to the templates directory
+     * Saves a template to the templates directory.
+     * The template is written using a custom file format with metadata properties
+     * and content delimited by CONTENT_START/CONTENT_END markers.
+     *
+     * @param template the XmlTemplate to save
+     * @throws IOException if the file cannot be written
      */
     public void saveTemplateToDirectory(XmlTemplate template) throws IOException {
         String fileName = sanitizeFileName(template.getId()) + ".template";
@@ -216,7 +252,10 @@ public class TemplateFileService {
     }
 
     /**
-     * Delete a template from the templates directory
+     * Deletes a template file from the templates directory.
+     *
+     * @param templateId the unique identifier of the template to delete
+     * @return true if the file was successfully deleted, false if it did not exist or deletion failed
      */
     public boolean deleteTemplateFromDirectory(String templateId) {
         String fileName = sanitizeFileName(templateId) + ".template";
@@ -235,7 +274,10 @@ public class TemplateFileService {
     }
 
     /**
-     * Check if a template file exists
+     * Checks if a template file exists in the templates directory.
+     *
+     * @param templateId the unique identifier of the template to check
+     * @return true if the template file exists, false otherwise
      */
     public boolean templateFileExists(String templateId) {
         String fileName = sanitizeFileName(templateId) + ".template";
@@ -244,14 +286,20 @@ public class TemplateFileService {
     }
 
     /**
-     * Get the templates directory path
+     * Returns the path to the templates directory.
+     *
+     * @return the path to the templates directory
      */
     public Path getTemplatesDirectoryPath() {
         return templatesDirectory;
     }
 
     /**
-     * List all template files in the directory
+     * Lists all template files in the templates directory.
+     * Only files with the .template extension are included.
+     *
+     * @return a list of paths to all template files in the directory
+     * @throws IOException if the directory cannot be read
      */
     public List<Path> listTemplateFiles() throws IOException {
         List<Path> files = new ArrayList<>();
@@ -269,7 +317,9 @@ public class TemplateFileService {
     }
 
     /**
-     * Create some default templates in the directory if it's empty
+     * Creates default templates in the directory if it is empty.
+     * This method checks if any template files exist and creates a set of
+     * starter templates if the directory is empty.
      */
     public void createDefaultTemplatesIfEmpty() {
         try {
@@ -284,7 +334,9 @@ public class TemplateFileService {
     }
 
     /**
-     * Create some default templates
+     * Creates a set of default templates in the templates directory.
+     * These include a simple element template, a SOAP envelope template,
+     * and a REST response template.
      */
     private void createDefaultTemplates() {
         try {
@@ -307,6 +359,11 @@ public class TemplateFileService {
         }
     }
 
+    /**
+     * Creates a simple XML element template.
+     *
+     * @return the created XmlTemplate for a basic element
+     */
     private XmlTemplate createSimpleElementTemplate() {
         XmlTemplate template = new XmlTemplate("file-simple-element",
                 "<${elementName}>${content}</${elementName}>",
@@ -321,6 +378,11 @@ public class TemplateFileService {
         return template;
     }
 
+    /**
+     * Creates a SOAP envelope template for web service requests.
+     *
+     * @return the created XmlTemplate for a SOAP envelope
+     */
     private XmlTemplate createSoapEnvelopeTemplate() {
         XmlTemplate template = new XmlTemplate("file-soap-envelope",
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -345,6 +407,11 @@ public class TemplateFileService {
         return template;
     }
 
+    /**
+     * Creates a REST API response template.
+     *
+     * @return the created XmlTemplate for a REST response
+     */
     private XmlTemplate createRestResponseTemplate() {
         XmlTemplate template = new XmlTemplate("file-rest-response",
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -368,7 +435,12 @@ public class TemplateFileService {
     }
 
     /**
-     * Sanitize a filename to remove invalid characters
+     * Sanitizes a filename by removing invalid characters.
+     * Only alphanumeric characters, dots, underscores, and hyphens are allowed.
+     * All other characters are replaced with underscores.
+     *
+     * @param fileName the original filename to sanitize
+     * @return the sanitized filename safe for use in the file system
      */
     private String sanitizeFileName(String fileName) {
         return fileName.replaceAll("[^a-zA-Z0-9._-]", "_");

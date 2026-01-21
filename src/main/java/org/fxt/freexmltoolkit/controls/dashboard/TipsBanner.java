@@ -30,6 +30,10 @@ public class TipsBanner extends VBox {
     private final Label tipCounter;
     private Consumer<String> onActionClick;
 
+    /**
+     * Creates a new TipsBanner component.
+     * The banner is initially hidden and will become visible when tips are added.
+     */
     public TipsBanner() {
         getStyleClass().add("tips-banner");
         setSpacing(8);
@@ -109,7 +113,10 @@ public class TipsBanner extends VBox {
     }
 
     /**
-     * Set the tips to display
+     * Sets the tips to display in the banner.
+     * Replaces any existing tips and resets to the first tip.
+     *
+     * @param tips the list of feature tips to display, or null to clear all tips
      */
     public void setTips(List<FeatureTip> tips) {
         this.tips.clear();
@@ -122,7 +129,10 @@ public class TipsBanner extends VBox {
     }
 
     /**
-     * Add a single tip
+     * Adds a single tip to the existing list of tips.
+     * The display is updated to show the new tip if it is the first one added.
+     *
+     * @param tip the feature tip to add, ignored if null
      */
     public void addTip(FeatureTip tip) {
         if (tip != null) {
@@ -167,7 +177,10 @@ public class TipsBanner extends VBox {
     }
 
     /**
-     * Set the callback for when the action button is clicked
+     * Sets the callback handler for when the action button is clicked.
+     * The callback receives the action link string from the current tip.
+     *
+     * @param callback the consumer to handle action button clicks, receives the action link
      */
     public void setOnActionClick(Consumer<String> callback) {
         this.onActionClick = callback;

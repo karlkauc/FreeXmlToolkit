@@ -7,6 +7,29 @@ import java.util.regex.Pattern;
 /**
  * Flexible template parameter system for XML templates.
  * Supports various parameter types, validation, and dynamic value generation.
+ *
+ * <p>This class provides a comprehensive parameter definition system that can be used
+ * to define template placeholders with type information, validation rules, default values,
+ * and UI configuration for rendering input forms.</p>
+ *
+ * <p>Key features include:</p>
+ * <ul>
+ *   <li>Multiple parameter types (string, integer, decimal, boolean, date, email, URL, enum)</li>
+ *   <li>Validation with regex patterns, length constraints, and value ranges</li>
+ *   <li>Dynamic value generation based on other parameters</li>
+ *   <li>Conditional default values</li>
+ *   <li>Multi-value support with configurable separators</li>
+ *   <li>UI configuration for rendering appropriate input controls</li>
+ * </ul>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * TemplateParameter param = TemplateParameter.stringParam("userName")
+ *     .displayName("User Name")
+ *     .required(true)
+ *     .length(3, 50)
+ *     .pattern("[a-zA-Z0-9_]+");
+ * }</pre>
  */
 public class TemplateParameter {
 
@@ -53,21 +76,47 @@ public class TemplateParameter {
     private LocalDateTime lastModified = LocalDateTime.now();
     private Map<String, Object> metadata = new HashMap<>();
 
+    /**
+     * Default constructor that creates an empty template parameter.
+     * The parameter will have default type STRING and will not be required.
+     */
     public TemplateParameter() {
         // Default constructor
     }
 
+    /**
+     * Creates a template parameter with the specified name and type.
+     * The display name is automatically generated from the parameter name
+     * by converting camelCase or snake_case to a human-readable format.
+     *
+     * @param name the unique identifier for this parameter
+     * @param type the data type of the parameter
+     */
     public TemplateParameter(String name, ParameterType type) {
         this.name = name;
         this.type = type;
         this.displayName = formatDisplayName(name);
     }
 
+    /**
+     * Creates a template parameter with the specified name, type, and default value.
+     *
+     * @param name         the unique identifier for this parameter
+     * @param type         the data type of the parameter
+     * @param defaultValue the default value to use when no value is provided
+     */
     public TemplateParameter(String name, ParameterType type, String defaultValue) {
         this(name, type);
         this.defaultValue = defaultValue;
     }
 
+    /**
+     * Creates a template parameter with the specified name, type, and required flag.
+     *
+     * @param name     the unique identifier for this parameter
+     * @param type     the data type of the parameter
+     * @param required whether a value must be provided for this parameter
+     */
     public TemplateParameter(String name, ParameterType type, boolean required) {
         this(name, type);
         this.required = required;
@@ -76,7 +125,12 @@ public class TemplateParameter {
     // ========== Validation Methods ==========
 
     /**
-     * Validate parameter value
+     * Validates the given value against all configured constraints.
+     * This method performs type-specific validation, length checks, pattern matching,
+     * range validation, and custom constraint validation.
+     *
+     * @param value the value to validate, may be null or empty
+     * @return a list of validation error messages; empty list if validation passes
      */
     public List<String> validateValue(String value) {
         List<String> errors = new ArrayList<>();
@@ -268,7 +322,12 @@ public class TemplateParameter {
     // ========== Value Processing Methods ==========
 
     /**
-     * Process and format parameter value
+     * Processes and formats a parameter value by applying configured transformations.
+     * This includes applying value generators, prefixes, suffixes, and handling multi-value parameters.
+     *
+     * @param rawValue      the raw input value to process
+     * @param allParameters a map of all parameter values for dependency resolution
+     * @return the processed value, or the effective default value if rawValue is null or empty
      */
     public String processValue(String rawValue, Map<String, String> allParameters) {
         if (rawValue == null || rawValue.isEmpty()) {
@@ -305,7 +364,12 @@ public class TemplateParameter {
     }
 
     /**
-     * Get effective default value considering dependencies
+     * Gets the effective default value considering conditional defaults and auto-generation.
+     * This method first checks conditional defaults based on other parameter values,
+     * then falls back to auto-generation if configured, and finally returns the static default value.
+     *
+     * @param allParameters a map of all parameter values for evaluating conditions
+     * @return the effective default value, or null if no default is configured
      */
     public String getEffectiveDefaultValue(Map<String, String> allParameters) {
         // Check conditional defaults first
@@ -349,7 +413,11 @@ public class TemplateParameter {
     // ========== Utility Methods ==========
 
     /**
-     * Create a copy of this parameter
+     * Creates a deep copy of this parameter with all properties duplicated.
+     * The copy will have new timestamp values for created and lastModified.
+     * Reference types like valueGenerator are copied by reference.
+     *
+     * @return a new TemplateParameter instance with copied values
      */
     public TemplateParameter copy() {
         TemplateParameter copy = new TemplateParameter();
@@ -416,26 +484,57 @@ public class TemplateParameter {
     }
 
     /**
-     * Create quick parameter builders
+     * Creates a string parameter with the specified name.
+     *
+     * @param name the parameter name
+     * @return a new TemplateParameter of type STRING
      */
     public static TemplateParameter stringParam(String name) {
         return new TemplateParameter(name, ParameterType.STRING);
     }
 
+    /**
+     * Creates a string parameter with the specified name and default value.
+     *
+     * @param name         the parameter name
+     * @param defaultValue the default value
+     * @return a new TemplateParameter of type STRING with the specified default
+     */
     public static TemplateParameter stringParam(String name, String defaultValue) {
         return new TemplateParameter(name, ParameterType.STRING, defaultValue);
     }
 
+    /**
+     * Creates a required string parameter with the specified name.
+     *
+     * @param name the parameter name
+     * @return a new required TemplateParameter of type STRING
+     */
     public static TemplateParameter requiredString(String name) {
         return new TemplateParameter(name, ParameterType.STRING, true);
     }
 
+    /**
+     * Creates an integer parameter with the specified name and default value.
+     *
+     * @param name         the parameter name
+     * @param defaultValue the default integer value
+     * @return a new TemplateParameter of type INTEGER with the specified default
+     */
     public static TemplateParameter intParam(String name, int defaultValue) {
         TemplateParameter param = new TemplateParameter(name, ParameterType.INTEGER);
         param.setDefaultValue(String.valueOf(defaultValue));
         return param;
     }
 
+    /**
+     * Creates a boolean parameter with the specified name and default value.
+     * The input type is automatically set to CHECKBOX.
+     *
+     * @param name         the parameter name
+     * @param defaultValue the default boolean value
+     * @return a new TemplateParameter of type BOOLEAN with CHECKBOX input
+     */
     public static TemplateParameter boolParam(String name, boolean defaultValue) {
         TemplateParameter param = new TemplateParameter(name, ParameterType.BOOLEAN);
         param.setDefaultValue(String.valueOf(defaultValue));
@@ -443,6 +542,15 @@ public class TemplateParameter {
         return param;
     }
 
+    /**
+     * Creates an enumeration parameter with the specified name and allowed values.
+     * The input type is automatically set to DROPDOWN, and the first allowed value
+     * becomes the default.
+     *
+     * @param name          the parameter name
+     * @param allowedValues the allowed values for the enumeration
+     * @return a new TemplateParameter of type ENUM with DROPDOWN input
+     */
     public static TemplateParameter enumParam(String name, String... allowedValues) {
         TemplateParameter param = new TemplateParameter(name, ParameterType.ENUM);
         param.setAllowedValues(Arrays.asList(allowedValues));
@@ -455,68 +563,149 @@ public class TemplateParameter {
 
     // ========== Builder Pattern Support ==========
 
+    /**
+     * Sets the display name and returns this parameter for method chaining.
+     *
+     * @param displayName the human-readable display name
+     * @return this parameter instance
+     */
     public TemplateParameter displayName(String displayName) {
         this.displayName = displayName;
         return this;
     }
 
+    /**
+     * Sets the description and returns this parameter for method chaining.
+     *
+     * @param description the detailed description of the parameter
+     * @return this parameter instance
+     */
     public TemplateParameter description(String description) {
         this.description = description;
         return this;
     }
 
+    /**
+     * Sets the placeholder text and returns this parameter for method chaining.
+     *
+     * @param placeholder the placeholder text shown in empty input fields
+     * @return this parameter instance
+     */
     public TemplateParameter placeholder(String placeholder) {
         this.placeholder = placeholder;
         return this;
     }
 
+    /**
+     * Sets the help text and returns this parameter for method chaining.
+     *
+     * @param helpText the help text shown to users
+     * @return this parameter instance
+     */
     public TemplateParameter helpText(String helpText) {
         this.helpText = helpText;
         return this;
     }
 
+    /**
+     * Sets the category and returns this parameter for method chaining.
+     *
+     * @param category the category for grouping parameters
+     * @return this parameter instance
+     */
     public TemplateParameter category(String category) {
         this.category = category;
         return this;
     }
 
+    /**
+     * Sets the display order and returns this parameter for method chaining.
+     *
+     * @param displayOrder the order in which to display this parameter
+     * @return this parameter instance
+     */
     public TemplateParameter order(int displayOrder) {
         this.displayOrder = displayOrder;
         return this;
     }
 
+    /**
+     * Sets whether this parameter is required and returns this parameter for method chaining.
+     *
+     * @param required true if a value must be provided
+     * @return this parameter instance
+     */
     public TemplateParameter required(boolean required) {
         this.required = required;
         return this;
     }
 
+    /**
+     * Sets the validation pattern and returns this parameter for method chaining.
+     *
+     * @param pattern the regex pattern for validation
+     * @return this parameter instance
+     */
     public TemplateParameter pattern(String pattern) {
         this.validationPattern = pattern;
         return this;
     }
 
+    /**
+     * Sets the minimum and maximum length constraints and returns this parameter for method chaining.
+     *
+     * @param min the minimum length
+     * @param max the maximum length
+     * @return this parameter instance
+     */
     public TemplateParameter length(int min, int max) {
         this.minLength = min;
         this.maxLength = max;
         return this;
     }
 
+    /**
+     * Sets the minimum and maximum value constraints and returns this parameter for method chaining.
+     * Applies to numeric parameter types.
+     *
+     * @param min the minimum value
+     * @param max the maximum value
+     * @return this parameter instance
+     */
     public TemplateParameter range(double min, double max) {
         this.minValue = min;
         this.maxValue = max;
         return this;
     }
 
+    /**
+     * Sets the parameter type and returns this parameter for method chaining.
+     *
+     * @param type the parameter type
+     * @return this parameter instance
+     */
     public TemplateParameter withType(ParameterType type) {
         this.type = type;
         return this;
     }
 
+    /**
+     * Sets the value generator and returns this parameter for method chaining.
+     *
+     * @param generator the value generator for dynamic value creation
+     * @return this parameter instance
+     */
     public TemplateParameter withValueGenerator(ValueGenerator generator) {
         this.valueGenerator = generator;
         return this;
     }
 
+    /**
+     * Sets the auto-generate flag and returns this parameter for method chaining.
+     *
+     * @param autoGenerate true to auto-generate values using the value generator
+     * @return this parameter instance
+     */
     public TemplateParameter withAutoGenerate(boolean autoGenerate) {
         this.autoGenerate = autoGenerate;
         return this;
@@ -524,47 +713,104 @@ public class TemplateParameter {
 
     // ========== Enums ==========
 
+    /**
+     * Defines the supported parameter data types.
+     * Each type determines validation rules and may affect UI rendering.
+     */
     public enum ParameterType {
+        /** Plain text string value. */
         STRING,
+        /** Whole number value. */
         INTEGER,
+        /** Floating-point decimal value. */
         DECIMAL,
+        /** True or false value. */
         BOOLEAN,
+        /** Date value in ISO format (YYYY-MM-DD). */
         DATE,
+        /** Email address value. */
         EMAIL,
+        /** URL value. */
         URL,
+        /** Value from a predefined set of allowed values. */
         ENUM,
+        /** File system path value. */
         FILE_PATH,
+        /** Color value (hex or named). */
         COLOR,
+        /** XML namespace URI. */
         NAMESPACE,
+        /** XML element name. */
         ELEMENT_NAME,
+        /** XML attribute name. */
         ATTRIBUTE_NAME
     }
 
+    /**
+     * Defines the UI input control types for rendering parameter input fields.
+     */
     public enum InputType {
+        /** Single-line text input field. */
         TEXT_FIELD,
+        /** Multi-line text input area. */
         TEXT_AREA,
+        /** Password input field with masked characters. */
         PASSWORD,
+        /** Dropdown selection list. */
         DROPDOWN,
+        /** Boolean checkbox. */
         CHECKBOX,
+        /** Radio button group for exclusive selection. */
         RADIO_GROUP,
+        /** Numeric input field with validation. */
         NUMBER_FIELD,
+        /** Calendar-based date picker. */
         DATE_PICKER,
+        /** Visual color picker. */
         COLOR_PICKER,
+        /** File selection dialog. */
         FILE_CHOOSER,
+        /** Numeric slider for range selection. */
         SLIDER
     }
 
     // ========== Inner Interfaces ==========
 
+    /**
+     * Functional interface for generating parameter values dynamically.
+     * Implementations can compute values based on the current value and other parameters.
+     */
     @FunctionalInterface
     public interface ValueGenerator {
+        /**
+         * Generates a value based on the current value and all parameter values.
+         *
+         * @param currentValue  the current value, may be null
+         * @param allParameters a map of all parameter names to their values
+         * @return the generated value
+         */
         String generateValue(String currentValue, Map<String, String> allParameters);
     }
 
+    /**
+     * Functional interface for custom parameter validation constraints.
+     * Implementations define custom validation logic beyond the built-in type validation.
+     */
     @FunctionalInterface
     public interface ParameterConstraint {
+        /**
+         * Validates the given value against this constraint.
+         *
+         * @param value the value to validate
+         * @return true if the value is valid, false otherwise
+         */
         boolean validate(String value);
 
+        /**
+         * Gets the error message to display when validation fails.
+         *
+         * @return the error message
+         */
         default String getErrorMessage() {
             return "Parameter constraint validation failed";
         }
@@ -572,10 +818,21 @@ public class TemplateParameter {
 
     // ========== Getters and Setters ==========
 
+    /**
+     * Gets the unique identifier name of this parameter.
+     *
+     * @return the parameter name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the unique identifier name of this parameter.
+     * If display name is not set, it will be automatically generated from the name.
+     *
+     * @param name the parameter name
+     */
     public void setName(String name) {
         this.name = name;
         if (displayName == null || displayName.isEmpty()) {
@@ -584,240 +841,538 @@ public class TemplateParameter {
         this.lastModified = LocalDateTime.now();
     }
 
+    /**
+     * Gets the human-readable display name of this parameter.
+     *
+     * @return the display name
+     */
     public String getDisplayName() {
         return displayName;
     }
 
+    /**
+     * Sets the human-readable display name of this parameter.
+     *
+     * @param displayName the display name
+     */
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
         this.lastModified = LocalDateTime.now();
     }
 
+    /**
+     * Gets the detailed description of this parameter.
+     *
+     * @return the description
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Sets the detailed description of this parameter.
+     *
+     * @param description the description
+     */
     public void setDescription(String description) {
         this.description = description;
     }
 
+    /**
+     * Gets the data type of this parameter.
+     *
+     * @return the parameter type
+     */
     public ParameterType getType() {
         return type;
     }
 
+    /**
+     * Sets the data type of this parameter.
+     *
+     * @param type the parameter type
+     */
     public void setType(ParameterType type) {
         this.type = type;
     }
 
+    /**
+     * Gets the default value for this parameter.
+     *
+     * @return the default value, or null if not set
+     */
     public String getDefaultValue() {
         return defaultValue;
     }
 
+    /**
+     * Sets the default value for this parameter.
+     *
+     * @param defaultValue the default value
+     */
     public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
     }
 
+    /**
+     * Checks whether this parameter requires a value.
+     *
+     * @return true if a value is required, false otherwise
+     */
     public boolean isRequired() {
         return required;
     }
 
+    /**
+     * Sets whether this parameter requires a value.
+     *
+     * @param required true if a value is required
+     */
     public void setRequired(boolean required) {
         this.required = required;
     }
 
+    /**
+     * Gets the list of allowed values for ENUM type parameters.
+     *
+     * @return the list of allowed values
+     */
     public List<String> getAllowedValues() {
         return allowedValues;
     }
 
+    /**
+     * Sets the list of allowed values for ENUM type parameters.
+     *
+     * @param allowedValues the list of allowed values
+     */
     public void setAllowedValues(List<String> allowedValues) {
         this.allowedValues = allowedValues;
     }
 
+    /**
+     * Gets the regex validation pattern.
+     *
+     * @return the validation pattern, or null if not set
+     */
     public String getValidationPattern() {
         return validationPattern;
     }
 
+    /**
+     * Sets the regex validation pattern.
+     * The compiled pattern cache is reset when this is changed.
+     *
+     * @param validationPattern the validation pattern
+     */
     public void setValidationPattern(String validationPattern) {
         this.validationPattern = validationPattern;
         this.compiledPattern = null; // Reset compiled pattern
     }
 
+    /**
+     * Gets the minimum length constraint.
+     *
+     * @return the minimum length, or null if not set
+     */
     public Integer getMinLength() {
         return minLength;
     }
 
+    /**
+     * Sets the minimum length constraint.
+     *
+     * @param minLength the minimum length
+     */
     public void setMinLength(Integer minLength) {
         this.minLength = minLength;
     }
 
+    /**
+     * Gets the maximum length constraint.
+     *
+     * @return the maximum length, or null if not set
+     */
     public Integer getMaxLength() {
         return maxLength;
     }
 
+    /**
+     * Sets the maximum length constraint.
+     *
+     * @param maxLength the maximum length
+     */
     public void setMaxLength(Integer maxLength) {
         this.maxLength = maxLength;
     }
 
+    /**
+     * Gets the minimum value constraint for numeric types.
+     *
+     * @return the minimum value, or null if not set
+     */
     public Double getMinValue() {
         return minValue;
     }
 
+    /**
+     * Sets the minimum value constraint for numeric types.
+     *
+     * @param minValue the minimum value
+     */
     public void setMinValue(Double minValue) {
         this.minValue = minValue;
     }
 
+    /**
+     * Gets the maximum value constraint for numeric types.
+     *
+     * @return the maximum value, or null if not set
+     */
     public Double getMaxValue() {
         return maxValue;
     }
 
+    /**
+     * Sets the maximum value constraint for numeric types.
+     *
+     * @param maxValue the maximum value
+     */
     public void setMaxValue(Double maxValue) {
         this.maxValue = maxValue;
     }
 
+    /**
+     * Gets the list of custom validation constraints.
+     *
+     * @return the list of constraints
+     */
     public List<ParameterConstraint> getConstraints() {
         return constraints;
     }
 
+    /**
+     * Sets the list of custom validation constraints.
+     *
+     * @param constraints the list of constraints
+     */
     public void setConstraints(List<ParameterConstraint> constraints) {
         this.constraints = constraints;
     }
 
+    /**
+     * Gets the UI input type for rendering.
+     *
+     * @return the input type
+     */
     public InputType getInputType() {
         return inputType;
     }
 
+    /**
+     * Sets the UI input type for rendering.
+     *
+     * @param inputType the input type
+     */
     public void setInputType(InputType inputType) {
         this.inputType = inputType;
     }
 
+    /**
+     * Gets the placeholder text for empty input fields.
+     *
+     * @return the placeholder text, or null if not set
+     */
     public String getPlaceholder() {
         return placeholder;
     }
 
+    /**
+     * Sets the placeholder text for empty input fields.
+     *
+     * @param placeholder the placeholder text
+     */
     public void setPlaceholder(String placeholder) {
         this.placeholder = placeholder;
     }
 
+    /**
+     * Gets the help text displayed to users.
+     *
+     * @return the help text, or null if not set
+     */
     public String getHelpText() {
         return helpText;
     }
 
+    /**
+     * Sets the help text displayed to users.
+     *
+     * @param helpText the help text
+     */
     public void setHelpText(String helpText) {
         this.helpText = helpText;
     }
 
+    /**
+     * Checks whether this parameter contains sensitive data.
+     *
+     * @return true if the parameter is sensitive (e.g., password), false otherwise
+     */
     public boolean isSensitive() {
         return sensitive;
     }
 
+    /**
+     * Sets whether this parameter contains sensitive data.
+     *
+     * @param sensitive true if the parameter is sensitive
+     */
     public void setSensitive(boolean sensitive) {
         this.sensitive = sensitive;
     }
 
+    /**
+     * Gets the display order for this parameter.
+     *
+     * @return the display order
+     */
     public int getDisplayOrder() {
         return displayOrder;
     }
 
+    /**
+     * Sets the display order for this parameter.
+     *
+     * @param displayOrder the display order
+     */
     public void setDisplayOrder(int displayOrder) {
         this.displayOrder = displayOrder;
     }
 
+    /**
+     * Gets the category for grouping parameters.
+     *
+     * @return the category name
+     */
     public String getCategory() {
         return category;
     }
 
+    /**
+     * Sets the category for grouping parameters.
+     *
+     * @param category the category name
+     */
     public void setCategory(String category) {
         this.category = category;
     }
 
+    /**
+     * Gets the value generator for dynamic value creation.
+     *
+     * @return the value generator, or null if not set
+     */
     public ValueGenerator getValueGenerator() {
         return valueGenerator;
     }
 
+    /**
+     * Sets the value generator for dynamic value creation.
+     *
+     * @param valueGenerator the value generator
+     */
     public void setValueGenerator(ValueGenerator valueGenerator) {
         this.valueGenerator = valueGenerator;
     }
 
+    /**
+     * Gets the list of parameter names this parameter depends on.
+     *
+     * @return the list of dependency names
+     */
     public List<String> getDependsOn() {
         return dependsOn;
     }
 
+    /**
+     * Sets the list of parameter names this parameter depends on.
+     *
+     * @param dependsOn the list of dependency names
+     */
     public void setDependsOn(List<String> dependsOn) {
         this.dependsOn = dependsOn;
     }
 
+    /**
+     * Gets the map of conditional default values.
+     * Keys are condition expressions, values are default values when conditions are met.
+     *
+     * @return the conditional defaults map
+     */
     public Map<String, String> getConditionalDefaults() {
         return conditionalDefaults;
     }
 
+    /**
+     * Sets the map of conditional default values.
+     *
+     * @param conditionalDefaults the conditional defaults map
+     */
     public void setConditionalDefaults(Map<String, String> conditionalDefaults) {
         this.conditionalDefaults = conditionalDefaults;
     }
 
+    /**
+     * Checks whether this parameter accepts multiple values.
+     *
+     * @return true if multi-value is enabled, false otherwise
+     */
     public boolean isMultiValue() {
         return multiValue;
     }
 
+    /**
+     * Sets whether this parameter accepts multiple values.
+     *
+     * @param multiValue true to enable multi-value
+     */
     public void setMultiValue(boolean multiValue) {
         this.multiValue = multiValue;
     }
 
+    /**
+     * Gets the separator used for multi-value parameters.
+     *
+     * @return the separator string
+     */
     public String getSeparator() {
         return separator;
     }
 
+    /**
+     * Sets the separator used for multi-value parameters.
+     *
+     * @param separator the separator string
+     */
     public void setSeparator(String separator) {
         this.separator = separator;
     }
 
+    /**
+     * Gets the prefix prepended to processed values.
+     *
+     * @return the value prefix
+     */
     public String getValuePrefix() {
         return valuePrefix;
     }
 
+    /**
+     * Sets the prefix prepended to processed values.
+     *
+     * @param valuePrefix the value prefix
+     */
     public void setValuePrefix(String valuePrefix) {
         this.valuePrefix = valuePrefix;
     }
 
+    /**
+     * Gets the suffix appended to processed values.
+     *
+     * @return the value suffix
+     */
     public String getValueSuffix() {
         return valueSuffix;
     }
 
+    /**
+     * Sets the suffix appended to processed values.
+     *
+     * @param valueSuffix the value suffix
+     */
     public void setValueSuffix(String valueSuffix) {
         this.valueSuffix = valueSuffix;
     }
 
+    /**
+     * Checks whether values should be auto-generated.
+     *
+     * @return true if auto-generation is enabled, false otherwise
+     */
     public boolean isAutoGenerate() {
         return autoGenerate;
     }
 
+    /**
+     * Sets whether values should be auto-generated.
+     *
+     * @param autoGenerate true to enable auto-generation
+     */
     public void setAutoGenerate(boolean autoGenerate) {
         this.autoGenerate = autoGenerate;
     }
 
+    /**
+     * Gets the creation timestamp of this parameter.
+     *
+     * @return the creation timestamp
+     */
     public LocalDateTime getCreated() {
         return created;
     }
 
+    /**
+     * Sets the creation timestamp of this parameter.
+     *
+     * @param created the creation timestamp
+     */
     public void setCreated(LocalDateTime created) {
         this.created = created;
     }
 
+    /**
+     * Gets the last modification timestamp of this parameter.
+     *
+     * @return the last modification timestamp
+     */
     public LocalDateTime getLastModified() {
         return lastModified;
     }
 
+    /**
+     * Sets the last modification timestamp of this parameter.
+     *
+     * @param lastModified the last modification timestamp
+     */
     public void setLastModified(LocalDateTime lastModified) {
         this.lastModified = lastModified;
     }
 
+    /**
+     * Gets the metadata map for storing additional custom properties.
+     *
+     * @return the metadata map
+     */
     public Map<String, Object> getMetadata() {
         return metadata;
     }
 
+    /**
+     * Sets the metadata map for storing additional custom properties.
+     *
+     * @param metadata the metadata map
+     */
     public void setMetadata(Map<String, Object> metadata) {
         this.metadata = metadata;
     }
 
+    /**
+     * Checks equality based on the parameter name.
+     *
+     * @param obj the object to compare
+     * @return true if the names are equal, false otherwise
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -826,11 +1381,21 @@ public class TemplateParameter {
         return Objects.equals(name, that.name);
     }
 
+    /**
+     * Computes the hash code based on the parameter name.
+     *
+     * @return the hash code
+     */
     @Override
     public int hashCode() {
         return Objects.hash(name);
     }
 
+    /**
+     * Returns a string representation of this parameter.
+     *
+     * @return a string containing name, type, and required status
+     */
     @Override
     public String toString() {
         return String.format("TemplateParameter{name='%s', type=%s, required=%s}",

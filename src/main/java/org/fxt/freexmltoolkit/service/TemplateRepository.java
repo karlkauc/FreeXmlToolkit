@@ -12,6 +12,17 @@ import java.util.stream.Collectors;
 /**
  * Repository for XML templates with comprehensive built-in template library.
  * Manages template storage, retrieval, and provides industry-specific templates.
+ *
+ * <p>This singleton class serves as the central storage and management point for
+ * XML templates. It provides functionality for template CRUD operations, search
+ * capabilities, usage statistics tracking, and file system persistence.</p>
+ *
+ * <p>The repository initializes with a set of built-in templates covering various
+ * categories including basic XML, web services, configuration, documentation,
+ * and industry-specific templates for finance, healthcare, automotive, and government.</p>
+ *
+ * @see XmlTemplate
+ * @see TemplateFileService
  */
 public class TemplateRepository {
 
@@ -42,6 +53,13 @@ public class TemplateRepository {
                 templates.size(), countNonBuiltInTemplates());
     }
 
+    /**
+     * Returns the singleton instance of the TemplateRepository.
+     * Creates the instance on first invocation, initializing built-in templates
+     * and loading templates from the file system.
+     *
+     * @return the singleton TemplateRepository instance
+     */
     public static synchronized TemplateRepository getInstance() {
         if (instance == null) {
             instance = new TemplateRepository();
@@ -52,14 +70,24 @@ public class TemplateRepository {
     // ========== Template Management ==========
 
     /**
-     * Add template to repository
+     * Adds a template to the repository without saving to file.
+     * The template is added to the in-memory storage, indexed for search,
+     * and categorized appropriately.
+     *
+     * @param template the template to add; if null or has null ID, the method returns without action
      */
     public void addTemplate(XmlTemplate template) {
         addTemplate(template, false);
     }
 
     /**
-     * Add template to repository with option to save to file
+     * Adds a template to the repository with an option to persist to the file system.
+     * The template is added to the in-memory storage, indexed for search, and categorized.
+     * If saveToFile is true and the template is not built-in, the template is also saved
+     * to the templates directory.
+     *
+     * @param template   the template to add; if null or has null ID, the method returns without action
+     * @param saveToFile true to persist the template to the file system (only for non-built-in templates)
      */
     public void addTemplate(XmlTemplate template, boolean saveToFile) {
         if (template == null || template.getId() == null) {
@@ -84,14 +112,25 @@ public class TemplateRepository {
     }
 
     /**
-     * Remove template from repository
+     * Removes a template from the repository without deleting from file system.
+     * The template is removed from in-memory storage, category lists, and search index.
+     *
+     * @param templateId the unique identifier of the template to remove
+     * @return true if the template was found and removed, false otherwise
      */
     public boolean removeTemplate(String templateId) {
         return removeTemplate(templateId, false);
     }
 
     /**
-     * Remove template from repository with option to delete from file
+     * Removes a template from the repository with an option to delete from file system.
+     * The template is removed from in-memory storage, category lists, and search index.
+     * If deleteFromFile is true and the template is not built-in, the template file
+     * is also deleted from the templates directory.
+     *
+     * @param templateId     the unique identifier of the template to remove
+     * @param deleteFromFile true to also delete the template file (only for non-built-in templates)
+     * @return true if the template was found and removed, false otherwise
      */
     public boolean removeTemplate(String templateId, boolean deleteFromFile) {
         XmlTemplate template = templates.remove(templateId);
@@ -106,7 +145,7 @@ public class TemplateRepository {
                     logger.debug("Deleted template '{}' file", template.getName());
                 }
             }
-            
+
             logger.debug("Removed template '{}' from repository", template.getName());
             return true;
         }
@@ -114,35 +153,52 @@ public class TemplateRepository {
     }
 
     /**
-     * Get template by ID
+     * Retrieves a template by its unique identifier.
+     *
+     * @param templateId the unique identifier of the template to retrieve
+     * @return the template with the given ID, or null if not found
      */
     public XmlTemplate getTemplate(String templateId) {
         return templates.get(templateId);
     }
 
     /**
-     * Get all templates
+     * Returns a list of all templates in the repository.
+     * The returned list is a new copy and can be safely modified.
+     *
+     * @return a list containing all templates in the repository
      */
     public List<XmlTemplate> getAllTemplates() {
         return new ArrayList<>(templates.values());
     }
 
     /**
-     * Get templates by category
+     * Returns all templates belonging to a specific category.
+     *
+     * @param category the category name to filter by
+     * @return a list of templates in the specified category, or an empty list if the category does not exist
      */
     public List<XmlTemplate> getTemplatesByCategory(String category) {
         return templatesByCategory.getOrDefault(category, new ArrayList<>());
     }
 
     /**
-     * Get all categories
+     * Returns a set of all template category names.
+     * The returned set is a new copy and can be safely modified.
+     *
+     * @return a set containing all category names
      */
     public Set<String> getAllCategories() {
         return new HashSet<>(templatesByCategory.keySet());
     }
 
     /**
-     * Search templates by keyword
+     * Searches templates by keyword using the search index.
+     * The search is case-insensitive and matches against template names, descriptions,
+     * categories, industries, tags, and parameter names.
+     *
+     * @param keyword the keyword to search for; if null or empty, all templates are returned
+     * @return a list of matching templates sorted by usage frequency (most used first)
      */
     public List<XmlTemplate> searchTemplates(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -170,7 +226,13 @@ public class TemplateRepository {
     }
 
     /**
-     * Get contextual templates
+     * Returns templates applicable in a specific editing context.
+     * Templates are filtered based on context applicability and sorted by relevance score.
+     *
+     * @param context             the current editing context (e.g., CHILD_ELEMENT, ATTRIBUTE)
+     * @param currentElement      the name of the current XML element being edited
+     * @param availableNamespaces the set of XML namespaces available in the current document
+     * @return a list of applicable templates sorted by relevance (most relevant first)
      */
     public List<XmlTemplate> getContextualTemplates(XmlTemplate.TemplateContext context,
                                                     String currentElement,
@@ -825,7 +887,10 @@ public class TemplateRepository {
     // ========== Usage Statistics ==========
 
     /**
-     * Record template usage
+     * Records usage of a template for statistics tracking.
+     * Updates both the template's internal usage counter and the repository's usage statistics.
+     *
+     * @param templateId the unique identifier of the template that was used
      */
     public void recordUsage(String templateId) {
         XmlTemplate template = getTemplate(templateId);
@@ -837,7 +902,11 @@ public class TemplateRepository {
     }
 
     /**
-     * Get most popular templates
+     * Returns the most frequently used templates.
+     * Templates are sorted by usage count in descending order.
+     *
+     * @param limit the maximum number of templates to return
+     * @return a list of the most popular templates, limited to the specified count
      */
     public List<XmlTemplate> getMostPopularTemplates(int limit) {
         return templates.values().stream()
@@ -849,7 +918,12 @@ public class TemplateRepository {
     }
 
     /**
-     * Get recently used templates
+     * Returns the most recently used templates.
+     * Only templates that have been used at least once are included.
+     * Templates are sorted by last usage time in descending order.
+     *
+     * @param limit the maximum number of templates to return
+     * @return a list of recently used templates, limited to the specified count
      */
     public List<XmlTemplate> getRecentlyUsedTemplates(int limit) {
         return templates.values().stream()
@@ -862,7 +936,11 @@ public class TemplateRepository {
     // ========== Statistics and Reporting ==========
 
     /**
-     * Get repository statistics
+     * Returns comprehensive statistics about the template repository.
+     * The statistics include total template count, category count, built-in vs custom
+     * template counts, total usage count, and breakdowns by industry and complexity.
+     *
+     * @return a map containing various statistical measures about the repository
      */
     public Map<String, Object> getStatistics() {
         Map<String, Object> stats = new HashMap<>();
@@ -893,14 +971,20 @@ public class TemplateRepository {
     }
 
     /**
-     * Get categories by industry
+     * Returns all category names associated with a specific industry.
+     *
+     * @param industry the industry name to look up (should match TemplateIndustry enum name)
+     * @return a set of category names for the industry, or an empty set if the industry is not found
      */
     public Set<String> getCategoriesByIndustry(String industry) {
         return categoriesByIndustry.getOrDefault(industry, new HashSet<>());
     }
 
     /**
-     * Get templates by industry
+     * Returns all templates belonging to a specific industry.
+     *
+     * @param industry the industry to filter by
+     * @return a list of templates in the specified industry
      */
     public List<XmlTemplate> getTemplatesByIndustry(XmlTemplate.TemplateIndustry industry) {
         return templates.values().stream()
@@ -911,7 +995,9 @@ public class TemplateRepository {
     // ========== File System Integration ==========
 
     /**
-     * Load templates from the templates directory
+     * Loads templates from the file system templates directory.
+     * If the directory is empty, creates default templates first.
+     * Loaded templates are added to the in-memory storage and categorized.
      */
     private void loadTemplatesFromDirectory() {
         try {
@@ -935,7 +1021,12 @@ public class TemplateRepository {
     }
 
     /**
-     * Save a template to file system
+     * Saves a template to the file system.
+     * If the template is not already in the repository, it is also added to in-memory storage.
+     *
+     * @param template the template to save
+     * @throws Exception             if the save operation fails
+     * @throws IllegalArgumentException if the template is null
      */
     public void saveTemplateToFile(XmlTemplate template) throws Exception {
         if (template == null) {
@@ -951,7 +1042,16 @@ public class TemplateRepository {
     }
 
     /**
-     * Create a new template and save it to the file system
+     * Creates a new template and saves it to the file system.
+     * The template is marked as non-built-in and added to both in-memory storage and file system.
+     *
+     * @param id          the unique identifier for the new template
+     * @param name        the display name of the template
+     * @param content     the XML content of the template
+     * @param category    the category to assign the template to
+     * @param description a description of the template's purpose
+     * @throws Exception             if the save operation fails
+     * @throws IllegalArgumentException if a template with the given ID already exists
      */
     public void createNewTemplate(String id, String name, String content, String category, String description) throws Exception {
         if (templates.containsKey(id)) {
@@ -970,14 +1070,18 @@ public class TemplateRepository {
     }
 
     /**
-     * Get templates directory path
+     * Returns the path to the templates directory on the file system.
+     *
+     * @return the absolute path to the templates directory as a string
      */
     public String getTemplatesDirectoryPath() {
         return templateFileService.getTemplatesDirectoryPath().toString();
     }
 
     /**
-     * Count non-built-in templates
+     * Counts the number of non-built-in (user-created or file-loaded) templates.
+     *
+     * @return the count of non-built-in templates
      */
     private long countNonBuiltInTemplates() {
         return templates.values().stream()
@@ -986,7 +1090,9 @@ public class TemplateRepository {
     }
 
     /**
-     * Refresh templates from directory
+     * Refreshes templates by reloading from the file system.
+     * All non-built-in templates are removed from memory and reloaded from the
+     * templates directory. The search index is rebuilt after loading.
      */
     public void refreshTemplatesFromDirectory() {
         // Remove all non-built-in templates

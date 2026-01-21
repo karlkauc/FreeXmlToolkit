@@ -550,15 +550,45 @@ public class SvgPathParser {
      * Each type corresponds to a specific SVG path command letter.
      */
     public enum CommandType {
+        /**
+         * Move to command (M/m). Moves the current point to a new position without drawing.
+         */
         MOVE_TO,
+        /**
+         * Line to command (L/l). Draws a straight line from the current point to the specified point.
+         */
         LINE_TO,
+        /**
+         * Horizontal line to command (H/h). Draws a horizontal line from the current point.
+         */
         HORIZONTAL_LINE_TO,
+        /**
+         * Vertical line to command (V/v). Draws a vertical line from the current point.
+         */
         VERTICAL_LINE_TO,
+        /**
+         * Cubic Bezier curve command (C/c). Draws a cubic Bezier curve using two control points.
+         */
         CUBIC_CURVE,
+        /**
+         * Smooth cubic Bezier curve command (S/s). Draws a cubic Bezier curve with an implicit first control point.
+         */
         SMOOTH_CUBIC_CURVE,
+        /**
+         * Quadratic Bezier curve command (Q/q). Draws a quadratic Bezier curve using one control point.
+         */
         QUADRATIC_CURVE,
+        /**
+         * Smooth quadratic Bezier curve command (T/t). Draws a quadratic Bezier curve with an implicit control point.
+         */
         SMOOTH_QUADRATIC_CURVE,
+        /**
+         * Elliptical arc command (A/a). Draws an elliptical arc from the current point to the specified endpoint.
+         */
         ARC,
+        /**
+         * Close path command (Z/z). Closes the current subpath by drawing a line to the starting point.
+         */
         CLOSE_PATH
     }
 

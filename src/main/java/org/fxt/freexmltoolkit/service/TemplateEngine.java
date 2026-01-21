@@ -648,6 +648,14 @@ public class TemplateEngine {
      * and context-aware parameter filling.
      */
     public static class TemplateContext {
+        /**
+         * Constructs a new empty TemplateContext.
+         * All fields are initialized to their default values and can be set using setter methods.
+         */
+        public TemplateContext() {
+            // Default constructor - fields initialized inline
+        }
+
         private XmlTemplate.TemplateContext templateContext;
         private String currentElement;
         private Set<String> availableNamespaces = new HashSet<>();
@@ -769,6 +777,14 @@ public class TemplateEngine {
      * Tracks processing counts, times, and success rates.
      */
     public static class ProcessingStats {
+        /**
+         * Constructs a new ProcessingStats with initial values.
+         * All counters are initialized to zero and timestamps are null until first processing.
+         */
+        public ProcessingStats() {
+            // Default constructor - fields initialized inline
+        }
+
         private int totalProcessings = 0;
         private int successfulProcessings = 0;
         private long totalProcessingTime = 0;

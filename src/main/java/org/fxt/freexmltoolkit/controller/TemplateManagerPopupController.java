@@ -95,6 +95,15 @@ public class TemplateManagerPopupController implements Initializable {
     private XmlTemplate selectedTemplate;
     private final Map<String, String> currentTemplateParams = new HashMap<>();
 
+    /**
+     * Constructs a new TemplateManagerPopupController with the required services.
+     * This controller manages the template manager popup dialog, allowing users to
+     * browse, create, edit, and apply XML templates.
+     *
+     * @param contentProvider the provider for accessing and modifying current XML content
+     * @param templateEngine the engine for processing templates with parameter substitution
+     * @param templateRepository the repository for accessing and storing templates
+     */
     public TemplateManagerPopupController(XmlContentProvider contentProvider,
                                           TemplateEngine templateEngine,
                                           TemplateRepository templateRepository) {
