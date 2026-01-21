@@ -68,6 +68,15 @@ import java.util.Properties;
 public class WelcomeController {
 
     private static final Logger logger = LogManager.getLogger(WelcomeController.class);
+
+    /**
+     * Creates a new WelcomeController instance.
+     * The controller is initialized by the FXML loader.
+     */
+    public WelcomeController() {
+        // Default constructor for FXML loader
+    }
+
     private PropertiesService propertiesService;
     private UpdateCheckService updateCheckService;
     private Properties properties;
@@ -110,12 +119,21 @@ public class WelcomeController {
 
     private final ObservableList<RecentFileEntry> recentFiles = FXCollections.observableArrayList();
 
+    /**
+     * Sets the parent controller for navigation and file handling.
+     *
+     * @param parentController the main controller instance
+     */
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
         // Load recent files when parent controller is set
         Platform.runLater(this::loadRecentFiles);
     }
 
+    /**
+     * Initializes the controller after FXML loading.
+     * Sets up services, UI components, drag-and-drop, and the statistics dashboard.
+     */
     @FXML
     public void initialize() {
         // Initialize services
@@ -633,6 +651,9 @@ public class WelcomeController {
 
     // ========== Action Methods ==========
 
+    /**
+     * Opens the update page in the default browser.
+     */
     @FXML
     public void openUpdatePage() {
         try {
@@ -642,80 +663,125 @@ public class WelcomeController {
         }
     }
 
+    /**
+     * Creates a new XML file by navigating to the XML editor.
+     */
     @FXML
     public void createNewXmlFile() {
         // Navigate to XML editor to create a new file
         navigateTo("xmlUltimate");
     }
 
+    /**
+     * Opens the XML editor page.
+     */
     @FXML
     public void openXmlEditor() {
         navigateTo("xmlUltimate");
     }
 
+    /**
+     * Opens the XML editor with formatting capabilities.
+     */
     @FXML
     public void openXmlEditorAndFormat() {
         // Navigate to XML editor - format functionality is available there
         navigateTo("xmlUltimate");
     }
 
+    /**
+     * Opens the XSD tools page.
+     */
     @FXML
     public void openXsdTools() {
         navigateTo("xsd");
     }
 
+    /**
+     * Opens the Schematron validation page.
+     */
     @FXML
     public void openSchematron() {
         navigateTo("schematron");
     }
 
+    /**
+     * Opens the JSON editor page.
+     */
     @FXML
     public void openJsonEditor() {
         navigateTo("json");
     }
 
+    /**
+     * Opens the XSLT Developer page.
+     */
     @FXML
     public void openXsltDeveloper() {
         navigateTo("xsltDeveloper");
     }
 
+    /**
+     * Opens the FOP (PDF generation) page.
+     */
     @FXML
     public void openFop() {
         navigateTo("fop");
     }
 
+    /**
+     * Opens the XML signature page.
+     */
     @FXML
     public void openSignature() {
         navigateTo("signature");
     }
 
+    /**
+     * Opens the Schema Generator page.
+     */
     @FXML
     public void openSchemaGenerator() {
         navigateTo("schemaGenerator");
     }
 
+    /**
+     * Opens the help page.
+     */
     @FXML
     public void openHelp() {
         navigateTo("help");
     }
 
+    /**
+     * Opens the XSD validation page.
+     */
     @FXML
     public void openValidation() {
         navigateTo("xsdValidation");
     }
 
+    /**
+     * Opens the XML compare functionality.
+     */
     @FXML
     public void openCompare() {
         // Compare functionality - navigate to XML editor which has compare features
         navigateTo("xmlUltimate");
     }
 
+    /**
+     * Opens the recent files dialog via the settings page.
+     */
     @FXML
     public void openRecentFilesDialog() {
         // Show settings page where recent files can be managed
         navigateTo("settings");
     }
 
+    /**
+     * Opens the changelog page in the default browser.
+     */
     @FXML
     public void openChangelog() {
         try {

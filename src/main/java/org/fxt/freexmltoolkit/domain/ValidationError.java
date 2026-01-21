@@ -17,6 +17,9 @@ public record ValidationError(
         String severity
 ) {
 
+    /**
+     * Compact constructor that validates and normalizes input values.
+     */
     public ValidationError {
         // Validation to ensure reasonable values
         if (lineNumber < 0) lineNumber = 0;
@@ -26,14 +29,20 @@ public record ValidationError(
     }
 
     /**
-     * Creates a ValidationError with default ERROR severity
+     * Creates a ValidationError with default ERROR severity.
+     *
+     * @param lineNumber   the line number where the error occurred (1-based)
+     * @param columnNumber the column number where the error occurred (1-based)
+     * @param message      the detailed error message
      */
     public ValidationError(int lineNumber, int columnNumber, String message) {
         this(lineNumber, columnNumber, message, "ERROR");
     }
 
     /**
-     * Returns a formatted string representation for display in lists
+     * Returns a formatted string representation for display in lists.
+     *
+     * @return formatted display text including line/column position and message
      */
     public String getDisplayText() {
         StringBuilder sb = new StringBuilder();

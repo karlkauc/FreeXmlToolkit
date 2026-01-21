@@ -52,15 +52,27 @@ import java.util.Map;
  */
 public class ValidationVisualizer {
 
-    // Color constants
-    public static final Color ERROR_COLOR = Color.web("#dc3545");      // Red
-    public static final Color WARNING_COLOR = Color.web("#ffc107");    // Yellow/Orange
-    public static final Color VALID_COLOR = Color.web("#28a745");      // Green
-    public static final Color INFO_COLOR = Color.web("#17a2b8");       // Teal
+    /**
+     * Creates a new ValidationVisualizer instance.
+     */
+    public ValidationVisualizer() {
+        // Default constructor
+    }
 
-    // Background colors (lighter versions)
+    /** Color for error state (red). */
+    public static final Color ERROR_COLOR = Color.web("#dc3545");
+    /** Color for warning state (yellow/orange). */
+    public static final Color WARNING_COLOR = Color.web("#ffc107");
+    /** Color for valid state (green). */
+    public static final Color VALID_COLOR = Color.web("#28a745");
+    /** Color for info state (teal). */
+    public static final Color INFO_COLOR = Color.web("#17a2b8");
+
+    /** Background color for error state (light red). */
     public static final Color ERROR_BG_COLOR = Color.web("#ffe6e6");
+    /** Background color for warning state (light yellow). */
     public static final Color WARNING_BG_COLOR = Color.web("#fff8e1");
+    /** Background color for valid state (light green). */
     public static final Color VALID_BG_COLOR = Color.web("#e8f5e9");
 
     // Style strings

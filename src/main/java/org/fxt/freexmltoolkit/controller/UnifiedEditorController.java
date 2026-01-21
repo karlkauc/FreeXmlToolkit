@@ -37,18 +37,28 @@ import java.util.concurrent.CompletableFuture;
  * Controller for the Unified Editor page.
  * Manages multiple file editing tabs with different file types (XML, XSD, XSLT, Schematron).
  *
- * Features:
- * - Multi-tab file editing
- * - Auto-detection of linked files
- * - Unified toolbar for common operations
- * - Drag and drop file support
- * - Integrated favorites panel
+ * <p>Features:
+ * <ul>
+ *   <li>Multi-tab file editing</li>
+ *   <li>Auto-detection of linked files</li>
+ *   <li>Unified toolbar for common operations</li>
+ *   <li>Drag and drop file support</li>
+ *   <li>Integrated favorites panel</li>
+ * </ul>
  *
  * @since 2.0
  */
 public class UnifiedEditorController implements Initializable, FavoritesParentController {
 
     private static final Logger logger = LogManager.getLogger(UnifiedEditorController.class);
+
+    /**
+     * Creates a new UnifiedEditorController.
+     * This constructor is called by the FXML loader.
+     */
+    public UnifiedEditorController() {
+        // Default constructor for FXML loader
+    }
 
     // FXML Components - Toolbar
     @FXML private MenuButton newFileMenu;

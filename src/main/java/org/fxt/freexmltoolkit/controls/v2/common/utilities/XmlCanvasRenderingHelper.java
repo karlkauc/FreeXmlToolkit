@@ -29,9 +29,14 @@ import javafx.scene.text.TextAlignment;
  *
  * <p>Provides constants, colors, and helper methods for canvas-based XML visualization.</p>
  *
+ * <p>This class contains numerous self-documenting layout constants (heights, widths, spacing),
+ * color constants (for backgrounds, borders, text), and font size constants used throughout
+ * the canvas-based XML rendering system.</p>
+ *
  * @author Claude Code
  * @since 2.0
  */
+@SuppressWarnings("javadoc")
 public class XmlCanvasRenderingHelper {
 
     // ==================== Layout Constants ====================

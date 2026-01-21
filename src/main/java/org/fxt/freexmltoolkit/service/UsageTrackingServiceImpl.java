@@ -85,6 +85,11 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
         initializeFeatureDefinitions();
     }
 
+    /**
+     * Returns the singleton instance of the usage tracking service.
+     *
+     * @return the singleton instance
+     */
     public static synchronized UsageTrackingServiceImpl getInstance() {
         if (instance == null) {
             instance = new UsageTrackingServiceImpl();

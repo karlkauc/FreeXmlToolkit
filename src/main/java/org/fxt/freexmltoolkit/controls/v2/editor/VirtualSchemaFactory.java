@@ -22,6 +22,14 @@ import java.util.List;
 public class VirtualSchemaFactory {
 
     private static final Logger logger = LogManager.getLogger(VirtualSchemaFactory.class);
+
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     * All methods in this class are static.
+     */
+    private VirtualSchemaFactory() {
+        // Utility class - prevent instantiation
+    }
     private static final String VIRTUAL_NAMESPACE = "http://virtual-schema/complextype-editor";
 
     /**

@@ -534,8 +534,11 @@ public class ValidationManagerV2 {
      * Validation severity levels.
      */
     public enum ValidationSeverity {
+        /** Critical validation error that must be fixed. */
         ERROR,
+        /** Warning that may indicate a problem. */
         WARNING,
+        /** Informational message, not an error. */
         INFO
     }
 }

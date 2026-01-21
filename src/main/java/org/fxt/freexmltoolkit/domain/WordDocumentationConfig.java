@@ -30,8 +30,11 @@ public class WordDocumentationConfig {
      * Available page sizes for Word output.
      */
     public enum PageSize {
+        /** A4 paper size (210 x 297 mm). */
         A4("A4"),
+        /** US Letter paper size (8.5 x 11 inches). */
         LETTER("Letter"),
+        /** US Legal paper size (8.5 x 14 inches). */
         LEGAL("Legal");
 
         private final String displayName;
@@ -40,6 +43,11 @@ public class WordDocumentationConfig {
             this.displayName = displayName;
         }
 
+        /**
+         * Returns the human-readable display name.
+         *
+         * @return the display name
+         */
         public String getDisplayName() {
             return displayName;
         }
@@ -54,7 +62,9 @@ public class WordDocumentationConfig {
      * Page orientation options.
      */
     public enum Orientation {
+        /** Portrait orientation (taller than wide). */
         PORTRAIT("Portrait"),
+        /** Landscape orientation (wider than tall). */
         LANDSCAPE("Landscape");
 
         private final String displayName;
@@ -63,6 +73,11 @@ public class WordDocumentationConfig {
             this.displayName = displayName;
         }
 
+        /**
+         * Returns the human-readable display name.
+         *
+         * @return the display name
+         */
         public String getDisplayName() {
             return displayName;
         }
@@ -77,8 +92,11 @@ public class WordDocumentationConfig {
      * Header style options for Word documents.
      */
     public enum HeaderStyle {
+        /** Professional style with formal formatting. */
         PROFESSIONAL("Professional"),
+        /** Minimal style with clean, simple formatting. */
         MINIMAL("Minimal"),
+        /** Colorful style with vibrant formatting. */
         COLORFUL("Colorful");
 
         private final String displayName;
@@ -87,6 +105,11 @@ public class WordDocumentationConfig {
             this.displayName = displayName;
         }
 
+        /**
+         * Returns the human-readable display name.
+         *
+         * @return the display name
+         */
         public String getDisplayName() {
             return displayName;
         }
@@ -140,66 +163,146 @@ public class WordDocumentationConfig {
 
     // === Getters and Setters ===
 
+    /**
+     * Returns the page size setting.
+     *
+     * @return the page size
+     */
     public PageSize getPageSize() {
         return pageSize;
     }
 
+    /**
+     * Sets the page size.
+     *
+     * @param pageSize the page size to set
+     */
     public void setPageSize(PageSize pageSize) {
         this.pageSize = pageSize;
     }
 
+    /**
+     * Returns the page orientation setting.
+     *
+     * @return the orientation
+     */
     public Orientation getOrientation() {
         return orientation;
     }
 
+    /**
+     * Sets the page orientation.
+     *
+     * @param orientation the orientation to set
+     */
     public void setOrientation(Orientation orientation) {
         this.orientation = orientation;
     }
 
+    /**
+     * Returns whether to include a cover page.
+     *
+     * @return true if cover page should be included
+     */
     public boolean isIncludeCoverPage() {
         return includeCoverPage;
     }
 
+    /**
+     * Sets whether to include a cover page.
+     *
+     * @param includeCoverPage true to include cover page
+     */
     public void setIncludeCoverPage(boolean includeCoverPage) {
         this.includeCoverPage = includeCoverPage;
     }
 
+    /**
+     * Returns whether to include a table of contents.
+     *
+     * @return true if TOC should be included
+     */
     public boolean isIncludeToc() {
         return includeToc;
     }
 
+    /**
+     * Sets whether to include a table of contents.
+     *
+     * @param includeToc true to include TOC
+     */
     public void setIncludeToc(boolean includeToc) {
         this.includeToc = includeToc;
     }
 
+    /**
+     * Returns whether to include the data dictionary section.
+     *
+     * @return true if data dictionary should be included
+     */
     public boolean isIncludeDataDictionary() {
         return includeDataDictionary;
     }
 
+    /**
+     * Sets whether to include the data dictionary section.
+     *
+     * @param includeDataDictionary true to include data dictionary
+     */
     public void setIncludeDataDictionary(boolean includeDataDictionary) {
         this.includeDataDictionary = includeDataDictionary;
     }
 
+    /**
+     * Returns whether to include the schema diagram.
+     *
+     * @return true if schema diagram should be included
+     */
     public boolean isIncludeSchemaDiagram() {
         return includeSchemaDiagram;
     }
 
+    /**
+     * Sets whether to include the schema diagram.
+     *
+     * @param includeSchemaDiagram true to include schema diagram
+     */
     public void setIncludeSchemaDiagram(boolean includeSchemaDiagram) {
         this.includeSchemaDiagram = includeSchemaDiagram;
     }
 
+    /**
+     * Returns whether to include element diagrams.
+     *
+     * @return true if element diagrams should be included
+     */
     public boolean isIncludeElementDiagrams() {
         return includeElementDiagrams;
     }
 
+    /**
+     * Sets whether to include element diagrams.
+     *
+     * @param includeElementDiagrams true to include element diagrams
+     */
     public void setIncludeElementDiagrams(boolean includeElementDiagrams) {
         this.includeElementDiagrams = includeElementDiagrams;
     }
 
+    /**
+     * Returns the header style setting.
+     *
+     * @return the header style
+     */
     public HeaderStyle getHeaderStyle() {
         return headerStyle;
     }
 
+    /**
+     * Sets the header style.
+     *
+     * @param headerStyle the header style to set
+     */
     public void setHeaderStyle(HeaderStyle headerStyle) {
         this.headerStyle = headerStyle;
     }

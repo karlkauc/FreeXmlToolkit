@@ -22,10 +22,15 @@ package org.fxt.freexmltoolkit.domain;
  * Represents the validation status of a file during batch validation.
  */
 public enum ValidationStatus {
+    /** Validation has not started yet. */
     PENDING("Pending", "#6c757d", "bi-hourglass"),
+    /** Validation is currently running. */
     RUNNING("Running", "#007bff", "bi-arrow-repeat"),
+    /** Validation completed successfully with no errors. */
     PASSED("Passed", "#28a745", "bi-check-circle-fill"),
+    /** Validation completed with one or more validation errors. */
     FAILED("Failed", "#dc3545", "bi-x-circle-fill"),
+    /** Validation could not complete due to a processing error. */
     ERROR("Error", "#ffc107", "bi-exclamation-triangle-fill");
 
     private final String displayText;

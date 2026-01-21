@@ -82,6 +82,8 @@ public class ValidatedTextField implements TypeAwareWidgetFactory.EditWidget {
 
     /**
      * Sets the element XPath for validation context.
+     *
+     * @param elementXPath the XPath to the element being edited
      */
     public void setElementXPath(String elementXPath) {
         this.elementXPath = elementXPath;

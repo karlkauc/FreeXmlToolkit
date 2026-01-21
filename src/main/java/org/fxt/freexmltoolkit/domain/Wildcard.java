@@ -33,17 +33,22 @@ public class Wildcard implements Serializable {
      * Type of wildcard.
      */
     public enum Type {
-        ANY,           // xs:any - allows any element
-        ANY_ATTRIBUTE  // xs:anyAttribute - allows any attribute
+        /** xs:any - allows any element from specified namespaces. */
+        ANY,
+        /** xs:anyAttribute - allows any attribute from specified namespaces. */
+        ANY_ATTRIBUTE
     }
 
     /**
      * Process contents mode - how the processor should validate wildcard content.
      */
     public enum ProcessContents {
-        STRICT,  // Must be valid according to schema (default)
-        LAX,     // Validate if schema is available, otherwise skip
-        SKIP     // No validation
+        /** Content must be valid according to schema (default behavior). */
+        STRICT,
+        /** Validate if schema is available, otherwise skip validation. */
+        LAX,
+        /** No validation is performed on the wildcard content. */
+        SKIP
     }
 
     private Type type;
@@ -53,9 +58,18 @@ public class Wildcard implements Serializable {
     private String maxOccurs;           // For xs:any only
     private String documentation;       // Optional documentation from xs:annotation
 
+    /**
+     * Default constructor.
+     */
     public Wildcard() {
     }
 
+    /**
+     * Creates a wildcard with the specified type and namespace constraint.
+     *
+     * @param type      the type of wildcard (ANY or ANY_ATTRIBUTE)
+     * @param namespace the namespace constraint
+     */
     public Wildcard(Type type, String namespace) {
         this.type = type;
         this.namespace = namespace;
@@ -63,56 +77,118 @@ public class Wildcard implements Serializable {
 
     // Getters and setters
 
+    /**
+     * Gets the type of this wildcard.
+     *
+     * @return the wildcard type (ANY or ANY_ATTRIBUTE)
+     */
     public Type getType() {
         return type;
     }
 
+    /**
+     * Sets the type of this wildcard.
+     *
+     * @param type the wildcard type to set
+     */
     public void setType(Type type) {
         this.type = type;
     }
 
+    /**
+     * Gets the namespace constraint.
+     *
+     * @return the namespace constraint (e.g., ##any, ##other, ##local, ##targetNamespace, or specific URIs)
+     */
     public String getNamespace() {
         return namespace;
     }
 
+    /**
+     * Sets the namespace constraint.
+     *
+     * @param namespace the namespace constraint to set
+     */
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
 
+    /**
+     * Gets the process contents mode.
+     *
+     * @return the process contents mode (STRICT, LAX, or SKIP)
+     */
     public ProcessContents getProcessContents() {
         return processContents;
     }
 
+    /**
+     * Sets the process contents mode.
+     *
+     * @param processContents the process contents mode to set
+     */
     public void setProcessContents(ProcessContents processContents) {
         this.processContents = processContents;
     }
 
+    /**
+     * Gets the minimum occurrences for xs:any wildcards.
+     *
+     * @return the minOccurs value, or null if not set
+     */
     public String getMinOccurs() {
         return minOccurs;
     }
 
+    /**
+     * Sets the minimum occurrences for xs:any wildcards.
+     *
+     * @param minOccurs the minOccurs value to set
+     */
     public void setMinOccurs(String minOccurs) {
         this.minOccurs = minOccurs;
     }
 
+    /**
+     * Gets the maximum occurrences for xs:any wildcards.
+     *
+     * @return the maxOccurs value, or null if not set
+     */
     public String getMaxOccurs() {
         return maxOccurs;
     }
 
+    /**
+     * Sets the maximum occurrences for xs:any wildcards.
+     *
+     * @param maxOccurs the maxOccurs value to set
+     */
     public void setMaxOccurs(String maxOccurs) {
         this.maxOccurs = maxOccurs;
     }
 
+    /**
+     * Gets the optional documentation from xs:annotation.
+     *
+     * @return the documentation text, or null if not present
+     */
     public String getDocumentation() {
         return documentation;
     }
 
+    /**
+     * Sets the documentation text.
+     *
+     * @param documentation the documentation to set
+     */
     public void setDocumentation(String documentation) {
         this.documentation = documentation;
     }
 
     /**
      * Gets a display name for the wildcard type.
+     *
+     * @return a human-readable display name ("Any Element" or "Any Attribute")
      */
     public String getTypeDisplayName() {
         return switch (type) {
@@ -123,6 +199,8 @@ public class Wildcard implements Serializable {
 
     /**
      * Gets a display string for the namespace constraint.
+     *
+     * @return a human-readable description of the namespace constraint
      */
     public String getNamespaceDisplayName() {
         if (namespace == null || namespace.isEmpty()) {
@@ -139,6 +217,8 @@ public class Wildcard implements Serializable {
 
     /**
      * Gets cardinality string for xs:any wildcards.
+     *
+     * @return the cardinality notation (e.g., "[1]", "[0..*]"), or null for ANY_ATTRIBUTE wildcards
      */
     public String getCardinality() {
         if (type != Type.ANY) {
