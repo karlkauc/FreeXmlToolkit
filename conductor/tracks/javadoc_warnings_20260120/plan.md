@@ -16,7 +16,7 @@
 - [x] Task: Conductor - User Manual Verification 'Fix Warnings (UI & Controllers)' (Protocol in workflow.md) 79daa91
 
 ## Phase 4: Fix Remaining Warnings
-- [ ] Task: Fix Javadoc warnings in remaining service classes (`CsvHandler`, `DragDropService`, etc.).
+- [x] Task: Fix Javadoc warnings in remaining service classes (`CsvHandler`, `DragDropService`, etc.). cec6bc6
 - [ ] Task: Fix Javadoc warnings in domain classes (`DailyStatistics`, `BatchValidationFile`, etc.).
 - [ ] Task: Fix Javadoc warnings in util classes (`DialogHelper`, etc.).
 - [ ] Task: Conductor - User Manual Verification 'Fix Remaining Warnings' (Protocol in workflow.md)
