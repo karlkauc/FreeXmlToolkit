@@ -42,7 +42,11 @@ public class TypeLibraryExporter {
     }
 
     /**
-     * Export to CSV format
+     * Export to CSV format.
+     *
+     * @param types The list of types to export
+     * @param file  The file to export to
+     * @throws IOException If an I/O error occurs
      */
     public static void exportToCSV(List<TypeInfo> types, File file) throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(file.toPath())) {
@@ -69,7 +73,11 @@ public class TypeLibraryExporter {
     }
 
     /**
-     * Export to Excel (XLSX) format with multiple sheets
+     * Export to Excel (XLSX) format with multiple sheets.
+     *
+     * @param types The list of types to export
+     * @param file  The file to export to
+     * @throws IOException If an I/O error occurs
      */
     public static void exportToExcel(List<TypeInfo> types, File file) throws IOException {
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
@@ -111,7 +119,12 @@ public class TypeLibraryExporter {
     }
 
     /**
-     * Export to HTML format with XMLSpy styling
+     * Export to HTML format with XMLSpy styling.
+     *
+     * @param types      The list of types to export
+     * @param file       The file to export to
+     * @param schemaName The name of the schema
+     * @throws IOException If an I/O error occurs
      */
     public static void exportToHTML(List<TypeInfo> types, File file, String schemaName) throws IOException {
         ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
@@ -179,7 +192,12 @@ public class TypeLibraryExporter {
     }
 
     /**
-     * Export to JSON format
+     * Export to JSON format.
+     *
+     * @param types      The list of types to export
+     * @param file       The file to export to
+     * @param schemaName The name of the schema
+     * @throws IOException If an I/O error occurs
      */
     public static void exportToJSON(List<TypeInfo> types, File file, String schemaName) throws IOException {
         StringBuilder json = new StringBuilder();
@@ -223,7 +241,12 @@ public class TypeLibraryExporter {
     }
 
     /**
-     * Export to XML format
+     * Export to XML format.
+     *
+     * @param types      The list of types to export
+     * @param file       The file to export to
+     * @param schemaName The name of the schema
+     * @throws IOException If an I/O error occurs
      */
     public static void exportToXML(List<TypeInfo> types, File file, String schemaName) throws IOException {
         StringBuilder xml = new StringBuilder();
@@ -267,7 +290,12 @@ public class TypeLibraryExporter {
     }
 
     /**
-     * Export to Markdown format
+     * Export to Markdown format.
+     *
+     * @param types      The list of types to export
+     * @param file       The file to export to
+     * @param schemaName The name of the schema
+     * @throws IOException If an I/O error occurs
      */
     public static void exportToMarkdown(List<TypeInfo> types, File file, String schemaName) throws IOException {
         StringBuilder md = new StringBuilder();

@@ -54,6 +54,8 @@ public class TypeAlternative implements Serializable {
     // Getters and setters
 
     /**
+     * Gets the test expression.
+     *
      * @return The XPath 2.0 boolean test expression
      */
     public String getTest() {
@@ -61,6 +63,8 @@ public class TypeAlternative implements Serializable {
     }
 
     /**
+     * Sets the test expression.
+     *
      * @param test The XPath 2.0 boolean test expression
      */
     public void setTest(String test) {
@@ -68,6 +72,8 @@ public class TypeAlternative implements Serializable {
     }
 
     /**
+     * Gets the type name.
+     *
      * @return The name of the type to use
      */
     public String getType() {
@@ -75,6 +81,8 @@ public class TypeAlternative implements Serializable {
     }
 
     /**
+     * Sets the type name.
+     *
      * @param type The name of the type to use
      */
     public void setType(String type) {
@@ -82,6 +90,8 @@ public class TypeAlternative implements Serializable {
     }
 
     /**
+     * Gets the documentation.
+     *
      * @return Documentation associated with this alternative
      */
     public String getDocumentation() {
@@ -89,6 +99,8 @@ public class TypeAlternative implements Serializable {
     }
 
     /**
+     * Sets the documentation.
+     *
      * @param documentation Documentation associated with this alternative
      */
     public void setDocumentation(String documentation) {
@@ -96,6 +108,8 @@ public class TypeAlternative implements Serializable {
     }
 
     /**
+     * Gets the default namespace.
+     *
      * @return The default namespace for XPath expressions
      */
     public String getXpathDefaultNamespace() {
@@ -103,6 +117,8 @@ public class TypeAlternative implements Serializable {
     }
 
     /**
+     * Sets the default namespace.
+     *
      * @param xpathDefaultNamespace The default namespace for XPath expressions
      */
     public void setXpathDefaultNamespace(String xpathDefaultNamespace) {

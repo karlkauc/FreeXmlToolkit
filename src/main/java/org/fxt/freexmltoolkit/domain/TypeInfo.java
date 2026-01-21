@@ -35,7 +35,9 @@ public record TypeInfo(
      * Defines the category/type of XSD type definition.
      */
     public enum TypeCategory {
+        /** Represents an xs:simpleType. */
         SIMPLE_TYPE("Simple Type"),
+        /** Represents an xs:complexType. */
         COMPLEX_TYPE("Complex Type");
 
         private final String displayName;
@@ -45,6 +47,8 @@ public record TypeInfo(
         }
 
         /**
+         * Gets the display name.
+         *
          * @return The display name of the category
          */
         public String getDisplayName() {
