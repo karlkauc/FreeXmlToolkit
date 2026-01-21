@@ -22,6 +22,9 @@ public class TrendSparkline extends VBox {
     private final XYChart.Series<String, Number> series;
     private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("EEE");
 
+    /**
+     * Creates a new TrendSparkline component.
+     */
     public TrendSparkline() {
         getStyleClass().add("trend-sparkline");
         setPadding(new Insets(10));
@@ -60,7 +63,9 @@ public class TrendSparkline extends VBox {
     }
 
     /**
-     * Update the chart with daily statistics
+     * Update the chart with daily statistics.
+     *
+     * @param dailyStats The list of daily statistics to display
      */
     public void updateData(List<DailyStatistics> dailyStats) {
         series.getData().clear();
@@ -80,7 +85,7 @@ public class TrendSparkline extends VBox {
     }
 
     /**
-     * Initialize with empty placeholder data
+     * Initialize with empty placeholder data.
      */
     private void updateWithEmptyData() {
         series.getData().clear();
@@ -94,7 +99,9 @@ public class TrendSparkline extends VBox {
     }
 
     /**
-     * Set the chart title
+     * Set the chart title.
+     *
+     * @param title The new title for the chart
      */
     public void setChartTitle(String title) {
         chart.setTitle(title);

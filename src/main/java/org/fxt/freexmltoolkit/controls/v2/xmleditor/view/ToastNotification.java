@@ -53,6 +53,9 @@ public class ToastNotification extends HBox {
 
     /**
      * Creates a new toast notification.
+     *
+     * @param message The message to display
+     * @param type    The type of toast (affects styling)
      */
     public ToastNotification(String message, Type type) {
         super(8);  // spacing
@@ -141,6 +144,9 @@ public class ToastNotification extends HBox {
 
     /**
      * Convenience method to show an info toast.
+     *
+     * @param parent The parent pane
+     * @param message The message to display
      */
     public static void showInfo(Pane parent, String message) {
         show(parent, message, Type.INFO);
@@ -148,6 +154,9 @@ public class ToastNotification extends HBox {
 
     /**
      * Convenience method to show a success toast.
+     *
+     * @param parent The parent pane
+     * @param message The message to display
      */
     public static void showSuccess(Pane parent, String message) {
         show(parent, message, Type.SUCCESS);
@@ -155,6 +164,9 @@ public class ToastNotification extends HBox {
 
     /**
      * Convenience method to show a warning toast.
+     *
+     * @param parent The parent pane
+     * @param message The message to display
      */
     public static void showWarning(Pane parent, String message) {
         show(parent, message, Type.WARNING);
@@ -162,6 +174,9 @@ public class ToastNotification extends HBox {
 
     /**
      * Convenience method to show an error toast.
+     *
+     * @param parent The parent pane
+     * @param message The message to display
      */
     public static void showError(Pane parent, String message) {
         show(parent, message, Type.ERROR);

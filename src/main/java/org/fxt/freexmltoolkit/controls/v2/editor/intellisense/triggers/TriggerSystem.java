@@ -12,6 +12,7 @@ import java.util.Objects;
 
 /**
  * System for triggering IntelliSense based on character input or key combinations.
+ * Handles registration and execution of triggers for code completion.
  */
 public class TriggerSystem {
 
@@ -19,6 +20,12 @@ public class TriggerSystem {
 
     private final Map<Character, Runnable> charTriggers = new HashMap<>();
     private final Map<KeyCombination, Runnable> keyTriggers = new HashMap<>();
+
+    /**
+     * Creates a new TriggerSystem instance.
+     */
+    public TriggerSystem() {
+    }
 
     /**
      * Adds a character trigger.

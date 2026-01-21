@@ -149,6 +149,8 @@ public class UnifiedSearchBar extends HBox {
 
     /**
      * Sets the current editor to search in.
+     *
+     * @param editor The editor instance to search within
      */
     public void setCurrentEditor(XmlCodeEditorV2 editor) {
         this.currentEditor = editor;
@@ -157,6 +159,8 @@ public class UnifiedSearchBar extends HBox {
 
     /**
      * Sets the current CodeArea to search in (for editors without XmlCodeEditorV2).
+     *
+     * @param codeArea The CodeArea instance to search within
      */
     public void setCurrentCodeArea(CodeArea codeArea) {
         this.currentCodeArea = codeArea;
@@ -200,6 +204,8 @@ public class UnifiedSearchBar extends HBox {
 
     /**
      * Sets a callback to run when the search bar is closed.
+     *
+     * @param callback The runnable to execute on close
      */
     public void setOnClose(Runnable callback) {
         this.onCloseCallback = callback;
@@ -404,6 +410,8 @@ public class UnifiedSearchBar extends HBox {
 
     /**
      * Sets the initial search text.
+     *
+     * @param text The text to pre-fill in the search field
      */
     public void setSearchText(String text) {
         searchField.setText(text);
@@ -411,6 +419,8 @@ public class UnifiedSearchBar extends HBox {
 
     /**
      * Gets the search field for external focus management.
+     *
+     * @return The text field used for search input
      */
     public TextField getSearchField() {
         return searchField;
