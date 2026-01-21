@@ -1,5 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
+import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
+import org.fxt.freexmltoolkit.service.xsd.XsdParseException;
+import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
+import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -12,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class XsdMultiLangDocumentationTest {
 
     @Test
-    void testParseMultipleDocumentationsWithXmlLang() {
+    void testParseMultipleDocumentationsWithXmlLang() throws XsdParseException {
         String xsdContent = """
             <?xml version="1.0" encoding="UTF-8"?>
             <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -30,7 +36,10 @@ class XsdMultiLangDocumentationTest {
             </xs:schema>
             """;
 
-        XsdSchema schema = XsdNodeFactory.parseString(xsdContent);
+        XsdParsingService parsingService = new XsdParsingServiceImpl();
+        ParsedSchema parsed = parsingService.parse(xsdContent, null, XsdParseOptions.defaults());
+        XsdModelAdapter adapter = new XsdModelAdapter(XsdParseOptions.defaults());
+        XsdSchema schema = adapter.toXsdModel(parsed);
         assertNotNull(schema);
 
         // Get the FundsXML4 element

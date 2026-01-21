@@ -5,6 +5,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -48,8 +49,9 @@ class XsdFlatteningMultiLangDocTest {
         XsdParsingService parsingService = new XsdParsingServiceImpl();
         ParsedSchema parsed = parsingService.parse(mainXsd, null, XsdParseOptions.defaults());
 
-        // Convert to XsdSchema model
-        XsdSchema schema = parsed.toXsdModel();
+        // Convert to XsdSchema model using XsdModelAdapter
+        XsdModelAdapter adapter = new XsdModelAdapter(XsdParseOptions.defaults());
+        XsdSchema schema = adapter.toXsdModel(parsed);
         assertNotNull(schema);
 
         // Get the FundsXML4 element
@@ -106,7 +108,8 @@ class XsdFlatteningMultiLangDocTest {
 
         XsdParsingService parsingService = new XsdParsingServiceImpl();
         ParsedSchema parsed = parsingService.parse(xsd, null, XsdParseOptions.defaults());
-        XsdSchema schema = parsed.toXsdModel();
+        XsdModelAdapter adapter = new XsdModelAdapter(XsdParseOptions.defaults());
+        XsdSchema schema = adapter.toXsdModel(parsed);
 
         XsdElement element = (XsdElement) schema.getChildren().get(0);
         List<XsdDocumentation> documentations = element.getDocumentations();

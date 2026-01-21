@@ -5,6 +5,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -42,7 +43,8 @@ class XsdAnonymousTypeTest {
         // Parse
         XsdParsingService parsingService = new XsdParsingServiceImpl();
         ParsedSchema parsed = parsingService.parse(xsd, null, XsdParseOptions.defaults());
-        XsdSchema schema = parsed.toXsdModel();
+        XsdModelAdapter adapter = new XsdModelAdapter(XsdParseOptions.defaults());
+        XsdSchema schema = adapter.toXsdModel(parsed);
 
         assertNotNull(schema);
 
@@ -100,7 +102,8 @@ class XsdAnonymousTypeTest {
         // Parse
         XsdParsingService parsingService = new XsdParsingServiceImpl();
         ParsedSchema parsed = parsingService.parse(xsd, null, XsdParseOptions.defaults());
-        XsdSchema schema = parsed.toXsdModel();
+        XsdModelAdapter adapter = new XsdModelAdapter(XsdParseOptions.defaults());
+        XsdSchema schema = adapter.toXsdModel(parsed);
 
         // Serialize back to XSD
         XsdSerializer serializer = new XsdSerializer();
@@ -133,7 +136,8 @@ class XsdAnonymousTypeTest {
         // Parse
         XsdParsingService parsingService = new XsdParsingServiceImpl();
         ParsedSchema parsed = parsingService.parse(xsd, null, XsdParseOptions.defaults());
-        XsdSchema schema = parsed.toXsdModel();
+        XsdModelAdapter adapter = new XsdModelAdapter(XsdParseOptions.defaults());
+        XsdSchema schema = adapter.toXsdModel(parsed);
 
         // Get the complexType
         List<XsdNode> children = schema.getChildren();

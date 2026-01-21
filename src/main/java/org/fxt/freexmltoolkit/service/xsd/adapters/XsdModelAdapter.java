@@ -807,8 +807,22 @@ public class XsdModelAdapter {
 
     /**
      * Handles include processing based on options.
+     *
+     * <p>In FLATTEN mode, the DOM document has already been flattened by SchemaResolver,
+     * so we do NOT process includes again here - parseSchemaChildren() has already parsed
+     * all the flattened content. We only process includes in PRESERVE_STRUCTURE mode
+     * where we need to create XsdInclude reference nodes.</p>
      */
     private void handleIncludes(ParsedSchema parsedSchema, XsdSchema schema) {
+        // In FLATTEN mode, the DOM has already been flattened by SchemaResolver.flattenIncludes()
+        // and parseSchemaChildren() has already processed all the inlined content.
+        // We must NOT process includes again here, as that would cause duplicate types.
+        if (options.getIncludeMode() == XsdParseOptions.IncludeMode.FLATTEN) {
+            logger.debug("Skipping handleIncludes in FLATTEN mode - DOM already flattened");
+            return;
+        }
+
+        // PRESERVE_STRUCTURE mode: create XsdInclude reference nodes
         for (ParsedSchema.ResolvedInclude include : parsedSchema.getResolvedIncludes()) {
             // Create XsdInclude node
             XsdInclude xsdInclude = new XsdInclude();
@@ -819,36 +833,15 @@ public class XsdModelAdapter {
             }
 
             if (include.isResolved()) {
-                // Process included schema content
-                ParsedSchema includedSchema = include.parsedSchema();
-
-                if (options.getIncludeMode() == XsdParseOptions.IncludeMode.FLATTEN) {
-                    // Inline content from included schema - do NOT add XsdInclude node
-                    if (includeTracker != null && include.resolvedPath() != null) {
-                        includeTracker.pushContext(xsdInclude, include.resolvedPath());
-                    }
-
-                    try {
-                        parseSchemaChildren(includedSchema.getSchemaElement(), schema);
-                    } finally {
-                        if (includeTracker != null && include.resolvedPath() != null) {
-                            includeTracker.popContext();
-                        }
-                    }
-                    // In FLATTEN mode: content is inlined, XsdInclude node is NOT added to schema
-                } else {
-                    // Create reference to included schema and add to schema
-                    XsdSchema includedRef = new XsdSchema();
-                    includedRef.setMainSchemaPath(include.resolvedPath());
-                    xsdInclude.setIncludedSchema(includedRef);
-                    schema.addChild(xsdInclude);
-                }
+                // Create reference to included schema and add to schema
+                XsdSchema includedRef = new XsdSchema();
+                includedRef.setMainSchemaPath(include.resolvedPath());
+                xsdInclude.setIncludedSchema(includedRef);
+                schema.addChild(xsdInclude);
             } else if (include.error() != null) {
-                // Resolution failed - add include with error marker (only in PRESERVE_STRUCTURE mode)
+                // Resolution failed - add include with error marker
                 xsdInclude.markResolutionFailed(include.error());
-                if (options.getIncludeMode() != XsdParseOptions.IncludeMode.FLATTEN) {
-                    schema.addChild(xsdInclude);
-                }
+                schema.addChild(xsdInclude);
             }
         }
     }
