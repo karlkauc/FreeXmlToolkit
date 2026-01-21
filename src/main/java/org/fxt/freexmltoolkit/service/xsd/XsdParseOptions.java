@@ -51,6 +51,8 @@ public final class XsdParseOptions {
     public static final Duration DEFAULT_CACHE_EXPIRY = Duration.ofHours(24);
     public static final int DEFAULT_MAX_INCLUDE_DEPTH = 50;
     public static final Duration DEFAULT_NETWORK_TIMEOUT = Duration.ofSeconds(30);
+    public static final boolean DEFAULT_REMOVE_COMMENTS = false;
+    public static final boolean DEFAULT_ADD_SOURCE_FILE_AS_APPINFO = false;
 
     private final IncludeMode includeMode;
     private final boolean resolveImports;
@@ -60,6 +62,8 @@ public final class XsdParseOptions {
     private final Duration networkTimeout;
     private final ProgressListener progressListener;
     private final Consumer<String> warningHandler;
+    private final boolean removeComments;
+    private final boolean addSourceFileAsAppinfo;
 
     private XsdParseOptions(Builder builder) {
         this.includeMode = builder.includeMode;
@@ -70,6 +74,8 @@ public final class XsdParseOptions {
         this.networkTimeout = builder.networkTimeout;
         this.progressListener = builder.progressListener;
         this.warningHandler = builder.warningHandler;
+        this.removeComments = builder.removeComments;
+        this.addSourceFileAsAppinfo = builder.addSourceFileAsAppinfo;
     }
 
     /**
@@ -165,6 +171,20 @@ public final class XsdParseOptions {
     }
 
     /**
+     * @return true if comments should be removed from flattened output
+     */
+    public boolean isRemoveComments() {
+        return removeComments;
+    }
+
+    /**
+     * @return true if source file information should be added as xs:appinfo
+     */
+    public boolean isAddSourceFileAsAppinfo() {
+        return addSourceFileAsAppinfo;
+    }
+
+    /**
      * Reports progress if a listener is configured.
      *
      * @param message description of current operation
@@ -204,6 +224,8 @@ public final class XsdParseOptions {
                 .networkTimeout(this.networkTimeout)
                 .progressListener(this.progressListener)
                 .warningHandler(this.warningHandler)
+                .removeComments(this.removeComments)
+                .addSourceFileAsAppinfo(this.addSourceFileAsAppinfo)
                 .build();
     }
 
@@ -215,6 +237,8 @@ public final class XsdParseOptions {
         return resolveImports == that.resolveImports &&
                 cacheEnabled == that.cacheEnabled &&
                 maxIncludeDepth == that.maxIncludeDepth &&
+                removeComments == that.removeComments &&
+                addSourceFileAsAppinfo == that.addSourceFileAsAppinfo &&
                 includeMode == that.includeMode &&
                 Objects.equals(cacheExpiry, that.cacheExpiry) &&
                 Objects.equals(networkTimeout, that.networkTimeout);
@@ -223,7 +247,8 @@ public final class XsdParseOptions {
     @Override
     public int hashCode() {
         return Objects.hash(includeMode, resolveImports, cacheEnabled,
-                cacheExpiry, maxIncludeDepth, networkTimeout);
+                cacheExpiry, maxIncludeDepth, networkTimeout,
+                removeComments, addSourceFileAsAppinfo);
     }
 
     @Override
@@ -235,6 +260,8 @@ public final class XsdParseOptions {
                 ", cacheExpiry=" + cacheExpiry +
                 ", maxIncludeDepth=" + maxIncludeDepth +
                 ", networkTimeout=" + networkTimeout +
+                ", removeComments=" + removeComments +
+                ", addSourceFileAsAppinfo=" + addSourceFileAsAppinfo +
                 '}';
     }
 
@@ -250,6 +277,8 @@ public final class XsdParseOptions {
         private Duration networkTimeout = DEFAULT_NETWORK_TIMEOUT;
         private ProgressListener progressListener;
         private Consumer<String> warningHandler;
+        private boolean removeComments = DEFAULT_REMOVE_COMMENTS;
+        private boolean addSourceFileAsAppinfo = DEFAULT_ADD_SOURCE_FILE_AS_APPINFO;
 
         private Builder() {
         }
@@ -343,6 +372,28 @@ public final class XsdParseOptions {
          */
         public Builder warningHandler(Consumer<String> warningHandler) {
             this.warningHandler = warningHandler;
+            return this;
+        }
+
+        /**
+         * Sets whether to remove comments from flattened output.
+         *
+         * @param removeComments true to remove all XML comments
+         * @return this builder
+         */
+        public Builder removeComments(boolean removeComments) {
+            this.removeComments = removeComments;
+            return this;
+        }
+
+        /**
+         * Sets whether to add source file information as xs:appinfo.
+         *
+         * @param addSourceFileAsAppinfo true to add xs:appinfo with source filename
+         * @return this builder
+         */
+        public Builder addSourceFileAsAppinfo(boolean addSourceFileAsAppinfo) {
+            this.addSourceFileAsAppinfo = addSourceFileAsAppinfo;
             return this;
         }
 

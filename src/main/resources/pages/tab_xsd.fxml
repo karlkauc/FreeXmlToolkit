@@ -1139,18 +1139,32 @@
                         </HBox>
 
                         <Label text="Flattening Options:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                        <HBox spacing="20" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                            <CheckBox fx:id="flattenIncludesCheckBox" selected="true" text="Flatten xs:include">
-                                <tooltip>
-                                    <Tooltip text="Inline content from xs:include directives (same namespace)"/>
-                                </tooltip>
-                            </CheckBox>
-                            <CheckBox fx:id="flattenImportsCheckBox" selected="false" text="Flatten xs:import">
-                                <tooltip>
-                                    <Tooltip text="Inline content from xs:import directives (different namespace)"/>
-                                </tooltip>
-                            </CheckBox>
-                        </HBox>
+                        <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <HBox spacing="20" alignment="CENTER_LEFT">
+                                <CheckBox fx:id="flattenIncludesCheckBox" selected="true" text="Flatten xs:include">
+                                    <tooltip>
+                                        <Tooltip text="Inline content from xs:include directives (same namespace)"/>
+                                    </tooltip>
+                                </CheckBox>
+                                <CheckBox fx:id="flattenImportsCheckBox" selected="false" text="Flatten xs:import">
+                                    <tooltip>
+                                        <Tooltip text="Inline content from xs:import directives (different namespace)"/>
+                                    </tooltip>
+                                </CheckBox>
+                            </HBox>
+                            <HBox spacing="20" alignment="CENTER_LEFT">
+                                <CheckBox fx:id="removeCommentsCheckBox" selected="false" text="Remove comments">
+                                    <tooltip>
+                                        <Tooltip text="Remove all XML comments from the flattened output"/>
+                                    </tooltip>
+                                </CheckBox>
+                                <CheckBox fx:id="addSourceFileAsAppinfoCheckBox" selected="false" text="Track source files (xs:appinfo)">
+                                    <tooltip>
+                                        <Tooltip text="Add xs:appinfo with source filename for elements from included files"/>
+                                    </tooltip>
+                                </CheckBox>
+                            </HBox>
+                        </VBox>
 
                         <Label text="Sort Order:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
                         <HBox spacing="20" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="3">

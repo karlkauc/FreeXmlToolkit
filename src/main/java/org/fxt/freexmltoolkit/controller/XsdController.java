@@ -124,6 +124,10 @@ public class XsdController implements FavoritesParentController {
     @FXML
     public CheckBox flattenImportsCheckBox;
     @FXML
+    public CheckBox removeCommentsCheckBox;
+    @FXML
+    public CheckBox addSourceFileAsAppinfoCheckBox;
+    @FXML
     public RadioButton flattenSortTypeBeforeName;
     @FXML
     public RadioButton flattenSortNameBeforeType;
@@ -4126,11 +4130,15 @@ public class XsdController implements FavoritesParentController {
         // Get options from UI checkboxes and radio buttons
         boolean flattenIncludes = flattenIncludesCheckBox == null || flattenIncludesCheckBox.isSelected();
         boolean flattenImports = flattenImportsCheckBox != null && flattenImportsCheckBox.isSelected();
+        boolean removeComments = removeCommentsCheckBox != null && removeCommentsCheckBox.isSelected();
+        boolean addSourceFileAsAppinfo = addSourceFileAsAppinfoCheckBox != null
+                && addSourceFileAsAppinfoCheckBox.isSelected();
         XsdSortOrder sortOrder = (flattenSortTypeBeforeName != null && flattenSortTypeBeforeName.isSelected())
                 ? XsdSortOrder.TYPE_BEFORE_NAME
                 : XsdSortOrder.NAME_BEFORE_TYPE;
 
-        logger.info("Flatten options - includes: {}, imports: {}, sortOrder: {}", flattenIncludes, flattenImports, sortOrder);
+        logger.info("Flatten options - includes: {}, imports: {}, removeComments: {}, addSourceAppinfo: {}, sortOrder: {}",
+                flattenIncludes, flattenImports, removeComments, addSourceFileAsAppinfo, sortOrder);
 
         flattenProgress.setVisible(true);
         flattenStatusLabel.setText("Flattening in progress...");
@@ -4145,6 +4153,8 @@ public class XsdController implements FavoritesParentController {
                                 ? XsdParseOptions.IncludeMode.FLATTEN
                                 : XsdParseOptions.IncludeMode.PRESERVE_STRUCTURE)
                         .resolveImports(flattenImports)
+                        .removeComments(removeComments)
+                        .addSourceFileAsAppinfo(addSourceFileAsAppinfo)
                         .build();
 
                 // Use new unified XsdParsingService

@@ -42,6 +42,8 @@ public class SchemaResolver {
     private static final Logger logger = LogManager.getLogger(SchemaResolver.class);
 
     private static final String XSD_NS = "http://www.w3.org/2001/XMLSchema";
+    private static final String FXT_NS = "http://freexmltoolkit.org/schema/flattening";
+    private static final String FXT_PREFIX = "fxt";
 
     private final DocumentBuilderFactory documentBuilderFactory;
     private final XsdParseOptions options;
@@ -107,6 +109,11 @@ public class SchemaResolver {
             // Track processed schemas to avoid duplicates
             Set<Path> processedSchemas = new HashSet<>();
             flattenIncludes(document, schemaElement, resolvedIncludes, processedSchemas);
+
+            // POST-PROCESSING: Remove all comments if option is enabled
+            if (options.isRemoveComments()) {
+                removeAllComments(document);
+            }
         }
 
         ParsedSchema.Builder builder = ParsedSchema.builder()
@@ -206,19 +213,47 @@ public class SchemaResolver {
                     }
                 }
 
+                // Determine source file name for tracking
+                String sourceFileName = resolvedInclude.resolvedPath() != null
+                        ? resolvedInclude.resolvedPath().getFileName().toString()
+                        : schemaLocation;
+
+                // Track if we need to add the fxt namespace
+                boolean fxtNamespaceNeeded = false;
+
                 // Import and insert the nodes
                 for (Node nodeToImport : nodesToImport) {
                     Node importedNode = document.importNode(nodeToImport, true);
+
+                    // Add source file appinfo if enabled and node is an XSD element
+                    if (options.isAddSourceFileAsAppinfo() && importedNode instanceof Element importedElement) {
+                        // Only add to top-level XSD constructs (elements, types, groups, etc.)
+                        if (isXsdElement(importedElement, "element") ||
+                            isXsdElement(importedElement, "complexType") ||
+                            isXsdElement(importedElement, "simpleType") ||
+                            isXsdElement(importedElement, "group") ||
+                            isXsdElement(importedElement, "attributeGroup") ||
+                            isXsdElement(importedElement, "attribute")) {
+
+                            addSourceFileAppinfo(document, importedElement, sourceFileName);
+                            fxtNamespaceNeeded = true;
+                        }
+                    }
+
                     schemaElement.insertBefore(importedNode, includeElement);
                 }
 
-                // Add a comment indicating where the content came from
-                String sourceComment = " Included from: " + schemaLocation + " ";
-                if (resolvedInclude.resolvedPath() != null) {
-                    sourceComment = " Included from: " + resolvedInclude.resolvedPath().getFileName() + " ";
+                // Ensure fxt namespace is declared if we added any appinfo
+                if (fxtNamespaceNeeded) {
+                    ensureFxtNamespaceDeclared(schemaElement);
                 }
-                org.w3c.dom.Comment comment = document.createComment(sourceComment);
-                schemaElement.insertBefore(comment, includeElement);
+
+                // Add a comment indicating where the content came from (only if not removing comments)
+                if (!options.isRemoveComments()) {
+                    String sourceComment = " Included from: " + sourceFileName + " ";
+                    org.w3c.dom.Comment comment = document.createComment(sourceComment);
+                    schemaElement.insertBefore(comment, includeElement);
+                }
 
                 logger.debug("Flattened include: {} ({} elements)", schemaLocation, nodesToImport.size());
             }
@@ -676,6 +711,125 @@ public class SchemaResolver {
         includeCache.clear();
         importCache.clear();
         reset();
+    }
+
+    // =========================================================================
+    // Comment Removal Methods
+    // =========================================================================
+
+    /**
+     * Removes all XML comment nodes from the document tree.
+     * This is a post-processing step for the "remove comments" option.
+     *
+     * @param document the document to process
+     */
+    private void removeAllComments(Document document) {
+        removeCommentsRecursively(document.getDocumentElement());
+
+        // Also remove comments before the root element (leading comments)
+        Node node = document.getFirstChild();
+        while (node != null) {
+            Node next = node.getNextSibling();
+            if (node instanceof org.w3c.dom.Comment) {
+                document.removeChild(node);
+            }
+            if (node == document.getDocumentElement()) {
+                break; // Stop at root element
+            }
+            node = next;
+        }
+
+        logger.debug("Removed all comments from document");
+    }
+
+    /**
+     * Recursively removes comment nodes from an element and its descendants.
+     *
+     * @param element the element to process
+     */
+    private void removeCommentsRecursively(Element element) {
+        NodeList children = element.getChildNodes();
+        List<Node> commentsToRemove = new ArrayList<>();
+
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child instanceof org.w3c.dom.Comment) {
+                commentsToRemove.add(child);
+            } else if (child instanceof Element childElement) {
+                removeCommentsRecursively(childElement);
+            }
+        }
+
+        for (Node comment : commentsToRemove) {
+            element.removeChild(comment);
+        }
+    }
+
+    // =========================================================================
+    // Source File Tracking Methods
+    // =========================================================================
+
+    /**
+     * Adds xs:appinfo with source file information to an element.
+     * Creates xs:annotation if it doesn't exist.
+     *
+     * @param document       the document
+     * @param element        the element to add appinfo to
+     * @param sourceFileName the source file name
+     */
+    private void addSourceFileAppinfo(Document document, Element element, String sourceFileName) {
+        // Find or create xs:annotation (must be first child per XSD spec)
+        Element annotation = findOrCreateAnnotation(document, element);
+
+        // Create xs:appinfo
+        Element appinfo = document.createElementNS(XSD_NS, "xs:appinfo");
+
+        // Create fxt:sourceFile element
+        Element sourceFile = document.createElementNS(FXT_NS, FXT_PREFIX + ":sourceFile");
+        sourceFile.setTextContent(sourceFileName);
+
+        appinfo.appendChild(sourceFile);
+        annotation.appendChild(appinfo);
+
+        logger.trace("Added source file appinfo '{}' to element '{}'",
+                sourceFileName, element.getAttribute("name"));
+    }
+
+    /**
+     * Finds existing xs:annotation or creates a new one as first child.
+     *
+     * @param document the document
+     * @param element  the element to find or create annotation in
+     * @return the annotation element
+     */
+    private Element findOrCreateAnnotation(Document document, Element element) {
+        // Look for existing annotation as first element child
+        NodeList children = element.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child instanceof Element el && isXsdElement(el, "annotation")) {
+                return el;
+            }
+        }
+
+        // Create new annotation as first child (per XSD spec)
+        Element annotation = document.createElementNS(XSD_NS, "xs:annotation");
+        element.insertBefore(annotation, element.getFirstChild());
+        return annotation;
+    }
+
+    /**
+     * Ensures the fxt namespace is declared on the schema element.
+     *
+     * @param schemaElement the schema element
+     */
+    private void ensureFxtNamespaceDeclared(Element schemaElement) {
+        String existingNs = schemaElement.getAttributeNS("http://www.w3.org/2000/xmlns/", FXT_PREFIX);
+        if (existingNs == null || existingNs.isEmpty()) {
+            schemaElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
+                "xmlns:" + FXT_PREFIX, FXT_NS);
+            logger.debug("Added fxt namespace declaration to schema element");
+        }
     }
 
     /**
