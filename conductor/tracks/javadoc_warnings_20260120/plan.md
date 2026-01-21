@@ -21,6 +21,6 @@
 - [x] Task: Fix Javadoc warnings in util classes (`DialogHelper`, etc.). 7eb9815
 - [x] Task: Conductor - User Manual Verification 'Fix Remaining Warnings' (Protocol in workflow.md) fd16f23
 
-## Phase 5: Final Verification
-- [ ] Task: Run full clean build and javadoc generation (`./gradlew clean javadoc`) to ensure zero warnings.
-- [ ] Task: Conductor - User Manual Verification 'Final Verification' (Protocol in workflow.md)
+## Phase 5: Final Verification [checkpoint: fda013e]
+- [x] Task: Run full clean build and javadoc generation (`./gradlew clean javadoc`) to ensure zero warnings.
+- [x] Task: Conductor - User Manual Verification 'Final Verification' (Protocol in workflow.md) fda013e
