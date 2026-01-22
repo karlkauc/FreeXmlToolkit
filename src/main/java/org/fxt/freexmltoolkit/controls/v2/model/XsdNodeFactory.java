@@ -248,16 +248,25 @@ public class XsdNodeFactory {
             }
         }
 
-        parseSchemaChildren(schemaElement, schema, baseDirectory, factory);
+        parseSchemaChildren(schemaElement, schema, baseDirectory, factory, true);
         return schema;
     }
 
     /**
      * Parses child nodes of a schema (or included schema) and attaches them to the provided parent schema.
      * When include tracking is enabled, each node is tagged with its source file information.
+     *
+     * @param schemaElement             the schema DOM element to parse
+     * @param schema                    the schema to add components to
+     * @param baseDirectory             the base directory for resolving relative paths
+     * @param factory                   the document builder factory
+     * @param addSchemaDirectivesAsNodes if true, xs:include/xs:import/xs:redefine/xs:override directives
+     *                                   are added as child nodes to the schema; if false, they are only
+     *                                   processed (inlined) but not added as nodes. This should be false
+     *                                   when parsing included schemas to avoid duplicating directives.
      */
     private void parseSchemaChildren(Element schemaElement, XsdSchema schema, Path baseDirectory,
-                                     DocumentBuilderFactory factory) {
+                                     DocumentBuilderFactory factory, boolean addSchemaDirectivesAsNodes) {
         NodeList children = schemaElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
@@ -301,20 +310,33 @@ public class XsdNodeFactory {
             } else if (isXsdElement(childElement, "import")) {
                 XsdImport xsdImport = parseImport(childElement);
                 tagNodeWithSourceInfo(xsdImport);
-                schema.addChild(xsdImport);
+                // Only add import directives as nodes for the main schema, not for included schemas
+                if (addSchemaDirectivesAsNodes) {
+                    schema.addChild(xsdImport);
+                }
             } else if (isXsdElement(childElement, "include")) {
                 XsdInclude xsdInclude = parseInclude(childElement);
                 tagNodeWithSourceInfo(xsdInclude);
-                schema.addChild(xsdInclude);
+                // Only add include directives as nodes for the main schema, not for included schemas
+                if (addSchemaDirectivesAsNodes) {
+                    schema.addChild(xsdInclude);
+                }
+                // Always process (inline) the include, regardless of whether it's added as a node
                 inlineSchemaReference(childElement, baseDirectory, schema, factory, xsdInclude);
             } else if (isXsdElement(childElement, "redefine")) {
                 XsdRedefine xsdRedefine = parseRedefine(childElement);
                 tagNodeWithSourceInfo(xsdRedefine);
-                schema.addChild(xsdRedefine);
+                // Only add redefine directives as nodes for the main schema
+                if (addSchemaDirectivesAsNodes) {
+                    schema.addChild(xsdRedefine);
+                }
             } else if (isXsdElement(childElement, "override")) {
                 XsdOverride xsdOverride = parseOverride(childElement);
                 tagNodeWithSourceInfo(xsdOverride);
-                schema.addChild(xsdOverride);
+                // Only add override directives as nodes for the main schema
+                if (addSchemaDirectivesAsNodes) {
+                    schema.addChild(xsdOverride);
+                }
             }
         }
     }
@@ -431,7 +453,11 @@ public class XsdNodeFactory {
                 // Track child count before parsing to register new nodes
                 int childCountBefore = targetSchema.getChildren().size();
 
-                parseSchemaChildren(includedRoot, targetSchema, nextBaseDir, factory);
+                // Parse included schema children with addSchemaDirectivesAsNodes=false
+                // This ensures that xs:include/xs:import directives from included files
+                // are processed (inlined) but NOT added as child nodes to the main schema.
+                // Only the main schema's directives should appear as nodes.
+                parseSchemaChildren(includedRoot, targetSchema, nextBaseDir, factory, false);
 
                 // Register newly added nodes with the schema's include tracking
                 if (preserveIncludeStructure && xsdInclude != null) {
@@ -1640,10 +1666,33 @@ public class XsdNodeFactory {
 
     /**
      * Checks if an element is an XSD element with given local name.
+     * <p>
+     * This method handles a special case found in some XSD files (like W3C's xmldsig-core-schema.xsd)
+     * where child elements have {@code xmlns=""} which places them in the "no namespace" instead
+     * of the XSD namespace. These elements are still valid XSD constructs if their local name
+     * matches a known XSD element name.
+     * </p>
+     *
+     * @param element the DOM element to check
+     * @param localName the expected XSD element local name (e.g., "element", "complexType")
+     * @return true if this is an XSD element with the given local name
      */
     private boolean isXsdElement(Element element, String localName) {
-        return XSD_NAMESPACE.equals(element.getNamespaceURI())
-                && localName.equals(element.getLocalName());
+        String elementLocalName = element.getLocalName();
+
+        // First check: element is in XSD namespace with matching local name
+        if (XSD_NAMESPACE.equals(element.getNamespaceURI()) && localName.equals(elementLocalName)) {
+            return true;
+        }
+
+        // Second check: element has no namespace (xmlns="") but has matching local name
+        // This handles special XSD files like xmldsig-core-schema.xsd from W3C
+        String namespaceURI = element.getNamespaceURI();
+        if ((namespaceURI == null || namespaceURI.isEmpty()) && localName.equals(elementLocalName)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
