@@ -21,10 +21,34 @@ import java.util.concurrent.ConcurrentHashMap;
  * - Static type resolution cache (shared across all builders)
  * - Global element index cache
  * - Incremental updates where possible
+ * - Lazy loading for deep tree branches (Phase 2)
  *
  * @since 2.0
  */
 public class XsdVisualTreeBuilder {
+
+    /**
+     * Build mode for controlling tree construction depth.
+     * Used for lazy loading optimization.
+     */
+    public enum BuildMode {
+        /**
+         * Build the complete tree (current behavior for small schemas)
+         */
+        FULL,
+
+        /**
+         * Build only root + first level, load deeper levels on demand.
+         * Suitable for large schemas to reduce initial load time.
+         */
+        LAZY_FIRST_LEVEL,
+
+        /**
+         * Build root + two levels, load deeper levels on demand.
+         * Good balance between initial visibility and performance.
+         */
+        LAZY_TWO_LEVELS
+    }
 
     private static final Logger logger = LogManager.getLogger(XsdVisualTreeBuilder.class);
 
@@ -67,6 +91,15 @@ public class XsdVisualTreeBuilder {
     /** Current depth during tree building */
     private int currentDepth = 0;
 
+    /** Build mode for lazy loading (Phase 2 optimization) */
+    private BuildMode buildMode = BuildMode.FULL;
+
+    /** Depth threshold for lazy loading (applies when buildMode != FULL) */
+    private int lazyLoadDepthThreshold = 1;
+
+    /** Reference to the schema for lazy loading context */
+    private XsdSchema currentSchema;
+
     /**
      * Clears the static type and element caches.
      * Call this when a schema is modified structurally to ensure
@@ -92,6 +125,33 @@ public class XsdVisualTreeBuilder {
             INDEXED_SCHEMAS.remove(schemaId);
             logger.debug("Type resolution cache invalidated for schema: {}", schemaId);
         }
+    }
+
+    /**
+     * Sets the build mode for controlling tree construction depth.
+     * Use LAZY_FIRST_LEVEL or LAZY_TWO_LEVELS for large schemas to improve performance.
+     *
+     * @param mode the build mode
+     * @return this builder for method chaining
+     */
+    public XsdVisualTreeBuilder withBuildMode(BuildMode mode) {
+        this.buildMode = mode;
+        switch (mode) {
+            case LAZY_FIRST_LEVEL -> this.lazyLoadDepthThreshold = 1;
+            case LAZY_TWO_LEVELS -> this.lazyLoadDepthThreshold = 2;
+            case FULL -> this.lazyLoadDepthThreshold = MAX_DEPTH;  // Effectively no limit
+        }
+        logger.debug("Build mode set to {} (lazy depth threshold: {})", mode, lazyLoadDepthThreshold);
+        return this;
+    }
+
+    /**
+     * Gets the current build mode.
+     *
+     * @return the build mode
+     */
+    public BuildMode getBuildMode() {
+        return buildMode;
     }
 
     /**
@@ -124,9 +184,10 @@ public class XsdVisualTreeBuilder {
      * @return the root VisualNode
      */
     public VisualNode buildFromSchema(XsdSchema schema, Runnable onModelChangeCallback, Map<String, XsdSchema> importedSchemas) {
-        logger.info("========== buildFromSchema CALLED ==========");
+        logger.info("========== buildFromSchema CALLED (BuildMode: {}) ==========", buildMode);
         this.onModelChangeCallback = onModelChangeCallback;
         this.importedSchemas = importedSchemas != null ? importedSchemas : new HashMap<>();
+        this.currentSchema = schema;  // Store for lazy loading context
         nodeMap.clear();
         typeIndex.clear();
         globalElementIndex.clear();
@@ -356,6 +417,43 @@ public class XsdVisualTreeBuilder {
         // Add to visited elements before processing to prevent circular references
         visitedElements.add(element.getId());
 
+        // Check if we should defer child loading (lazy loading optimization)
+        // Elements with potential children beyond the lazy threshold get lazy loaders
+        boolean shouldLazyLoad = buildMode != BuildMode.FULL && currentDepth >= lazyLoadDepthThreshold;
+        boolean hasComplexContent = hasComplexContent(element);
+
+        if (shouldLazyLoad && hasComplexContent) {
+            // Set up lazy loading for children
+            logger.debug("Setting up lazy loading for element '{}' at depth {}", element.getName(), currentDepth);
+
+            // Capture the context needed for lazy loading
+            final XsdElement capturedElement = element;
+            final Set<String> capturedVisitedTypes = new HashSet<>(visitedTypes);
+            final Set<String> capturedVisitedElements = new HashSet<>(visitedElements);
+            final int capturedDepth = currentDepth;
+
+            node.setLazyChildrenLoader(() -> {
+                // Create a new builder instance for lazy loading to avoid state conflicts
+                XsdVisualTreeBuilder lazyBuilder = new XsdVisualTreeBuilder();
+                lazyBuilder.buildMode = BuildMode.FULL;  // Build fully when expanding
+                lazyBuilder.currentSchema = this.currentSchema;
+                lazyBuilder.onModelChangeCallback = this.onModelChangeCallback;
+                lazyBuilder.importedSchemas = this.importedSchemas;
+                lazyBuilder.typeIndex.putAll(this.typeIndex);
+                lazyBuilder.globalElementIndex.putAll(this.globalElementIndex);
+                lazyBuilder.currentDepth = capturedDepth;
+
+                java.util.List<VisualNode> lazyChildren = new java.util.ArrayList<>();
+
+                // Build children for this element
+                lazyBuilder.buildElementChildren(capturedElement, node, capturedVisitedTypes, capturedVisitedElements, lazyChildren);
+
+                return lazyChildren;
+            });
+
+            return node;
+        }
+
         // Increment depth for child processing
         currentDepth++;
         try {
@@ -406,6 +504,211 @@ public class XsdVisualTreeBuilder {
             currentDepth--;
         }
         return node;
+    }
+
+    /**
+     * Checks if an element has complex content (children that would need to be visualized).
+     * Used to determine if lazy loading is beneficial for this element.
+     *
+     * @param element the element to check
+     * @return true if the element has complex content
+     */
+    private boolean hasComplexContent(XsdElement element) {
+        // Check for inline complex type
+        for (XsdNode child : element.getChildren()) {
+            if (child instanceof XsdComplexType) {
+                return true;
+            }
+        }
+
+        // Check for type reference
+        String elementType = element.getType();
+        if (elementType != null && !elementType.isEmpty() && !elementType.startsWith("xs:")) {
+            // Type reference to a ComplexType would have children
+            return true;
+        }
+
+        // Check for element reference
+        if (element.getRef() != null && !element.getRef().isEmpty()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Builds children for an element (used for lazy loading).
+     * This extracts the child-building logic from createElementNode for reuse.
+     *
+     * @param element the element to build children for
+     * @param parentNode the parent visual node
+     * @param visitedTypes set of type names currently being processed
+     * @param visitedElements set of element IDs currently being processed
+     * @param children list to add created children to
+     */
+    private void buildElementChildren(XsdElement element, VisualNode parentNode,
+                                       Set<String> visitedTypes, Set<String> visitedElements,
+                                       java.util.List<VisualNode> children) {
+        currentDepth++;
+        try {
+            // Check if this is an element reference (ref attribute)
+            if (element.getRef() != null && !element.getRef().isEmpty()) {
+                logger.debug("Lazy loading: Element '{}' has ref='{}', resolving reference", element.getName(), element.getRef());
+                resolveElementReferenceForLazyLoad(element.getRef(), parentNode, element, visitedTypes, visitedElements, children);
+                return;
+            }
+
+            // Process inline children (complexType, simpleType defined within this element)
+            boolean hasInlineComplexType = false;
+            for (XsdNode child : element.getChildren()) {
+                if (child instanceof XsdComplexType) {
+                    processComplexTypeForLazyLoad((XsdComplexType) child, parentNode, visitedTypes, visitedElements, children);
+                    hasInlineComplexType = true;
+                }
+            }
+
+            // If no inline type definition and element has a type reference, try to resolve it
+            String elementType = element.getType();
+            if (!hasInlineComplexType && elementType != null && !elementType.isEmpty() && !elementType.startsWith("xs:")) {
+                logger.debug("Lazy loading: Resolving type reference '{}' for element '{}'", elementType, element.getName());
+                resolveTypeReferenceForLazyLoad(elementType, parentNode, element, visitedTypes, visitedElements, children);
+            }
+        } finally {
+            currentDepth--;
+        }
+    }
+
+    /**
+     * Process complex type for lazy loading, adding children to the provided list.
+     */
+    private void processComplexTypeForLazyLoad(XsdComplexType complexType, VisualNode parentNode,
+                                                Set<String> visitedTypes, Set<String> visitedElements,
+                                                java.util.List<VisualNode> children) {
+        Set<String> localVisitedElements = new HashSet<>();
+
+        for (XsdNode child : complexType.getChildren()) {
+            if (child instanceof XsdSequence) {
+                VisualNode compositor = createCompositorNode(child, parentNode, "sequence", visitedTypes, localVisitedElements);
+                children.add(compositor);
+            } else if (child instanceof XsdChoice) {
+                VisualNode compositor = createCompositorNode(child, parentNode, "choice", visitedTypes, localVisitedElements);
+                children.add(compositor);
+            } else if (child instanceof XsdAll) {
+                VisualNode compositor = createCompositorNode(child, parentNode, "all", visitedTypes, localVisitedElements);
+                children.add(compositor);
+            } else if (child instanceof XsdAttribute) {
+                VisualNode attributeNode = createAttributeNode((XsdAttribute) child, parentNode);
+                children.add(attributeNode);
+            } else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent) {
+                processSimpleContentForLazyLoad(simpleContent, parentNode, visitedTypes, localVisitedElements, children);
+            } else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexContent complexContent) {
+                processComplexContentForLazyLoad(complexContent, parentNode, visitedTypes, localVisitedElements, children);
+            }
+        }
+    }
+
+    /**
+     * Resolve element reference for lazy loading.
+     */
+    private void resolveElementReferenceForLazyLoad(String ref, VisualNode parentNode, XsdElement element,
+                                                     Set<String> visitedTypes, Set<String> visitedElements,
+                                                     java.util.List<VisualNode> children) {
+        // Strip namespace prefix if present
+        String localName = ref.contains(":") ? ref.substring(ref.indexOf(':') + 1) : ref;
+        XsdElement referencedElement = globalElementIndex.get(localName);
+
+        if (referencedElement != null && !visitedElements.contains(referencedElement.getId())) {
+            // Process the referenced element's type definition
+            for (XsdNode refChild : referencedElement.getChildren()) {
+                if (refChild instanceof XsdComplexType) {
+                    processComplexTypeForLazyLoad((XsdComplexType) refChild, parentNode, visitedTypes, visitedElements, children);
+                }
+            }
+
+            // Handle type reference on referenced element
+            String refElementType = referencedElement.getType();
+            if (refElementType != null && !refElementType.isEmpty() && !refElementType.startsWith("xs:")) {
+                resolveTypeReferenceForLazyLoad(refElementType, parentNode, referencedElement, visitedTypes, visitedElements, children);
+            }
+        }
+    }
+
+    /**
+     * Resolve type reference for lazy loading.
+     */
+    private void resolveTypeReferenceForLazyLoad(String typeName, VisualNode parentNode, XsdElement element,
+                                                  Set<String> visitedTypes, Set<String> visitedElements,
+                                                  java.util.List<VisualNode> children) {
+        if (visitedTypes.contains(typeName)) {
+            logger.warn("Lazy loading: Circular type reference detected: {} is already being processed", typeName);
+            return;
+        }
+
+        Set<String> newVisitedTypes = new HashSet<>(visitedTypes);
+        newVisitedTypes.add(typeName);
+
+        String localName = typeName.contains(":") ? typeName.substring(typeName.indexOf(':') + 1) : typeName;
+        XsdComplexType complexType = typeIndex.get(localName);
+
+        if (complexType != null) {
+            processComplexTypeForLazyLoad(complexType, parentNode, newVisitedTypes, visitedElements, children);
+        }
+    }
+
+    /**
+     * Process simple content for lazy loading.
+     */
+    private void processSimpleContentForLazyLoad(org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent,
+                                                  VisualNode parentNode, Set<String> visitedTypes,
+                                                  Set<String> visitedElements, java.util.List<VisualNode> children) {
+        for (XsdNode child : simpleContent.getChildren()) {
+            if (child instanceof XsdExtension extension) {
+                for (XsdNode extChild : extension.getChildren()) {
+                    if (extChild instanceof XsdAttribute) {
+                        children.add(createAttributeNode((XsdAttribute) extChild, parentNode));
+                    }
+                }
+            } else if (child instanceof XsdRestriction restriction) {
+                for (XsdNode resChild : restriction.getChildren()) {
+                    if (resChild instanceof XsdAttribute) {
+                        children.add(createAttributeNode((XsdAttribute) resChild, parentNode));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Process complex content for lazy loading.
+     */
+    private void processComplexContentForLazyLoad(org.fxt.freexmltoolkit.controls.v2.model.XsdComplexContent complexContent,
+                                                   VisualNode parentNode, Set<String> visitedTypes,
+                                                   Set<String> visitedElements, java.util.List<VisualNode> children) {
+        for (XsdNode child : complexContent.getChildren()) {
+            if (child instanceof XsdExtension extension) {
+                // Resolve base type
+                String baseType = extension.getBase();
+                if (baseType != null && !baseType.isEmpty() && !baseType.startsWith("xs:")) {
+                    resolveTypeReferenceForLazyLoad(baseType, parentNode, null, visitedTypes, visitedElements, children);
+                }
+
+                // Process local content
+                for (XsdNode extChild : extension.getChildren()) {
+                    if (extChild instanceof XsdSequence) {
+                        children.add(createCompositorNode(extChild, parentNode, "sequence", visitedTypes, visitedElements));
+                    } else if (extChild instanceof XsdChoice) {
+                        children.add(createCompositorNode(extChild, parentNode, "choice", visitedTypes, visitedElements));
+                    } else if (extChild instanceof XsdAttribute) {
+                        children.add(createAttributeNode((XsdAttribute) extChild, parentNode));
+                    }
+                }
+            } else if (child instanceof XsdRestriction restriction) {
+                String baseType = restriction.getBase();
+                if (baseType != null && !baseType.isEmpty() && !baseType.startsWith("xs:")) {
+                    resolveTypeReferenceForLazyLoad(baseType, parentNode, null, visitedTypes, visitedElements, children);
+                }
+            }
+        }
     }
 
     /**

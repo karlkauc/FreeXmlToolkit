@@ -673,7 +673,8 @@ public class XsdNodeRenderer {
     }
 
     /**
-     * Draws the expand/collapse button (+/-).
+     * Draws the expand/collapse button (+/-) with visual feedback for lazy loading state.
+     * Shows different indicators based on whether the node has unloaded children or is loading.
      */
     private void drawExpandButton(GraphicsContext gc, VisualNode node, double x, double y, double nodeWidth, double nodeHeight) {
         double btnX = x + nodeWidth - EXPAND_BUTTON_SIZE - 8;
@@ -681,26 +682,59 @@ public class XsdNodeRenderer {
 
         node.setExpandButtonBounds(btnX, btnY, EXPAND_BUTTON_SIZE, EXPAND_BUTTON_SIZE);
 
-        // Draw button background
-        gc.setFill(Color.WHITE);
-        gc.setStroke(Color.DARKGRAY);
+        // Determine button style based on lazy loading state
+        boolean isLoadingChildren = node.isLoadingChildren();
+        boolean hasUnloadedChildren = node.hasUnloadedChildren();
+
+        // Draw button background - different colors for lazy loading states
+        if (isLoadingChildren) {
+            gc.setFill(Color.rgb(255, 243, 205));  // Yellow background for loading
+        } else if (hasUnloadedChildren && !node.isExpanded()) {
+            gc.setFill(Color.rgb(231, 243, 255));  // Light blue for unloaded children
+        } else {
+            gc.setFill(Color.WHITE);
+        }
+
+        gc.setStroke(isLoadingChildren ? Color.rgb(255, 193, 7) : Color.DARKGRAY);
         gc.setLineWidth(1);
         gc.fillRect(btnX, btnY, EXPAND_BUTTON_SIZE, EXPAND_BUTTON_SIZE);
         gc.strokeRect(btnX, btnY, EXPAND_BUTTON_SIZE, EXPAND_BUTTON_SIZE);
 
-        // Draw +/- symbol
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(2);
-
         double centerX = btnX + EXPAND_BUTTON_SIZE / 2;
         double centerY = btnY + EXPAND_BUTTON_SIZE / 2;
 
-        // Horizontal line (always present)
-        gc.strokeLine(centerX - 5, centerY, centerX + 5, centerY);
+        if (isLoadingChildren) {
+            // Draw loading indicator (three dots)
+            gc.setFill(Color.rgb(133, 100, 4));
+            double dotSize = 2.5;
+            double dotSpacing = 3.5;
+            gc.fillOval(centerX - dotSpacing - dotSize / 2, centerY - dotSize / 2, dotSize, dotSize);
+            gc.fillOval(centerX - dotSize / 2, centerY - dotSize / 2, dotSize, dotSize);
+            gc.fillOval(centerX + dotSpacing - dotSize / 2, centerY - dotSize / 2, dotSize, dotSize);
+        } else if (hasUnloadedChildren && !node.isExpanded()) {
+            // Draw "lazy" indicator (plus with a small circle)
+            gc.setStroke(Color.rgb(0, 102, 204));  // Blue color
+            gc.setLineWidth(2);
 
-        // Vertical line (only if collapsed)
-        if (!node.isExpanded()) {
+            // Draw plus sign
+            gc.strokeLine(centerX - 5, centerY, centerX + 5, centerY);
             gc.strokeLine(centerX, centerY - 5, centerX, centerY + 5);
+
+            // Draw small dot in corner to indicate lazy loading
+            gc.setFill(Color.rgb(0, 123, 255));
+            gc.fillOval(btnX + EXPAND_BUTTON_SIZE - 5, btnY + 1, 4, 4);
+        } else {
+            // Draw standard +/- symbol
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+
+            // Horizontal line (always present)
+            gc.strokeLine(centerX - 5, centerY, centerX + 5, centerY);
+
+            // Vertical line (only if collapsed)
+            if (!node.isExpanded()) {
+                gc.strokeLine(centerX, centerY - 5, centerX, centerY + 5);
+            }
         }
     }
 
@@ -1024,6 +1058,12 @@ public class XsdNodeRenderer {
         private boolean inEditMode = false;
         private boolean dragging = false;
         private boolean dropTarget = false;
+
+        // Lazy loading support (Phase 2 optimization)
+        private boolean childrenLoaded = true;  // True if children have been loaded (or no lazy loading)
+        private boolean hasLazyChildren = false;  // True if this node has children that haven't been loaded
+        private java.util.function.Supplier<java.util.List<VisualNode>> lazyChildrenLoader;  // Loader for lazy children
+        private boolean loadingChildren = false;  // True while children are being loaded
 
         // New properties for improved visual representation
         private String iconLiteral;             // Bootstrap icon code (e.g., "bi-diagram-3")
@@ -1845,7 +1885,16 @@ public class XsdNodeRenderer {
         }
 
         public boolean hasChildren() {
-            return !children.isEmpty();
+            return !children.isEmpty() || hasLazyChildren;
+        }
+
+        /**
+         * Returns true if this node has unloaded lazy children.
+         *
+         * @return true if children need to be loaded
+         */
+        public boolean hasUnloadedChildren() {
+            return hasLazyChildren && !childrenLoaded;
         }
 
         public boolean containsPoint(double px, double py) {
@@ -1969,6 +2018,69 @@ public class XsdNodeRenderer {
 
         public void setExpanded(boolean e) {
             this.expanded = e;
+            // Trigger lazy loading when expanding a node with unloaded children
+            if (e && hasUnloadedChildren()) {
+                loadChildrenIfNeeded();
+            }
+        }
+
+        /**
+         * Loads children lazily if they haven't been loaded yet.
+         * Called automatically when expanding a node with lazy children.
+         */
+        public void loadChildrenIfNeeded() {
+            if (childrenLoaded || lazyChildrenLoader == null || loadingChildren) {
+                return;
+            }
+
+            loadingChildren = true;
+            try {
+                java.util.List<VisualNode> lazyChildren = lazyChildrenLoader.get();
+                if (lazyChildren != null) {
+                    for (VisualNode child : lazyChildren) {
+                        children.add(child);
+                    }
+                }
+                childrenLoaded = true;
+                hasLazyChildren = !children.isEmpty();  // Now we know if we actually have children
+
+                // Trigger callback to redraw if available
+                if (onModelChangeCallback != null) {
+                    onModelChangeCallback.run();
+                }
+            } finally {
+                loadingChildren = false;
+            }
+        }
+
+        /**
+         * Sets up lazy loading for this node's children.
+         * The loader will be called when the node is first expanded.
+         *
+         * @param loader function that creates and returns the child nodes
+         */
+        public void setLazyChildrenLoader(java.util.function.Supplier<java.util.List<VisualNode>> loader) {
+            this.lazyChildrenLoader = loader;
+            this.childrenLoaded = false;
+            this.hasLazyChildren = true;
+        }
+
+        /**
+         * Returns true if children have been loaded (or if lazy loading is not enabled).
+         *
+         * @return true if children are available
+         */
+        public boolean isChildrenLoaded() {
+            return childrenLoaded;
+        }
+
+        /**
+         * Returns true if children are currently being loaded.
+         *
+         * @return true if loading is in progress
+         */
+        public boolean isLoadingChildren() {
+            return loadingChildren;
         }
 
         public void setExpandButtonBounds(double x, double y, double w, double h) {

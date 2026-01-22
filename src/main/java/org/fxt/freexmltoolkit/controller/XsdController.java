@@ -80,6 +80,12 @@ public class XsdController implements FavoritesParentController {
     private boolean xsdContentDirty = false;  // Track if text has changed since last parse
     private boolean isSchemaLoaded = false;  // Track if a valid schema is available (loaded or created)
 
+    // Deferred graphical view loading - Phase 1 optimization
+    private boolean graphicalViewInitialized = false;  // True once XsdGraphView has been created for current content
+    private boolean graphicalViewPending = false;      // True when content is ready but graphical view not yet loaded
+    private String pendingXsdContentForGraphicalView = null;  // XSD content waiting to be loaded into graphical view
+    private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphViewPlaceholder graphViewPlaceholder;  // Placeholder shown before view is loaded
+
     // Type Editor integration
     private org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager typeEditorTabManager;
     @FXML
@@ -659,11 +665,16 @@ public class XsdController implements FavoritesParentController {
 
         xsdTab.setOnSelectionChanged(event -> {
             if (xsdTab.isSelected()) {
-                if (xmlService.getCurrentXsdFile() == null) {
+                if (xmlService.getCurrentXsdFile() == null && !isSchemaLoaded) {
                     noFileLoadedPane.setVisible(true);
                     noFileLoadedPane.setManaged(true);
                     xsdInfoPane.setVisible(false);
                     xsdInfoPane.setManaged(false);
+                } else if (graphicalViewPending && !graphicalViewInitialized && pendingXsdContentForGraphicalView != null) {
+                    // OPTIMIZATION: Deferred graphical view loading
+                    // User switched to XSD tab - now load the graphical view
+                    logger.info("XSD tab selected with pending graphical view - triggering deferred load");
+                    loadXsdIntoGraphicViewV2(pendingXsdContentForGraphicalView);
                 }
             }
         });
@@ -864,8 +875,16 @@ public class XsdController implements FavoritesParentController {
             if (contentChanged) {
                 // Content has changed: full reload
                 logger.debug("XSD content has changed, reloading schema from text...");
+                // Reset deferred loading state for new content
+                graphicalViewInitialized = false;
+                pendingXsdContentForGraphicalView = currentText;
+                graphicalViewPending = true;
                 loadXsdIntoGraphicViewV2(currentText);
                 xsdContentDirty = false;  // Reset dirty flag after successful parse
+            } else if (graphicalViewPending && !graphicalViewInitialized && pendingXsdContentForGraphicalView != null) {
+                // Deferred loading: content is cached but graphical view was never initialized
+                logger.debug("Triggering deferred graphical view load on tab switch");
+                loadXsdIntoGraphicViewV2(pendingXsdContentForGraphicalView);
             } else if (cachedXsdSchema != null && currentGraphViewV2 != null) {
                 // Content unchanged and view already exists: instant switch
                 logger.debug("XSD content unchanged, instant view switch (no reload needed)");
@@ -1206,6 +1225,10 @@ public class XsdController implements FavoritesParentController {
             cachedXsdContent = null;
             xsdContentDirty = false;
             isSchemaLoaded = false;
+            // Reset deferred loading state
+            graphicalViewInitialized = false;
+            graphicalViewPending = false;
+            pendingXsdContentForGraphicalView = null;
             logger.debug("Cleared XSD schema cache for new file load");
 
             // Check for auto-save recovery first
@@ -1293,8 +1316,29 @@ public class XsdController implements FavoritesParentController {
                     }
                     loadXsdContent(xsdContent);
 
-                    // Also load into V2 graphic view (will show its own progress)
-                    loadXsdIntoGraphicViewV2(xsdContent);
+                    // OPTIMIZATION: Deferred graphical view loading
+                    // Only load the graphical view immediately if the XSD tab is currently selected.
+                    // Otherwise, store the content for deferred loading when the user switches to the XSD tab.
+                    // This prevents unnecessary resource consumption when users primarily use the text view.
+                    graphicalViewInitialized = false;  // Reset for new file
+                    pendingXsdContentForGraphicalView = xsdContent;
+                    graphicalViewPending = true;
+
+                    if (xsdTab != null && xsdTab.isSelected()) {
+                        // XSD tab is active - load graphical view immediately
+                        logger.debug("XSD tab is selected, loading graphical view immediately");
+                        loadXsdIntoGraphicViewV2(xsdContent);
+                    } else {
+                        // XSD tab is not active - show placeholder for deferred loading
+                        logger.debug("XSD tab is not selected, deferring graphical view load");
+                        showGraphicalViewPlaceholder();
+                        if (xsdDiagramProgress != null) {
+                            xsdDiagramProgress.setVisible(false);
+                        }
+                        if (statusText != null) {
+                            statusText.setText("XSD file loaded. Graphical view will load when tab is selected.");
+                        }
+                    }
                 } catch (Exception ex) {
                     logger.error("Error processing XSD content: {}", file.getAbsolutePath(), ex);
                     showXsdLoadingError(file, "Could not process XSD content: " + ex.getMessage());
@@ -1518,6 +1562,50 @@ public class XsdController implements FavoritesParentController {
     // V1 analyzeXsdContent() method removed - V2 uses XsdNodeFactory
 
     /**
+     * Shows a placeholder in the graphical view pane indicating that the view is not yet loaded.
+     * The placeholder provides a button to trigger loading when clicked.
+     * This is part of the deferred loading optimization.
+     */
+    private void showGraphicalViewPlaceholder() {
+        if (xsdStackPaneV2 == null) {
+            logger.warn("xsdStackPaneV2 is null, cannot show placeholder");
+            return;
+        }
+
+        // Create placeholder if it doesn't exist
+        if (graphViewPlaceholder == null) {
+            graphViewPlaceholder = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphViewPlaceholder();
+            graphViewPlaceholder.setOnLoadRequested(() -> {
+                // User clicked "Load Graphical View" button
+                if (pendingXsdContentForGraphicalView != null) {
+                    logger.info("User requested graphical view load via placeholder button");
+                    graphViewPlaceholder.showLoading("Initializing graphical view...");
+                    loadXsdIntoGraphicViewV2(pendingXsdContentForGraphicalView);
+                }
+            });
+        } else {
+            // Reset placeholder to initial state
+            graphViewPlaceholder.reset();
+        }
+
+        // Clear the pane and show placeholder
+        xsdStackPaneV2.getChildren().clear();
+        xsdStackPaneV2.getChildren().add(graphViewPlaceholder);
+
+        // Update visibility
+        if (noFileLoadedPane != null) {
+            noFileLoadedPane.setVisible(false);
+            noFileLoadedPane.setManaged(false);
+        }
+        if (xsdStackPaneV2 != null) {
+            xsdStackPaneV2.setVisible(true);
+            xsdStackPaneV2.setManaged(true);
+        }
+
+        logger.debug("Graphical view placeholder shown");
+    }
+
+    /**
      * Loads XSD content into the V2 graphical view using the new model-based architecture.
      * <p>
      * Note: This method uses XsdNodeFactory directly for optimal V2 model creation.
@@ -1572,6 +1660,11 @@ public class XsdController implements FavoritesParentController {
                 cachedXsdContent = xsdContent;
                 xsdContentDirty = false;  // Content is now in sync with schema
                 isSchemaLoaded = true;  // Mark that a valid schema is now available
+
+                // Mark graphical view as initialized (deferred loading optimization)
+                graphicalViewInitialized = true;
+                graphicalViewPending = false;
+                logger.debug("Graphical view initialized successfully");
 
                 // Use XsdSchema-based constructor
                 currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(schema);
@@ -6168,6 +6261,10 @@ public class XsdController implements FavoritesParentController {
         cachedXsdContent = null;
         xsdContentDirty = false;
         isSchemaLoaded = false;
+        // Reset deferred loading state
+        graphicalViewInitialized = false;
+        graphicalViewPending = false;
+        pendingXsdContentForGraphicalView = null;
         // Reset Type Editor UI
         if (typeEditorTabManager != null) {
             typeEditorTabManager.closeAllTypeTabs();

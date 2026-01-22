@@ -83,6 +83,14 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private PauseTransition rebuildDebounce;
     private static final double DEBOUNCE_DELAY_MS = 50.0; // 50ms debounce delay
 
+    // Viewport tracking for culling optimization (Phase 3)
+    private double viewportX = 0;
+    private double viewportY = 0;
+    private double viewportWidth = 800;
+    private double viewportHeight = 600;
+    private boolean viewportCullingEnabled = true;
+    private static final double VIEWPORT_MARGIN = 100;  // Render nodes slightly outside viewport for smooth scrolling
+
     // Type Editor callbacks (stored to re-apply when contextMenuFactory is recreated)
     private java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType> openComplexTypeEditorCallback;
     private java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType> openSimpleTypeEditorCallback;
@@ -167,7 +175,130 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         // Setup mouse interaction
         setupMouseHandlers();
 
+        // Setup viewport tracking for culling optimization
+        setupViewportTracking();
+
         logger.info("XsdGraphView initialized (graphical mode) using XsdSchema");
+    }
+
+    /**
+     * Sets up viewport tracking for rendering optimization.
+     * Tracks the visible area of the ScrollPane to enable viewport culling.
+     */
+    private void setupViewportTracking() {
+        // Track scroll position changes
+        scrollPane.hvalueProperty().addListener((obs, oldVal, newVal) -> updateViewport());
+        scrollPane.vvalueProperty().addListener((obs, oldVal, newVal) -> updateViewport());
+
+        // Track viewport size changes
+        scrollPane.viewportBoundsProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                viewportWidth = newVal.getWidth();
+                viewportHeight = newVal.getHeight();
+                updateViewport();
+            }
+        });
+
+        // Initial viewport update (deferred to allow layout to complete)
+        javafx.application.Platform.runLater(this::updateViewport);
+    }
+
+    /**
+     * Updates the viewport coordinates based on scroll position.
+     * Called when scroll position or viewport size changes.
+     */
+    private void updateViewport() {
+        double contentWidth = canvas.getWidth();
+        double contentHeight = canvas.getHeight();
+
+        // Calculate viewport position from scroll values (0.0 to 1.0)
+        double hValue = scrollPane.getHvalue();
+        double vValue = scrollPane.getVvalue();
+
+        // Calculate max scroll range
+        double maxHScroll = Math.max(0, contentWidth - viewportWidth);
+        double maxVScroll = Math.max(0, contentHeight - viewportHeight);
+
+        viewportX = hValue * maxHScroll;
+        viewportY = vValue * maxVScroll;
+
+        logger.trace("Viewport updated: ({}, {}) size: {}x{}", viewportX, viewportY, viewportWidth, viewportHeight);
+    }
+
+    /**
+     * Checks if a node is visible within the current viewport (with margin).
+     *
+     * @param node the node to check
+     * @return true if the node is visible or partially visible
+     */
+    private boolean isNodeInViewport(VisualNode node) {
+        if (!viewportCullingEnabled) {
+            return true;  // Culling disabled - render everything
+        }
+
+        double nodeX = node.getX() * zoomLevel;
+        double nodeY = node.getY() * zoomLevel;
+        double nodeWidth = node.getWidth() * zoomLevel;
+        double nodeHeight = node.getHeight() * zoomLevel;
+
+        // Check if node intersects viewport (with margin)
+        double vpLeft = viewportX - VIEWPORT_MARGIN;
+        double vpTop = viewportY - VIEWPORT_MARGIN;
+        double vpRight = viewportX + viewportWidth + VIEWPORT_MARGIN;
+        double vpBottom = viewportY + viewportHeight + VIEWPORT_MARGIN;
+
+        // Node is visible if it intersects the viewport
+        return nodeX + nodeWidth >= vpLeft &&
+               nodeX <= vpRight &&
+               nodeY + nodeHeight >= vpTop &&
+               nodeY <= vpBottom;
+    }
+
+    /**
+     * Checks if any child of this node might be visible in the viewport.
+     * Used to determine if we should traverse into children for rendering.
+     *
+     * @param node the parent node
+     * @return true if any children might be visible
+     */
+    private boolean hasVisibleChildren(VisualNode node) {
+        if (!viewportCullingEnabled || !node.isExpanded() || !node.hasChildren()) {
+            return false;
+        }
+
+        // Quick check: if the subtree bounds intersect viewport, children might be visible
+        double[] subtreeBounds = calculateSubtreeBounds(node);
+        double subtreeRight = subtreeBounds[0] * zoomLevel;
+        double subtreeBottom = subtreeBounds[1] * zoomLevel;
+
+        double vpRight = viewportX + viewportWidth + VIEWPORT_MARGIN;
+        double vpBottom = viewportY + viewportHeight + VIEWPORT_MARGIN;
+
+        // If subtree is entirely to the left of viewport or above it, no children are visible
+        return subtreeRight >= viewportX - VIEWPORT_MARGIN &&
+               subtreeBottom >= viewportY - VIEWPORT_MARGIN &&
+               node.getX() * zoomLevel <= vpRight;
+    }
+
+    /**
+     * Calculates the bounds of a subtree (node and all its expanded children).
+     *
+     * @param node the root of the subtree
+     * @return [maxX, maxY] coordinates
+     */
+    private double[] calculateSubtreeBounds(VisualNode node) {
+        double maxX = node.getX() + node.getWidth();
+        double maxY = node.getY() + node.getHeight();
+
+        if (node.isExpanded() && node.hasChildren()) {
+            for (VisualNode child : node.getChildren()) {
+                double[] childBounds = calculateSubtreeBounds(child);
+                maxX = Math.max(maxX, childBounds[0]);
+                maxY = Math.max(maxY, childBounds[1]);
+            }
+        }
+
+        return new double[]{maxX, maxY};
     }
 
     /**
@@ -645,17 +776,31 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
-     * Recursively renders the tree.
+     * Recursively renders the tree with viewport culling optimization.
+     * Only renders nodes that are visible within the current viewport.
      */
     private void renderTree(GraphicsContext gc, VisualNode node) {
-        // Render node
-        renderer.renderNode(gc, node, node.getX(), node.getY());
+        // Check if this node is visible in the viewport
+        boolean nodeVisible = isNodeInViewport(node);
+
+        // Render node only if visible
+        if (nodeVisible) {
+            renderer.renderNode(gc, node, node.getX(), node.getY());
+        }
 
         // Render connections and children
-        if (node.isExpanded()) {
-            for (VisualNode child : node.getChildren()) {
-                renderer.renderConnection(gc, node, child);
-                renderTree(gc, child);
+        if (node.isExpanded() && node.hasChildren()) {
+            // Check if any children might be visible before iterating
+            boolean shouldTraverseChildren = !viewportCullingEnabled || hasVisibleChildren(node);
+
+            if (shouldTraverseChildren) {
+                for (VisualNode child : node.getChildren()) {
+                    // Always render connection if parent was visible (connection might be partially visible)
+                    if (nodeVisible || isNodeInViewport(child)) {
+                        renderer.renderConnection(gc, node, child);
+                    }
+                    renderTree(gc, child);
+                }
             }
         }
     }
