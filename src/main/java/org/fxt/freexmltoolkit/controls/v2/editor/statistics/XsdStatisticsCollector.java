@@ -236,15 +236,58 @@ public class XsdStatisticsCollector {
     /**
      * Counts elements, types, and groups that came from a specific include/import source.
      * Returns int array: [elementCount, typeCount, groupCount]
+     * <p>
+     * Note: This method matches by resolved file path, not by include node ID.
+     * This ensures that duplicate includes (same file included from multiple places)
+     * show the correct statistics.
      */
     private int[] countComponentsFromSource(XsdNode sourceNode) {
         int elements = 0;
         int types = 0;
         int groups = 0;
 
-        String sourceNodeId = sourceNode.getId();
+        // Get the resolved path from the include/import node
+        Path resolvedPath = null;
+        if (sourceNode instanceof XsdInclude include) {
+            resolvedPath = include.getResolvedPath();
+        } else if (sourceNode instanceof XsdImport xsdImport) {
+            resolvedPath = xsdImport.getResolvedPath();
+        }
 
-        // Traverse schema children and count nodes from this source
+        if (resolvedPath == null) {
+            // Fall back to ID-based matching if no resolved path
+            return countComponentsFromSourceById(sourceNode.getId());
+        }
+
+        // Traverse schema children and count nodes from this source file
+        for (XsdNode child : schema.getChildren()) {
+            IncludeSourceInfo sourceInfo = child.getSourceInfo();
+            if (sourceInfo != null && !sourceInfo.isMainSchema()) {
+                Path childSourceFile = sourceInfo.getSourceFile();
+                if (childSourceFile != null && childSourceFile.equals(resolvedPath)) {
+                    if (child instanceof XsdElement) {
+                        elements++;
+                    } else if (child instanceof XsdComplexType || child instanceof XsdSimpleType) {
+                        types++;
+                    } else if (child instanceof XsdGroup || child instanceof XsdAttributeGroup) {
+                        groups++;
+                    }
+                }
+            }
+        }
+
+        return new int[]{elements, types, groups};
+    }
+
+    /**
+     * Fallback method that counts components by include node ID.
+     * Used when resolved path is not available.
+     */
+    private int[] countComponentsFromSourceById(String sourceNodeId) {
+        int elements = 0;
+        int types = 0;
+        int groups = 0;
+
         for (XsdNode child : schema.getChildren()) {
             IncludeSourceInfo sourceInfo = child.getSourceInfo();
             if (sourceInfo != null && !sourceInfo.isMainSchema()) {
