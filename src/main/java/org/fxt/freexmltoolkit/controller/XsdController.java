@@ -670,11 +670,10 @@ public class XsdController implements FavoritesParentController {
                     noFileLoadedPane.setManaged(true);
                     xsdInfoPane.setVisible(false);
                     xsdInfoPane.setManaged(false);
-                } else if (graphicalViewPending && !graphicalViewInitialized && pendingXsdContentForGraphicalView != null) {
-                    // OPTIMIZATION: Deferred graphical view loading
-                    // User switched to XSD tab - now load the graphical view
-                    logger.info("XSD tab selected with pending graphical view - triggering deferred load");
-                    loadXsdIntoGraphicViewV2(pendingXsdContentForGraphicalView);
+                } else if (graphicalViewPending && !graphicalViewInitialized && cachedXsdSchema != null) {
+                    // Schema was already parsed - just create the graphical view from cached schema
+                    logger.info("XSD tab selected - creating graphical view from cached schema");
+                    createGraphicalViewFromCachedSchema(null);
                 }
             }
         });
@@ -873,18 +872,18 @@ public class XsdController implements FavoritesParentController {
             boolean contentChanged = !currentText.equals(cachedXsdContent) || xsdContentDirty;
 
             if (contentChanged) {
-                // Content has changed: full reload
+                // Content has changed: full reload with distribution to all tabs
                 logger.debug("XSD content has changed, reloading schema from text...");
-                // Reset deferred loading state for new content
                 graphicalViewInitialized = false;
                 pendingXsdContentForGraphicalView = currentText;
                 graphicalViewPending = true;
-                loadXsdIntoGraphicViewV2(currentText);
-                xsdContentDirty = false;  // Reset dirty flag after successful parse
-            } else if (graphicalViewPending && !graphicalViewInitialized && pendingXsdContentForGraphicalView != null) {
-                // Deferred loading: content is cached but graphical view was never initialized
-                logger.debug("Triggering deferred graphical view load on tab switch");
-                loadXsdIntoGraphicViewV2(pendingXsdContentForGraphicalView);
+                // Parse and distribute to all tabs, then create graphical view
+                parseSchemaAndDistribute(currentText, true);
+                xsdContentDirty = false;
+            } else if (graphicalViewPending && !graphicalViewInitialized && cachedXsdSchema != null) {
+                // Deferred loading: schema is cached but graphical view was never initialized
+                logger.debug("Triggering deferred graphical view creation from cached schema");
+                createGraphicalViewFromCachedSchema(null);
             } else if (cachedXsdSchema != null && currentGraphViewV2 != null) {
                 // Content unchanged and view already exists: instant switch
                 logger.debug("XSD content unchanged, instant view switch (no reload needed)");
@@ -892,7 +891,7 @@ public class XsdController implements FavoritesParentController {
             } else {
                 // No valid cache: full reload (safe fallback)
                 logger.debug("Schema cache unavailable or invalid, performing full load...");
-                loadXsdIntoGraphicViewV2(currentText);
+                parseSchemaAndDistribute(currentText, true);
                 xsdContentDirty = false;
             }
         } catch (Exception e) {
@@ -1316,29 +1315,15 @@ public class XsdController implements FavoritesParentController {
                     }
                     loadXsdContent(xsdContent);
 
-                    // OPTIMIZATION: Deferred graphical view loading
-                    // Only load the graphical view immediately if the XSD tab is currently selected.
-                    // Otherwise, store the content for deferred loading when the user switches to the XSD tab.
-                    // This prevents unnecessary resource consumption when users primarily use the text view.
-                    graphicalViewInitialized = false;  // Reset for new file
+                    // Reset graphical view state for new file
+                    graphicalViewInitialized = false;
                     pendingXsdContentForGraphicalView = xsdContent;
                     graphicalViewPending = true;
 
-                    if (xsdTab != null && xsdTab.isSelected()) {
-                        // XSD tab is active - load graphical view immediately
-                        logger.debug("XSD tab is selected, loading graphical view immediately");
-                        loadXsdIntoGraphicViewV2(xsdContent);
-                    } else {
-                        // XSD tab is not active - show placeholder for deferred loading
-                        logger.debug("XSD tab is not selected, deferring graphical view load");
-                        showGraphicalViewPlaceholder();
-                        if (xsdDiagramProgress != null) {
-                            xsdDiagramProgress.setVisible(false);
-                        }
-                        if (statusText != null) {
-                            statusText.setText("XSD file loaded. Graphical view will load when tab is selected.");
-                        }
-                    }
+                    // ALWAYS parse the schema immediately so all tabs have data
+                    // Only defer the graphical view (XsdGraphView) creation
+                    logger.debug("Parsing XSD schema immediately to populate all tabs");
+                    parseSchemaAndDistribute(xsdContent, xsdTab != null && xsdTab.isSelected());
                 } catch (Exception ex) {
                     logger.error("Error processing XSD content: {}", file.getAbsolutePath(), ex);
                     showXsdLoadingError(file, "Could not process XSD content: " + ex.getMessage());
@@ -1545,17 +1530,18 @@ public class XsdController implements FavoritesParentController {
             // Update the text editor
             sourceCodeEditor.getCodeArea().replaceText(updatedXsd);
 
-            // Rebuild the V2 diagram view only if requested
-            // V2 editor is now always active (toggle button removed)
+            // Rebuild and distribute to all tabs if requested
             if (rebuildDiagram) {
-                loadXsdIntoGraphicViewV2(updatedXsd);
+                // Parse schema and distribute to all tabs (Type Editor, Type Library, Schema Analysis)
+                graphicalViewInitialized = false;
+                pendingXsdContentForGraphicalView = updatedXsd;
+                graphicalViewPending = true;
+                parseSchemaAndDistribute(updatedXsd, true);
             }
 
             // Mark as modified
             hasUnsavedChanges = true;
             statusText.setText("XSD modified - changes not saved to file");
-
-            // V1 DOM manipulator update removed - V2 handles updates automatically
         }
     }
 
@@ -1577,10 +1563,16 @@ public class XsdController implements FavoritesParentController {
             graphViewPlaceholder = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphViewPlaceholder();
             graphViewPlaceholder.setOnLoadRequested(() -> {
                 // User clicked "Load Graphical View" button
-                if (pendingXsdContentForGraphicalView != null) {
-                    logger.info("User requested graphical view load via placeholder button");
+                if (cachedXsdSchema != null) {
+                    // Schema already parsed - create graphical view from cache
+                    logger.info("User requested graphical view load via placeholder button (using cached schema)");
                     graphViewPlaceholder.showLoading("Initializing graphical view...");
-                    loadXsdIntoGraphicViewV2(pendingXsdContentForGraphicalView);
+                    createGraphicalViewFromCachedSchema(null);
+                } else if (pendingXsdContentForGraphicalView != null) {
+                    // Fallback: parse and create (should not happen normally)
+                    logger.info("User requested graphical view load via placeholder button (parsing required)");
+                    graphViewPlaceholder.showLoading("Initializing graphical view...");
+                    parseSchemaAndDistribute(pendingXsdContentForGraphicalView, true);
                 }
             });
         } else {
@@ -1606,14 +1598,18 @@ public class XsdController implements FavoritesParentController {
     }
 
     /**
-     * Loads XSD content into the V2 graphical view using the new model-based architecture.
+     * Parses the XSD schema and distributes it to all tabs (Type Editor, Type Library, Schema Analysis).
+     * Optionally creates the graphical view (XsdGraphView) if the XSD tab is currently selected.
      * <p>
-     * Note: This method uses XsdNodeFactory directly for optimal V2 model creation.
-     * For unified schema parsing, use {@link org.fxt.freexmltoolkit.service.xsd.XsdParsingService}
-     * with {@link org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter}.
+     * This method separates schema parsing (always done immediately) from graphical view creation
+     * (deferred until the XSD tab is selected) to ensure all tabs have access to schema data
+     * even if the user doesn't view the graphical representation.
      * </p>
+     *
+     * @param xsdContent the XSD content as a string
+     * @param createGraphicalView if true, creates the XsdGraphView immediately; otherwise shows placeholder
      */
-    private void loadXsdIntoGraphicViewV2(String xsdContent) {
+    private void parseSchemaAndDistribute(String xsdContent, boolean createGraphicalView) {
         // Store factory reference to get imported schemas after parsing
         final org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory[] factoryRef =
                 new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory[1];
@@ -1623,23 +1619,19 @@ public class XsdController implements FavoritesParentController {
             protected org.fxt.freexmltoolkit.controls.v2.model.XsdSchema call() throws Exception {
                 updateMessage("Parsing XSD schema...");
 
-                // Use new XsdNodeFactory to parse the schema
+                // Use XsdNodeFactory to parse the schema
                 org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory factory =
                         new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
-                factoryRef[0] = factory;  // Store factory reference
+                factoryRef[0] = factory;
 
                 updateMessage("Processing schema elements...");
                 java.nio.file.Path mainSchemaFile = currentXsdFile != null ? currentXsdFile.toPath() : null;
                 java.nio.file.Path baseDir = mainSchemaFile != null ? mainSchemaFile.getParent() : null;
-                // Use fromStringWithSchemaFile to enable include tracking for nodes from included files
-                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = factory.fromStringWithSchemaFile(xsdContent, mainSchemaFile, baseDir);
-
-                updateMessage("Creating graphical representation...");
-                return schema;
+                return factory.fromStringWithSchemaFile(xsdContent, mainSchemaFile, baseDir);
             }
         };
 
-        // Bind status text to task message (unbind first in case previous task is still bound)
+        // Bind status text to task message
         if (statusText != null) {
             statusText.textProperty().unbind();
             statusText.textProperty().bind(task.messageProperty());
@@ -1652,124 +1644,136 @@ public class XsdController implements FavoritesParentController {
             }
 
             org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = task.getValue();
-            xsdStackPaneV2.getChildren().clear();
-
             if (schema != null) {
-                // Cache the successfully parsed schema for view switching optimization
+                // Cache the successfully parsed schema
                 cachedXsdSchema = schema;
                 cachedXsdContent = xsdContent;
-                xsdContentDirty = false;  // Content is now in sync with schema
-                isSchemaLoaded = true;  // Mark that a valid schema is now available
+                xsdContentDirty = false;
+                isSchemaLoaded = true;
 
-                // Mark graphical view as initialized (deferred loading optimization)
-                graphicalViewInitialized = true;
-                graphicalViewPending = false;
-                logger.debug("Graphical view initialized successfully");
-
-                // Use XsdSchema-based constructor
-                currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(schema);
-
-                // Set imported schemas from factory (for ref resolution to imported elements)
-                if (factoryRef[0] != null) {
-                    java.util.Map<String, org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> importedSchemas =
-                            factoryRef[0].getImportedSchemas();
-                    currentGraphViewV2.setImportedSchemas(importedSchemas);
-                }
-
-                // Enable edit mode on the existing editor context (created by XsdGraphView)
-                // IMPORTANT: Use the existing context to ensure SelectionModel is shared
-                // with XsdPropertiesPanel which was created in XsdGraphView.setupLayout()
-                org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext =
-                        currentGraphViewV2.getEditorContext();
-                editorContext.setEditMode(true);
-
-                // IMPORTANT: Set callbacks AFTER setEditorContext (which recreates contextMenuFactory)
-                // Set Type Editor callbacks for context menu
-                currentGraphViewV2.setOpenComplexTypeEditorCallback(this::openComplexTypeEditor);
-                currentGraphViewV2.setOpenSimpleTypeEditorCallback(this::openSimpleTypeEditor);
-
-                // Update TypeEditorTabManager with loaded schema
+                // ALWAYS distribute schema to all tabs immediately
+                logger.info("Schema parsed successfully, distributing to all tabs");
                 updateTypeEditorWithSchema(schema);
 
-                xsdStackPaneV2.getChildren().add(currentGraphViewV2);
-
-                // Update UI visibility for graphic tab
-                if (noFileLoadedPane != null) {
-                    noFileLoadedPane.setVisible(false);
-                    noFileLoadedPane.setManaged(false);
-                }
-                if (xsdStackPaneV2 != null) {
-                    xsdStackPaneV2.setVisible(true);
-                    xsdStackPaneV2.setManaged(true);
-                }
-                if (xsdInfoPane != null) {
-                    xsdInfoPane.setVisible(true);
-                    xsdInfoPane.setManaged(true);
-
-                    // Update info labels
-                    if (xsdInfoPathLabel != null && currentXsdFile != null) {
-                        xsdInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
+                if (createGraphicalView) {
+                    // XSD tab is selected - create graphical view now
+                    logger.debug("Creating graphical view immediately (XSD tab is selected)");
+                    createGraphicalViewFromCachedSchema(factoryRef[0]);
+                } else {
+                    // XSD tab not selected - show placeholder, graphical view will be created on tab switch
+                    logger.debug("Deferring graphical view creation (XSD tab not selected)");
+                    showGraphicalViewPlaceholder();
+                    if (xsdDiagramProgress != null) {
+                        xsdDiagramProgress.setVisible(false);
                     }
-                    if (xsdInfoNamespaceLabel != null) {
-                        xsdInfoNamespaceLabel.setText(schema.getTargetNamespace() != null ?
-                            schema.getTargetNamespace() : "No target namespace");
-                    }
-                    if (xsdInfoVersionLabel != null) {
-                        // Detect XSD version based on features used (1.0 or 1.1)
-                        xsdInfoVersionLabel.setText("XSD " + schema.detectXsdVersion());
+                    if (statusText != null) {
+                        statusText.setText("XSD file loaded. Switch to XSD tab to view graphical representation.");
                     }
                 }
-
-                logger.info("XSD loaded into V2 editor with edit mode enabled: {} global elements",
-                        schema.getChildren().stream()
-                                .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement)
-                                .count());
-
-                // Hide progress indicator and update status
-                if (xsdDiagramProgress != null) {
-                    xsdDiagramProgress.setVisible(false);
-                }
-                if (statusText != null) {
-                    statusText.setText("XSD file successfully loaded");
-                }
-
-                // Enable save buttons after successful V2 editor load
             } else {
-                javafx.scene.control.Label errorLabel = new javafx.scene.control.Label("Failed to parse XSD schema");
-                xsdStackPaneV2.getChildren().add(errorLabel);
-
-                // Hide progress indicator and show error
-                if (xsdDiagramProgress != null) {
-                    xsdDiagramProgress.setVisible(false);
-                }
+                logger.error("Schema parsing returned null");
                 if (statusText != null) {
-                    statusText.setText("Error parsing XSD schema");
+                    statusText.setText("Error: Failed to parse XSD schema");
                 }
             }
         });
 
         task.setOnFailed(event -> {
-            // Unbind status text
             if (statusText != null) {
                 statusText.textProperty().unbind();
             }
-
-            logger.error("Failed to load XSD into V2 editor", task.getException());
-            javafx.scene.control.Label errorLabel = new javafx.scene.control.Label(
-                    "Error loading XSD: " + task.getException().getMessage());
-            xsdStackPaneV2.getChildren().clear();
-            xsdStackPaneV2.getChildren().add(errorLabel);
-
-            // Hide progress indicator and show error
+            Throwable ex = task.getException();
+            logger.error("Error parsing XSD schema", ex);
+            if (statusText != null) {
+                statusText.setText("Error parsing XSD: " + (ex != null ? ex.getMessage() : "Unknown error"));
+            }
             if (xsdDiagramProgress != null) {
                 xsdDiagramProgress.setVisible(false);
-            }
-            if (statusText != null) {
-                statusText.setText("Error loading into V2 editor: " + task.getException().getMessage());
             }
         });
 
         executorService.submit(task);
+    }
+
+    /**
+     * Creates the graphical view (XsdGraphView) from the cached schema.
+     * Called either immediately when XSD tab is selected during file load,
+     * or when user switches to the XSD tab after the schema has been parsed.
+     *
+     * @param factory the XsdNodeFactory used for parsing (may be null if called from tab switch)
+     */
+    private void createGraphicalViewFromCachedSchema(org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory factory) {
+        if (cachedXsdSchema == null) {
+            logger.warn("Cannot create graphical view: no cached schema available");
+            return;
+        }
+
+        xsdStackPaneV2.getChildren().clear();
+
+        // Use XsdSchema-based constructor
+        currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(cachedXsdSchema);
+
+        // Set imported schemas from factory (for ref resolution to imported elements)
+        if (factory != null) {
+            java.util.Map<String, org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> importedSchemas =
+                    factory.getImportedSchemas();
+            currentGraphViewV2.setImportedSchemas(importedSchemas);
+        }
+
+        // Enable edit mode on the existing editor context
+        org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext =
+                currentGraphViewV2.getEditorContext();
+        editorContext.setEditMode(true);
+
+        // Set Type Editor callbacks for context menu
+        currentGraphViewV2.setOpenComplexTypeEditorCallback(this::openComplexTypeEditor);
+        currentGraphViewV2.setOpenSimpleTypeEditorCallback(this::openSimpleTypeEditor);
+
+        xsdStackPaneV2.getChildren().add(currentGraphViewV2);
+
+        // Mark graphical view as initialized
+        graphicalViewInitialized = true;
+        graphicalViewPending = false;
+        logger.debug("Graphical view created successfully");
+
+        // Update UI visibility for graphic tab
+        if (noFileLoadedPane != null) {
+            noFileLoadedPane.setVisible(false);
+            noFileLoadedPane.setManaged(false);
+        }
+        if (xsdStackPaneV2 != null) {
+            xsdStackPaneV2.setVisible(true);
+            xsdStackPaneV2.setManaged(true);
+        }
+        if (xsdInfoPane != null) {
+            xsdInfoPane.setVisible(true);
+            xsdInfoPane.setManaged(true);
+
+            // Update info labels
+            if (xsdInfoPathLabel != null && currentXsdFile != null) {
+                xsdInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
+            }
+            if (xsdInfoNamespaceLabel != null) {
+                xsdInfoNamespaceLabel.setText(cachedXsdSchema.getTargetNamespace() != null ?
+                    cachedXsdSchema.getTargetNamespace() : "No target namespace");
+            }
+            if (xsdInfoVersionLabel != null) {
+                xsdInfoVersionLabel.setText("XSD " + cachedXsdSchema.detectXsdVersion());
+            }
+        }
+
+        logger.info("XSD graphical view created: {} global elements",
+                cachedXsdSchema.getChildren().stream()
+                        .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement)
+                        .count());
+
+        // Hide progress indicator and update status
+        if (xsdDiagramProgress != null) {
+            xsdDiagramProgress.setVisible(false);
+        }
+        if (statusText != null) {
+            statusText.setText("XSD file loaded successfully");
+        }
     }
 
     // ======================================================================
@@ -1795,9 +1799,12 @@ public class XsdController implements FavoritesParentController {
                 // Load the new XSD content into the editor
                 loadXsdContent(xsdContent);
 
-                // Also load into V2 graphic view (Type Editor, Type Library, etc.)
-                // This ensures the Type Editor tab and Type Library are populated with the new schema
-                loadXsdIntoGraphicViewV2(xsdContent);
+                // Parse schema and distribute to all tabs (Type Editor, Type Library, Schema Analysis)
+                // Create graphical view immediately since user is creating a new file
+                graphicalViewInitialized = false;
+                pendingXsdContentForGraphicalView = xsdContent;
+                graphicalViewPending = true;
+                parseSchemaAndDistribute(xsdContent, true);
 
                 // Clear current file reference (this is a new unsaved file)
                 currentXsdFile = null;
