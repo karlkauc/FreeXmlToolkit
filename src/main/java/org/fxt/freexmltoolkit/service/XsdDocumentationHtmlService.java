@@ -600,12 +600,14 @@ public class XsdDocumentationHtmlService {
 
     /**
      * Generates the Data Dictionary Excel export file.
+     * Uses the same language filter as the HTML documentation.
      */
     private void generateDataDictionaryExcel(List<XsdExtendedElement> elements, String fileName) {
         try {
             DataDictionaryExcelExporter exporter = new DataDictionaryExcelExporter(xsdDocumentationData, this);
             File excelFile = new File(outputDirectory, fileName);
-            exporter.exportToExcel(excelFile, elements);
+            // Pass includedLanguages to ensure Excel uses the same language filter as HTML
+            exporter.exportToExcel(excelFile, elements, includedLanguages);
             logger.info("Generated Data Dictionary Excel: {}", excelFile.getAbsolutePath());
         } catch (Exception e) {
             logger.error("Failed to generate Data Dictionary Excel", e);

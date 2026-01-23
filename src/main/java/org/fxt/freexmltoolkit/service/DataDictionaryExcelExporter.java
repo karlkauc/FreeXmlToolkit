@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Exports Data Dictionary content to Excel format with multi-language support.
@@ -94,6 +95,18 @@ public class DataDictionaryExcelExporter {
      * @param elements   the list of elements to export
      */
     public void exportToExcel(File outputFile, List<XsdExtendedElement> elements) {
+        exportToExcel(outputFile, elements, null);
+    }
+
+    /**
+     * Exports the Data Dictionary to an Excel file with one sheet per language.
+     * When includedLanguages is specified, only those languages will be exported.
+     *
+     * @param outputFile        the output Excel file
+     * @param elements          the list of elements to export
+     * @param includedLanguages the languages to include, or null for all languages
+     */
+    public void exportToExcel(File outputFile, List<XsdExtendedElement> elements, Set<String> includedLanguages) {
         logger.info("Exporting Data Dictionary to Excel: {}", outputFile.getAbsolutePath());
 
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
@@ -107,6 +120,31 @@ public class DataDictionaryExcelExporter {
             Set<String> allLanguages = discoverLanguages(elements);
             logger.debug("Discovered languages: {}", allLanguages);
 
+            // Filter languages if includedLanguages is specified
+            Set<String> languagesToExport;
+            if (includedLanguages != null && !includedLanguages.isEmpty()) {
+                // Create a case-insensitive filter
+                Set<String> lowerCaseFilter = includedLanguages.stream()
+                        .map(String::toLowerCase)
+                        .collect(Collectors.toSet());
+                // Always include "default" if it's in the discovered languages and in the filter (or no filter)
+                languagesToExport = new LinkedHashSet<>();
+                for (String lang : allLanguages) {
+                    if (lowerCaseFilter.contains(lang.toLowerCase())) {
+                        languagesToExport.add(lang);
+                    }
+                }
+                // If filter specified but no matching languages found, fall back to all
+                if (languagesToExport.isEmpty()) {
+                    logger.warn("No matching languages found for filter {}, exporting all languages", includedLanguages);
+                    languagesToExport = allLanguages;
+                } else {
+                    logger.info("Filtered languages for Excel export: {}", languagesToExport);
+                }
+            } else {
+                languagesToExport = allLanguages;
+            }
+
             // Create styles for language sheets
             CellStyle headerStyle = createHeaderStyle(workbook);
             CellStyle mandatoryYesStyle = createMandatoryYesStyle(workbook);
@@ -118,10 +156,10 @@ public class DataDictionaryExcelExporter {
             initMetadataStyles(workbook);
 
             // Create metadata sheet FIRST (will be moved to position 0)
-            createMetadataSheet(workbook, elements, allLanguages);
+            createMetadataSheet(workbook, elements, languagesToExport);
 
             // Create one sheet per language
-            for (String language : allLanguages) {
+            for (String language : languagesToExport) {
                 String sheetName = language.toUpperCase();
                 // Excel sheet names have a 31 character limit and can't contain certain chars
                 if (sheetName.length() > 31) {
@@ -139,7 +177,7 @@ public class DataDictionaryExcelExporter {
                 workbook.write(out);
             }
 
-            logger.info("Excel export completed: {} sheets created (including Schema Info)", allLanguages.size() + 1);
+            logger.info("Excel export completed: {} sheets created (including Schema Info)", languagesToExport.size() + 1);
 
         } catch (IOException e) {
             logger.error("Failed to export Data Dictionary to Excel", e);
