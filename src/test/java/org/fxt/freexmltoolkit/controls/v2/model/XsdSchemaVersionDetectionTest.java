@@ -169,4 +169,41 @@ class XsdSchemaVersionDetectionTest {
 
         assertEquals("1.1", schema.detectXsdVersion());
     }
+
+    @Test
+    void testSchemaWithVcMinVersionIsXsd11() {
+        // Test that vc:minVersion="1.1" attribute is detected
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/test");
+
+        // Set the vc:minVersion attribute (as stored by XsdNodeFactory)
+        schema.setAdditionalAttribute("vc:minVersion", "1.1");
+
+        // Even without any XSD 1.1 elements, should detect as 1.1
+        XsdElement element = new XsdElement("TestElement");
+        element.setType("xs:string");
+        schema.addChild(element);
+
+        assertEquals("1.1", schema.detectXsdVersion());
+    }
+
+    @Test
+    void testSchemaWithMinVersionAttributeIsXsd11() {
+        // Test that minVersion attribute without prefix is also detected
+        XsdSchema schema = new XsdSchema();
+
+        schema.setAdditionalAttribute("minVersion", "1.1");
+
+        assertEquals("1.1", schema.detectXsdVersion());
+    }
+
+    @Test
+    void testSchemaWithVcMinVersion10IsXsd10() {
+        // Test that vc:minVersion="1.0" is correctly detected as 1.0
+        XsdSchema schema = new XsdSchema();
+
+        schema.setAdditionalAttribute("vc:minVersion", "1.0");
+
+        assertEquals("1.0", schema.detectXsdVersion());
+    }
 }

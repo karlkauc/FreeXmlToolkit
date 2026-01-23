@@ -380,7 +380,8 @@ public class XsdSchema extends XsdNode {
      * Detects the XSD version used in this schema.
      * Returns "1.1" if any XSD 1.1 features are detected, otherwise "1.0".
      * <p>
-     * XSD 1.1 features detected:
+     * XSD 1.1 detection methods:
+     * - vc:minVersion attribute on the schema element (explicit declaration)
      * - xs:assert (assertions in complexType)
      * - xs:override
      * - xs:openContent / xs:defaultOpenContent
@@ -390,6 +391,17 @@ public class XsdSchema extends XsdNode {
      * @return "1.1" if XSD 1.1 features are present, "1.0" otherwise
      */
     public String detectXsdVersion() {
+        // First check for explicit vc:minVersion declaration
+        String minVersion = additionalAttributes.get("vc:minVersion");
+        if (minVersion == null) {
+            // Also check without prefix (in case it was stored differently)
+            minVersion = additionalAttributes.get("minVersion");
+        }
+        if (minVersion != null && minVersion.contains("1.1")) {
+            return "1.1";
+        }
+
+        // Fall back to feature detection
         return hasXsd11Features(this) ? "1.1" : "1.0";
     }
 
