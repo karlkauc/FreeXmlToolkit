@@ -29,8 +29,8 @@
         </File>
     </Appenders>
     <Loggers>
-        <Root level="DEBUG">
-            <AppenderRef ref="Console" level="DEBUG"/>
+        <Root level="WARN">
+            <AppenderRef ref="Console" level="WARN"/>
             <!-- <appender-ref ref="MyFile" level="DEBUG"/> -->
         </Root>
         <Logger name="org.apache.poi" level="INFO" additivity="false">
@@ -65,6 +65,12 @@
             <AppenderRef ref="Console"/>
         </Logger>
         <Logger name="org.apache.fop.event" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextAnalyzer" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.fxt.freexmltoolkit.controls.v2.editor.managers.FoldingManagerV2" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>

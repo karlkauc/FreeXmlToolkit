@@ -3765,6 +3765,10 @@ public class XsdController implements FavoritesParentController {
                     statusText.setText("Sample XML generated but validation failed.");
                     int errorCount = result.errors().size();
                     logger.warn("XML validation failed: {} errors", errorCount);
+                    // Log each validation error for debugging
+                    result.errors().forEach(error ->
+                        logger.warn("Validation error: {}", error)
+                    );
                     // Show validation result in the panel with errors table
                     String summaryMessage = errorCount > 0 ?
                             String.format("%d error(s) found. See details below.", errorCount) :

@@ -1390,7 +1390,7 @@ public class XsdDocumentationService {
             return;
         }
         if (visitedOnPath.contains(node)) {
-            logger.warn("Recursion detected at node '{}' on path '{}'. Aborting this branch.", getAttributeValue(node, "name"), currentXPath);
+            logger.info("Recursion detected at node '{}' on path '{}'. Aborting this branch.", getAttributeValue(node, "name"), currentXPath);
             return;
         }
         visitedOnPath.add(node);
@@ -1892,6 +1892,16 @@ public class XsdDocumentationService {
                      .append("\"");
         }
 
+        // Collect and declare all used namespaces from imported/included schemas
+        Map<String, String> usedNamespaces = collectUsedNamespaces(rootElement, mandatoryOnly);
+        for (Map.Entry<String, String> ns : usedNamespaces.entrySet()) {
+            String prefix = ns.getKey();
+            String uri = ns.getValue();
+            if (prefix != null && !prefix.isEmpty() && uri != null && !uri.isEmpty()) {
+                xmlBuilder.append(" xmlns:").append(prefix).append("=\"").append(uri).append("\"");
+            }
+        }
+
         // Add root element attributes (those children starting with @)
         List<XsdExtendedElement> rootAttributes = rootElement.getChildren().stream()
                 .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
@@ -1925,8 +1935,65 @@ public class XsdDocumentationService {
         }
 
         xmlBuilder.append("</").append(rootName).append(">\n");
-        
+
         return xmlBuilder.toString();
+    }
+
+    /**
+     * Collects all namespaces used by elements in the tree.
+     * This is needed to declare namespace prefixes for elements from imported schemas.
+     * @param element The root element to start from
+     * @param mandatoryOnly Whether to only include mandatory elements
+     * @return Map of namespace prefix to namespace URI
+     */
+    private Map<String, String> collectUsedNamespaces(XsdExtendedElement element, boolean mandatoryOnly) {
+        Map<String, String> namespaces = new HashMap<>();
+        collectNamespacesRecursive(element, mandatoryOnly, namespaces, new HashSet<>());
+        return namespaces;
+    }
+
+    /**
+     * Recursively collects namespaces from an element and its children.
+     * @param element The current element
+     * @param mandatoryOnly Whether to only include mandatory elements
+     * @param namespaces The map to collect namespaces into
+     * @param visited Set of visited element XPaths to avoid infinite loops
+     */
+    private void collectNamespacesRecursive(XsdExtendedElement element, boolean mandatoryOnly,
+                                           Map<String, String> namespaces, Set<String> visited) {
+        if (element == null || (mandatoryOnly && !element.isMandatory())) {
+            return;
+        }
+
+        String elementXpath = element.getCurrentXpath();
+        if (elementXpath != null && visited.contains(elementXpath)) {
+            return; // Avoid circular references
+        }
+        if (elementXpath != null) {
+            visited.add(elementXpath);
+        }
+
+        String elementName = element.getElementName();
+        if (elementName == null || elementName.startsWith("@")) {
+            return; // Skip attributes and null names
+        }
+
+        // Check if this element has a namespace prefix (from imported schema)
+        String prefix = element.getSourceNamespacePrefix();
+        String namespace = element.getSourceNamespace();
+        if (prefix != null && !prefix.isEmpty() && namespace != null && !namespace.isEmpty()) {
+            namespaces.put(prefix, namespace);
+        }
+
+        // Process children recursively
+        List<XsdExtendedElement> childElements = element.getChildren().stream()
+                .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        for (XsdExtendedElement child : childElements) {
+            collectNamespacesRecursive(child, mandatoryOnly, namespaces, visited);
+        }
     }
 
     /**
@@ -2140,7 +2207,15 @@ public class XsdDocumentationService {
 
         for (int i = 0; i < repeatCount; i++) {
             String indent = "\t".repeat(indentLevel);
-            sb.append(indent).append("<").append(element.getElementName());
+
+            // Build qualified element name with namespace prefix if needed
+            String qualifiedName = element.getElementName();
+            String prefix = element.getSourceNamespacePrefix();
+            if (prefix != null && !prefix.isEmpty()) {
+                qualifiedName = prefix + ":" + qualifiedName;
+            }
+
+            sb.append(indent).append("<").append(qualifiedName);
 
             // Find all attributes for this element by searching for elements with @ prefix in the children
             List<XsdExtendedElement> attributes = element.getChildren().stream()
@@ -2181,7 +2256,7 @@ public class XsdDocumentationService {
                     }
                     sb.append(indent);
                 }
-                sb.append("</").append(element.getElementName()).append(">\n");
+                sb.append("</").append(qualifiedName).append(">\n");
             }
         }
     }
@@ -2289,7 +2364,15 @@ public class XsdDocumentationService {
 
         for (int i = 0; i < repeatCount; i++) {
             String indent = "\t".repeat(indentLevel);
-            sb.append(indent).append("<").append(element.getElementName());
+
+            // Build qualified element name with namespace prefix if needed
+            String qualifiedName = element.getElementName();
+            String prefix = element.getSourceNamespacePrefix();
+            if (prefix != null && !prefix.isEmpty()) {
+                qualifiedName = prefix + ":" + qualifiedName;
+            }
+
+            sb.append(indent).append("<").append(qualifiedName);
 
             // Find all attributes for this element by searching for elements with @ prefix in the children
             List<XsdExtendedElement> attributes = element.getChildren().stream()
@@ -2329,7 +2412,7 @@ public class XsdDocumentationService {
                     processChildElementsForGeneration(sb, childElements, mandatoryOnly, maxOccurrences, indentLevel + 1);
                     sb.append(indent);
                 }
-                sb.append("</").append(element.getElementName()).append(">\n");
+                sb.append("</").append(qualifiedName).append(">\n");
             }
         }
     }
