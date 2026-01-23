@@ -16,7 +16,6 @@ import org.controlsfx.control.PopOver;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.controller.MainController;
-import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
@@ -102,8 +101,6 @@ public class XmlEditor extends Tab {
     private final Label popOverLabel = new Label();
     private final PauseTransition hoverDelay = new PauseTransition(Duration.millis(500));
 
-    private SearchReplaceController searchController;
-    private PopOver searchPopOver;
 
     // --- Sidebar Components ---
     private XmlEditorSidebarController sidebarController;
@@ -535,21 +532,6 @@ public class XmlEditor extends Tab {
                 event.consume();
             }
         });
-
-        try {
-            // This could also be created programmatically if we want to remove all FXML dependencies
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/pages/controls/SearchReplaceControl.fxml"));
-            Pane searchPane = loader.load();
-            searchController = loader.getController();
-            // searchController.setXmlCodeEditor() is deprecated - V1 editor removed
-
-            searchPopOver = new PopOver(searchPane);
-            searchPopOver.setDetachable(false);
-            searchPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
-            searchPopOver.setTitle("Find/Replace");
-        } catch (IOException e) {
-            logger.error("Failed to initialize search popup.", e);
-        }
     }
 
     private void showSearchPopup(boolean isSearch) {
