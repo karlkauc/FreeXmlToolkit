@@ -13,11 +13,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Generates sample data for XSD elements based on their type,
@@ -28,6 +26,9 @@ public class XsdSampleDataGenerator {
     private static final Logger logger = LogManager.getLogger(XsdSampleDataGenerator.class);
     private static final int MAX_RECURSION_DEPTH = 10;
     private static final int MAX_PATTERN_GENERATION_ATTEMPTS = 10;
+    private final AtomicInteger idCounter = new AtomicInteger(1);
+    private final List<String> generatedIds = new ArrayList<>();
+    private final Deque<String> reservedIdsForRefs = new ArrayDeque<>();
 
     /**
      * Represents a segment of a regex pattern for structure-aware generation.
@@ -188,9 +189,8 @@ public class XsdSampleDataGenerator {
 
             // NMTOKEN and ID types - these need valid values, not empty strings
             case "nmtoken", "nmtokens" -> generateNmToken(effectiveRestriction);
-            // Use a fixed ID that can be referenced by IDREFs
-            case "id" -> "id_generated";
-            case "idref", "idrefs" -> "id_generated";
+            case "id" -> generateUniqueId();
+            case "idref", "idrefs" -> generateIdReference();
             case "anyuri" -> "http://example.com/sample";
 
             // Float and Double types - use Locale.US to ensure dot decimal separator
@@ -779,6 +779,29 @@ public class XsdSampleDataGenerator {
         }
 
         return base;
+    }
+
+    private String generateUniqueId() {
+        String id;
+        if (!reservedIdsForRefs.isEmpty()) {
+            id = reservedIdsForRefs.removeFirst();
+        } else {
+            id = "id_generated_" + idCounter.getAndIncrement();
+        }
+        generatedIds.add(id);
+        return id;
+    }
+
+    private String generateIdReference() {
+        if (!generatedIds.isEmpty()) {
+            return generatedIds.getFirst();
+        }
+        if (!reservedIdsForRefs.isEmpty()) {
+            return reservedIdsForRefs.getFirst();
+        }
+        String id = "id_generated_" + idCounter.getAndIncrement();
+        reservedIdsForRefs.addLast(id);
+        return id;
     }
 
     private String generateStringSample(RestrictionInfo restriction) {

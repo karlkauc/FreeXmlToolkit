@@ -32,6 +32,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.ls.LSInput;
 import org.xml.sax.InputSource;
 
 import javax.xml.namespace.NamespaceContext;
@@ -96,7 +97,7 @@ public class XsdDocumentationService {
     private Map<String, Node> attributeGroupMap = new HashMap<>();
 
     // Language configuration for documentation generation
-    private Set<String> discoveredLanguages = new LinkedHashSet<>();
+    private final Set<String> discoveredLanguages = new LinkedHashSet<>();
     private Set<String> includedLanguages = null; // null = all languages
     private String fallbackLanguage = null; // Fallback language when "default" is not available
 
@@ -107,6 +108,8 @@ public class XsdDocumentationService {
 
     // Thread-local storage for element reference nodes (to preserve cardinality attributes)
     private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<String> forcedNamespacePrefixThreadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<String> forcedNamespaceUriThreadLocal = new ThreadLocal<>();
 
     // Provides a separate, thread-safe Transformer instance for each thread.
     // This avoids the cost of constant recreation in a parallel environment.
@@ -1403,7 +1406,7 @@ public class XsdDocumentationService {
                 // These are included in documentation but marked as external references
                 if (ref.contains(":") && isExternalNamespaceReference(ref)) {
                     logger.debug("Processing external namespace reference for documentation: {}", ref);
-                    processExternalNamespaceReference(node, ref, currentXPath, parentXPath, level);
+                    processExternalNamespaceReference(node, ref, currentXPath, parentXPath, level, visitedOnPath);
                     return;
                 }
 
@@ -1452,12 +1455,10 @@ public class XsdDocumentationService {
      * @param currentXPath The current XPath position
      * @param parentXPath The parent XPath
      * @param level      The nesting level
+     * @param visitedOnPath Set of visited nodes to avoid recursion loops
      */
-    private void processExternalNamespaceReference(Node node, String ref, String currentXPath, String parentXPath, int level) {
-        XsdExtendedElement extendedElem = new XsdExtendedElement();
-        extendedElem.setUseMarkdownRenderer(this.useMarkdownRenderer);
-        extendedElem.setCurrentNode(node);
-
+    private void processExternalNamespaceReference(Node node, String ref, String currentXPath, String parentXPath,
+                                                   int level, Set<Node> visitedOnPath) {
         // Extract element name from the reference (e.g., "ds:Signature" -> "Signature")
         String elementName = ref.contains(":") ? ref.substring(ref.lastIndexOf(":") + 1) : ref;
         String prefix = ref.contains(":") ? ref.substring(0, ref.indexOf(":")) : "";
@@ -1465,6 +1466,40 @@ public class XsdDocumentationService {
         // Update XPath for this element
         String elementXPath = currentXPath + "/" + elementName;
 
+        String namespaceUri = getNamespaceUriForReference(ref);
+
+        // Try to get documentation from the imported schema if available
+        Node referencedNode = findReferencedNode("element", ref);
+        if (referencedNode != null) {
+            // Prefer building the full subtree from the referenced element
+            referenceNodeThreadLocal.set(node);
+            forcedNamespacePrefixThreadLocal.set(prefix);
+            forcedNamespaceUriThreadLocal.set(namespaceUri);
+            try {
+                traverseNode(referencedNode, elementXPath, parentXPath, level, visitedOnPath);
+            } finally {
+                referenceNodeThreadLocal.remove();
+                forcedNamespacePrefixThreadLocal.remove();
+                forcedNamespaceUriThreadLocal.remove();
+            }
+
+            XsdExtendedElement created = xsdDocumentationData.getExtendedXsdElementMap().get(elementXPath);
+            if (created != null) {
+                created.setExternalNamespaceReference(true);
+                created.setExternalNamespaceUri(namespaceUri);
+                if (created.getSourceNamespacePrefix() == null || created.getSourceNamespacePrefix().isBlank()) {
+                    created.setSourceNamespacePrefix(prefix);
+                }
+                if (created.getSourceNamespace() == null || created.getSourceNamespace().isBlank()) {
+                    created.setSourceNamespace(namespaceUri);
+                }
+            }
+            return;
+        }
+
+        XsdExtendedElement extendedElem = new XsdExtendedElement();
+        extendedElem.setUseMarkdownRenderer(this.useMarkdownRenderer);
+        extendedElem.setCurrentNode(node);
         extendedElem.setCounter(counter++);
         extendedElem.setLevel(level);
         extendedElem.setCurrentXpath(elementXPath);
@@ -1473,7 +1508,6 @@ public class XsdDocumentationService {
 
         // Mark as external namespace reference
         extendedElem.setExternalNamespaceReference(true);
-        String namespaceUri = getNamespaceUriForReference(ref);
         extendedElem.setExternalNamespaceUri(namespaceUri);
         extendedElem.setSourceNamespacePrefix(prefix);
         extendedElem.setSourceNamespace(namespaceUri);
@@ -1481,28 +1515,11 @@ public class XsdDocumentationService {
         // Set type information
         extendedElem.setElementType("External Reference (" + ref + ")");
 
-        // Try to get documentation from the imported schema if available
-        Node referencedNode = findReferencedNode("element", ref);
-        if (referencedNode != null) {
-            // Extract documentation from the referenced element using processAnnotations
-            Node annotationNode = getDirectChildElement(referencedNode, "annotation");
-            if (annotationNode != null) {
-                processAnnotations(annotationNode, extendedElem);
-            }
-            // Get type from referenced element
-            String refType = getAttributeValue(referencedNode, "type");
-            if (refType != null && !refType.isEmpty()) {
-                extendedElem.setElementType(refType);
-            }
-            // Store source code from referenced element
-            extendedElem.setSourceCode(nodeToString(referencedNode));
-        } else {
-            // Add a note that this is an imported element
-            extendedElem.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("default",
-                    "Element imported from namespace: " + (namespaceUri != null ? namespaceUri : ref)));
-            // Store source code from the reference node itself
-            extendedElem.setSourceCode(nodeToString(node));
-        }
+        // Add a note that this is an imported element
+        extendedElem.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("default",
+                "Element imported from namespace: " + (namespaceUri != null ? namespaceUri : ref)));
+        // Store source code from the reference node itself
+        extendedElem.setSourceCode(nodeToString(node));
 
         // Add to parent's children list
         if (parentXPath != null && xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
@@ -1555,6 +1572,16 @@ public class XsdDocumentationService {
                     .map(Map.Entry::getKey)
                     .findFirst()
                     .ifPresent(extendedElem::setSourceNamespacePrefix);
+        } else {
+            // Fallback for imported schemas when traversing an external reference subtree
+            String forcedNamespaceUri = forcedNamespaceUriThreadLocal.get();
+            if (forcedNamespaceUri != null && !forcedNamespaceUri.isBlank()) {
+                extendedElem.setSourceNamespace(forcedNamespaceUri);
+                String forcedPrefix = forcedNamespacePrefixThreadLocal.get();
+                if (forcedPrefix != null && !forcedPrefix.isBlank()) {
+                    extendedElem.setSourceNamespacePrefix(forcedPrefix);
+                }
+            }
         }
 
         // Add to parent's children list (only if not already added)
@@ -2540,6 +2567,12 @@ public class XsdDocumentationService {
      * @return true if the element would be empty, false otherwise
      */
     private boolean wouldProduceEmptyContainer(XsdExtendedElement element, boolean mandatoryOnly, int indentLevel) {
+        // External namespace references (like ds:Signature) should never be considered empty containers
+        // They reference elements defined in imported schemas and should be generated as self-closing tags
+        if (element.isExternalNamespaceReference()) {
+            return false;
+        }
+
         // Check if element has sample data (text content)
         String sampleData = element.getDisplaySampleData();
         if (sampleData != null && !sampleData.isEmpty()) {
@@ -2597,6 +2630,9 @@ public class XsdDocumentationService {
         }
 
         String prefix = ref.substring(0, ref.indexOf(":"));
+        if (prefix.isBlank()) {
+            return false;
+        }
 
         // Check if we have namespace information from the schema
         if (xsdDocumentationData != null && xsdDocumentationData.getNamespaces() != null) {
@@ -2604,12 +2640,28 @@ public class XsdDocumentationService {
             String targetNs = xsdDocumentationData.getTargetNamespace();
             String prefixNs = namespaces.get(prefix);
 
-            // If the prefix maps to a namespace different from the target namespace,
-            // and it's not the XSD namespace itself, it's an external namespace
-            if (prefixNs != null && targetNs != null && !prefixNs.equals(targetNs)
-                    && !prefixNs.equals(NS_URI)) {
-                return true;
+            // Skip if it's the XSD namespace itself (xs:, xsd:)
+            if (prefixNs != null && prefixNs.equals(NS_URI)) {
+                return false;
             }
+
+            // If the prefix maps to a known namespace:
+            // - If there's a targetNamespace, check if it's different
+            // - If there's no targetNamespace (unqualified schema), any imported namespace is external
+            if (prefixNs != null) {
+                if (targetNs == null || targetNs.isBlank()) {
+                    // No targetNamespace schema - any prefixed namespace reference is external
+                    return true;
+                }
+                // Has targetNamespace - check if prefix maps to a different namespace
+                return !prefixNs.equals(targetNs);
+            }
+        }
+
+        // Fallback: for schemas without a targetNamespace, treat any non-XSD prefixed ref as external
+        String targetNs = xsdDocumentationData != null ? xsdDocumentationData.getTargetNamespace() : null;
+        if (targetNs == null || targetNs.isBlank()) {
+            return !"xml".equals(prefix);
         }
 
         return false;
@@ -2627,9 +2679,23 @@ public class XsdDocumentationService {
         }
 
         String prefix = ref.substring(0, ref.indexOf(":"));
+        if (prefix.isBlank()) {
+            return null;
+        }
 
         if (xsdDocumentationData != null && xsdDocumentationData.getNamespaces() != null) {
-            return xsdDocumentationData.getNamespaces().get(prefix);
+            String namespaceUri = xsdDocumentationData.getNamespaces().get(prefix);
+            if (namespaceUri != null && !namespaceUri.isBlank()) {
+                return namespaceUri;
+            }
+        }
+
+        // Fallback: try to resolve from the main schema element
+        if (doc != null && doc.getDocumentElement() != null) {
+            String namespaceUri = doc.getDocumentElement().getAttribute("xmlns:" + prefix);
+            if (namespaceUri != null && !namespaceUri.isBlank()) {
+                return namespaceUri;
+            }
         }
 
         return null;
@@ -3474,79 +3540,90 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Simple LSInput implementation for resource resolution.
-     */
-    private static class LSInputImpl implements org.w3c.dom.ls.LSInput {
-        private final String publicId;
-        private final String systemId;
-        private final File file;
-
-        public LSInputImpl(String publicId, String systemId, File file) {
-            this.publicId = publicId;
-            this.systemId = systemId;
-            this.file = file;
-        }
+         * Simple LSInput implementation for resource resolution.
+         */
+        private record LSInputImpl(String publicId, String systemId, File file) implements LSInput {
 
         @Override
-        public java.io.Reader getCharacterStream() {
-            try {
-                return new java.io.FileReader(file);
-            } catch (Exception e) {
+            public Reader getCharacterStream() {
+                try {
+                    return new FileReader(file);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+
+            @Override
+            public void setCharacterStream(Reader characterStream) {
+            }
+
+            @Override
+            public InputStream getByteStream() {
+                try {
+                    return new FileInputStream(file);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+
+            @Override
+            public void setByteStream(InputStream byteStream) {
+            }
+
+            @Override
+            public String getStringData() {
                 return null;
             }
-        }
 
-        @Override
-        public void setCharacterStream(java.io.Reader characterStream) {}
+            @Override
+            public void setStringData(String stringData) {
+            }
 
-        @Override
-        public java.io.InputStream getByteStream() {
-            try {
-                return new java.io.FileInputStream(file);
-            } catch (Exception e) {
-                return null;
+            @Override
+            public String getSystemId() {
+                return systemId;
+            }
+
+            @Override
+            public void setSystemId(String systemId) {
+            }
+
+            @Override
+            public String getPublicId() {
+                return publicId;
+            }
+
+            @Override
+            public void setPublicId(String publicId) {
+            }
+
+            @Override
+            public String getBaseURI() {
+                return file.toURI().toString();
+            }
+
+            @Override
+            public void setBaseURI(String baseURI) {
+            }
+
+            @Override
+            public String getEncoding() {
+                return "UTF-8";
+            }
+
+            @Override
+            public void setEncoding(String encoding) {
+            }
+
+            @Override
+            public boolean getCertifiedText() {
+                return false;
+            }
+
+            @Override
+            public void setCertifiedText(boolean certifiedText) {
             }
         }
-
-        @Override
-        public void setByteStream(java.io.InputStream byteStream) {}
-
-        @Override
-        public String getStringData() { return null; }
-
-        @Override
-        public void setStringData(String stringData) {}
-
-        @Override
-        public String getSystemId() { return systemId; }
-
-        @Override
-        public void setSystemId(String systemId) {}
-
-        @Override
-        public String getPublicId() { return publicId; }
-
-        @Override
-        public void setPublicId(String publicId) {}
-
-        @Override
-        public String getBaseURI() { return file.toURI().toString(); }
-
-        @Override
-        public void setBaseURI(String baseURI) {}
-
-        @Override
-        public String getEncoding() { return "UTF-8"; }
-
-        @Override
-        public void setEncoding(String encoding) {}
-
-        @Override
-        public boolean getCertifiedText() { return false; }
-
-        @Override
-        public void setCertifiedText(boolean certifiedText) {}
-    }
 
     // --- General DOM/String Helper Methods ---
 
@@ -3558,8 +3635,7 @@ public class XsdDocumentationService {
         if (node == null || node.getAttributes() == null) return defaultValue;
 
         // Special handling for namespace-qualified attributes like xml:lang
-        if ("xml:lang".equals(attrName) && node instanceof Element) {
-            Element element = (Element) node;
+        if ("xml:lang".equals(attrName) && node instanceof Element element) {
             String value = element.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang");
             return (value != null && !value.isEmpty()) ? value : defaultValue;
         }
