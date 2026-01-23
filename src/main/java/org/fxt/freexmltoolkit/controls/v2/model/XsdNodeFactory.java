@@ -413,6 +413,15 @@ public class XsdNodeFactory {
 
         if (processedIncludes.contains(realPath)) {
             logger.debug("Schema '{}' already processed. Skipping duplicate include.", realPath);
+            // Mark the include as resolved even though we don't re-process it
+            // This ensures duplicate includes in the main schema show as resolved
+            if (xsdInclude != null) {
+                xsdInclude.setResolvedPath(realPath);
+                // Create a minimal schema reference to mark it as successfully resolved
+                XsdSchema alreadyIncludedSchema = new XsdSchema();
+                alreadyIncludedSchema.setMainSchemaPath(realPath);
+                xsdInclude.setIncludedSchema(alreadyIncludedSchema);
+            }
             return;
         }
 
