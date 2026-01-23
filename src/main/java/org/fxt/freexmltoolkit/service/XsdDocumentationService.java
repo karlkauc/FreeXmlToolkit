@@ -331,8 +331,13 @@ public class XsdDocumentationService {
             List<String> sortedLanguages = new ArrayList<>();
             sortedLanguages.add("default");
 
-            // Add other discovered languages sorted alphabetically
-            discoveredLanguages.stream()
+            // Use includedLanguages if set, otherwise use all discovered languages
+            Set<String> languagesToUse = (includedLanguages != null && !includedLanguages.isEmpty())
+                    ? includedLanguages
+                    : discoveredLanguages;
+
+            // Add other languages sorted alphabetically
+            languagesToUse.stream()
                     .filter(lang -> !"default".equalsIgnoreCase(lang))
                     .sorted()
                     .forEach(sortedLanguages::add);
