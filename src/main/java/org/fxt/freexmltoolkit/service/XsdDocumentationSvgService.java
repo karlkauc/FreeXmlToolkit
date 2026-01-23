@@ -61,6 +61,19 @@ public class XsdDocumentationSvgService {
     private File outputDirectory;
     XsdDocumentationData xsdDocumentationData;
 
+    // Favicon configuration for output files
+    private String faviconPath = null;
+
+    /**
+     * Sets the path to a custom favicon file for HTML documentation.
+     * Supported formats: .ico, .png, .svg
+     *
+     * @param faviconPath Path to the favicon file, or null/empty to not include a favicon
+     */
+    public void setFaviconPath(String faviconPath) {
+        this.faviconPath = faviconPath;
+    }
+
     // SVG Layout Constants
     private final int NODE_WIDTH = 200;
     private final int NODE_HEIGHT = 80;
@@ -124,6 +137,19 @@ public class XsdDocumentationSvgService {
 
         final var svgContent = generateCompleteSvgDiagram();
         context.setVariable("svgContent", svgContent);
+
+        // Add favicon info to context
+        if (faviconPath != null && !faviconPath.isBlank()) {
+            File faviconFile = new File(faviconPath);
+            if (faviconFile.exists() && faviconFile.isFile()) {
+                context.setVariable("hasFavicon", true);
+                context.setVariable("faviconFileName", faviconFile.getName());
+            } else {
+                context.setVariable("hasFavicon", false);
+            }
+        } else {
+            context.setVariable("hasFavicon", false);
+        }
 
         final var result = templateEngine.process("templateSvg", context);
         final var outputFileName = Paths.get(outputDirectory.getPath(), "schema-svg.html").toFile().getAbsolutePath();

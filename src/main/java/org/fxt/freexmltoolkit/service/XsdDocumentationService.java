@@ -105,6 +105,7 @@ public class XsdDocumentationService {
     private boolean showDocumentationInSvg = true; // Whether to show documentation in SVG diagrams
     private boolean generateSvgOverviewPage = true; // Whether to generate the schema-svg.html overview page
     private boolean addMetadataInOutput = false; // Whether to add metadata comments to generated HTML files
+    private String faviconPath = null; // Optional path to custom favicon for HTML documentation
 
     // Thread-local storage for element reference nodes (to preserve cardinality attributes)
     private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
@@ -187,6 +188,25 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Sets the path to a custom favicon file for HTML documentation.
+     * Supported formats: .ico, .png, .svg
+     *
+     * @param faviconPath Path to the favicon file, or null/empty to not include a favicon
+     */
+    public void setFaviconPath(String faviconPath) {
+        this.faviconPath = faviconPath;
+    }
+
+    /**
+     * Returns the configured favicon path.
+     *
+     * @return Path to the favicon file, or null if not set
+     */
+    public String getFaviconPath() {
+        return faviconPath;
+    }
+
+    /**
      * Returns all languages discovered during XSD parsing.
      * Must be called after processXsd() has completed.
      *
@@ -260,9 +280,11 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.setXsdDocumentationService(this);
         xsdDocumentationHtmlService.setIncludedLanguages(this.includedLanguages);
         xsdDocumentationHtmlService.setAddMetadataInOutput(this.addMetadataInOutput);
+        xsdDocumentationHtmlService.setFaviconPath(this.faviconPath);
 
         xsdDocumentationSvgService.setOutputDirectory(outputDirectory);
         xsdDocumentationSvgService.setDocumentationData(xsdDocumentationData);
+        xsdDocumentationSvgService.setFaviconPath(this.faviconPath);
 
         // The ImageService is now centrally initialized here so it's ready for pre-creation.
         xsdDocumentationHtmlService.xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());

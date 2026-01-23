@@ -670,6 +670,21 @@
                                     <Tooltip text="Add HTML comments with creation details (timestamp, OS, app version) to all generated HTML files"/>
                                 </tooltip>
                             </CheckBox>
+
+                            <Separator style="-fx-padding: 5 0;"/>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Favicon:" prefWidth="100" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <TextField fx:id="faviconPath" HBox.hgrow="ALWAYS" promptText="Optional: Path to favicon file (.ico, .png, .svg)"/>
+                                <Button fx:id="browseFaviconButton" onAction="#handleBrowseFavicon">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                                    </graphic>
+                                    <tooltip>
+                                        <Tooltip text="Browse for favicon file"/>
+                                    </tooltip>
+                                </Button>
+                            </HBox>
                         </VBox>
 
                         <!-- Word-Specific Settings Card (hidden by default) -->

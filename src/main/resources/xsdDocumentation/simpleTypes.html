@@ -27,6 +27,8 @@
     <link href="assets/freexmltoolkit-docs.css" rel="stylesheet">
     <!-- PrismJS for Syntax Highlighting -->
     <link href="assets/prism.css" rel="stylesheet"/>
+    <!-- Favicon -->
+    <link th:if="${hasFavicon}" rel="icon" th:href="@{'assets/' + ${faviconFileName}}" type="image/x-icon"/>
 </head>
 <body class="font-sans text-slate-800" data-root-path="." data-search-index-path="search_index.json">
 

@@ -96,6 +96,28 @@ public class XsdDocumentationHtmlService {
     // Metadata configuration for output files
     private boolean addMetadataInOutput = false;
 
+    // Favicon configuration for output files
+    private String faviconPath = null;
+
+    /**
+     * Sets the path to a custom favicon file for HTML documentation.
+     * Supported formats: .ico, .png, .svg
+     *
+     * @param faviconPath Path to the favicon file, or null/empty to not include a favicon
+     */
+    public void setFaviconPath(String faviconPath) {
+        this.faviconPath = faviconPath;
+    }
+
+    /**
+     * Returns the configured favicon path.
+     *
+     * @return Path to the favicon file, or null if not set
+     */
+    public String getFaviconPath() {
+        return faviconPath;
+    }
+
     /**
      * Sets whether to add metadata comments to generated HTML files.
      *
@@ -229,7 +251,7 @@ public class XsdDocumentationHtmlService {
         context.setVariable("xsdGlobalElements", globalElements);
         context.setVariable("attributeFormDefault", xsdDocumentationData.getAttributeFormDefault());
         context.setVariable("elementFormDefault", xsdDocumentationData.getElementFormDefault());
-
+        addFaviconToContext(context);
 
         final var result = templateEngine.process("templateRootElement", context);
         final var outputFileName = Paths.get(outputDirectory.getPath(), "index.html").toFile().getAbsolutePath();
@@ -308,6 +330,7 @@ public class XsdDocumentationHtmlService {
                 }
             }
             context.setVariable("childElements", childElements);
+            addFaviconToContext(context);
 
             final var result = templateEngine.process("complexTypes/templateComplexType", context);
             final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", complexTypeName + ".html");
@@ -351,6 +374,7 @@ public class XsdDocumentationHtmlService {
             List<XsdExtendedElement> usedInElements = xsdDocumentationData.getTypeUsageMap()
                     .getOrDefault(typeName, Collections.emptyList());
             context.setVariable("usedInElements", usedInElements);
+            addFaviconToContext(context);
 
             final var result = templateEngine.process("simpleTypes/templateSimpleType", context);
             final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", typeName + ".html");
@@ -420,6 +444,7 @@ public class XsdDocumentationHtmlService {
             context.setVariable("diagramContent", generateDiagram(element));
             context.setVariable("breadCrumbs", generateBreadcrumbs(element));
             context.setVariable("namespace", formatNamespaces(xsdDocumentationData.getNamespaces()));
+            addFaviconToContext(context);
 
             final String html = templateEngine.process("details/templateDetail", context);
             final File outputFile = new File(outputDirectory + "/details", element.getPageName());
@@ -523,6 +548,7 @@ public class XsdDocumentationHtmlService {
         final var context = new Context();
         context.setVariable("xsdComplexTypes", xsdDocumentationData.getGlobalComplexTypes());
         context.setVariable("this", this);
+        addFaviconToContext(context);
         final var result = templateEngine.process("complexTypes", context);
         final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes.html");
         try {
@@ -536,6 +562,7 @@ public class XsdDocumentationHtmlService {
         final var context = new Context();
         context.setVariable("xsdSimpleTypes", xsdDocumentationData.getGlobalSimpleTypes());
         context.setVariable("this", this);
+        addFaviconToContext(context);
         final var result = templateEngine.process("simpleTypes", context);
         final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes.html");
         try {
@@ -561,6 +588,7 @@ public class XsdDocumentationHtmlService {
         context.setVariable("hasExcelExport", true);
         context.setVariable("excelFileName", excelFileName);
         context.setVariable("this", this);
+        addFaviconToContext(context);
         final var result = templateEngine.process("dataDictionary", context);
         final var outputFilePath = Paths.get(outputDirectory.getPath(), "dataDictionary.html");
         try {
@@ -648,6 +676,20 @@ public class XsdDocumentationHtmlService {
             copyAssets("/xsdDocumentation/assets/Roboto-Regular.ttf", outputDirectory);
             copyAssets("/xsdDocumentation/assets/Inter.ttf", outputDirectory);
             copyAssets("/xsdDocumentation/assets/Inter-Italic.ttf", outputDirectory);
+
+            // Copy custom favicon if provided
+            if (faviconPath != null && !faviconPath.isBlank()) {
+                File faviconFile = new File(faviconPath);
+                if (faviconFile.exists() && faviconFile.isFile()) {
+                    String faviconFileName = faviconFile.getName();
+                    Files.copy(faviconFile.toPath(),
+                            Paths.get(outputDirectory.getPath(), ASSETS_PATH, faviconFileName),
+                            StandardCopyOption.REPLACE_EXISTING);
+                    logger.info("Copied favicon: {}", faviconFileName);
+                } else {
+                    logger.warn("Favicon file not found or not readable: {}", faviconPath);
+                }
+            }
         } catch (Exception e) {
             logger.error("Could not copy resources. Error: {}", e.getMessage());
             throw new RuntimeException(e.getMessage(), e);
@@ -656,6 +698,25 @@ public class XsdDocumentationHtmlService {
 
     private void copyAssets(String resourcePath, File assetsDirectory) throws Exception {
         copyResource(resourcePath, assetsDirectory, ASSETS_PATH);
+    }
+
+    /**
+     * Adds favicon information to the Thymeleaf context.
+     *
+     * @param context The Thymeleaf context to add favicon info to
+     */
+    private void addFaviconToContext(Context context) {
+        if (faviconPath != null && !faviconPath.isBlank()) {
+            File faviconFile = new File(faviconPath);
+            if (faviconFile.exists() && faviconFile.isFile()) {
+                context.setVariable("hasFavicon", true);
+                context.setVariable("faviconFileName", faviconFile.getName());
+            } else {
+                context.setVariable("hasFavicon", false);
+            }
+        } else {
+            context.setVariable("hasFavicon", false);
+        }
     }
 
     private void copyResource(String resourcePath, File outputDirectory, String targetPath) throws IOException {

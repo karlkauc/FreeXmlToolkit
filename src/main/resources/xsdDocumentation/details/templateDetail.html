@@ -29,6 +29,9 @@
     <!-- PrismJS for Syntax Highlighting -->
     <link href="../assets/prism.css" rel="stylesheet"/>
 
+    <!-- Favicon -->
+    <link th:if="${hasFavicon}" rel="icon" th:href="@{'../assets/' + ${faviconFileName}}" type="image/x-icon"/>
+
     <!-- Custom styles for details/summary -->
     <style>
         /* Use custom marker indicator instead of default */

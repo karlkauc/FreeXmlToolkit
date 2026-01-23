@@ -362,6 +362,10 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private ChoiceBox<String> grafikFormat;
     @FXML
+    private TextField faviconPath;
+    @FXML
+    private Button browseFaviconButton;
+    @FXML
     private CheckBox showDocumentationInSvg;
     @FXML
     private RadioButton outputFormatHtml;
@@ -2914,6 +2918,7 @@ public class XsdController implements FavoritesParentController {
         final boolean generateSvgOverview = generateSvgOverviewPage.isSelected();
         final boolean addMetadata = addMetadataInOutput.isSelected();
         final String imageFormat = grafikFormat.getValue();
+        final String faviconFilePath = faviconPath != null ? faviconPath.getText() : null;
 
         // Capture Word-specific settings
         final WordDocumentationConfig wordConfig = captureWordConfig();
@@ -2935,6 +2940,7 @@ public class XsdController implements FavoritesParentController {
                 docService.setShowDocumentationInSvg(showDocInSvg);
                 docService.setGenerateSvgOverviewPage(generateSvgOverview);
                 docService.setAddMetadataInOutput(addMetadata);
+                docService.setFaviconPath(faviconFilePath);
 
                 // Set language filter for documentation output
                 docService.setIncludedLanguages(selectedLanguages);
@@ -3690,6 +3696,34 @@ public class XsdController implements FavoritesParentController {
 
         if (file != null) {
             outputXmlPath.setText(file.getAbsolutePath());
+            // Update last used directory
+            if (file.getParentFile() != null) {
+                propertiesService.setLastOpenDirectory(file.getParentFile().getAbsolutePath());
+            }
+        }
+    }
+
+    @FXML
+    public void handleBrowseFavicon() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Favicon");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.ico", "*.png", "*.svg"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+
+        // Set initial directory from properties
+        String lastDirString = propertiesService.getLastOpenDirectory();
+        if (lastDirString != null) {
+            File lastDir = new File(lastDirString);
+            if (lastDir.exists() && lastDir.isDirectory()) {
+                fileChooser.setInitialDirectory(lastDir);
+            }
+        }
+
+        File file = fileChooser.showOpenDialog(faviconPath.getScene().getWindow());
+        if (file != null) {
+            faviconPath.setText(file.getAbsolutePath());
             // Update last used directory
             if (file.getParentFile() != null) {
                 propertiesService.setLastOpenDirectory(file.getParentFile().getAbsolutePath());
