@@ -767,8 +767,8 @@ public class XsdModelAdapter {
     }
 
     /**
-     * Parses annotation and sets documentation with multi-language support.
-     * Supports multiple xs:documentation elements with xml:lang attributes.
+     * Parses annotation and sets documentation and appinfo with multi-language support.
+     * Supports multiple xs:documentation and xs:appinfo elements.
      */
     private void parseAnnotation(Element element, XsdNode node) {
         NodeList children = element.getChildNodes();
@@ -779,30 +779,125 @@ public class XsdModelAdapter {
                     XSD_NS.equals(annotationEl.getNamespaceURI()) &&
                     "annotation".equals(annotationEl.getLocalName())) {
 
+                XsdAppInfo appInfo = new XsdAppInfo();
+
                 NodeList annotationChildren = annotationEl.getChildNodes();
                 for (int j = 0; j < annotationChildren.getLength(); j++) {
                     Node annotationChild = annotationChildren.item(j);
-                    if (annotationChild instanceof Element docEl &&
-                            XSD_NS.equals(docEl.getNamespaceURI()) &&
-                            "documentation".equals(docEl.getLocalName())) {
-                        String doc = docEl.getTextContent();
-                        if (doc != null && !doc.isBlank()) {
-                            // Use getAttributeNS for namespace-qualified attributes like xml:lang
-                            String lang = docEl.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang");
-                            String source = docEl.getAttribute("source");
+                    if (annotationChild instanceof Element childEl &&
+                            XSD_NS.equals(childEl.getNamespaceURI())) {
 
-                            // Create XsdDocumentation object with language support
-                            XsdDocumentation documentation = new XsdDocumentation(
-                                doc.trim(),
-                                (lang != null && !lang.isEmpty()) ? lang : null,
-                                (source != null && !source.isEmpty()) ? source : null
-                            );
-                            node.addDocumentation(documentation);
+                        String localName = childEl.getLocalName();
+
+                        if ("documentation".equals(localName)) {
+                            String doc = childEl.getTextContent();
+                            if (doc != null && !doc.isBlank()) {
+                                // Use getAttributeNS for namespace-qualified attributes like xml:lang
+                                String lang = childEl.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang");
+                                String source = childEl.getAttribute("source");
+
+                                // Create XsdDocumentation object with language support
+                                XsdDocumentation documentation = new XsdDocumentation(
+                                    doc.trim(),
+                                    (lang != null && !lang.isEmpty()) ? lang : null,
+                                    (source != null && !source.isEmpty()) ? source : null
+                                );
+                                node.addDocumentation(documentation);
+                            }
+                        } else if ("appinfo".equals(localName)) {
+                            // Parse xs:appinfo element
+                            String source = childEl.getAttribute("source");
+
+                            // Check if appinfo has child elements (complex XML content)
+                            boolean hasChildElements = false;
+                            Element firstChildElement = null;
+                            NodeList appinfoChildren = childEl.getChildNodes();
+                            for (int k = 0; k < appinfoChildren.getLength(); k++) {
+                                if (appinfoChildren.item(k).getNodeType() == Node.ELEMENT_NODE) {
+                                    hasChildElements = true;
+                                    if (firstChildElement == null) {
+                                        firstChildElement = (Element) appinfoChildren.item(k);
+                                    }
+                                }
+                            }
+
+                            if (hasChildElements) {
+                                // Check for special fxt:sourceFile element (source tracking feature)
+                                if (firstChildElement != null &&
+                                    "sourceFile".equals(firstChildElement.getLocalName()) &&
+                                    "http://freexmltoolkit.org/schema/flattening".equals(firstChildElement.getNamespaceURI())) {
+                                    // Store as @sourceFile tag with just the filename
+                                    String fileName = firstChildElement.getTextContent();
+                                    if (fileName != null && !fileName.trim().isEmpty()) {
+                                        appInfo.addEntry(source, "@sourceFile " + fileName.trim());
+                                    }
+                                } else {
+                                    // Other complex XML content - serialize as rawXml
+                                    String rawXml = serializeInnerXml(childEl);
+                                    String textContent = childEl.getTextContent();
+                                    appInfo.addEntry(source, textContent != null ? textContent.trim() : "", rawXml);
+                                }
+                            } else {
+                                // Simple text content
+                                String appinfoContent = childEl.getTextContent();
+                                if (appinfoContent != null && !appinfoContent.trim().isEmpty()) {
+                                    appInfo.addEntry(source, appinfoContent.trim());
+                                } else if (source != null && !source.isEmpty()) {
+                                    // Source-only appinfo (like track source files feature)
+                                    appInfo.addEntry(source, "");
+                                }
+                            }
                         }
                     }
                 }
+
+                // Set appinfo if we found any entries
+                if (appInfo.hasEntries()) {
+                    node.setAppinfo(appInfo);
+                }
+
                 break; // Only process first annotation
             }
+        }
+    }
+
+    /**
+     * Serializes the inner XML content of an element (all child nodes) to a string.
+     * Used for preserving complex XML content inside xs:appinfo elements.
+     *
+     * @param element the element whose inner content should be serialized
+     * @return the serialized inner XML, or empty string if serialization fails
+     */
+    private String serializeInnerXml(Element element) {
+        try {
+            StringBuilder result = new StringBuilder();
+            NodeList children = element.getChildNodes();
+
+            javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
+            javax.xml.transform.Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "no");
+
+            for (int i = 0; i < children.getLength(); i++) {
+                Node child = children.item(i);
+                if (child.getNodeType() == Node.ELEMENT_NODE) {
+                    java.io.StringWriter writer = new java.io.StringWriter();
+                    transformer.transform(
+                            new javax.xml.transform.dom.DOMSource(child),
+                            new javax.xml.transform.stream.StreamResult(writer));
+                    result.append(writer.toString());
+                } else if (child.getNodeType() == Node.TEXT_NODE) {
+                    String text = child.getTextContent();
+                    if (text != null && !text.trim().isEmpty()) {
+                        result.append(text);
+                    }
+                }
+            }
+
+            return result.toString().trim();
+        } catch (Exception e) {
+            logger.warn("Failed to serialize inner XML content", e);
+            return "";
         }
     }
 

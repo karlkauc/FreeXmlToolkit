@@ -216,6 +216,11 @@ public class XsdAppInfo {
     }
 
     /**
+     * Namespace URI for FreeXmlToolkit flattening extensions.
+     */
+    private static final String FXT_NS = "http://freexmltoolkit.org/schema/flattening";
+
+    /**
      * Converts to XML format for serialization.
      *
      * @return list of XML strings representing xs:appinfo elements
@@ -230,10 +235,17 @@ public class XsdAppInfo {
             }
             sb.append(">");
 
-            // Use raw XML if available, otherwise use text content
-            if (entry.hasRawXml()) {
+            // Check for special @sourceFile tag (source tracking feature)
+            if ("@sourceFile".equals(entry.getTag())) {
+                // Serialize as clean fxt:sourceFile element with only the necessary namespace
+                sb.append("<fxt:sourceFile xmlns:fxt=\"").append(FXT_NS).append("\">");
+                sb.append(escapeXml(entry.getContent()));
+                sb.append("</fxt:sourceFile>");
+            } else if (entry.hasRawXml()) {
+                // Use raw XML for other complex content
                 sb.append("\n").append(entry.getRawXml()).append("\n");
             } else {
+                // Simple text content
                 if (entry.getTag() != null && !entry.getTag().isEmpty()) {
                     sb.append(escapeXml(entry.getTag())).append(" ");
                 }
