@@ -395,9 +395,19 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             Path appDir = getApplicationDirectory();
             Path launcher = getApplicationLauncher();
 
+            logger.info("=== UPDATER LAUNCH DEBUG ===");
             logger.info("Application directory: {}", appDir);
+            logger.info("Application directory exists: {}", Files.exists(appDir));
             logger.info("Launcher: {}", launcher);
+            logger.info("Launcher exists: {}", Files.exists(launcher));
             logger.info("Update directory: {}", extractedDir);
+            logger.info("Update directory exists: {}", Files.exists(extractedDir));
+
+            // List contents of extracted directory
+            try (var stream = Files.list(extractedDir)) {
+                logger.info("Extracted directory contents:");
+                stream.forEach(p -> logger.info("  - {}", p.getFileName()));
+            }
 
             // SECURITY: Validate paths before passing to shell scripts
             if (!validateUpdaterPaths(appDir, extractedDir, launcher)) {
@@ -407,31 +417,75 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
             // Create the updater script in the temp directory
             Path updaterScript = createUpdaterScript(extractedDir, appDir, launcher);
+            logger.info("Updater script created: {}", updaterScript);
+            logger.info("Updater script exists: {}", Files.exists(updaterScript));
+            logger.info("Updater script size: {} bytes", Files.size(updaterScript));
+
+            // Write a Java-side log file to confirm we got this far
+            Path javaLogFile = Path.of(System.getProperty("java.io.tmpdir"), "fxt-update-java.log");
+            String javaLog = String.format("""
+                    FreeXmlToolkit Update - Java Side Log
+                    ======================================
+                    Timestamp: %s
+                    Application Directory: %s
+                    Update Directory: %s
+                    Launcher: %s
+                    Updater Script: %s
+
+                    About to launch updater script...
+                    If you see this but no fxt-update-latest.log, the batch script failed to start.
+                    """,
+                    java.time.LocalDateTime.now(),
+                    appDir,
+                    extractedDir,
+                    launcher,
+                    updaterScript);
+            Files.writeString(javaLogFile, javaLog);
+            logger.info("Java-side log written to: {}", javaLogFile);
 
             // Launch the updater script
             // Note: Paths are embedded directly in the script, so no arguments needed.
-            // This avoids all quoting issues with ProcessBuilder and cmd.exe argument parsing.
             ProcessBuilder pb;
             if (isWindows()) {
-                // Simple call: script has all paths embedded, no argument parsing needed
-                pb = new ProcessBuilder("cmd.exe", "/c", updaterScript.toString());
+                // Use "start" command to launch in a new window that stays open on error
+                // The /wait flag is NOT used so the app can exit
+                // The /min flag starts it minimized
+                pb = new ProcessBuilder(
+                        "cmd.exe", "/c",
+                        "start", "FreeXmlToolkit Updater", "/min",
+                        "cmd.exe", "/c", updaterScript.toString() + " & if errorlevel 1 pause"
+                );
             } else {
                 // Make the script executable
                 setExecutable(updaterScript);
-                // Simple call: script has all paths embedded, no argument parsing needed
                 pb = new ProcessBuilder("/bin/bash", updaterScript.toString());
             }
 
             pb.directory(extractedDir.toFile());
             pb.redirectErrorStream(true);
 
+            // Redirect output to a file so we can see any immediate errors
+            Path processLogFile = Path.of(System.getProperty("java.io.tmpdir"), "fxt-update-process.log");
+            pb.redirectOutput(processLogFile.toFile());
+            logger.info("Process output redirected to: {}", processLogFile);
+
             Process process = pb.start();
             logger.info("Updater script launched successfully (PID: {})", process.pid());
+            logger.info("=== UPDATER LAUNCH COMPLETE ===");
+
+            // Update the Java log to confirm launch
+            Files.writeString(javaLogFile, javaLog + "\nUpdater process started with PID: " + process.pid() + "\n");
 
             return true;
 
         } catch (IOException e) {
             logger.error("Failed to launch updater", e);
+            // Write error to temp file for debugging
+            try {
+                Path errorLog = Path.of(System.getProperty("java.io.tmpdir"), "fxt-update-error.log");
+                Files.writeString(errorLog, "Failed to launch updater: " + e.getMessage() + "\n" +
+                        java.util.Arrays.toString(e.getStackTrace()));
+            } catch (IOException ignored) {}
             return false;
         }
     }
@@ -527,11 +581,16 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 @echo off
                 setlocal enabledelayedexpansion
 
+                :: IMMEDIATE LOG - Write to a fixed location first to confirm script started
+                set "LATEST_LOG=%%TEMP%%\\fxt-update-latest.log"
+                echo [%%DATE%% %%TIME%%] Updater script started > "%%LATEST_LOG%%"
+                echo Script location: %%~f0 >> "%%LATEST_LOG%%"
+                echo Working directory: %%CD%% >> "%%LATEST_LOG%%"
+
                 set "LOG_FILE=%%TEMP%%\\fxt-update-%%DATE:~-4,4%%%%DATE:~-7,2%%%%DATE:~-10,2%%-%%TIME:~0,2%%%%TIME:~3,2%%%%TIME:~6,2%%.log"
                 set "LOG_FILE=%%LOG_FILE: =0%%"
 
-                :: Also create a latest.log symlink/copy for easy access
-                set "LATEST_LOG=%%TEMP%%\\fxt-update-latest.log"
+                echo Log file will be: %%LOG_FILE%% >> "%%LATEST_LOG%%"
 
                 call :log "========================================"
                 call :log "FreeXmlToolkit Updater"
