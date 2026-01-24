@@ -471,10 +471,19 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             writeDebugLog(debugLog, "Updater script size: " + Files.size(updaterScript) + " bytes");
 
             // Also write the script content to the log for debugging
-            writeDebugLog(debugLog, "--- UPDATER SCRIPT CONTENT (first 500 chars) ---");
+            writeDebugLog(debugLog, "--- UPDATER SCRIPT CONTENT ---");
             String scriptContent = Files.readString(updaterScript);
-            writeDebugLog(debugLog, scriptContent.substring(0, Math.min(500, scriptContent.length())));
+            // Log the first 2000 chars to see the APP_DIR/UPDATE_DIR/LAUNCHER lines
+            writeDebugLog(debugLog, scriptContent.substring(0, Math.min(2000, scriptContent.length())));
             writeDebugLog(debugLog, "--- END SCRIPT PREVIEW ---");
+
+            // Also specifically log the path lines
+            for (String line : scriptContent.split("\n")) {
+                if (line.contains("APP_DIR=") || line.contains("UPDATE_DIR=") || line.contains("LAUNCHER=")) {
+                    writeDebugLog(debugLog, "PATH LINE: " + line.trim());
+                }
+            }
+            writeDebugLog(debugLog, "--- END PATH LINES ---");
 
             // Launch the updater script
             ProcessBuilder pb;
@@ -653,6 +662,11 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 set "APP_DIR=@@APP_DIR@@"
                 set "UPDATE_DIR=@@UPDATE_DIR@@"
                 set "LAUNCHER=@@LAUNCHER@@"
+
+                :: IMMEDIATE DEBUG - Write values right after setting them
+                echo [DEBUG] APP_DIR raw value: [%APP_DIR%] >> "%LATEST_LOG%"
+                echo [DEBUG] UPDATE_DIR raw value: [%UPDATE_DIR%] >> "%LATEST_LOG%"
+                echo [DEBUG] LAUNCHER raw value: [%LAUNCHER%] >> "%LATEST_LOG%"
 
                 call :log ""
                 call :log "[CONFIG] Application directory: %APP_DIR%"
@@ -930,10 +944,20 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 """;
 
         // Replace placeholders with actual paths
-        return template
+        String result = template
                 .replace("@@APP_DIR@@", appDirStr)
                 .replace("@@UPDATE_DIR@@", updateDirStr)
                 .replace("@@LAUNCHER@@", launcherStr);
+
+        // Verify placeholders were replaced (for debugging)
+        if (result.contains("@@APP_DIR@@") || result.contains("@@UPDATE_DIR@@") || result.contains("@@LAUNCHER@@")) {
+            logger.error("CRITICAL: Placeholders were not replaced in updater script!");
+            logger.error("appDirStr: [{}]", appDirStr);
+            logger.error("updateDirStr: [{}]", updateDirStr);
+            logger.error("launcherStr: [{}]", launcherStr);
+        }
+
+        return result;
     }
 
     /**
