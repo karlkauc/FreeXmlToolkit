@@ -249,21 +249,89 @@ public class SnippetContextMenu {
     }
 
     private void updateContextAwareSuggestions(String selectedText, String xmlContext) {
-        // TODO: Implement intelligent context-aware suggestions based on:
-        // - Selected text (element name, attribute, etc.)
-        // - Cursor position in XML structure
-        // - Nearby XML elements and attributes
-        // - Previous user patterns
+        // Analyze XML context to provide intelligent suggestions
+        XmlContextInfo contextInfo = analyzeXmlContext(xmlContext);
 
+        // Add context-aware navigation suggestions
+        if (contextInfo.currentElement != null) {
+            Menu navigationMenu = new Menu("Navigate from <" + contextInfo.currentElement + ">");
+            navigationMenu.setGraphic(createIcon("🧭"));
+
+            // Parent navigation
+            MenuItem parentItem = new MenuItem("Go to parent: parent::" + contextInfo.currentElement);
+            parentItem.setOnAction(e -> {
+                if (insertCallback != null) {
+                    insertCallback.accept("parent::*");
+                }
+            });
+            navigationMenu.getItems().add(parentItem);
+
+            // Child elements
+            MenuItem childrenItem = new MenuItem("List children: " + contextInfo.currentElement + "/*");
+            childrenItem.setOnAction(e -> {
+                if (insertCallback != null) {
+                    insertCallback.accept("//" + contextInfo.currentElement + "/*");
+                }
+            });
+            navigationMenu.getItems().add(childrenItem);
+
+            // Siblings
+            MenuItem siblingsItem = new MenuItem("Siblings: following-sibling::" + contextInfo.currentElement);
+            siblingsItem.setOnAction(e -> {
+                if (insertCallback != null) {
+                    insertCallback.accept("following-sibling::*");
+                }
+            });
+            navigationMenu.getItems().add(siblingsItem);
+
+            // Count occurrences
+            MenuItem countItem = new MenuItem("Count: count(//" + contextInfo.currentElement + ")");
+            countItem.setOnAction(e -> {
+                if (insertCallback != null) {
+                    insertCallback.accept("count(//" + contextInfo.currentElement + ")");
+                }
+            });
+            navigationMenu.getItems().add(countItem);
+
+            contextMenu.getItems().add(0, navigationMenu);
+            contextMenu.getItems().add(1, new SeparatorMenuItem());
+        }
+
+        // Add attribute-specific suggestions if in attribute context
+        if (contextInfo.inAttribute && contextInfo.currentAttribute != null) {
+            Menu attrMenu = new Menu("Attribute @" + contextInfo.currentAttribute);
+            attrMenu.setGraphic(createIcon("📝"));
+
+            MenuItem findByAttr = new MenuItem("Find elements with this attribute");
+            findByAttr.setOnAction(e -> {
+                if (insertCallback != null) {
+                    insertCallback.accept("//*[@" + contextInfo.currentAttribute + "]");
+                }
+            });
+            attrMenu.getItems().add(findByAttr);
+
+            MenuItem attrValue = new MenuItem("Get attribute value");
+            attrValue.setOnAction(e -> {
+                if (insertCallback != null) {
+                    insertCallback.accept("//" + (contextInfo.currentElement != null ? contextInfo.currentElement : "*") + "/@" + contextInfo.currentAttribute);
+                }
+            });
+            attrMenu.getItems().add(attrValue);
+
+            int insertIndex = contextInfo.currentElement != null ? 2 : 0;
+            contextMenu.getItems().add(insertIndex, attrMenu);
+            contextMenu.getItems().add(insertIndex + 1, new SeparatorMenuItem());
+        }
+
+        // Add suggestions for selected text
         if (selectedText != null && !selectedText.trim().isEmpty()) {
-            // Add dynamic menu for selected text
-            Menu selectedTextMenu = new Menu("XPath for '" + selectedText + "'");
+            Menu selectedTextMenu = new Menu("XPath for '" + truncateText(selectedText, 20) + "'");
             selectedTextMenu.setGraphic(createIcon("🎯"));
 
             // Generate context-specific XPath suggestions
-            String[] suggestions = generateContextSuggestions(selectedText, xmlContext);
+            List<String> suggestions = generateContextSuggestions(selectedText, contextInfo);
             for (String suggestion : suggestions) {
-                MenuItem item = new MenuItem("Execute: " + suggestion);
+                MenuItem item = new MenuItem(truncateText(suggestion, 50));
                 item.setOnAction(e -> {
                     if (insertCallback != null) {
                         insertCallback.accept(suggestion);
@@ -272,22 +340,147 @@ public class SnippetContextMenu {
                 selectedTextMenu.getItems().add(item);
             }
 
-            // Add to top of menu
-            contextMenu.getItems().add(0, selectedTextMenu);
-            contextMenu.getItems().add(1, new SeparatorMenuItem());
+            int insertIndex = 0;
+            if (contextInfo.currentElement != null) insertIndex += 2;
+            if (contextInfo.inAttribute) insertIndex += 2;
+            contextMenu.getItems().add(insertIndex, selectedTextMenu);
+            contextMenu.getItems().add(insertIndex + 1, new SeparatorMenuItem());
         }
     }
 
-    private String[] generateContextSuggestions(String selectedText, String xmlContext) {
-        // Smart context-aware XPath generation
-        return new String[]{
-                "//text()[contains(., '" + selectedText + "')]",
-                "//*[text()='" + selectedText + "']",
-                "//@*[.='" + selectedText + "']",
-                "//" + selectedText,
-                "//" + selectedText + "/text()",
-                "count(//" + selectedText + ")"
-        };
+    private XmlContextInfo analyzeXmlContext(String xmlContext) {
+        XmlContextInfo info = new XmlContextInfo();
+
+        if (xmlContext == null || xmlContext.isEmpty()) {
+            return info;
+        }
+
+        // Find current element - look for the last opening tag before cursor
+        int lastOpenTag = xmlContext.lastIndexOf('<');
+        if (lastOpenTag >= 0) {
+            String afterTag = xmlContext.substring(lastOpenTag);
+
+            // Check if we're inside an opening tag (not closed yet)
+            if (!afterTag.contains(">") || afterTag.indexOf(">") > afterTag.indexOf(" ")) {
+                // Extract element name
+                int spaceIndex = afterTag.indexOf(' ');
+                int endIndex = spaceIndex > 0 ? spaceIndex : afterTag.length();
+                String tagContent = afterTag.substring(1, endIndex);
+
+                // Remove closing slash if present
+                if (tagContent.startsWith("/")) {
+                    tagContent = tagContent.substring(1);
+                }
+
+                if (!tagContent.isEmpty() && !tagContent.startsWith("?") && !tagContent.startsWith("!")) {
+                    info.currentElement = tagContent.trim();
+                }
+
+                // Check if we're in an attribute
+                int equalsIndex = afterTag.lastIndexOf('=');
+                if (equalsIndex > 0) {
+                    // Find attribute name before the equals sign
+                    String beforeEquals = afterTag.substring(0, equalsIndex).trim();
+                    int attrStart = Math.max(beforeEquals.lastIndexOf(' '), beforeEquals.lastIndexOf('<'));
+                    if (attrStart >= 0) {
+                        info.currentAttribute = beforeEquals.substring(attrStart + 1).trim();
+                        info.inAttribute = true;
+                    }
+                }
+            } else {
+                // We're after a closed tag, find the element name
+                int closeIndex = afterTag.indexOf('>');
+                if (closeIndex > 0) {
+                    String tagContent = afterTag.substring(1, closeIndex);
+                    int spaceIndex = tagContent.indexOf(' ');
+                    String elementName = spaceIndex > 0 ? tagContent.substring(0, spaceIndex) : tagContent;
+
+                    if (!elementName.startsWith("/") && !elementName.startsWith("?") && !elementName.startsWith("!")) {
+                        info.currentElement = elementName.trim();
+                    }
+                }
+            }
+        }
+
+        // Check if we're in a comment
+        info.inComment = xmlContext.contains("<!--") && !xmlContext.contains("-->");
+
+        // Check if we're in CDATA
+        info.inCData = xmlContext.contains("<![CDATA[") && !xmlContext.contains("]]>");
+
+        return info;
+    }
+
+    private List<String> generateContextSuggestions(String selectedText, XmlContextInfo contextInfo) {
+        java.util.ArrayList<String> suggestions = new java.util.ArrayList<>();
+        String escaped = escapeXPathString(selectedText);
+
+        // Detect what kind of text is selected
+        boolean looksLikeElementName = selectedText.matches("^[a-zA-Z_][a-zA-Z0-9_\\-.:]*$");
+        boolean looksLikeNumber = selectedText.matches("^-?\\d+(\\.\\d+)?$");
+        boolean looksLikeAttributeValue = contextInfo.inAttribute;
+
+        if (looksLikeElementName) {
+            // Element name suggestions
+            suggestions.add("//" + selectedText);
+            suggestions.add("//" + selectedText + "[1]");
+            suggestions.add("count(//" + selectedText + ")");
+            suggestions.add("//" + selectedText + "/text()");
+            suggestions.add("//" + selectedText + "/@*");
+            suggestions.add("//*[local-name()='" + selectedText + "']");
+
+            if (contextInfo.currentElement != null) {
+                suggestions.add("//" + contextInfo.currentElement + "//" + selectedText);
+                suggestions.add("//" + contextInfo.currentElement + "/" + selectedText);
+            }
+        } else if (looksLikeNumber) {
+            // Numeric value suggestions
+            suggestions.add("//*[number(.)=" + selectedText + "]");
+            suggestions.add("//*[. > " + selectedText + "]");
+            suggestions.add("//*[. < " + selectedText + "]");
+            suggestions.add("//@*[.='" + selectedText + "']");
+        } else if (looksLikeAttributeValue) {
+            // Attribute value suggestions
+            suggestions.add("//*[@*='" + escaped + "']");
+            if (contextInfo.currentAttribute != null) {
+                suggestions.add("//*[@" + contextInfo.currentAttribute + "='" + escaped + "']");
+            }
+            suggestions.add("//*[contains(@*, '" + escaped + "')]");
+        } else {
+            // General text content suggestions
+            suggestions.add("//*[text()='" + escaped + "']");
+            suggestions.add("//text()[contains(., '" + escaped + "')]");
+            suggestions.add("//*[contains(., '" + escaped + "')]");
+            suggestions.add("//@*[contains(., '" + escaped + "')]");
+            suggestions.add("//text()[normalize-space()='" + escaped.trim() + "']");
+        }
+
+        return suggestions;
+    }
+
+    private String escapeXPathString(String text) {
+        // Escape single quotes for XPath
+        if (text.contains("'")) {
+            return text.replace("'", "''");
+        }
+        return text;
+    }
+
+    private String truncateText(String text, int maxLength) {
+        if (text == null) return "";
+        if (text.length() <= maxLength) return text;
+        return text.substring(0, maxLength - 3) + "...";
+    }
+
+    /**
+     * Helper class to hold XML context analysis results.
+     */
+    private static class XmlContextInfo {
+        String currentElement;
+        String currentAttribute;
+        boolean inAttribute;
+        boolean inComment;
+        boolean inCData;
     }
 
     /**
