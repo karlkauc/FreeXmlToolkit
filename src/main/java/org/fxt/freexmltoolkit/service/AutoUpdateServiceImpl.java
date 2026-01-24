@@ -523,38 +523,59 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
      * Validates paths before passing them to updater scripts.
      *
      * <p>This method ensures paths don't contain characters that could
-     * be used for command injection attacks.
+     * be used for command injection attacks. For auto-updates, we allow
+     * the application directory even if it's in a protected location like
+     * Program Files, as long as it's the legitimate app installation directory.
      *
      * @return true if all paths are valid, false otherwise
      */
     private boolean validateUpdaterPaths(Path appDir, Path extractedDir, Path launcher) {
-        // Check all paths are valid and don't target system directories
-        if (!PathValidator.isOutputPathSafe(appDir.toString())) {
-            logger.warn("SECURITY: Application directory targets system path: {}", appDir);
+        // For the application directory, we need to allow Program Files since
+        // that's where applications are typically installed on Windows.
+        // We validate by checking that the launcher actually exists there
+        // and that the directory contains expected application files.
+
+        // Check that app directory exists and contains our executable
+        if (!Files.exists(appDir)) {
+            logger.warn("SECURITY: Application directory does not exist: {}", appDir);
             return false;
         }
 
-        if (!PathValidator.isOutputPathSafe(extractedDir.toString())) {
-            logger.warn("SECURITY: Extract directory targets system path: {}", extractedDir);
+        // Check that the launcher exists in the app directory
+        if (!Files.exists(launcher)) {
+            logger.warn("SECURITY: Launcher does not exist: {}", launcher);
             return false;
         }
 
-        if (!PathValidator.isOutputPathSafe(launcher.toString())) {
-            logger.warn("SECURITY: Launcher path targets system path: {}", launcher);
+        // Verify launcher is inside app directory (prevents path manipulation)
+        try {
+            if (!launcher.toRealPath().startsWith(appDir.toRealPath())) {
+                logger.warn("SECURITY: Launcher is not inside application directory");
+                return false;
+            }
+        } catch (IOException e) {
+            logger.warn("SECURITY: Could not verify launcher path: {}", e.getMessage());
+            return false;
+        }
+
+        // Check that extracted directory is in a temp location (not system dirs)
+        String extractedPath = extractedDir.toString().toLowerCase().replace('\\', '/');
+        if (!extractedPath.contains("/temp/") && !extractedPath.contains("/tmp/")) {
+            logger.warn("SECURITY: Extracted directory is not in temp: {}", extractedDir);
             return false;
         }
 
         // Check for suspicious characters that could break shell parsing
-        // Even though we use array-form ProcessBuilder and quoted variables in scripts,
-        // this is defense-in-depth
         String[] paths = {appDir.toString(), extractedDir.toString(), launcher.toString()};
         for (String path : paths) {
-            if (path.contains("`") || path.contains("$(") || path.contains("${")) {
-                logger.warn("SECURITY: Path contains suspicious shell characters: {}", path);
+            if (path.contains("`") || path.contains("$(") || path.contains("${") ||
+                path.contains("\0") || path.contains("\n") || path.contains("\r")) {
+                logger.warn("SECURITY: Path contains suspicious characters: {}", path);
                 return false;
             }
         }
 
+        logger.info("SECURITY: All updater paths validated successfully");
         return true;
     }
 
