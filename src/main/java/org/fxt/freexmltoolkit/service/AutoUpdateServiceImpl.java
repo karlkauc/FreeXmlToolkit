@@ -21,14 +21,12 @@ package org.fxt.freexmltoolkit.service;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
-import org.fxt.freexmltoolkit.util.PathValidator;
-
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.EnumSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -433,21 +431,33 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
     }
 
     /**
-     * Launches the platform-specific updater script.
+     * Launches the platform-specific update helper.
      *
      * @param extractedDir Directory containing the extracted update
      * @param debugLog Path to debug log file
-     * @return true if the updater was launched successfully
+     * @return true if the helper was launched successfully
      */
     private boolean launchUpdater(Path extractedDir, Path debugLog) {
         try {
             Path appDir = getApplicationDirectory();
             Path launcher = getApplicationLauncher();
+            String helperExecutableName = getUpdateHelperExecutableName();
+            Path helperLauncher = getUpdateHelperLauncher();
 
             writeDebugLog(debugLog, "Application directory: " + appDir);
             writeDebugLog(debugLog, "Application directory exists: " + Files.exists(appDir));
             writeDebugLog(debugLog, "Launcher: " + launcher);
             writeDebugLog(debugLog, "Launcher exists: " + Files.exists(launcher));
+            writeDebugLog(debugLog, "Helper launcher: " + helperLauncher);
+            if (!Files.exists(helperLauncher)) {
+                Path extractedHelper = findHelperInUpdate(extractedDir, helperExecutableName);
+                if (extractedHelper != null) {
+                    helperLauncher = extractedHelper;
+                    writeDebugLog(debugLog, "Helper launcher found in update payload: " + extractedHelper);
+                }
+            }
+            writeDebugLog(debugLog, "Helper launcher exists: " + Files.exists(helperLauncher));
+            writeDebugLog(debugLog, "Helper launcher resolved path: " + helperLauncher);
             writeDebugLog(debugLog, "Update directory: " + extractedDir);
             writeDebugLog(debugLog, "Update directory exists: " + Files.exists(extractedDir));
 
@@ -462,57 +472,20 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 writeDebugLog(debugLog, "ERROR: Security validation failed for updater paths");
                 return false;
             }
+            if (!Files.exists(helperLauncher)) {
+                writeDebugLog(debugLog, "ERROR: Update helper launcher not found: " + helperLauncher);
+                return false;
+            }
             writeDebugLog(debugLog, "Security validation passed");
 
-            // Create the updater script in the temp directory
-            Path updaterScript = createUpdaterScript(extractedDir, appDir, launcher);
-            writeDebugLog(debugLog, "Updater script created: " + updaterScript);
-            writeDebugLog(debugLog, "Updater script exists: " + Files.exists(updaterScript));
-            writeDebugLog(debugLog, "Updater script size: " + Files.size(updaterScript) + " bytes");
+            Path configFile = createUpdateHelperConfig(extractedDir, appDir, launcher);
+            writeDebugLog(debugLog, "Update helper config: " + configFile);
 
-            // Also write the script content to the log for debugging
-            writeDebugLog(debugLog, "--- UPDATER SCRIPT CONTENT ---");
-            String scriptContent = Files.readString(updaterScript);
-            // Log the first 2000 chars to see the APP_DIR/UPDATE_DIR/LAUNCHER lines
-            writeDebugLog(debugLog, scriptContent.substring(0, Math.min(2000, scriptContent.length())));
-            writeDebugLog(debugLog, "--- END SCRIPT PREVIEW ---");
-
-            // Also specifically log the path lines
-            for (String line : scriptContent.split("\n")) {
-                if (line.contains("APP_DIR=") || line.contains("UPDATE_DIR=") || line.contains("LAUNCHER=")) {
-                    writeDebugLog(debugLog, "PATH LINE: " + line.trim());
-                }
+            boolean launched = launchUpdateHelper(helperLauncher, configFile, extractedDir, debugLog);
+            if (!launched) {
+                writeDebugLog(debugLog, "ERROR: Failed to launch update helper");
+                return false;
             }
-            writeDebugLog(debugLog, "--- END PATH LINES ---");
-
-            // Launch the updater script
-            ProcessBuilder pb;
-            if (isWindows()) {
-                writeDebugLog(debugLog, "Platform: Windows - using cmd.exe with start");
-                // Use "start" command to launch in a new, VISIBLE window
-                pb = new ProcessBuilder(
-                        "cmd.exe", "/c",
-                        "start", "\"FreeXmlToolkit Updater\"",
-                        "cmd.exe", "/k", updaterScript.toString()
-                );
-                writeDebugLog(debugLog, "Command: cmd.exe /c start \"FreeXmlToolkit Updater\" cmd.exe /k " + updaterScript);
-            } else {
-                writeDebugLog(debugLog, "Platform: Unix - using bash");
-                setExecutable(updaterScript);
-                pb = new ProcessBuilder("/bin/bash", updaterScript.toString());
-            }
-
-            pb.directory(extractedDir.toFile());
-            pb.redirectErrorStream(true);
-            writeDebugLog(debugLog, "Working directory set to: " + extractedDir);
-
-            writeDebugLog(debugLog, "About to start process...");
-            Process process = pb.start();
-            writeDebugLog(debugLog, "Process started with PID: " + process.pid());
-
-            // Give the process a moment to start and check if it's still alive
-            Thread.sleep(500);
-            writeDebugLog(debugLog, "Process alive after 500ms: " + process.isAlive());
 
             return true;
 
@@ -520,10 +493,6 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             writeDebugLog(debugLog, "ERROR (IOException) in launchUpdater: " + e.getMessage());
             writeDebugLog(debugLog, "Stack: " + java.util.Arrays.toString(e.getStackTrace()));
             logger.error("Failed to launch updater", e);
-            return false;
-        } catch (InterruptedException e) {
-            writeDebugLog(debugLog, "ERROR (InterruptedException): " + e.getMessage());
-            Thread.currentThread().interrupt();
             return false;
         }
     }
@@ -588,474 +557,67 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
         return true;
     }
 
-    /**
-     * Creates the updater script in the temp directory.
-     * <p>
-     * Paths are embedded directly into the generated script to avoid
-     * quoting issues with ProcessBuilder and shell argument parsing.
-     *
-     * @param extractedDir Directory containing the extracted update
-     * @param appDir Application installation directory
-     * @param launcher Path to the application launcher executable
-     * @return Path to the created updater script
-     */
-    private Path createUpdaterScript(Path extractedDir, Path appDir, Path launcher) throws IOException {
-        String scriptContent;
-        Path scriptPath;
+    private Path createUpdateHelperConfig(Path extractedDir, Path appDir, Path launcher) throws IOException {
+        Path configFile = extractedDir.resolve("update-helper.properties");
+        Path helperLog = Path.of(System.getProperty("user.home"), "fxt-update-helper.log");
 
+        Properties properties = new Properties();
+        properties.setProperty("appDir", appDir.toString());
+        properties.setProperty("updateDir", extractedDir.toString());
+        properties.setProperty("launcher", launcher.toString());
+        properties.setProperty("logFile", helperLog.toString());
+        properties.setProperty("platform", getPlatformName());
+        properties.setProperty("processName", launcher.getFileName().toString());
+
+        try (OutputStream out = Files.newOutputStream(configFile)) {
+            properties.store(out, "FreeXmlToolkit Update Helper");
+        }
+        return configFile;
+    }
+
+    private boolean launchUpdateHelper(Path helperLauncher, Path configFile, Path workingDir, Path debugLog) throws IOException {
+        ProcessBuilder pb;
         if (isWindows()) {
-            scriptPath = extractedDir.resolve("updater.bat");
-            scriptContent = createWindowsUpdaterScript(appDir, extractedDir, launcher);
+            String command = "Start-Process -FilePath '" + helperLauncher + "' -ArgumentList '" + configFile + "' -Verb RunAs";
+            pb = new ProcessBuilder("powershell.exe", "-NoProfile", "-Command", command);
+            writeDebugLog(debugLog, "Platform: Windows - using PowerShell Start-Process");
+            writeDebugLog(debugLog, "Command: " + command);
+        } else if (isMacOS()) {
+            String shellCommand = "\"" + helperLauncher + "\" \"" + configFile + "\"";
+            String appleScript = "do shell script \"" + escapeForAppleScript(shellCommand) + "\" with administrator privileges";
+            pb = new ProcessBuilder("/usr/bin/osascript", "-e", appleScript);
+            writeDebugLog(debugLog, "Platform: macOS - using osascript elevation");
+            writeDebugLog(debugLog, "AppleScript: " + appleScript);
         } else {
-            scriptPath = extractedDir.resolve("updater.sh");
-            scriptContent = createUnixUpdaterScript(appDir, extractedDir, launcher);
+            Path pkexec = Path.of("/usr/bin/pkexec");
+            if (Files.isExecutable(pkexec)) {
+                pb = new ProcessBuilder(pkexec.toString(), helperLauncher.toString(), configFile.toString());
+                writeDebugLog(debugLog, "Platform: Linux - using pkexec");
+            } else {
+                pb = new ProcessBuilder("sudo", helperLauncher.toString(), configFile.toString());
+                writeDebugLog(debugLog, "Platform: Linux - pkexec not found, using sudo");
+            }
         }
 
-        Files.writeString(scriptPath, scriptContent);
-        logger.debug("Created updater script: {}", scriptPath);
-
-        return scriptPath;
+        pb.directory(workingDir.toFile());
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        writeDebugLog(debugLog, "Helper process started with PID: " + process.pid());
+        return true;
     }
 
-    /**
-     * Creates the Windows updater batch script content.
-     * Includes comprehensive logging, parameter validation, and nested directory search.
-     * <p>
-     * Paths are embedded directly into the script using string replacement to avoid
-     * any issues with Java's String.format interacting with batch file percent signs.
-     *
-     * @param appDir Application installation directory
-     * @param extractedDir Directory containing the extracted update
-     * @param launcher Path to the application launcher executable
-     * @return The batch script content with embedded paths
-     */
-    private String createWindowsUpdaterScript(Path appDir, Path extractedDir, Path launcher) {
-        String appDirStr = appDir.toString();
-        String updateDirStr = extractedDir.toString();
-        String launcherStr = launcher.toString();
+    private String escapeForAppleScript(String input) {
+        return input.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
 
-        // Use placeholder strings and replace() instead of String.format to avoid
-        // any potential issues with batch % characters interacting with format specifiers.
-        String template = """
-                @echo off
-                setlocal enabledelayedexpansion
-
-                :: IMMEDIATE LOG - Write to a fixed location first to confirm script started
-                set "LATEST_LOG=%TEMP%\\fxt-update-latest.log"
-                echo [%DATE% %TIME%] Updater script started > "%LATEST_LOG%"
-                echo Script location: %~f0 >> "%LATEST_LOG%"
-                echo Working directory: %CD% >> "%LATEST_LOG%"
-
-                set "LOG_FILE=%TEMP%\\fxt-update-%DATE:~-4,4%%DATE:~-7,2%%DATE:~-10,2%-%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%.log"
-                set "LOG_FILE=%LOG_FILE: =0%"
-
-                echo Log file will be: %LOG_FILE% >> "%LATEST_LOG%"
-
-                call :log "========================================"
-                call :log "FreeXmlToolkit Updater"
-                call :log "Started: %DATE% %TIME%"
-                call :log "========================================"
-                call :log ""
-                call :log "[INFO] Log file: %LOG_FILE%"
-
-                :: Paths are embedded directly (no command-line argument parsing needed)
-                set "APP_DIR=@@APP_DIR@@"
-                set "UPDATE_DIR=@@UPDATE_DIR@@"
-                set "LAUNCHER=@@LAUNCHER@@"
-
-                :: IMMEDIATE DEBUG - Write values right after setting them
-                echo [DEBUG] APP_DIR raw value: [%APP_DIR%] >> "%LATEST_LOG%"
-                echo [DEBUG] UPDATE_DIR raw value: [%UPDATE_DIR%] >> "%LATEST_LOG%"
-                echo [DEBUG] LAUNCHER raw value: [%LAUNCHER%] >> "%LATEST_LOG%"
-
-                call :log ""
-                call :log "[CONFIG] Application directory: %APP_DIR%"
-                call :log "[CONFIG] Update directory: %UPDATE_DIR%"
-                call :log "[CONFIG] Launcher: %LAUNCHER%"
-                call :log ""
-
-                :: Ensure we have admin rights when installing into Program Files
-                echo %APP_DIR% | find /I "Program Files" >NUL
-                if %ERRORLEVEL%==0 (
-                    net session >NUL 2>&1
-                    if %ERRORLEVEL% NEQ 0 (
-                        call :log "[WARN] Administrator privileges required. Requesting elevation..."
-                        powershell -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-                        exit /b 0
-                    )
-                )
-
-                :: Validate directories exist
-                call :log "[CHECK] Validating directories..."
-                if not exist "%APP_DIR%" (
-                    call :log "[ERROR] Application directory does not exist: %APP_DIR%"
-                    call :finish_error
-                )
-                call :log "[OK] Application directory exists"
-
-                if not exist "%UPDATE_DIR%" (
-                    call :log "[ERROR] Update directory does not exist: %UPDATE_DIR%"
-                    call :finish_error
-                )
-                call :log "[OK] Update directory exists"
-
-                :: Check if launcher exists (current version)
-                if exist "%LAUNCHER%" (
-                    call :log "[OK] Current launcher exists: %LAUNCHER%"
-                ) else (
-                    call :log "[WARN] Current launcher not found: %LAUNCHER%"
-                )
-
-                :: Log current app directory contents
-                call :log ""
-                call :log "[INFO] Current application directory contents (top level):"
-                for %%f in ("%APP_DIR%\\*") do (
-                    call :log "       %%~nxf"
-                )
-                for /d %%d in ("%APP_DIR%\\*") do (
-                    call :log "       [DIR] %%~nxd"
-                )
-
-                call :log ""
-                call :log "[WAIT] Waiting for application to exit..."
-
-                set "WAIT_COUNT=0"
-                :wait_loop
-                tasklist /FI "IMAGENAME eq FreeXmlToolkit.exe" 2>NUL | find /I "FreeXmlToolkit.exe" >NUL
-                if %ERRORLEVEL%==0 (
-                    set /a WAIT_COUNT+=1
-                    if %WAIT_COUNT% GEQ 60 (
-                        call :log "[ERROR] Timeout waiting for application to exit after 60 seconds"
-                        call :finish_error
-                    )
-                    call :log "[WAIT] Application still running (!WAIT_COUNT!s)..."
-                    timeout /t 1 /nobreak >NUL
-                    goto wait_loop
-                )
-                call :log "[OK] Application process not found"
-
-                :: Additional wait to ensure all file handles are released
-                call :log "[WAIT] Waiting 3 seconds for file handles to be released..."
-                timeout /t 3 /nobreak >NUL
-                call :log "[OK] File handle wait complete"
-
-                call :log ""
-                call :log "[SEARCH] Looking for update files..."
-
-                :: Log update directory structure
-                call :log "[INFO] Update directory contents:"
-                call :log "       Root: %UPDATE_DIR%"
-                for %%f in ("%UPDATE_DIR%\\*") do (
-                    call :log "       %%~nxf"
-                )
-                for /d %%d in ("%UPDATE_DIR%\\*") do (
-                    call :log "       [DIR] %%~nxd"
-                    for %%f in ("%%d\\*") do (
-                        call :log "             %%~nxf"
-                    )
-                    for /d %%e in ("%%d\\*") do (
-                        call :log "             [DIR] %%~nxe"
-                    )
-                )
-
-                :: Find the extracted app folder - check first level
-                set "UPDATE_APP_DIR="
-                call :log ""
-                call :log "[SEARCH] Checking first level for FreeXmlToolkit.exe..."
-                for /d %%d in ("%UPDATE_DIR%\\*") do (
-                    call :log "[SEARCH] Checking: %%d"
-                    if exist "%%d\\FreeXmlToolkit.exe" (
-                        set "UPDATE_APP_DIR=%%d"
-                        call :log "[FOUND] FreeXmlToolkit.exe found in: %%d"
-                    ) else (
-                        call :log "[SEARCH] Not found in: %%d"
-                    )
-                )
-
-                :: If not found, check second level (nested zip structure)
-                if "%UPDATE_APP_DIR%"=="" (
-                    call :log ""
-                    call :log "[SEARCH] Checking second level (nested structure)..."
-                    for /d %%d in ("%UPDATE_DIR%\\*") do (
-                        for /d %%e in ("%%d\\*") do (
-                            call :log "[SEARCH] Checking: %%e"
-                            if exist "%%e\\FreeXmlToolkit.exe" (
-                                set "UPDATE_APP_DIR=%%e"
-                                call :log "[FOUND] FreeXmlToolkit.exe found in: %%e"
-                            )
-                        )
-                    )
-                )
-
-                :: If still not found, check third level
-                if "%UPDATE_APP_DIR%"=="" (
-                    call :log ""
-                    call :log "[SEARCH] Checking third level..."
-                    for /d %%d in ("%UPDATE_DIR%\\*") do (
-                        for /d %%e in ("%%d\\*") do (
-                            for /d %%g in ("%%e\\*") do (
-                                call :log "[SEARCH] Checking: %%g"
-                                if exist "%%g\\FreeXmlToolkit.exe" (
-                                    set "UPDATE_APP_DIR=%%g"
-                                    call :log "[FOUND] FreeXmlToolkit.exe found in: %%g"
-                                )
-                            )
-                        )
-                    )
-                )
-
-                if "%UPDATE_APP_DIR%"=="" (
-                    call :log ""
-                    call :log "[ERROR] Could not find FreeXmlToolkit.exe in update directory"
-                    call :log "[ERROR] Full directory listing:"
-                    dir /b /s "%UPDATE_DIR%" >> "%LOG_FILE%" 2>&1
-                    call :finish_error
-                )
-
-                call :log ""
-                call :log "[INFO] Update source directory: %UPDATE_APP_DIR%"
-                call :log "[INFO] Contents of update source:"
-                for %%f in ("%UPDATE_APP_DIR%\\*") do (
-                    call :log "       %%~nxf"
-                )
-                for /d %%d in ("%UPDATE_APP_DIR%\\*") do (
-                    call :log "       [DIR] %%~nxd"
-                )
-
-                :: Check file counts
-                set "SRC_FILE_COUNT=0"
-                for /r "%UPDATE_APP_DIR%" %%f in (*) do set /a SRC_FILE_COUNT+=1
-                call :log "[INFO] Total files in update: !SRC_FILE_COUNT!"
-
-                call :log ""
-                call :log "[COPY] Starting file copy..."
-                call :log "[COPY] Source: %UPDATE_APP_DIR%\\*"
-                call :log "[COPY] Destination: %APP_DIR%\\"
-
-                :: First, try to delete old files that might be locked
-                call :log "[COPY] Attempting to clear old exe first..."
-                if exist "%APP_DIR%\\FreeXmlToolkit.exe" (
-                    del /f "%APP_DIR%\\FreeXmlToolkit.exe" >NUL 2>&1
-                    if exist "%APP_DIR%\\FreeXmlToolkit.exe" (
-                        call :log "[WARN] Could not delete old FreeXmlToolkit.exe - might be locked"
-                    ) else (
-                        call :log "[OK] Old FreeXmlToolkit.exe deleted"
-                    )
-                )
-
-                :: Copy new files with full output
-                call :log "[COPY] Executing xcopy..."
-                xcopy /E /Y /I "%UPDATE_APP_DIR%\\*" "%APP_DIR%\\" >> "%LOG_FILE%" 2>&1
-                set "XCOPY_RESULT=%ERRORLEVEL%"
-
-                call :log "[COPY] xcopy exit code: !XCOPY_RESULT!"
-
-                if !XCOPY_RESULT! neq 0 (
-                    call :log "[ERROR] xcopy failed with error code: !XCOPY_RESULT!"
-                    call :log "[ERROR] Error codes: 0=OK, 1=No files, 2=CTRL+C, 4=Init error, 5=Disk write error"
-                    call :log ""
-                    call :log "[DEBUG] Attempting robocopy as fallback..."
-
-                    robocopy "%UPDATE_APP_DIR%" "%APP_DIR%" /E /IS /IT /NFL /NDL /NJH /NJS >> "%LOG_FILE%" 2>&1
-                    set "ROBO_RESULT=!ERRORLEVEL!"
-                    call :log "[DEBUG] robocopy exit code: !ROBO_RESULT! (codes < 8 are success)"
-
-                    if !ROBO_RESULT! GEQ 8 (
-                        call :log "[ERROR] Both xcopy and robocopy failed!"
-                        call :log "[ERROR] Please try running as Administrator"
-                        call :finish_error
-                    )
-                    call :log "[OK] robocopy completed successfully"
-                )
-
-                :: Verify the copy
-                call :log ""
-                call :log "[VERIFY] Verifying installation..."
-                if exist "%APP_DIR%\\FreeXmlToolkit.exe" (
-                    call :log "[OK] FreeXmlToolkit.exe exists in destination"
-                    for %%f in ("%APP_DIR%\\FreeXmlToolkit.exe") do (
-                        call :log "[INFO] New exe size: %%~zf bytes"
-                        call :log "[INFO] New exe date: %%~tf"
-                    )
-                ) else (
-                    call :log "[ERROR] FreeXmlToolkit.exe NOT FOUND in destination after copy!"
-                    call :log "[ERROR] Listing destination directory:"
-                    dir "%APP_DIR%" >> "%LOG_FILE%" 2>&1
-                    call :finish_error
-                )
-
-                :: Count files in destination
-                set "DST_FILE_COUNT=0"
-                for /r "%APP_DIR%" %%f in (*) do set /a DST_FILE_COUNT+=1
-                call :log "[INFO] Total files in destination: !DST_FILE_COUNT!"
-
-                call :log ""
-                call :log "[CLEANUP] Cleaning up temporary files..."
-                rmdir /S /Q "%UPDATE_DIR%" 2>NUL
-                if exist "%UPDATE_DIR%" (
-                    call :log "[WARN] Could not fully remove update directory"
-                ) else (
-                    call :log "[OK] Update directory cleaned up"
-                )
-
-                :: Small delay before starting
-                call :log ""
-                call :log "[START] Preparing to launch application..."
-                timeout /t 2 /nobreak >NUL
-
-                :: Verify launcher exists
-                if not exist "%LAUNCHER%" (
-                    call :log "[ERROR] Launcher not found after update: %LAUNCHER%"
-                    call :log "[ERROR] Available executables in app dir:"
-                    dir /b "%APP_DIR%\\*.exe" >> "%LOG_FILE%" 2>&1
-                    call :finish_error
-                )
-
-                call :log "[START] Launching: %LAUNCHER%"
-                start "" "%LAUNCHER%"
-                set "START_RESULT=%ERRORLEVEL%"
-
-                if !START_RESULT! neq 0 (
-                    call :log "[ERROR] Failed to start application, error code: !START_RESULT!"
-                ) else (
-                    call :log "[OK] Application launch command executed"
-                )
-
-                call :log ""
-                call :log "========================================"
-                call :log "UPDATE COMPLETED SUCCESSFULLY"
-                call :log "Finished: %DATE% %TIME%"
-                call :log "========================================"
-
-                :: Copy log to latest
-                copy /Y "%LOG_FILE%" "%LATEST_LOG%" >NUL 2>&1
-
-                exit /b 0
-
-                :log
-                echo %~1
-                echo %~1 >> "%LOG_FILE%"
-                goto :eof
-
-                :finish_error
-                call :log ""
-                call :log "========================================"
-                call :log "UPDATE FAILED"
-                call :log "See log file: %LOG_FILE%"
-                call :log "========================================"
-                copy /Y "%LOG_FILE%" "%LATEST_LOG%" >NUL 2>&1
-                echo.
-                echo UPDATE FAILED - See log file:
-                echo %LOG_FILE%
-                echo.
-                echo Press any key to open log file...
-                pause >NUL
-                notepad "%LOG_FILE%"
-                exit /b 1
-                """;
-
-        // Replace placeholders with actual paths
-        String result = template
-                .replace("@@APP_DIR@@", appDirStr)
-                .replace("@@UPDATE_DIR@@", updateDirStr)
-                .replace("@@LAUNCHER@@", launcherStr);
-
-        // Verify placeholders were replaced (for debugging)
-        if (result.contains("@@APP_DIR@@") || result.contains("@@UPDATE_DIR@@") || result.contains("@@LAUNCHER@@")) {
-            logger.error("CRITICAL: Placeholders were not replaced in updater script!");
-            logger.error("appDirStr: [{}]", appDirStr);
-            logger.error("updateDirStr: [{}]", updateDirStr);
-            logger.error("launcherStr: [{}]", launcherStr);
+    private String getPlatformName() {
+        if (isWindows()) {
+            return "windows";
         }
-
-        return result;
-    }
-
-    /**
-     * Creates the Unix (macOS/Linux) updater shell script content.
-     * <p>
-     * Paths are embedded directly into the script for consistency with
-     * the Windows implementation.
-     *
-     * @param appDir Application installation directory
-     * @param extractedDir Directory containing the extracted update
-     * @param launcher Path to the application launcher executable
-     * @return The shell script content with embedded paths
-     */
-    private String createUnixUpdaterScript(Path appDir, Path extractedDir, Path launcher) {
-        String appDirStr = appDir.toString();
-        String updateDirStr = extractedDir.toString();
-        String launcherStr = launcher.toString();
-
-        return String.format("""
-                #!/bin/bash
-
-                # Paths are embedded directly (no command-line argument parsing needed)
-                APP_DIR="%s"
-                UPDATE_DIR="%s"
-                LAUNCHER="%s"
-
-                echo "FreeXmlToolkit Updater"
-                echo "======================"
-                echo "Application directory: $APP_DIR"
-                echo "Update directory: $UPDATE_DIR"
-                echo "Launcher: $LAUNCHER"
-
-                echo "Waiting for application to exit..."
-
-                # Wait for application to exit
-                while pgrep -f "FreeXmlToolkit" > /dev/null 2>&1; do
-                    sleep 1
-                done
-
-                echo "Application has exited. Installing update..."
-
-                # Find the extracted app folder
-                UPDATE_APP_DIR=$(find "$UPDATE_DIR" -maxdepth 2 -name "FreeXmlToolkit" -type d 2>/dev/null | head -1)
-
-                if [ -z "$UPDATE_APP_DIR" ]; then
-                    # Try to find by looking for the launcher
-                    UPDATE_APP_DIR=$(find "$UPDATE_DIR" -maxdepth 3 -name "FreeXmlToolkit" -type f 2>/dev/null | head -1)
-                    if [ -n "$UPDATE_APP_DIR" ]; then
-                        UPDATE_APP_DIR=$(dirname "$UPDATE_APP_DIR")
-                    fi
-                fi
-
-                if [ -z "$UPDATE_APP_DIR" ]; then
-                    echo "Error: Could not find update files"
-                    exit 1
-                fi
-
-                echo "Found update in: $UPDATE_APP_DIR"
-
-                # Copy new files
-                echo "Copying files..."
-                cp -R "$UPDATE_APP_DIR"/* "$APP_DIR/" 2>/dev/null || {
-                    cp -R "$UPDATE_APP_DIR"/../* "$APP_DIR/" 2>/dev/null
-                }
-
-                if [ $? -ne 0 ]; then
-                    echo "Error copying files!"
-                    exit 1
-                fi
-
-                # Make launcher executable
-                chmod +x "$LAUNCHER" 2>/dev/null
-
-                # Find and make all executables in bin directory executable
-                find "$APP_DIR" -type f -name "*.sh" -exec chmod +x {} \\;
-                find "$APP_DIR/bin" -type f -exec chmod +x {} \\; 2>/dev/null
-
-                # Cleanup update directory
-                echo "Cleaning up..."
-                rm -rf "$UPDATE_DIR"
-
-                # Restart application
-                echo "Starting updated application..."
-                "$LAUNCHER" &
-
-                exit 0
-                """, appDirStr, updateDirStr, launcherStr);
+        if (isMacOS()) {
+            return "macos";
+        }
+        return "linux";
     }
 
     /**
@@ -1099,6 +661,34 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             return appDir.resolve("bin/FreeXmlToolkit");
         } else {
             return appDir.resolve("bin/FreeXmlToolkit");
+        }
+    }
+
+    private Path getUpdateHelperLauncher() {
+        Path appDir = getApplicationDirectory();
+        if (isWindows()) {
+            return appDir.resolve("UpdateHelper.exe");
+        } else if (isMacOS()) {
+            return appDir.resolve("Contents/MacOS/UpdateHelper");
+        } else {
+            return appDir.resolve("bin/UpdateHelper");
+        }
+    }
+
+    private String getUpdateHelperExecutableName() {
+        return isWindows() ? "UpdateHelper.exe" : "UpdateHelper";
+    }
+
+    private Path findHelperInUpdate(Path extractedDir, String helperExecutableName) {
+        try {
+            return Files.find(extractedDir, 4,
+                    (path, attrs) -> attrs.isRegularFile()
+                            && path.getFileName().toString().equalsIgnoreCase(helperExecutableName))
+                    .findFirst()
+                    .orElse(null);
+        } catch (IOException e) {
+            logger.warn("Could not locate update helper in extracted directory: {}", e.getMessage());
+            return null;
         }
     }
 

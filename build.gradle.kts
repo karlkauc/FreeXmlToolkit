@@ -352,16 +352,6 @@ fun createZipTask(jpackageTaskName: String, platform: String, arch: String): Str
 
         from(sourceDir)
 
-        // Include platform-specific updater script for auto-update functionality
-        from("release/updater") {
-            if (platform == "windows") {
-                include("updater.bat")
-            } else {
-                include("updater.sh")
-            }
-            into("FreeXmlToolkit")
-        }
-
         archiveFileName.set(zipFileName)
         destinationDirectory.set(file("build/dist"))
 
@@ -496,6 +486,13 @@ Development
             // For app-image, icon is embedded in the executable - use project relative path
             val projectIconPath = File(project.rootDir, iconPath).absolutePath
             val iconArg = if (File(project.rootDir, iconPath).exists()) "--icon\n$projectIconPath" else ""
+            val helperLauncherFile = File(project.layout.buildDirectory.asFile.get(),
+                "update-helper-$platform-$arch-$packageType.properties")
+            helperLauncherFile.writeText("""
+                main-jar=FreeXmlToolkit.jar
+                main-class=org.fxt.freexmltoolkit.service.update.UpdateHelperMain
+                name=UpdateHelper
+            """.trimIndent())
             
             // Use custom runtime - REQUIRED for all packages
             val runtimePath = project.layout.buildDirectory.dir("runtime/$platform-$arch").get().asFile
@@ -541,6 +538,8 @@ ${project.version}
 --description
 "FreeXMLToolkit - Universal Toolkit for XML"
 $iconArg
+--add-launcher
+UpdateHelper=${helperLauncherFile.absolutePath}
 $runtimeArg
 --java-options
 --enable-preview
