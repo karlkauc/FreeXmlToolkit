@@ -67,7 +67,7 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
      * Default version when not available from manifest.
      * IMPORTANT: Keep this in sync with build.gradle.kts version when releasing!
      */
-    private static final String DEFAULT_VERSION = "1.4.8";
+    private static final String DEFAULT_VERSION = "1.4.9";
 
     // Lazy-initialized services to avoid circular dependency
     private PropertiesService propertiesService;

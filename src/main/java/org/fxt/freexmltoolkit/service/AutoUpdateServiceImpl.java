@@ -612,8 +612,8 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
      * Creates the Windows updater batch script content.
      * Includes comprehensive logging, parameter validation, and nested directory search.
      * <p>
-     * Paths are embedded directly into the script to avoid quoting issues
-     * with Windows cmd.exe and ProcessBuilder.
+     * Paths are embedded directly into the script using string replacement to avoid
+     * any issues with Java's String.format interacting with batch file percent signs.
      *
      * @param appDir Application installation directory
      * @param extractedDir Directory containing the extracted update
@@ -625,70 +625,70 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
         String updateDirStr = extractedDir.toString();
         String launcherStr = launcher.toString();
 
-        // Use String.format with text block to embed paths directly into the script.
-        // This avoids all quoting issues with ProcessBuilder and cmd.exe argument parsing.
-        return String.format("""
+        // Use placeholder strings and replace() instead of String.format to avoid
+        // any potential issues with batch % characters interacting with format specifiers.
+        String template = """
                 @echo off
                 setlocal enabledelayedexpansion
 
                 :: IMMEDIATE LOG - Write to a fixed location first to confirm script started
-                set "LATEST_LOG=%%TEMP%%\\fxt-update-latest.log"
-                echo [%%DATE%% %%TIME%%] Updater script started > "%%LATEST_LOG%%"
-                echo Script location: %%~f0 >> "%%LATEST_LOG%%"
-                echo Working directory: %%CD%% >> "%%LATEST_LOG%%"
+                set "LATEST_LOG=%TEMP%\\fxt-update-latest.log"
+                echo [%DATE% %TIME%] Updater script started > "%LATEST_LOG%"
+                echo Script location: %~f0 >> "%LATEST_LOG%"
+                echo Working directory: %CD% >> "%LATEST_LOG%"
 
-                set "LOG_FILE=%%TEMP%%\\fxt-update-%%DATE:~-4,4%%%%DATE:~-7,2%%%%DATE:~-10,2%%-%%TIME:~0,2%%%%TIME:~3,2%%%%TIME:~6,2%%.log"
-                set "LOG_FILE=%%LOG_FILE: =0%%"
+                set "LOG_FILE=%TEMP%\\fxt-update-%DATE:~-4,4%%DATE:~-7,2%%DATE:~-10,2%-%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%.log"
+                set "LOG_FILE=%LOG_FILE: =0%"
 
-                echo Log file will be: %%LOG_FILE%% >> "%%LATEST_LOG%%"
+                echo Log file will be: %LOG_FILE% >> "%LATEST_LOG%"
 
                 call :log "========================================"
                 call :log "FreeXmlToolkit Updater"
-                call :log "Started: %%DATE%% %%TIME%%"
+                call :log "Started: %DATE% %TIME%"
                 call :log "========================================"
                 call :log ""
-                call :log "[INFO] Log file: %%LOG_FILE%%"
+                call :log "[INFO] Log file: %LOG_FILE%"
 
                 :: Paths are embedded directly (no command-line argument parsing needed)
-                set "APP_DIR=%s"
-                set "UPDATE_DIR=%s"
-                set "LAUNCHER=%s"
+                set "APP_DIR=@@APP_DIR@@"
+                set "UPDATE_DIR=@@UPDATE_DIR@@"
+                set "LAUNCHER=@@LAUNCHER@@"
 
                 call :log ""
-                call :log "[CONFIG] Application directory: %%APP_DIR%%"
-                call :log "[CONFIG] Update directory: %%UPDATE_DIR%%"
-                call :log "[CONFIG] Launcher: %%LAUNCHER%%"
+                call :log "[CONFIG] Application directory: %APP_DIR%"
+                call :log "[CONFIG] Update directory: %UPDATE_DIR%"
+                call :log "[CONFIG] Launcher: %LAUNCHER%"
                 call :log ""
 
                 :: Validate directories exist
                 call :log "[CHECK] Validating directories..."
-                if not exist "%%APP_DIR%%" (
-                    call :log "[ERROR] Application directory does not exist: %%APP_DIR%%"
+                if not exist "%APP_DIR%" (
+                    call :log "[ERROR] Application directory does not exist: %APP_DIR%"
                     call :finish_error
                 )
                 call :log "[OK] Application directory exists"
 
-                if not exist "%%UPDATE_DIR%%" (
-                    call :log "[ERROR] Update directory does not exist: %%UPDATE_DIR%%"
+                if not exist "%UPDATE_DIR%" (
+                    call :log "[ERROR] Update directory does not exist: %UPDATE_DIR%"
                     call :finish_error
                 )
                 call :log "[OK] Update directory exists"
 
                 :: Check if launcher exists (current version)
-                if exist "%%LAUNCHER%%" (
-                    call :log "[OK] Current launcher exists: %%LAUNCHER%%"
+                if exist "%LAUNCHER%" (
+                    call :log "[OK] Current launcher exists: %LAUNCHER%"
                 ) else (
-                    call :log "[WARN] Current launcher not found: %%LAUNCHER%%"
+                    call :log "[WARN] Current launcher not found: %LAUNCHER%"
                 )
 
                 :: Log current app directory contents
                 call :log ""
                 call :log "[INFO] Current application directory contents (top level):"
-                for %%%%f in ("%%APP_DIR%%\\*") do (
-                    call :log "       %%%%~nxf"
+                for %%f in ("%APP_DIR%\\*") do (
+                    call :log "       %%~nxf"
                 )
-                for /d %%%%d in ("%%APP_DIR%%\\*") do (
-                    call :log "       [DIR] %%%%~nxd"
+                for /d %%d in ("%APP_DIR%\\*") do (
+                    call :log "       [DIR] %%~nxd"
                 )
 
                 call :log ""
@@ -697,13 +697,13 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 set "WAIT_COUNT=0"
                 :wait_loop
                 tasklist /FI "IMAGENAME eq FreeXmlToolkit.exe" 2>NUL | find /I "FreeXmlToolkit.exe" >NUL
-                if %%ERRORLEVEL%%==0 (
+                if %ERRORLEVEL%==0 (
                     set /a WAIT_COUNT+=1
-                    if %%WAIT_COUNT%% GEQ 60 (
+                    if %WAIT_COUNT% GEQ 60 (
                         call :log "[ERROR] Timeout waiting for application to exit after 60 seconds"
                         call :finish_error
                     )
-                    call :log "[WAIT] Application still running (%%WAIT_COUNT%%s)..."
+                    call :log "[WAIT] Application still running (!WAIT_COUNT!s)..."
                     timeout /t 1 /nobreak >NUL
                     goto wait_loop
                 )
@@ -719,17 +719,17 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
                 :: Log update directory structure
                 call :log "[INFO] Update directory contents:"
-                call :log "       Root: %%UPDATE_DIR%%"
-                for %%%%f in ("%%UPDATE_DIR%%\\*") do (
-                    call :log "       %%%%~nxf"
+                call :log "       Root: %UPDATE_DIR%"
+                for %%f in ("%UPDATE_DIR%\\*") do (
+                    call :log "       %%~nxf"
                 )
-                for /d %%%%d in ("%%UPDATE_DIR%%\\*") do (
-                    call :log "       [DIR] %%%%~nxd"
-                    for %%%%f in ("%%%%d\\*") do (
-                        call :log "             %%%%~nxf"
+                for /d %%d in ("%UPDATE_DIR%\\*") do (
+                    call :log "       [DIR] %%~nxd"
+                    for %%f in ("%%d\\*") do (
+                        call :log "             %%~nxf"
                     )
-                    for /d %%%%e in ("%%%%d\\*") do (
-                        call :log "             [DIR] %%%%~nxe"
+                    for /d %%e in ("%%d\\*") do (
+                        call :log "             [DIR] %%~nxe"
                     )
                 )
 
@@ -737,81 +737,81 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 set "UPDATE_APP_DIR="
                 call :log ""
                 call :log "[SEARCH] Checking first level for FreeXmlToolkit.exe..."
-                for /d %%%%d in ("%%UPDATE_DIR%%\\*") do (
-                    call :log "[SEARCH] Checking: %%%%d"
-                    if exist "%%%%d\\FreeXmlToolkit.exe" (
-                        set "UPDATE_APP_DIR=%%%%d"
-                        call :log "[FOUND] FreeXmlToolkit.exe found in: %%%%d"
+                for /d %%d in ("%UPDATE_DIR%\\*") do (
+                    call :log "[SEARCH] Checking: %%d"
+                    if exist "%%d\\FreeXmlToolkit.exe" (
+                        set "UPDATE_APP_DIR=%%d"
+                        call :log "[FOUND] FreeXmlToolkit.exe found in: %%d"
                     ) else (
-                        call :log "[SEARCH] Not found in: %%%%d"
+                        call :log "[SEARCH] Not found in: %%d"
                     )
                 )
 
                 :: If not found, check second level (nested zip structure)
-                if "%%UPDATE_APP_DIR%%"=="" (
+                if "%UPDATE_APP_DIR%"=="" (
                     call :log ""
                     call :log "[SEARCH] Checking second level (nested structure)..."
-                    for /d %%%%d in ("%%UPDATE_DIR%%\\*") do (
-                        for /d %%%%e in ("%%%%d\\*") do (
-                            call :log "[SEARCH] Checking: %%%%e"
-                            if exist "%%%%e\\FreeXmlToolkit.exe" (
-                                set "UPDATE_APP_DIR=%%%%e"
-                                call :log "[FOUND] FreeXmlToolkit.exe found in: %%%%e"
+                    for /d %%d in ("%UPDATE_DIR%\\*") do (
+                        for /d %%e in ("%%d\\*") do (
+                            call :log "[SEARCH] Checking: %%e"
+                            if exist "%%e\\FreeXmlToolkit.exe" (
+                                set "UPDATE_APP_DIR=%%e"
+                                call :log "[FOUND] FreeXmlToolkit.exe found in: %%e"
                             )
                         )
                     )
                 )
 
                 :: If still not found, check third level
-                if "%%UPDATE_APP_DIR%%"=="" (
+                if "%UPDATE_APP_DIR%"=="" (
                     call :log ""
                     call :log "[SEARCH] Checking third level..."
-                    for /d %%%%d in ("%%UPDATE_DIR%%\\*") do (
-                        for /d %%%%e in ("%%%%d\\*") do (
-                            for /d %%%%f in ("%%%%e\\*") do (
-                                call :log "[SEARCH] Checking: %%%%f"
-                                if exist "%%%%f\\FreeXmlToolkit.exe" (
-                                    set "UPDATE_APP_DIR=%%%%f"
-                                    call :log "[FOUND] FreeXmlToolkit.exe found in: %%%%f"
+                    for /d %%d in ("%UPDATE_DIR%\\*") do (
+                        for /d %%e in ("%%d\\*") do (
+                            for /d %%g in ("%%e\\*") do (
+                                call :log "[SEARCH] Checking: %%g"
+                                if exist "%%g\\FreeXmlToolkit.exe" (
+                                    set "UPDATE_APP_DIR=%%g"
+                                    call :log "[FOUND] FreeXmlToolkit.exe found in: %%g"
                                 )
                             )
                         )
                     )
                 )
 
-                if "%%UPDATE_APP_DIR%%"=="" (
+                if "%UPDATE_APP_DIR%"=="" (
                     call :log ""
                     call :log "[ERROR] Could not find FreeXmlToolkit.exe in update directory"
                     call :log "[ERROR] Full directory listing:"
-                    dir /b /s "%%UPDATE_DIR%%" >> "%%LOG_FILE%%" 2>&1
+                    dir /b /s "%UPDATE_DIR%" >> "%LOG_FILE%" 2>&1
                     call :finish_error
                 )
 
                 call :log ""
-                call :log "[INFO] Update source directory: %%UPDATE_APP_DIR%%"
+                call :log "[INFO] Update source directory: %UPDATE_APP_DIR%"
                 call :log "[INFO] Contents of update source:"
-                for %%%%f in ("%%UPDATE_APP_DIR%%\\*") do (
-                    call :log "       %%%%~nxf (%%~zf bytes)"
+                for %%f in ("%UPDATE_APP_DIR%\\*") do (
+                    call :log "       %%~nxf"
                 )
-                for /d %%%%d in ("%%UPDATE_APP_DIR%%\\*") do (
-                    call :log "       [DIR] %%%%~nxd"
+                for /d %%d in ("%UPDATE_APP_DIR%\\*") do (
+                    call :log "       [DIR] %%~nxd"
                 )
 
                 :: Check file counts
                 set "SRC_FILE_COUNT=0"
-                for /r "%%UPDATE_APP_DIR%%" %%%%f in (*) do set /a SRC_FILE_COUNT+=1
-                call :log "[INFO] Total files in update: %%SRC_FILE_COUNT%%"
+                for /r "%UPDATE_APP_DIR%" %%f in (*) do set /a SRC_FILE_COUNT+=1
+                call :log "[INFO] Total files in update: !SRC_FILE_COUNT!"
 
                 call :log ""
                 call :log "[COPY] Starting file copy..."
-                call :log "[COPY] Source: %%UPDATE_APP_DIR%%\\*"
-                call :log "[COPY] Destination: %%APP_DIR%%\\"
+                call :log "[COPY] Source: %UPDATE_APP_DIR%\\*"
+                call :log "[COPY] Destination: %APP_DIR%\\"
 
                 :: First, try to delete old files that might be locked
                 call :log "[COPY] Attempting to clear old exe first..."
-                if exist "%%APP_DIR%%\\FreeXmlToolkit.exe" (
-                    del /f "%%APP_DIR%%\\FreeXmlToolkit.exe" >NUL 2>&1
-                    if exist "%%APP_DIR%%\\FreeXmlToolkit.exe" (
+                if exist "%APP_DIR%\\FreeXmlToolkit.exe" (
+                    del /f "%APP_DIR%\\FreeXmlToolkit.exe" >NUL 2>&1
+                    if exist "%APP_DIR%\\FreeXmlToolkit.exe" (
                         call :log "[WARN] Could not delete old FreeXmlToolkit.exe - might be locked"
                     ) else (
                         call :log "[OK] Old FreeXmlToolkit.exe deleted"
@@ -820,22 +820,22 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
                 :: Copy new files with full output
                 call :log "[COPY] Executing xcopy..."
-                xcopy /E /Y /I "%%UPDATE_APP_DIR%%\\*" "%%APP_DIR%%\\" >> "%%LOG_FILE%%" 2>&1
-                set "XCOPY_RESULT=%%ERRORLEVEL%%"
+                xcopy /E /Y /I "%UPDATE_APP_DIR%\\*" "%APP_DIR%\\" >> "%LOG_FILE%" 2>&1
+                set "XCOPY_RESULT=%ERRORLEVEL%"
 
-                call :log "[COPY] xcopy exit code: %%XCOPY_RESULT%%"
+                call :log "[COPY] xcopy exit code: !XCOPY_RESULT!"
 
-                if %%XCOPY_RESULT%% neq 0 (
-                    call :log "[ERROR] xcopy failed with error code: %%XCOPY_RESULT%%"
+                if !XCOPY_RESULT! neq 0 (
+                    call :log "[ERROR] xcopy failed with error code: !XCOPY_RESULT!"
                     call :log "[ERROR] Error codes: 0=OK, 1=No files, 2=CTRL+C, 4=Init error, 5=Disk write error"
                     call :log ""
                     call :log "[DEBUG] Attempting robocopy as fallback..."
 
-                    robocopy "%%UPDATE_APP_DIR%%" "%%APP_DIR%%" /E /IS /IT /NFL /NDL /NJH /NJS >> "%%LOG_FILE%%" 2>&1
-                    set "ROBO_RESULT=%%ERRORLEVEL%%"
-                    call :log "[DEBUG] robocopy exit code: %%ROBO_RESULT%% (codes < 8 are success)"
+                    robocopy "%UPDATE_APP_DIR%" "%APP_DIR%" /E /IS /IT /NFL /NDL /NJH /NJS >> "%LOG_FILE%" 2>&1
+                    set "ROBO_RESULT=!ERRORLEVEL!"
+                    call :log "[DEBUG] robocopy exit code: !ROBO_RESULT! (codes < 8 are success)"
 
-                    if %%ROBO_RESULT%% GEQ 8 (
+                    if !ROBO_RESULT! GEQ 8 (
                         call :log "[ERROR] Both xcopy and robocopy failed!"
                         call :log "[ERROR] Please try running as Administrator"
                         call :finish_error
@@ -846,28 +846,28 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 :: Verify the copy
                 call :log ""
                 call :log "[VERIFY] Verifying installation..."
-                if exist "%%APP_DIR%%\\FreeXmlToolkit.exe" (
+                if exist "%APP_DIR%\\FreeXmlToolkit.exe" (
                     call :log "[OK] FreeXmlToolkit.exe exists in destination"
-                    for %%%%f in ("%%APP_DIR%%\\FreeXmlToolkit.exe") do (
-                        call :log "[INFO] New exe size: %%%%~zf bytes"
-                        call :log "[INFO] New exe date: %%%%~tf"
+                    for %%f in ("%APP_DIR%\\FreeXmlToolkit.exe") do (
+                        call :log "[INFO] New exe size: %%~zf bytes"
+                        call :log "[INFO] New exe date: %%~tf"
                     )
                 ) else (
                     call :log "[ERROR] FreeXmlToolkit.exe NOT FOUND in destination after copy!"
                     call :log "[ERROR] Listing destination directory:"
-                    dir "%%APP_DIR%%" >> "%%LOG_FILE%%" 2>&1
+                    dir "%APP_DIR%" >> "%LOG_FILE%" 2>&1
                     call :finish_error
                 )
 
                 :: Count files in destination
                 set "DST_FILE_COUNT=0"
-                for /r "%%APP_DIR%%" %%%%f in (*) do set /a DST_FILE_COUNT+=1
-                call :log "[INFO] Total files in destination: %%DST_FILE_COUNT%%"
+                for /r "%APP_DIR%" %%f in (*) do set /a DST_FILE_COUNT+=1
+                call :log "[INFO] Total files in destination: !DST_FILE_COUNT!"
 
                 call :log ""
                 call :log "[CLEANUP] Cleaning up temporary files..."
-                rmdir /S /Q "%%UPDATE_DIR%%" 2>NUL
-                if exist "%%UPDATE_DIR%%" (
+                rmdir /S /Q "%UPDATE_DIR%" 2>NUL
+                if exist "%UPDATE_DIR%" (
                     call :log "[WARN] Could not fully remove update directory"
                 ) else (
                     call :log "[OK] Update directory cleaned up"
@@ -879,19 +879,19 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 timeout /t 2 /nobreak >NUL
 
                 :: Verify launcher exists
-                if not exist "%%LAUNCHER%%" (
-                    call :log "[ERROR] Launcher not found after update: %%LAUNCHER%%"
+                if not exist "%LAUNCHER%" (
+                    call :log "[ERROR] Launcher not found after update: %LAUNCHER%"
                     call :log "[ERROR] Available executables in app dir:"
-                    dir /b "%%APP_DIR%%\\*.exe" >> "%%LOG_FILE%%" 2>&1
+                    dir /b "%APP_DIR%\\*.exe" >> "%LOG_FILE%" 2>&1
                     call :finish_error
                 )
 
-                call :log "[START] Launching: %%LAUNCHER%%"
-                start "" "%%LAUNCHER%%"
-                set "START_RESULT=%%ERRORLEVEL%%"
+                call :log "[START] Launching: %LAUNCHER%"
+                start "" "%LAUNCHER%"
+                set "START_RESULT=%ERRORLEVEL%"
 
-                if %%START_RESULT%% neq 0 (
-                    call :log "[ERROR] Failed to start application, error code: %%START_RESULT%%"
+                if !START_RESULT! neq 0 (
+                    call :log "[ERROR] Failed to start application, error code: !START_RESULT!"
                 ) else (
                     call :log "[OK] Application launch command executed"
                 )
@@ -899,35 +899,41 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 call :log ""
                 call :log "========================================"
                 call :log "UPDATE COMPLETED SUCCESSFULLY"
-                call :log "Finished: %%DATE%% %%TIME%%"
+                call :log "Finished: %DATE% %TIME%"
                 call :log "========================================"
 
                 :: Copy log to latest
-                copy /Y "%%LOG_FILE%%" "%%LATEST_LOG%%" >NUL 2>&1
+                copy /Y "%LOG_FILE%" "%LATEST_LOG%" >NUL 2>&1
 
                 exit /b 0
 
                 :log
-                echo %%~1
-                echo %%~1 >> "%%LOG_FILE%%"
+                echo %~1
+                echo %~1 >> "%LOG_FILE%"
                 goto :eof
 
                 :finish_error
                 call :log ""
                 call :log "========================================"
                 call :log "UPDATE FAILED"
-                call :log "See log file: %%LOG_FILE%%"
+                call :log "See log file: %LOG_FILE%"
                 call :log "========================================"
-                copy /Y "%%LOG_FILE%%" "%%LATEST_LOG%%" >NUL 2>&1
+                copy /Y "%LOG_FILE%" "%LATEST_LOG%" >NUL 2>&1
                 echo.
                 echo UPDATE FAILED - See log file:
-                echo %%LOG_FILE%%
+                echo %LOG_FILE%
                 echo.
                 echo Press any key to open log file...
                 pause >NUL
-                notepad "%%LOG_FILE%%"
+                notepad "%LOG_FILE%"
                 exit /b 1
-                """, appDirStr, updateDirStr, launcherStr);
+                """;
+
+        // Replace placeholders with actual paths
+        return template
+                .replace("@@APP_DIR@@", appDirStr)
+                .replace("@@UPDATE_DIR@@", updateDirStr)
+                .replace("@@LAUNCHER@@", launcherStr);
     }
 
     /**
