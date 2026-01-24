@@ -125,12 +125,22 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             Path tempDir = null;
             Path zipFile = null;
 
+            // Write debug log to user's home directory (always accessible)
+            Path debugLog = Path.of(System.getProperty("user.home"), "fxt-update-debug.log");
+            writeDebugLog(debugLog, "=== UPDATE PROCESS STARTED ===");
+            writeDebugLog(debugLog, "Timestamp: " + java.time.LocalDateTime.now());
+            writeDebugLog(debugLog, "Java temp dir: " + System.getProperty("java.io.tmpdir"));
+            writeDebugLog(debugLog, "User home: " + System.getProperty("user.home"));
+            writeDebugLog(debugLog, "Working dir: " + System.getProperty("user.dir"));
+            writeDebugLog(debugLog, "Update info: " + updateInfo);
+
             try {
                 // Stage 1: Preparing
                 reportProgress(progressCallback, UpdateStage.PREPARING, 0, -1,
                         "Determining download URL...");
 
                 String downloadUrl = getDownloadUrl(updateInfo);
+                writeDebugLog(debugLog, "Download URL: " + downloadUrl);
                 if (downloadUrl == null || downloadUrl.isEmpty()) {
                     return UpdateResult.failure("Could not determine download URL for this platform");
                 }
@@ -140,59 +150,83 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 // Create temp directory for update
                 tempDir = Files.createTempDirectory("fxt-update-");
                 zipFile = tempDir.resolve("update.zip");
+                writeDebugLog(debugLog, "Temp directory created: " + tempDir);
+                writeDebugLog(debugLog, "Zip file path: " + zipFile);
 
                 // Stage 2: Downloading
                 reportProgress(progressCallback, UpdateStage.DOWNLOADING, 0, -1,
                         "Starting download...");
+                writeDebugLog(debugLog, "Starting download...");
 
                 if (cancelRequested.get()) {
+                    writeDebugLog(debugLog, "CANCELLED: User cancelled before download");
                     return UpdateResult.failure("Update cancelled by user");
                 }
 
                 downloadFile(downloadUrl, zipFile, progressCallback);
+                writeDebugLog(debugLog, "Download completed. File size: " + Files.size(zipFile) + " bytes");
 
                 if (cancelRequested.get()) {
+                    writeDebugLog(debugLog, "CANCELLED: User cancelled after download");
                     return UpdateResult.failure("Update cancelled by user");
                 }
 
                 // Stage 3: Extracting
                 reportProgress(progressCallback, UpdateStage.EXTRACTING, 0, -1,
                         "Extracting update...");
+                writeDebugLog(debugLog, "Starting extraction...");
 
                 Path extractedDir = tempDir.resolve("extracted");
                 Files.createDirectories(extractedDir);
                 extractZip(zipFile, extractedDir);
+                writeDebugLog(debugLog, "Extraction completed to: " + extractedDir);
+
+                // List extracted contents
+                try (var stream = Files.walk(extractedDir, 2)) {
+                    writeDebugLog(debugLog, "Extracted contents:");
+                    stream.forEach(p -> writeDebugLog(debugLog, "  " + p));
+                }
 
                 // Delete the zip file after extraction to save space
                 Files.deleteIfExists(zipFile);
 
                 if (cancelRequested.get()) {
+                    writeDebugLog(debugLog, "CANCELLED: User cancelled after extraction");
                     return UpdateResult.failure("Update cancelled by user");
                 }
 
                 // Stage 4: Launching updater
                 reportProgress(progressCallback, UpdateStage.LAUNCHING_UPDATER, 0, -1,
                         "Preparing to install update...");
+                writeDebugLog(debugLog, "=== LAUNCHING UPDATER ===");
 
-                boolean updaterLaunched = launchUpdater(extractedDir);
+                boolean updaterLaunched = launchUpdater(extractedDir, debugLog);
+                writeDebugLog(debugLog, "Updater launch result: " + updaterLaunched);
 
                 if (!updaterLaunched) {
+                    writeDebugLog(debugLog, "ERROR: Failed to launch updater script");
                     return UpdateResult.failure("Failed to launch updater script");
                 }
 
                 // Stage 5: Completed
                 reportProgress(progressCallback, UpdateStage.COMPLETED, 0, -1,
                         "Update ready. Application will restart...");
+                writeDebugLog(debugLog, "=== UPDATE PROCESS COMPLETED SUCCESSFULLY ===");
+                writeDebugLog(debugLog, "Application should exit now and updater script should take over.");
 
                 return UpdateResult.success(extractedDir);
 
             } catch (IOException e) {
                 logger.error("Update failed", e);
+                writeDebugLog(debugLog, "ERROR (IOException): " + e.getMessage());
+                writeDebugLog(debugLog, "Stack trace: " + java.util.Arrays.toString(e.getStackTrace()));
                 reportProgress(progressCallback, UpdateStage.FAILED, 0, -1,
                         "Update failed: " + e.getMessage());
                 return UpdateResult.failure("Download failed: " + e.getMessage());
             } catch (Exception e) {
                 logger.error("Unexpected error during update", e);
+                writeDebugLog(debugLog, "ERROR (Exception): " + e.getMessage());
+                writeDebugLog(debugLog, "Stack trace: " + java.util.Arrays.toString(e.getStackTrace()));
                 reportProgress(progressCallback, UpdateStage.FAILED, 0, -1,
                         "Unexpected error: " + e.getMessage());
                 return UpdateResult.failure("Update error: " + e.getMessage());
@@ -201,6 +235,20 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 currentConnection = null;
             }
         }, executorService);
+    }
+
+    /**
+     * Writes a debug message to the log file.
+     */
+    private void writeDebugLog(Path logFile, String message) {
+        try {
+            String line = java.time.LocalDateTime.now().toString() + " | " + message + System.lineSeparator();
+            Files.writeString(logFile, line,
+                    java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            logger.warn("Failed to write debug log: {}", e.getMessage());
+        }
     }
 
     /**
@@ -388,104 +436,85 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
      * Launches the platform-specific updater script.
      *
      * @param extractedDir Directory containing the extracted update
+     * @param debugLog Path to debug log file
      * @return true if the updater was launched successfully
      */
-    private boolean launchUpdater(Path extractedDir) {
+    private boolean launchUpdater(Path extractedDir, Path debugLog) {
         try {
             Path appDir = getApplicationDirectory();
             Path launcher = getApplicationLauncher();
 
-            logger.info("=== UPDATER LAUNCH DEBUG ===");
-            logger.info("Application directory: {}", appDir);
-            logger.info("Application directory exists: {}", Files.exists(appDir));
-            logger.info("Launcher: {}", launcher);
-            logger.info("Launcher exists: {}", Files.exists(launcher));
-            logger.info("Update directory: {}", extractedDir);
-            logger.info("Update directory exists: {}", Files.exists(extractedDir));
+            writeDebugLog(debugLog, "Application directory: " + appDir);
+            writeDebugLog(debugLog, "Application directory exists: " + Files.exists(appDir));
+            writeDebugLog(debugLog, "Launcher: " + launcher);
+            writeDebugLog(debugLog, "Launcher exists: " + Files.exists(launcher));
+            writeDebugLog(debugLog, "Update directory: " + extractedDir);
+            writeDebugLog(debugLog, "Update directory exists: " + Files.exists(extractedDir));
 
             // List contents of extracted directory
             try (var stream = Files.list(extractedDir)) {
-                logger.info("Extracted directory contents:");
-                stream.forEach(p -> logger.info("  - {}", p.getFileName()));
+                writeDebugLog(debugLog, "Extracted directory contents:");
+                stream.forEach(p -> writeDebugLog(debugLog, "  - " + p.getFileName()));
             }
 
             // SECURITY: Validate paths before passing to shell scripts
             if (!validateUpdaterPaths(appDir, extractedDir, launcher)) {
-                logger.error("Security validation failed for updater paths");
+                writeDebugLog(debugLog, "ERROR: Security validation failed for updater paths");
                 return false;
             }
+            writeDebugLog(debugLog, "Security validation passed");
 
             // Create the updater script in the temp directory
             Path updaterScript = createUpdaterScript(extractedDir, appDir, launcher);
-            logger.info("Updater script created: {}", updaterScript);
-            logger.info("Updater script exists: {}", Files.exists(updaterScript));
-            logger.info("Updater script size: {} bytes", Files.size(updaterScript));
+            writeDebugLog(debugLog, "Updater script created: " + updaterScript);
+            writeDebugLog(debugLog, "Updater script exists: " + Files.exists(updaterScript));
+            writeDebugLog(debugLog, "Updater script size: " + Files.size(updaterScript) + " bytes");
 
-            // Write a Java-side log file to confirm we got this far
-            Path javaLogFile = Path.of(System.getProperty("java.io.tmpdir"), "fxt-update-java.log");
-            String javaLog = String.format("""
-                    FreeXmlToolkit Update - Java Side Log
-                    ======================================
-                    Timestamp: %s
-                    Application Directory: %s
-                    Update Directory: %s
-                    Launcher: %s
-                    Updater Script: %s
-
-                    About to launch updater script...
-                    If you see this but no fxt-update-latest.log, the batch script failed to start.
-                    """,
-                    java.time.LocalDateTime.now(),
-                    appDir,
-                    extractedDir,
-                    launcher,
-                    updaterScript);
-            Files.writeString(javaLogFile, javaLog);
-            logger.info("Java-side log written to: {}", javaLogFile);
+            // Also write the script content to the log for debugging
+            writeDebugLog(debugLog, "--- UPDATER SCRIPT CONTENT (first 500 chars) ---");
+            String scriptContent = Files.readString(updaterScript);
+            writeDebugLog(debugLog, scriptContent.substring(0, Math.min(500, scriptContent.length())));
+            writeDebugLog(debugLog, "--- END SCRIPT PREVIEW ---");
 
             // Launch the updater script
-            // Note: Paths are embedded directly in the script, so no arguments needed.
             ProcessBuilder pb;
             if (isWindows()) {
-                // Use "start" command to launch in a new window that stays open on error
-                // The /wait flag is NOT used so the app can exit
-                // The /min flag starts it minimized
+                writeDebugLog(debugLog, "Platform: Windows - using cmd.exe with start");
+                // Use "start" command to launch in a new, VISIBLE window
                 pb = new ProcessBuilder(
                         "cmd.exe", "/c",
-                        "start", "FreeXmlToolkit Updater", "/min",
-                        "cmd.exe", "/c", updaterScript.toString() + " & if errorlevel 1 pause"
+                        "start", "\"FreeXmlToolkit Updater\"",
+                        "cmd.exe", "/k", updaterScript.toString()
                 );
+                writeDebugLog(debugLog, "Command: cmd.exe /c start \"FreeXmlToolkit Updater\" cmd.exe /k " + updaterScript);
             } else {
-                // Make the script executable
+                writeDebugLog(debugLog, "Platform: Unix - using bash");
                 setExecutable(updaterScript);
                 pb = new ProcessBuilder("/bin/bash", updaterScript.toString());
             }
 
             pb.directory(extractedDir.toFile());
             pb.redirectErrorStream(true);
+            writeDebugLog(debugLog, "Working directory set to: " + extractedDir);
 
-            // Redirect output to a file so we can see any immediate errors
-            Path processLogFile = Path.of(System.getProperty("java.io.tmpdir"), "fxt-update-process.log");
-            pb.redirectOutput(processLogFile.toFile());
-            logger.info("Process output redirected to: {}", processLogFile);
-
+            writeDebugLog(debugLog, "About to start process...");
             Process process = pb.start();
-            logger.info("Updater script launched successfully (PID: {})", process.pid());
-            logger.info("=== UPDATER LAUNCH COMPLETE ===");
+            writeDebugLog(debugLog, "Process started with PID: " + process.pid());
 
-            // Update the Java log to confirm launch
-            Files.writeString(javaLogFile, javaLog + "\nUpdater process started with PID: " + process.pid() + "\n");
+            // Give the process a moment to start and check if it's still alive
+            Thread.sleep(500);
+            writeDebugLog(debugLog, "Process alive after 500ms: " + process.isAlive());
 
             return true;
 
         } catch (IOException e) {
+            writeDebugLog(debugLog, "ERROR (IOException) in launchUpdater: " + e.getMessage());
+            writeDebugLog(debugLog, "Stack: " + java.util.Arrays.toString(e.getStackTrace()));
             logger.error("Failed to launch updater", e);
-            // Write error to temp file for debugging
-            try {
-                Path errorLog = Path.of(System.getProperty("java.io.tmpdir"), "fxt-update-error.log");
-                Files.writeString(errorLog, "Failed to launch updater: " + e.getMessage() + "\n" +
-                        java.util.Arrays.toString(e.getStackTrace()));
-            } catch (IOException ignored) {}
+            return false;
+        } catch (InterruptedException e) {
+            writeDebugLog(debugLog, "ERROR (InterruptedException): " + e.getMessage());
+            Thread.currentThread().interrupt();
             return false;
         }
     }
