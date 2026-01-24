@@ -43,8 +43,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Controller for the Intelligent Schema Generator - Revolutionary Feature #3.
@@ -213,6 +217,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
     // State Management
     private SchemaGenerationResult lastResult;
     private File currentXmlFile;
+    private List<TypeDefinition> allTypeDefinitions = new ArrayList<>();
 
     @FXML
     private void initialize() {
@@ -631,6 +636,79 @@ public class SchemaGeneratorController implements FavoritesParentController {
                     result.getTotalSimpleTypesGenerated()
             ));
         }
+
+        // Populate type definitions table
+        populateTypeDefinitions(result);
+    }
+
+    private void populateTypeDefinitions(SchemaGenerationResult result) {
+        allTypeDefinitions.clear();
+
+        if (result == null || result.getAnalysisResult() == null) {
+            if (typeDefinitionsTable != null) {
+                typeDefinitionsTable.setItems(FXCollections.observableArrayList());
+            }
+            return;
+        }
+
+        var analysisResult = result.getAnalysisResult();
+
+        // Add complex types
+        Set<String> complexTypes = analysisResult.getComplexTypes();
+        for (String typeName : complexTypes) {
+            allTypeDefinitions.add(new TypeDefinition(
+                    typeName,
+                    "Complex Type",
+                    "xs:complexType",
+                    0, // Usage count not tracked
+                    "Complex type with child elements"
+            ));
+        }
+
+        // Add simple types
+        Set<String> simpleTypes = analysisResult.getSimpleTypes();
+        for (String typeName : simpleTypes) {
+            String inferredType = analysisResult.getInferredTypes().getOrDefault(typeName, "xs:string");
+            allTypeDefinitions.add(new TypeDefinition(
+                    typeName,
+                    "Simple Type",
+                    inferredType,
+                    0,
+                    "Simple type with text content"
+            ));
+        }
+
+        // Add elements from allElements
+        var allElements = analysisResult.getAllElements();
+        for (var entry : allElements.entrySet()) {
+            var elementInfo = entry.getValue();
+            // Only add if not already in complex/simple types
+            if (!complexTypes.contains(entry.getKey()) && !simpleTypes.contains(entry.getKey())) {
+                allTypeDefinitions.add(new TypeDefinition(
+                        elementInfo.getName(),
+                        "Element",
+                        elementInfo.getInferredType() != null ? elementInfo.getInferredType() : "xs:string",
+                        elementInfo.getTotalOccurrences(),
+                        elementInfo.isComplexType() ? "Element with children" : "Leaf element"
+                ));
+            }
+        }
+
+        // Add attributes
+        var allAttributes = analysisResult.getAllAttributes();
+        for (var entry : allAttributes.entrySet()) {
+            var attrInfo = entry.getValue();
+            allTypeDefinitions.add(new TypeDefinition(
+                    attrInfo.getName(),
+                    "Attribute",
+                    attrInfo.getInferredType() != null ? attrInfo.getInferredType() : "xs:string",
+                    attrInfo.getTotalOccurrences(),
+                    attrInfo.isRequired() ? "Required attribute" : "Optional attribute"
+            ));
+        }
+
+        // Apply current filter
+        filterTypeDefinitions();
     }
 
     private void updateStatistics(SchemaGenerationResult result) {
@@ -750,8 +828,43 @@ public class SchemaGeneratorController implements FavoritesParentController {
     }
 
     private void filterTypeDefinitions() {
-        // TODO: Implement type definitions filtering
-        logger.debug("Type definitions filtering requested");
+        if (typeDefinitionsTable == null) {
+            return;
+        }
+
+        String selectedFilter = typeFilterCombo != null ? typeFilterCombo.getValue() : "All Types";
+        String searchText = typeSearchField != null ? typeSearchField.getText().toLowerCase().trim() : "";
+
+        List<TypeDefinition> filteredList = allTypeDefinitions.stream()
+                .filter(typeDef -> {
+                    // Apply type filter
+                    if (selectedFilter != null && !selectedFilter.equals("All Types")) {
+                        String kind = typeDef.getKind();
+                        boolean matchesFilter = switch (selectedFilter) {
+                            case "Complex Types" -> "Complex Type".equals(kind);
+                            case "Simple Types" -> "Simple Type".equals(kind);
+                            case "Elements" -> "Element".equals(kind);
+                            case "Attributes" -> "Attribute".equals(kind);
+                            default -> true;
+                        };
+                        if (!matchesFilter) {
+                            return false;
+                        }
+                    }
+
+                    // Apply search text filter
+                    if (!searchText.isEmpty()) {
+                        return typeDef.getName().toLowerCase().contains(searchText) ||
+                               (typeDef.getBaseType() != null && typeDef.getBaseType().toLowerCase().contains(searchText)) ||
+                               (typeDef.getDescription() != null && typeDef.getDescription().toLowerCase().contains(searchText));
+                    }
+
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        typeDefinitionsTable.setItems(FXCollections.observableArrayList(filteredList));
+        logger.debug("Type definitions filtered: {} of {} shown", filteredList.size(), allTypeDefinitions.size());
     }
 
     // Utility Methods
