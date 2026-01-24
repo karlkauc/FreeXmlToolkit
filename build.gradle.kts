@@ -24,7 +24,7 @@ plugins {
     id("com.github.ben-manes.versions") version "0.53.0"
 }
 
-version = "1.4.7"
+version = "1.4.8"
 group = "org.fxt"
 
 repositories {
