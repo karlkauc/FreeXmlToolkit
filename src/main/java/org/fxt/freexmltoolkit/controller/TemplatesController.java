@@ -44,6 +44,7 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -487,10 +488,32 @@ public class TemplatesController {
     }
 
     @FXML
-    private void validateParameters() {
-        if (selectedTemplate != null) {
-            // TODO: Implement advanced parameter validation
-            showInfo("Validation", "All parameters are valid.");
+    public void validateParameters() {
+        if (selectedTemplate == null) {
+            showAlert("Validation Error", "No template selected.");
+            return;
+        }
+
+        List<String> allErrors = new ArrayList<>();
+
+        for (TemplateParameter param : selectedTemplate.getParameters()) {
+            String currentValue = currentParameterValues.get(param.getName());
+            List<String> paramErrors = param.validateValue(currentValue);
+            allErrors.addAll(paramErrors);
+        }
+
+        if (allErrors.isEmpty()) {
+            showInfo("Validation Successful", "All " + selectedTemplate.getParameters().size() + " parameters are valid.");
+        } else {
+            StringBuilder errorMessage = new StringBuilder();
+            errorMessage.append("Found ").append(allErrors.size()).append(" validation error(s):\n\n");
+            for (int i = 0; i < Math.min(allErrors.size(), 10); i++) {
+                errorMessage.append("• ").append(allErrors.get(i)).append("\n");
+            }
+            if (allErrors.size() > 10) {
+                errorMessage.append("\n... and ").append(allErrors.size() - 10).append(" more errors.");
+            }
+            showAlert("Validation Failed", errorMessage.toString());
         }
     }
 
