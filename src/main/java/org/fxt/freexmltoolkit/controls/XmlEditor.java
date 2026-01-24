@@ -2436,6 +2436,11 @@ public class XmlEditor extends Tab {
     public void setEditorText(String text) {
         // Use setText() to trigger folding updates and paragraph graphics refresh
         xmlCodeEditorV2.setText(text);
+
+        // Update the document tree in the sidebar
+        if (sidebarController != null) {
+            sidebarController.updateDocumentTree(text);
+        }
     }
 
     /**

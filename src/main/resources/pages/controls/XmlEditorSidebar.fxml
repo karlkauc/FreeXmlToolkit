@@ -153,7 +153,38 @@
             </VBox>
 
             <!-- ============================================ -->
-            <!-- SECTION 3: Code Assistance (XSD-dependent)   -->
+            <!-- SECTION 3: Document Structure                -->
+            <!-- ============================================ -->
+            <HBox styleClass="sidebar-section-header" spacing="8" alignment="CENTER_LEFT">
+                <padding><Insets top="16" right="10" bottom="8" left="10"/></padding>
+                <FontIcon iconLiteral="bi-diagram-3" iconSize="14"/>
+                <Label text="Document Structure" style="-fx-font-weight: bold;"/>
+            </HBox>
+
+            <VBox styleClass="sidebar-section-container">
+                <TitledPane text="XML Tree" styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
+                    <VBox spacing="5">
+                        <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Button fx:id="expandAllButton" text="Expand All" styleClass="sidebar-button" style="-fx-font-size: 10px;">
+                                <graphic><FontIcon iconLiteral="bi-arrows-expand" iconSize="12"/></graphic>
+                            </Button>
+                            <Button fx:id="collapseAllButton" text="Collapse All" styleClass="sidebar-button" style="-fx-font-size: 10px;">
+                                <graphic><FontIcon iconLiteral="bi-arrows-collapse" iconSize="12"/></graphic>
+                            </Button>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="refreshTreeButton" text="" styleClass="sidebar-button" prefWidth="25" maxWidth="25">
+                                <graphic><FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/></graphic>
+                                <tooltip><Tooltip text="Refresh tree"/></tooltip>
+                            </Button>
+                        </HBox>
+                        <TreeView fx:id="documentTreeView" styleClass="sidebar-tree-view" prefHeight="200" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </TitledPane>
+            </VBox>
+
+            <!-- ============================================ -->
+            <!-- SECTION 4: Code Assistance (XSD-dependent)   -->
             <!-- ============================================ -->
             <HBox styleClass="sidebar-section-header" spacing="8" alignment="CENTER_LEFT">
                 <padding><Insets top="16" right="10" bottom="8" left="10"/></padding>

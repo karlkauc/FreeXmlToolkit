@@ -116,6 +116,19 @@ public class XmlEditorSidebarController {
     @FXML
     private ScrollPane sidebarScrollPane;
 
+    // Document Structure Section
+    @FXML
+    private TreeView<String> documentTreeView;
+
+    @FXML
+    private Button expandAllButton;
+
+    @FXML
+    private Button collapseAllButton;
+
+    @FXML
+    private Button refreshTreeButton;
+
     // Code Assistance Section (XSD-dependent)
     @FXML
     private VBox codeAssistanceSection;
@@ -351,6 +364,9 @@ public class XmlEditorSidebarController {
                 }
             }
         });
+
+        // Setup document tree view buttons
+        setupDocumentTreeView();
 
         // Setup validation errors ListView with custom cell factory
         if (validationErrorsListView != null) {
@@ -1652,5 +1668,314 @@ public class XmlEditorSidebarController {
             logger.error("Error during unified tab Schematron validation: {}", e.getMessage());
             updateSchematronValidationStatus("Error: " + e.getMessage(), "#dc3545", null);
         }
+    }
+
+    // ==================== Document Structure Tree ====================
+
+    /**
+     * Sets up the document tree view with button handlers.
+     */
+    private void setupDocumentTreeView() {
+        if (expandAllButton != null) {
+            expandAllButton.setOnAction(event -> expandAllTreeNodes());
+        }
+
+        if (collapseAllButton != null) {
+            collapseAllButton.setOnAction(event -> collapseAllTreeNodes());
+        }
+
+        if (refreshTreeButton != null) {
+            refreshTreeButton.setOnAction(event -> refreshDocumentTree());
+        }
+
+        // Add double-click handler to navigate to element in code
+        if (documentTreeView != null) {
+            documentTreeView.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) {
+                    TreeItem<String> selectedItem = documentTreeView.getSelectionModel().getSelectedItem();
+                    if (selectedItem != null) {
+                        navigateToTreeElement(selectedItem);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Updates the document tree view with the current XML content.
+     *
+     * @param xmlContent the XML content to parse and display
+     */
+    public void updateDocumentTree(String xmlContent) {
+        if (documentTreeView == null || xmlContent == null || xmlContent.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            // Security: Disable external entities
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+
+            javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
+            org.w3c.dom.Document doc = builder.parse(new java.io.ByteArrayInputStream(xmlContent.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+
+            TreeItem<String> root = buildTreeItemFromNode(doc.getDocumentElement());
+            root.setExpanded(true);
+            documentTreeView.setRoot(root);
+
+            logger.debug("Document tree updated with {} nodes", countTreeNodes(root));
+        } catch (Exception e) {
+            logger.debug("Could not parse XML for tree view: {}", e.getMessage());
+            // Clear tree on parse error
+            documentTreeView.setRoot(null);
+        }
+    }
+
+    /**
+     * Builds a TreeItem from a DOM Node recursively.
+     */
+    private TreeItem<String> buildTreeItemFromNode(org.w3c.dom.Node node) {
+        String displayText = buildNodeDisplayText(node);
+        TreeItem<String> item = new TreeItem<>(displayText);
+
+        // Set icon based on node type
+        var icon = new org.kordamp.ikonli.javafx.FontIcon(getIconForNodeType(node));
+        icon.setIconSize(14);
+        icon.setIconColor(javafx.scene.paint.Color.web(getColorForNodeType(node)));
+        item.setGraphic(icon);
+
+        // Process child nodes
+        org.w3c.dom.NodeList children = node.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            org.w3c.dom.Node child = children.item(i);
+            short nodeType = child.getNodeType();
+
+            if (nodeType == org.w3c.dom.Node.ELEMENT_NODE) {
+                // Recursively add element children
+                TreeItem<String> childItem = buildTreeItemFromNode(child);
+                item.getChildren().add(childItem);
+            } else if (nodeType == org.w3c.dom.Node.TEXT_NODE) {
+                String text = child.getTextContent().trim();
+                if (!text.isEmpty()) {
+                    // Add text content as a child node
+                    TreeItem<String> textItem = new TreeItem<>(truncateText(text, 50));
+                    var textIcon = new org.kordamp.ikonli.javafx.FontIcon("bi-fonts");
+                    textIcon.setIconSize(14);
+                    textIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
+                    textItem.setGraphic(textIcon);
+                    item.getChildren().add(textItem);
+                }
+            } else if (nodeType == org.w3c.dom.Node.COMMENT_NODE) {
+                String comment = child.getTextContent().trim();
+                TreeItem<String> commentItem = new TreeItem<>("<!-- " + truncateText(comment, 40) + " -->");
+                var commentIcon = new org.kordamp.ikonli.javafx.FontIcon("bi-chat-left-text");
+                commentIcon.setIconSize(14);
+                commentIcon.setIconColor(javafx.scene.paint.Color.web("#28a745"));
+                commentItem.setGraphic(commentIcon);
+                item.getChildren().add(commentItem);
+            } else if (nodeType == org.w3c.dom.Node.CDATA_SECTION_NODE) {
+                String cdata = child.getTextContent().trim();
+                TreeItem<String> cdataItem = new TreeItem<>("<![CDATA[" + truncateText(cdata, 30) + "]]>");
+                var cdataIcon = new org.kordamp.ikonli.javafx.FontIcon("bi-braces");
+                cdataIcon.setIconSize(14);
+                cdataIcon.setIconColor(javafx.scene.paint.Color.web("#fd7e14"));
+                cdataItem.setGraphic(cdataIcon);
+                item.getChildren().add(cdataItem);
+            }
+        }
+
+        return item;
+    }
+
+    /**
+     * Builds the display text for a DOM node.
+     */
+    private String buildNodeDisplayText(org.w3c.dom.Node node) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(node.getNodeName());
+
+        // Add attributes to display
+        if (node.hasAttributes()) {
+            org.w3c.dom.NamedNodeMap attrs = node.getAttributes();
+            for (int i = 0; i < attrs.getLength() && i < 3; i++) {
+                org.w3c.dom.Node attr = attrs.item(i);
+                if (i == 0) sb.append(" ");
+                else sb.append(", ");
+                sb.append(attr.getNodeName()).append("=\"").append(truncateText(attr.getNodeValue(), 20)).append("\"");
+            }
+            if (attrs.getLength() > 3) {
+                sb.append(", ...");
+            }
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Returns the icon literal for a node type.
+     */
+    private String getIconForNodeType(org.w3c.dom.Node node) {
+        if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+            if (node.hasChildNodes()) {
+                org.w3c.dom.NodeList children = node.getChildNodes();
+                for (int i = 0; i < children.getLength(); i++) {
+                    if (children.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                        return "bi-folder2"; // Container element
+                    }
+                }
+            }
+            return "bi-tag"; // Leaf element
+        }
+        return "bi-file-text";
+    }
+
+    /**
+     * Returns the color for a node type.
+     */
+    private String getColorForNodeType(org.w3c.dom.Node node) {
+        if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+            if (node.hasChildNodes()) {
+                org.w3c.dom.NodeList children = node.getChildNodes();
+                for (int i = 0; i < children.getLength(); i++) {
+                    if (children.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                        return "#007bff"; // Blue for container
+                    }
+                }
+            }
+            return "#17a2b8"; // Cyan for leaf element
+        }
+        return "#6c757d"; // Gray for other
+    }
+
+    /**
+     * Truncates text to a maximum length.
+     */
+    private String truncateText(String text, int maxLength) {
+        if (text == null) return "";
+        text = text.replace("\n", " ").replace("\r", " ").replaceAll("\\s+", " ");
+        if (text.length() > maxLength) {
+            return text.substring(0, maxLength) + "...";
+        }
+        return text;
+    }
+
+    /**
+     * Expands all nodes in the document tree.
+     */
+    private void expandAllTreeNodes() {
+        if (documentTreeView != null && documentTreeView.getRoot() != null) {
+            expandTreeItem(documentTreeView.getRoot());
+        }
+    }
+
+    /**
+     * Recursively expands a tree item and all its children.
+     */
+    private void expandTreeItem(TreeItem<String> item) {
+        if (item != null) {
+            item.setExpanded(true);
+            for (TreeItem<String> child : item.getChildren()) {
+                expandTreeItem(child);
+            }
+        }
+    }
+
+    /**
+     * Collapses all nodes in the document tree.
+     */
+    private void collapseAllTreeNodes() {
+        if (documentTreeView != null && documentTreeView.getRoot() != null) {
+            collapseTreeItem(documentTreeView.getRoot());
+            // Keep root expanded
+            documentTreeView.getRoot().setExpanded(true);
+        }
+    }
+
+    /**
+     * Recursively collapses a tree item and all its children.
+     */
+    private void collapseTreeItem(TreeItem<String> item) {
+        if (item != null) {
+            for (TreeItem<String> child : item.getChildren()) {
+                collapseTreeItem(child);
+            }
+            item.setExpanded(false);
+        }
+    }
+
+    /**
+     * Refreshes the document tree from the current editor content.
+     */
+    private void refreshDocumentTree() {
+        String xmlContent = null;
+        if (xmlEditor != null) {
+            xmlContent = xmlEditor.getEditorText();
+        } else if (xmlUnifiedTab != null) {
+            xmlContent = xmlUnifiedTab.getText();
+        }
+
+        if (xmlContent != null && !xmlContent.isEmpty()) {
+            updateDocumentTree(xmlContent);
+        }
+    }
+
+    /**
+     * Navigates to the selected tree element in the code editor.
+     */
+    private void navigateToTreeElement(TreeItem<String> item) {
+        if (item == null) return;
+
+        // Build XPath from tree path
+        String xpath = buildXPathFromTreeItem(item);
+        if (xpath != null && !xpath.isEmpty()) {
+            if (xmlEditor != null) {
+                xmlEditor.navigateToXPath(xpath);
+            }
+        }
+    }
+
+    /**
+     * Builds an XPath from a tree item by traversing up to the root.
+     */
+    private String buildXPathFromTreeItem(TreeItem<String> item) {
+        if (item == null) return "";
+
+        StringBuilder xpath = new StringBuilder();
+        TreeItem<String> current = item;
+
+        while (current != null && current.getParent() != null) {
+            String value = current.getValue();
+            if (value != null && !value.startsWith("<!--") && !value.startsWith("<![CDATA[")) {
+                // Extract element name (first word before space or attributes)
+                String elementName = value.split("\\s")[0];
+                if (!elementName.isEmpty()) {
+                    xpath.insert(0, "/" + elementName);
+                }
+            }
+            current = current.getParent();
+        }
+
+        // Add root element
+        if (item.getParent() == null && item.getValue() != null) {
+            String elementName = item.getValue().split("\\s")[0];
+            xpath.insert(0, "/" + elementName);
+        }
+
+        return xpath.toString();
+    }
+
+    /**
+     * Counts the total number of nodes in a tree.
+     */
+    private int countTreeNodes(TreeItem<String> item) {
+        if (item == null) return 0;
+        int count = 1;
+        for (TreeItem<String> child : item.getChildren()) {
+            count += countTreeNodes(child);
+        }
+        return count;
     }
 }
