@@ -674,6 +674,17 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 call :log "[CONFIG] Launcher: %LAUNCHER%"
                 call :log ""
 
+                :: Ensure we have admin rights when installing into Program Files
+                echo %APP_DIR% | find /I "Program Files" >NUL
+                if %ERRORLEVEL%==0 (
+                    net session >NUL 2>&1
+                    if %ERRORLEVEL% NEQ 0 (
+                        call :log "[WARN] Administrator privileges required. Requesting elevation..."
+                        powershell -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
+                        exit /b 0
+                    )
+                )
+
                 :: Validate directories exist
                 call :log "[CHECK] Validating directories..."
                 if not exist "%APP_DIR%" (
