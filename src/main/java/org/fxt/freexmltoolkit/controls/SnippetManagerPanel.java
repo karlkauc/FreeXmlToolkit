@@ -19,13 +19,12 @@ import org.fxt.freexmltoolkit.service.XPathExecutionEngine;
 import org.fxt.freexmltoolkit.service.XPathExecutionResult;
 import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Revolutionary Snippet Manager Panel - the unique selling point of the XML Editor.
@@ -528,8 +527,209 @@ public class SnippetManagerPanel extends VBox {
      * @return a list of snippets that are relevant to the given context
      */
     public List<XPathSnippet> getContextSuggestions(String xmlContext) {
-        // TODO: Implement smart context-aware suggestions
-        return snippetRepository.searchSnippets(xmlContext);
+        if (xmlContext == null || xmlContext.trim().isEmpty()) {
+            // Return popular and favorite snippets when no context
+            List<XPathSnippet> suggestions = new ArrayList<>();
+            suggestions.addAll(snippetRepository.getFavoriteSnippets());
+            suggestions.addAll(snippetRepository.getMostPopularSnippets(5));
+            return suggestions.stream().distinct().limit(10).collect(Collectors.toList());
+        }
+
+        // Analyze the XML context
+        XmlContextAnalysis analysis = analyzeXmlContext(xmlContext);
+
+        // Score and rank snippets based on context
+        Map<XPathSnippet, Integer> scoredSnippets = new HashMap<>();
+
+        for (XPathSnippet snippet : snippetRepository.getAllSnippets()) {
+            int score = calculateContextScore(snippet, analysis);
+            if (score > 0) {
+                scoredSnippets.put(snippet, score);
+            }
+        }
+
+        // Sort by score (descending) and return top suggestions
+        return scoredSnippets.entrySet().stream()
+                .sorted((a, b) -> {
+                    int scoreCompare = Integer.compare(b.getValue(), a.getValue());
+                    if (scoreCompare != 0) return scoreCompare;
+                    // Tie-breaker: favorites first, then by usage
+                    if (a.getKey().isFavorite() != b.getKey().isFavorite()) {
+                        return a.getKey().isFavorite() ? -1 : 1;
+                    }
+                    return Long.compare(b.getKey().getExecutionCount(), a.getKey().getExecutionCount());
+                })
+                .map(Map.Entry::getKey)
+                .limit(15)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Analyzes the XML context to extract relevant information for snippet matching.
+     */
+    private XmlContextAnalysis analyzeXmlContext(String xmlContext) {
+        XmlContextAnalysis analysis = new XmlContextAnalysis();
+
+        // Extract element names
+        java.util.regex.Pattern elementPattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:-]*)(?:\\s|>|/)");
+        java.util.regex.Matcher elementMatcher = elementPattern.matcher(xmlContext);
+        while (elementMatcher.find()) {
+            String elementName = elementMatcher.group(1);
+            if (!elementName.startsWith("/")) {
+                analysis.elementNames.add(elementName.toLowerCase());
+            }
+        }
+
+        // Extract attribute names
+        java.util.regex.Pattern attrPattern = java.util.regex.Pattern.compile("\\s([a-zA-Z][a-zA-Z0-9_:-]*)\\s*=");
+        java.util.regex.Matcher attrMatcher = attrPattern.matcher(xmlContext);
+        while (attrMatcher.find()) {
+            analysis.attributeNames.add(attrMatcher.group(1).toLowerCase());
+        }
+
+        // Extract namespace prefixes
+        java.util.regex.Pattern nsPattern = java.util.regex.Pattern.compile("xmlns:([a-zA-Z][a-zA-Z0-9_-]*)\\s*=");
+        java.util.regex.Matcher nsMatcher = nsPattern.matcher(xmlContext);
+        while (nsMatcher.find()) {
+            analysis.namespaces.add(nsMatcher.group(1).toLowerCase());
+        }
+
+        // Detect context type
+        analysis.hasAttributes = !analysis.attributeNames.isEmpty();
+        analysis.hasNamespaces = !analysis.namespaces.isEmpty();
+        analysis.inComment = xmlContext.contains("<!--") && !xmlContext.contains("-->");
+        analysis.inCdata = xmlContext.contains("<![CDATA[") && !xmlContext.contains("]]>");
+        analysis.isNested = countOccurrences(xmlContext, '<') > 2;
+        analysis.hasTextContent = xmlContext.matches(".*>[^<]+<.*");
+
+        // Detect specific patterns
+        analysis.hasNumericContent = xmlContext.matches(".*>\\s*\\d+(\\.\\d+)?\\s*<.*");
+        analysis.hasDateContent = xmlContext.matches(".*>\\s*\\d{4}-\\d{2}-\\d{2}.*<.*");
+
+        return analysis;
+    }
+
+    /**
+     * Calculates a relevance score for a snippet based on the XML context analysis.
+     */
+    private int calculateContextScore(XPathSnippet snippet, XmlContextAnalysis analysis) {
+        int score = 0;
+
+        // Base score for all snippets
+        score += 1;
+
+        // Bonus for favorites
+        if (snippet.isFavorite()) {
+            score += 5;
+        }
+
+        // Bonus for popular snippets
+        if (snippet.getExecutionCount() > 10) {
+            score += 3;
+        } else if (snippet.getExecutionCount() > 0) {
+            score += 1;
+        }
+
+        // Category-based scoring
+        switch (snippet.getCategory()) {
+            case NAVIGATION:
+                if (analysis.isNested) score += 4;
+                if (analysis.elementNames.size() > 3) score += 2;
+                break;
+            case EXTRACTION:
+                if (analysis.hasTextContent) score += 4;
+                if (analysis.hasAttributes) score += 3;
+                break;
+            case FILTERING:
+                if (analysis.hasAttributes) score += 4;
+                if (analysis.elementNames.size() > 2) score += 2;
+                break;
+            case TRANSFORMATION:
+                if (analysis.hasNumericContent) score += 3;
+                if (analysis.hasDateContent) score += 2;
+                break;
+            case VALIDATION:
+                if (analysis.hasAttributes) score += 2;
+                break;
+            case ANALYSIS:
+                if (analysis.hasNamespaces) score += 4;
+                if (analysis.elementNames.size() > 5) score += 3;
+                break;
+            case UTILITY:
+                score += 1; // Always somewhat relevant
+                break;
+            default:
+                break;
+        }
+
+        // Tag-based scoring - match tags with detected elements/attributes
+        for (String tag : snippet.getTags()) {
+            String tagLower = tag.toLowerCase();
+            if (analysis.elementNames.contains(tagLower)) {
+                score += 5;
+            }
+            if (analysis.attributeNames.contains(tagLower)) {
+                score += 4;
+            }
+            if (analysis.namespaces.contains(tagLower)) {
+                score += 3;
+            }
+            // Common tag matches
+            if (tagLower.equals("attribute") && analysis.hasAttributes) {
+                score += 2;
+            }
+            if (tagLower.equals("namespace") && analysis.hasNamespaces) {
+                score += 2;
+            }
+            if (tagLower.equals("text") && analysis.hasTextContent) {
+                score += 2;
+            }
+        }
+
+        // Query-based scoring - check if snippet query mentions detected elements
+        String queryLower = snippet.getQuery().toLowerCase();
+        for (String element : analysis.elementNames) {
+            if (queryLower.contains(element)) {
+                score += 3;
+            }
+        }
+        for (String attr : analysis.attributeNames) {
+            if (queryLower.contains("@" + attr)) {
+                score += 3;
+            }
+        }
+
+        return score;
+    }
+
+    /**
+     * Counts occurrences of a character in a string.
+     */
+    private int countOccurrences(String str, char c) {
+        int count = 0;
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) == c) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Internal class to hold XML context analysis results.
+     */
+    private static class XmlContextAnalysis {
+        Set<String> elementNames = new HashSet<>();
+        Set<String> attributeNames = new HashSet<>();
+        Set<String> namespaces = new HashSet<>();
+        boolean hasAttributes = false;
+        boolean hasNamespaces = false;
+        boolean inComment = false;
+        boolean inCdata = false;
+        boolean isNested = false;
+        boolean hasTextContent = false;
+        boolean hasNumericContent = false;
+        boolean hasDateContent = false;
     }
 
     /**
