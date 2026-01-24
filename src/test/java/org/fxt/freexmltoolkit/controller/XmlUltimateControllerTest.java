@@ -320,19 +320,6 @@ class XmlUltimateControllerTest {
     }
 
     @Test
-    @DisplayName("Should validate property entry structure")
-    void testPropertyEntryStructure() {
-        // PropertyEntry is a simple data class with name and value
-        String propertyName = "encoding";
-        String propertyValue = "UTF-8";
-
-        assertNotNull(propertyName);
-        assertNotNull(propertyValue);
-        assertEquals("encoding", propertyName);
-        assertEquals("UTF-8", propertyValue);
-    }
-
-    @Test
     @DisplayName("Should validate thread pool naming")
     void testThreadPoolNaming() {
         String threadName = "UltimateXML-Thread";

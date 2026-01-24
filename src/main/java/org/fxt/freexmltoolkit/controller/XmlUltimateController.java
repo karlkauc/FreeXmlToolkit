@@ -185,12 +185,6 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     @FXML
     private ListView<String> validationResultsList;
     @FXML
-    private TableView<PropertyEntry> propertiesTable;
-    @FXML
-    private TableColumn<PropertyEntry, String> propertyNameColumn;
-    @FXML
-    private TableColumn<PropertyEntry, String> propertyValueColumn;
-    @FXML
     private ListView<String> namespacesList;
 
     // Development Panels
@@ -764,17 +758,6 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     }
 
     private void initializeTables() {
-        // Properties table
-        if (propertyNameColumn != null && propertyValueColumn != null) {
-            propertyNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-            propertyValueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
-            propertyValueColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-            propertyValueColumn.setOnEditCommit(event -> {
-                event.getRowValue().setValue(event.getNewValue());
-                updateCurrentXmlFromProperties();
-            });
-        }
-
         // Template parameters table
         if (parameterNameColumn != null && parameterValueColumn != null && parameterTypeColumn != null) {
             parameterNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -2153,14 +2136,6 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         return text;
     }
 
-    private void updateCurrentXmlFromProperties() {
-        // Update current XML based on property changes
-        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
-        if (currentTab != null && currentTab instanceof XmlEditor) {
-            // TODO: Implement XML update from properties
-        }
-    }
-
     private String formatXml(String xml, boolean indent) throws Exception {
         // Use the improved XmlService.prettyFormat method that handles whitespace properly
         if (indent) {
@@ -2783,35 +2758,6 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
-    }
-
-    /**
-     * Property entry class for properties table
-     */
-    public static class PropertyEntry {
-        private String name;
-        private String value;
-
-        public PropertyEntry(String name, String value) {
-            this.name = name;
-            this.value = value;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public void setValue(String value) {
-            this.value = value;
-        }
     }
 
     /**
