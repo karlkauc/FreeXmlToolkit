@@ -16,8 +16,9 @@ import java.util.Optional;
 public class UpdateHelperMain {
 
     private static final int WAIT_TIMEOUT_SECONDS = 60;
-    private static final int COPY_RETRY_COUNT = 3;
-    private static final int COPY_RETRY_DELAY_MS = 1000;
+    private static final int COPY_RETRY_COUNT = 10;
+    private static final int COPY_RETRY_DELAY_MS = 2000;
+    private static final int POST_EXIT_COOLDOWN_MS = 5000;
 
     public static void main(String[] args) {
         int exitCode = 1;
@@ -82,8 +83,11 @@ public class UpdateHelperMain {
         logger.info("Waiting for application to exit...");
         int waited = 0;
         while (waited < WAIT_TIMEOUT_SECONDS) {
-            if (!isProcessRunning(processName)) {
+            if (!isProcessRunning(processName) && !isJavaProcessRunningWithApp(processName, logger)) {
                 logger.info("Application process not found");
+                logger.info("Waiting " + (POST_EXIT_COOLDOWN_MS / 1000) + "s cooldown for file handles to be released...");
+                Thread.sleep(POST_EXIT_COOLDOWN_MS);
+                logger.info("Cooldown completed");
                 return;
             }
             Thread.sleep(1000);
@@ -100,6 +104,31 @@ public class UpdateHelperMain {
                 .map(info -> info.command().orElse(""))
                 .map(cmd -> Path.of(cmd).getFileName().toString().toLowerCase())
                 .anyMatch(cmd -> cmd.equals(nameLower));
+    }
+
+    /**
+     * On Windows with jpackage, the launcher (FreeXmlToolkit.exe) exits quickly while a
+     * separate java.exe process holds the JAR file. This method checks for any Java
+     * processes that might be running the application.
+     */
+    private static boolean isJavaProcessRunningWithApp(String processName, UpdateHelperLogger logger) {
+        String appBaseName = processName.replace(".exe", "").replace(".EXE", "").toLowerCase();
+        boolean found = ProcessHandle.allProcesses()
+                .map(ProcessHandle::info)
+                .filter(info -> {
+                    String cmd = info.command().orElse("").toLowerCase();
+                    String cmdLine = info.commandLine().orElse("").toLowerCase();
+                    // Check for java.exe or javaw.exe with our app name in the command line
+                    boolean isJava = cmd.contains("java");
+                    boolean hasAppName = cmdLine.contains(appBaseName);
+                    return isJava && hasAppName;
+                })
+                .findAny()
+                .isPresent();
+        if (found) {
+            logger.info("Found Java process running with " + appBaseName);
+        }
+        return found;
     }
 
     static Path findUpdateAppDir(Path updateDir, String launcherName, UpdateHelperLogger logger) throws IOException {
