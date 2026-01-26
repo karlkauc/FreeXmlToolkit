@@ -145,8 +145,8 @@ public class XsdContextMenuFactory {
         Menu moveMenu = createMoveMenu(node);
 
         // Create clipboard menu items
-        MenuItem copyItem = createMenuItem("Copy", "bi-clipboard", "#6c757d", () -> handleCopy(node));
-        MenuItem cutItem = createMenuItem("Cut", "bi-scissors", "#fd7e14", () -> handleCut(node));
+        MenuItem copyItem = createMenuItem("Copy Node", "bi-clipboard", "#6c757d", () -> handleCopy(node));
+        MenuItem cutItem = createMenuItem("Cut Node", "bi-scissors", "#fd7e14", () -> handleCut(node));
         MenuItem pasteItem = createPasteMenuItem(node);
 
         if (hasComplexTypeReference) {
@@ -933,7 +933,7 @@ public class XsdContextMenuFactory {
      */
     private MenuItem createPasteMenuItem(VisualNode node) {
         XsdClipboard clipboard = editorContext.getClipboard();
-        MenuItem pasteItem = createMenuItem("Paste", "bi-clipboard-check", "#28a745", () -> handlePaste(node));
+        MenuItem pasteItem = createMenuItem("Paste Node", "bi-clipboard-check", "#28a745", () -> handlePaste(node));
 
         // Disable paste if clipboard is empty
         if (!clipboard.hasContent()) {
