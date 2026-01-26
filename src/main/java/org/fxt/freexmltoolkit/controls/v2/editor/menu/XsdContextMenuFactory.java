@@ -892,18 +892,48 @@ public class XsdContextMenuFactory {
 
     /**
      * Handles copy operation for a node.
-     * Copies the node to the clipboard.
+     * Copies the node to the internal clipboard (for paste within editor) and
+     * additionally copies the XSD definition to the system clipboard (for paste in other applications).
      *
      * @param node the node to copy
      */
     private void handleCopy(VisualNode node) {
         Object modelObject = node.getModelObject();
         if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+            // Copy to internal clipboard for paste within editor
             editorContext.getClipboard().copy(xsdNode);
+
+            // Also copy XSD definition to system clipboard
+            copyXsdDefinitionToSystemClipboard(xsdNode);
+
             logger.info("Copied node '{}' to clipboard", node.getLabel());
         } else {
             logger.warn("Cannot copy - model object is not an XsdNode: {}",
                     modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Serializes the XSD node and copies its definition to the system clipboard.
+     * This allows users to paste the XSD code in other applications.
+     *
+     * @param xsdNode the node to serialize and copy
+     */
+    private void copyXsdDefinitionToSystemClipboard(org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+        try {
+            org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer serializer =
+                    new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer();
+            String xsdDefinition = serializer.serializeNodeOnly(xsdNode);
+
+            if (xsdDefinition != null && !xsdDefinition.isEmpty()) {
+                Clipboard clipboard = Clipboard.getSystemClipboard();
+                ClipboardContent content = new ClipboardContent();
+                content.putString(xsdDefinition);
+                clipboard.setContent(content);
+                logger.debug("XSD definition copied to system clipboard: {} characters", xsdDefinition.length());
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to copy XSD definition to system clipboard: {}", e.getMessage());
         }
     }
 

@@ -161,6 +161,26 @@ public class XsdSerializer {
     }
 
     /**
+     * Serializes a single XsdNode to XSD XML.
+     * Useful for copying individual nodes to clipboard or preview.
+     * The output includes the node and all its children with proper indentation.
+     *
+     * @param node the XSD node to serialize
+     * @return XSD XML string for the node
+     * @since 2.0
+     */
+    public String serializeNodeOnly(XsdNode node) {
+        if (node == null) {
+            logger.warn("Cannot serialize null XsdNode");
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        serializeXsdNode(node, sb, 0);
+        return sb.toString().trim();
+    }
+
+    /**
      * Serializes a single XsdNode (recursive helper method).
      *
      * @param node   the node to serialize
