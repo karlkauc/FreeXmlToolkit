@@ -1,6 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.menu;
 
 import javafx.scene.control.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -163,7 +165,9 @@ public class XsdContextMenuFactory {
                     cutItem,
                     pasteItem,
                     createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
-                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
+                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node)),
+                    new SeparatorMenuItem(),
+                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
             );
         } else if (hasSimpleTypeReference) {
             // Element references a SimpleType - show Edit Type option without Add submenu
@@ -180,7 +184,9 @@ public class XsdContextMenuFactory {
                     cutItem,
                     pasteItem,
                     createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
-                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
+                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node)),
+                    new SeparatorMenuItem(),
+                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
             );
         } else {
             menu.getItems().addAll(
@@ -195,7 +201,9 @@ public class XsdContextMenuFactory {
                     cutItem,
                     pasteItem,
                     createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
-                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
+                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node)),
+                    new SeparatorMenuItem(),
+                    createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
             );
         }
 
@@ -226,7 +234,9 @@ public class XsdContextMenuFactory {
                 createMenuItem("Toggle Required/Optional", "bi-toggle-on", "#6c757d",
                         () -> logger.info("Toggle required/optional for {}", node.getLabel())),
                 new SeparatorMenuItem(),
-                createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
+                createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node)),
+                new SeparatorMenuItem(),
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -257,7 +267,9 @@ public class XsdContextMenuFactory {
                 createMenuItem("Rename", () -> handleRename(node)),
                 createMenuItem("Convert to Simple Type", () -> logger.info("Convert to simple type {}", node.getLabel())),
                 new SeparatorMenuItem(),
-                createMenuItem("Delete", () -> handleDelete(node))
+                createMenuItem("Delete", () -> handleDelete(node)),
+                new SeparatorMenuItem(),
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -278,7 +290,9 @@ public class XsdContextMenuFactory {
                 createMenuItem("Rename", () -> handleRename(node)),
                 createMenuItem("Convert to Complex Type", () -> logger.info("Convert to complex type {}", node.getLabel())),
                 new SeparatorMenuItem(),
-                createMenuItem("Delete", () -> handleDelete(node))
+                createMenuItem("Delete", () -> handleDelete(node)),
+                new SeparatorMenuItem(),
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -336,7 +350,9 @@ public class XsdContextMenuFactory {
                 changeTypeMenu,
                 editCardinalityItem,
                 new SeparatorMenuItem(),
-                deleteItem
+                deleteItem,
+                new SeparatorMenuItem(),
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -357,7 +373,9 @@ public class XsdContextMenuFactory {
                 }),
                 createMenuItem("Add Global Type", () -> logger.info("Add global type to schema")),
                 new SeparatorMenuItem(),
-                createMenuItem("Edit Namespace", () -> logger.info("Edit schema namespace"))
+                createMenuItem("Edit Namespace", () -> logger.info("Edit schema namespace")),
+                new SeparatorMenuItem(),
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -373,7 +391,9 @@ public class XsdContextMenuFactory {
                 createMenuItem("Add Element", () -> handleAddElement(node)),
                 new SeparatorMenuItem(),
                 createMenuItem("Rename", () -> handleRename(node)),
-                createMenuItem("Delete", () -> handleDelete(node))
+                createMenuItem("Delete", () -> handleDelete(node)),
+                new SeparatorMenuItem(),
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -387,7 +407,9 @@ public class XsdContextMenuFactory {
 
         menu.getItems().addAll(
                 createMenuItem("Edit Value", () -> logger.info("Edit enumeration value {}", node.getLabel())),
-                createMenuItem("Delete", () -> handleDelete(node))
+                createMenuItem("Delete", () -> handleDelete(node)),
+                new SeparatorMenuItem(),
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -399,8 +421,10 @@ public class XsdContextMenuFactory {
     private ContextMenu createDefaultMenu(VisualNode node) {
         ContextMenu menu = new ContextMenu();
 
-        menu.getItems().add(
-                createMenuItem("Properties", () -> logger.info("Show properties for {}", node.getLabel()))
+        menu.getItems().addAll(
+                createMenuItem("Properties", () -> logger.info("Show properties for {}", node.getLabel())),
+                new SeparatorMenuItem(),
+                createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
 
         return menu;
@@ -940,6 +964,37 @@ public class XsdContextMenuFactory {
         } else {
             logger.warn("Cannot paste - target is not an XsdNode: {}",
                     modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Copies the XPath of the selected node to the system clipboard.
+     * This operation is always available (view and edit mode).
+     *
+     * @param node the node whose XPath to copy
+     */
+    private void handleCopyXPath(VisualNode node) {
+        if (node == null) {
+            logger.warn("Cannot copy XPath: node is null");
+            return;
+        }
+
+        Object modelObject = node.getModelObject();
+        if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode)) {
+            logger.warn("Cannot copy XPath: model object is not an XsdNode: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+            return;
+        }
+
+        String xpath = xsdNode.getXPath();
+        if (xpath != null && !xpath.isEmpty()) {
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+            content.putString(xpath);
+            clipboard.setContent(content);
+            logger.debug("XPath copied to clipboard: {}", xpath);
+        } else {
+            logger.warn("Cannot copy XPath: XPath is null or empty for node '{}'", node.getLabel());
         }
     }
 
