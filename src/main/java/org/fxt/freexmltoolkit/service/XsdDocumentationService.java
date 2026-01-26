@@ -223,7 +223,14 @@ public class XsdDocumentationService {
      * @param languages Set of language codes to include, or null for all
      */
     public void setIncludedLanguages(Set<String> languages) {
-        this.includedLanguages = languages != null ? new LinkedHashSet<>(languages) : null;
+        if (languages != null) {
+            // Filter out null values to prevent NPE in downstream operations
+            this.includedLanguages = languages.stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        } else {
+            this.includedLanguages = null;
+        }
     }
 
     /**
@@ -338,6 +345,7 @@ public class XsdDocumentationService {
 
             // Add other languages sorted alphabetically
             languagesToUse.stream()
+                    .filter(Objects::nonNull)  // Filter out null values
                     .filter(lang -> !"default".equalsIgnoreCase(lang))
                     .sorted()
                     .forEach(sortedLanguages::add);

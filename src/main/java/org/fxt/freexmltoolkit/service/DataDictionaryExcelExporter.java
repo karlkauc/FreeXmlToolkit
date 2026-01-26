@@ -125,6 +125,7 @@ public class DataDictionaryExcelExporter {
             if (includedLanguages != null && !includedLanguages.isEmpty()) {
                 // Create a case-insensitive filter
                 Set<String> lowerCaseFilter = includedLanguages.stream()
+                        .filter(Objects::nonNull)  // Filter out null values
                         .map(String::toLowerCase)
                         .collect(Collectors.toSet());
                 // Always include "default" if it's in the discovered languages and in the filter (or no filter)
