@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +46,8 @@ public class TypeLibraryView extends BorderPane {
     private Label statsLabel;
     private String schemaName = "Unknown Schema";
     private TypeEditorTabManager typeEditorTabManager;
+    private Consumer<XsdComplexType> onOpenComplexType;
+    private Consumer<XsdSimpleType> onOpenSimpleType;
 
     /**
      * Creates a new TypeLibraryView.
@@ -76,6 +80,26 @@ public class TypeLibraryView extends BorderPane {
      */
     public void setTypeEditorTabManager(TypeEditorTabManager typeEditorTabManager) {
         this.typeEditorTabManager = typeEditorTabManager;
+    }
+
+    /**
+     * Set the callback for opening a ComplexType in the editor.
+     * This callback should also switch to the Type Editor tab.
+     *
+     * @param callback The callback that receives the ComplexType to open
+     */
+    public void setOnOpenComplexType(Consumer<XsdComplexType> callback) {
+        this.onOpenComplexType = callback;
+    }
+
+    /**
+     * Set the callback for opening a SimpleType in the editor.
+     * This callback should also switch to the Type Editor tab.
+     *
+     * @param callback The callback that receives the SimpleType to open
+     */
+    public void setOnOpenSimpleType(Consumer<XsdSimpleType> callback) {
+        this.onOpenSimpleType = callback;
     }
 
     private void initializeUI() {
@@ -388,16 +412,22 @@ public class TypeLibraryView extends BorderPane {
             }
         });
 
-        // Professional row factory with hover effects
+        // Professional row factory with hover effects and context menu
         table.setRowFactory(tv -> new TableRow<TypeInfo>() {
             @Override
             protected void updateItem(TypeInfo item, boolean empty) {
                 super.updateItem(item, empty);
                 if (item == null || empty) {
                     setStyle("");
+                    setContextMenu(null);
                 } else {
-                    // Subtle alternating rows with hover effect
-                    String baseColor = (getIndex() % 2 == 0) ? "#ffffff" : "#fafafa";
+                    // Yellow background for imported types, alternating for others
+                    String baseColor;
+                    if (item.isFromInclude) {
+                        baseColor = "#fff8e1"; // Light yellow for imported types
+                    } else {
+                        baseColor = (getIndex() % 2 == 0) ? "#ffffff" : "#fafafa";
+                    }
 
                     setStyle(
                         "-fx-background-color: " + baseColor + ";" +
@@ -406,7 +436,11 @@ public class TypeLibraryView extends BorderPane {
                         "-fx-padding: 8px 4px;"
                     );
 
+                    // Add context menu
+                    setContextMenu(createContextMenu(item));
+
                     // Hover effect
+                    final String hoverBaseColor = baseColor;
                     setOnMouseEntered(e -> {
                         if (!isEmpty()) {
                             setStyle(
@@ -422,7 +456,7 @@ public class TypeLibraryView extends BorderPane {
                     setOnMouseExited(e -> {
                         if (!isEmpty()) {
                             setStyle(
-                                "-fx-background-color: " + baseColor + ";" +
+                                "-fx-background-color: " + hoverBaseColor + ";" +
                                 "-fx-border-color: #eeeeee;" +
                                 "-fx-border-width: 0 0 1 0;" +
                                 "-fx-padding: 8px 4px;"
@@ -434,6 +468,17 @@ public class TypeLibraryView extends BorderPane {
         });
 
         table.getColumns().addAll(typeCol, nameCol, baseCol, docCol, usageCol, locationsCol);
+
+        // Double-click to edit type
+        table.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                TypeInfo selected = table.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    handleEditType(selected);
+                }
+            }
+        });
+
         return table;
     }
 
@@ -492,8 +537,14 @@ public class TypeLibraryView extends BorderPane {
         }
         info.baseType = baseType != null ? baseType : "";
 
-        info.documentation = simpleType.getDocumentation() != null ? simpleType.getDocumentation() : "";
+        info.documentation = extractDocumentation(simpleType);
         info.node = simpleType;
+
+        // Track include/import source
+        info.isFromInclude = simpleType.isFromInclude();
+        IncludeSourceInfo sourceInfo = simpleType.getSourceInfo();
+        info.sourceFileName = sourceInfo != null ? sourceInfo.getFileName() : null;
+
         return info;
     }
 
@@ -502,9 +553,225 @@ public class TypeLibraryView extends BorderPane {
         info.kind = "Complex";
         info.name = complexType.getName() != null ? complexType.getName() : "(anonymous)";
         info.baseType = ""; // Complex types don't always have a simple base
-        info.documentation = complexType.getDocumentation() != null ? complexType.getDocumentation() : "";
+        info.documentation = extractDocumentation(complexType);
         info.node = complexType;
+
+        // Track include/import source
+        info.isFromInclude = complexType.isFromInclude();
+        IncludeSourceInfo sourceInfo = complexType.getSourceInfo();
+        info.sourceFileName = sourceInfo != null ? sourceInfo.getFileName() : null;
+
         return info;
+    }
+
+    /**
+     * Extracts documentation from an XsdNode, checking both the new documentations list
+     * and the legacy documentation field.
+     *
+     * @param node the node to extract documentation from
+     * @return the documentation text, or empty string if not found
+     */
+    private String extractDocumentation(XsdNode node) {
+        // Check new documentations list first
+        List<XsdDocumentation> docs = node.getDocumentations();
+        if (docs != null && !docs.isEmpty()) {
+            // Prefer English documentation
+            for (XsdDocumentation doc : docs) {
+                if ("en".equals(doc.getLang()) && doc.getText() != null) {
+                    return doc.getText().trim();
+                }
+            }
+            // Fallback to first entry with text
+            for (XsdDocumentation doc : docs) {
+                String text = doc.getText();
+                if (text != null && !text.isEmpty()) {
+                    return text.trim();
+                }
+            }
+        }
+        // Fallback to legacy field
+        String legacy = node.getDocumentation();
+        return legacy != null ? legacy.trim() : "";
+    }
+
+    /**
+     * Creates a context menu for a type row.
+     *
+     * @param typeInfo the type info for the row
+     * @return the context menu
+     */
+    private ContextMenu createContextMenu(TypeInfo typeInfo) {
+        ContextMenu menu = new ContextMenu();
+
+        // Edit Type
+        MenuItem editItem = new MenuItem("Edit Type in Editor");
+        editItem.setGraphic(createMenuIcon("bi-pencil-square", "#17a2b8"));
+        editItem.setOnAction(e -> handleEditType(typeInfo));
+
+        // Find Usages
+        MenuItem findUsagesItem = new MenuItem("Find Usages");
+        findUsagesItem.setGraphic(createMenuIcon("bi-search", "#6c757d"));
+        findUsagesItem.setOnAction(e -> handleFindUsages(typeInfo));
+
+        // Separator
+        SeparatorMenuItem sep = new SeparatorMenuItem();
+
+        // Delete
+        MenuItem deleteItem = new MenuItem("Delete Type");
+        deleteItem.setGraphic(createMenuIcon("bi-trash", "#dc3545"));
+        deleteItem.setOnAction(e -> handleDeleteType(typeInfo));
+
+        // Disable delete for imported types
+        if (typeInfo.isFromInclude) {
+            deleteItem.setDisable(true);
+            deleteItem.setText("Delete Type (from external schema)");
+        }
+
+        menu.getItems().addAll(editItem, findUsagesItem, sep, deleteItem);
+        return menu;
+    }
+
+    /**
+     * Handles opening a type in the editor.
+     * Uses callbacks if set (which also switch to the Type Editor tab),
+     * otherwise falls back to direct TypeEditorTabManager calls.
+     *
+     * @param typeInfo the type to edit
+     */
+    private void handleEditType(TypeInfo typeInfo) {
+        XsdNode node = typeInfo.node;
+
+        // Info message for imported types
+        if (node.isFromInclude()) {
+            showImportedTypeWarning(node, "edit");
+        }
+
+        if (node instanceof XsdComplexType complexType) {
+            // Use callback if available (switches to Type Editor tab)
+            if (onOpenComplexType != null) {
+                onOpenComplexType.accept(complexType);
+            } else if (typeEditorTabManager != null) {
+                typeEditorTabManager.openComplexTypeTab(complexType);
+            } else {
+                logger.warn("Cannot open ComplexType - no callback or TypeEditorTabManager set");
+            }
+        } else if (node instanceof XsdSimpleType simpleType) {
+            // Use callback if available (switches to Type Editor tab)
+            if (onOpenSimpleType != null) {
+                onOpenSimpleType.accept(simpleType);
+            } else if (typeEditorTabManager != null) {
+                typeEditorTabManager.openSimpleTypeTab(simpleType);
+            } else {
+                logger.warn("Cannot open SimpleType - no callback or TypeEditorTabManager set");
+            }
+        }
+    }
+
+    /**
+     * Handles finding usages of a type.
+     *
+     * @param typeInfo the type to find usages for
+     */
+    private void handleFindUsages(TypeInfo typeInfo) {
+        if (typeInfo.usageCount == 0) {
+            showAlert(Alert.AlertType.INFORMATION, "No Usages Found",
+                "Type '" + typeInfo.name + "' is not used anywhere in the schema.");
+            return;
+        }
+
+        // Show dialog with all usage locations
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Type Usages");
+        alert.setHeaderText("Type '" + typeInfo.name + "' is used in " + typeInfo.usageCount + " location(s)");
+
+        // Create a TextArea with the locations
+        TextArea textArea = new TextArea();
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+        textArea.setText(String.join("\n", typeInfo.usageLocations));
+        textArea.setPrefHeight(200);
+        textArea.setPrefWidth(500);
+        textArea.setStyle("-fx-font-family: 'Courier New', monospace;");
+
+        alert.getDialogPane().setContent(textArea);
+        alert.showAndWait();
+    }
+
+    /**
+     * Handles deleting a type.
+     *
+     * @param typeInfo the type to delete
+     */
+    private void handleDeleteType(TypeInfo typeInfo) {
+        XsdNode node = typeInfo.node;
+
+        // Imported types cannot be deleted
+        if (node.isFromInclude()) {
+            showImportedTypeWarning(node, "delete");
+            return;
+        }
+
+        // Check usage
+        if (typeInfo.usageCount > 0) {
+            // Warning: Type is in use
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Type In Use");
+            alert.setHeaderText("Cannot delete type '" + typeInfo.name + "'");
+
+            String locationsList = typeInfo.usageLocations.stream()
+                .limit(5)
+                .collect(Collectors.joining("\n"));
+            if (typeInfo.usageLocations.size() > 5) {
+                locationsList += "\n... and " + (typeInfo.usageLocations.size() - 5) + " more";
+            }
+
+            alert.setContentText("This type is used in " + typeInfo.usageCount + " location(s).\n\n" +
+                "Locations:\n" + locationsList);
+            alert.showAndWait();
+            return;
+        }
+
+        // Confirmation dialog
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete Type");
+        confirm.setHeaderText("Delete type '" + typeInfo.name + "'?");
+        confirm.setContentText("This type is not used and can be safely deleted.");
+
+        confirm.showAndWait().ifPresent(result -> {
+            if (result == ButtonType.OK) {
+                schema.removeChild(node);
+                populateTypes();
+                logger.info("Deleted type: {}", typeInfo.name);
+            }
+        });
+    }
+
+    /**
+     * Shows an info dialog for imported/included types.
+     *
+     * @param node   the node from an external schema
+     * @param action the action being attempted ("edit" or "delete")
+     */
+    private void showImportedTypeWarning(XsdNode node, String action) {
+        IncludeSourceInfo sourceInfo = node.getSourceInfo();
+        String fileName = sourceInfo != null ? sourceInfo.getFileName() : "external file";
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("External Schema Type");
+
+        if ("delete".equals(action)) {
+            alert.setHeaderText("Cannot delete type from external schema");
+            alert.setContentText(
+                "This type is defined in '" + fileName + "'.\n\n" +
+                "To delete this type, modify the source file directly.");
+        } else {
+            alert.setHeaderText("Editing type from included schema");
+            alert.setContentText(
+                "This type is defined in '" + fileName + "'.\n\n" +
+                "Changes will be saved directly to that file when you save.");
+        }
+
+        alert.showAndWait();
     }
 
     private void calculateUsage(List<TypeInfo> types) {
@@ -916,6 +1183,10 @@ public class TypeLibraryView extends BorderPane {
         List<String> usageLocations = new ArrayList<>();
         /** Reference to actual node. */
         XsdNode node;
+        /** Whether this type is from an imported/included schema. */
+        boolean isFromInclude;
+        /** The source file name if from include. */
+        String sourceFileName;
 
         /**
          * Creates a new TypeInfo instance.

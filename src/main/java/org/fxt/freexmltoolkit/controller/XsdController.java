@@ -5301,6 +5301,9 @@ public class XsdController implements FavoritesParentController {
                                         new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(pendingTypeLibrarySchema);
                                     // Wire TypeEditorTabManager for Create New Type feature
                                     typeLibraryView.setTypeEditorTabManager(typeEditorTabManager);
+                                    // Wire callbacks to open types in editor and switch to Type Editor tab
+                                    typeLibraryView.setOnOpenComplexType(this::openComplexTypeEditor);
+                                    typeLibraryView.setOnOpenSimpleType(this::openSimpleTypeEditor);
                                     typeLibraryStackPane.getChildren().add(typeLibraryView);
                                     typeLibraryInitialized = true;
                                     long elapsed = System.currentTimeMillis() - startTime;
@@ -5530,6 +5533,9 @@ public class XsdController implements FavoritesParentController {
             // Initialize TypeEditorTabManager
             typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
 
+            // Wire up file save callback for type editor
+            setupTypeEditorSaveCallback();
+
             // Add typeEditorTabPane to typeEditorStackPane (from FXML)
             if (typeEditorStackPane != null) {
                 typeEditorStackPane.getChildren().clear();
@@ -5576,6 +5582,10 @@ public class XsdController implements FavoritesParentController {
 
                 // Re-create TypeEditorTabManager with new schema
                 typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
+
+                // Wire up file save callback for type editor
+                setupTypeEditorSaveCallback();
+
                 logger.info("Type Editor updated with loaded schema: {}", schema.getTargetNamespace());
                 
                 // Reset initialization flag so Schema Statistics tab will be opened on next tab selection
@@ -5612,6 +5622,9 @@ public class XsdController implements FavoritesParentController {
                                 new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(pendingTypeLibrarySchema);
                             // Wire TypeEditorTabManager for Create New Type feature
                             typeLibraryView.setTypeEditorTabManager(typeEditorTabManager);
+                            // Wire callbacks to open types in editor and switch to Type Editor tab
+                            typeLibraryView.setOnOpenComplexType(this::openComplexTypeEditor);
+                            typeLibraryView.setOnOpenSimpleType(this::openSimpleTypeEditor);
                             typeLibraryStackPane.getChildren().add(typeLibraryView);
                             typeLibraryInitialized = true;
                             logger.info("TypeLibraryView initialized immediately because tab is active");
@@ -5644,6 +5657,48 @@ public class XsdController implements FavoritesParentController {
                 logger.error("Error updating Type Editor with schema", e);
             }
         }
+    }
+
+    /**
+     * Sets up the file save callback for the Type Editor.
+     * When a type from an included file is saved, this callback:
+     * 1. Marks the specific file as dirty in the XsdEditorContext
+     * 2. Triggers the XSD save operation (which handles multi-file saves)
+     */
+    private void setupTypeEditorSaveCallback() {
+        if (typeEditorTabManager == null) {
+            logger.warn("Cannot setup save callback - typeEditorTabManager is null");
+            return;
+        }
+
+        typeEditorTabManager.setOnFileSaveCallback(filePath -> {
+            logger.info("Type Editor save callback triggered for file: {}", filePath);
+
+            try {
+                // Get the editor context from the current graph view
+                org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext = null;
+                if (currentGraphViewV2 != null) {
+                    editorContext = currentGraphViewV2.getEditorContext();
+                }
+
+                if (editorContext != null) {
+                    // Mark the specific file as dirty
+                    editorContext.setFileDirty(filePath, true);
+                    logger.debug("Marked file as dirty: {}", filePath);
+                }
+
+                // Trigger the XSD save
+                saveXsdFile();
+
+            } catch (Exception e) {
+                logger.error("Error in type editor save callback", e);
+                showAlert(javafx.scene.control.Alert.AlertType.ERROR,
+                    "Save Error",
+                    "Failed to save type changes: " + e.getMessage());
+            }
+        });
+
+        logger.debug("Type Editor save callback configured");
     }
 
     /**
