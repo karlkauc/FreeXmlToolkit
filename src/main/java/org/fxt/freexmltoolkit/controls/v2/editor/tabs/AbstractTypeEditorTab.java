@@ -12,6 +12,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
  * - Tab title updates with "*" indicator
  * - Save/Discard abstract methods
  * - Type node reference
+ * - Post-save callback for file persistence
  *
  * @since 2.0
  */
@@ -22,6 +23,8 @@ public abstract class AbstractTypeEditorTab extends Tab {
     /** The type node being edited. */
     protected final XsdNode typeNode;
     private final String originalTitle;
+    /** Callback invoked after successful save (for file persistence). */
+    private Runnable onPostSaveCallback;
 
     /**
      * Creates a new Type Editor tab.
@@ -98,5 +101,25 @@ public abstract class AbstractTypeEditorTab extends Tab {
      */
     public XsdNode getTypeNode() {
         return typeNode;
+    }
+
+    /**
+     * Sets the callback to be invoked after a successful save.
+     * This allows the TypeEditorTabManager to trigger file persistence.
+     *
+     * @param callback the callback to run after save
+     */
+    public void setOnPostSaveCallback(Runnable callback) {
+        this.onPostSaveCallback = callback;
+    }
+
+    /**
+     * Invokes the post-save callback if set.
+     * Should be called by subclasses after successful save operations.
+     */
+    protected void invokePostSaveCallback() {
+        if (onPostSaveCallback != null) {
+            onPostSaveCallback.run();
+        }
     }
 }

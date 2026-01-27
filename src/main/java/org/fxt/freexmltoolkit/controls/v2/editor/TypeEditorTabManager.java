@@ -16,14 +16,17 @@ import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SchemaStatisticsTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypesListTab;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Manages tabs for the Type Editor.
@@ -45,6 +48,7 @@ public class TypeEditorTabManager {
     private final XsdSchema mainSchema;
     private final Map<String, AbstractTypeEditorTab> openTypeTabs;
     private SchemaStatisticsTab statisticsTab;
+    private Consumer<Path> onFileSaveCallback;
 
     /**
      * Creates a new TypeEditorTabManager.
@@ -77,6 +81,9 @@ public class TypeEditorTabManager {
 
             // Create new tab with main schema
             ComplexTypeEditorTab tab = new ComplexTypeEditorTab(complexType, mainSchema);
+
+            // Set post-save callback for file persistence
+            tab.setOnPostSaveCallback(() -> triggerFileSaveForNode(complexType));
 
             // Set close handler with unsaved changes check
             tab.setOnCloseRequest(e -> {
@@ -113,6 +120,9 @@ public class TypeEditorTabManager {
 
             // Create new tab with main schema
             SimpleTypeEditorTab tab = new SimpleTypeEditorTab(simpleType, mainSchema);
+
+            // Set post-save callback for file persistence
+            tab.setOnPostSaveCallback(() -> triggerFileSaveForNode(simpleType));
 
             // Set close handler with unsaved changes check
             tab.setOnCloseRequest(e -> {
@@ -370,9 +380,11 @@ public class TypeEditorTabManager {
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent()) {
                 if (result.get() == saveBtn) {
-                    // Try to save
+                    // Try to save model changes
                     boolean saved = tab.save();
                     if (saved) {
+                        // Trigger file save for the node's source file
+                        triggerFileSaveForNode(tab.getTypeNode());
                         removeTab(tab);
                         return true;
                     } else {
@@ -451,9 +463,65 @@ public class TypeEditorTabManager {
                     // Save failed for this tab
                     return false;
                 }
+                // Trigger file save callback for the node's source file
+                triggerFileSaveForNode(tab.getTypeNode());
             }
         }
         return true;
+    }
+
+    /**
+     * Sets the callback to be invoked when a file needs to be saved.
+     * This is called after model changes are merged back, with the file path to save.
+     *
+     * @param callback consumer that receives the file path to save
+     */
+    public void setOnFileSaveCallback(Consumer<Path> callback) {
+        this.onFileSaveCallback = callback;
+    }
+
+    /**
+     * Triggers the file save callback for the given node's source file.
+     * If the node is from an included/imported file, that specific file will be saved.
+     * If the node is from the main schema, the main schema file will be saved.
+     *
+     * @param node the node whose source file should be saved
+     */
+    private void triggerFileSaveForNode(XsdNode node) {
+        if (node == null) {
+            logger.warn("Cannot trigger file save - node is null");
+            return;
+        }
+
+        if (onFileSaveCallback == null) {
+            logger.warn("Cannot trigger file save - onFileSaveCallback is not set");
+            return;
+        }
+
+        // Debug logging to understand source tracking
+        var sourceInfo = node.getSourceInfo();
+        logger.info("triggerFileSaveForNode: node={} ({}), sourceInfo={}, isFromInclude={}",
+            node.getName(),
+            node.getClass().getSimpleName(),
+            sourceInfo != null ? sourceInfo : "NULL",
+            node.isFromInclude());
+
+        Path sourceFile = node.getSourceFile();
+        if (sourceFile != null) {
+            logger.info("Triggering file save for node's source file: {}", sourceFile);
+            onFileSaveCallback.accept(sourceFile);
+        } else {
+            // Node has no specific source file - save main schema
+            logger.warn("Node '{}' has no sourceFile set! Falling back to main schema.", node.getName());
+            Path mainPath = mainSchema.getMainSchemaPath();
+            if (mainPath != null) {
+                logger.info("Triggering file save for main schema: {}", mainPath);
+                onFileSaveCallback.accept(mainPath);
+            } else {
+                logger.warn("Cannot trigger file save - node has no source file and main schema has no path set. " +
+                    "Node: {} ({})", node.getName(), node.getClass().getSimpleName());
+            }
+        }
     }
 
     /**

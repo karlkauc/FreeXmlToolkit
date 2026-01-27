@@ -79,6 +79,9 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
             setDirty(false);
             logger.info("SimpleType saved successfully: {}", simpleType.getName());
 
+            // Invoke post-save callback to trigger file persistence
+            invokePostSaveCallback();
+
             // Phase 6: User feedback for successful save
             showSuccessMessage("Save Successful",
                 "SimpleType '" + simpleType.getName() + "' has been saved successfully.");

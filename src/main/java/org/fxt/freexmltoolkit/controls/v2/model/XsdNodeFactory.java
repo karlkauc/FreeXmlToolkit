@@ -349,9 +349,18 @@ public class XsdNodeFactory {
      */
     private void tagNodeWithSourceInfo(XsdNode node) {
         if (node == null || includeTracker == null || !preserveIncludeStructure) {
+            logger.trace("Skipping source info tagging: node={}, includeTracker={}, preserveIncludeStructure={}",
+                node != null ? node.getName() : "null",
+                includeTracker != null ? "present" : "null",
+                preserveIncludeStructure);
             return;
         }
 
+        var sourceInfo = includeTracker.getCurrentSourceInfo();
+        logger.debug("Tagging node '{}' ({}) with sourceInfo: {}",
+            node.getName(),
+            node.getClass().getSimpleName(),
+            sourceInfo);
         includeTracker.tagNodeRecursively(node);
     }
 

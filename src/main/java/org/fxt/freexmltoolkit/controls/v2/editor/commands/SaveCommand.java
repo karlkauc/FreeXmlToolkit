@@ -125,6 +125,12 @@ public class SaveCommand implements XsdCommand {
         // Check if we have per-file dirty tracking available
         Set<Path> dirtyFiles = editorContext.getDirtyFiles();
 
+        // Debug logging for dirty files
+        logger.info("Dirty files count: {}", dirtyFiles.size());
+        for (Path dirtyFile : dirtyFiles) {
+            logger.info("  Dirty file: {}", dirtyFile);
+        }
+
         if (!dirtyFiles.isEmpty()) {
             // Use incremental save - only save dirty files (atomic)
             logger.info("Using per-file dirty tracking: {} files to save", dirtyFiles.size());

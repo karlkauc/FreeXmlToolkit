@@ -224,9 +224,36 @@ public class MultiFileXsdSerializer {
         // Ensure main schema is first in the map
         result.put(mainPath, new ArrayList<>());
 
+        logger.debug("Grouping {} schema children by source file. Main path: {}",
+            schema.getChildren().size(), mainPath);
+
+        int noSourceInfoCount = 0;
         for (XsdNode child : schema.getChildren()) {
             Path sourceFile = getNodeSourceFile(child, mainPath);
             result.computeIfAbsent(sourceFile, k -> new ArrayList<>()).add(child);
+
+            // Log details for types
+            if (child instanceof XsdComplexType || child instanceof XsdSimpleType) {
+                var sourceInfo = child.getSourceInfo();
+                if (sourceInfo == null) {
+                    noSourceInfoCount++;
+                    logger.debug("Node '{}' ({}) has NO sourceInfo, assigned to main: {}",
+                        child.getName(), child.getClass().getSimpleName(), mainPath);
+                } else {
+                    logger.debug("Node '{}' ({}) has sourceInfo: {}, assigned to: {}",
+                        child.getName(), child.getClass().getSimpleName(), sourceInfo, sourceFile);
+                }
+            }
+        }
+
+        if (noSourceInfoCount > 0) {
+            logger.warn("{} type nodes have NO sourceInfo and will be saved to main schema", noSourceInfoCount);
+        }
+
+        // Log summary
+        logger.info("Grouped nodes into {} files:", result.size());
+        for (var entry : result.entrySet()) {
+            logger.info("  - {}: {} nodes", entry.getKey().getFileName(), entry.getValue().size());
         }
 
         return result;
@@ -1245,25 +1272,65 @@ public class MultiFileXsdSerializer {
         Map<Path, List<XsdNode>> nodesByFile = groupNodesBySourceFile(schema, mainPath);
         Map<Path, SaveResult> results = new LinkedHashMap<>();
 
+        // Debug: Log all file paths from node grouping
+        logger.info("Files from node grouping ({} files):", nodesByFile.size());
+        for (Path path : nodesByFile.keySet()) {
+            logger.info("  Grouped file: {}", path);
+        }
+        logger.info("Dirty files to save:");
+        for (Path path : dirtyFiles) {
+            logger.info("  Dirty file: {}", path);
+        }
+
         // Phase 1: Write to temporary files
         Map<Path, Path> tempFiles = new LinkedHashMap<>();
         Map<Path, String> contentByFile = new LinkedHashMap<>();
 
         try {
+            // Map dirty files to their actual paths in nodesByFile (to handle path format differences)
+            Map<Path, Path> dirtyToActualPath = new LinkedHashMap<>();
+
             // Generate content for each dirty file first (to detect errors before writing)
             for (Path filePath : dirtyFiles) {
+                // Try to find matching path with normalization
                 List<XsdNode> nodes = nodesByFile.get(filePath);
+                Path actualFilePath = filePath;
+
+                // If exact match fails, try normalized path lookup
                 if (nodes == null) {
+                    Path normalizedFilePath = filePath.normalize();
+                    logger.warn("Exact path lookup failed for: {}. Trying normalized: {}", filePath, normalizedFilePath);
+
+                    for (Path groupedPath : nodesByFile.keySet()) {
+                        if (groupedPath.normalize().equals(normalizedFilePath)) {
+                            nodes = nodesByFile.get(groupedPath);
+                            actualFilePath = groupedPath;  // Use the path from node grouping
+                            logger.info("Found match via normalization: {} matches {}", filePath, groupedPath);
+                            break;
+                        }
+                    }
+                }
+
+                if (nodes == null) {
+                    logger.error("Path comparison details:");
+                    logger.error("  Dirty file path: '{}' (normalized: '{}')", filePath, filePath.normalize());
+                    for (Path groupedPath : nodesByFile.keySet()) {
+                        logger.error("  Grouped path: '{}' (normalized: '{}', equals: {})",
+                            groupedPath, groupedPath.normalize(),
+                            groupedPath.normalize().equals(filePath.normalize()));
+                    }
                     throw new IOException("No nodes found for dirty file: " + filePath);
                 }
 
+                dirtyToActualPath.put(filePath, actualFilePath);
+
                 String content;
-                if (filePath.equals(mainPath)) {
+                if (actualFilePath.equals(mainPath) || actualFilePath.normalize().equals(mainPath.normalize())) {
                     content = serializeMainSchema(schema, nodes);
                 } else {
                     content = serializeIncludedSchema(schema, nodes);
                 }
-                contentByFile.put(filePath, content);
+                contentByFile.put(actualFilePath, content);
             }
 
             // Write each file to a temporary location
@@ -1287,7 +1354,8 @@ public class MultiFileXsdSerializer {
             Map<Path, Path> backupPaths = new LinkedHashMap<>();
 
             if (createBackups) {
-                for (Path filePath : dirtyFiles) {
+                // Use the actual file paths from contentByFile (not dirtyFiles which may have different format)
+                for (Path filePath : contentByFile.keySet()) {
                     if (Files.exists(filePath)) {
                         Path backupPath = createBackup(filePath);
                         backupPaths.put(filePath, backupPath);

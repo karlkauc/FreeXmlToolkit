@@ -73,12 +73,15 @@ public class ComplexTypeEditorTab extends AbstractTypeEditorTab {
     @Override
     public boolean save() {
         try {
-            // Ask view to save changes
+            // Ask view to save changes (merges to model)
             boolean success = editorView.save();
 
             if (success) {
                 setDirty(false);
                 logger.info("ComplexType saved successfully: {}", complexType.getName());
+
+                // Invoke post-save callback to trigger file persistence
+                invokePostSaveCallback();
 
                 // Phase 6: User feedback for successful save
                 showSuccessMessage("Save Successful",
