@@ -36,6 +36,20 @@ public class RenameNodeCommand implements XsdCommand {
         this.newName = newName.trim();
     }
 
+    /**
+     * Creates a rename command with explicit old name.
+     * Used for merging consecutive rename commands.
+     *
+     * @param node    the XsdNode to rename
+     * @param oldName the original name (for undo)
+     * @param newName the new name
+     */
+    private RenameNodeCommand(XsdNode node, String oldName, String newName) {
+        this.node = node;
+        this.oldName = oldName;
+        this.newName = newName.trim();
+    }
+
     @Override
     public boolean execute() {
         // Update the model - this will fire PropertyChangeEvent
@@ -74,10 +88,21 @@ public class RenameNodeCommand implements XsdCommand {
                 this.newName.equals(otherRename.oldName);
     }
 
-    // Note: mergeWith() implementation would require creating a new RenameNodeCommand
-    // with the original oldName and the other command's newName. Since fields are final,
-    // we would need to make them non-final or create a new instance.
-    // For now, we use the default implementation which throws UnsupportedOperationException.
+    @Override
+    public XsdCommand mergeWith(XsdCommand other) {
+        if (!(other instanceof RenameNodeCommand otherRename)) {
+            throw new IllegalArgumentException("Cannot merge with non-RenameNodeCommand");
+        }
+
+        // Create a merged command: original oldName -> other's newName
+        // This effectively combines "A->B" and "B->C" into "A->C"
+        // Using the private constructor to preserve THIS command's oldName
+        RenameNodeCommand merged = new RenameNodeCommand(this.node, this.oldName, otherRename.newName);
+        logger.debug("Merged rename commands: '{}' -> '{}' + '{}' -> '{}' = '{}' -> '{}'",
+            this.oldName, this.newName, otherRename.oldName, otherRename.newName,
+            merged.oldName, merged.newName);
+        return merged;
+    }
 
     /**
      * Gets the node being renamed.

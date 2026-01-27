@@ -435,6 +435,13 @@ public class XsdPropertiesPanel extends BorderPane {
             }
         });
 
+        // Name field - also fire command when Enter is pressed
+        nameField.setOnAction(e -> {
+            if (!updating && currentNode != null) {
+                handleNameChange();
+            }
+        });
+
         // Type combobox - fire command when value changes
         typeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
             if (!updating && currentNode != null) {

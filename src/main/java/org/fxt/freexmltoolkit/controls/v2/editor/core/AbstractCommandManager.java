@@ -108,13 +108,23 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
 
         logger.debug("Executing command: {}", command.getDescription());
 
-        // Try to merge with previous command
+        // Execute the command FIRST (this updates the model)
+        boolean success = command.execute();
+
+        if (!success) {
+            logger.warn("Command execution failed: {}", command.getDescription());
+            return false;
+        }
+
+        // Try to merge with previous command (AFTER execution)
         if (!undoStack.isEmpty()) {
             T lastCommand = undoStack.peek();
             if (lastCommand.canMergeWith(command)) {
                 T merged = lastCommand.mergeWith(command);
                 undoStack.pop();
                 undoStack.push(merged);
+                // Clear redo stack on new command
+                redoStack.clear();
                 setDirty(true);
                 firePropertyChanges();
                 logger.debug("Merged command with previous: {}", merged.getDescription());
@@ -122,34 +132,30 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
             }
         }
 
-        // Execute the command
-        boolean success = command.execute();
+        // Not mergeable, add as new command
+        // (command was already executed above)
 
-        if (success) {
-            // Add to undo stack
-            undoStack.push(command);
+        // Add to undo stack
+        undoStack.push(command);
 
-            // Enforce history limit
-            if (undoStack.size() > historyLimit) {
-                undoStack.removeLast();
-                logger.debug("History limit reached, removed oldest command");
-            }
-
-            // Clear redo stack
-            redoStack.clear();
-
-            // Set dirty flag
-            setDirty(true);
-
-            // Fire property changes
-            firePropertyChanges();
-
-            logger.debug("Command executed successfully: {}", command.getDescription());
-        } else {
-            logger.warn("Command execution failed: {}", command.getDescription());
+        // Enforce history limit
+        if (undoStack.size() > historyLimit) {
+            undoStack.removeLast();
+            logger.debug("History limit reached, removed oldest command");
         }
 
-        return success;
+        // Clear redo stack
+        redoStack.clear();
+
+        // Set dirty flag
+        setDirty(true);
+
+        // Fire property changes
+        firePropertyChanges();
+
+        logger.debug("Command executed successfully: {}", command.getDescription());
+
+        return true;
     }
 
     /**
