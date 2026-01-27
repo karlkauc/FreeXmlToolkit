@@ -121,7 +121,7 @@
             <section th:with="documentation=${this.getDocumentationsFromNode(complexTypeNode)}"
                      th:if="${documentation != null and not #maps.isEmpty(documentation)}"
                      class="documentation-section">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Documentation</h2>
+                <h2 id="documentation" class="text-lg font-semibold text-slate-800 mb-3">Documentation</h2>
                 <div class="bg-slate-100/75 p-4 rounded-md space-y-2">
                     <!-- Each language as separate div with data-lang attribute -->
                     <!-- First entry shown by default, others hidden via CSS class -->
@@ -140,7 +140,7 @@
 
             <!-- Section: Attributes -->
             <section th:if="${not #lists.isEmpty(this.getAttributes(complexTypeNode))}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Attributes</h2>
+                <h2 id="attributes" class="text-lg font-semibold text-slate-800 mb-3">Attributes</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
                         <caption class="sr-only">Attributes of this complex type</caption>
@@ -184,7 +184,7 @@
 
             <!-- Section for Child Elements -->
             <section th:if="${not #lists.isEmpty(childElements)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Child Elements</h2>
+                <h2 id="child-elements" class="text-lg font-semibold text-slate-800 mb-3">Child Elements</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
                         <caption class="sr-only">Child elements of this complex type</caption>
@@ -229,7 +229,7 @@
 
             <!-- Section "Used In" -->
             <section th:if="${not #lists.isEmpty(usedInElements)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Used In</h2>
+                <h2 id="used-in" class="text-lg font-semibold text-slate-800 mb-3">Used In</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
                         <caption class="sr-only">Elements that use this complex type</caption>

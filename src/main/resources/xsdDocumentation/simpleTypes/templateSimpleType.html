@@ -89,7 +89,7 @@
         <section th:with="documentation=${this.getDocumentationsFromNode(simpleTypeNode)}"
                  th:if="${documentation != null and not #maps.isEmpty(documentation)}"
                  class="bg-white p-6 rounded-xl shadow-md border border-slate-200 documentation-section">
-            <h2 class="text-xl font-semibold text-slate-900 mb-4">Documentation</h2>
+            <h2 id="documentation" class="text-xl font-semibold text-slate-900 mb-4">Documentation</h2>
             <div class="prose prose-slate max-w-none">
                 <!-- Each language as separate div with data-lang attribute -->
                 <!-- First entry shown by default, others hidden via CSS class -->
@@ -109,7 +109,7 @@
         <!-- 2. Restrictions -->
         <section class="bg-white rounded-xl shadow-md border border-slate-200">
             <header class="p-6 border-b border-slate-200">
-                <h2 class="text-xl font-semibold text-slate-900">Restrictions</h2>
+                <h2 id="restrictions" class="text-xl font-semibold text-slate-900">Restrictions</h2>
             </header>
             <div class="p-6">
                 <table class="w-full text-left">
@@ -178,7 +178,7 @@
         <section th:if="${not #lists.isEmpty(usedInElements)}"
                  class="bg-white rounded-xl shadow-md border border-slate-200">
             <header class="p-6 border-b border-slate-200">
-                <h2 class="text-xl font-semibold text-slate-900">Used In</h2>
+                <h2 id="used-in" class="text-xl font-semibold text-slate-900">Used In</h2>
             </header>
             <div class="p-6">
                 <table class="w-full text-left">

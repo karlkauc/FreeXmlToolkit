@@ -157,7 +157,7 @@
 
             <!-- Section: Diagram -->
             <section>
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Diagram</h2>
+                <h2 id="diagram" class="text-lg font-semibold text-slate-800 mb-3">Diagram</h2>
                 <div class="p-4 border border-slate-200 rounded-lg bg-slate-50 overflow-x-auto">
                     <!-- Thymeleaf switch to differentiate between SVG, PNG and JPG -->
                     <div th:switch="${diagramType}">
@@ -180,7 +180,7 @@
             <!-- Section: Documentation (Multi-Language Support) -->
             <section th:if="${documentation != null and not #maps.isEmpty(documentation)}"
                      class="documentation-section">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Documentation</h2>
+                <h2 id="documentation" class="text-lg font-semibold text-slate-800 mb-3">Documentation</h2>
                 <div class="bg-slate-100/75 p-4 rounded-md space-y-2">
                     <!-- Each language as separate div with data-lang attribute -->
                     <!-- First entry shown by default, others hidden via CSS class (not hidden attribute) -->
@@ -244,7 +244,7 @@
 
             <!-- Section: Properties -->
             <section>
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Properties</h2>
+                <h2 id="properties" class="text-lg font-semibold text-slate-800 mb-3">Properties</h2>
                 <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
                     <div class="flex flex-col">
                         <dt class="text-sm font-medium text-slate-500">Type</dt>
@@ -294,7 +294,7 @@
 
             <!-- Section: Child Elements & Attributes -->
             <section th:if="${flattenedChildren != null and not #lists.isEmpty(flattenedChildren)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Child Elements &amp; Attributes</h2>
+                <h2 id="child-elements-attributes" class="text-lg font-semibold text-slate-800 mb-3">Child Elements &amp; Attributes</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
                         <caption class="sr-only">Child elements and attributes of this element</caption>
@@ -351,7 +351,7 @@
 
             <!-- Section: Additional Information (for generic appinfo tags) -->
             <section th:if="${appInfos != null and not #lists.isEmpty(appInfos)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Additional Information</h2>
+                <h2 id="additional-information" class="text-lg font-semibold text-slate-800 mb-3">Additional Information</h2>
                 <div class="space-y-2">
                     <div th:each="appInfo: ${appInfos}" th:utext="${appInfo}"
                          class="p-3 bg-slate-100 rounded-md text-sm text-slate-700 font-mono">
@@ -361,7 +361,7 @@
 
             <!-- Section: Identity Constraints (XSD 1.0) -->
             <section th:if="${element.identityConstraints != null and not #lists.isEmpty(element.identityConstraints)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-4">Identity Constraints</h2>
+                <h2 id="identity-constraints" class="text-lg font-semibold text-slate-800 mb-4">Identity Constraints</h2>
                 <div class="space-y-6">
                     <div th:each="constraint: ${element.identityConstraints}"
                          class="bg-slate-50 border-2 border-slate-200 rounded-lg p-5 shadow-sm">
@@ -420,7 +420,7 @@
 
             <!-- Section: Assertions (XSD 1.1) -->
             <section th:if="${element.assertions != null and not #lists.isEmpty(element.assertions)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-4">Assertions (XSD 1.1)</h2>
+                <h2 id="assertions" class="text-lg font-semibold text-slate-800 mb-4">Assertions (XSD 1.1)</h2>
                 <div class="space-y-6">
                     <div th:each="assertion: ${element.assertions}"
                          class="bg-amber-50 border-2 border-amber-200 rounded-lg p-5 shadow-sm">
@@ -464,7 +464,7 @@
 
             <!-- Section: Type Alternatives (XSD 1.1) -->
             <section th:if="${element.typeAlternatives != null and not #lists.isEmpty(element.typeAlternatives)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-4">Type Alternatives (XSD 1.1)</h2>
+                <h2 id="type-alternatives" class="text-lg font-semibold text-slate-800 mb-4">Type Alternatives (XSD 1.1)</h2>
                 <div class="space-y-6">
                     <div th:each="alternative: ${element.typeAlternatives}"
                          class="bg-purple-50 border-2 border-purple-200 rounded-lg p-5 shadow-sm">
@@ -509,7 +509,7 @@
 
             <!-- Section: Wildcards (xs:any, xs:anyAttribute) -->
             <section th:if="${element.wildcards != null and not #lists.isEmpty(element.wildcards)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-4">Wildcards</h2>
+                <h2 id="wildcards" class="text-lg font-semibold text-slate-800 mb-4">Wildcards</h2>
                 <div class="space-y-6">
                     <div th:each="wildcard: ${element.wildcards}"
                          class="bg-teal-50 border-2 border-teal-200 rounded-lg p-5 shadow-sm">
@@ -568,7 +568,7 @@
 
             <!-- Section: Open Content (XSD 1.1) -->
             <section th:if="${element.openContent != null}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-4">Open Content (XSD 1.1)</h2>
+                <h2 id="open-content" class="text-lg font-semibold text-slate-800 mb-4">Open Content (XSD 1.1)</h2>
                 <div class="bg-violet-50 border-2 border-violet-200 rounded-lg p-5 shadow-sm">
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-violet-300">
                         <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-violet-100 text-violet-800 border border-violet-400">
@@ -636,7 +636,7 @@
                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            <h2 class="text-lg font-semibold text-slate-800">Element Definition</h2>
+                            <h2 id="element-definition" class="text-lg font-semibold text-slate-800">Element Definition</h2>
                             <div class="ml-auto">
                                 <button type="button" onclick="copyCode(this, 'element-code'); event.stopPropagation();"
                                         class="relative inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-600 bg-white border border-slate-300 rounded hover:bg-slate-50 hover:text-slate-800 transition-colors">
@@ -663,7 +663,7 @@
                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
-                            <h2 class="text-lg font-semibold text-slate-800">Referenced Type Definition
+                            <h2 id="referenced-type-definition" class="text-lg font-semibold text-slate-800">Referenced Type Definition
                                 <span class="font-mono text-sm text-slate-600" th:if="${referencedTypeName != null}">
                                     (<span th:text="${referencedTypeName}">TypeName</span>)
                                 </span>
