@@ -478,9 +478,16 @@ public class XsdController implements FavoritesParentController {
     private Button openDocFolder;
     @FXML
     private HBox statusMessageContainer;
+    @FXML
+    private Button cancelDocumentationButton;
+    @FXML
+    private Button generateDocumentationButton;
 
     // Track the last generated documentation folder for the "Open Folder" button
     private File lastGeneratedDocFolder;
+
+    // Track the current documentation generation task for cancellation support
+    private Task<Void> currentDocumentationTask;
 
     // --- Timer for documentation generation progress ---
     private Timeline documentationTimer;
@@ -2888,11 +2895,21 @@ public class XsdController implements FavoritesParentController {
         }
         statusText.setText("Generating " + outputFormat.getDisplayName() + "...");
 
+        // Show cancel button and disable generate button during generation
+        if (cancelDocumentationButton != null) {
+            cancelDocumentationButton.setVisible(true);
+            cancelDocumentationButton.setManaged(true);
+        }
+        if (generateDocumentationButton != null) {
+            generateDocumentationButton.setDisable(true);
+        }
+
         // Start the elapsed time timer
         startDocumentationTimer();
 
         // 5. Create and execute task
         Task<Void> generationTask = getGenerationTask(xsdFile, outputTarget, outputFormat);
+        currentDocumentationTask = generationTask;
         executeTask(generationTask);
     }
 
@@ -3005,9 +3022,10 @@ public class XsdController implements FavoritesParentController {
             }
         };
 
-        // Define what happens on success or failure
+        // Define what happens on success, failure, or cancellation
         generationTask.setOnSucceeded(event -> handleDocumentationSuccess(outputTarget, outputFormat));
         generationTask.setOnFailed(event -> handleDocumentationFailure(generationTask.getException()));
+        generationTask.setOnCancelled(event -> handleDocumentationCancelled());
         return generationTask;
     }
 
@@ -3455,6 +3473,12 @@ public class XsdController implements FavoritesParentController {
         // Stop the timer
         stopDocumentationTimer();
 
+        // Clear the current task reference
+        currentDocumentationTask = null;
+
+        // Reset button states
+        resetDocumentationButtons();
+
         // Store the output location for the "Open Folder" button
         lastGeneratedDocFolder = format == DocumentationOutputFormat.HTML ?
                 outputTarget : outputTarget.getParentFile();
@@ -3559,6 +3583,12 @@ public class XsdController implements FavoritesParentController {
         // Stop the timer
         stopDocumentationTimer();
 
+        // Clear the current task reference
+        currentDocumentationTask = null;
+
+        // Reset button states
+        resetDocumentationButtons();
+
         progressScrollPane.setVisible(false);
         progressScrollPane.setManaged(false);
         logger.error("Failed to generate documentation.", e);
@@ -3584,6 +3614,100 @@ public class XsdController implements FavoritesParentController {
         } else {
             DialogHelper.showError("Generate Documentation", "Error", e.getMessage());
         }
+    }
+
+    /**
+     * Cancels the current documentation generation task.
+     * Called from the Cancel button in the UI.
+     */
+    @FXML
+    public void cancelDocumentationGeneration() {
+        if (currentDocumentationTask != null && currentDocumentationTask.isRunning()) {
+            logger.info("Cancelling documentation generation...");
+            currentDocumentationTask.cancel(true);
+
+            // Stop the timer
+            stopDocumentationTimer();
+
+            // Clear the current task reference
+            currentDocumentationTask = null;
+
+            // Reset button states
+            resetDocumentationButtons();
+
+            // Hide the progress scroll pane
+            progressScrollPane.setVisible(false);
+            progressScrollPane.setManaged(false);
+
+            // Show cancelled status message
+            if (statusMessageContainer != null) {
+                statusText.setText("Documentation generation cancelled.");
+                // Style for cancelled state (yellow/warning)
+                statusMessageContainer.setStyle("-fx-background-color: #fff3cd; -fx-background-radius: 8; " +
+                        "-fx-padding: 15; -fx-border-radius: 8; -fx-border-color: #ffc107; -fx-border-width: 1;");
+                statusMessageContainer.setVisible(true);
+                statusMessageContainer.setManaged(true);
+            }
+
+            // Hide the open folder button
+            if (openDocFolder != null) {
+                openDocFolder.setVisible(false);
+                openDocFolder.setManaged(false);
+            }
+
+            logger.info("Documentation generation cancelled by user.");
+        }
+    }
+
+    /**
+     * Resets the documentation generation buttons to their initial state.
+     * Called after task completion (success, failure, or cancellation).
+     */
+    private void resetDocumentationButtons() {
+        if (cancelDocumentationButton != null) {
+            cancelDocumentationButton.setVisible(false);
+            cancelDocumentationButton.setManaged(false);
+        }
+        if (generateDocumentationButton != null) {
+            generateDocumentationButton.setDisable(false);
+        }
+    }
+
+    /**
+     * Handles UI updates when the documentation generation is cancelled by the task itself.
+     * This is called by the JavaFX Task framework when the task recognizes cancellation.
+     */
+    private void handleDocumentationCancelled() {
+        // Stop the timer
+        stopDocumentationTimer();
+
+        // Clear the current task reference
+        currentDocumentationTask = null;
+
+        // Reset button states
+        resetDocumentationButtons();
+
+        // Hide the progress scroll pane
+        progressScrollPane.setVisible(false);
+        progressScrollPane.setManaged(false);
+
+        // Show cancelled status message
+        if (statusMessageContainer != null) {
+            statusText.setText("Documentation generation cancelled.");
+            // Style for cancelled state (yellow/warning)
+            statusMessageContainer.setStyle("-fx-background-color: #fff3cd; -fx-background-radius: 8; " +
+                    "-fx-padding: 15; -fx-border-radius: 8; -fx-border-color: #ffc107; -fx-border-width: 1;");
+            statusMessageContainer.setVisible(true);
+            statusMessageContainer.setManaged(true);
+        }
+
+        // Hide the open folder button
+        if (openDocFolder != null) {
+            openDocFolder.setVisible(false);
+            openDocFolder.setManaged(false);
+        }
+
+        logger.info("Documentation generation was cancelled.");
     }
 
     /**

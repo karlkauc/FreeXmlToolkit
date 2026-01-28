@@ -57,6 +57,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 
@@ -3519,16 +3520,30 @@ public class XsdDocumentationService {
     }
 
     private void executeAndTrack(String taskName, Runnable task) {
+        // Check for cancellation before starting each task
+        if (Thread.currentThread().isInterrupted()) {
+            throw new CancellationException("Documentation generation was cancelled");
+        }
+
         long startTime = System.currentTimeMillis();
         if (progressListener != null) {
             progressListener.onProgressUpdate(new ProgressUpdate(taskName, Status.RUNNING, 0));
         }
         try {
             task.run();
+
+            // Check for cancellation after task completion
+            if (Thread.currentThread().isInterrupted()) {
+                throw new CancellationException("Documentation generation was cancelled");
+            }
+
             long duration = System.currentTimeMillis() - startTime;
             if (progressListener != null) {
                 progressListener.onProgressUpdate(new ProgressUpdate(taskName, Status.FINISHED, duration));
             }
+        } catch (CancellationException e) {
+            // Re-throw cancellation exceptions without reporting as failure
+            throw e;
         } catch (Exception e) {
             long duration = System.currentTimeMillis() - startTime;
             if (progressListener != null) {
