@@ -31,6 +31,7 @@ import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -2258,18 +2259,24 @@ public class MainController implements Initializable {
 
         UpdateCheckService updateService = ServiceRegistry.get(UpdateCheckService.class);
 
-        // Show progress indicator
+        // Show progress indicator with Cancel button
         Alert progressDialog = new Alert(Alert.AlertType.INFORMATION);
         progressDialog.setTitle("Check for Updates");
         progressDialog.setHeaderText("Checking for updates...");
         progressDialog.setContentText("Please wait while we check for available updates.");
-        progressDialog.getButtonTypes().clear();
+        progressDialog.getButtonTypes().setAll(ButtonType.CANCEL);
+
+        // Make dialog non-modal to prevent blocking
+        progressDialog.initModality(Modality.NONE);
         progressDialog.show();
 
         updateService.checkForUpdates()
                 .thenAccept(updateInfo -> {
                     Platform.runLater(() -> {
-                        progressDialog.close();
+                        // Close progress dialog first
+                        if (progressDialog.isShowing()) {
+                            progressDialog.close();
+                        }
                         isCheckingForUpdates = false;
 
                         if (updateInfo.updateAvailable()) {
@@ -2284,7 +2291,10 @@ public class MainController implements Initializable {
                 })
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {
-                        progressDialog.close();
+                        // Close progress dialog first
+                        if (progressDialog.isShowing()) {
+                            progressDialog.close();
+                        }
                         isCheckingForUpdates = false;
                         DialogHelper.showError("Update Check Failed", "Could not check for updates",
                                 "Failed to connect to update server. Please check your internet connection.\n\n" +

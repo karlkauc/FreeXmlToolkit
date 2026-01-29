@@ -101,6 +101,14 @@ public class ConnectionServiceImpl implements ConnectionService {
         HttpURLConnection connection = null;
 
         try {
+            // Log proxy configuration for debugging
+            logger.debug("Testing HTTP request to: {}", uri);
+            logger.debug("Proxy properties: manualProxy={}, useSystemProxy={}, http.proxyHost={}, socksProxyHost={}",
+                    testProperties.getProperty("manualProxy", "false"),
+                    testProperties.getProperty("useSystemProxy", "false"),
+                    testProperties.getProperty("http.proxy.host", "not set"),
+                    System.getProperty("socksProxyHost", "not set"));
+
             // Configure SSL bypass if enabled
             boolean trustAllCerts = Boolean.parseBoolean(testProperties.getProperty("ssl.trustAllCerts", "false"));
             if (trustAllCerts) {
@@ -125,8 +133,10 @@ public class ConnectionServiceImpl implements ConnectionService {
                 connection = (HttpURLConnection) url.openConnection(proxy);
                 logger.debug("Using proxy: {}", proxy);
             } else {
-                connection = (HttpURLConnection) url.openConnection();
-                logger.debug("Using direct connection");
+                // Use Proxy.NO_PROXY to explicitly bypass system proxy settings
+                // Without this, Java would use system defaults (which may include SOCKS proxy)
+                connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+                logger.debug("Using direct connection (bypassing system proxy settings)");
             }
 
             // Configure connection
@@ -178,7 +188,8 @@ public class ConnectionServiceImpl implements ConnectionService {
                 if (proxy != null) {
                     connection = (HttpURLConnection) url.openConnection(proxy);
                 } else {
-                    connection = (HttpURLConnection) url.openConnection();
+                    // Use Proxy.NO_PROXY to explicitly bypass system proxy settings
+                    connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
                 }
 
                 // Configure connection
@@ -218,7 +229,10 @@ public class ConnectionServiceImpl implements ConnectionService {
             );
 
         } catch (Exception e) {
-            logger.error("HTTP request failed: {}", e.getMessage(), e);
+            // Log as WARN instead of ERROR since connection failures are expected in some network environments
+            // (e.g., blocked URLs, offline mode, proxy issues)
+            logger.warn("HTTP request failed for {}: {} ({})", uri, e.getClass().getSimpleName(), e.getMessage());
+            logger.debug("Full stack trace:", e);  // Full trace only in DEBUG mode
             return new ConnectionResult(
                     uri,
                     0,

@@ -132,12 +132,12 @@ public class FxtGui extends Application {
         logger.info("Registering XSD type icons...");
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
 
-        // Enable NTLM proxy authentication for corporate environments in background
-        // This runs asynchronously to improve startup time
-        executorService.submit(() -> {
-            logger.info("Enabling NTLM proxy authentication in background...");
-            SystemProxyDetector.enableNtlmAuthentication();
-        });
+        // Enable NTLM proxy authentication for corporate environments SYNCHRONOUSLY
+        // IMPORTANT: This MUST be called BEFORE any HTTP requests are made!
+        // Running this synchronously prevents race conditions with update checks and other HTTP operations
+        logger.info("Enabling NTLM proxy authentication...");
+        SystemProxyDetector.enableNtlmAuthentication();
+        logger.info("NTLM proxy authentication enabled");
     }
 
     /**
