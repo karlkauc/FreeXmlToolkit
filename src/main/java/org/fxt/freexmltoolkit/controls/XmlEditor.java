@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Side;
+import javafx.scene.CacheHint;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -164,6 +165,10 @@ public class XmlEditor extends Tab {
         tabPane.setSide(Side.LEFT);
         tabPane.getTabs().addAll(xml, graphic);
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+
+        // Enable caching for better rendering performance
+        tabPane.setCache(true);
+        tabPane.setCacheHint(CacheHint.SPEED);
 
         xml.setGraphic(new FontIcon("bi-code-slash:20"));
         graphic.setGraphic(new FontIcon("bi-columns-gap:20"));

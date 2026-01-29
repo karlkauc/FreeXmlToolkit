@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.CacheHint;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -33,6 +34,8 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDatatypeFacets;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAssert;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 import java.util.Optional;
@@ -106,6 +109,16 @@ public class XsdPropertiesPanel extends BorderPane {
     private boolean updating = false; // Prevent recursive updates
     private boolean patternsFromReferencedType = false; // Track if patterns come from referenced type (read-only)
     private boolean facetsFromReferencedType = false; // Track if facets come from referenced type (read-only)
+    private boolean enumerationsFromReferencedType = false; // Track if enumerations come from referenced type (read-only)
+    private boolean assertionsFromReferencedType = false; // Track if assertions come from referenced type (read-only)
+
+    // Buttons for enumeration editing
+    private Button addEnumerationBtn;
+    private Button removeEnumerationBtn;
+
+    // Buttons for assertion editing
+    private Button addAssertionBtn;
+    private Button removeAssertionBtn;
 
     // Schema Information section controls
     private Label schemaFilePathLabel;
@@ -200,6 +213,10 @@ public class XsdPropertiesPanel extends BorderPane {
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        // Enable caching for smoother scrolling
+        scrollPane.setCache(true);
+        scrollPane.setCacheHint(CacheHint.SPEED);
 
         setCenter(scrollPane);
 
@@ -343,29 +360,29 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
-        Button addEnumBtn = new Button("Add");
-        addEnumBtn.setGraphic(new FontIcon("bi-plus-circle"));
-        Button removeEnumBtn = new Button("Remove");
-        removeEnumBtn.setGraphic(new FontIcon("bi-trash"));
-        removeEnumBtn.setDisable(true);
+        addEnumerationBtn = new Button("Add");
+        addEnumerationBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        removeEnumerationBtn = new Button("Remove");
+        removeEnumerationBtn.setGraphic(new FontIcon("bi-trash"));
+        removeEnumerationBtn.setDisable(true);
 
-        // Enable/disable remove button based on selection
+        // Enable/disable remove button based on selection (only if not from referenced type)
         enumerationsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            removeEnumBtn.setDisable(newVal == null);
+            removeEnumerationBtn.setDisable(newVal == null || enumerationsFromReferencedType);
         });
 
         // Add button action
-        addEnumBtn.setOnAction(e -> handleAddEnumeration());
+        addEnumerationBtn.setOnAction(e -> handleAddEnumeration());
 
         // Remove button action
-        removeEnumBtn.setOnAction(e -> {
+        removeEnumerationBtn.setOnAction(e -> {
             String selectedEnum = enumerationsListView.getSelectionModel().getSelectedItem();
             if (selectedEnum != null) {
                 handleDeleteEnumeration(selectedEnum);
             }
         });
 
-        buttonBox.getChildren().addAll(addEnumBtn, removeEnumBtn);
+        buttonBox.getChildren().addAll(addEnumerationBtn, removeEnumerationBtn);
 
         vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), enumerationsListView, buttonBox);
         
@@ -395,29 +412,29 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
-        Button addAssertBtn = new Button("Add");
-        addAssertBtn.setGraphic(new FontIcon("bi-plus-circle"));
-        Button removeAssertBtn = new Button("Remove");
-        removeAssertBtn.setGraphic(new FontIcon("bi-trash"));
-        removeAssertBtn.setDisable(true);
+        addAssertionBtn = new Button("Add");
+        addAssertionBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        removeAssertionBtn = new Button("Remove");
+        removeAssertionBtn.setGraphic(new FontIcon("bi-trash"));
+        removeAssertionBtn.setDisable(true);
 
-        // Enable/disable remove button based on selection
+        // Enable/disable remove button based on selection (only if not from referenced type)
         assertionsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            removeAssertBtn.setDisable(newVal == null);
+            removeAssertionBtn.setDisable(newVal == null || assertionsFromReferencedType);
         });
 
         // Add button action
-        addAssertBtn.setOnAction(e -> handleAddAssertion());
+        addAssertionBtn.setOnAction(e -> handleAddAssertion());
 
         // Remove button action
-        removeAssertBtn.setOnAction(e -> {
+        removeAssertionBtn.setOnAction(e -> {
             String selectedAssertion = assertionsListView.getSelectionModel().getSelectedItem();
             if (selectedAssertion != null) {
                 handleDeleteAssertion(selectedAssertion);
             }
         });
 
-        buttonBox.getChildren().addAll(addAssertBtn, removeAssertBtn);
+        buttonBox.getChildren().addAll(addAssertionBtn, removeAssertionBtn);
 
         // Info note about XSD 1.1
         Label infoLabel = new Label("Note: Assertions are an XSD 1.1 feature and may not be supported by all validators");
@@ -1020,13 +1037,43 @@ public class XsdPropertiesPanel extends BorderPane {
         logger.debug("Loaded {} patterns from element '{}' (from referenced type: {})",
                 effectivePatterns.size(), xsdElement.getName(), patternsFromReferencedType);
 
-        // Load enumerations from model
-        enumerationsListView.getItems().addAll(xsdElement.getEnumerations());
-        logger.debug("Loaded {} enumerations from element '{}'", xsdElement.getEnumerations().size(), xsdElement.getName());
+        // Load enumerations from model (with type resolution)
+        enumerationsFromReferencedType = false;
+        java.util.List<String> effectiveEnumerations = getEffectiveEnumerations(xsdElement);
+        enumerationsListView.getItems().addAll(effectiveEnumerations);
 
-        // Load assertions from model
-        assertionsListView.getItems().addAll(xsdElement.getAssertions());
-        logger.debug("Loaded {} assertions from element '{}'", xsdElement.getAssertions().size(), xsdElement.getName());
+        // Update button states based on whether enumerations are from referenced type
+        addEnumerationBtn.setDisable(enumerationsFromReferencedType);
+        removeEnumerationBtn.setDisable(true); // Will be enabled by selection listener if not from referenced type
+
+        // Update placeholder text if enumerations are from referenced type
+        if (enumerationsFromReferencedType && !effectiveEnumerations.isEmpty()) {
+            enumerationsListView.setPlaceholder(new Label("Enumerations from referenced type (read-only)"));
+        } else {
+            enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
+        }
+
+        logger.debug("Loaded {} enumerations from element '{}' (from referenced type: {})",
+                effectiveEnumerations.size(), xsdElement.getName(), enumerationsFromReferencedType);
+
+        // Load assertions from model (with type resolution)
+        assertionsFromReferencedType = false;
+        java.util.List<String> effectiveAssertions = getEffectiveAssertions(xsdElement);
+        assertionsListView.getItems().addAll(effectiveAssertions);
+
+        // Update button states based on whether assertions are from referenced type
+        addAssertionBtn.setDisable(assertionsFromReferencedType);
+        removeAssertionBtn.setDisable(true); // Will be enabled by selection listener if not from referenced type
+
+        // Update placeholder text if assertions are from referenced type
+        if (assertionsFromReferencedType && !effectiveAssertions.isEmpty()) {
+            assertionsListView.setPlaceholder(new Label("Assertions from referenced type (read-only)"));
+        } else {
+            assertionsListView.setPlaceholder(new Label("No assertions defined (requires XSD 1.1)"));
+        }
+
+        logger.debug("Loaded {} assertions from element '{}' (from referenced type: {})",
+                effectiveAssertions.size(), xsdElement.getName(), assertionsFromReferencedType);
 
         // Note: Facets are now implemented in the model via XsdRestriction.getFacets()
         // However, facets belong to SimpleType restrictions, not directly to elements
@@ -2123,6 +2170,193 @@ public class XsdPropertiesPanel extends BorderPane {
         }
 
         return patterns;
+    }
+
+    /**
+     * Gets the effective enumerations of an element.
+     * Enumerations can come from:
+     * 1. Inline simpleType with restriction in the element itself (editable)
+     * 2. Referenced type (e.g., element type="DayCountConventionType" where DayCountConventionType has enumerations) (read-only)
+     *
+     * This method also sets the enumerationsFromReferencedType flag to indicate whether
+     * the enumerations are editable or read-only.
+     *
+     * @param element the XSD element
+     * @return list of effective enumerations (from element or referenced type)
+     */
+    private java.util.List<String> getEffectiveEnumerations(XsdElement element) {
+        java.util.List<String> enumerations = new java.util.ArrayList<>();
+        enumerationsFromReferencedType = false; // Reset flag
+
+        // First, check for enumerations directly on the element (inline simpleType)
+        if (!element.getEnumerations().isEmpty()) {
+            enumerations.addAll(element.getEnumerations());
+            enumerationsFromReferencedType = false; // Inline enumerations are editable
+            logger.debug("Found {} inline enumerations on element '{}'", enumerations.size(), element.getName());
+            return enumerations;
+        }
+
+        // If no direct enumerations, check for enumerations in referenced type
+        String typeRef = element.getType();
+        if (typeRef != null && !typeRef.isEmpty() && !typeRef.startsWith("xs:")) {
+            // Remove namespace prefix if present
+            String typeName = typeRef;
+            if (typeName.contains(":")) {
+                typeName = typeName.substring(typeName.indexOf(":") + 1);
+            }
+
+            logger.debug("Element '{}' references type '{}', searching for enumerations", element.getName(), typeName);
+
+            // Find the schema root
+            XsdNode current = element;
+            while (current != null && !(current instanceof XsdSchema)) {
+                current = current.getParent();
+            }
+
+            if (current instanceof XsdSchema schema) {
+                // Search for the type definition
+                enumerations.addAll(findEnumerationsInType(schema, typeName));
+                if (!enumerations.isEmpty()) {
+                    enumerationsFromReferencedType = true; // Referenced type enumerations are read-only
+                    logger.debug("Found {} enumerations in referenced type '{}' (read-only)", enumerations.size(), typeName);
+                }
+            }
+        }
+
+        return enumerations;
+    }
+
+    /**
+     * Finds enumerations in a named type definition within the schema.
+     *
+     * @param schema the schema to search
+     * @param typeName the name of the type to find
+     * @return list of enumerations found in the type
+     */
+    private java.util.List<String> findEnumerationsInType(XsdSchema schema, String typeName) {
+        java.util.List<String> enumerations = new java.util.ArrayList<>();
+
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof XsdSimpleType simpleType) {
+                if (typeName.equals(simpleType.getName())) {
+                    // Found the type, now extract enumerations from restriction
+                    for (XsdNode typeChild : simpleType.getChildren()) {
+                        if (typeChild instanceof XsdRestriction restriction) {
+                            for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+                                if (facet.getFacetType() == org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.ENUMERATION) {
+                                    enumerations.add(facet.getValue());
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        return enumerations;
+    }
+
+    /**
+     * Gets the effective assertions of an element.
+     * Assertions can come from:
+     * 1. Inline type definition in the element itself (editable)
+     * 2. Referenced type (e.g., element type="ValidatedType" where ValidatedType has assertions) (read-only)
+     *
+     * This method also sets the assertionsFromReferencedType flag to indicate whether
+     * the assertions are editable or read-only.
+     *
+     * @param element the XSD element
+     * @return list of effective assertions (from element or referenced type)
+     */
+    private java.util.List<String> getEffectiveAssertions(XsdElement element) {
+        java.util.List<String> assertions = new java.util.ArrayList<>();
+        assertionsFromReferencedType = false; // Reset flag
+
+        // First, check for assertions directly on the element
+        if (!element.getAssertions().isEmpty()) {
+            assertions.addAll(element.getAssertions());
+            assertionsFromReferencedType = false; // Inline assertions are editable
+            logger.debug("Found {} inline assertions on element '{}'", assertions.size(), element.getName());
+            return assertions;
+        }
+
+        // If no direct assertions, check for assertions in referenced type
+        String typeRef = element.getType();
+        if (typeRef != null && !typeRef.isEmpty() && !typeRef.startsWith("xs:")) {
+            // Remove namespace prefix if present
+            String typeName = typeRef;
+            if (typeName.contains(":")) {
+                typeName = typeName.substring(typeName.indexOf(":") + 1);
+            }
+
+            logger.debug("Element '{}' references type '{}', searching for assertions", element.getName(), typeName);
+
+            // Find the schema root
+            XsdNode current = element;
+            while (current != null && !(current instanceof XsdSchema)) {
+                current = current.getParent();
+            }
+
+            if (current instanceof XsdSchema schema) {
+                // Search for the type definition
+                assertions.addAll(findAssertionsInType(schema, typeName));
+                if (!assertions.isEmpty()) {
+                    assertionsFromReferencedType = true; // Referenced type assertions are read-only
+                    logger.debug("Found {} assertions in referenced type '{}' (read-only)", assertions.size(), typeName);
+                }
+            }
+        }
+
+        return assertions;
+    }
+
+    /**
+     * Finds assertions in a named type definition within the schema.
+     * Assertions can be found in both SimpleType (via xs:assertion facet) and ComplexType definitions.
+     *
+     * @param schema the schema to search
+     * @param typeName the name of the type to find
+     * @return list of assertions found in the type
+     */
+    private java.util.List<String> findAssertionsInType(XsdSchema schema, String typeName) {
+        java.util.List<String> assertions = new java.util.ArrayList<>();
+
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof XsdSimpleType simpleType) {
+                if (typeName.equals(simpleType.getName())) {
+                    // Found the type, now extract assertions from restriction
+                    for (XsdNode typeChild : simpleType.getChildren()) {
+                        if (typeChild instanceof XsdRestriction restriction) {
+                            for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+                                if (facet.getFacetType() == org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.ASSERTION) {
+                                    assertions.add(facet.getValue());
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+            // Also check ComplexTypes for assertions (XSD 1.1)
+            if (child instanceof XsdComplexType complexType) {
+                if (typeName.equals(complexType.getName())) {
+                    // ComplexTypes can have assertions directly or in their content model
+                    // Check for XsdAssert children
+                    for (XsdNode typeChild : complexType.getChildren()) {
+                        if (typeChild instanceof XsdAssert assertNode) {
+                            String test = assertNode.getTest();
+                            if (test != null && !test.isEmpty()) {
+                                assertions.add(test);
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        return assertions;
     }
 
     /**

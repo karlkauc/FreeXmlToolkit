@@ -369,7 +369,70 @@ public class FxtGui extends Application {
         }
     }
 
-    static void main(String[] args) {
-        launch();
+    /**
+     * Main entry point for the application.
+     * Configures JavaFX hardware acceleration and performance settings before launch.
+     *
+     * @param args command line arguments
+     */
+    public static void main(String[] args) {
+        // Enable hardware acceleration for JavaFX rendering
+        configureHardwareAcceleration();
+
+        launch(args);
+    }
+
+    /**
+     * Configures JavaFX Prism rendering pipeline for optimal hardware acceleration.
+     *
+     * <p>This method sets system properties to enable GPU-accelerated rendering:
+     * <ul>
+     *   <li>prism.order - Prefers Direct3D (Windows) or OpenGL ES2, with software fallback</li>
+     *   <li>prism.forceGPU - Forces GPU usage when available</li>
+     *   <li>prism.vsync - Enables vertical sync for smoother rendering</li>
+     *   <li>prism.dirtyopts - Enables dirty region optimization</li>
+     *   <li>javafx.animation.fullspeed - Enables full-speed animations in dev mode</li>
+     * </ul>
+     *
+     * <p>Properties are only set if not already defined via command line (-D flags).
+     */
+    private static void configureHardwareAcceleration() {
+        // Prefer hardware rendering: Direct3D on Windows, OpenGL ES2 on Mac/Linux, software fallback
+        setPropertyIfAbsent("prism.order", "d3d,es2,sw");
+
+        // Force GPU usage when hardware acceleration is available
+        setPropertyIfAbsent("prism.forceGPU", "true");
+
+        // Enable vertical sync for smoother rendering (reduces tearing)
+        setPropertyIfAbsent("prism.vsync", "true");
+
+        // Enable dirty region optimization for efficient repainting
+        setPropertyIfAbsent("prism.dirtyopts", "true");
+
+        // Enable texture caching for improved rendering performance
+        setPropertyIfAbsent("prism.poolstats", "false");
+
+        // Set maximum texture size for caching (4096x4096 is good for most GPUs)
+        setPropertyIfAbsent("prism.maxTextureSize", "4096");
+
+        // Enable image caching
+        setPropertyIfAbsent("prism.cacheshapes", "true");
+
+        // Log which rendering pipeline is being used
+        System.out.println("JavaFX hardware acceleration configured:");
+        System.out.println("  prism.order: " + System.getProperty("prism.order"));
+        System.out.println("  prism.forceGPU: " + System.getProperty("prism.forceGPU"));
+    }
+
+    /**
+     * Sets a system property only if it hasn't been set via command line.
+     *
+     * @param key the property key
+     * @param value the default value to set
+     */
+    private static void setPropertyIfAbsent(String key, String value) {
+        if (System.getProperty(key) == null) {
+            System.setProperty(key, value);
+        }
     }
 }

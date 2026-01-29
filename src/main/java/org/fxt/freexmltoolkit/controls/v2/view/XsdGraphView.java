@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import javafx.scene.CacheHint;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
@@ -305,9 +306,20 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * Sets up the UI layout.
      */
     private void setupLayout() {
-        // Toolbar
+        // Toolbar with caching enabled (static content)
         ToolBar toolbar = createToolbar();
+        toolbar.setCache(true);
+        toolbar.setCacheHint(CacheHint.SPEED);
         setTop(toolbar);
+
+        // Enable caching on the canvas for better rendering performance
+        // Canvas caching helps when the canvas content is static (between redraws)
+        canvas.setCache(true);
+        canvas.setCacheHint(CacheHint.SPEED);
+
+        // Enable caching on ScrollPane for smoother scrolling
+        scrollPane.setCache(true);
+        scrollPane.setCacheHint(CacheHint.SPEED);
 
         // Properties panel (initially hidden)
         propertiesPanel = new XsdPropertiesPanel(editorContext);

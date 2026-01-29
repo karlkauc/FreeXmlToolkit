@@ -6,6 +6,7 @@ import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
+import javafx.scene.CacheHint;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.Node;
@@ -234,12 +235,16 @@ public class XmlCanvasView extends Pane {
     public XmlCanvasView(XmlEditorContext context) {
         this.context = context;
 
-        // Create canvas
+        // Create canvas with caching enabled for better rendering performance
         this.canvas = new Canvas(800, 600);
+        this.canvas.setCache(true);
+        this.canvas.setCacheHint(CacheHint.SPEED);
         this.gc = canvas.getGraphicsContext2D();
 
-        // Create container
+        // Create container with caching
         this.canvasContainer = new Pane();
+        this.canvasContainer.setCache(true);
+        this.canvasContainer.setCacheHint(CacheHint.SPEED);
         canvasContainer.getChildren().add(canvas);
 
         // Create scroll bars
