@@ -12,6 +12,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.slf4j.Logger;
@@ -775,187 +777,21 @@ public class TypeLibraryView extends BorderPane {
     }
 
     private void calculateUsage(List<TypeInfo> types) {
-        // Create a map for quick lookup
-        Map<String, TypeInfo> typeMap = types.stream()
-            .collect(Collectors.toMap(t -> t.name, t -> t));
+        // Use TypeUsageFinder for comprehensive and accurate usage detection
+        TypeUsageFinder usageFinder = new TypeUsageFinder(schema);
 
-        // Scan all schema children to find type usage
-        for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdElement globalElement) {
-                // Global element - scan for type references
-                String rootPath = "/xs:schema/xs:element[@name='" + globalElement.getName() + "']";
-
-                // Check if global element references a type
-                String typeRef = globalElement.getType();
-                if (typeRef != null && !typeRef.isEmpty() && !typeRef.startsWith("xs:") && !typeRef.startsWith("xsd:")) {
-                    String typeName = typeRef.contains(":") ? typeRef.substring(typeRef.indexOf(":") + 1) : typeRef;
-                    TypeInfo typeInfo = typeMap.get(typeName);
-                    if (typeInfo != null) {
-                        typeInfo.usageCount++;
-                        typeInfo.usageLocations.add(rootPath);
-                    }
-                }
-
-                // Scan element's inline content
-                scanElementChildren(globalElement, rootPath, typeMap);
-
-            } else if (child instanceof XsdComplexType complexType) {
-                // Global complex type - scan its content for type references
-                String typePath = "/xs:schema/xs:complexType[@name='" + complexType.getName() + "']";
-                scanComplexTypeContent(complexType, typePath, typeMap);
-
-            } else if (child instanceof XsdSimpleType simpleType) {
-                // Global simple type - check for base type references
-                String typePath = "/xs:schema/xs:simpleType[@name='" + simpleType.getName() + "']";
-                scanSimpleTypeForBaseType(simpleType, typePath, typeMap);
+        // For each type, find all usages
+        for (TypeInfo typeInfo : types) {
+            if (typeInfo.name == null || typeInfo.name.isEmpty() || typeInfo.name.equals("(anonymous)")) {
+                continue; // Skip anonymous types
             }
-        }
-    }
 
-    /**
-     * Scan a SimpleType for base type references (in restrictions, lists, unions)
-     */
-    private void scanSimpleTypeForBaseType(XsdSimpleType simpleType, String typePath, Map<String, TypeInfo> typeMap) {
-        // Check direct base
-        String baseType = simpleType.getBase();
-        if (baseType != null && !baseType.isEmpty() && !baseType.startsWith("xs:") && !baseType.startsWith("xsd:")) {
-            String typeName = baseType.contains(":") ? baseType.substring(baseType.indexOf(":") + 1) : baseType;
-            TypeInfo typeInfo = typeMap.get(typeName);
-            if (typeInfo != null) {
-                typeInfo.usageCount++;
-                typeInfo.usageLocations.add(typePath);
-            }
-        }
+            List<TypeUsageLocation> usageLocations = usageFinder.findUsages(typeInfo.name);
+            typeInfo.usageCount = usageLocations.size();
 
-        // Check children (restriction, list, union)
-        for (XsdNode child : simpleType.getChildren()) {
-            if (child instanceof XsdRestriction restriction) {
-                String restrictionBase = restriction.getBase();
-                if (restrictionBase != null && !restrictionBase.isEmpty() &&
-                    !restrictionBase.startsWith("xs:") && !restrictionBase.startsWith("xsd:")) {
-                    String typeName = restrictionBase.contains(":") ?
-                        restrictionBase.substring(restrictionBase.indexOf(":") + 1) : restrictionBase;
-                    TypeInfo typeInfo = typeMap.get(typeName);
-                    if (typeInfo != null) {
-                        typeInfo.usageCount++;
-                        typeInfo.usageLocations.add(typePath + "/xs:restriction");
-                    }
-                }
-            } else if (child instanceof XsdList list) {
-                String itemType = list.getItemType();
-                if (itemType != null && !itemType.isEmpty() &&
-                    !itemType.startsWith("xs:") && !itemType.startsWith("xsd:")) {
-                    String typeName = itemType.contains(":") ?
-                        itemType.substring(itemType.indexOf(":") + 1) : itemType;
-                    TypeInfo typeInfo = typeMap.get(typeName);
-                    if (typeInfo != null) {
-                        typeInfo.usageCount++;
-                        typeInfo.usageLocations.add(typePath + "/xs:list");
-                    }
-                }
-            } else if (child instanceof XsdUnion union) {
-                List<String> memberTypes = union.getMemberTypes();
-                if (memberTypes != null && !memberTypes.isEmpty()) {
-                    // Union can have multiple member types
-                    for (String memberType : memberTypes) {
-                        if (!memberType.startsWith("xs:") && !memberType.startsWith("xsd:")) {
-                            String typeName = memberType.contains(":") ?
-                                memberType.substring(memberType.indexOf(":") + 1) : memberType;
-                            TypeInfo typeInfo = typeMap.get(typeName);
-                            if (typeInfo != null) {
-                                typeInfo.usageCount++;
-                                typeInfo.usageLocations.add(typePath + "/xs:union");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private void scanElementChildren(XsdElement element, String elementPath, Map<String, TypeInfo> typeMap) {
-        for (XsdNode child : element.getChildren()) {
-            if (child instanceof XsdComplexType complexType) {
-                // Inline complex type - scan its content
-                scanComplexTypeContent(complexType, elementPath, typeMap);
-            } else if (child instanceof XsdSimpleType simpleType) {
-                // Inline simple type - nothing more to scan
-            }
-        }
-    }
-
-    private void scanComplexTypeContent(XsdComplexType complexType, String parentPath, Map<String, TypeInfo> typeMap) {
-        for (XsdNode child : complexType.getChildren()) {
-            if (child instanceof XsdSequence || child instanceof XsdChoice || child instanceof XsdAll) {
-                // Compositor - scan its children
-                scanCompositor(child, parentPath, typeMap);
-            } else if (child instanceof XsdAttribute attribute) {
-                // Attribute with type reference
-                String attrPath = parentPath + "/@" + attribute.getName();
-                String typeRef = attribute.getType();
-
-                if (typeRef != null && !typeRef.isEmpty() && !typeRef.startsWith("xs:") && !typeRef.startsWith("xsd:")) {
-                    String typeName = typeRef.contains(":") ? typeRef.substring(typeRef.indexOf(":") + 1) : typeRef;
-
-                    TypeInfo typeInfo = typeMap.get(typeName);
-                    if (typeInfo != null) {
-                        typeInfo.usageCount++;
-                        typeInfo.usageLocations.add(attrPath);
-                    }
-                }
-            } else if (child instanceof XsdComplexContent || child instanceof XsdSimpleContent) {
-                // Extension or restriction - scan children recursively
-                scanNodeForAttributes(child, parentPath, typeMap);
-            }
-        }
-    }
-
-    private void scanCompositor(XsdNode compositor, String parentPath, Map<String, TypeInfo> typeMap) {
-        for (XsdNode child : compositor.getChildren()) {
-            if (child instanceof XsdElement element) {
-                // Build absolute XPath for this element
-                String elementPath = parentPath + "/xs:element[@name='" + element.getName() + "']";
-
-                String typeRef = element.getType();
-                if (typeRef != null && !typeRef.isEmpty() && !typeRef.startsWith("xs:") && !typeRef.startsWith("xsd:")) {
-                    String typeName = typeRef.contains(":") ? typeRef.substring(typeRef.indexOf(":") + 1) : typeRef;
-
-                    TypeInfo typeInfo = typeMap.get(typeName);
-                    if (typeInfo != null) {
-                        typeInfo.usageCount++;
-                        typeInfo.usageLocations.add(elementPath);
-                    }
-                }
-
-                // Recursively scan this element's children
-                scanElementChildren(element, elementPath, typeMap);
-            } else if (child instanceof XsdSequence || child instanceof XsdChoice || child instanceof XsdAll) {
-                // Nested compositor
-                scanCompositor(child, parentPath, typeMap);
-            }
-        }
-    }
-
-    private void scanNodeForAttributes(XsdNode node, String parentPath, Map<String, TypeInfo> typeMap) {
-        for (XsdNode child : node.getChildren()) {
-            if (child instanceof XsdSequence || child instanceof XsdChoice || child instanceof XsdAll) {
-                scanCompositor(child, parentPath, typeMap);
-            } else if (child instanceof XsdAttribute attribute) {
-                String attrPath = parentPath + "/@" + attribute.getName();
-                String typeRef = attribute.getType();
-
-                if (typeRef != null && !typeRef.isEmpty() && !typeRef.startsWith("xs:") && !typeRef.startsWith("xsd:")) {
-                    String typeName = typeRef.contains(":") ? typeRef.substring(typeRef.indexOf(":") + 1) : typeRef;
-
-                    TypeInfo typeInfo = typeMap.get(typeName);
-                    if (typeInfo != null) {
-                        typeInfo.usageCount++;
-                        typeInfo.usageLocations.add(attrPath);
-                    }
-                }
-            } else if (child instanceof XsdExtension || child instanceof XsdRestriction) {
-                // Recursively scan extension/restriction children
-                scanNodeForAttributes(child, parentPath, typeMap);
+            // Convert TypeUsageLocation to description strings
+            for (TypeUsageLocation location : usageLocations) {
+                typeInfo.usageLocations.add(location.getDescription());
             }
         }
     }
