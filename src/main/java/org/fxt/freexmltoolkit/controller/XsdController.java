@@ -276,12 +276,9 @@ public class XsdController implements FavoritesParentController {
     private StackPane xsdStackPaneV2;
     @FXML
     private VBox noFileLoadedPane;
-    @FXML
-    private TitledPane xsdInfoPane;
+    // Schema Information panel removed - now integrated in Properties Panel (via XsdPropertiesPanel)
     @FXML
     private ProgressIndicator xsdDiagramProgress;
-    @FXML
-    private Label xsdInfoPathLabel, xsdInfoNamespaceLabel, xsdInfoVersionLabel;
 
     // New fields for visualization (UML, Grid)
 
@@ -679,8 +676,6 @@ public class XsdController implements FavoritesParentController {
                 if (xmlService.getCurrentXsdFile() == null && !isSchemaLoaded) {
                     noFileLoadedPane.setVisible(true);
                     noFileLoadedPane.setManaged(true);
-                    xsdInfoPane.setVisible(false);
-                    xsdInfoPane.setManaged(false);
                 } else if (graphicalViewPending && !graphicalViewInitialized && cachedXsdSchema != null) {
                     // Schema was already parsed - just create the graphical view from cached schema
                     logger.info("XSD tab selected - creating graphical view from cached schema");
@@ -1756,21 +1751,13 @@ public class XsdController implements FavoritesParentController {
             xsdStackPaneV2.setVisible(true);
             xsdStackPaneV2.setManaged(true);
         }
-        if (xsdInfoPane != null) {
-            xsdInfoPane.setVisible(true);
-            xsdInfoPane.setManaged(true);
 
-            // Update info labels
-            if (xsdInfoPathLabel != null && currentXsdFile != null) {
-                xsdInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
-            }
-            if (xsdInfoNamespaceLabel != null) {
-                xsdInfoNamespaceLabel.setText(cachedXsdSchema.getTargetNamespace() != null ?
-                    cachedXsdSchema.getTargetNamespace() : "No target namespace");
-            }
-            if (xsdInfoVersionLabel != null) {
-                xsdInfoVersionLabel.setText("XSD " + cachedXsdSchema.detectXsdVersion());
-            }
+        // Update schema information in Properties Panel instead of top bar
+        if (currentGraphViewV2 != null && currentGraphViewV2.getPropertiesPanel() != null) {
+            String filePath = currentXsdFile != null ? currentXsdFile.getAbsolutePath() : null;
+            String targetNamespace = cachedXsdSchema.getTargetNamespace();
+            String version = cachedXsdSchema.detectXsdVersion();
+            currentGraphViewV2.getPropertiesPanel().updateSchemaInformation(filePath, targetNamespace, version);
         }
 
         logger.info("XSD graphical view created: {} global elements",
@@ -1833,10 +1820,6 @@ public class XsdController implements FavoritesParentController {
                     if (textInfoPane != null) {
                         textInfoPane.setVisible(true);
                         textInfoPane.setManaged(true);
-                    }
-                    if (xsdInfoPane != null) {
-                        xsdInfoPane.setVisible(true);
-                        xsdInfoPane.setManaged(true);
                     }
                     // Enable unsaved changes tracking
                     hasUnsavedChanges = true;
@@ -2159,15 +2142,14 @@ public class XsdController implements FavoritesParentController {
             if (textInfoPathLabel != null) {
                 textInfoPathLabel.setText(filePath);
             }
-            if (xsdInfoPathLabel != null) {
-                xsdInfoPathLabel.setText(filePath);
-            }
-            if (xsdInfoNamespaceLabel != null) {
-                xsdInfoNamespaceLabel.setText(targetNamespace != null && !targetNamespace.isEmpty()
-                        ? targetNamespace : "No namespace");
-            }
-            if (xsdInfoVersionLabel != null) {
-                xsdInfoVersionLabel.setText(version != null && !version.isEmpty() ? version : "1.0");
+
+            // Update schema information in Properties Panel
+            if (currentGraphViewV2 != null && currentGraphViewV2.getPropertiesPanel() != null) {
+                currentGraphViewV2.getPropertiesPanel().updateSchemaInformation(
+                    filePath,
+                    targetNamespace != null && !targetNamespace.isEmpty() ? targetNamespace : null,
+                    version != null && !version.isEmpty() ? version : "1.0"
+                );
             }
         });
     }

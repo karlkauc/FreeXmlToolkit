@@ -107,6 +107,12 @@ public class XsdPropertiesPanel extends BorderPane {
     private boolean patternsFromReferencedType = false; // Track if patterns come from referenced type (read-only)
     private boolean facetsFromReferencedType = false; // Track if facets come from referenced type (read-only)
 
+    // Schema Information section controls
+    private Label schemaFilePathLabel;
+    private Label schemaNamespaceLabel;
+    private Label schemaVersionLabel;
+    private TitledPane schemaInfoPane;
+
     /**
      * Creates a new properties panel.
      *
@@ -156,7 +162,8 @@ public class XsdPropertiesPanel extends BorderPane {
         Label titleLabel = new Label("Properties");
         titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
-        // Create TitledPanes for general properties
+        // Create TitledPanes for schema and general properties
+        schemaInfoPane = createSchemaInformationTitledPane();
         TitledPane generalPane = createGeneralTitledPane();
         TitledPane documentationPane = createDocumentationTitledPane();
         TitledPane constraintsPane = createConstraintsTitledPane();
@@ -179,6 +186,7 @@ public class XsdPropertiesPanel extends BorderPane {
         contentBox.getChildren().addAll(
                 titleLabel,
                 new Separator(),
+                schemaInfoPane,
                 generalPane,
                 documentationPane,
                 constraintsPane,
@@ -527,6 +535,46 @@ public class XsdPropertiesPanel extends BorderPane {
                 handleSubstitutionGroupChange();
             }
         });
+    }
+
+    /**
+     * Creates the Schema Information TitledPane.
+     * Displays metadata about the loaded XSD schema.
+     */
+    private TitledPane createSchemaInformationTitledPane() {
+        GridPane grid = createGridPane();
+        int row = 0;
+
+        // File Path
+        grid.add(new Label("File Path:"), 0, row);
+        schemaFilePathLabel = new Label("No file loaded");
+        schemaFilePathLabel.setWrapText(true);
+        schemaFilePathLabel.setStyle("-fx-text-fill: #666666;");
+        grid.add(schemaFilePathLabel, 1, row++);
+
+        // Target Namespace
+        grid.add(new Label("Target Namespace:"), 0, row);
+        schemaNamespaceLabel = new Label("No namespace");
+        schemaNamespaceLabel.setWrapText(true);
+        schemaNamespaceLabel.setStyle("-fx-text-fill: #666666;");
+        grid.add(schemaNamespaceLabel, 1, row++);
+
+        // Version
+        grid.add(new Label("Version:"), 0, row);
+        schemaVersionLabel = new Label("-");
+        schemaVersionLabel.setStyle("-fx-text-fill: #666666;");
+        grid.add(schemaVersionLabel, 1, row++);
+
+        TitledPane pane = new TitledPane("Schema Information", grid);
+        pane.setExpanded(true);
+
+        // Add icon to title
+        FontIcon icon = new FontIcon("bi-info-circle");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: #17a2b8;");
+        pane.setGraphic(icon);
+
+        return pane;
     }
 
     /**
@@ -2463,5 +2511,33 @@ public class XsdPropertiesPanel extends BorderPane {
         }
 
         return null;
+    }
+
+    /**
+     * Updates the schema information section with file path, namespace, and version.
+     * This method is called by XsdController when a schema is loaded.
+     *
+     * @param filePath the absolute path to the XSD file
+     * @param targetNamespace the target namespace of the schema
+     * @param version the XSD version (e.g., "1.0" or "1.1")
+     */
+    public void updateSchemaInformation(String filePath, String targetNamespace, String version) {
+        javafx.application.Platform.runLater(() -> {
+            if (schemaFilePathLabel != null) {
+                schemaFilePathLabel.setText(filePath != null && !filePath.isEmpty()
+                    ? filePath
+                    : "No file loaded");
+            }
+            if (schemaNamespaceLabel != null) {
+                schemaNamespaceLabel.setText(targetNamespace != null && !targetNamespace.isEmpty()
+                    ? targetNamespace
+                    : "No target namespace");
+            }
+            if (schemaVersionLabel != null) {
+                schemaVersionLabel.setText(version != null && !version.isEmpty()
+                    ? "XSD " + version
+                    : "-");
+            }
+        });
     }
 }

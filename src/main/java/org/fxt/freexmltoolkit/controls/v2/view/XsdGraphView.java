@@ -1777,6 +1777,15 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
+     * Gets the properties panel.
+     *
+     * @return the properties panel
+     */
+    public XsdPropertiesPanel getPropertiesPanel() {
+        return propertiesPanel;
+    }
+
+    /**
      * Sets the callback for opening a ComplexType in the Type Editor.
      * This is invoked when the user selects "Edit Type in Editor" from the context menu.
      *

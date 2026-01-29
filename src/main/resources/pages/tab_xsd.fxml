@@ -196,39 +196,7 @@
                 <FontIcon iconLiteral="bi-diagram-2"/>
             </graphic>
             <BorderPane>
-                <top>
-                    <TitledPane fx:id="xsdInfoPane" text="Schema Information" animated="true" expanded="true"
-                                managed="false" visible="false" collapsible="true">
-                        <content>
-                            <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-padding: 10 0 10 10;">
-                                <children>
-                                    <VBox spacing="5.0">
-                                        <children>
-                                            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                                <children>
-                                                    <Label style="-fx-font-weight: bold;" text="File Path:"/>
-                                                    <Label fx:id="xsdInfoPathLabel"/>
-                                                </children>
-                                            </HBox>
-                                            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                                <children>
-                                                    <Label style="-fx-font-weight: bold;" text="Target Namespace:"/>
-                                                    <Label fx:id="xsdInfoNamespaceLabel"/>
-                                                </children>
-                                            </HBox>
-                                            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                                <children>
-                                                    <Label style="-fx-font-weight: bold;" text="Version:"/>
-                                                    <Label fx:id="xsdInfoVersionLabel"/>
-                                                </children>
-                                            </HBox>
-                                        </children>
-                                    </VBox>
-                                </children>
-                            </HBox>
-                        </content>
-                    </TitledPane>
-                </top>
+                <!-- Schema Information panel removed - now integrated in Properties Panel -->
                 <center>
                     <SplitPane fx:id="graphicTabSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
                         <items>
