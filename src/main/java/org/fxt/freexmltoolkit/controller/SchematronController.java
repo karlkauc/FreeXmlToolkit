@@ -1415,6 +1415,7 @@ public class SchematronController implements FavoritesParentController {
     /**
      * Setup the test files table
      */
+    @SuppressWarnings("unchecked") // Casts are safe - column types are defined in FXML
     private void setupTestFilesTable() {
         // Find and initialize table columns
         ObservableList<TableColumn<TestFile, ?>> columns = testFilesTable.getColumns();
@@ -1425,10 +1426,10 @@ public class SchematronController implements FavoritesParentController {
             TableColumn<TestFile, Integer> violationsCol = (TableColumn<TestFile, Integer>) columns.get(2);
             TableColumn<TestFile, Integer> warningsCol = (TableColumn<TestFile, Integer>) columns.get(3);
 
-            filenameCol.setCellValueFactory(new PropertyValueFactory<>("filename"));
-            statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
-            violationsCol.setCellValueFactory(new PropertyValueFactory<>("violations"));
-            warningsCol.setCellValueFactory(new PropertyValueFactory<>("warnings"));
+            filenameCol.setCellValueFactory(new PropertyValueFactory<TestFile, String>("filename"));
+            statusCol.setCellValueFactory(new PropertyValueFactory<TestFile, String>("status"));
+            violationsCol.setCellValueFactory(new PropertyValueFactory<TestFile, Integer>("violations"));
+            warningsCol.setCellValueFactory(new PropertyValueFactory<TestFile, Integer>("warnings"));
 
             // Add custom cell factory for status column with color coding
             statusCol.setCellFactory(column -> new TableCell<TestFile, String>() {
