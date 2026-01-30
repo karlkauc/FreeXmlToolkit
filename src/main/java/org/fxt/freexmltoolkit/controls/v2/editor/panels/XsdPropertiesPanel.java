@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.control.*;
@@ -42,13 +43,12 @@ import java.util.Optional;
 
 /**
  * Properties panel for editing XSD node properties.
- * Displays and allows editing of properties based on selected node type.
- * <p>
- * Sections:
- * - General: name, type, cardinality
- * - Documentation: xs:documentation, xs:appinfo
- * - Constraints: nillable, abstract, fixed
- * - Advanced: form, use, substitutionGroup
+ * Displays properties in a 3-column layout:
+ * <ul>
+ *   <li><b>Attributes</b> (left): Schema info, General, Cardinality, Constraints, Advanced</li>
+ *   <li><b>Facets</b> (middle): Facets grid, Patterns, Enumerations, Assertions</li>
+ *   <li><b>Docs</b> (right): Documentation cards, AppInfo</li>
+ * </ul>
  *
  * @since 2.0
  */
@@ -56,12 +56,21 @@ public class XsdPropertiesPanel extends BorderPane {
 
     private static final Logger logger = LogManager.getLogger(XsdPropertiesPanel.class);
 
+    // Tab colors for styling
+    private static final String ATTRIBUTES_COLOR = "#007bff"; // Blue
+    private static final String FACETS_COLOR = "#fd7e14";     // Orange
+    private static final String DOCS_COLOR = "#28a745";       // Green
+
     private final XsdEditorContext editorContext;
     private VisualNode currentNode;
 
-    // Scroll container
-    private ScrollPane scrollPane;
-    private VBox contentBox;
+    // Main TabPane container
+    private TabPane mainTabPane;
+
+    // Tabs
+    private Tab attributesTab;
+    private Tab facetsTab;
+    private Tab docsTab;
 
     // General section controls
     private TextField nameField;
@@ -73,7 +82,7 @@ public class XsdPropertiesPanel extends BorderPane {
     private CheckBox unboundedCheckBox;
 
     // Documentation section controls
-    private FlowPane documentationFlowPane;
+    private GridPane documentationGridPane;
     private Button addDocBtn;
     private TextArea documentationArea; // Legacy field, hidden
     private TextArea appinfoArea; // Kept for backward compatibility
@@ -91,16 +100,23 @@ public class XsdPropertiesPanel extends BorderPane {
     private ComboBox<String> useComboBox;
     private TextField substitutionGroupField;
 
-    // New tabs for XSD constraints
-    private GridPane facetsGridPane; // Grid for facet name/value pairs
+    // Facets controls
+    private GridPane facetsGridPane;
     private ListView<String> patternsListView;
     private ListView<String> enumerationsListView;
     private ListView<String> assertionsListView;
-    private TabPane tabPane;
 
     // Buttons for pattern editing
     private Button addPatternBtn;
     private Button removePatternBtn;
+
+    // Buttons for enumeration editing
+    private Button addEnumerationBtn;
+    private Button removeEnumerationBtn;
+
+    // Buttons for assertion editing
+    private Button addAssertionBtn;
+    private Button removeAssertionBtn;
 
     // Facet controls (will be created dynamically based on datatype)
     private final java.util.Map<XsdFacetType, TextField> facetFields = new java.util.HashMap<>();
@@ -111,14 +127,6 @@ public class XsdPropertiesPanel extends BorderPane {
     private boolean facetsFromReferencedType = false; // Track if facets come from referenced type (read-only)
     private boolean enumerationsFromReferencedType = false; // Track if enumerations come from referenced type (read-only)
     private boolean assertionsFromReferencedType = false; // Track if assertions come from referenced type (read-only)
-
-    // Buttons for enumeration editing
-    private Button addEnumerationBtn;
-    private Button removeEnumerationBtn;
-
-    // Buttons for assertion editing
-    private Button addAssertionBtn;
-    private Button removeAssertionBtn;
 
     // Schema Information section controls
     private Label schemaFilePathLabel;
@@ -139,7 +147,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Listen to selection changes
         editorContext.getSelectionModel().addSelectionListener((oldSelection, newSelection) -> {
-            logger.debug("Selection changed in XsdPropertiesPanel: oldSize={}, newSize={}", 
+            logger.debug("Selection changed in XsdPropertiesPanel: oldSize={}, newSize={}",
                     oldSelection != null ? oldSelection.size() : 0,
                     newSelection != null ? newSelection.size() : 0);
             if (!newSelection.isEmpty()) {
@@ -164,394 +172,132 @@ public class XsdPropertiesPanel extends BorderPane {
     }
 
     /**
-     * Initializes the UI components.
+     * Initializes the UI components with TabPane layout.
      */
     private void initializeUI() {
-        // Create content container
-        contentBox = new VBox(10);
-        contentBox.setPadding(new Insets(10));
+        // Create the main TabPane
+        mainTabPane = new TabPane();
+        mainTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
-        // Title
-        Label titleLabel = new Label("Properties");
-        titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        // Create tabs with content
+        attributesTab = createAttributesTab();
+        facetsTab = createFacetsTab();
+        docsTab = createDocsTab();
 
-        // Create TitledPanes for schema and general properties
-        schemaInfoPane = createSchemaInformationTitledPane();
-        TitledPane generalPane = createGeneralTitledPane();
-        TitledPane documentationPane = createDocumentationTitledPane();
-        TitledPane constraintsPane = createConstraintsTitledPane();
-        TitledPane advancedPane = createAdvancedTitledPane();
+        // Add tabs to TabPane
+        mainTabPane.getTabs().addAll(attributesTab, facetsTab, docsTab);
 
-        // Create TabPane for specific constraint properties
-        tabPane = new TabPane();
-        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-
-        // Add tabs - only the four specified constraint tabs
-        tabPane.getTabs().addAll(
-                createFacetsTab(),
-                createPatternsTab(),
-                createEnumerationsTab(),
-                createAssertionsTab()
-        );
-
-        VBox.setVgrow(tabPane, Priority.ALWAYS);
-
-        contentBox.getChildren().addAll(
-                titleLabel,
-                new Separator(),
-                schemaInfoPane,
-                generalPane,
-                documentationPane,
-                constraintsPane,
-                advancedPane,
-                new Separator(),
-                tabPane
-        );
-
-        // Wrap in ScrollPane for scrollability
-        scrollPane = new ScrollPane(contentBox);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-
-        // Enable caching for smoother scrolling
-        scrollPane.setCache(true);
-        scrollPane.setCacheHint(CacheHint.SPEED);
-
-        setCenter(scrollPane);
+        setCenter(mainTabPane);
 
         // Initially disabled until a node is selected
         setDisable(true);
     }
 
+    /**
+     * Wraps a node in a ScrollPane for vertical scrolling.
+     */
+    private ScrollPane wrapInScrollPane(VBox content) {
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setCache(true);
+        scrollPane.setCacheHint(CacheHint.SPEED);
+        return scrollPane;
+    }
 
+    /**
+     * Creates the Attributes tab.
+     * Contains: Schema Information, General, Cardinality, Constraints, Advanced
+     */
+    private Tab createAttributesTab() {
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(10));
 
+        // Create TitledPanes for schema and general properties
+        schemaInfoPane = createSchemaInformationTitledPane();
+        TitledPane generalPane = createGeneralTitledPane();
+        TitledPane cardinalityPane = createCardinalityTitledPane();
+        TitledPane constraintsPane = createConstraintsTitledPane();
+        TitledPane advancedPane = createAdvancedTitledPane();
 
+        content.getChildren().addAll(
+                schemaInfoPane,
+                generalPane,
+                cardinalityPane,
+                constraintsPane,
+                advancedPane
+        );
+
+        ScrollPane scrollPane = wrapInScrollPane(content);
+
+        Tab tab = new Tab("Attributes", scrollPane);
+        FontIcon icon = new FontIcon("bi-card-list");
+        icon.setIconSize(16);
+        icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
+        tab.setGraphic(icon);
+
+        return tab;
+    }
 
     /**
      * Creates the Facets tab.
+     * Contains: Facets Grid, Patterns, Enumerations, Assertions
      */
     private Tab createFacetsTab() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(10));
 
-        // Title and description
-        Label titleLabel = new Label("XSD Facets");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-        Label descLabel = new Label("Facets define restrictions on data types (e.g., minLength, maxLength, totalDigits)");
-        descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        // Create TitledPanes for facets
+        TitledPane facetsPane = createFacetsTitledPane();
+        TitledPane patternsPane = createPatternsTitledPane();
+        TitledPane enumerationsPane = createEnumerationsTitledPane();
+        TitledPane assertionsPane = createAssertionsTitledPane();
 
-        // Grid for facet name/value pairs
-        facetsGridPane = new GridPane();
-        facetsGridPane.setHgap(10);
-        facetsGridPane.setVgap(8);
-        facetsGridPane.setPadding(new Insets(10));
+        content.getChildren().addAll(
+                facetsPane,
+                patternsPane,
+                enumerationsPane,
+                assertionsPane
+        );
 
-        // Wrap grid in ScrollPane for long lists of facets
-        ScrollPane scrollPane = new ScrollPane(facetsGridPane);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background-color: transparent;");
-        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        ScrollPane scrollPane = wrapInScrollPane(content);
 
-        vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), scrollPane);
-        
-        Tab tab = new Tab("Facets", vbox);
-        tab.setGraphic(new FontIcon("bi-funnel"));
+        Tab tab = new Tab("Facets", scrollPane);
+        FontIcon icon = new FontIcon("bi-funnel");
+        icon.setIconSize(16);
+        icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
+        tab.setGraphic(icon);
+
         return tab;
     }
 
     /**
-     * Creates the Patterns tab.
+     * Creates the Docs tab.
+     * Contains: Documentation, AppInfo
      */
-    private Tab createPatternsTab() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
+    private Tab createDocsTab() {
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(10));
 
-        // Title and description
-        Label titleLabel = new Label("Regular Expression Patterns");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-        Label descLabel = new Label("Define regex patterns that values must match (e.g., [0-9]{3}-[0-9]{2}-[0-9]{4})");
-        descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        // Create TitledPanes for documentation
+        TitledPane documentationPane = createDocumentationTitledPane();
+        TitledPane appInfoPane = createAppInfoTitledPane();
 
-        // Patterns list
-        patternsListView = new ListView<>();
-        patternsListView.setPrefHeight(150);
-        patternsListView.setPlaceholder(new Label("No patterns defined for this element"));
+        content.getChildren().addAll(
+                documentationPane,
+                appInfoPane
+        );
 
-        // Custom cell factory to show read-only indicator
-        patternsListView.setCellFactory(lv -> new ListCell<String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setGraphic(null);
-                    setStyle("");
-                } else {
-                    setText(item);
-                    if (patternsFromReferencedType) {
-                        // Add lock icon and gray out text for read-only patterns
-                        FontIcon lockIcon = new FontIcon("bi-lock-fill");
-                        lockIcon.setIconSize(12);
-                        lockIcon.setStyle("-fx-icon-color: #999999;");
-                        setGraphic(lockIcon);
-                        setStyle("-fx-text-fill: #666666;");
-                    } else {
-                        setGraphic(null);
-                        setStyle("");
-                    }
-                }
-            }
-        });
+        ScrollPane scrollPane = wrapInScrollPane(content);
 
-        // Add/Remove buttons
-        HBox buttonBox = new HBox(10);
-        addPatternBtn = new Button("Add");
-        addPatternBtn.setGraphic(new FontIcon("bi-plus-circle"));
-        removePatternBtn = new Button("Remove");
-        removePatternBtn.setGraphic(new FontIcon("bi-trash"));
-        removePatternBtn.setDisable(true);
+        Tab tab = new Tab("Docs", scrollPane);
+        FontIcon icon = new FontIcon("bi-file-text");
+        icon.setIconSize(16);
+        icon.setStyle("-fx-icon-color: " + DOCS_COLOR + ";");
+        tab.setGraphic(icon);
 
-        // Enable/disable remove button based on selection and whether patterns are from referenced type
-        patternsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            removePatternBtn.setDisable(newVal == null || patternsFromReferencedType);
-        });
-
-        // Add button action
-        addPatternBtn.setOnAction(e -> handleAddPattern());
-
-        // Remove button action
-        removePatternBtn.setOnAction(e -> {
-            String selectedPattern = patternsListView.getSelectionModel().getSelectedItem();
-            if (selectedPattern != null) {
-                handleDeletePattern(selectedPattern);
-            }
-        });
-
-        buttonBox.getChildren().addAll(addPatternBtn, removePatternBtn);
-
-        vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), patternsListView, buttonBox);
-        
-        Tab tab = new Tab("Patterns", vbox);
-        tab.setGraphic(new FontIcon("bi-braces"));
         return tab;
-    }
-
-    /**
-     * Creates the Enumerations tab.
-     */
-    private Tab createEnumerationsTab() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
-
-        // Title and description
-        Label titleLabel = new Label("Enumeration Values");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-        Label descLabel = new Label("Define a list of allowed values for this element (e.g., 'red', 'green', 'blue')");
-        descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
-
-        // Enumerations list
-        enumerationsListView = new ListView<>();
-        enumerationsListView.setPrefHeight(150);
-        enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
-
-        // Add/Remove buttons
-        HBox buttonBox = new HBox(10);
-        addEnumerationBtn = new Button("Add");
-        addEnumerationBtn.setGraphic(new FontIcon("bi-plus-circle"));
-        removeEnumerationBtn = new Button("Remove");
-        removeEnumerationBtn.setGraphic(new FontIcon("bi-trash"));
-        removeEnumerationBtn.setDisable(true);
-
-        // Enable/disable remove button based on selection (only if not from referenced type)
-        enumerationsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            removeEnumerationBtn.setDisable(newVal == null || enumerationsFromReferencedType);
-        });
-
-        // Add button action
-        addEnumerationBtn.setOnAction(e -> handleAddEnumeration());
-
-        // Remove button action
-        removeEnumerationBtn.setOnAction(e -> {
-            String selectedEnum = enumerationsListView.getSelectionModel().getSelectedItem();
-            if (selectedEnum != null) {
-                handleDeleteEnumeration(selectedEnum);
-            }
-        });
-
-        buttonBox.getChildren().addAll(addEnumerationBtn, removeEnumerationBtn);
-
-        vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), enumerationsListView, buttonBox);
-        
-        Tab tab = new Tab("Enumerations", vbox);
-        tab.setGraphic(new FontIcon("bi-list-ul"));
-        return tab;
-    }
-
-    /**
-     * Creates the Assertions tab (XSD 1.1 feature).
-     */
-    private Tab createAssertionsTab() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
-
-        // Title and description
-        Label titleLabel = new Label("XSD 1.1 Assertions");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-        Label descLabel = new Label("XPath-based assertions for complex validation rules (XSD 1.1 feature)");
-        descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
-
-        // Assertions list
-        assertionsListView = new ListView<>();
-        assertionsListView.setPrefHeight(150);
-        assertionsListView.setPlaceholder(new Label("No assertions defined (requires XSD 1.1)"));
-
-        // Add/Remove buttons
-        HBox buttonBox = new HBox(10);
-        addAssertionBtn = new Button("Add");
-        addAssertionBtn.setGraphic(new FontIcon("bi-plus-circle"));
-        removeAssertionBtn = new Button("Remove");
-        removeAssertionBtn.setGraphic(new FontIcon("bi-trash"));
-        removeAssertionBtn.setDisable(true);
-
-        // Enable/disable remove button based on selection (only if not from referenced type)
-        assertionsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            removeAssertionBtn.setDisable(newVal == null || assertionsFromReferencedType);
-        });
-
-        // Add button action
-        addAssertionBtn.setOnAction(e -> handleAddAssertion());
-
-        // Remove button action
-        removeAssertionBtn.setOnAction(e -> {
-            String selectedAssertion = assertionsListView.getSelectionModel().getSelectedItem();
-            if (selectedAssertion != null) {
-                handleDeleteAssertion(selectedAssertion);
-            }
-        });
-
-        buttonBox.getChildren().addAll(addAssertionBtn, removeAssertionBtn);
-
-        // Info note about XSD 1.1
-        Label infoLabel = new Label("Note: Assertions are an XSD 1.1 feature and may not be supported by all validators");
-        infoLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-size: 10px; -fx-font-style: italic;");
-        infoLabel.setWrapText(true);
-
-        vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), assertionsListView, buttonBox, infoLabel);
-        
-        Tab tab = new Tab("Assertions", vbox);
-        tab.setGraphic(new FontIcon("bi-check2-square"));
-        return tab;
-    }
-
-
-    /**
-     * Sets up change listeners for property controls.
-     */
-    private void setupListeners() {
-        // Name field - fire command when focus lost
-        nameField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
-                handleNameChange();
-            }
-        });
-
-        // Name field - also fire command when Enter is pressed
-        nameField.setOnAction(e -> {
-            if (!updating && currentNode != null) {
-                handleNameChange();
-            }
-        });
-
-        // Type combobox - fire command when value changes
-        typeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if (!updating && currentNode != null) {
-                handleTypeChange();
-            }
-        });
-
-        // Cardinality - minOccurs spinner
-        minOccursSpinner.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if (!updating && currentNode != null && newValue != null) {
-                handleCardinalityChange();
-            }
-        });
-
-        // Cardinality - maxOccurs spinner
-        maxOccursSpinner.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if (!updating && currentNode != null && newValue != null && !unboundedCheckBox.isSelected()) {
-                handleCardinalityChange();
-            }
-        });
-
-        // Cardinality - unbounded checkbox
-        unboundedCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
-            if (!updating && currentNode != null) {
-                // Disable/enable maxOccurs spinner
-                maxOccursSpinner.setDisable(newValue);
-                handleCardinalityChange();
-            }
-        });
-
-        // Documentation - no listener needed anymore, changes are handled by table edit commits and buttons
-
-        // AppInfo handling is now done by AppInfoEditorPanel internally
-        // It creates commands directly when fields change
-
-        // Constraints - nillable checkbox
-        nillableCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
-            if (!updating && currentNode != null) {
-                handleConstraintsChange();
-            }
-        });
-
-        // Constraints - abstract checkbox
-        abstractCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
-            if (!updating && currentNode != null) {
-                handleConstraintsChange();
-            }
-        });
-
-        // Constraints - fixed checkbox (enables/disables the text field)
-        fixedCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
-            if (!updating && currentNode != null) {
-                // Enable/disable text field based on checkbox
-                fixedValueField.setDisable(!newValue);
-                handleConstraintsChange();
-            }
-        });
-
-        // Constraints - fixed value text field
-        fixedValueField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (!updating && wasFocused && !isNowFocused && currentNode != null && fixedCheckBox.isSelected()) {
-                handleConstraintsChange();
-            }
-        });
-
-        // Advanced - form ComboBox
-        formComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if (!updating && currentNode != null) {
-                handleFormChange();
-            }
-        });
-
-        // Advanced - use ComboBox
-        useComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if (!updating && currentNode != null) {
-                handleUseChange();
-            }
-        });
-
-        // Advanced - substitution group field
-        substitutionGroupField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
-                handleSubstitutionGroupChange();
-            }
-        });
     }
 
     /**
@@ -628,20 +374,33 @@ public class XsdPropertiesPanel extends BorderPane {
         // Setup autocomplete for type combobox
         setupTypeComboBoxAutoComplete();
 
-        // Cardinality section
-        Label cardinalityLabel = new Label("Cardinality:");
-        cardinalityLabel.setStyle("-fx-font-weight: bold;");
-        grid.add(cardinalityLabel, 0, row++, 2, 1);
+        TitledPane titledPane = new TitledPane("General", grid);
+        titledPane.setExpanded(true);
+
+        FontIcon icon = new FontIcon("bi-gear");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
+        titledPane.setGraphic(icon);
+
+        return titledPane;
+    }
+
+    /**
+     * Creates the Cardinality TitledPane.
+     */
+    private TitledPane createCardinalityTitledPane() {
+        GridPane grid = createGridPane();
+        int row = 0;
 
         // minOccurs
-        grid.add(new Label("  Min Occurs:"), 0, row);
+        grid.add(new Label("Min Occurs:"), 0, row);
         minOccursSpinner = new Spinner<>(0, 999, 1);
         minOccursSpinner.setEditable(true);
         minOccursSpinner.setPrefWidth(100);
         grid.add(minOccursSpinner, 1, row++);
 
         // maxOccurs
-        grid.add(new Label("  Max Occurs:"), 0, row);
+        grid.add(new Label("Max Occurs:"), 0, row);
         maxOccursSpinner = new Spinner<>(1, 999, 1);
         maxOccursSpinner.setEditable(true);
         maxOccursSpinner.setPrefWidth(100);
@@ -651,79 +410,14 @@ public class XsdPropertiesPanel extends BorderPane {
         unboundedCheckBox = new CheckBox("Unbounded");
         grid.add(unboundedCheckBox, 1, row++);
 
-        TitledPane titledPane = new TitledPane("General", grid);
+        TitledPane titledPane = new TitledPane("Cardinality", grid);
         titledPane.setExpanded(true);
-        return titledPane;
-    }
 
-    /**
-     * Creates the Documentation TitledPane with card-based GridView.
-     */
-    private TitledPane createDocumentationTitledPane() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
+        FontIcon icon = new FontIcon("bi-hash");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
+        titledPane.setGraphic(icon);
 
-        // Documentation Section Header with Add button
-        HBox headerBox = new HBox(10);
-        headerBox.setAlignment(Pos.CENTER_LEFT);
-        Label docLabel = new Label("Documentation (Multi-Language Support):");
-        docLabel.setStyle("-fx-font-weight: bold;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        addDocBtn = new Button("Add");
-        addDocBtn.setGraphic(new FontIcon("bi-plus-circle"));
-        addDocBtn.setOnAction(e -> handleAddDocumentation());
-
-        headerBox.getChildren().addAll(docLabel, spacer, addDocBtn);
-        vbox.getChildren().add(headerBox);
-
-        // FlowPane for documentation cards (GridView-style)
-        documentationFlowPane = new FlowPane();
-        documentationFlowPane.setHgap(10);
-        documentationFlowPane.setVgap(10);
-        documentationFlowPane.setPrefWrapLength(500);
-        documentationFlowPane.setMinHeight(100);
-        documentationFlowPane.setPadding(new Insets(5));
-
-        // Placeholder when empty
-        Label placeholder = new Label("No documentation entries. Click 'Add' to create one.");
-        placeholder.setStyle("-fx-text-fill: #6c757d; -fx-font-style: italic;");
-        documentationFlowPane.getChildren().add(placeholder);
-
-        // Wrap in ScrollPane for overflow
-        ScrollPane scrollPane = new ScrollPane(documentationFlowPane);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPrefViewportHeight(180);
-        scrollPane.setStyle("-fx-background-color: transparent;");
-
-        vbox.getChildren().add(scrollPane);
-
-        // Separator
-        Separator separator = new Separator();
-        separator.setPadding(new Insets(5, 0, 5, 0));
-        vbox.getChildren().add(separator);
-
-        // AppInfo - Structured Editor (XsdDoc)
-        Label appInfoLabel = new Label("AppInfo (XsdDoc):");
-        appInfoLabel.setStyle("-fx-font-weight: bold;");
-        vbox.getChildren().add(appInfoLabel);
-
-        appInfoEditorPanel = new AppInfoEditorPanel(editorContext);
-        vbox.getChildren().add(appInfoEditorPanel);
-
-        // Hidden legacy fields for backward compatibility (not shown in UI)
-        documentationArea = new TextArea();
-        documentationArea.setManaged(false);
-        documentationArea.setVisible(false);
-
-        appinfoArea = new TextArea();
-        appinfoArea.setManaged(false);
-        appinfoArea.setVisible(false);
-
-        TitledPane titledPane = new TitledPane("Documentation", vbox);
-        titledPane.setExpanded(false);
         return titledPane;
     }
 
@@ -751,6 +445,12 @@ public class XsdPropertiesPanel extends BorderPane {
 
         TitledPane titledPane = new TitledPane("Constraints", vbox);
         titledPane.setExpanded(false);
+
+        FontIcon icon = new FontIcon("bi-lock");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
+        titledPane.setGraphic(icon);
+
         return titledPane;
     }
 
@@ -783,6 +483,352 @@ public class XsdPropertiesPanel extends BorderPane {
 
         TitledPane titledPane = new TitledPane("Advanced", grid);
         titledPane.setExpanded(false);
+
+        FontIcon icon = new FontIcon("bi-sliders");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
+        titledPane.setGraphic(icon);
+
+        return titledPane;
+    }
+
+    /**
+     * Creates the Facets TitledPane for the Facets column.
+     */
+    private TitledPane createFacetsTitledPane() {
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+
+        // Description
+        Label descLabel = new Label("Facets define restrictions on data types (e.g., minLength, maxLength, totalDigits)");
+        descLabel.setWrapText(true);
+        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+
+        // Grid for facet name/value pairs
+        facetsGridPane = new GridPane();
+        facetsGridPane.setHgap(10);
+        facetsGridPane.setVgap(8);
+        facetsGridPane.setPadding(new Insets(5));
+
+        vbox.getChildren().addAll(descLabel, new Separator(), facetsGridPane);
+        VBox.setVgrow(facetsGridPane, Priority.ALWAYS);
+
+        TitledPane pane = new TitledPane("Facets", vbox);
+        pane.setExpanded(true);
+
+        FontIcon icon = new FontIcon("bi-funnel");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
+        pane.setGraphic(icon);
+
+        return pane;
+    }
+
+    /**
+     * Creates the Patterns TitledPane for the Facets column.
+     */
+    private TitledPane createPatternsTitledPane() {
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+
+        // Description
+        Label descLabel = new Label("Define regex patterns that values must match");
+        descLabel.setWrapText(true);
+        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+
+        // Patterns list
+        patternsListView = new ListView<>();
+        patternsListView.setPrefHeight(120);
+        patternsListView.setPlaceholder(new Label("No patterns defined"));
+
+        // Custom cell factory to show read-only indicator
+        patternsListView.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    if (patternsFromReferencedType) {
+                        FontIcon lockIcon = new FontIcon("bi-lock-fill");
+                        lockIcon.setIconSize(12);
+                        lockIcon.setStyle("-fx-icon-color: #999999;");
+                        setGraphic(lockIcon);
+                        setStyle("-fx-text-fill: #666666;");
+                    } else {
+                        setGraphic(null);
+                        setStyle("");
+                    }
+                }
+            }
+        });
+
+        // Add/Remove buttons
+        HBox buttonBox = new HBox(10);
+        addPatternBtn = new Button("Add");
+        addPatternBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        removePatternBtn = new Button("Remove");
+        removePatternBtn.setGraphic(new FontIcon("bi-trash"));
+        removePatternBtn.setDisable(true);
+
+        // Enable/disable remove button based on selection
+        patternsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            removePatternBtn.setDisable(newVal == null || patternsFromReferencedType);
+        });
+
+        // Add button action
+        addPatternBtn.setOnAction(e -> handleAddPattern());
+
+        // Remove button action
+        removePatternBtn.setOnAction(e -> {
+            String selectedPattern = patternsListView.getSelectionModel().getSelectedItem();
+            if (selectedPattern != null) {
+                handleDeletePattern(selectedPattern);
+            }
+        });
+
+        buttonBox.getChildren().addAll(addPatternBtn, removePatternBtn);
+
+        vbox.getChildren().addAll(descLabel, new Separator(), patternsListView, buttonBox);
+
+        TitledPane pane = new TitledPane("Patterns", vbox);
+        pane.setExpanded(true);
+
+        FontIcon icon = new FontIcon("bi-braces");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
+        pane.setGraphic(icon);
+
+        return pane;
+    }
+
+    /**
+     * Creates the Enumerations TitledPane for the Facets column.
+     */
+    private TitledPane createEnumerationsTitledPane() {
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+
+        // Description
+        Label descLabel = new Label("Define allowed values for this element");
+        descLabel.setWrapText(true);
+        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+
+        // Enumerations list
+        enumerationsListView = new ListView<>();
+        enumerationsListView.setPrefHeight(120);
+        enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
+
+        // Add/Remove buttons
+        HBox buttonBox = new HBox(10);
+        addEnumerationBtn = new Button("Add");
+        addEnumerationBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        removeEnumerationBtn = new Button("Remove");
+        removeEnumerationBtn.setGraphic(new FontIcon("bi-trash"));
+        removeEnumerationBtn.setDisable(true);
+
+        // Enable/disable remove button based on selection
+        enumerationsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            removeEnumerationBtn.setDisable(newVal == null || enumerationsFromReferencedType);
+        });
+
+        // Add button action
+        addEnumerationBtn.setOnAction(e -> handleAddEnumeration());
+
+        // Remove button action
+        removeEnumerationBtn.setOnAction(e -> {
+            String selectedEnum = enumerationsListView.getSelectionModel().getSelectedItem();
+            if (selectedEnum != null) {
+                handleDeleteEnumeration(selectedEnum);
+            }
+        });
+
+        buttonBox.getChildren().addAll(addEnumerationBtn, removeEnumerationBtn);
+
+        vbox.getChildren().addAll(descLabel, new Separator(), enumerationsListView, buttonBox);
+
+        TitledPane pane = new TitledPane("Enumerations", vbox);
+        pane.setExpanded(true);
+
+        FontIcon icon = new FontIcon("bi-list-ul");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
+        pane.setGraphic(icon);
+
+        return pane;
+    }
+
+    /**
+     * Creates the Assertions TitledPane for the Facets column.
+     */
+    private TitledPane createAssertionsTitledPane() {
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+
+        // Description
+        Label descLabel = new Label("XPath-based assertions (XSD 1.1)");
+        descLabel.setWrapText(true);
+        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+
+        // Assertions list
+        assertionsListView = new ListView<>();
+        assertionsListView.setPrefHeight(120);
+        assertionsListView.setPlaceholder(new Label("No assertions defined"));
+
+        // Add/Remove buttons
+        HBox buttonBox = new HBox(10);
+        addAssertionBtn = new Button("Add");
+        addAssertionBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        removeAssertionBtn = new Button("Remove");
+        removeAssertionBtn.setGraphic(new FontIcon("bi-trash"));
+        removeAssertionBtn.setDisable(true);
+
+        // Enable/disable remove button based on selection
+        assertionsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            removeAssertionBtn.setDisable(newVal == null || assertionsFromReferencedType);
+        });
+
+        // Add button action
+        addAssertionBtn.setOnAction(e -> handleAddAssertion());
+
+        // Remove button action
+        removeAssertionBtn.setOnAction(e -> {
+            String selectedAssertion = assertionsListView.getSelectionModel().getSelectedItem();
+            if (selectedAssertion != null) {
+                handleDeleteAssertion(selectedAssertion);
+            }
+        });
+
+        buttonBox.getChildren().addAll(addAssertionBtn, removeAssertionBtn);
+
+        // Info note about XSD 1.1
+        Label infoLabel = new Label("Note: Assertions are an XSD 1.1 feature");
+        infoLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-size: 10px; -fx-font-style: italic;");
+        infoLabel.setWrapText(true);
+
+        vbox.getChildren().addAll(descLabel, new Separator(), assertionsListView, buttonBox, infoLabel);
+
+        TitledPane pane = new TitledPane("Assertions", vbox);
+        pane.setExpanded(false);
+
+        FontIcon icon = new FontIcon("bi-check2-square");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
+        pane.setGraphic(icon);
+
+        return pane;
+    }
+
+    /**
+     * Creates the Documentation TitledPane for the Docs column.
+     */
+    private TitledPane createDocumentationTitledPane() {
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+
+        // Header with Add button
+        HBox headerBox = new HBox(10);
+        headerBox.setAlignment(Pos.CENTER_LEFT);
+        Label docLabel = new Label("Multi-Language Documentation:");
+        docLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        addDocBtn = new Button("Add");
+        addDocBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        addDocBtn.setOnAction(e -> handleAddDocumentation());
+
+        headerBox.getChildren().addAll(docLabel, spacer, addDocBtn);
+        vbox.getChildren().add(headerBox);
+
+        // GridPane for documentation rows (one language per row)
+        documentationGridPane = new GridPane();
+        documentationGridPane.setHgap(8);
+        documentationGridPane.setVgap(6);
+        documentationGridPane.setPadding(new Insets(5));
+
+        // Set column constraints for proper sizing
+        javafx.scene.layout.ColumnConstraints langCol = new javafx.scene.layout.ColumnConstraints();
+        langCol.setMinWidth(60);
+        langCol.setPrefWidth(70);
+        langCol.setMaxWidth(80);
+
+        javafx.scene.layout.ColumnConstraints textCol = new javafx.scene.layout.ColumnConstraints();
+        textCol.setHgrow(Priority.ALWAYS);
+        textCol.setFillWidth(true);
+
+        javafx.scene.layout.ColumnConstraints editCol = new javafx.scene.layout.ColumnConstraints();
+        editCol.setMinWidth(28);
+        editCol.setPrefWidth(28);
+
+        javafx.scene.layout.ColumnConstraints deleteCol = new javafx.scene.layout.ColumnConstraints();
+        deleteCol.setMinWidth(28);
+        deleteCol.setPrefWidth(28);
+
+        documentationGridPane.getColumnConstraints().addAll(langCol, textCol, editCol, deleteCol);
+
+        // Placeholder when empty
+        Label placeholder = new Label("No documentation entries. Click 'Add' to create one.");
+        placeholder.setStyle("-fx-text-fill: #6c757d; -fx-font-style: italic;");
+        documentationGridPane.add(placeholder, 0, 0, 4, 1);
+
+        // Wrap in ScrollPane for overflow
+        ScrollPane scrollPane = new ScrollPane(documentationGridPane);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefViewportHeight(150);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+
+        vbox.getChildren().add(scrollPane);
+
+        // Hidden legacy fields for backward compatibility (not shown in UI)
+        documentationArea = new TextArea();
+        documentationArea.setManaged(false);
+        documentationArea.setVisible(false);
+
+        TitledPane titledPane = new TitledPane("Documentation", vbox);
+        titledPane.setExpanded(true);
+
+        FontIcon icon = new FontIcon("bi-book");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: " + DOCS_COLOR + ";");
+        titledPane.setGraphic(icon);
+
+        return titledPane;
+    }
+
+    /**
+     * Creates the AppInfo TitledPane for the Docs column.
+     */
+    private TitledPane createAppInfoTitledPane() {
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+
+        // AppInfo - Structured Editor (XsdDoc)
+        Label appInfoLabel = new Label("XsdDoc structured metadata:");
+        appInfoLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        vbox.getChildren().add(appInfoLabel);
+
+        appInfoEditorPanel = new AppInfoEditorPanel(editorContext);
+        vbox.getChildren().add(appInfoEditorPanel);
+        VBox.setVgrow(appInfoEditorPanel, Priority.ALWAYS);
+
+        // Hidden legacy field for backward compatibility
+        appinfoArea = new TextArea();
+        appinfoArea.setManaged(false);
+        appinfoArea.setVisible(false);
+
+        TitledPane titledPane = new TitledPane("AppInfo", vbox);
+        titledPane.setExpanded(true);
+
+        FontIcon icon = new FontIcon("bi-info-square");
+        icon.setIconSize(14);
+        icon.setStyle("-fx-icon-color: " + DOCS_COLOR + ";");
+        titledPane.setGraphic(icon);
+
         return titledPane;
     }
 
@@ -795,6 +841,106 @@ public class XsdPropertiesPanel extends BorderPane {
         grid.setVgap(10);
         grid.setPadding(new Insets(10));
         return grid;
+    }
+
+    /**
+     * Sets up change listeners for property controls.
+     */
+    private void setupListeners() {
+        // Name field - fire command when focus lost
+        nameField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
+                handleNameChange();
+            }
+        });
+
+        // Name field - also fire command when Enter is pressed
+        nameField.setOnAction(e -> {
+            if (!updating && currentNode != null) {
+                handleNameChange();
+            }
+        });
+
+        // Type combobox - fire command when value changes
+        typeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                handleTypeChange();
+            }
+        });
+
+        // Cardinality - minOccurs spinner
+        minOccursSpinner.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null && newValue != null) {
+                handleCardinalityChange();
+            }
+        });
+
+        // Cardinality - maxOccurs spinner
+        maxOccursSpinner.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null && newValue != null && !unboundedCheckBox.isSelected()) {
+                handleCardinalityChange();
+            }
+        });
+
+        // Cardinality - unbounded checkbox
+        unboundedCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                // Disable/enable maxOccurs spinner
+                maxOccursSpinner.setDisable(newValue);
+                handleCardinalityChange();
+            }
+        });
+
+        // Constraints - nillable checkbox
+        nillableCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                handleConstraintsChange();
+            }
+        });
+
+        // Constraints - abstract checkbox
+        abstractCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                handleConstraintsChange();
+            }
+        });
+
+        // Constraints - fixed checkbox (enables/disables the text field)
+        fixedCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                // Enable/disable text field based on checkbox
+                fixedValueField.setDisable(!newValue);
+                handleConstraintsChange();
+            }
+        });
+
+        // Constraints - fixed value text field
+        fixedValueField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!updating && wasFocused && !isNowFocused && currentNode != null && fixedCheckBox.isSelected()) {
+                handleConstraintsChange();
+            }
+        });
+
+        // Advanced - form ComboBox
+        formComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                handleFormChange();
+            }
+        });
+
+        // Advanced - use ComboBox
+        useComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                handleUseChange();
+            }
+        });
+
+        // Advanced - substitution group field
+        substitutionGroupField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
+                handleSubstitutionGroupChange();
+            }
+        });
     }
 
     /**
@@ -937,8 +1083,8 @@ public class XsdPropertiesPanel extends BorderPane {
             }
             substitutionGroupField.setText("");
 
-            // Update constraint tabs based on model data
-            updateConstraintTabs(modelObject);
+            // Update facets column content based on model data
+            updateFacetsColumn(modelObject);
 
             logger.debug("Updated properties panel for node: {}", node.getLabel());
 
@@ -948,61 +1094,9 @@ public class XsdPropertiesPanel extends BorderPane {
     }
 
     /**
-     * Clears all property fields.
+     * Updates the facets column (Facets, Patterns, Enumerations, Assertions) with data from the model.
      */
-    private void clearProperties() {
-        this.currentNode = null;
-        updating = true;
-
-        try {
-            setDisable(true);
-
-            nameField.clear();
-            typeComboBox.setValue(null);
-            minOccursSpinner.getValueFactory().setValue(1);
-            maxOccursSpinner.getValueFactory().setValue(1);
-            unboundedCheckBox.setSelected(false);
-            maxOccursSpinner.setDisable(false);
-
-            currentDocumentations.clear();
-            refreshDocumentationCards();
-            appInfoEditorPanel.setNode(null); // Clear the structured AppInfo editor
-
-            nillableCheckBox.setSelected(false);
-            abstractCheckBox.setSelected(false);
-            fixedCheckBox.setSelected(false);
-            fixedValueField.clear();
-            fixedValueField.setDisable(true);
-
-            formComboBox.setValue(null);
-            useComboBox.setValue(null);
-            substitutionGroupField.clear();
-
-            // Clear constraint tabs
-            facetsGridPane.getChildren().clear();
-            facetFields.clear();
-            facetLabels.clear();
-            patternsListView.getItems().clear();
-            enumerationsListView.getItems().clear();
-            assertionsListView.getItems().clear();
-
-        } finally {
-            updating = false;
-        }
-    }
-
-
-
-
-
-
-
-
-
-    /**
-     * Updates the constraint tabs (Facets, Patterns, Enumerations, Assertions) with data from the model.
-     */
-    private void updateConstraintTabs(Object modelObject) {
+    private void updateFacetsColumn(Object modelObject) {
         // Clear all lists first
         facetsGridPane.getChildren().clear();
         facetFields.clear();
@@ -1012,7 +1106,7 @@ public class XsdPropertiesPanel extends BorderPane {
         assertionsListView.getItems().clear();
 
         if (!(modelObject instanceof XsdElement xsdElement)) {
-            logger.debug("Model object is not an XsdElement, cannot update constraint tabs");
+            logger.debug("Model object is not an XsdElement, cannot update facets column");
             return;
         }
 
@@ -1075,12 +1169,51 @@ public class XsdPropertiesPanel extends BorderPane {
         logger.debug("Loaded {} assertions from element '{}' (from referenced type: {})",
                 effectiveAssertions.size(), xsdElement.getName(), assertionsFromReferencedType);
 
-        // Note: Facets are now implemented in the model via XsdRestriction.getFacets()
-        // However, facets belong to SimpleType restrictions, not directly to elements
-        // Elements can have inherited facets from their type reference, which are displayed via FacetsPanel
-        // Direct facet editing on elements is handled through the referenced SimpleType
+        logger.debug("Updated facets column for element: {}", xsdElement.getName());
+    }
 
-        logger.debug("Updated constraint tabs for element: {}", xsdElement.getName());
+    /**
+     * Clears all property fields.
+     */
+    private void clearProperties() {
+        this.currentNode = null;
+        updating = true;
+
+        try {
+            setDisable(true);
+
+            nameField.clear();
+            typeComboBox.setValue(null);
+            minOccursSpinner.getValueFactory().setValue(1);
+            maxOccursSpinner.getValueFactory().setValue(1);
+            unboundedCheckBox.setSelected(false);
+            maxOccursSpinner.setDisable(false);
+
+            currentDocumentations.clear();
+            refreshDocumentationCards();
+            appInfoEditorPanel.setNode(null); // Clear the structured AppInfo editor
+
+            nillableCheckBox.setSelected(false);
+            abstractCheckBox.setSelected(false);
+            fixedCheckBox.setSelected(false);
+            fixedValueField.clear();
+            fixedValueField.setDisable(true);
+
+            formComboBox.setValue(null);
+            useComboBox.setValue(null);
+            substitutionGroupField.clear();
+
+            // Clear facets column
+            facetsGridPane.getChildren().clear();
+            facetFields.clear();
+            facetLabels.clear();
+            patternsListView.getItems().clear();
+            enumerationsListView.getItems().clear();
+            assertionsListView.getItems().clear();
+
+        } finally {
+            updating = false;
+        }
     }
 
     /**
@@ -1150,12 +1283,12 @@ public class XsdPropertiesPanel extends BorderPane {
                 if (element.hasCompositor()) {
                     // Element has compositor, ask user what to do
                     Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-                    confirmDialog.setTitle("Compositor vorhanden");
-                    confirmDialog.setHeaderText("Element '" + element.getName() + "' hat bereits einen Compositor (Sequence/Choice/All)");
-                    confirmDialog.setContentText("Soll der Compositor entfernt werden um einen Typ zu setzen?");
+                    confirmDialog.setTitle("Compositor Present");
+                    confirmDialog.setHeaderText("Element '" + element.getName() + "' already has a Compositor (Sequence/Choice/All)");
+                    confirmDialog.setContentText("Should the Compositor be removed to set a type?");
 
-                    ButtonType removeButton = new ButtonType("Ja, Compositor entfernen");
-                    ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+                    ButtonType removeButton = new ButtonType("Yes, remove Compositor");
+                    ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
                     confirmDialog.getButtonTypes().setAll(removeButton, cancelButton);
 
                     Optional<ButtonType> result = confirmDialog.showAndWait();
@@ -1204,7 +1337,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
             // Update facets after type change to reflect applicable facets for the new type
             if (modelObject instanceof XsdElement xsdElement) {
-                updateConstraintTabs(xsdElement);
+                updateFacetsColumn(xsdElement);
                 logger.debug("Updated facets after type change");
             }
 
@@ -1388,46 +1521,33 @@ public class XsdPropertiesPanel extends BorderPane {
     }
 
     /**
-     * Refreshes the documentation cards in the FlowPane.
+     * Refreshes the documentation rows in the GridPane.
      */
     private void refreshDocumentationCards() {
-        documentationFlowPane.getChildren().clear();
+        documentationGridPane.getChildren().clear();
 
         if (currentDocumentations.isEmpty()) {
             Label placeholder = new Label("No documentation entries. Click 'Add' to create one.");
             placeholder.setStyle("-fx-text-fill: #6c757d; -fx-font-style: italic;");
-            documentationFlowPane.getChildren().add(placeholder);
+            documentationGridPane.add(placeholder, 0, 0, 4, 1);
         } else {
+            int row = 0;
             for (XsdDocumentation doc : currentDocumentations) {
-                VBox card = createDocumentationCard(doc);
-                documentationFlowPane.getChildren().add(card);
+                addDocumentationRow(doc, row++);
             }
         }
     }
 
     /**
-     * Creates a documentation card for display in the FlowPane.
+     * Adds a documentation row to the GridPane.
      *
      * @param doc the documentation entry
-     * @return a styled VBox representing the card
+     * @param row the row index in the grid
      */
-    private VBox createDocumentationCard(XsdDocumentation doc) {
-        VBox card = new VBox(5);
-        card.setPadding(new Insets(10));
-        card.setPrefWidth(220);
-        card.setMinHeight(80);
-        card.setStyle("""
-            -fx-background-color: #f8f9fa;
-            -fx-border-color: #dee2e6;
-            -fx-border-radius: 5;
-            -fx-background-radius: 5;
-            """);
+    private void addDocumentationRow(XsdDocumentation doc, int row) {
+        boolean editMode = editorContext != null && editorContext.isEditMode();
 
-        // Header with language badge and buttons
-        HBox header = new HBox(5);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        // Language badge
+        // Column 0: Language badge
         String lang = doc.getLang();
         Label langBadge = new Label(lang != null && !lang.isEmpty() ? lang : "(default)");
         if (lang != null && !lang.isEmpty()) {
@@ -1450,44 +1570,54 @@ public class XsdPropertiesPanel extends BorderPane {
                 """);
         }
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        // Column 1: Text content (full width, with ellipsis if needed)
+        String text = doc.getText() != null ? doc.getText() : "";
+        Label textLabel = new Label(text);
+        textLabel.setWrapText(false);
+        textLabel.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);
+        textLabel.setMaxWidth(Double.MAX_VALUE);
+        textLabel.setStyle("-fx-text-fill: #212529; -fx-padding: 2 0 2 8;");
+        textLabel.setTooltip(new Tooltip(text)); // Show full text on hover
+        GridPane.setHgrow(textLabel, Priority.ALWAYS);
+        GridPane.setFillWidth(textLabel, true);
 
-        // Edit button
+        // Column 2: Edit button
         Button editBtn = new Button();
-        editBtn.setGraphic(new FontIcon("bi-pencil"));
+        FontIcon editIcon = new FontIcon("bi-pencil");
+        editIcon.setIconSize(14);
+        editBtn.setGraphic(editIcon);
         editBtn.setStyle("-fx-background-color: transparent; -fx-padding: 2;");
-        editBtn.setTooltip(new Tooltip("Edit documentation"));
+        editBtn.setTooltip(new Tooltip("Edit"));
         editBtn.setOnAction(e -> handleEditDocumentation(doc));
-
-        // Delete button
-        Button deleteBtn = new Button();
-        deleteBtn.setGraphic(new FontIcon("bi-trash"));
-        deleteBtn.setStyle("-fx-background-color: transparent; -fx-padding: 2;");
-        deleteBtn.setTooltip(new Tooltip("Delete documentation"));
-        deleteBtn.setOnAction(e -> handleDeleteDocumentation(doc));
-
-        // Disable buttons if not in edit mode
-        boolean editMode = editorContext != null && editorContext.isEditMode();
         editBtn.setDisable(!editMode);
+
+        // Column 3: Delete button
+        Button deleteBtn = new Button();
+        FontIcon deleteIcon = new FontIcon("bi-trash");
+        deleteIcon.setIconSize(14);
+        deleteBtn.setGraphic(deleteIcon);
+        deleteBtn.setStyle("-fx-background-color: transparent; -fx-padding: 2;");
+        deleteBtn.setTooltip(new Tooltip("Delete"));
+        deleteBtn.setOnAction(e -> handleDeleteDocumentation(doc));
         deleteBtn.setDisable(!editMode);
 
-        header.getChildren().addAll(langBadge, spacer, editBtn, deleteBtn);
+        // Add row background for alternating colors
+        if (row % 2 == 1) {
+            langBadge.setStyle(langBadge.getStyle() + "-fx-background-insets: 0;");
+            textLabel.setStyle(textLabel.getStyle() + " -fx-background-color: #f8f9fa;");
+        }
 
-        // Separator
-        Separator sep = new Separator();
+        // Add to grid
+        documentationGridPane.add(langBadge, 0, row);
+        documentationGridPane.add(textLabel, 1, row);
+        documentationGridPane.add(editBtn, 2, row);
+        documentationGridPane.add(deleteBtn, 3, row);
 
-        // Text content (truncated if too long)
-        String text = doc.getText() != null ? doc.getText() : "";
-        String displayText = text.length() > 100 ? text.substring(0, 97) + "..." : text;
-        Label textLabel = new Label(displayText);
-        textLabel.setWrapText(true);
-        textLabel.setStyle("-fx-text-fill: #212529;");
-        textLabel.setMaxWidth(200);
-
-        card.getChildren().addAll(header, sep, textLabel);
-
-        return card;
+        // Set vertical alignment
+        GridPane.setValignment(langBadge, javafx.geometry.VPos.CENTER);
+        GridPane.setValignment(textLabel, javafx.geometry.VPos.CENTER);
+        GridPane.setValignment(editBtn, javafx.geometry.VPos.CENTER);
+        GridPane.setValignment(deleteBtn, javafx.geometry.VPos.CENTER);
     }
 
     /**
@@ -1798,7 +1928,7 @@ public class XsdPropertiesPanel extends BorderPane {
         }
     }
 
-    // ========== Tab Button Handlers ==========
+    // ========== Facets Column Button Handlers ==========
 
     /**
      * Handles adding a new pattern.
@@ -2582,11 +2712,8 @@ public class XsdPropertiesPanel extends BorderPane {
     }
 
     /**
-     * Updates the facets tab with applicable facets based on the element's datatype.
+     * Updates the facets grid with applicable facets based on the element's datatype.
      * Creates UI controls (label + textfield) for each applicable facet.
-     * Phase 1: LENGTH, MIN_LENGTH, MAX_LENGTH
-     * Phase 2: TOTAL_DIGITS, FRACTION_DIGITS, MIN_INCLUSIVE, MAX_INCLUSIVE, MIN_EXCLUSIVE, MAX_EXCLUSIVE
-     * Phase 3: WHITE_SPACE, EXPLICIT_TIMEZONE
      *
      * @param element the XSD element
      */
