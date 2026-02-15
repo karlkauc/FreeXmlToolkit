@@ -1986,6 +1986,10 @@ public class XsdDocumentationService {
 
         xmlBuilder.append(">\n");
 
+        // Create and populate identity constraint tracker for unique value generation
+        IdentityConstraintTracker constraintTracker = new IdentityConstraintTracker();
+        constraintTracker.scanConstraints(xsdDocumentationData.getExtendedXsdElementMap());
+
         // Build the content without the root element tags (only child elements, not attributes)
         List<XsdExtendedElement> rootChildElements = rootElement.getChildren().stream()
                 .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
@@ -1994,7 +1998,7 @@ public class XsdDocumentationService {
                 .toList();
 
         for (XsdExtendedElement child : rootChildElements) {
-            buildXmlElementContent(xmlBuilder, child, mandatoryOnly, maxOccurrences, 1);
+            buildXmlElementContent(xmlBuilder, child, mandatoryOnly, maxOccurrences, 1, constraintTracker);
         }
 
         xmlBuilder.append("</").append(rootName).append(">\n");
@@ -2218,7 +2222,7 @@ public class XsdDocumentationService {
         }
     }
 
-    private void buildXmlElement(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
+    private void buildXmlElement(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel, IdentityConstraintTracker constraintTracker) {
         if (element == null || (mandatoryOnly && !element.isMandatory())) {
             return;
         }
@@ -2236,7 +2240,7 @@ public class XsdDocumentationService {
                     .filter(e -> !e.getElementName().startsWith("@"))
                     .toList();
             for (XsdExtendedElement child : containerChildren) {
-                buildXmlElement(sb, child, mandatoryOnly, maxOccurrences, indentLevel);
+                buildXmlElement(sb, child, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
             }
             return;
         }
@@ -2249,7 +2253,7 @@ public class XsdDocumentationService {
                     .toList();
             if (!choiceOptions.isEmpty()) {
                 XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
-                buildXmlElement(sb, selected, mandatoryOnly, maxOccurrences, indentLevel);
+                buildXmlElement(sb, selected, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
             }
             return;
         }
@@ -2302,10 +2306,28 @@ public class XsdDocumentationService {
                 String attrValue = (fixedOrDefault != null)
                         ? fixedOrDefault
                         : (attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
+
+                // Apply constraint tracking for attributes
+                String attrXpath = element.getCurrentXpath() + "/@" + attrName;
+                if (constraintTracker != null && fixedOrDefault == null) {
+                    if (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath)) {
+                        attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
+                    }
+                }
+
                 sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
             }
 
             String sampleData = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
+
+            // Apply constraint tracking for element text content
+            if (constraintTracker != null && !sampleData.isEmpty()) {
+                String elemXpath = element.getCurrentXpath();
+                if (constraintTracker.isConstrainedField(elemXpath) || constraintTracker.isKeyrefField(elemXpath)) {
+                    sampleData = constraintTracker.getUniqueValue(elemXpath, sampleData, element);
+                }
+            }
+
             if (childElements.isEmpty() && sampleData.isEmpty()) {
                 sb.append("/>\n"); // Self-closing tag
             } else {
@@ -2315,7 +2337,7 @@ public class XsdDocumentationService {
                 if (!childElements.isEmpty()) {
                     sb.append("\n");
                     for (XsdExtendedElement childElement : childElements) {
-                        buildXmlElement(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel + 1);
+                        buildXmlElement(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel + 1, constraintTracker);
                     }
                     sb.append(indent);
                 }
@@ -2327,7 +2349,7 @@ public class XsdDocumentationService {
     /**
      * Builds XML element content without the root element tags (for schema-referenced XML).
      */
-    private void buildXmlElementContent(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
+    private void buildXmlElementContent(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel, IdentityConstraintTracker constraintTracker) {
         if (element == null || (mandatoryOnly && !element.isMandatory())) {
             return;
         }
@@ -2351,7 +2373,7 @@ public class XsdDocumentationService {
                     .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
                     .toList();
             for (XsdExtendedElement child : containerChildren) {
-                buildXmlElementContent(sb, child, mandatoryOnly, maxOccurrences, indentLevel);
+                buildXmlElementContent(sb, child, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
             }
             return;
         }
@@ -2405,7 +2427,7 @@ public class XsdDocumentationService {
                 // Generate the appropriate number of selections from the choice
                 for (int i = 0; i < repeatCount; i++) {
                     XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
-                    buildXmlElementContent(sb, selected, mandatoryOnly, maxOccurrences, indentLevel);
+                    buildXmlElementContent(sb, selected, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
                 }
             }
             return;
@@ -2459,10 +2481,28 @@ public class XsdDocumentationService {
                 String attrValue = (fixedOrDefault != null)
                         ? fixedOrDefault
                         : (attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
+
+                // Apply constraint tracking for attributes
+                String attrXpath = element.getCurrentXpath() + "/@" + attrName;
+                if (constraintTracker != null && fixedOrDefault == null) {
+                    if (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath)) {
+                        attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
+                    }
+                }
+
                 sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
             }
 
             String sampleData = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
+
+            // Apply constraint tracking for element text content
+            if (constraintTracker != null && !sampleData.isEmpty()) {
+                String elemXpath = element.getCurrentXpath();
+                if (constraintTracker.isConstrainedField(elemXpath) || constraintTracker.isKeyrefField(elemXpath)) {
+                    sampleData = constraintTracker.getUniqueValue(elemXpath, sampleData, element);
+                }
+            }
+
             if (childElements.isEmpty() && sampleData.isEmpty()) {
                 sb.append("/>\n"); // Self-closing tag
             } else {
@@ -2472,7 +2512,7 @@ public class XsdDocumentationService {
                 if (!childElements.isEmpty()) {
                     sb.append("\n");
                     // Process children, handling CHOICE elements with random selection
-                    processChildElementsForGeneration(sb, childElements, mandatoryOnly, maxOccurrences, indentLevel + 1);
+                    processChildElementsForGeneration(sb, childElements, mandatoryOnly, maxOccurrences, indentLevel + 1, constraintTracker);
                     sb.append(indent);
                 }
                 sb.append("</").append(qualifiedName).append(">\n");
@@ -2492,7 +2532,7 @@ public class XsdDocumentationService {
      * @param indentLevel    Current indentation level
      */
     private void processChildElementsForGeneration(StringBuilder sb, List<XsdExtendedElement> childElements,
-                                                   boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
+                                                   boolean mandatoryOnly, int maxOccurrences, int indentLevel, IdentityConstraintTracker constraintTracker) {
         for (XsdExtendedElement childElement : childElements) {
             String elementName = childElement.getElementName();
             if (elementName == null) continue;
@@ -2510,7 +2550,7 @@ public class XsdDocumentationService {
                 if (!containerChildren.isEmpty()) {
                     logger.debug("Processing {} container with {} children", elementName, containerChildren.size());
                     // Recursively process children (they may contain nested CHOICE/SEQUENCE)
-                    processChildElementsForGeneration(sb, containerChildren, mandatoryOnly, maxOccurrences, indentLevel);
+                    processChildElementsForGeneration(sb, containerChildren, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
                 }
             }
             // Check if this child is a CHOICE container
@@ -2584,11 +2624,11 @@ public class XsdDocumentationService {
                     if (i > 0) {
                         selectedOption = choiceOptions.get(random.nextInt(choiceOptions.size()));
                     }
-                    buildXmlElementContent(sb, selectedOption, mandatoryOnly, maxOccurrences, indentLevel);
+                    buildXmlElementContent(sb, selectedOption, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
                 }
             } else {
                 // Not a container element, process normally
-                buildXmlElementContent(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel);
+                buildXmlElementContent(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
             }
         }
     }
