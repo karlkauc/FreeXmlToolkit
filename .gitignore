@@ -139,3 +139,7 @@ site/
 src/test/resources/demo-xml/large-*.xml
 src/test/resources/demo-json/large-*.json
 src/test/resources/demo-json/deeply-nested.json
+
+# Large test output files (exceed GitHub file size limit)
+src/test/resources/3elements/sample_3_occurences.xml
+src/test/resources/3elements/validation_errors.csv
