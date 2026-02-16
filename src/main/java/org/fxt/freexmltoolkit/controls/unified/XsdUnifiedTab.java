@@ -180,10 +180,20 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
         try {
             // Parse XSD content into model
             XsdNodeFactory factory = new XsdNodeFactory();
-            xsdSchema = factory.fromString(content);
+
+            // Provide base directory for include/import resolution
+            if (sourceFile != null && sourceFile.exists()) {
+                xsdSchema = factory.fromString(content, sourceFile.getParentFile().toPath());
+            } else {
+                xsdSchema = factory.fromString(content);
+            }
 
             // Create graph view
             graphView = new XsdGraphView(xsdSchema);
+
+            // Set imported schemas for reference resolution (enables node expansion)
+            graphView.setImportedSchemas(factory.getImportedSchemas());
+
             editorContext = graphView.getEditorContext();
 
             // Hide embedded properties panel - use MultiFunctionalSidePane instead
