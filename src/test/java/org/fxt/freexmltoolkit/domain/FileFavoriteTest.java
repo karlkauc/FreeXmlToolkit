@@ -45,9 +45,9 @@ class FileFavoriteTest {
     class FileTypeEnumTests {
 
         @Test
-        @DisplayName("All five file types are defined")
+        @DisplayName("All seven file types are defined")
         void allFileTypesAreDefined() {
-            assertEquals(5, FileFavorite.FileType.values().length);
+            assertEquals(7, FileFavorite.FileType.values().length);
         }
 
         @ParameterizedTest

@@ -93,10 +93,8 @@ class XsdDocumentationTypeDefinitionInclusionTest {
         assertTrue(sourceCode.contains("type=\"FundType\""), "Should contain type reference");
 
         // But should NOT contain the type definition itself
-        assertFalse(sourceCode.contains("Referenced Type Definition"),
-                "Should not contain type definition marker comment");
-        assertFalse(sourceCode.contains("FundName"),
-                "Should not contain FundType's child elements");
+        assertNull(fundElement.getReferencedTypeCode(),
+                "Should not contain referenced type code when disabled");
     }
 
     @Test
@@ -124,16 +122,14 @@ class XsdDocumentationTypeDefinitionInclusionTest {
         assertTrue(sourceCode.contains("name=\"Fund\""), "Should contain element name");
         assertTrue(sourceCode.contains("type=\"FundType\""), "Should contain type reference");
 
-        // AND should contain the type definition itself
-        assertTrue(sourceCode.contains("Element Definition"),
-                "Should contain element definition marker comment");
-        assertTrue(sourceCode.contains("Referenced Type Definition: FundType"),
-                "Should contain type definition marker comment");
-        assertTrue(sourceCode.contains("complexType") && sourceCode.contains("name=\"FundType\""),
+        // AND should contain the type definition itself in referencedTypeCode
+        String refCode = fundElement.getReferencedTypeCode();
+        assertNotNull(refCode, "Referenced type code should not be null");
+        assertTrue(refCode.contains("complexType") && refCode.contains("name=\"FundType\""),
                 "Should contain FundType definition");
-        assertTrue(sourceCode.contains("FundName"),
+        assertTrue(refCode.contains("FundName"),
                 "Should contain FundType's child elements");
-        assertTrue(sourceCode.contains("FundValue"),
+        assertTrue(refCode.contains("FundValue"),
                 "Should contain FundType's child elements");
     }
 
@@ -162,14 +158,14 @@ class XsdDocumentationTypeDefinitionInclusionTest {
         assertTrue(sourceCode.contains("name=\"Code\""), "Should contain element name");
         assertTrue(sourceCode.contains("type=\"CodeType\""), "Should contain type reference");
 
-        // AND should contain the type definition itself
-        assertTrue(sourceCode.contains("Referenced Type Definition: CodeType"),
-                "Should contain type definition marker comment");
-        assertTrue(sourceCode.contains("simpleType") && sourceCode.contains("name=\"CodeType\""),
+        // AND should contain the type definition itself in referencedTypeCode
+        String refCode = codeElement.getReferencedTypeCode();
+        assertNotNull(refCode, "Referenced type code should not be null");
+        assertTrue(refCode.contains("simpleType") && refCode.contains("name=\"CodeType\""),
                 "Should contain CodeType definition");
-        assertTrue(sourceCode.contains("minLength"),
+        assertTrue(refCode.contains("minLength"),
                 "Should contain restriction facets");
-        assertTrue(sourceCode.contains("maxLength"),
+        assertTrue(refCode.contains("maxLength"),
                 "Should contain restriction facets");
     }
 
@@ -194,8 +190,8 @@ class XsdDocumentationTypeDefinitionInclusionTest {
         assertTrue(sourceCode.contains("type=\"xs:string\""), "Should contain type reference");
 
         // But should NOT try to include the built-in type definition
-        assertFalse(sourceCode.contains("Referenced Type Definition"),
-                "Should not contain type definition marker for built-in types");
+        assertNull(simpleElement.getReferencedTypeCode(),
+                "Should not contain type definition for built-in types");
     }
 
     @Test

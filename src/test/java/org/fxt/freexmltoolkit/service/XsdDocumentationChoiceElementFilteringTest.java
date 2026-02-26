@@ -212,7 +212,7 @@ class XsdDocumentationChoiceElementFilteringTest {
         assertNotNull(fundElement);
 
         // When - Get the source code
-        String sourceCode = fundElement.getSourceCode();
+        String sourceCode = fundElement.getReferencedTypeCode();
 
         // Then - The source code should still show the <xs:choice> element correctly
         assertTrue(sourceCode.contains("<xs:choice"), "Source code should contain xs:choice element");

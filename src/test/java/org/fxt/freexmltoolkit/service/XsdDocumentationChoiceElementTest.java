@@ -97,7 +97,7 @@ class XsdDocumentationChoiceElementTest {
         System.out.println("====================================");
 
         // The source code should include the FundType definition with xs:choice
-        String sourceCode = fundElement.getSourceCode();
+        String sourceCode = fundElement.getReferencedTypeCode();
         assertTrue(sourceCode.contains("<xs:choice"), "Should contain xs:choice element");
         assertTrue(sourceCode.contains("SingleFund"), "Should contain SingleFund option");
         assertTrue(sourceCode.contains("Subfunds"), "Should contain Subfunds option");
