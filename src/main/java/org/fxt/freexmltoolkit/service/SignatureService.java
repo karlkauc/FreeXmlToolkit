@@ -171,7 +171,7 @@ public class SignatureService {
 
             File outputFile = new File(outputFileName);
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                TransformerFactory tf = TransformerFactory.newInstance();
+                TransformerFactory tf = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
                 Transformer trans = tf.newTransformer();
                 trans.transform(new DOMSource(doc), new StreamResult(fos));
             }

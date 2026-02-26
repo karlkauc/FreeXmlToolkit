@@ -344,7 +344,7 @@ public class SchematronDocumentationGenerator extends VBox {
      */
     private String generateDocumentationFromFile(File schematronFile) throws Exception {
         // Parse the Schematron XML
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
         factory.setNamespaceAware(true);
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document document = builder.parse(schematronFile);

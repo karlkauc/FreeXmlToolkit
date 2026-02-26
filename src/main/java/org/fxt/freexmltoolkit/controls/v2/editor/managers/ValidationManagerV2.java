@@ -143,7 +143,7 @@ public class ValidationManagerV2 {
         List<ValidationError> errors = new ArrayList<>();
 
         try {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParserFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureSAXParserFactory();
             factory.setNamespaceAware(true);
             SAXParser parser = factory.newSAXParser();
 

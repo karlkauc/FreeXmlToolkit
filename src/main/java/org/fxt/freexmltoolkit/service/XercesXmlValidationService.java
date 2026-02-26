@@ -370,7 +370,7 @@ public class XercesXmlValidationService implements XmlValidationService {
     private List<SAXParseException> checkWellFormednessOnly(String xmlString) {
         final List<SAXParseException> exceptions = new LinkedList<>();
         try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory dbf = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             dbf.setValidating(false); // Disable DTD validation
             dbf.setNamespaceAware(true);
             DocumentBuilder db = dbf.newDocumentBuilder();

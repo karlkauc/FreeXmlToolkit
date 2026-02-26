@@ -78,7 +78,7 @@ public class XmlEditor extends Tab {
     File xsdFile;
     File schematronFile;
 
-    TransformerFactory transformerFactory = TransformerFactory.newInstance();
+    TransformerFactory transformerFactory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
     Transformer transformer;
     DocumentBuilder db;
     Document document;
@@ -155,7 +155,7 @@ public class XmlEditor extends Tab {
 
     private void init() {
         try {
-            db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            db = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory().newDocumentBuilder();
             transformer = transformerFactory.newTransformer();
         } catch (ParserConfigurationException | TransformerConfigurationException e) {
             throw new RuntimeException(e);
@@ -359,7 +359,7 @@ public class XmlEditor extends Tab {
 
         try {
             // Parse the XSD file
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document xsdDoc = builder.parse(xsdFile);
@@ -1729,7 +1729,7 @@ public class XmlEditor extends Tab {
         }
 
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document xsdDoc = builder.parse(xsdFile);
@@ -1893,7 +1893,7 @@ public class XmlEditor extends Tab {
 
         try {
             // Parse the XSD file
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document xsdDoc = builder.parse(xsdFile);

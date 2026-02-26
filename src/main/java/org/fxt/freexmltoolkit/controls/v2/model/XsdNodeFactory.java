@@ -156,16 +156,32 @@ public class XsdNodeFactory {
      * @throws Exception if parsing fails
      */
     public XsdSchema fromStringWithSchemaFile(String xsdContent, Path mainSchemaFile, Path baseDirectory) throws Exception {
+        DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
+        factory.setNamespaceAware(true);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(xsdContent)));
+
+        return fromDocument(document, mainSchemaFile, baseDirectory);
+    }
+
+    /**
+     * Creates an XSD model directly from an XML Document.
+     *
+     * @param document        the XSD XML document
+     * @param mainSchemaFile  the path to the main schema file (for include tracking, can be null)
+     * @param baseDirectory   optional base directory used to resolve xs:include locations (can be null)
+     * @return the parsed XSD schema model
+     * @throws Exception if parsing fails
+     */
+    public XsdSchema fromDocument(Document document, Path mainSchemaFile, Path baseDirectory) throws Exception {
         // Initialize include tracker if we have a main schema file and tracking is enabled
         if (mainSchemaFile != null && preserveIncludeStructure) {
             currentSchemaFile = mainSchemaFile.toAbsolutePath().normalize();
             includeTracker = new IncludeTracker(currentSchemaFile);
             logger.debug("Include tracking enabled for schema: {}", currentSchemaFile);
         }
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
         factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.parse(new InputSource(new StringReader(xsdContent)));
 
         Element schemaElement = document.getDocumentElement();
         if (!isXsdElement(schemaElement, "schema")) {
@@ -1656,7 +1672,7 @@ public class XsdNodeFactory {
             StringBuilder result = new StringBuilder();
             NodeList children = element.getChildNodes();
 
-            TransformerFactory tf = TransformerFactory.newInstance();
+            TransformerFactory tf = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
             Transformer transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             transformer.setOutputProperty(OutputKeys.INDENT, "no");

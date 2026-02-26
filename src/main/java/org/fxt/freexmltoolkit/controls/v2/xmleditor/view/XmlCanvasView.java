@@ -1262,7 +1262,7 @@ public class XmlCanvasView extends Pane {
 
     private void rebuildTree() {
         // Collect expand state before rebuilding
-        java.util.Map<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode, Boolean> expandState = null;
+        NestedGridNode.TreeState expandState = null;
         if (rootNode != null) {
             expandState = rootNode.collectExpandState();
             rootNode.dispose();
@@ -1281,9 +1281,10 @@ public class XmlCanvasView extends Pane {
         rootNode = NestedGridNode.buildTree(doc, this::onLayoutChanged);
 
         // Restore expand state after rebuild
-        if (expandState != null && !expandState.isEmpty()) {
+        if (expandState != null) {
             rootNode.restoreExpandState(expandState);
-            logger.debug("Restored expand state for {} nodes", expandState.size());
+            logger.debug("Restored expand state for {} nodes, {} tables, {} cells",
+                expandState.nodeExpanded.size(), expandState.tableExpanded.size(), expandState.cellExpanded.size());
         }
 
         layoutDirty = true;

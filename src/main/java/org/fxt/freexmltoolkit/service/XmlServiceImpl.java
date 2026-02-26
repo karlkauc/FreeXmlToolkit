@@ -106,7 +106,7 @@ public class XmlServiceImpl implements XmlService {
 
     public XmlServiceImpl() {
         try {
-            transform = TransformerFactory.newInstance().newTransformer();
+            transform = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory().newTransformer();
             transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             transform.setOutputProperty(OutputKeys.INDENT, "yes");
         } catch (Exception e) {
@@ -349,7 +349,7 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public String getCurrentXsdString() {
         try {
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            TransformerFactory transformerFactory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
             Transformer transformer = transformerFactory.newTransformer();
             StringWriter stringWriter = new StringWriter();
             transformer.transform(new DOMSource(this.xmlDocument), new StreamResult(stringWriter));
@@ -1870,7 +1870,7 @@ public class XmlServiceImpl implements XmlService {
     }
 
     private void writeDocumentToFile(Document doc, File file) throws TransformerException {
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        TransformerFactory transformerFactory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(propertiesService.getXmlIndentSpaces()));

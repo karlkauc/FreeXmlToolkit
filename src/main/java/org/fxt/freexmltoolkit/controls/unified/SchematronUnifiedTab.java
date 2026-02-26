@@ -582,7 +582,7 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
 
         try {
             // Use Saxon for XPath evaluation
-            javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            javax.xml.parsers.DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             factory.setNamespaceAware(true);
             javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
             org.w3c.dom.Document document = builder.parse(

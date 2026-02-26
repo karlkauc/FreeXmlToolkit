@@ -155,7 +155,7 @@ public interface XmlService {
         Logger logger = LogManager.getLogger(XmlService.class);
         try {
             // First parse the XML to a DOM to normalize whitespace
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory dbf = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(new InputSource(new StringReader(input)));
 
@@ -163,7 +163,7 @@ public interface XmlService {
             normalizeWhitespace(doc.getDocumentElement());
 
             // Now transform with indentation
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            Transformer transformer = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
@@ -228,7 +228,7 @@ public interface XmlService {
                         "</xsl:stylesheet>";
 
         Source xsltSource = new StreamSource(new StringReader(xslt));
-        Transformer transformer = TransformerFactory.newInstance().newTransformer(xsltSource);
+        Transformer transformer = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory().newTransformer(xsltSource);
         StringWriter writer = new StringWriter();
         transformer.transform(new StreamSource(new StringReader(xml)), new StreamResult(writer));
         return writer.toString();

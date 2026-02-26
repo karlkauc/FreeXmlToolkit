@@ -227,7 +227,7 @@ public class XsdQualityExporter {
             Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
 
             // Setup XSLT transformer
-            TransformerFactory factory = TransformerFactory.newInstance();
+            TransformerFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
             Transformer transformer = factory.newTransformer();
 
             // Setup source and result

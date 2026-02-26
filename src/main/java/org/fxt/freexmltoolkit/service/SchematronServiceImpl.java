@@ -191,7 +191,7 @@ public class SchematronServiceImpl implements SchematronService {
 
             String svrlResult = sw.toString();
             if (!svrlResult.isEmpty()) {
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
                 factory.setNamespaceAware(true);
                 Document svrlDocument = factory.newDocumentBuilder().parse(new InputSource(new StringReader(svrlResult)));
 

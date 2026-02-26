@@ -97,7 +97,7 @@ public class FOPService {
             try (OutputStream out = new BufferedOutputStream(new FileOutputStream(pdfOutput))) {
                 Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
 
-                TransformerFactory factory = TransformerFactory.newInstance();
+                TransformerFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
                 Transformer transformer = factory.newTransformer(new StreamSource(xslFile));
 
                 for (String key : defaultParameter.keySet()) {

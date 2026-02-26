@@ -50,7 +50,7 @@ public class XsdDocumentationImageService {
     // This avoids the high overhead of creating a new instance on every call to asString().
     private static final ThreadLocal<Transformer> transformerThreadLocal = ThreadLocal.withInitial(() -> {
         try {
-            TransformerFactory factory = TransformerFactory.newInstance();
+            TransformerFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
             factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
             Transformer trans = factory.newTransformer();
             // Configure properties that are the same for all transformations

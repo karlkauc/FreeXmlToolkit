@@ -87,7 +87,7 @@ public class SchematronErrorDetector {
      */
     private void detectXmlSyntaxErrors(String schematronText, SchematronErrorResult result) {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
 
@@ -137,7 +137,7 @@ public class SchematronErrorDetector {
      */
     private void detectStructuralErrors(String schematronText, SchematronErrorResult result) {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(new ByteArrayInputStream(schematronText.getBytes()));

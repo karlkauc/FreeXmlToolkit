@@ -265,7 +265,7 @@ public class XsdStatisticsExporter {
             try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(outputPath))) {
                 Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
 
-                TransformerFactory factory = TransformerFactory.newInstance();
+                TransformerFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
                 Transformer transformer = factory.newTransformer();
 
                 Source src = new StreamSource(new StringReader(foContent));

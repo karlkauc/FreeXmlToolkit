@@ -1712,7 +1712,7 @@ public class XmlEditorSidebarController {
         }
 
         try {
-            javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            javax.xml.parsers.DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             factory.setNamespaceAware(true);
             // Security: Disable external entities
             factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);

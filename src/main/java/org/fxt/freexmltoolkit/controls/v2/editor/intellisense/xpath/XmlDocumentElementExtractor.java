@@ -65,7 +65,7 @@ public class XmlDocumentElementExtractor {
         clear();
 
         try {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParserFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureSAXParserFactory();
             factory.setNamespaceAware(true);
             SAXParser parser = factory.newSAXParser();
 

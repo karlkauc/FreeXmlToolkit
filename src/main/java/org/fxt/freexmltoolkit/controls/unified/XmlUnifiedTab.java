@@ -91,7 +91,7 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
         this.schematronService = new SchematronServiceImpl();
 
         try {
-            this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            this.documentBuilder = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory().newDocumentBuilder();
         } catch (ParserConfigurationException e) {
             logger.error("Failed to create DocumentBuilder", e);
         }

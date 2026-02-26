@@ -143,7 +143,7 @@ public class XsdDocumentationPdfService {
      * This XML structure is designed to be transformed by the XSL-FO template.
      */
     private Document createIntermediateXml() throws ParserConfigurationException {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
         factory.setNamespaceAware(true);
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.newDocument();
@@ -489,7 +489,7 @@ public class XsdDocumentationPdfService {
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
             Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
 
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            TransformerFactory transformerFactory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
             Transformer transformer = transformerFactory.newTransformer(xslSource);
 
             // Basic parameters

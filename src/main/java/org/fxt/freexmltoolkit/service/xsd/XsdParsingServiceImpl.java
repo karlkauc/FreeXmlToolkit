@@ -58,7 +58,7 @@ public class XsdParsingServiceImpl implements XsdParsingService {
      * Creates a new XsdParsingServiceImpl.
      */
     public XsdParsingServiceImpl() {
-        this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        this.documentBuilderFactory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
         this.documentBuilderFactory.setNamespaceAware(true);
         this.documentBuilderFactory.setIgnoringComments(false);
         this.documentBuilderFactory.setIgnoringElementContentWhitespace(false);
@@ -265,9 +265,10 @@ public class XsdParsingServiceImpl implements XsdParsingService {
             // Convert from ParsedSchema
             if (parsedSchema.getSourceFile().isPresent()) {
                 return factory.fromFile(parsedSchema.getSourceFile().get());
+            } else if (parsedSchema.getDocument() != null) {
+                return factory.fromDocument(parsedSchema.getDocument(), null, parsedSchema.getBaseDirectory());
             } else {
-                // For string/URL content, we need to serialize and re-parse
-                // This is a temporary solution until XsdNodeFactory supports Document input
+                // Fallback (should not happen if ParsedSchema is properly constructed)
                 String content = serializeDocument(parsedSchema.getDocument());
                 return factory.fromString(content);
             }
@@ -396,7 +397,7 @@ public class XsdParsingServiceImpl implements XsdParsingService {
      * Serializes a DOM Document to string.
      */
     private String serializeDocument(Document document) throws Exception {
-        javax.xml.transform.TransformerFactory factory = javax.xml.transform.TransformerFactory.newInstance();
+        javax.xml.transform.TransformerFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
         javax.xml.transform.Transformer transformer = factory.newTransformer();
         transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(javax.xml.transform.OutputKeys.ENCODING, "UTF-8");

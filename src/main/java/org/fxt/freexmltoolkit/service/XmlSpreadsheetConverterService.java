@@ -602,7 +602,7 @@ public class XmlSpreadsheetConverterService {
      * Builds XML document from row data
      */
     public Document buildXmlFromRows(List<RowData> rows, ConversionConfig config) throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.newDocument();
 
@@ -622,7 +622,7 @@ public class XmlSpreadsheetConverterService {
      * Converts Document to formatted XML string
      */
     public String documentToString(Document doc, ConversionConfig config) throws Exception {
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        TransformerFactory transformerFactory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
         Transformer transformer = transformerFactory.newTransformer();
 
         if (config.isPrettyPrintXml()) {

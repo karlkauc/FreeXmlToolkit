@@ -71,7 +71,7 @@ public class SchemaResolver {
     public SchemaResolver(XsdParseOptions options) {
         this.options = options != null ? options : XsdParseOptions.defaults();
 
-        this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        this.documentBuilderFactory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
         this.documentBuilderFactory.setNamespaceAware(true);
         this.documentBuilderFactory.setIgnoringComments(false);
         this.documentBuilderFactory.setIgnoringElementContentWhitespace(false);

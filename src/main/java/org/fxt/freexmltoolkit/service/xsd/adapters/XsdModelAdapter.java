@@ -873,7 +873,7 @@ public class XsdModelAdapter {
             StringBuilder result = new StringBuilder();
             NodeList children = element.getChildNodes();
 
-            javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
+            javax.xml.transform.TransformerFactory tf = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
             javax.xml.transform.Transformer transformer = tf.newTransformer();
             transformer.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
             transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "no");

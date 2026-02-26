@@ -117,7 +117,7 @@ public class XsdDocumentationService {
     // This avoids the cost of constant recreation in a parallel environment.
     private static final ThreadLocal<Transformer> transformerThreadLocal = ThreadLocal.withInitial(() -> {
         try {
-            TransformerFactory factory = TransformerFactory.newInstance();
+            TransformerFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
             // Security feature to block external DTDs and entities
             factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
             Transformer transformer = factory.newTransformer();
@@ -1356,7 +1356,7 @@ public class XsdDocumentationService {
             if (modified) {
                 logger.info("Rewriting schema file with updated local paths: {}", currentFile);
                 try (Writer writer = Files.newBufferedWriter(currentFile, StandardCharsets.UTF_8)) {
-                    TransformerFactory factory = TransformerFactory.newInstance();
+                    TransformerFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
                     factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
                     Transformer transformer = factory.newTransformer();
                     transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -2797,7 +2797,7 @@ public class XsdDocumentationService {
     }
 
     private Document parseXsdContent(String xsdContent) throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
         factory.setNamespaceAware(true);
         // Allow DOCTYPE declarations (required for some W3C schemas like xmldsig-core-schema.xsd)
         // but disable external entity processing for security
@@ -3604,7 +3604,7 @@ public class XsdDocumentationService {
         Document schemaDoc = doc;
         if (schemaDoc == null && xsdFilePath != null) {
             try {
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
                 factory.setNamespaceAware(true);
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 schemaDoc = builder.parse(new File(xsdFilePath));

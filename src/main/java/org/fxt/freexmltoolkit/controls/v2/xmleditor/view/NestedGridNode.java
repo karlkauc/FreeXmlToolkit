@@ -1176,20 +1176,26 @@ public class NestedGridNode {
 
     // ==================== Expand State Persistence ====================
 
+    public static class TreeState {
+        public final Map<XmlNode, Boolean> nodeExpanded = new IdentityHashMap<>();
+        public final Map<XmlNode, Map<String, Boolean>> tableExpanded = new IdentityHashMap<>();
+        public final Map<XmlNode, Set<String>> cellExpanded = new IdentityHashMap<>();
+    }
+
     /**
-     * Collects the expand state of all nodes in this tree.
+     * Collects the expand state of all nodes and tables in this tree.
      * Uses the XmlNode reference as key since the model objects persist across rebuilds.
      *
-     * @return Map of XmlNode to expanded state
+     * @return TreeState object with all expanded states
      */
-    public Map<XmlNode, Boolean> collectExpandState() {
-        Map<XmlNode, Boolean> state = new IdentityHashMap<>();
+    public TreeState collectExpandState() {
+        TreeState state = new TreeState();
         collectExpandStateRecursive(state);
         return state;
     }
 
-    private void collectExpandStateRecursive(Map<XmlNode, Boolean> state) {
-        state.put(modelNode, expanded);
+    private void collectExpandStateRecursive(TreeState state) {
+        state.nodeExpanded.put(modelNode, expanded);
 
         for (NestedGridNode child : children) {
             child.collectExpandStateRecursive(state);
@@ -1197,13 +1203,15 @@ public class NestedGridNode {
 
         // Also collect state from repeating tables
         for (RepeatingElementsTable table : repeatingTables) {
-            // Store table expanded state using first element as key marker
-            if (!table.getRows().isEmpty()) {
-                // Use a special marker - we'll store table state with the first element
-                // This is a bit of a hack but works since tables are identified by their elements
-            }
+            // Store table expanded state using its parent node and element name
+            state.tableExpanded.computeIfAbsent(modelNode, k -> new HashMap<>())
+                 .put(table.getElementName(), table.isExpanded());
+
             // Collect state from nested grids inside table cells
             for (RepeatingElementsTable.TableRow row : table.getRows()) {
+                if (!row.getExpandedColumns().isEmpty()) {
+                    state.cellExpanded.put(row.getElement(), new HashSet<>(row.getExpandedColumns()));
+                }
                 for (NestedGridNode childGrid : row.getExpandedChildGrids().values()) {
                     childGrid.collectExpandStateRecursive(state);
                 }
@@ -1212,19 +1220,19 @@ public class NestedGridNode {
     }
 
     /**
-     * Restores the expand state of all nodes in this tree.
+     * Restores the expand state of all nodes and tables in this tree.
      *
-     * @param state Map of XmlNode to expanded state collected previously
+     * @param state TreeState collected previously
      */
-    public void restoreExpandState(Map<XmlNode, Boolean> state) {
-        if (state == null || state.isEmpty()) {
+    public void restoreExpandState(TreeState state) {
+        if (state == null) {
             return;
         }
         restoreExpandStateRecursive(state);
     }
 
-    private void restoreExpandStateRecursive(Map<XmlNode, Boolean> state) {
-        Boolean wasExpanded = state.get(modelNode);
+    private void restoreExpandStateRecursive(TreeState state) {
+        Boolean wasExpanded = state.nodeExpanded.get(modelNode);
         if (wasExpanded != null) {
             this.expanded = wasExpanded;
         }
@@ -1233,8 +1241,33 @@ public class NestedGridNode {
             child.restoreExpandStateRecursive(state);
         }
 
-        // Note: RepeatingElementsTable state is not restored here because
-        // the tables are recreated during buildChildren() with default state.
-        // This could be enhanced if needed.
+        for (RepeatingElementsTable table : repeatingTables) {
+            Map<String, Boolean> tablesForNode = state.tableExpanded.get(modelNode);
+            if (tablesForNode != null) {
+                Boolean tableExpanded = tablesForNode.get(table.getElementName());
+                if (tableExpanded != null) {
+                    table.setExpanded(tableExpanded);
+                }
+            }
+
+            boolean needsRecalculation = false;
+            for (RepeatingElementsTable.TableRow row : table.getRows()) {
+                Set<String> expandedCols = state.cellExpanded.get(row.getElement());
+                if (expandedCols != null) {
+                    for (String col : expandedCols) {
+                        if (!row.isColumnExpanded(col)) {
+                            row.toggleColumnExpanded(col);
+                            NestedGridNode childGrid = row.getOrCreateChildGrid(col, this.depth, onLayoutChangedCallback);
+                            childGrid.setExpanded(true);
+                            childGrid.restoreExpandStateRecursive(state);
+                            needsRecalculation = true;
+                        }
+                    }
+                }
+            }
+            if (needsRecalculation) {
+                table.recalculateColumnWidthsWithExpandedCells();
+            }
+        }
     }
 }

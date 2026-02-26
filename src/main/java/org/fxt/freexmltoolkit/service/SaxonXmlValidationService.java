@@ -208,7 +208,7 @@ public class SaxonXmlValidationService implements XmlValidationService {
     private List<SAXParseException> checkWellFormednessOnly(String xmlString) {
         final List<SAXParseException> exceptions = new LinkedList<>();
         try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory dbf = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             dbf.setValidating(false); // Disable DTD validation
             dbf.setNamespaceAware(true);
             DocumentBuilder db = dbf.newDocumentBuilder();
@@ -288,7 +288,7 @@ public class SaxonXmlValidationService implements XmlValidationService {
                 // For XSD 1.1, just verify it's well-formed XML
                 logger.debug("Detected XSD 1.1 schema: {}", schemaFile.getAbsolutePath());
                 try {
-                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                    DocumentBuilderFactory dbf = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
                     dbf.setNamespaceAware(true);
                     DocumentBuilder db = dbf.newDocumentBuilder();
                     db.parse(schemaFile);

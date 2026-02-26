@@ -1332,7 +1332,7 @@ public class XsltDeveloperController implements FavoritesParentController {
                 try {
                     // Basic XML well-formedness validation
                     javax.xml.parsers.DocumentBuilderFactory factory =
-                            javax.xml.parsers.DocumentBuilderFactory.newInstance();
+                            org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
                     javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
 
                     // Custom error handler to collect validation messages
