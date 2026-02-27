@@ -551,13 +551,11 @@ $runtimeArg
 --java-options
 --enable-native-access=javafx.web
 --java-options
--Xms128m
+-Xms512m
 --java-options
--Xmx1g
+-Xmx4g
 --java-options
--XX:TieredStopAtLevel=1
---java-options
--XX:+UseParallelGC
+-XX:+UseG1GC
 --java-options
 -Dprism.order=d3d,sw
 --verbose
