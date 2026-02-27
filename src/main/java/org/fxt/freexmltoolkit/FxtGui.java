@@ -124,6 +124,11 @@ public class FxtGui extends Application {
     @Override
     public void init() throws Exception {
         super.init();
+
+        // Enable Java's built-in ProxySelector to detect Windows system proxy settings
+        // including PAC/WPAD auto-configuration. MUST be set before any HTTP requests.
+        setPropertyIfAbsent("java.net.useSystemProxies", "true");
+
         logger.info("Initializing service registry...");
         ServiceRegistry.initialize();
         logger.info("Service registry initialization complete");

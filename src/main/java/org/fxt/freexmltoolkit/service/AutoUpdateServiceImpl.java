@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
@@ -258,6 +259,16 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
         HttpURLConnection connection = null;
         try {
             URI uri = URI.create(urlString);
+
+            // Log proxy resolution for diagnostics
+            try {
+                var proxies = ProxySelector.getDefault().select(uri);
+                logger.debug("ProxySelector resolved {} for update URL: {}", proxies, uri);
+            } catch (Exception e) {
+                logger.debug("Could not query ProxySelector: {}", e.getMessage());
+            }
+
+            // openConnection() without Proxy arg delegates to ProxySelector (PAC/WPAD)
             connection = (HttpURLConnection) uri.toURL().openConnection();
             currentConnection = connection;
 

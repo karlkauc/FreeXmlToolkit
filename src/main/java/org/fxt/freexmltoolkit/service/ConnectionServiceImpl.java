@@ -126,17 +126,22 @@ public class ConnectionServiceImpl implements ConnectionService {
             // Configure proxy
             Proxy proxy = configureProxy(testProperties);
 
-            // Create connection
+            // Create connection based on proxy configuration:
+            // - non-null, non-NO_PROXY: use explicit proxy
+            // - Proxy.NO_PROXY: user chose no proxy, bypass all
+            // - null: delegate to Java's ProxySelector (handles PAC/WPAD)
             URL url = uri.toURL();
 
-            if (proxy != null) {
-                connection = (HttpURLConnection) url.openConnection(proxy);
-                logger.debug("Using proxy: {}", proxy);
-            } else {
-                // Use Proxy.NO_PROXY to explicitly bypass system proxy settings
-                // Without this, Java would use system defaults (which may include SOCKS proxy)
+            if (proxy == null) {
+                // Delegate to Java's ProxySelector (PAC/WPAD auto-configuration)
+                connection = (HttpURLConnection) url.openConnection();
+                logger.debug("Using Java ProxySelector (PAC/WPAD delegation)");
+            } else if (proxy == Proxy.NO_PROXY) {
                 connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
-                logger.debug("Using direct connection (bypassing system proxy settings)");
+                logger.debug("Using direct connection (user chose no proxy)");
+            } else {
+                connection = (HttpURLConnection) url.openConnection(proxy);
+                logger.debug("Using explicit proxy: {}", proxy);
             }
 
             // Configure connection
@@ -183,13 +188,12 @@ public class ConnectionServiceImpl implements ConnectionService {
 
                 logger.debug("Following redirect {} → {} ({})", responseCode, redirectUri, redirectCount + 1);
 
-                // Create new connection for redirect
+                // Create new connection for redirect (same proxy logic)
                 url = redirectUri.toURL();
-                if (proxy != null) {
-                    connection = (HttpURLConnection) url.openConnection(proxy);
+                if (proxy == null) {
+                    connection = (HttpURLConnection) url.openConnection();
                 } else {
-                    // Use Proxy.NO_PROXY to explicitly bypass system proxy settings
-                    connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+                    connection = (HttpURLConnection) url.openConnection(proxy);
                 }
 
                 // Configure connection
@@ -358,12 +362,21 @@ public class ConnectionServiceImpl implements ConnectionService {
      * <p>Supports three modes:
      * <ul>
      *   <li>Manual proxy: Uses explicitly configured proxy host/port</li>
-     *   <li>System proxy: Detects proxy using NTLM-aware system proxy detection</li>
-     *   <li>No proxy: Direct connection without proxy</li>
+     *   <li>System proxy: Detects proxy using NTLM-aware system proxy detection.
+     *       If custom detection fails, returns {@code null} to delegate to Java's
+     *       built-in ProxySelector (which handles PAC/WPAD auto-configuration).</li>
+     *   <li>No proxy: Returns {@link Proxy#NO_PROXY} to explicitly bypass all proxies</li>
+     * </ul>
+     *
+     * <p><b>Return value semantics:</b>
+     * <ul>
+     *   <li>{@code non-null Proxy} (not NO_PROXY): Use this explicit proxy</li>
+     *   <li>{@code Proxy.NO_PROXY}: User explicitly chose no proxy — bypass all</li>
+     *   <li>{@code null}: Delegate to Java's ProxySelector (PAC/WPAD support)</li>
      * </ul>
      *
      * @param props properties containing proxy configuration
-     * @return a Proxy instance or null for direct connection
+     * @return a Proxy instance, {@link Proxy#NO_PROXY}, or null to delegate to ProxySelector
      */
     private Proxy configureProxy(Properties props) {
         boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
@@ -397,13 +410,17 @@ public class ConnectionServiceImpl implements ConnectionService {
                 logger.info("System proxy detected and configured: {}:{}", config.host(), config.port());
                 return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(config.host(), config.port()));
             } else {
-                logger.debug("No system proxy detected, using direct connection");
-                // Clear any previously set proxy properties
-                SystemProxyDetector.clearProxyConfiguration();
+                // Custom detection found nothing, but system proxy is enabled.
+                // Return null to delegate to Java's ProxySelector which handles
+                // PAC/WPAD auto-configuration transparently.
+                logger.debug("No static proxy detected; delegating to Java ProxySelector (PAC/WPAD)");
+                return null;
             }
         }
 
-        return null; // No proxy
+        // User explicitly chose "No Proxy" (both manual and system are false)
+        logger.debug("No proxy mode selected, using Proxy.NO_PROXY");
+        return Proxy.NO_PROXY;
     }
     
     /**

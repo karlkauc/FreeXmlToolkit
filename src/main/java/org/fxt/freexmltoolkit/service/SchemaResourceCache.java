@@ -30,6 +30,8 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Authenticator;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -89,10 +91,16 @@ public class SchemaResourceCache {
      * Creates a new schema resource cache instance.
      */
     public SchemaResourceCache() {
-        this.httpClient = HttpClient.newBuilder()
+        HttpClient.Builder clientBuilder = HttpClient.newBuilder()
                 .connectTimeout(HTTP_TIMEOUT)
                 .followRedirects(HttpClient.Redirect.NORMAL)
-                .build();
+                .proxy(ProxySelector.getDefault());
+        // Enable NTLM/system auth for corporate proxies
+        Authenticator auth = Authenticator.getDefault();
+        if (auth != null) {
+            clientBuilder.authenticator(auth);
+        }
+        this.httpClient = clientBuilder.build();
 
         // Ensure cache directory exists
         try {

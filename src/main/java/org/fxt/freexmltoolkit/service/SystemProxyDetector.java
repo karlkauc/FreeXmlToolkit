@@ -24,8 +24,13 @@ import org.apache.logging.log4j.Logger;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.Authenticator;
+import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -98,7 +103,14 @@ public final class SystemProxyDetector {
             }
         });
 
-        logger.info("NTLM proxy authentication enabled");
+        logger.info("NTLM proxy authentication enabled (useSystemProxies={})",
+                System.getProperty("java.net.useSystemProxies", "not set"));
+
+        // Log PAC/WPAD detection for diagnostics
+        String pacUrl = detectPacUrl();
+        if (pacUrl != null) {
+            logger.info("PAC/WPAD auto-configuration URL detected: {}", pacUrl);
+        }
     }
 
     /**
@@ -134,7 +146,13 @@ public final class SystemProxyDetector {
             return createProxyConfig(proxyFromEnv, "environment variable");
         }
 
-        logger.debug("No system proxy detected");
+        // Method 4: Java ProxySelector fallback (handles PAC/WPAD when useSystemProxies=true)
+        String[] proxyFromSelector = readProxyFromProxySelector();
+        if (proxyFromSelector != null) {
+            return createProxyConfig(proxyFromSelector, "Java ProxySelector (PAC/WPAD)");
+        }
+
+        logger.debug("No system proxy detected by any method");
         return Optional.empty();
     }
 
@@ -247,9 +265,17 @@ public final class SystemProxyDetector {
     /**
      * Reads proxy settings from the Windows Registry.
      * Location: HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings
+     *
+     * <p>Checks ProxyEnable first — if proxy is disabled (0), skips the ProxyServer value.
      */
     private static String[] readProxyFromRegistry() {
         if (!isWindows()) {
+            return null;
+        }
+
+        // Check ProxyEnable first — skip if proxy is explicitly disabled
+        if (!isProxyEnabledInRegistry()) {
+            logger.debug("Registry ProxyEnable=0, skipping static proxy");
             return null;
         }
 
@@ -316,6 +342,117 @@ public final class SystemProxyDetector {
                     return new String[]{parts[0], parts[1]};
                 }
             }
+        }
+        return null;
+    }
+
+    /**
+     * Reads proxy settings from Java's ProxySelector.
+     *
+     * <p>When {@code java.net.useSystemProxies=true}, the default ProxySelector
+     * can detect PAC/WPAD auto-configured proxies that are invisible to registry
+     * and environment variable checks.
+     */
+    private static String[] readProxyFromProxySelector() {
+        try {
+            ProxySelector selector = ProxySelector.getDefault();
+            if (selector == null) {
+                return null;
+            }
+
+            URI testUri = URI.create("https://github.com");
+            List<Proxy> proxies = selector.select(testUri);
+
+            for (Proxy proxy : proxies) {
+                if (proxy.type() == Proxy.Type.HTTP && proxy.address() instanceof InetSocketAddress addr) {
+                    String host = addr.getHostString();
+                    int port = addr.getPort();
+                    if (host != null && !host.isEmpty() && port > 0) {
+                        logger.debug("Proxy detected via Java ProxySelector: {}:{}", host, port);
+                        return new String[]{host, String.valueOf(port)};
+                    }
+                }
+            }
+
+            logger.debug("ProxySelector returned {} proxies, none usable (likely DIRECT)", proxies.size());
+        } catch (Exception e) {
+            logger.debug("Error reading proxy from ProxySelector: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Checks if proxy is enabled in Windows Registry (ProxyEnable=1).
+     * Returns true if ProxyEnable is not found (assume enabled) or if value is 1.
+     */
+    private static boolean isProxyEnabledInRegistry() {
+        if (!isWindows()) {
+            return true;
+        }
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder("reg", "query",
+                    "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
+                    "/v", "ProxyEnable");
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("ProxyEnable") && line.contains("REG_DWORD")) {
+                        // Format: "    ProxyEnable    REG_DWORD    0x00000001"
+                        String value = line.substring(line.lastIndexOf("0x")).trim();
+                        boolean enabled = !"0x00000000".equalsIgnoreCase(value) && !"0x0".equalsIgnoreCase(value);
+                        logger.debug("Registry ProxyEnable={} (enabled={})", value, enabled);
+                        return enabled;
+                    }
+                }
+            }
+
+            process.waitFor();
+        } catch (Exception e) {
+            logger.debug("Error reading ProxyEnable from Registry: {}", e.getMessage());
+        }
+        // If we can't determine, assume proxy could be enabled
+        return true;
+    }
+
+    /**
+     * Detects PAC/WPAD auto-configuration URL from Windows Registry.
+     * Used for diagnostic logging only.
+     *
+     * @return the PAC URL if configured, or null
+     */
+    private static String detectPacUrl() {
+        if (!isWindows()) {
+            return null;
+        }
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder("reg", "query",
+                    "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
+                    "/v", "AutoConfigURL");
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("AutoConfigURL") && line.contains("REG_SZ")) {
+                        String[] parts = line.split("REG_SZ");
+                        if (parts.length > 1) {
+                            return parts[1].trim();
+                        }
+                    }
+                }
+            }
+
+            process.waitFor();
+        } catch (Exception e) {
+            logger.debug("Error reading AutoConfigURL from Registry: {}", e.getMessage());
         }
         return null;
     }
