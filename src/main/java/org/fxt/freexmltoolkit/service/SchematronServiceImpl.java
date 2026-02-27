@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.service;
 
+import net.sf.saxon.lib.ResourceRequest;
+import net.sf.saxon.lib.ResourceResolver;
 import net.sf.saxon.s9api.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,7 +10,6 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
-import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.InputStream;
@@ -41,8 +42,8 @@ public class SchematronServiceImpl implements SchematronService {
 
     static {
         XSLT_COMPILER = SAXON_PROCESSOR.newXsltCompiler();
-        // Set a URIResolver that can resolve classpath resources
-        XSLT_COMPILER.setURIResolver(new ClasspathURIResolver());
+        // Set a ResourceResolver that can resolve classpath resources
+        XSLT_COMPILER.setResourceResolver(new ClasspathResourceResolver());
     }
 
     /**
@@ -54,13 +55,14 @@ public class SchematronServiceImpl implements SchematronService {
     }
 
     /**
-     * URIResolver that resolves resources from the classpath.
+     * ResourceResolver that resolves resources from the classpath.
      * This is needed because the Schematron skeleton XSL files use relative imports.
      */
-    private static class ClasspathURIResolver implements URIResolver {
+    private static class ClasspathResourceResolver implements ResourceResolver {
         @Override
-        public Source resolve(String href, String base) {
+        public Source resolve(ResourceRequest request) {
             try {
+                String href = request.uri;
                 // Try to resolve relative to the schematron folder on classpath
                 String resourcePath = "/schematron/" + href;
                 URL resourceUrl = SchematronServiceImpl.class.getResource(resourcePath);
@@ -73,7 +75,7 @@ public class SchematronServiceImpl implements SchematronService {
                 // Fall back to default resolution
                 return null;
             } catch (Exception e) {
-                logger.debug("Could not resolve URI {} from classpath: {}", href, e.getMessage());
+                logger.debug("Could not resolve URI {} from classpath: {}", request.uri, e.getMessage());
                 return null;
             }
         }

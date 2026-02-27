@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.util.Units;
 import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
+import org.apache.poi.common.usermodel.PictureType;
 import org.apache.poi.xwpf.usermodel.*;
 import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
@@ -546,7 +547,7 @@ public class XsdDocumentationWordService {
 
                     try (InputStream is = Files.newInputStream(tempPng)) {
                         // Calculate image dimensions (max width 500px)
-                        imgRun.addPicture(is, XWPFDocument.PICTURE_TYPE_PNG,
+                        imgRun.addPicture(is, PictureType.PNG,
                                 "schema-diagram.png",
                                 Units.toEMU(450), Units.toEMU(300));
                     }
@@ -824,7 +825,7 @@ public class XsdDocumentationWordService {
 
                     try (InputStream is = Files.newInputStream(tempPng)) {
                         // Insert the diagram image (max width 450px for page fit)
-                        imgRun.addPicture(is, XWPFDocument.PICTURE_TYPE_PNG,
+                        imgRun.addPicture(is, PictureType.PNG,
                                 element.getElementName() + "-diagram.png",
                                 Units.toEMU(450), Units.toEMU(250));
                     }
