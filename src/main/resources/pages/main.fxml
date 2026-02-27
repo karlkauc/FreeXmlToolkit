@@ -304,7 +304,7 @@
                 <VBox alignment="CENTER_LEFT">
                     <Label fx:id="version" contentDisplay="CENTER" text="Version">
                         <font>
-                            <Font size="10.0"/>
+                            <Font size="12.0"/>
                         </font>
                         <opaqueInsets>
                             <Insets/>
@@ -341,7 +341,7 @@
                             <Button fx:id="json" mnemonicParsing="false" onAction="#loadPage"
                                     styleClass="menu_button" text="JSON Editor" VBox.vgrow="ALWAYS">
                                 <graphic>
-                                    <FontIcon iconColor="#f57c00" iconLiteral="bi-braces" iconSize="16"/>
+                                    <FontIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
                                 </graphic>
                             </Button>
 
@@ -352,7 +352,7 @@
                             <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" VBox.vgrow="ALWAYS"
                                     fx:id="xsd">
                                 <graphic>
-                                    <FontIcon iconColor="dodgerblue" iconLiteral="bi-diagram-3" iconSize="16"/>
+                                    <FontIcon iconColor="#007bff" iconLiteral="bi-diagram-3" iconSize="16"/>
                                 </graphic>
                             </Button>
 
@@ -366,7 +366,7 @@
                             <Button fx:id="schemaGenerator" mnemonicParsing="false" onAction="#loadPage"
                                     styleClass="menu_button" text="Schema Generator" VBox.vgrow="ALWAYS">
                                 <graphic>
-                                    <FontIcon iconColor="#dc3545" iconLiteral="bi-diagram-3" iconSize="16"/>
+                                    <FontIcon iconColor="#9c27b0" iconLiteral="bi-diagram-3" iconSize="16"/>
                                 </graphic>
                             </Button>
 
@@ -377,7 +377,7 @@
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="XSLT Viewer" VBox.vgrow="ALWAYS" fx:id="xslt">
                                 <graphic>
-                                    <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
+                                    <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
                                 </graphic>
                             </Button>
 
@@ -406,21 +406,21 @@
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="Schematron Editor" VBox.vgrow="ALWAYS" fx:id="schematron">
                                 <graphic>
-                                    <FontIcon iconColor="#ff6b6b" iconLiteral="bi-shield-check" iconSize="16"/>
+                                    <FontIcon iconColor="#ffc107" iconLiteral="bi-shield-check" iconSize="16"/>
                                 </graphic>
                             </Button>
 
                             <Button fx:id="fop" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="FOP" VBox.vgrow="ALWAYS">
                                 <graphic>
-                                    <FontIcon iconColor="INDIANRED" iconLiteral="win10-pdf" iconSize="16"/>
+                                    <FontIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
                                 </graphic>
                             </Button>
 
                             <Button fx:id="signature" mnemonicParsing="false" onAction="#loadPage"
                                     styleClass="menu_button" text="Signature" VBox.vgrow="ALWAYS">
                                 <graphic>
-                                    <FontIcon iconColor="#578013" iconLiteral="win10-key" iconSize="16"/>
+                                    <FontIcon iconColor="#28a745" iconLiteral="bi-key" iconSize="16"/>
                                 </graphic>
                             </Button>
                         </VBox>
@@ -430,7 +430,7 @@
                             <Button fx:id="help" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="Help" VBox.vgrow="ALWAYS">
                                 <graphic>
-                                    <FontIcon iconColor="#5151e8" iconLiteral="bi-question-square" iconSize="16"/>
+                                    <FontIcon iconColor="#17a2b8" iconLiteral="bi-question-square" iconSize="16"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="settings" mnemonicParsing="false" onAction="#loadPage"
@@ -441,7 +441,7 @@
                             </Button>
                             <Button fx:id="exit" styleClass="menu_button" text="Exit" VBox.vgrow="ALWAYS">
                                 <graphic>
-                                    <FontIcon iconColor="darkslategray" iconLiteral="bi-door-closed" iconSize="16"/>
+                                    <FontIcon iconColor="#495057" iconLiteral="bi-door-closed" iconSize="16"/>
                                 </graphic>
                             </Button>
                         </VBox>

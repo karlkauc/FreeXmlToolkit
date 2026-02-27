@@ -185,7 +185,7 @@
 
                     <Button fx:id="innerTestRulesButton" text="Test Rules">
                         <graphic>
-                            <FontIcon iconLiteral="bi-play-circle" iconColor="#ff6b6b" iconSize="14"/>
+                            <FontIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Test rules against XML files"/>
@@ -308,7 +308,7 @@
         <!-- Visual Builder Tab -->
         <Tab fx:id="visualBuilderTab" text="Visual Builder" closable="false" styleClass="primary-tab">
             <graphic>
-                <FontIcon iconLiteral="bi-diagram-3" iconColor="dodgerblue" iconSize="16"/>
+                <FontIcon iconLiteral="bi-diagram-3" iconColor="#007bff" iconSize="16"/>
             </graphic>
 
             <VBox fx:id="visualBuilderContainer" spacing="0" SplitPane.resizableWithParent="true">
@@ -320,13 +320,13 @@
         <!-- Test Tab -->
         <Tab fx:id="testTab" text="Test" closable="false" styleClass="output-tab">
             <graphic>
-                <FontIcon iconLiteral="bi-play-circle" iconColor="#ff6b6b" iconSize="16"/>
+                <FontIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="16"/>
             </graphic>
             <VBox spacing="15" style="-fx-padding: 20;">
 
                     <!-- Header -->
                     <HBox alignment="CENTER_LEFT" spacing="10">
-                        <FontIcon iconLiteral="bi-play-circle" iconColor="#ff6b6b" iconSize="32"/>
+                        <FontIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="32"/>
                         <VBox spacing="5">
                             <Label text="Schematron Testing" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
                             <Label text="Test your Schematron rules with XML documents"
@@ -520,16 +520,16 @@
                     <graphic>
                         <FontIcon iconLiteral="bi-lightbulb" iconColor="#0c5460" iconSize="16"/>
                     </graphic>
-                    <VBox spacing="10" style="-fx-background-color: #d1ecf1; -fx-padding: 15;">
+                    <VBox spacing="10" styleClass="info-tip-box">
                         <VBox spacing="5">
                             <Label text="• Test both valid and invalid XML documents"
-                                   style="-fx-text-fill: #0c5460; -fx-font-size: 12px;"/>
+                                   styleClass="info-tip-text"/>
                             <Label text="• Create test cases for every edge case of your business rules"
-                                   style="-fx-text-fill: #0c5460; -fx-font-size: 12px;"/>
+                                   styleClass="info-tip-text"/>
                             <Label text="• Use meaningful filenames for your test XMLs"
-                                   style="-fx-text-fill: #0c5460; -fx-font-size: 12px;"/>
+                                   styleClass="info-tip-text"/>
                             <Label text="• Export test results for documentation"
-                                   style="-fx-text-fill: #0c5460; -fx-font-size: 12px;"/>
+                                   styleClass="info-tip-text"/>
                         </VBox>
                     </VBox>
                 </TitledPane>

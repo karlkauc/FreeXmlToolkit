@@ -223,9 +223,9 @@
                 <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
                       visible="true" managed="true">
                     <FontIcon iconLiteral="bi-file-earmark-code" iconSize="64" iconColor="#adb5bd"/>
-                    <Label text="Ready to Edit XML" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
+                    <Label text="Ready to Edit XML" styleClass="empty-state-title"/>
                     <Label text="Create a new XML file or open an existing document to start editing" wrapText="true" textAlignment="CENTER"
-                           style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
+                           styleClass="empty-state-description" maxWidth="400"/>
                     <HBox spacing="10" alignment="CENTER">
                         <Button fx:id="emptyStateNewButton" text="New XML File" styleClass="btn-primary">
                             <graphic>
@@ -258,7 +258,7 @@
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Button fx:id="executeQueryButton" onAction="#runXpathQueryPressed"
                                 text="Execute Query" prefWidth="140"
-                                style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;">
+                                styleClass="btn-execute">
                             <graphic>
                                 <FontIcon iconColor="white" iconLiteral="bi-play-circle-fill" iconSize="18"/>
                             </graphic>
@@ -319,7 +319,7 @@
                                     </MenuButton>
                                 </HBox>
                                 <StackPane fx:id="stackPaneXPath" VBox.vgrow="ALWAYS" minHeight="80"
-                                           style="-fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3; -fx-background-color: white;"/>
+                                           styleClass="query-editor-border"/>
                             </VBox>
                         </Tab>
                         <Tab fx:id="xQueryTab" text="XQuery">
@@ -353,7 +353,7 @@
                                     </MenuButton>
                                 </HBox>
                                 <StackPane fx:id="stackPaneXQuery" VBox.vgrow="ALWAYS" minHeight="80"
-                                           style="-fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 3; -fx-background-color: white;"/>
+                                           styleClass="query-editor-border"/>
                             </VBox>
                         </Tab>
                     </TabPane>
@@ -492,8 +492,8 @@
     </SplitPane>
 
     <!-- Status Bar -->
-    <HBox fx:id="statusBar" spacing="16" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0; -fx-padding: 4 12;">
-        <Label fx:id="statusLabel" text="Ready" style="-fx-text-fill: #6c757d;">
+    <HBox fx:id="statusBar" spacing="16" styleClass="status-bar">
+        <Label fx:id="statusLabel" text="Ready" styleClass="status-bar-label">
             <graphic>
                 <FontIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
             </graphic>
@@ -501,18 +501,18 @@
 
         <Region HBox.hgrow="ALWAYS"/>
 
-        <Label fx:id="fileTypeLabel" text="" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+        <Label fx:id="fileTypeLabel" text="" styleClass="status-bar-label"/>
 
         <Separator orientation="VERTICAL"/>
 
-        <Label fx:id="cursorPositionLabel" text="Ln 1, Col 1" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+        <Label fx:id="cursorPositionLabel" text="Ln 1, Col 1" styleClass="status-bar-label"/>
 
         <Separator orientation="VERTICAL"/>
 
-        <Label fx:id="encodingLabel" text="UTF-8" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+        <Label fx:id="encodingLabel" text="UTF-8" styleClass="status-bar-label"/>
 
         <Separator orientation="VERTICAL"/>
 
-        <Label fx:id="fileSizeLabel" text="" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+        <Label fx:id="fileSizeLabel" text="" styleClass="status-bar-label"/>
     </HBox>
 </VBox>

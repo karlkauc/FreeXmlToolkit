@@ -95,9 +95,9 @@
             <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
                   visible="true" managed="true">
                 <FontIcon iconLiteral="bi-diagram-3" iconSize="64" iconColor="#adb5bd"/>
-                <Label text="Ready to Generate Schema" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
+                <Label text="Ready to Generate Schema" styleClass="empty-state-title"/>
                 <Label text="Load an XML file or paste XML content to generate an XSD schema" wrapText="true" textAlignment="CENTER"
-                       style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
+                       styleClass="empty-state-description" maxWidth="400"/>
                 <HBox spacing="10" alignment="CENTER">
                     <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" styleClass="btn-primary">
                         <graphic>

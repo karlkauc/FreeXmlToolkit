@@ -133,9 +133,9 @@
                     <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
                           visible="true" managed="true">
                         <FontIcon iconLiteral="bi-check-circle" iconSize="64" iconColor="#adb5bd"/>
-                        <Label text="Ready to Validate" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
+                        <Label text="Ready to Validate" styleClass="empty-state-title"/>
                         <Label text="Load XML and XSD files to begin validation" wrapText="true" textAlignment="CENTER"
-                               style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
+                               styleClass="empty-state-description" maxWidth="400"/>
                         <HBox spacing="10" alignment="CENTER">
                             <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" styleClass="btn-primary">
                                 <graphic>
@@ -158,10 +158,10 @@
                     <VBox styleClass="card">
                         <Label styleClass="card-title" text="Validation Setup"/>
                         <Separator/>
-                        <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                        <GridPane hgap="10" vgap="10" styleClass="card-grid">
                             <!-- XML File -->
                             <Label text="XML File*:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                                   style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                                   styleClass="field-label-bold"/>
                             <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                 <TextField fx:id="xmlFileName" editable="false" promptText="Select the XML file to validate"
                                            HBox.hgrow="ALWAYS"/>
@@ -178,7 +178,7 @@
 
                             <!-- Autodetect -->
                             <Label text="Autodetect Schema:" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                                   style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                                   styleClass="field-label-bold"/>
                             <HBox spacing="5" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                 <CheckBox fx:id="autodetect" mnemonicParsing="false" onAction="#toggleAutoDetection"
                                           selected="true"/>
@@ -188,7 +188,7 @@
 
                             <!-- XSD File -->
                             <Label text="XSD File (manual):" GridPane.columnIndex="0" GridPane.rowIndex="2"
-                                   style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                                   styleClass="field-label-bold"/>
                             <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
                                 <TextField fx:id="xsdFileName" editable="false" disable="true"
                                            promptText="Select the XSD schema file manually" HBox.hgrow="ALWAYS"/>
@@ -216,9 +216,9 @@
                         <Separator/>
 
                         <HBox fx:id="statusPane" alignment="CENTER_LEFT" spacing="10"
-                              style="-fx-padding: 10; -fx-background-radius: 5; -fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 1;">
+                              styleClass="panel-light">
                             <FontIcon iconLiteral="bi-info-circle" iconSize="20" iconColor="#17a2b8"/>
-                            <Label fx:id="statusLabel" text="Ready for validation." style="-fx-font-weight: bold; -fx-font-size: 12px;"/>
+                            <Label fx:id="statusLabel" text="Ready for validation." styleClass="panel-header-label"/>
                             <Region HBox.hgrow="ALWAYS"/>
                             <ProgressIndicator fx:id="progressIndicator" maxWidth="40" maxHeight="40" progress="0.0" visible="false"/>
                         </HBox>
@@ -230,7 +230,7 @@
                         <Separator/>
 
                         <!-- Error List -->
-                        <Label text="Details:" style="-fx-padding: 5 0 5 0; -fx-font-weight: bold; -fx-font-size: 11px;"/>
+                        <Label text="Details:" styleClass="field-label-bold" style="-fx-padding: 5 0 5 0;"/>
                         <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" style="-fx-border-color: #dee2e6; -fx-border-width: 1;">
                             <VBox fx:id="errorListBox" style="-fx-padding: 5; -fx-background-color: white;"/>
                         </ScrollPane>
@@ -252,7 +252,7 @@
 
             <VBox spacing="10" style="-fx-padding: 15;">
                 <!-- XSD Mode Selection -->
-                <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 10; -fx-background-color: #f8f9fa; -fx-background-radius: 5; -fx-border-color: #dee2e6; -fx-border-width: 1; -fx-border-radius: 5;">
+                <HBox spacing="15" alignment="CENTER_LEFT" styleClass="panel-light">
                     <Label text="XSD Mode:" style="-fx-font-weight: bold;"/>
                     <RadioButton fx:id="sameXsdRadio" text="Use same XSD for all files">
                         <toggleGroup>
@@ -301,7 +301,7 @@
                         </graphic>
                     </Button>
                     <Separator orientation="VERTICAL"/>
-                    <Button fx:id="runBatchBtn" text="Run Validation" onAction="#runBatchValidation" style="-fx-font-weight: bold;">
+                    <Button fx:id="runBatchBtn" text="Run Validation" onAction="#runBatchValidation" styleClass="btn-execute">
                         <graphic>
                             <FontIcon iconLiteral="bi-play-fill" iconSize="14" iconColor="#28a745"/>
                         </graphic>
@@ -348,9 +348,9 @@
                             <placeholder>
                                 <VBox alignment="CENTER" spacing="10">
                                     <FontIcon iconLiteral="bi-files" iconSize="48" iconColor="#adb5bd"/>
-                                    <Label text="No files added" style="-fx-font-size: 14px; -fx-text-fill: #6c757d;"/>
+                                    <Label text="No files added" styleClass="placeholder-title"/>
                                     <Label text="Click 'Add Files' or 'Add Folder' to add XML files for batch validation"
-                                           style="-fx-font-size: 12px; -fx-text-fill: #adb5bd;"/>
+                                           styleClass="placeholder-description"/>
                                 </VBox>
                             </placeholder>
                             <columns>
@@ -365,7 +365,7 @@
 
                         <!-- Summary and Filter -->
                         <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 5;">
-                            <Label fx:id="batchSummaryLabel" text="Total: 0 | Passed: 0 | Failed: 0" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="batchSummaryLabel" text="Total: 0 | Passed: 0 | Failed: 0" styleClass="panel-header-label"/>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label text="Filter:"/>
                             <ComboBox fx:id="batchFilterCombo" prefWidth="120" onAction="#filterBatchResults"/>

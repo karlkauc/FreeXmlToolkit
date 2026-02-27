@@ -1383,3 +1383,429 @@
 .changelog-link {
     -fx-padding: 8 0 0 0;
 }
+
+/* ==========================================================================
+ * SETTINGS PAGE STYLES
+ * Reusable classes for the Settings page sections and controls
+ * ========================================================================== */
+
+/* Settings Page Root */
+.settings-root {
+    -fx-background-color: #ffffff;
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Settings Page Header */
+.settings-page-header {
+    -fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    -fx-padding: 15px;
+    -fx-background-radius: 6px;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 1, 1);
+}
+
+/* Settings Page Title */
+.settings-page-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c5aa0;
+}
+
+/* Settings Tab Content Area */
+.settings-tab-content {
+    -fx-padding: 20px;
+    -fx-background-color: #ffffff;
+}
+
+/* Settings Section Title */
+.settings-section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c5aa0;
+}
+
+/* Settings Section Sub-Title */
+.settings-section-subtitle {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c5aa0;
+}
+
+/* Settings Section Hint */
+.settings-section-hint {
+    -fx-font-size: 10px;
+    -fx-text-fill: #6c757d;
+    -fx-font-style: italic;
+}
+
+/* Settings TabPane */
+.settings-tab-pane {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e0e8ff;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+}
+
+/* Settings Section Base */
+.settings-section {
+    -fx-background-radius: 4px;
+    -fx-padding: 16px;
+}
+
+/* Settings Section Color Variants */
+.settings-section-blue {
+    -fx-background-color: #f0f8ff;
+}
+
+.settings-section-purple {
+    -fx-background-color: #f5f0ff;
+}
+
+.settings-section-yellow {
+    -fx-background-color: #fff8dc;
+}
+
+.settings-section-green {
+    -fx-background-color: #f0fff0;
+}
+
+.settings-section-cyan {
+    -fx-background-color: #e8f4fd;
+}
+
+.settings-section-green-dark {
+    -fx-background-color: #e8f5e9;
+    -fx-background-radius: 4px;
+    -fx-padding: 12px;
+}
+
+/* Settings TextField with blue border */
+.settings-text-field {
+    -fx-background-color: white;
+    -fx-border-color: #4a90e2;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+/* Settings Action Bar (Save/Cancel footer) */
+.settings-action-bar {
+    -fx-padding: 16px;
+    -fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    -fx-background-radius: 6px;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 1, 1);
+}
+
+/* Settings Sub-Section Title */
+.settings-subsection-title {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #495057;
+}
+
+/* Settings Hint with left padding (for indented hints) */
+.settings-section-hint-indented {
+    -fx-font-size: 10px;
+    -fx-text-fill: #6c757d;
+    -fx-font-style: italic;
+    -fx-padding: 0 0 0 24;
+}
+
+/* Button Variant: Warning (Orange) */
+.btn-warning-action {
+    -fx-background-color: #fd7e14;
+    -fx-text-fill: white;
+    -fx-padding: 8 16;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-warning-action:hover {
+    -fx-background-color: #e8720d;
+}
+
+/* Button Variant: Danger (Red) */
+.btn-danger {
+    -fx-background-color: #dc3545;
+    -fx-text-fill: white;
+    -fx-padding: 8 16;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #c82333;
+}
+
+/* Button Variant: Gray */
+.btn-gray {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-padding: 6 12;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-gray:hover {
+    -fx-background-color: #5a6268;
+}
+
+/* Button Variant: Info-Action (Blue) */
+.btn-info-action {
+    -fx-background-color: #4a90e2;
+    -fx-text-fill: white;
+    -fx-padding: 8 16;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-info-action:hover {
+    -fx-background-color: #3a80d2;
+}
+
+/* Button Variant: Save (green with shadow) */
+.btn-save {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 12 24;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 3, 0, 1, 1);
+}
+
+.btn-save:hover {
+    -fx-background-color: #218838;
+}
+
+/* Button Variant: Cancel */
+.btn-cancel {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-padding: 12 24;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-cancel:hover {
+    -fx-background-color: #5a6268;
+}
+
+/* Button Variant: Check Connection */
+.btn-check-connection {
+    -fx-background-color: #4a90e2;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-check-connection:hover {
+    -fx-background-color: #3a80d2;
+}
+
+/* Button Variant: Success Action (green, no shadow) */
+.btn-success-action {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-success-action:hover {
+    -fx-background-color: #218838;
+}
+
+/* Welcome Action Card Icon Wrapper Color Variants */
+.action-card-icon-blue {
+    -fx-background-color: #dbeafe;
+}
+
+.action-card-icon-purple {
+    -fx-background-color: #f3e8ff;
+}
+
+.action-card-icon-green {
+    -fx-background-color: #dcfce7;
+}
+
+.action-card-icon-yellow {
+    -fx-background-color: #fef3c7;
+}
+
+.action-card-icon-orange {
+    -fx-background-color: #fff7ed;
+}
+
+.action-card-icon-pink {
+    -fx-background-color: #fce7f3;
+}
+
+.action-card-icon-cyan {
+    -fx-background-color: #cffafe;
+}
+
+.action-card-icon-violet {
+    -fx-background-color: #ede9fe;
+}
+
+.action-card-icon-amber {
+    -fx-background-color: #fef9c3;
+}
+
+/* Clickable card cursor */
+.action-card {
+    -fx-cursor: hand;
+}
+
+/* Footer label styling */
+.footer-label {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 11px;
+}
+
+/* Favorites action bar */
+.favorites-action-bar {
+    -fx-background-color: #f0f8ff;
+    -fx-background-radius: 4px;
+    -fx-padding: 12px;
+}
+
+/* Category management section */
+.category-management-section {
+    -fx-background-color: #fff8dc;
+    -fx-background-radius: 4px;
+    -fx-padding: 16px;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+}
+
+/* Info tip box (light blue background) */
+.info-tip-box {
+    -fx-background-color: #d1ecf1;
+    -fx-padding: 15;
+}
+
+.info-tip-text {
+    -fx-text-fill: #0c5460;
+    -fx-font-size: 12px;
+}
+
+/* Empty State Styling */
+.empty-state-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #495057;
+}
+
+.empty-state-description {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6c757d;
+}
+
+.empty-state-hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: #adb5bd;
+}
+
+/* Table Placeholder Styling */
+.placeholder-title {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6c757d;
+}
+
+.placeholder-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #adb5bd;
+}
+
+/* Execute / Action Button (green filled) */
+.btn-execute {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.btn-execute:hover {
+    -fx-background-color: #218838;
+}
+
+/* Status Bar */
+.status-bar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 4 12;
+}
+
+.status-bar-label {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 11px;
+}
+
+/* Card Grid Padding (top padding inside cards after separator) */
+.card-grid {
+    -fx-padding: 15 0 0 0;
+}
+
+/* Field Label Bold (form field labels) */
+.field-label-bold {
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+/* Light panel with border */
+.panel-light {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 10;
+}
+
+/* Section panel header (file selection, etc.) */
+.panel-header {
+    -fx-padding: 12;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1 0;
+}
+
+.panel-header-label {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+/* Query editor border */
+.query-editor-border {
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-color: white;
+}
+
+/* Expert mode sub-section label */
+.expert-section-label {
+    -fx-font-weight: bold;
+    -fx-padding: 10 0 0 0;
+}

@@ -96,9 +96,9 @@
             <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
                   visible="true" managed="true">
                 <FontIcon iconLiteral="bi-file-text" iconSize="64" iconColor="#adb5bd"/>
-                <Label text="Ready to Generate PDF" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #495057;"/>
+                <Label text="Ready to Generate PDF" styleClass="empty-state-title"/>
                 <Label text="Load XML and XSL-FO files to generate a PDF document" wrapText="true" textAlignment="CENTER"
-                       style="-fx-font-size: 14px; -fx-text-fill: #6c757d;" maxWidth="400"/>
+                       styleClass="empty-state-description" maxWidth="400"/>
                 <HBox spacing="10" alignment="CENTER">
                     <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" styleClass="btn-primary">
                         <graphic>
@@ -143,7 +143,7 @@
                                            HBox.hgrow="ALWAYS"/>
                                 <Button onAction="#openXslFile">
                                     <graphic>
-                                        <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request"
+                                        <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat"
                                                   iconSize="16"/>
                                     </graphic>
                                 </Button>
@@ -156,7 +156,7 @@
                                            promptText="Define the output PDF file path" HBox.hgrow="ALWAYS"/>
                                 <Button onAction="#openPdfFile">
                                     <graphic>
-                                        <FontIcon iconColor="INDIANRED" iconLiteral="win10-pdf" iconSize="16"/>
+                                        <FontIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
                                     </graphic>
                                 </Button>
                             </HBox>

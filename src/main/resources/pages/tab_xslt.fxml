@@ -78,21 +78,21 @@
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.25">
 
         <!-- File Explorer Panel -->
-        <BorderPane style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 1 0 0;">
+        <BorderPane styleClass="panel-light" style="-fx-border-width: 0 1 0 0; -fx-border-radius: 0; -fx-background-radius: 0;">
             <top>
-                <VBox style="-fx-padding: 12; -fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;">
-                    <Label text="File Selection" style="-fx-font-weight: bold; -fx-font-size: 12px;"/>
+                <VBox styleClass="panel-header">
+                    <Label text="File Selection" styleClass="panel-header-label"/>
                 </VBox>
             </top>
 
             <center>
                 <VBox alignment="TOP_CENTER" style="-fx-padding: 10px;" spacing="5">
-                    <Label text="XML Source File:" style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                    <Label text="XML Source File:" styleClass="field-label-bold"/>
                     <FileExplorer fx:id="xmlFileExplorer" displayText="Select XML File" VBox.vgrow="ALWAYS"/>
 
                     <Separator style="-fx-padding: 5 0;"/>
 
-                    <Label text="XSLT Stylesheet:" style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                    <Label text="XSLT Stylesheet:" styleClass="field-label-bold"/>
                     <FileExplorer fx:id="xsltFileExplorer" displayText="Select XSLT File" VBox.vgrow="ALWAYS"/>
                 </VBox>
             </center>
@@ -133,8 +133,8 @@
                 <graphic>
                     <FontIcon iconLiteral="bi-speedometer2" iconSize="16"/>
                 </graphic>
-                <VBox style="-fx-padding: 15; -fx-background-color: white;" spacing="10">
-                    <Label text="Transformation Statistics" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                <VBox style="-fx-padding: 15;" spacing="10">
+                    <Label text="Transformation Statistics" styleClass="panel-header-label" style="-fx-font-size: 13px;"/>
                     <TextArea fx:id="performanceArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS"/>
                 </VBox>
             </Tab>

@@ -45,7 +45,7 @@
                     <Insets bottom="12" left="16" right="16" top="12"/>
                 </padding>
                 <FontIcon iconLiteral="bi-info-circle-fill" iconSize="16" iconColor="#0ea5e9"/>
-                <Label text="An update is available!" style="-fx-font-weight: bold;"/>
+                <Label text="An update is available!" style="-fx-font-weight: bold"/>
                 <Hyperlink fx:id="updateLink" onAction="#openUpdatePage" text="Download latest version"/>
             </HBox>
 
@@ -59,8 +59,8 @@
             <HBox spacing="16" VBox.vgrow="NEVER">
                 <!-- New XML File Card -->
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#createNewXmlFile" style="-fx-cursor: hand;">
-                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #dbeafe;">
+                      onMouseClicked="#createNewXmlFile">
+                    <StackPane styleClass="action-card-icon-wrapper, action-card-icon-blue">
                         <FontIcon iconLiteral="bi-plus" iconSize="24" iconColor="#2563eb"/>
                     </StackPane>
                     <Label text="New XML File" styleClass="action-card-title"/>
@@ -74,8 +74,8 @@
 
                 <!-- XSD Schema Editor Card -->
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openXsdTools" style="-fx-cursor: hand;">
-                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #f3e8ff;">
+                      onMouseClicked="#openXsdTools">
+                    <StackPane styleClass="action-card-icon-wrapper, action-card-icon-purple">
                         <FontIcon iconLiteral="bi-file-earmark-code" iconSize="24" iconColor="#9333ea"/>
                     </StackPane>
                     <Label text="XSD Schema Editor" styleClass="action-card-title"/>
@@ -89,8 +89,8 @@
 
                 <!-- Validate Document Card -->
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openValidation" style="-fx-cursor: hand;">
-                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #dcfce7;">
+                      onMouseClicked="#openValidation">
+                    <StackPane styleClass="action-card-icon-wrapper, action-card-icon-green">
                         <FontIcon iconLiteral="bi-file-earmark-check" iconSize="24" iconColor="#16a34a"/>
                     </StackPane>
                     <Label text="Validate Document" styleClass="action-card-title"/>
@@ -104,8 +104,8 @@
 
                 <!-- XSLT Developer Card -->
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openXsltDeveloper" style="-fx-cursor: hand;">
-                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #fef3c7;">
+                      onMouseClicked="#openXsltDeveloper">
+                    <StackPane styleClass="action-card-icon-wrapper, action-card-icon-yellow">
                         <FontIcon iconLiteral="bi-arrow-repeat" iconSize="24" iconColor="#d97706"/>
                     </StackPane>
                     <Label text="XSLT Developer" styleClass="action-card-title"/>
@@ -122,8 +122,8 @@
             <HBox spacing="16" VBox.vgrow="NEVER">
                 <!-- JSON Editor Card -->
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openJsonEditor" style="-fx-cursor: hand;">
-                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #fff7ed;">
+                      onMouseClicked="#openJsonEditor">
+                    <StackPane styleClass="action-card-icon-wrapper, action-card-icon-orange">
                         <FontIcon iconLiteral="bi-braces" iconSize="24" iconColor="#ea580c"/>
                     </StackPane>
                     <Label text="JSON Editor" styleClass="action-card-title"/>
@@ -137,8 +137,8 @@
 
                 <!-- Schematron Card -->
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openSchematron" style="-fx-cursor: hand;">
-                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #fce7f3;">
+                      onMouseClicked="#openSchematron">
+                    <StackPane styleClass="action-card-icon-wrapper, action-card-icon-pink">
                         <FontIcon iconLiteral="bi-shield-check" iconSize="24" iconColor="#be185d"/>
                     </StackPane>
                     <Label text="Schematron" styleClass="action-card-title"/>
@@ -152,8 +152,8 @@
 
                 <!-- Schema Generator Card -->
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openSchemaGenerator" style="-fx-cursor: hand;">
-                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #cffafe;">
+                      onMouseClicked="#openSchemaGenerator">
+                    <StackPane styleClass="action-card-icon-wrapper, action-card-icon-cyan">
                         <FontIcon iconLiteral="bi-diagram-3" iconSize="24" iconColor="#0891b2"/>
                     </StackPane>
                     <Label text="Schema Generator" styleClass="action-card-title"/>
@@ -167,8 +167,8 @@
 
                 <!-- PDF Generation Card -->
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openFop" style="-fx-cursor: hand;">
-                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #ede9fe;">
+                      onMouseClicked="#openFop">
+                    <StackPane styleClass="action-card-icon-wrapper, action-card-icon-violet">
                         <FontIcon iconLiteral="bi-printer" iconSize="24" iconColor="#7c3aed"/>
                     </StackPane>
                     <Label text="PDF Generation" styleClass="action-card-title"/>
@@ -182,8 +182,8 @@
 
                 <!-- XML Digital Signature Card -->
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
-                      onMouseClicked="#openSignature" style="-fx-cursor: hand;">
-                    <StackPane styleClass="action-card-icon-wrapper" style="-fx-background-color: #fef9c3;">
+                      onMouseClicked="#openSignature">
+                    <StackPane styleClass="action-card-icon-wrapper, action-card-icon-amber">
                         <FontIcon iconLiteral="bi-key" iconSize="24" iconColor="#ca8a04"/>
                     </StackPane>
                     <Label text="XML Signature" styleClass="action-card-title"/>
@@ -287,12 +287,12 @@
                 <HBox alignment="CENTER_LEFT" spacing="5">
                     <FontIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
                     <Label fx:id="versionLabel" text="Version: loading..."
-                           style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+                           styleClass="footer-label"/>
                 </HBox>
                 <HBox alignment="CENTER_LEFT" spacing="5">
                     <FontIcon iconLiteral="bi-clock" iconSize="14" iconColor="#6c757d"/>
                     <Label fx:id="durationLabel" text="Total usage time: loading..."
-                           style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+                           styleClass="footer-label"/>
                 </HBox>
             </HBox>
         </VBox>
