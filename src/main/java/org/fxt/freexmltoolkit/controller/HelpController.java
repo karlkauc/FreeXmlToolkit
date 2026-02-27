@@ -142,7 +142,7 @@ public class HelpController {
      */
     private void configureProxySettings(Properties props) {
         boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
-        boolean useSystemProxy = Boolean.parseBoolean(props.getProperty("useSystemProxy", "false"));
+        boolean useSystemProxy = Boolean.parseBoolean(props.getProperty("useSystemProxy", "true"));
         
         if (useManualProxy) {
             String proxyHost = props.getProperty("http.proxy.host", "");

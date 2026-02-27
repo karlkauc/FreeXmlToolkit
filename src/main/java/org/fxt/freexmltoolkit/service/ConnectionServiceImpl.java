@@ -105,7 +105,7 @@ public class ConnectionServiceImpl implements ConnectionService {
             logger.debug("Testing HTTP request to: {}", uri);
             logger.debug("Proxy properties: manualProxy={}, useSystemProxy={}, http.proxyHost={}, socksProxyHost={}",
                     testProperties.getProperty("manualProxy", "false"),
-                    testProperties.getProperty("useSystemProxy", "false"),
+                    testProperties.getProperty("useSystemProxy", "true"),
                     testProperties.getProperty("http.proxy.host", "not set"),
                     System.getProperty("socksProxyHost", "not set"));
 
@@ -380,7 +380,7 @@ public class ConnectionServiceImpl implements ConnectionService {
      */
     private Proxy configureProxy(Properties props) {
         boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
-        boolean useSystemProxy = Boolean.parseBoolean(props.getProperty("useSystemProxy", "false"));
+        boolean useSystemProxy = Boolean.parseBoolean(props.getProperty("useSystemProxy", "true"));
 
         if (useManualProxy) {
             String proxyHost = props.getProperty("http.proxy.host", "");

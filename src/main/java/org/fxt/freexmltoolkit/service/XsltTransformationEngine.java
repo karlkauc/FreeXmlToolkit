@@ -218,7 +218,7 @@ public class XsltTransformationEngine {
                 traceListener = new XsltDebugTraceListener();
                 messageListener = new XsltDebugMessageListener();
                 transformer.setTraceListener(traceListener);
-                transformer.setMessageListener(messageListener);
+                transformer.setMessageHandler(messageListener);
                 logger.debug("Debug listeners attached to transformer");
             }
 

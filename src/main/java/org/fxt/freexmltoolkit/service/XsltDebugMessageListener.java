@@ -1,8 +1,6 @@
 package org.fxt.freexmltoolkit.service;
 
-import net.sf.saxon.s9api.MessageListener2;
-import net.sf.saxon.s9api.QName;
-import net.sf.saxon.s9api.XdmNode;
+import net.sf.saxon.s9api.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,18 +8,17 @@ import javax.xml.transform.SourceLocator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
- * Custom MessageListener2 implementation for capturing xsl:message output.
+ * Custom Message handler for capturing xsl:message output.
  * Collects messages generated during XSLT transformation for debugging purposes.
  *
- * <p>This listener is attached to the Saxon transformer to capture all output
- * from &lt;xsl:message&gt; instructions in the stylesheet.</p>
- *
- * <p>Note: Saxon 12.x uses MessageListener2 interface (deprecated but still functional).</p>
+ * <p>This handler is attached to the Saxon transformer via
+ * {@link net.sf.saxon.s9api.AbstractXsltTransformer#setMessageHandler(Consumer)}
+ * to capture all output from &lt;xsl:message&gt; instructions in the stylesheet.</p>
  */
-@SuppressWarnings("deprecation")
-public class XsltDebugMessageListener implements MessageListener2 {
+public class XsltDebugMessageListener implements Consumer<Message> {
 
     private static final Logger logger = LogManager.getLogger(XsltDebugMessageListener.class);
 
@@ -41,29 +38,27 @@ public class XsltDebugMessageListener implements MessageListener2 {
 
     /**
      * Called when an xsl:message instruction is executed.
-     * This is the MessageListener2 interface method for Saxon 12.x.
      *
-     * @param content   An XML document node representing the message content
-     * @param errorCode A QName containing the error code supplied to xsl:message (may be null)
-     * @param terminate True if terminate="yes" was specified
-     * @param locator   Object providing the location of the xsl:message instruction
+     * @param message the Message object containing content, error code, terminate flag, and location
      */
     @Override
-    public void message(XdmNode content, QName errorCode, boolean terminate, SourceLocator locator) {
+    public void accept(Message message) {
         try {
             // Extract message content
-            String messageText = content != null ? content.getStringValue() : "";
+            String messageText = message.getContent() != null ? message.getContent().getStringValue() : "";
 
             // Get location info
+            SourceLocator locator = message.getLocation();
             String location = extractLocation(locator);
             int lineNumber = locator != null ? locator.getLineNumber() : -1;
 
             // Determine level
+            boolean terminate = message.isTerminate();
             String level = terminate ? "TERMINATE" : "INFO";
 
             // Get error code if present
-            if (errorCode != null) {
-                level = "ERROR [" + errorCode.getLocalName() + "]";
+            if (message.getErrorCode() != null) {
+                level = "ERROR [" + message.getErrorCode().getLocalName() + "]";
             }
 
             // Create and store message
