@@ -103,6 +103,10 @@ public final class SystemProxyDetector {
             }
         });
 
+        // Install SOCKS-filtering ProxySelector to prevent "Malformed reply from SOCKS server"
+        // when PAC/WPAD returns SOCKS entries for what are actually HTTP proxies
+        HttpOnlyProxySelector.install();
+
         logger.info("NTLM proxy authentication enabled (useSystemProxies={})",
                 System.getProperty("java.net.useSystemProxies", "not set"));
 
