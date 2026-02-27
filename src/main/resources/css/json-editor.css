@@ -548,46 +548,31 @@
     -fx-border-width: 2px;
 }
 
-/* High contrast mode */
-@media (prefers-contrast: high) {
-    .json-key {
-        -fx-fill: #0000ff;
-        -fx-font-weight: bold;
-    }
-
-    .json-string {
-        -fx-fill: #008000;
-    }
-
-    .json-number {
-        -fx-fill: #800080;
-    }
-
-    .json-boolean,
-    .json-null {
-        -fx-fill: #ff0000;
-        -fx-font-weight: bold;
-    }
-
-    .json-bracket {
-        -fx-fill: #000000;
-        -fx-font-weight: bold;
-    }
-
-    .json-comment {
-        -fx-fill: #808080;
-    }
+/* High contrast mode - applied via .high-contrast style class on root */
+.high-contrast .json-key {
+    -fx-fill: #0000ff;
+    -fx-font-weight: bold;
 }
 
-/* ========== Print Styles ========== */
+.high-contrast .json-string {
+    -fx-fill: #008000;
+}
 
-@media print {
-    .json-toolbar,
-    .jsonpath-panel {
-        -fx-opacity: 0;
-    }
+.high-contrast .json-number {
+    -fx-fill: #800080;
+}
 
-    .json-collapse-indicator {
-        -fx-opacity: 0;
-    }
+.high-contrast .json-boolean,
+.high-contrast .json-null {
+    -fx-fill: #ff0000;
+    -fx-font-weight: bold;
+}
+
+.high-contrast .json-bracket {
+    -fx-fill: #000000;
+    -fx-font-weight: bold;
+}
+
+.high-contrast .json-comment {
+    -fx-fill: #808080;
 }

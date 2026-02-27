@@ -171,6 +171,7 @@ tasks {
             "--enable-preview",
             "--enable-native-access=ALL-UNNAMED",
             "--enable-native-access=javafx.graphics",
+            "--enable-native-access=javafx.web",
             "-Dprism.order=sw",           // Force software rendering (may reduce WebView rendering errors)
             "-Dprism.verbose=false"        // Reduce graphics logging
         )
@@ -547,6 +548,8 @@ $runtimeArg
 --enable-native-access=ALL-UNNAMED
 --java-options
 --enable-native-access=javafx.graphics
+--java-options
+--enable-native-access=javafx.web
 --java-options
 -Xms128m
 --java-options
