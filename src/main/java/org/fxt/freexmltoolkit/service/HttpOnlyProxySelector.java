@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
@@ -29,7 +30,7 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * ProxySelector wrapper that filters out SOCKS proxies from the delegate's results.
+ * ProxySelector wrapper that converts SOCKS proxies to HTTP type.
  *
  * <p>On Windows with PAC/WPAD auto-configuration, Java's default ProxySelector
  * (when {@code java.net.useSystemProxies=true}) can return SOCKS proxy entries
@@ -37,8 +38,9 @@ import java.util.List;
  * against the HTTP proxy server, the connection fails with
  * "SocketException: Malformed reply from SOCKS server".
  *
- * <p>This wrapper delegates to the original ProxySelector but only returns
- * HTTP-type and DIRECT proxies, filtering out any SOCKS entries.
+ * <p>This wrapper delegates to the original ProxySelector and re-types any
+ * SOCKS entries as HTTP (same host:port), preserving the proxy address instead
+ * of dropping it.
  *
  * @since 2.0
  */
@@ -70,7 +72,7 @@ public final class HttpOnlyProxySelector extends ProxySelector {
         }
         if (current != null) {
             ProxySelector.setDefault(new HttpOnlyProxySelector(current));
-            logger.info("HttpOnlyProxySelector installed (filtering SOCKS proxies)");
+            logger.info("HttpOnlyProxySelector installed (converting SOCKS→HTTP proxies)");
         } else {
             logger.debug("No default ProxySelector to wrap");
         }
@@ -83,16 +85,19 @@ public final class HttpOnlyProxySelector extends ProxySelector {
             return DIRECT;
         }
 
-        List<Proxy> filtered = candidates.stream()
-                .filter(p -> p.type() != Proxy.Type.SOCKS)
+        List<Proxy> result = candidates.stream()
+                .map(p -> {
+                    if (p.type() == Proxy.Type.SOCKS && p.address() instanceof InetSocketAddress) {
+                        // PAC/WPAD can misclassify HTTP proxies as SOCKS.
+                        // Re-type to HTTP to prevent SOCKS protocol errors.
+                        logger.debug("Converting SOCKS proxy to HTTP: {}", p.address());
+                        return new Proxy(Proxy.Type.HTTP, p.address());
+                    }
+                    return p;
+                })
                 .toList();
 
-        if (filtered.size() < candidates.size()) {
-            logger.debug("Filtered {} SOCKS proxy entries for URI: {} (kept {} of {})",
-                    candidates.size() - filtered.size(), uri, filtered.size(), candidates.size());
-        }
-
-        return filtered.isEmpty() ? DIRECT : filtered;
+        return result.isEmpty() ? DIRECT : result;
     }
 
     @Override

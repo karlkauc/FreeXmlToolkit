@@ -125,9 +125,16 @@ public class FxtGui extends Application {
     public void init() throws Exception {
         super.init();
 
-        // Enable Java's built-in ProxySelector to detect Windows system proxy settings
-        // including PAC/WPAD auto-configuration. MUST be set before any HTTP requests.
+        // Proxy setup MUST happen before anything that could trigger HTTP requests
+        // (e.g., ServiceRegistry lazy-loading services that make network calls)
         setPropertyIfAbsent("java.net.useSystemProxies", "true");
+
+        // Enable NTLM proxy authentication and install SOCKS→HTTP proxy conversion
+        // IMPORTANT: This MUST be called BEFORE ServiceRegistry.initialize() because
+        // lazy service creation via ServiceRegistry.get() could trigger HTTP requests
+        logger.info("Enabling NTLM proxy authentication...");
+        SystemProxyDetector.enableNtlmAuthentication();
+        logger.info("NTLM proxy authentication enabled");
 
         logger.info("Initializing service registry...");
         ServiceRegistry.initialize();
@@ -136,13 +143,6 @@ public class FxtGui extends Application {
         // Register custom XSD type icons
         logger.info("Registering XSD type icons...");
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
-
-        // Enable NTLM proxy authentication for corporate environments SYNCHRONOUSLY
-        // IMPORTANT: This MUST be called BEFORE any HTTP requests are made!
-        // Running this synchronously prevents race conditions with update checks and other HTTP operations
-        logger.info("Enabling NTLM proxy authentication...");
-        SystemProxyDetector.enableNtlmAuthentication();
-        logger.info("NTLM proxy authentication enabled");
     }
 
     /**

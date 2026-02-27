@@ -103,7 +103,7 @@ public final class SystemProxyDetector {
             }
         });
 
-        // Install SOCKS-filtering ProxySelector to prevent "Malformed reply from SOCKS server"
+        // Install SOCKS→HTTP converting ProxySelector to prevent "Malformed reply from SOCKS server"
         // when PAC/WPAD returns SOCKS entries for what are actually HTTP proxies
         HttpOnlyProxySelector.install();
 
@@ -368,7 +368,9 @@ public final class SystemProxyDetector {
             List<Proxy> proxies = selector.select(testUri);
 
             for (Proxy proxy : proxies) {
-                if (proxy.type() == Proxy.Type.HTTP && proxy.address() instanceof InetSocketAddress addr) {
+                // Accept both HTTP and SOCKS — PAC/WPAD can misclassify HTTP proxies as SOCKS
+                if ((proxy.type() == Proxy.Type.HTTP || proxy.type() == Proxy.Type.SOCKS)
+                        && proxy.address() instanceof InetSocketAddress addr) {
                     String host = addr.getHostString();
                     int port = addr.getPort();
                     if (host != null && !host.isEmpty() && port > 0) {
