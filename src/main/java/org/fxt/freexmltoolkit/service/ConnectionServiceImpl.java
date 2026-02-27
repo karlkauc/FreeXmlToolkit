@@ -356,6 +356,12 @@ public class ConnectionServiceImpl implements ConnectionService {
         }
     }
 
+    @Override
+    public Proxy resolveProxy() {
+        Properties props = propertiesService.loadProperties();
+        return configureProxy(props);
+    }
+
     /**
      * Configures proxy settings based on properties.
      *

@@ -20,9 +20,11 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.nio.file.*;
@@ -252,6 +254,7 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
     /**
      * Downloads a file from the given URL with progress reporting.
+     * Uses the application's proxy settings via ConnectionService.
      */
     private void downloadFile(String urlString, Path destination,
                               Consumer<UpdateProgress> progressCallback) throws IOException {
@@ -260,16 +263,25 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
         try {
             URI uri = URI.create(urlString);
 
-            // Log proxy resolution for diagnostics
+            // Resolve proxy from application settings (manual/system/none)
+            Proxy proxy = null;
             try {
-                var proxies = ProxySelector.getDefault().select(uri);
-                logger.debug("ProxySelector resolved {} for update URL: {}", proxies, uri);
+                ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
+                proxy = connectionService.resolveProxy();
+                logger.debug("Resolved proxy for update download: {}", proxy);
             } catch (Exception e) {
-                logger.debug("Could not query ProxySelector: {}", e.getMessage());
+                logger.warn("Could not resolve proxy from settings, falling back to ProxySelector: {}", e.getMessage());
             }
 
-            // openConnection() without Proxy arg delegates to ProxySelector (PAC/WPAD)
-            connection = (HttpURLConnection) uri.toURL().openConnection();
+            // Open connection using resolved proxy
+            if (proxy != null) {
+                connection = (HttpURLConnection) uri.toURL().openConnection(proxy);
+                logger.debug("Update download using proxy: {}", proxy);
+            } else {
+                // null means delegate to Java's ProxySelector (PAC/WPAD)
+                connection = (HttpURLConnection) uri.toURL().openConnection();
+                logger.debug("Update download using Java ProxySelector (PAC/WPAD delegation)");
+            }
             currentConnection = connection;
 
             connection.setRequestMethod("GET");

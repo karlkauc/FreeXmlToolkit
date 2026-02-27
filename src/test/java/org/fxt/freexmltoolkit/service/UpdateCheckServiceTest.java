@@ -876,5 +876,10 @@ class UpdateCheckServiceTest {
             }
             throw new RuntimeException("Failed to fetch content");
         }
+
+        @Override
+        public java.net.Proxy resolveProxy() {
+            return null; // Delegate to ProxySelector in tests
+        }
     }
 }

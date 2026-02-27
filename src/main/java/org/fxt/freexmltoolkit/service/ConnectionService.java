@@ -20,12 +20,27 @@ package org.fxt.freexmltoolkit.service;
 
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
 
+import java.net.Proxy;
 import java.net.URI;
 
 /**
  * The ConnectionService interface provides methods for executing HTTP requests and retrieving text content from URLs.
  */
 public interface ConnectionService {
+
+    /**
+     * Resolves the current proxy from application settings.
+     *
+     * <p>Return value semantics:
+     * <ul>
+     *   <li>{@code non-null Proxy} (not NO_PROXY): Use this explicit proxy</li>
+     *   <li>{@code Proxy.NO_PROXY}: User explicitly chose no proxy — bypass all</li>
+     *   <li>{@code null}: Delegate to Java's ProxySelector (PAC/WPAD support)</li>
+     * </ul>
+     *
+     * @return a Proxy instance, {@link Proxy#NO_PROXY}, or null to delegate to ProxySelector
+     */
+    Proxy resolveProxy();
 
     /**
      * Executes an HTTP request to the specified URL.
