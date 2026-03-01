@@ -173,7 +173,7 @@ public class DocumentationTabController {
     }
 
     @FXML
-    private void generateDocumentation() {
+    public void generateDocumentation() {
         // Validation and setup logic...
         String xsdPath = xsdFilePath.getText();
         if (xsdPath == null || xsdPath.isBlank()) return;
@@ -227,13 +227,21 @@ public class DocumentationTabController {
     }
 
     @FXML
-    private void openXsdFileChooser() {
-        parentController.openXsdFileChooser();
+    public void openXsdFileChooser() {
+        File file = parentController.openXsdFileChooser();
+        if (file != null && xsdFilePath != null) {
+            xsdFilePath.setText(file.getAbsolutePath());
+        }
     }
 
     @FXML
-    private void openOutputFolderDialog() {
-        // Directory choosing logic...
+    public void openOutputFolderDialog() {
+        javafx.stage.DirectoryChooser dirChooser = new javafx.stage.DirectoryChooser();
+        dirChooser.setTitle("Select Output Directory");
+        File dir = dirChooser.showDialog(documentationOutputDirPath.getScene().getWindow());
+        if (dir != null && documentationOutputDirPath != null) {
+            documentationOutputDirPath.setText(dir.getAbsolutePath());
+        }
     }
 
     @FXML

@@ -6,15 +6,16 @@
 <?import org.fxmisc.richtext.CodeArea?>
 <?import org.kordamp.ikonli.javafx.*?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="org.fxt.freexmltoolkit.controller.FlattenTabController">
-    <Tab fx:id="flattenTab" text="Flatten Schema" styleClass="utility-tab" closable="false">
-        <tooltip>
-            <Tooltip text="Schema Flattener - Merge includes into one file (Ctrl+7)"/>
-        </tooltip>
-        <graphic>
-            <FontIcon iconLiteral="bi-layers-half" iconSize="16"/>
-        </graphic>
+<Tab fx:id="flattenTab" text="Flatten Schema" styleClass="utility-tab" closable="false"
+     xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
+     fx:controller="org.fxt.freexmltoolkit.controller.FlattenTabController">
+    <tooltip>
+        <Tooltip text="Schema Flattener - Merge includes into one file (Ctrl+7)"/>
+    </tooltip>
+    <graphic>
+        <FontIcon iconLiteral="bi-layers-half" iconSize="16"/>
+    </graphic>
+    <content>
         <VBox spacing="15" style="-fx-padding: 20px; -fx-background-color: white;">
             <VBox spacing="10">
                 <Label styleClass="h3" text="Schema Flattener"/>
@@ -60,5 +61,5 @@
                 <ProgressIndicator fx:id="flattenProgress" maxWidth="80" maxHeight="80" visible="false"/>
             </StackPane>
         </VBox>
-    </Tab>
-</VBox>
+    </content>
+</Tab>

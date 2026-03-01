@@ -94,7 +94,7 @@ public class FlattenTabController {
     }
 
     @FXML
-    private void openXsdToFlattenChooser() {
+    public void openXsdToFlattenChooser() {
         File selectedFile = parentController.openXsdFileChooser();
         if (selectedFile != null) {
             xsdToFlattenPath.setText(selectedFile.getAbsolutePath());
@@ -104,7 +104,7 @@ public class FlattenTabController {
     }
 
     @FXML
-    private void selectFlattenedXsdPath() {
+    public void selectFlattenedXsdPath() {
         File file = parentController.showSaveDialog("Save Flattened XSD", "Flattened XSD Files", "*.xsd");
         if (file != null) {
             flattenedXsdPath.setText(file.getAbsolutePath());
@@ -112,7 +112,7 @@ public class FlattenTabController {
     }
 
     @FXML
-    private void flattenXsdAction() {
+    public void flattenXsdAction() {
         String sourcePath = xsdToFlattenPath.getText();
         String destinationPath = flattenedXsdPath.getText();
 

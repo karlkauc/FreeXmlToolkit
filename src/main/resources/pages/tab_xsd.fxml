@@ -224,7 +224,7 @@
                                                                           iconColor="#28a745"/>
                                                             </graphic>
                                                         </Button>
-                                                        <Button onAction="#openXsdFileChooser"
+                                                        <Button onAction="#handleToolbarLoadFile"
                                                                 styleClass="button, :default"
                                                                 text="Load XSD File">
                                                             <graphic>
@@ -284,7 +284,7 @@
                                                   iconColor="#28a745"/>
                                     </graphic>
                                 </Button>
-                                <Button onAction="#openXsdFileChooser"
+                                <Button onAction="#handleToolbarLoadFile"
                                         styleClass="button, :default"
                                         text="Load XSD File">
                                     <graphic>
@@ -324,7 +324,7 @@
                                                   iconColor="#28a745"/>
                                     </graphic>
                                 </Button>
-                                <Button onAction="#openXsdFileChooser"
+                                <Button onAction="#handleToolbarLoadFile"
                                         styleClass="button, :default"
                                         text="Load XSD File">
                                     <graphic>
@@ -388,7 +388,7 @@
                                                                 <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
                                                             </graphic>
                                                         </Button>
-                                                        <Button onAction="#openXsdFileChooser" styleClass="button, :default"
+                                                        <Button onAction="#handleToolbarLoadFile" styleClass="button, :default"
                                                                 text="Load XSD File">
                                                             <graphic>
                                                                 <FontIcon iconLiteral="bi-folder2-open"/>
@@ -397,7 +397,8 @@
                                                     </HBox>
                                                 </children>
                                             </VBox>
-                                            <VBox fx:id="sourceCodeEditorContainer" managed="false" visible="false"/>
+                                            <VBox fx:id="sourceCodeEditorContainer" managed="false" visible="false"
+                                                                maxHeight="Infinity" maxWidth="Infinity"/>
                                             <ProgressIndicator fx:id="textProgress" maxHeight="80" maxWidth="80"
                                                                visible="false"/>
                                         </children>
@@ -439,7 +440,7 @@
                         <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
                             <TextField fx:id="xsdForSampleDataPath" promptText="Load an XSD file..."
                                        HBox.hgrow="ALWAYS"/>
-                            <Button onAction="#openXsdFileChooser" text="Load XSD">
+                            <Button onAction="#handleToolbarLoadFile" text="Load XSD">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-folder2-open"/>
                                 </graphic>
