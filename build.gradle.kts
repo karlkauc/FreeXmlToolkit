@@ -124,6 +124,7 @@ dependencies {
     testImplementation("org.testfx:testfx-core:4.0.18")
     testImplementation("org.testfx:testfx-junit5:4.0.18")
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
+    testImplementation("org.hamcrest:hamcrest:3.0")
 
     implementation("com.helger.schematron:ph-schematron-parent-pom:9.1.1")
     implementation("com.helger.commons:ph-io:12.1.1")
