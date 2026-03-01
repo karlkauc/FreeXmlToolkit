@@ -201,7 +201,10 @@ TypeEditorTabManager
 
 **MainController:** Application lifecycle, navigation, memory monitoring, ExecutorService coordination
 **XmlController:** Multi-tab XML editing, validation, XPath/XQuery execution, IntelliSense/Auto-completion
-**XsdController:** XSD visualization, documentation generation, schema flattening, sample data generation
+**XsdController:** XSD tab orchestration, graphical/text view, Type Library, Type Editor, toolbar commands
+**DocumentationTabController:** XSD documentation generation (HTML, PDF, Word export)
+**FlattenTabController:** XSD schema flattening with options (includes, imports, comments, sort order)
+**SchemaAnalysisTabController:** Schema statistics and identity constraint analysis (lazy-loaded)
 **XsltController:** XSLT transformations, multi-format output rendering
 **SignatureController:** XML digital signature creation and validation
 **FopController:** PDF generation from XML/XSL-FO using Apache FOP
@@ -225,7 +228,10 @@ org.fxt.freexmltoolkit/
 ├── controller/                          # MVC Controllers
 │   ├── MainController.java             # Main tab navigation
 │   ├── XmlUltimateController.java      # XML editor with IntelliSense
-│   ├── XsdController.java              # XSD visualization & docs
+│   ├── XsdController.java              # XSD tab orchestration (663 lines)
+│   ├── DocumentationTabController.java # XSD documentation export
+│   ├── FlattenTabController.java       # XSD schema flattening
+│   ├── SchemaAnalysisTabController.java# Schema analysis views
 │   ├── SchematronController.java       # Schematron validation
 │   └── controls/                       # Sub-controllers for reusable components
 ├── controls/                            # Custom JavaFX components
@@ -283,12 +289,14 @@ org.fxt.freexmltoolkit/
 │   ├── PropertiesService.java          # App settings
 │   ├── ThreadPoolManager.java          # Centralized thread pool
 │   └── [Various XML services]
+├── util/                                # Utility classes
+│   └── FormattingUtils.java            # Formatting helpers (time, file size, CSV, JSON)
 └── demo/                               # Demo applications
 ```
 
 ### Resource Organization
 
-- **FXML files**: `src/main/resources/pages/` (main.fxml, tab_*.fxml)
+- **FXML files**: `src/main/resources/pages/` (main.fxml, tab_*.fxml, documentation_tab.fxml, flatten_tab.fxml, schema_analysis_tab.fxml)
 - **CSS stylesheets**: `src/main/resources/css/` (AtlantaFX theme customizations)
 - **Static assets**: `src/main/resources/img/` (icons and logos)
 - **XSD Documentation templates**: `src/main/resources/xsdDocumentation/`
@@ -780,6 +788,9 @@ Use the predefined style classes from the style guide:
 **Single Test:** `./gradlew test --tests "ClassName.methodName"`
 **Native:** `./gradlew createAllExecutables`
 **Main:** `org.fxt.freexmltoolkit.FxtGui`
+**XSD Controller:** `controller/XsdController.java` (tab orchestration)
+**XSD Sub-tabs:** `controller/DocumentationTabController.java`, `FlattenTabController.java`, `SchemaAnalysisTabController.java`
+**Formatting Utils:** `util/FormattingUtils.java`
 **XSD Model:** `controls/v2/model/XsdNode.java`
 **Commands:** `controls/v2/editor/commands/`
 **Context:** `controls/v2/editor/XsdEditorContext.java`

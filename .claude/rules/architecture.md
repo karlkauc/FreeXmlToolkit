@@ -6,7 +6,8 @@ View (FXML/JavaFX) → Controller → Service → Model
 ```
 
 ## Package Structure
-- `controller/` - FXML Controllers (MainController, XmlController, XsdController)
+- `controller/` - FXML Controllers (MainController, XmlController, XsdController + sub-controllers)
+- `util/` - Utility classes (FormattingUtils)
 - `service/` - Business logic (XmlService, PropertiesService, ThreadPoolManager)
 - `controls/v2/` - XSD Editor V2 (primary architecture)
 - `domain/` - Domain models
@@ -67,7 +68,10 @@ commandManager.executeCommand(new RenameNodeCommand(element, "NewName"));
 |------------|-----|----------------|
 | `MainController` | - | Navigation, lifecycle, memory monitoring |
 | `XmlUltimateController` | XML | Multi-tab XML editing, IntelliSense |
-| `XsdController` | XSD | Visualization, documentation, validation |
+| `XsdController` | XSD | Tab orchestration, graphical/text view, Type Library/Editor |
+| `DocumentationTabController` | XSD > Documentation | XSD documentation export (HTML, PDF, Word) |
+| `FlattenTabController` | XSD > Flatten | Schema flattening with options |
+| `SchemaAnalysisTabController` | XSD > Analysis | Schema statistics, identity constraints |
 | `XsltController` | XSLT | Transformations |
 | `SchematronController` | Schematron | Business rule validation |
 | `FopController` | FOP | PDF generation |
@@ -96,3 +100,6 @@ public void setName(String name) {
 | `FxtGui.java` | Application main class |
 | `main.fxml` | Root layout |
 | `tab_*.fxml` | Individual tab layouts |
+| `documentation_tab.fxml` | XSD documentation sub-tab |
+| `flatten_tab.fxml` | XSD flatten sub-tab |
+| `schema_analysis_tab.fxml` | XSD schema analysis sub-tab |

@@ -168,6 +168,11 @@ class MyUITest {
 | Purpose | Path |
 |---------|------|
 | Main class | `FxtGui.java` |
+| XSD Controller | `controller/XsdController.java` (tab orchestration) |
+| Documentation Sub-tab | `controller/DocumentationTabController.java` |
+| Flatten Sub-tab | `controller/FlattenTabController.java` |
+| Schema Analysis Sub-tab | `controller/SchemaAnalysisTabController.java` |
+| Formatting Utilities | `util/FormattingUtils.java` |
 | XSD Model | `controls/v2/model/XsdNode.java` |
 | Commands | `controls/v2/editor/commands/` |
 | Serializer | `controls/v2/editor/serialization/XsdSerializer.java` |
