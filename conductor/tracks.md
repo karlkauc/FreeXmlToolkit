@@ -7,7 +7,3 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/javadoc_warnings_20260120/](./tracks/javadoc_warnings_20260120/)*
 
 
----
-
-- [x] **Track: Implement the refactoring plan defined in docs/REFACTORING_PLAN.md**
-  *Link: [./tracks/refactoring_20260301/](./tracks/refactoring_20260301/)*
