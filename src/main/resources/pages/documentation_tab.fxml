@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
+<?import org.kordamp.ikonli.javafx.*?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.fxt.freexmltoolkit.controller.DocumentationTabController">
+    <TabPane fx:id="docSubTabPane" VBox.vgrow="ALWAYS">
+        <Tab fx:id="documentation" text="Documentation" styleClass="output-tab" closable="false">
+            <tooltip>
+                <Tooltip text="Documentation Generator - Create HTML docs (Ctrl+4)"/>
+            </tooltip>
+            <graphic>
+                <FontIcon iconLiteral="bi-journal-text" iconSize="16"/>
+            </graphic>
+
+            <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: #e8ecf0; -fx-background: #e8ecf0;">
+                <VBox spacing="20" style="-fx-padding: 30 30 50 30; -fx-background-color: #e8ecf0;">
+
+                    <!-- Header Section -->
+                    <VBox spacing="8">
+                        <Label text="Documentation Generator Settings"
+                               style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+                        <Label text="Configure options to generate comprehensive HTML documentation from your XSD files."
+                               style="-fx-font-size: 14px; -fx-text-fill: #5a6270;" wrapText="true"/>
+                    </VBox>
+
+                    <!-- Top Row: Source & Destination (full width) -->
+                    <VBox spacing="15"
+                          style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                        <Label text="Source &amp; Destination"
+                               style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+
+                        <HBox spacing="20">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="XSD File:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <HBox spacing="8">
+                                    <TextField fx:id="xsdFilePath" promptText="Load an XSD file..." HBox.hgrow="ALWAYS"
+                                               style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;"/>
+                                    <Button onAction="#openXsdFileChooser" style="-fx-background-color: #f3f4f6; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#6b7280"/>
+                                        </graphic>
+                                    </Button>
+                                </HBox>
+                            </VBox>
+
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Output Folder:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <HBox spacing="8">
+                                    <TextField fx:id="documentationOutputDirPath" promptText="Select an output directory..." HBox.hgrow="ALWAYS"
+                                               style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;"/>
+                                    <Button onAction="#openOutputFolderDialog" style="-fx-background-color: #f3f4f6; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#6b7280"/>
+                                        </graphic>
+                                    </Button>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Middle Row: General Settings | Language Settings -->
+                    <HBox spacing="20" HBox.hgrow="ALWAYS">
+                        <!-- General Settings Card (shared across all formats) -->
+                        <VBox fx:id="generalSettingsContainer" spacing="12" HBox.hgrow="ALWAYS"
+                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                            <Label text="General Settings"
+                                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+
+                            <CheckBox fx:id="openFileAfterCreation" selected="true" text="Open file after creation">
+                                <tooltip>
+                                    <Tooltip text="Automatically open the generated documentation after creation"/>
+                                </tooltip>
+                            </CheckBox>
+                        </VBox>
+
+                        <!-- Language Settings Card -->
+                        <VBox spacing="12" HBox.hgrow="ALWAYS"
+                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                            <Label text="Language Settings"
+                                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+
+                            <VBox spacing="6">
+                                <Label text="Language Filter:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <HBox fx:id="languageSelectionContainer" spacing="10" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                                        <!-- CheckComboBox added programmatically -->
+                                    </HBox>
+                                    <Button fx:id="scanLanguagesButton" onAction="#scanForLanguages" text="Scan Languages"
+                                            style="-fx-background-color: #4a90d9; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 8 16; -fx-font-weight: bold;">
+                                        <tooltip>
+                                            <Tooltip text="Scan the XSD file to discover available documentation languages"/>
+                                        </tooltip>
+                                    </Button>
+                                </HBox>
+                            </VBox>
+                            <ComboBox fx:id="fallbackLanguageComboBox" prefWidth="150" promptText="Fallback Language"
+                                      style="-fx-background-radius: 6;"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Output Options and Format-Specific Settings Row -->
+                    <HBox spacing="20" HBox.hgrow="ALWAYS">
+
+                        <!-- Output Options Card -->
+                        <VBox spacing="15" prefWidth="280"
+                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                            <Label text="Output Options"
+                                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+
+                            <VBox spacing="6">
+                                <fx:define>
+                                    <ToggleGroup fx:id="outputFormatGroup"/>
+                                </fx:define>
+                                <Label text="Output Format:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <VBox spacing="8">
+                                    <RadioButton fx:id="outputFormatHtml" selected="true" text="HTML" toggleGroup="$outputFormatGroup"/>
+                                    <RadioButton fx:id="outputFormatWord" text="Word" toggleGroup="$outputFormatGroup"/>
+                                    <RadioButton fx:id="outputFormatPdf" text="PDF" toggleGroup="$outputFormatGroup"/>
+                                </VBox>
+                            </VBox>
+                            <CheckBox fx:id="showDocumentationInSvg" selected="false" text="Show documentation in SVG"/>
+                        </VBox>
+
+                        <!-- HTML-Specific Settings Card -->
+                        <VBox fx:id="htmlSettingsContainer" spacing="12" HBox.hgrow="ALWAYS"
+                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#E34F26"/>
+                                <Label text="HTML Options"
+                                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+                            </HBox>
+
+                            <VBox spacing="6">
+                                <Label text="Grafik format:" style="-fx-font-size: 13px; -fx-text-fill: #374151;"/>
+                                <ChoiceBox fx:id="grafikFormat" value="SVG" prefWidth="200"
+                                           style="-fx-background-radius: 6;"/>
+                            </VBox>
+
+                            <CheckBox fx:id="useMarkdownRenderer" selected="true" text="Use Markdown Renderer"/>
+                            <CheckBox fx:id="includeTypeDefinitionsInSourceCode" selected="true" text="Include type definitions in source code"/>
+                            <CheckBox fx:id="generateSvgOverviewPage" selected="true" text="Generate SVG overview page"/>
+                            <CheckBox fx:id="addMetadataInOutput" selected="true" text="Add Metadata in Output"/>
+                        </VBox>
+
+                        <!-- Word-Specific Settings Card -->
+                        <VBox fx:id="wordSettingsContainer" spacing="12" HBox.hgrow="ALWAYS"
+                              visible="false" managed="false"
+                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="bi-file-earmark-richtext" iconSize="20" iconColor="#2B579A"/>
+                                <Label text="Word Options"
+                                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+                            </HBox>
+                            <ChoiceBox fx:id="wordPageSize" prefWidth="120" style="-fx-background-radius: 6;"/>
+                        </VBox>
+
+                        <!-- PDF-Specific Settings Card -->
+                        <VBox fx:id="pdfSettingsContainer" spacing="12" HBox.hgrow="ALWAYS"
+                              visible="false" managed="false"
+                              style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#DC3545"/>
+                                <Label text="PDF Options"
+                                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+                            </HBox>
+                            <ChoiceBox fx:id="pdfPageSize" prefWidth="120" style="-fx-background-radius: 6;"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Generate Button Row -->
+                    <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 10 0 0 0;">
+                        <Button fx:id="cancelDocumentationButton" onAction="#cancelDocumentationGeneration" text="Cancel" prefWidth="150" prefHeight="45"
+                                visible="false" managed="false"
+                                style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-x-circle" iconSize="18" iconColor="white"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="generateDocumentationButton" onAction="#generateDocumentation" text="Generate" prefWidth="200" prefHeight="45"
+                                style="-fx-background-color: #4a7fd9; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-play-fill" iconSize="18" iconColor="white"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Progress Section -->
+                    <ScrollPane fx:id="progressScrollPane" fitToWidth="true" visible="false" managed="false"
+                                style="-fx-background-color: white; -fx-background-radius: 12;">
+                        <VBox fx:id="progressContainer" spacing="5" style="-fx-padding: 15; -fx-background-color: white;"/>
+                    </ScrollPane>
+
+                    <!-- Status Message -->
+                    <HBox fx:id="statusMessageContainer" alignment="CENTER_LEFT" visible="false" managed="false"
+                          style="-fx-background-color: #d4edda; -fx-background-radius: 8; -fx-padding: 15; -fx-border-radius: 8; -fx-border-color: #c3e6cb; -fx-border-width: 1;">
+                        <FontIcon iconLiteral="bi-check-circle-fill" iconSize="18" iconColor="#28a745"/>
+                        <Label fx:id="statusText" style="-fx-text-fill: #155724; -fx-font-size: 14px; -fx-padding: 0 0 0 10;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="openDocFolder" onAction="#openGeneratedDocFolder" text="Open Folder"
+                                style="-fx-background-color: transparent; -fx-text-fill: #155724; -fx-underline: true; -fx-cursor: hand;"/>
+                    </HBox>
+
+                </VBox>
+            </ScrollPane>
+
+        </Tab>
+        <Tab fx:id="docPreviewTab" text="Preview">
+            <content>
+                <BorderPane>
+                    <center>
+                        <WebView fx:id="docWebView"/>
+                    </center>
+                </BorderPane>
+            </content>
+        </Tab>
+    </TabPane>
+</VBox>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.fxmisc.flowless.VirtualizedScrollPane?>
+<?import org.fxmisc.richtext.CodeArea?>
+<?import org.kordamp.ikonli.javafx.*?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.fxt.freexmltoolkit.controller.FlattenTabController">
+    <Tab fx:id="flattenTab" text="Flatten Schema" styleClass="utility-tab" closable="false">
+        <tooltip>
+            <Tooltip text="Schema Flattener - Merge includes into one file (Ctrl+7)"/>
+        </tooltip>
+        <graphic>
+            <FontIcon iconLiteral="bi-layers-half" iconSize="16"/>
+        </graphic>
+        <VBox spacing="15" style="-fx-padding: 20px; -fx-background-color: white;">
+            <VBox spacing="10">
+                <Label styleClass="h3" text="Schema Flattener"/>
+                <Label wrapText="true"
+                       text="This tool merges an XSD file and all its included parts (via &lt;xs:include&gt;) into a single, self-contained XSD file."/>
+                <Separator style="-fx-padding: 5 0 5 0;"/>
+
+                <GridPane hgap="10" vgap="10">
+                    <Label text="Source XSD File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
+                        <TextField fx:id="xsdToFlattenPath" promptText="Load the main XSD file..." HBox.hgrow="ALWAYS"/>
+                        <Button onAction="#openXsdToFlattenChooser" text="Load XSD">
+                            <graphic><FontIcon iconLiteral="bi-folder2-open"/></graphic>
+                        </Button>
+                    </HBox>
+
+                    <Label text="Save Flattened XSD to:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
+                        <TextField fx:id="flattenedXsdPath" promptText="Select where to save..." HBox.hgrow="ALWAYS"/>
+                        <Button onAction="#selectFlattenedXsdPath" text="Save to...">
+                            <graphic><FontIcon iconLiteral="bi-save"/></graphic>
+                        </Button>
+                    </HBox>
+
+                    <Label text="Options:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <CheckBox fx:id="flattenIncludesCheckBox" selected="true" text="Flatten xs:include"/>
+                        <CheckBox fx:id="flattenImportsCheckBox" selected="false" text="Flatten xs:import"/>
+                    </VBox>
+                </GridPane>
+                <Button fx:id="flattenXsdButton" onAction="#flattenXsdAction" text="Flatten XSD" disable="true">
+                    <graphic><FontIcon iconLiteral="bi-play-fill" iconSize="16"/></graphic>
+                </Button>
+                <Label fx:id="flattenStatusLabel" style="-fx-padding: 5 0;"/>
+            </VBox>
+
+            <StackPane VBox.vgrow="ALWAYS">
+                <VirtualizedScrollPane>
+                    <content>
+                        <CodeArea fx:id="flattenedXsdTextArea" editable="false" prefWidth="800" prefHeight="600"/>
+                    </content>
+                </VirtualizedScrollPane>
+                <ProgressIndicator fx:id="flattenProgress" maxWidth="80" maxHeight="80" visible="false"/>
+            </StackPane>
+        </VBox>
+    </Tab>
+</VBox>

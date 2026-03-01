@@ -42,7 +42,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class XsdDocumentationHtmlService {
+public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.service.xsd.DocumentationExporter {
+
+    @Override
+    public void export(org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema, File outputTarget, Set<String> includedLanguages, org.fxt.freexmltoolkit.service.TaskProgressListener progressListener) throws Exception {
+        // Implementation that uses the v2 model...
+        // For now, we can bridge to the old implementation if needed, 
+        // but the goal is to use the v2 model directly.
+    }
 
     public static final String ASSETS_PATH = "assets";
     private static final Logger logger = LogManager.getLogger(XsdDocumentationHtmlService.class);
