@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.service;
 
 import javafx.concurrent.Task;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
@@ -55,7 +56,7 @@ public class XsdValidationService {
     private boolean validationOnSaveEnabled = true;
 
     // Performance settings
-    private static final int LARGE_FILE_THRESHOLD = 50000; // 50KB
+    private static final int LARGE_FILE_THRESHOLD = 5242880; // 5MB in bytes
 
     // Schema discovery patterns
     private static final Pattern XSD_SCHEMA_LOCATION_PATTERN = Pattern.compile(
@@ -285,121 +286,111 @@ public class XsdValidationService {
 
     // ========== Validation Implementation ==========
 
-    /**
-     * Perform XSD validation with detailed error reporting
-     */
-    private XmlValidationResult performXsdValidation(String xmlContent, String xsdPath) {
-        XmlValidationResult result = new XmlValidationResult();
-        result.setSchemaPath(xsdPath);
-
-        try {
-            // Load or get cached schema
-            Schema schema = getOrLoadSchema(xsdPath);
-            if (schema == null) {
+        /**
+         * Perform XSD validation with detailed error reporting.
+         * Uses StreamSource for efficient validation without building a DOM tree.
+         */
+        private XmlValidationResult performXsdValidation(String xmlContent, String xsdPath) {
+            XmlValidationResult result = new XmlValidationResult();
+            result.setSchemaPath(xsdPath);
+    
+            try {
+                // Load or get cached schema
+                Schema schema = getOrLoadSchema(xsdPath);
+                if (schema == null) {
+                    result.addError(new XmlValidationError(
+                            XmlValidationError.ErrorType.FATAL,
+                            0, 0,
+                            "Failed to load XSD schema: " + xsdPath,
+                            "Verify schema file exists and is valid"
+                    ));
+                    return result;
+                }
+    
+                // Custom error handler to collect validation errors
+                ValidationErrorHandler errorHandler = new ValidationErrorHandler();
+    
+                // Validate against schema using streaming
+                Validator validator = schema.newValidator();
+                validator.setErrorHandler(errorHandler);
+    
+                try (StringReader reader = new StringReader(xmlContent)) {
+                    validator.validate(new StreamSource(reader));
+                }
+    
+                // Add validation errors
+                result.addErrors(errorHandler.getErrors());
+    
+            } catch (Exception e) {
+                logger.error("XSD validation failed", e);
                 result.addError(new XmlValidationError(
                         XmlValidationError.ErrorType.FATAL,
                         0, 0,
-                        "Failed to load XSD schema: " + xsdPath,
-                        "Verify schema file exists and is valid"
+                        "XSD validation error: " + e.getMessage(),
+                        "Check XML and XSD syntax"
                 ));
-                return result;
             }
-
-            // Create document from XML content
-            DocumentBuilderFactory dbf = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
-            dbf.setNamespaceAware(true);
-            DocumentBuilder db = dbf.newDocumentBuilder();
-
-            // Custom error handler to collect validation errors
-            ValidationErrorHandler errorHandler = new ValidationErrorHandler();
-            db.setErrorHandler(errorHandler);
-
-            Document document;
-            try (StringReader reader = new StringReader(xmlContent)) {
-                document = db.parse(new org.xml.sax.InputSource(reader));
-            }
-
-            // Add any parse errors
-            result.addErrors(errorHandler.getErrors());
-
-            if (!errorHandler.hasFatalErrors()) {
-                // Validate against schema
-                Validator validator = schema.newValidator();
-                validator.setErrorHandler(errorHandler);
-                validator.validate(new DOMSource(document));
-
-                // Add validation errors
+    
+            return result;
+        }
+    
+        /**
+         * Perform well-formedness validation only
+         */
+        private XmlValidationResult performWellFormednessValidation(String xmlContent) {
+            XmlValidationResult result = new XmlValidationResult();
+            result.setSchemaPath(null);
+    
+                    try {
+                        // Use SAX for well-formedness check (faster than DOM)
+                        javax.xml.parsers.SAXParserFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureSAXParserFactory();
+                        factory.setNamespaceAware(true);
+                        javax.xml.parsers.SAXParser parser = factory.newSAXParser();    
+                ValidationErrorHandler errorHandler = new ValidationErrorHandler();
+                try (StringReader reader = new StringReader(xmlContent)) {
+                    parser.parse(new org.xml.sax.InputSource(reader), new org.xml.sax.helpers.DefaultHandler() {
+                        @Override
+                        public void warning(SAXParseException e) throws SAXException { errorHandler.warning(e); }
+                        @Override
+                        public void error(SAXParseException e) throws SAXException { errorHandler.error(e); }
+                        @Override
+                        public void fatalError(SAXParseException e) throws SAXException { errorHandler.fatalError(e); }
+                    });
+                }
+    
                 result.addErrors(errorHandler.getErrors());
+    
+            } catch (Exception e) {
+                logger.error("Well-formedness validation failed", e);
+                result.addError(new XmlValidationError(
+                        XmlValidationError.ErrorType.FATAL,
+                        0, 0,
+                        "XML parsing error: " + e.getMessage(),
+                        "Check XML syntax and structure"
+                ));
             }
-
-        } catch (Exception e) {
-            logger.error("XSD validation failed", e);
-            result.addError(new XmlValidationError(
-                    XmlValidationError.ErrorType.FATAL,
-                    0, 0,
-                    "XSD validation error: " + e.getMessage(),
-                    "Check XML and XSD syntax"
-            ));
+    
+            return result;
         }
-
-        return result;
-    }
-
-    /**
-     * Perform well-formedness validation only
-     */
-    private XmlValidationResult performWellFormednessValidation(String xmlContent) {
-        XmlValidationResult result = new XmlValidationResult();
-        result.setSchemaPath(null);
-
-        try {
-            DocumentBuilderFactory dbf = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
-            dbf.setNamespaceAware(true);
-            DocumentBuilder db = dbf.newDocumentBuilder();
-
-            ValidationErrorHandler errorHandler = new ValidationErrorHandler();
-            db.setErrorHandler(errorHandler);
-
-            try (StringReader reader = new StringReader(xmlContent)) {
-                db.parse(new org.xml.sax.InputSource(reader));
-            }
-
-            result.addErrors(errorHandler.getErrors());
-
-        } catch (Exception e) {
-            logger.error("Well-formedness validation failed", e);
-            result.addError(new XmlValidationError(
-                    XmlValidationError.ErrorType.FATAL,
-                    0, 0,
-                    "XML parsing error: " + e.getMessage(),
-                    "Check XML syntax and structure"
-            ));
+    
+        /**
+         * Validate large XML files with streaming optimization.
+         */
+        private XmlValidationResult validateLargeXml(String xmlContent, String xsdPath) {
+            logger.debug("Validating large XML file ({} characters) with streaming optimization", xmlContent.length());
+    
+            // Both methods now use streaming/SAX, so we just call the appropriate one
+            XmlValidationResult result = (xsdPath != null) ? performXsdValidation(xmlContent, xsdPath) : performWellFormednessValidation(xmlContent);
+    
+                    // Add performance note
+                    result.addInfo(new XmlValidationError(
+                            XmlValidationError.ErrorType.INFO,
+                            0, 0,
+                            "Large file validation completed using streaming optimization (" + org.apache.commons.io.FileUtils.byteCountToDisplaySize(xmlContent.length()) + ")",
+                            "Streaming validation reduces memory footprint for large documents."
+                    ));    
+            return result;
         }
-
-        return result;
-    }
-
-    /**
-     * Validate large XML files with chunked processing
-     */
-    private XmlValidationResult validateLargeXml(String xmlContent, String xsdPath) {
-        logger.debug("Validating large XML file ({} chars) with chunked processing", xmlContent.length());
-
-        // For large files, we still need to validate the entire document
-        // but we can optimize by using streaming validation
-        XmlValidationResult result = performXsdValidation(xmlContent, xsdPath);
-
-        // Add performance note
-        result.addInfo(new XmlValidationError(
-                XmlValidationError.ErrorType.INFO,
-                0, 0,
-                "Large file validation completed (" + xmlContent.length() + " characters)",
-                "Consider breaking large documents into smaller parts for better performance"
-        ));
-
-        return result;
-    }
-
     // ========== Schema Management ==========
 
     /**

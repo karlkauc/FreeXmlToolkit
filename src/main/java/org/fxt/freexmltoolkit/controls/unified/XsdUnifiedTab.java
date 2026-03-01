@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.unified;
 
 import javafx.application.Platform;
+import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -59,6 +60,9 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
     private final XmlCodeEditorV2 textEditor;
     private XsdGraphView graphView;
     private XsdEditorContext editorContext;
+    private final javafx.scene.layout.StackPane mainContainer = new javafx.scene.layout.StackPane();
+    private final javafx.scene.control.SplitPane splitPane = new javafx.scene.control.SplitPane();
+    private ViewMode currentViewMode = ViewMode.TABS;
 
     /**
      * Callback invoked whenever the underlying XsdEditorContext (and thus selection model)
@@ -68,6 +72,9 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
 
     // Services
     private final XmlService xmlService;
+
+    // Debouncing for real-time updates
+    private final javafx.animation.PauseTransition debounce = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
 
     // Model
     private XsdSchema xsdSchema;
@@ -99,6 +106,13 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
 
         initializeContent();
 
+        // Setup debounced real-time updates
+        debounce.setOnFinished(event -> {
+            if (currentViewMode != ViewMode.TABS || graphicTab.isSelected()) {
+                syncToGraphicView();
+            }
+        });
+
         // Load file content if provided
         if (sourceFile != null && sourceFile.exists()) {
             loadFile();
@@ -129,43 +143,110 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
         FontIcon textIcon = new FontIcon("bi-code-slash");
         textIcon.setIconSize(16);
         textTab.setGraphic(textIcon);
-        textTab.setContent(textEditor);
-
+        
         // Graphic tab (initially with placeholder)
         FontIcon graphicIcon = new FontIcon("bi-diagram-3");
         graphicIcon.setIconSize(16);
         graphicTab.setGraphic(graphicIcon);
+        
+        // Initial setup for TABS mode
+        textTab.setContent(textEditor);
         graphicTab.setContent(new Label("Loading graphic view..."));
 
         viewTabPane.getTabs().addAll(textTab, graphicTab);
 
         // Tab switch listener to sync content
         textTab.setOnSelectionChanged(e -> {
-            if (textTab.isSelected() && !syncingViews) {
+            if (textTab.isSelected() && !syncingViews && currentViewMode == ViewMode.TABS) {
                 // Switching to text view - sync from graphic view if it has unsaved changes
                 syncFromGraphicView();
             }
         });
 
         graphicTab.setOnSelectionChanged(e -> {
-            if (graphicTab.isSelected() && !syncingViews) {
+            if (graphicTab.isSelected() && !syncingViews && currentViewMode == ViewMode.TABS) {
                 // Switching to graphic view - rebuild from text
                 syncToGraphicView();
             }
         });
 
-        // Set main content
-        VBox container = new VBox(viewTabPane);
-        VBox.setVgrow(viewTabPane, Priority.ALWAYS);
-        setContent(container);
+        // Setup main container
+        mainContainer.getChildren().add(viewTabPane);
+        setContent(mainContainer);
 
-        // Setup change listener for dirty tracking in text editor
+        // Setup change listener for dirty tracking and real-time updates
         CodeArea codeArea = textEditor.getCodeArea();
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (!syncingViews && lastSavedContent != null && !lastSavedContent.equals(newText)) {
-                setDirty(true);
+            if (!syncingViews) {
+                if (lastSavedContent != null && !lastSavedContent.equals(newText)) {
+                    setDirty(true);
+                }
+                // Trigger debounced update if graphic view is visible
+                if (currentViewMode != ViewMode.TABS || graphicTab.isSelected()) {
+                    debounce.playFromStart();
+                }
             }
         });
+    }
+
+    @Override
+    public void setViewMode(ViewMode mode) {
+        if (this.currentViewMode == mode) return;
+        
+        logger.info("Switching XSD view mode from {} to {}", currentViewMode, mode);
+        this.currentViewMode = mode;
+        
+        syncingViews = true;
+        try {
+            // Clear current view
+            mainContainer.getChildren().clear();
+            
+            if (mode == ViewMode.TABS) {
+                // Restore TabPane structure
+                splitPane.getItems().clear();
+                textTab.setContent(textEditor);
+                // Graphic content will be set by syncToGraphicView
+                mainContainer.getChildren().add(viewTabPane);
+                
+                if (graphicTab.isSelected()) {
+                    syncToGraphicView();
+                }
+            } else {
+                // Use SplitPane structure
+                textTab.setContent(null);
+                graphicTab.setContent(null);
+                
+                splitPane.setOrientation(mode == ViewMode.SPLIT_TOP_BOTTOM ? Orientation.VERTICAL : Orientation.HORIZONTAL);
+                splitPane.getItems().setAll(textEditor, new Label("Loading graphic view..."));
+                
+                mainContainer.getChildren().add(splitPane);
+                
+                // Ensure graphic view is updated
+                syncToGraphicView();
+            }
+        } finally {
+            syncingViews = false;
+        }
+    }
+
+    @Override
+    public ViewMode getViewMode() {
+        return currentViewMode;
+    }
+
+    /**
+     * Helper to set content to the graphic view regardless of current view mode.
+     */
+    private void setGraphicViewContent(javafx.scene.Node content) {
+        if (currentViewMode == ViewMode.TABS) {
+            graphicTab.setContent(content);
+        } else {
+            if (splitPane.getItems().size() > 1) {
+                splitPane.getItems().set(1, content);
+            } else {
+                splitPane.getItems().add(content);
+            }
+        }
     }
 
     /**
@@ -173,7 +254,7 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
      */
     private void parseAndBuildGraphView(String content) {
         if (content == null || content.trim().isEmpty()) {
-            graphicTab.setContent(new Label("No XSD content to display"));
+            setGraphicViewContent(new Label("No XSD content to display"));
             return;
         }
 
@@ -208,7 +289,7 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
                 });
             }
 
-            graphicTab.setContent(graphView);
+            setGraphicViewContent(graphView);
             logger.debug("XSD graphic view built successfully");
 
             // Notify listeners that the editor context changed (graph view rebuild creates new context)
@@ -217,7 +298,7 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
             }
         } catch (Exception e) {
             logger.warn("Failed to parse XSD for graphic view: {}", e.getMessage());
-            graphicTab.setContent(new Label("Failed to parse XSD: " + e.getMessage()));
+            setGraphicViewContent(new Label("Failed to parse XSD: " + e.getMessage()));
         }
     }
 

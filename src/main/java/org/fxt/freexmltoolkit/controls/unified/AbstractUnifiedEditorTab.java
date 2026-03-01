@@ -222,6 +222,39 @@ public abstract class AbstractUnifiedEditorTab extends Tab {
     }
 
     /**
+     * Enumeration of available viewing modes for tabs with multiple views.
+     */
+    public enum ViewMode {
+        /** Traditional tabbed view (only one view visible at a time). */
+        TABS,
+        /** Side-by-side split view (both text and graphic views visible). */
+        SPLIT_SIDE_BY_SIDE,
+        /** Top-and-bottom split view (both text and graphic views visible). */
+        SPLIT_TOP_BOTTOM
+    }
+
+    /**
+     * Sets the viewing mode for this tab.
+     * <p>
+     * Only has an effect for tabs that support multiple views (like XML and XSD).
+     *
+     * @param mode the viewing mode to set
+     */
+    public void setViewMode(ViewMode mode) {
+        // Default: do nothing.
+        // Subclasses with multiple views (XML, XSD) should override.
+    }
+
+    /**
+     * Gets the current viewing mode for this tab.
+     *
+     * @return the current view mode, defaults to TABS
+     */
+    public ViewMode getViewMode() {
+        return ViewMode.TABS; // Default: always tabs
+    }
+
+    /**
      * Requests focus on the editor content.
      */
     public abstract void requestEditorFocus();

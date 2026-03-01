@@ -63,6 +63,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     // FXML Components - Toolbar
     @FXML private MenuButton newFileMenu;
     @FXML private MenuButton recentFilesMenu;
+    @FXML private MenuButton viewModeMenu;
     @FXML private Button openFileButton;
     @FXML private Button saveButton;
     @FXML private Button saveAllButton;
@@ -488,6 +489,44 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         if (currentTab != null) {
             currentTab.redo();
             updateStatus("Redo");
+        }
+    }
+
+    // ==================== View Modes ====================
+
+    /**
+     * Sets the view mode to traditional tabs.
+     */
+    @FXML
+    public void setViewModeTabs() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab != null) {
+            currentTab.setViewMode(AbstractUnifiedEditorTab.ViewMode.TABS);
+            updateStatus("View mode: Tabs");
+        }
+    }
+
+    /**
+     * Sets the view mode to side-by-side split view.
+     */
+    @FXML
+    public void setViewModeSplitSideBySide() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab != null) {
+            currentTab.setViewMode(AbstractUnifiedEditorTab.ViewMode.SPLIT_SIDE_BY_SIDE);
+            updateStatus("View mode: Side-by-Side Split");
+        }
+    }
+
+    /**
+     * Sets the view mode to top-bottom split view.
+     */
+    @FXML
+    public void setViewModeSplitTopBottom() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab != null) {
+            currentTab.setViewMode(AbstractUnifiedEditorTab.ViewMode.SPLIT_TOP_BOTTOM);
+            updateStatus("View mode: Top-Bottom Split");
         }
     }
 

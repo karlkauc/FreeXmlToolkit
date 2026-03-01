@@ -156,6 +156,35 @@
 
         <Separator orientation="VERTICAL"/>
 
+        <!-- View Mode Switcher -->
+        <MenuButton fx:id="viewModeMenu" text="View" contentDisplay="TOP" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-layout-sidebar" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Switch View Mode (Tabs/Split)"/>
+            </tooltip>
+            <items>
+                <MenuItem text="Tabs View" onAction="#setViewModeTabs">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-segmented-nav" iconSize="16" iconColor="#6c757d"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="Side-by-Side" onAction="#setViewModeSplitSideBySide">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-layout-split" iconSize="16" iconColor="#007bff"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="Top-Bottom" onAction="#setViewModeSplitTopBottom">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-layout-three-columns" iconSize="16" iconColor="#fd7e14" rotate="90"/>
+                    </graphic>
+                </MenuItem>
+            </items>
+        </MenuButton>
+
+        <Separator orientation="VERTICAL"/>
+
         <!-- XML Tools Section -->
         <MenuButton fx:id="convertMenu" text="Convert" contentDisplay="TOP" styleClass="toolbar-button">
             <graphic>
