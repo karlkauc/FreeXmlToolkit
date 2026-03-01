@@ -393,7 +393,7 @@ public class SchemaGenerationEngine {
     // ========== Data Type Inference ==========
 
     private String inferDataType(String value) {
-        if (value == null || value.trim().isEmpty()) {
+        if (!enableSmartTypeInference || value == null || value.trim().isEmpty()) {
             return "xs:string";
         }
 
