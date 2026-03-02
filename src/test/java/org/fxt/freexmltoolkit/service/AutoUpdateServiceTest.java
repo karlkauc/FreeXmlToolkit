@@ -20,6 +20,9 @@ package org.fxt.freexmltoolkit.service;
 
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -259,6 +262,33 @@ class AutoUpdateServiceTest {
 
             assertDoesNotThrow(service::shutdown,
                     "Shutdown should not throw exceptions");
+        }
+    }
+
+    @Nested
+    @DisplayName("App Directory Writability Tests")
+    class AppDirectoryWritabilityTests {
+
+        private AutoUpdateServiceImpl serviceImpl;
+
+        @BeforeEach
+        void setUp() {
+            serviceImpl = (AutoUpdateServiceImpl) AutoUpdateServiceImpl.getInstance();
+        }
+
+        @Test
+        @DisplayName("isAppDirectoryWritable should return true for writable temp directory")
+        void testWritableTempDirectory(@TempDir Path tempDir) {
+            assertTrue(serviceImpl.isAppDirectoryWritable(tempDir),
+                    "Temp directory should be writable");
+        }
+
+        @Test
+        @DisplayName("isAppDirectoryWritable should return false for non-existent directory")
+        void testNonExistentDirectory() {
+            Path nonExistent = Path.of("/this/path/should/not/exist/fxt-test-" + System.nanoTime());
+            assertFalse(serviceImpl.isAppDirectoryWritable(nonExistent),
+                    "Non-existent directory should not be writable");
         }
     }
 }

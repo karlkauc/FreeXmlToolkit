@@ -504,7 +504,7 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             Path configFile = createUpdateHelperConfig(extractedDir, appDir, launcher);
             writeDebugLog(debugLog, "Update helper config: " + configFile);
 
-            boolean launched = launchUpdateHelper(helperLauncher, configFile, extractedDir, debugLog);
+            boolean launched = launchUpdateHelper(helperLauncher, configFile, extractedDir, appDir, debugLog);
             if (!launched) {
                 writeDebugLog(debugLog, "ERROR: Failed to launch update helper");
                 return false;
@@ -598,12 +598,39 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
         return configFile;
     }
 
-    private boolean launchUpdateHelper(Path helperLauncher, Path configFile, Path workingDir, Path debugLog) throws IOException {
+    /**
+     * Checks whether the application directory is writable by the current user.
+     *
+     * <p>Uses a probe-file approach instead of {@link Files#isWritable(Path)} because
+     * the latter is unreliable on Windows with UAC virtualisation enabled.
+     *
+     * @param appDir the application installation directory
+     * @return true if the directory is writable without elevation
+     */
+    boolean isAppDirectoryWritable(Path appDir) {
+        try {
+            Path probe = appDir.resolve(".fxt-write-probe-" + ProcessHandle.current().pid());
+            Files.createFile(probe);
+            Files.deleteIfExists(probe);
+            return true;
+        } catch (IOException | SecurityException e) {
+            return false;
+        }
+    }
+
+    private boolean launchUpdateHelper(Path helperLauncher, Path configFile, Path workingDir, Path appDir, Path debugLog) throws IOException {
+        boolean writable = isAppDirectoryWritable(appDir);
+        writeDebugLog(debugLog, "App directory writable without elevation: " + writable);
+
         ProcessBuilder pb;
-        if (isWindows()) {
+        if (writable) {
+            // App directory is writable — no elevation needed
+            pb = new ProcessBuilder(helperLauncher.toString(), configFile.toString());
+            writeDebugLog(debugLog, "Launching update helper directly (no elevation required)");
+        } else if (isWindows()) {
             String command = "Start-Process -FilePath '" + helperLauncher + "' -ArgumentList '" + configFile + "' -Verb RunAs";
             pb = new ProcessBuilder("powershell.exe", "-NoProfile", "-Command", command);
-            writeDebugLog(debugLog, "Platform: Windows - using PowerShell Start-Process");
+            writeDebugLog(debugLog, "Platform: Windows - using PowerShell Start-Process with elevation");
             writeDebugLog(debugLog, "Command: " + command);
         } else if (isMacOS()) {
             String shellCommand = "\"" + helperLauncher + "\" \"" + configFile + "\"";
@@ -615,10 +642,10 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             Path pkexec = Path.of("/usr/bin/pkexec");
             if (Files.isExecutable(pkexec)) {
                 pb = new ProcessBuilder(pkexec.toString(), helperLauncher.toString(), configFile.toString());
-                writeDebugLog(debugLog, "Platform: Linux - using pkexec");
+                writeDebugLog(debugLog, "Platform: Linux - using pkexec elevation");
             } else {
                 pb = new ProcessBuilder("sudo", helperLauncher.toString(), configFile.toString());
-                writeDebugLog(debugLog, "Platform: Linux - pkexec not found, using sudo");
+                writeDebugLog(debugLog, "Platform: Linux - pkexec not found, using sudo elevation");
             }
         }
 
