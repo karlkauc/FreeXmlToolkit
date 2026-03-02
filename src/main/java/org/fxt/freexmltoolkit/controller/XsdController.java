@@ -241,6 +241,10 @@ public class XsdController implements FavoritesParentController {
             @Override
             protected XsdSchema call() throws Exception {
                 org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory factory = new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
+                if (currentXsdFile != null && currentXsdFile.exists()) {
+                    Path schemaPath = currentXsdFile.toPath().toAbsolutePath().normalize();
+                    return factory.fromStringWithSchemaFile(content, schemaPath, schemaPath.getParent());
+                }
                 return factory.fromString(content);
             }
         };
