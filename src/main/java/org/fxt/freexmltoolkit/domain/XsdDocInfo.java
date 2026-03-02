@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.domain;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,7 +40,16 @@ public class XsdDocInfo implements Serializable {
      * @return a list of reference strings (never null)
      */
     public List<String> getSee() {
-        return see;
+        return Collections.unmodifiableList(see);
+    }
+
+    /**
+     * Adds a reference to the see-also list.
+     *
+     * @param reference the reference string to add
+     */
+    public void addSee(String reference) {
+        see.add(reference);
     }
 
     /**

@@ -88,8 +88,8 @@ class XsdDocInfoTest {
         @Test
         @DisplayName("Add to see list")
         void addToSeeList() {
-            docInfo.getSee().add("RelatedElement");
-            docInfo.getSee().add("AnotherElement");
+            docInfo.addSee("RelatedElement");
+            docInfo.addSee("AnotherElement");
 
             assertEquals(2, docInfo.getSee().size());
             assertTrue(docInfo.getSee().contains("RelatedElement"));
@@ -118,7 +118,7 @@ class XsdDocInfoTest {
         @Test
         @DisplayName("Returns true when see list is not empty")
         void returnsTrueWhenSeeListIsNotEmpty() {
-            docInfo.getSee().add("SeeAlso");
+            docInfo.addSee("SeeAlso");
             assertTrue(docInfo.hasData());
         }
 
@@ -127,7 +127,7 @@ class XsdDocInfoTest {
         void returnsTrueWhenMultipleFieldsAreSet() {
             docInfo.setSince("1.0");
             docInfo.setDeprecated("Use v2 API");
-            docInfo.getSee().add("NewElement");
+            docInfo.addSee("NewElement");
 
             assertTrue(docInfo.hasData());
         }
@@ -142,8 +142,8 @@ class XsdDocInfoTest {
         void canSerializeAndDeserialize() throws IOException, ClassNotFoundException {
             docInfo.setSince("1.5");
             docInfo.setDeprecated("Will be removed in 3.0");
-            docInfo.getSee().add("AlternativeElement");
-            docInfo.getSee().add("RelatedType");
+            docInfo.addSee("AlternativeElement");
+            docInfo.addSee("RelatedType");
 
             // Serialize
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -182,7 +182,7 @@ class XsdDocInfoTest {
         @DisplayName("Deprecated element with replacement")
         void deprecatedElementWithReplacement() {
             docInfo.setDeprecated("Use 'newAmount' element instead - removed in version 5.0");
-            docInfo.getSee().add("newAmount");
+            docInfo.addSee("newAmount");
 
             assertTrue(docInfo.hasData());
             assertNotNull(docInfo.getDeprecated());
@@ -192,9 +192,9 @@ class XsdDocInfoTest {
         @Test
         @DisplayName("Multiple see references")
         void multipleSeeReferences() {
-            docInfo.getSee().add("xs:complexType");
-            docInfo.getSee().add("xs:simpleType");
-            docInfo.getSee().add("xs:element");
+            docInfo.addSee("xs:complexType");
+            docInfo.addSee("xs:simpleType");
+            docInfo.addSee("xs:element");
 
             assertTrue(docInfo.hasData());
             assertEquals(3, docInfo.getSee().size());

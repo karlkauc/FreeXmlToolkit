@@ -867,27 +867,27 @@ public class XPathSnippetRepository {
         }
 
         public Set<XPathSnippet.SnippetCategory> getCategories() {
-            return categories;
+        return categories == null ? java.util.Collections.emptySet() : java.util.Collections.unmodifiableSet(categories);
         }
 
         public void setCategories(Set<XPathSnippet.SnippetCategory> categories) {
-            this.categories = categories;
+        this.categories = categories == null ? new java.util.LinkedHashSet<>() : new java.util.LinkedHashSet<>(categories);
         }
 
         public Set<XPathSnippet.SnippetType> getTypes() {
-            return types;
+        return types == null ? java.util.Collections.emptySet() : java.util.Collections.unmodifiableSet(types);
         }
 
         public void setTypes(Set<XPathSnippet.SnippetType> types) {
-            this.types = types;
+        this.types = types == null ? new java.util.LinkedHashSet<>() : new java.util.LinkedHashSet<>(types);
         }
 
         public Set<String> getTags() {
-            return tags;
+        return tags == null ? java.util.Collections.emptySet() : java.util.Collections.unmodifiableSet(tags);
         }
 
         public void setTags(Set<String> tags) {
-            this.tags = tags;
+        this.tags = tags == null ? new java.util.LinkedHashSet<>() : new java.util.LinkedHashSet<>(tags);
         }
 
         public boolean isFavoritesOnly() {

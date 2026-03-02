@@ -546,43 +546,43 @@ public class XsltTransformationResult {
     }
 
     public List<XsltTransformationEngine.TemplateMatchInfo> getTemplateMatches() {
-        return templateMatches;
+        return templateMatches == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(templateMatches);
     }
 
     public void setTemplateMatches(List<XsltTransformationEngine.TemplateMatchInfo> templateMatches) {
-        this.templateMatches = templateMatches;
+        this.templateMatches = templateMatches == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(templateMatches);
     }
 
     public Map<String, Object> getVariableValues() {
-        return variableValues;
+        return variableValues == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(variableValues);
     }
 
     public void setVariableValues(Map<String, Object> variableValues) {
-        this.variableValues = variableValues;
+        this.variableValues = variableValues == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(variableValues);
     }
 
     public List<String> getCallStack() {
-        return callStack;
+        return callStack == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(callStack);
     }
 
     public void setCallStack(List<String> callStack) {
-        this.callStack = callStack;
+        this.callStack = callStack == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(callStack);
     }
 
     public List<String> getWarnings() {
-        return warnings;
+        return warnings == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(warnings);
     }
 
     public void setWarnings(List<String> warnings) {
-        this.warnings = warnings;
+        this.warnings = warnings == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(warnings);
     }
 
     public List<TransformationMessage> getMessages() {
-        return messages;
+        return messages == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(messages);
     }
 
     public void setMessages(List<TransformationMessage> messages) {
-        this.messages = messages;
+        this.messages = messages == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(messages);
     }
 
     public boolean isWellFormed() {
@@ -602,11 +602,11 @@ public class XsltTransformationResult {
     }
 
     public Map<String, String> getOutputProperties() {
-        return outputProperties;
+        return outputProperties == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(outputProperties);
     }
 
     public void setOutputProperties(Map<String, String> outputProperties) {
-        this.outputProperties = outputProperties;
+        this.outputProperties = outputProperties == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(outputProperties);
     }
 
     @Override
@@ -648,5 +648,20 @@ public class XsltTransformationResult {
         public String getLocation() {
             return location;
         }
+    }
+
+    public void addWarning(String warning) {
+        if (this.warnings == null) {
+            this.warnings = new java.util.ArrayList<>();
+        }
+        this.warnings.add(warning);
+    }
+
+    public void addAllWarnings(java.util.Collection<String> newWarnings) {
+        if (newWarnings == null) return;
+        if (this.warnings == null) {
+            this.warnings = new java.util.ArrayList<>();
+        }
+        this.warnings.addAll(newWarnings);
     }
 }

@@ -97,7 +97,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @param languages Set of language codes to include, or null for all
      */
     public void setIncludedLanguages(Set<String> languages) {
-        this.includedLanguages = languages;
+        this.includedLanguages = languages == null ? new java.util.LinkedHashSet<>() : new java.util.LinkedHashSet<>(languages);
     }
 
     // Metadata configuration for output files

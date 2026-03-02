@@ -540,27 +540,27 @@ public class XPathSnippet {
     }
 
     public Set<String> getTags() {
-        return tags;
+        return tags == null ? Collections.emptySet() : Collections.unmodifiableSet(tags);
     }
 
     public void setTags(Set<String> tags) {
-        this.tags = tags;
+        this.tags = tags == null ? new HashSet<>() : new LinkedHashSet<>(tags);
     }
 
     public Map<String, String> getVariables() {
-        return variables;
+        return variables == null ? Collections.emptyMap() : Collections.unmodifiableMap(variables);
     }
 
     public void setVariables(Map<String, String> variables) {
-        this.variables = variables;
+        this.variables = variables == null ? new HashMap<>() : new HashMap<>(variables);
     }
 
     public Map<String, String> getNamespaces() {
-        return namespaces;
+        return namespaces == null ? Collections.emptyMap() : Collections.unmodifiableMap(namespaces);
     }
 
     public void setNamespaces(Map<String, String> namespaces) {
-        this.namespaces = namespaces;
+        this.namespaces = namespaces == null ? new HashMap<>() : new HashMap<>(namespaces);
     }
 
     public String getContextPath() {
@@ -641,11 +641,11 @@ public class XPathSnippet {
     }
 
     public List<SnippetParameter> getParameters() {
-        return parameters;
+        return parameters == null ? Collections.emptyList() : Collections.unmodifiableList(parameters);
     }
 
     public void setParameters(List<SnippetParameter> parameters) {
-        this.parameters = parameters;
+        this.parameters = parameters == null ? new ArrayList<>() : new ArrayList<>(parameters);
     }
 
     public SnippetValidationRule getValidationRule() {

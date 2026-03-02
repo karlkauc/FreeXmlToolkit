@@ -66,7 +66,9 @@ public class PropertiesServiceImpl implements PropertiesService {
         } catch (IOException e) {
             logger.warn("No properties found!");
         }
-        return properties;
+        Properties copy = new Properties();
+        copy.putAll(properties);
+        return copy;
     }
 
     /**
@@ -77,7 +79,8 @@ public class PropertiesServiceImpl implements PropertiesService {
      */
     @Override
     public void saveProperties(Properties save) {
-        this.properties = save;
+        this.properties = new Properties();
+        this.properties.putAll(save);
 
         // Create a copy for saving with encrypted passwords
         Properties saveProps = new Properties();

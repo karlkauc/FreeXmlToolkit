@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.domain;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,6 +33,13 @@ public record TypeInfo(
         String contentModel,
         List<String> usageXPaths
 ) {
+    /**
+     * Defensive copy constructor to prevent external mutation of list fields.
+     */
+    public TypeInfo {
+        usageXPaths = usageXPaths == null ? List.of() : List.copyOf(usageXPaths);
+    }
+
     /**
      * Defines the category/type of XSD type definition.
      */

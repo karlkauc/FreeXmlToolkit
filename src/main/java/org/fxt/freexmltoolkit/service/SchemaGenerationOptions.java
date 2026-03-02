@@ -1370,7 +1370,7 @@ public class SchemaGenerationOptions {
      * @return the custom type mapping
      */
     public Map<String, String> getCustomTypeMapping() {
-        return customTypeMapping;
+        return customTypeMapping == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(customTypeMapping);
     }
 
     /**
@@ -1379,7 +1379,7 @@ public class SchemaGenerationOptions {
      * @param customTypeMapping the custom type mapping
      */
     public void setCustomTypeMapping(Map<String, String> customTypeMapping) {
-        this.customTypeMapping = customTypeMapping;
+        this.customTypeMapping = customTypeMapping == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(customTypeMapping);
     }
 
     /**
@@ -1390,7 +1390,7 @@ public class SchemaGenerationOptions {
      * @return the list of ignored element names
      */
     public List<String> getIgnoredElements() {
-        return ignoredElements;
+        return ignoredElements == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(ignoredElements);
     }
 
     /**
@@ -1399,7 +1399,7 @@ public class SchemaGenerationOptions {
      * @param ignoredElements the list of ignored element names
      */
     public void setIgnoredElements(List<String> ignoredElements) {
-        this.ignoredElements = ignoredElements;
+        this.ignoredElements = ignoredElements == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(ignoredElements);
     }
 
     /**
@@ -1410,7 +1410,7 @@ public class SchemaGenerationOptions {
      * @return the list of ignored attribute names
      */
     public List<String> getIgnoredAttributes() {
-        return ignoredAttributes;
+        return ignoredAttributes == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(ignoredAttributes);
     }
 
     /**
@@ -1419,7 +1419,7 @@ public class SchemaGenerationOptions {
      * @param ignoredAttributes the list of ignored attribute names
      */
     public void setIgnoredAttributes(List<String> ignoredAttributes) {
-        this.ignoredAttributes = ignoredAttributes;
+        this.ignoredAttributes = ignoredAttributes == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(ignoredAttributes);
     }
 
     /**
@@ -1430,7 +1430,7 @@ public class SchemaGenerationOptions {
      * @return the element rename mapping
      */
     public Map<String, String> getElementRenames() {
-        return elementRenames;
+        return elementRenames == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(elementRenames);
     }
 
     /**
@@ -1439,7 +1439,7 @@ public class SchemaGenerationOptions {
      * @param elementRenames the element rename mapping
      */
     public void setElementRenames(Map<String, String> elementRenames) {
-        this.elementRenames = elementRenames;
+        this.elementRenames = elementRenames == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(elementRenames);
     }
 
     /**
@@ -1450,7 +1450,7 @@ public class SchemaGenerationOptions {
      * @return the attribute rename mapping
      */
     public Map<String, String> getAttributeRenames() {
-        return attributeRenames;
+        return attributeRenames == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(attributeRenames);
     }
 
     /**
@@ -1459,7 +1459,7 @@ public class SchemaGenerationOptions {
      * @param attributeRenames the attribute rename mapping
      */
     public void setAttributeRenames(Map<String, String> attributeRenames) {
-        this.attributeRenames = attributeRenames;
+        this.attributeRenames = attributeRenames == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(attributeRenames);
     }
 
     /**

@@ -151,7 +151,7 @@ class XsdDocumentationDataTest {
             Map<String, XsdExtendedElement> elementMap = new HashMap<>();
             docData.setExtendedXsdElementMap(elementMap);
 
-            assertSame(elementMap, docData.getExtendedXsdElementMap());
+            assertEquals(elementMap, docData.getExtendedXsdElementMap());
         }
 
         @Test
@@ -160,7 +160,7 @@ class XsdDocumentationDataTest {
             Map<String, List<XsdExtendedElement>> typeUsageMap = new HashMap<>();
             docData.setTypeUsageMap(typeUsageMap);
 
-            assertSame(typeUsageMap, docData.getTypeUsageMap());
+            assertEquals(typeUsageMap, docData.getTypeUsageMap());
         }
 
         @Test

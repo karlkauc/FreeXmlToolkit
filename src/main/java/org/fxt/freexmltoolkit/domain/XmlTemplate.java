@@ -566,59 +566,72 @@ public class XmlTemplate {
     }
 
     public List<TemplateParameter> getParameters() {
-        return parameters;
+        return parameters == null ? Collections.emptyList() : Collections.unmodifiableList(parameters);
     }
 
     public void setParameters(List<TemplateParameter> parameters) {
-        this.parameters = parameters;
+        this.parameters = parameters == null ? new ArrayList<>() : new ArrayList<>(parameters);
     }
 
     public Map<String, String> getDefaultValues() {
-        return defaultValues;
+        return defaultValues == null ? Collections.emptyMap() : Collections.unmodifiableMap(defaultValues);
     }
 
     public void setDefaultValues(Map<String, String> defaultValues) {
-        this.defaultValues = defaultValues;
+        this.defaultValues = defaultValues == null ? new HashMap<>() : new HashMap<>(defaultValues);
     }
 
     public Set<String> getRequiredParameters() {
-        return requiredParameters;
+        return requiredParameters == null ? Collections.emptySet() : Collections.unmodifiableSet(requiredParameters);
     }
 
     public void setRequiredParameters(Set<String> requiredParameters) {
-        this.requiredParameters = requiredParameters;
+        this.requiredParameters = requiredParameters == null ? new HashSet<>() : new LinkedHashSet<>(requiredParameters);
     }
 
     public Set<TemplateContext> getContexts() {
-        return contexts;
+        return contexts == null ? Collections.emptySet() : Collections.unmodifiableSet(contexts);
+    }
+
+
+    /**
+     * Adds a single context to this template's context set.
+     *
+     * @param context the context to add
+     */
+    public void addContext(TemplateContext context) {
+        if (this.contexts == null) {
+            this.contexts = new java.util.HashSet<>();
+        }
+        this.contexts.add(context);
     }
 
     public void setContexts(Set<TemplateContext> contexts) {
-        this.contexts = contexts;
+        this.contexts = contexts == null ? new HashSet<>() : new LinkedHashSet<>(contexts);
     }
 
     public Set<String> getXmlNamespaces() {
-        return xmlNamespaces;
+        return xmlNamespaces == null ? Collections.emptySet() : Collections.unmodifiableSet(xmlNamespaces);
     }
 
     public void setXmlNamespaces(Set<String> xmlNamespaces) {
-        this.xmlNamespaces = xmlNamespaces;
+        this.xmlNamespaces = xmlNamespaces == null ? new HashSet<>() : new LinkedHashSet<>(xmlNamespaces);
     }
 
     public Set<String> getTargetElements() {
-        return targetElements;
+        return targetElements == null ? Collections.emptySet() : Collections.unmodifiableSet(targetElements);
     }
 
     public void setTargetElements(Set<String> targetElements) {
-        this.targetElements = targetElements;
+        this.targetElements = targetElements == null ? new HashSet<>() : new LinkedHashSet<>(targetElements);
     }
 
     public Set<String> getFileExtensions() {
-        return fileExtensions;
+        return fileExtensions == null ? Collections.emptySet() : Collections.unmodifiableSet(fileExtensions);
     }
 
     public void setFileExtensions(Set<String> fileExtensions) {
-        this.fileExtensions = fileExtensions;
+        this.fileExtensions = fileExtensions == null ? new HashSet<>() : new LinkedHashSet<>(fileExtensions);
     }
 
     public int getUsageCount() {
@@ -646,27 +659,27 @@ public class XmlTemplate {
     }
 
     public List<String> getTags() {
-        return tags;
+        return tags == null ? Collections.emptyList() : Collections.unmodifiableList(tags);
     }
 
     public void setTags(List<String> tags) {
-        this.tags = tags;
+        this.tags = tags == null ? new ArrayList<>() : new ArrayList<>(tags);
     }
 
     public List<TemplateValidationRule> getValidationRules() {
-        return validationRules;
+        return validationRules == null ? Collections.emptyList() : Collections.unmodifiableList(validationRules);
     }
 
     public void setValidationRules(List<TemplateValidationRule> validationRules) {
-        this.validationRules = validationRules;
+        this.validationRules = validationRules == null ? new ArrayList<>() : new ArrayList<>(validationRules);
     }
 
     public Map<String, String> getConditionalBlocks() {
-        return conditionalBlocks;
+        return conditionalBlocks == null ? Collections.emptyMap() : Collections.unmodifiableMap(conditionalBlocks);
     }
 
     public void setConditionalBlocks(Map<String, String> conditionalBlocks) {
-        this.conditionalBlocks = conditionalBlocks;
+        this.conditionalBlocks = conditionalBlocks == null ? new HashMap<>() : new HashMap<>(conditionalBlocks);
     }
 
     public boolean isRequiresValidation() {
@@ -726,11 +739,24 @@ public class XmlTemplate {
     }
 
     public Set<String> getRelatedStandards() {
-        return relatedStandards;
+        return relatedStandards == null ? Collections.emptySet() : Collections.unmodifiableSet(relatedStandards);
+    }
+
+
+    /**
+     * Adds a single related standard to this template.
+     *
+     * @param standard the standard name to add
+     */
+    public void addRelatedStandard(String standard) {
+        if (this.relatedStandards == null) {
+            this.relatedStandards = new java.util.HashSet<>();
+        }
+        this.relatedStandards.add(standard);
     }
 
     public void setRelatedStandards(Set<String> relatedStandards) {
-        this.relatedStandards = relatedStandards;
+        this.relatedStandards = relatedStandards == null ? new HashSet<>() : new LinkedHashSet<>(relatedStandards);
     }
 
     @Override

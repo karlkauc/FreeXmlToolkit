@@ -140,7 +140,7 @@ class XsdDocumentationPdfServiceTest {
     void testGeneratePdfDocumentation_WithSimpleTypes() throws Exception {
         // Given
         File outputFile = tempDir.resolve("simple-types.pdf").toFile();
-        testData.getGlobalComplexTypes().clear(); // Remove complex types
+        testData.setGlobalComplexTypes(new java.util.ArrayList<>()); // Remove complex types
 
         // When
         pdfService.generatePdfDocumentation(outputFile, testData);

@@ -129,6 +129,21 @@ public class XsdExtendedElement implements Serializable {
     public record RestrictionInfo(String base, Map<String, List<String>> facets) implements Serializable {
         @Serial
         private static final long serialVersionUID = 1L;
+
+        /**
+         * Compact constructor that creates a defensive copy of the facets map.
+         */
+        public RestrictionInfo {
+            if (facets != null) {
+                var copy = new LinkedHashMap<String, List<String>>();
+                for (var entry : facets.entrySet()) {
+                    copy.put(entry.getKey(), entry.getValue() != null
+                            ? Collections.unmodifiableList(new ArrayList<>(entry.getValue()))
+                            : List.of());
+                }
+                facets = Collections.unmodifiableMap(copy);
+            }
+        }
     }
 
     /**
@@ -522,19 +537,46 @@ public class XsdExtendedElement implements Serializable {
     }
 
     public List<String> getChildren() {
-        return children;
+        return Collections.unmodifiableList(children);
     }
 
     public void setChildren(List<String> children) {
-        this.children = children;
+        this.children = children != null ? new ArrayList<>(children) : new ArrayList<>();
+    }
+
+    /**
+     * Adds a child XPath to the children list if not already present.
+     *
+     * @param childXPath the child XPath to add
+     */
+    public void addChild(String childXPath) {
+        if (!children.contains(childXPath)) {
+            children.add(childXPath);
+        }
     }
 
     public List<DocumentationInfo> getDocumentations() {
-        return documentations;
+        return Collections.unmodifiableList(documentations);
     }
 
     public void setDocumentations(List<DocumentationInfo> documentations) {
-        this.documentations = documentations;
+        this.documentations = documentations != null ? new ArrayList<>(documentations) : new ArrayList<>();
+    }
+
+    /**
+     * Adds a documentation entry to the documentations list.
+     *
+     * @param docInfo the documentation info to add
+     */
+    public void addDocumentation(DocumentationInfo docInfo) {
+        documentations.add(docInfo);
+    }
+
+    /**
+     * Clears all documentation entries.
+     */
+    public void clearDocumentations() {
+        documentations.clear();
     }
 
     public RestrictionInfo getRestrictionInfo() {
@@ -554,51 +596,51 @@ public class XsdExtendedElement implements Serializable {
     }
 
     public List<String> getGenericAppInfos() {
-        return genericAppInfos;
+        return genericAppInfos != null ? Collections.unmodifiableList(genericAppInfos) : null;
     }
 
     public void setGenericAppInfos(List<String> genericAppInfos) {
-        this.genericAppInfos = genericAppInfos;
+        this.genericAppInfos = genericAppInfos != null ? new ArrayList<>(genericAppInfos) : null;
     }
 
     public List<String> getExampleValues() {
-        return exampleValues;
+        return Collections.unmodifiableList(exampleValues);
     }
 
     public void setExampleValues(List<String> exampleValues) {
-        this.exampleValues = exampleValues;
+        this.exampleValues = exampleValues != null ? new ArrayList<>(exampleValues) : new ArrayList<>();
     }
 
     public List<IdentityConstraint> getIdentityConstraints() {
-        return identityConstraints;
+        return Collections.unmodifiableList(identityConstraints);
     }
 
     public void setIdentityConstraints(List<IdentityConstraint> identityConstraints) {
-        this.identityConstraints = identityConstraints;
+        this.identityConstraints = identityConstraints != null ? new ArrayList<>(identityConstraints) : new ArrayList<>();
     }
 
     public List<XsdAssertion> getAssertions() {
-        return assertions;
+        return Collections.unmodifiableList(assertions);
     }
 
     public void setAssertions(List<XsdAssertion> assertions) {
-        this.assertions = assertions;
+        this.assertions = assertions != null ? new ArrayList<>(assertions) : new ArrayList<>();
     }
 
     public List<TypeAlternative> getTypeAlternatives() {
-        return typeAlternatives;
+        return Collections.unmodifiableList(typeAlternatives);
     }
 
     public void setTypeAlternatives(List<TypeAlternative> typeAlternatives) {
-        this.typeAlternatives = typeAlternatives;
+        this.typeAlternatives = typeAlternatives != null ? new ArrayList<>(typeAlternatives) : new ArrayList<>();
     }
 
     public List<Wildcard> getWildcards() {
-        return wildcards;
+        return Collections.unmodifiableList(wildcards);
     }
 
     public void setWildcards(List<Wildcard> wildcards) {
-        this.wildcards = wildcards;
+        this.wildcards = wildcards != null ? new ArrayList<>(wildcards) : new ArrayList<>();
     }
 
     public OpenContent getOpenContent() {
@@ -618,11 +660,11 @@ public class XsdExtendedElement implements Serializable {
     }
 
     public List<String> getUnionMemberTypes() {
-        return unionMemberTypes;
+        return unionMemberTypes != null ? Collections.unmodifiableList(unionMemberTypes) : null;
     }
 
     public void setUnionMemberTypes(List<String> unionMemberTypes) {
-        this.unionMemberTypes = unionMemberTypes;
+        this.unionMemberTypes = unionMemberTypes != null ? new ArrayList<>(unionMemberTypes) : null;
     }
 
     /**

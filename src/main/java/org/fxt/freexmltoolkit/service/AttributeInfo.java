@@ -673,7 +673,7 @@ public class AttributeInfo {
      * @return The list of sample values.
      */
     public List<String> getSampleValues() {
-        return sampleValues;
+        return sampleValues == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(sampleValues);
     }
 
     /**
@@ -682,7 +682,7 @@ public class AttributeInfo {
      * @param sampleValues The list of sample values to set.
      */
     public void setSampleValues(List<String> sampleValues) {
-        this.sampleValues = sampleValues;
+        this.sampleValues = sampleValues == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(sampleValues);
     }
 
     /**
@@ -763,7 +763,7 @@ public class AttributeInfo {
      * @return The pattern counts.
      */
     public Map<String, Integer> getPatternCounts() {
-        return patternCounts;
+        return patternCounts == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(patternCounts);
     }
 
     /**
@@ -772,7 +772,7 @@ public class AttributeInfo {
      * @param patternCounts The pattern counts to set.
      */
     public void setPatternCounts(Map<String, Integer> patternCounts) {
-        this.patternCounts = patternCounts;
+        this.patternCounts = patternCounts == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(patternCounts);
     }
 
     /**
@@ -925,7 +925,7 @@ public class AttributeInfo {
      * @return The statistics map.
      */
     public Map<String, Object> getStatistics() {
-        return statistics;
+        return statistics == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(statistics);
     }
 
     /**
@@ -934,7 +934,7 @@ public class AttributeInfo {
      * @param statistics The statistics map to set.
      */
     public void setStatistics(Map<String, Object> statistics) {
-        this.statistics = statistics;
+        this.statistics = statistics == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(statistics);
     }
 
     /**
@@ -979,7 +979,7 @@ public class AttributeInfo {
      * @return The value frequency map.
      */
     public Map<String, Integer> getValueFrequency() {
-        return valueFrequency;
+        return valueFrequency == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(valueFrequency);
     }
 
     /**
@@ -988,7 +988,7 @@ public class AttributeInfo {
      * @param valueFrequency The value frequency map to set.
      */
     public void setValueFrequency(Map<String, Integer> valueFrequency) {
-        this.valueFrequency = valueFrequency;
+        this.valueFrequency = valueFrequency == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(valueFrequency);
     }
 
     /**
@@ -1015,7 +1015,7 @@ public class AttributeInfo {
      * @return The list of comments.
      */
     public List<String> getComments() {
-        return comments;
+        return comments == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(comments);
     }
 
     /**
@@ -1024,7 +1024,7 @@ public class AttributeInfo {
      * @param comments The list of comments to set.
      */
     public void setComments(List<String> comments) {
-        this.comments = comments;
+        this.comments = comments == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(comments);
     }
 
     /**

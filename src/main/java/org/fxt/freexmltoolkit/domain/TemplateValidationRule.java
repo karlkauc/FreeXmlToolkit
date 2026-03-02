@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.domain;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -273,7 +275,7 @@ public class TemplateValidationRule {
      * @return the list of target parameter names
      */
     public List<String> getTargetParameters() {
-        return targetParameters;
+        return targetParameters == null ? Collections.emptyList() : Collections.unmodifiableList(targetParameters);
     }
 
     /**
@@ -282,7 +284,7 @@ public class TemplateValidationRule {
      * @param targetParameters the list of target parameter names to set
      */
     public void setTargetParameters(List<String> targetParameters) {
-        this.targetParameters = targetParameters;
+        this.targetParameters = targetParameters == null ? new ArrayList<>() : new ArrayList<>(targetParameters);
     }
 
     /**

@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.domain;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -82,7 +83,7 @@ public enum UnifiedEditorFileType {
      * @return set of file extensions (without dots)
      */
     public Set<String> getExtensions() {
-        return extensions;
+        return extensions == null ? Collections.emptySet() : Collections.unmodifiableSet(extensions);
     }
 
     /**

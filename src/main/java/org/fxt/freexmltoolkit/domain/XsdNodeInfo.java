@@ -37,6 +37,14 @@ public record XsdNodeInfo(
         Map<String, String> xsd11Attributes  // Additional XSD 1.1 attributes
 ) {
     /**
+     * Compact constructor that creates defensive copies of mutable collection parameters.
+     */
+    public XsdNodeInfo {
+        children = children == null ? List.of() : List.copyOf(children);
+        exampleValues = exampleValues == null ? List.of() : List.copyOf(exampleValues);
+        xsd11Attributes = xsd11Attributes == null ? Map.of() : Map.copyOf(xsd11Attributes);
+    }
+    /**
      * Convenience constructor for backward compatibility (XSD 1.0)
      */
     public XsdNodeInfo(String name, String type, String xpath, String documentation,

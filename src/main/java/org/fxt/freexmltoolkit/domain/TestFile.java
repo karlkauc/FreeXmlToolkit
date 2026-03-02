@@ -7,6 +7,7 @@ import javafx.beans.property.StringProperty;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -191,7 +192,7 @@ public class TestFile {
      * @return list of test results
      */
     public List<TestResult> getDetailedResults() {
-        return detailedResults;
+        return detailedResults == null ? Collections.emptyList() : Collections.unmodifiableList(detailedResults);
     }
 
     /**

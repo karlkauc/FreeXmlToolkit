@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 /**
  * Comprehensive performance profiling for XSLT transformations.
@@ -478,7 +479,7 @@ public class TransformationProfile {
      * @return A map of template names to their total execution times
      */
     public Map<String, Long> getTemplateExecutionTimes() {
-        return templateExecutionTimes;
+        return templateExecutionTimes == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(templateExecutionTimes);
     }
 
     /**
@@ -487,7 +488,7 @@ public class TransformationProfile {
      * @return A map of template names to their execution counts
      */
     public Map<String, Integer> getTemplateExecutionCounts() {
-        return templateExecutionCounts;
+        return templateExecutionCounts == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(templateExecutionCounts);
     }
 
     /**
@@ -496,7 +497,7 @@ public class TransformationProfile {
      * @return The list of profile events
      */
     public List<ProfileEvent> getEvents() {
-        return events;
+        return events == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(events);
     }
 
     /**
@@ -505,7 +506,7 @@ public class TransformationProfile {
      * @return A map of custom metrics
      */
     public Map<String, Object> getCustomMetrics() {
-        return customMetrics;
+        return customMetrics == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(customMetrics);
     }
 
     /**
@@ -581,5 +582,15 @@ public class TransformationProfile {
      * @param executionCount Number of executions
      */
     public record TemplatePerformanceInfo(String name, long totalTime, long averageTime, int executionCount) {
+    }
+
+    public void putAllTemplateExecutionTimes(Map<String, Long> times) {
+        if (times == null) return;
+        this.templateExecutionTimes.putAll(times);
+    }
+
+    public void putAllTemplateExecutionCounts(Map<String, Integer> counts) {
+        if (counts == null) return;
+        this.templateExecutionCounts.putAll(counts);
     }
 }

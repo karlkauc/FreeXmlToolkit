@@ -283,7 +283,7 @@ public class TemplateRepository {
                 .pattern("[a-zA-Z][a-zA-Z0-9_-]*"));
         elementTemplate.addParameter(TemplateParameter.stringParam("content", "")
                 .placeholder("Enter element content"));
-        elementTemplate.getContexts().add(XmlTemplate.TemplateContext.CHILD_ELEMENT);
+        elementTemplate.addContext(XmlTemplate.TemplateContext.CHILD_ELEMENT);
         elementTemplate.setBuiltIn(true);
         addTemplate(elementTemplate);
 
@@ -317,7 +317,7 @@ public class TemplateRepository {
         commentTemplate.setDescription("XML comment");
         commentTemplate.addParameter(TemplateParameter.requiredString("comment")
                 .placeholder("Enter comment text"));
-        commentTemplate.getContexts().add(XmlTemplate.TemplateContext.COMMENT);
+        commentTemplate.addContext(XmlTemplate.TemplateContext.COMMENT);
         commentTemplate.setBuiltIn(true);
         addTemplate(commentTemplate);
     }
@@ -449,7 +449,7 @@ public class TemplateRepository {
         springConfig.addParameter(TemplateParameter.requiredString("beanClass"));
         springConfig.addParameter(TemplateParameter.stringParam("propertyName", ""));
         springConfig.addParameter(TemplateParameter.stringParam("propertyValue", ""));
-        springConfig.getRelatedStandards().add("Spring Framework");
+        springConfig.addRelatedStandard("Spring Framework");
         springConfig.setBuiltIn(true);
         addTemplate(springConfig);
 
@@ -489,7 +489,7 @@ public class TemplateRepository {
         mavenPom.addParameter(TemplateParameter.requiredString("projectName"));
         mavenPom.addParameter(TemplateParameter.stringParam("projectDescription", ""));
         mavenPom.addParameter(TemplateParameter.enumParam("javaVersion", "11", "17", "21"));
-        mavenPom.getRelatedStandards().add("Maven");
+        mavenPom.addRelatedStandard("Maven");
         mavenPom.setBuiltIn(true);
         addTemplate(mavenPom);
     }
@@ -757,7 +757,7 @@ public class TemplateRepository {
         xsdSchema.addParameter(TemplateParameter.stringParam("attributeName", ""));
         xsdSchema.addParameter(TemplateParameter.enumParam("attributeType", "string", "int", "boolean"));
         xsdSchema.addParameter(TemplateParameter.enumParam("attributeUse", "required", "optional"));
-        xsdSchema.getRelatedStandards().add("XML Schema");
+        xsdSchema.addRelatedStandard("XML Schema");
         xsdSchema.setBuiltIn(true);
         addTemplate(xsdSchema);
     }
@@ -793,7 +793,7 @@ public class TemplateRepository {
         xsltTemplate.addParameter(TemplateParameter.requiredString("matchPattern"));
         xsltTemplate.addParameter(TemplateParameter.requiredString("outputElement"));
         xsltTemplate.addParameter(TemplateParameter.stringParam("valuePath", "."));
-        xsltTemplate.getRelatedStandards().add("XSLT 3.0");
+        xsltTemplate.addRelatedStandard("XSLT 3.0");
         xsltTemplate.setComplexity(XmlTemplate.TemplateComplexity.COMPLEX);
         xsltTemplate.setBuiltIn(true);
         addTemplate(xsltTemplate);

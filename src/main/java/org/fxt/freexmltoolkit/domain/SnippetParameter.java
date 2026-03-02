@@ -614,7 +614,7 @@ public class SnippetParameter {
      * @return an array of possible values, or null if not set
      */
     public String[] getPossibleValues() {
-        return possibleValues;
+        return possibleValues == null ? null : possibleValues.clone();
     }
 
     /**
@@ -623,7 +623,7 @@ public class SnippetParameter {
      * @param possibleValues the allowed values for this parameter
      */
     public void setPossibleValues(String[] possibleValues) {
-        this.possibleValues = possibleValues;
+        this.possibleValues = possibleValues == null ? null : possibleValues.clone();
     }
 
     /**

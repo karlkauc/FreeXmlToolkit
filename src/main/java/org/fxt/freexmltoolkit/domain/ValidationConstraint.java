@@ -18,6 +18,13 @@ public record ValidationConstraint(
         String description,    // Human-readable description
         Map<String, String> attributes  // Additional attributes
 ) {
+    /**
+     * Defensive copy constructor to prevent external mutation of map fields.
+     */
+    public ValidationConstraint {
+        attributes = attributes == null ? null : Map.copyOf(attributes);
+    }
+
 
     /**
      * Creates a pattern constraint.

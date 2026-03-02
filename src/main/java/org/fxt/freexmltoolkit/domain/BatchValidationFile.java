@@ -23,6 +23,7 @@ import org.xml.sax.SAXParseException;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -235,7 +236,7 @@ public class BatchValidationFile {
      * @return The list of errors.
      */
     public List<SAXParseException> getErrors() {
-        return errors;
+        return errors == null ? Collections.emptyList() : Collections.unmodifiableList(errors);
     }
 
     /**

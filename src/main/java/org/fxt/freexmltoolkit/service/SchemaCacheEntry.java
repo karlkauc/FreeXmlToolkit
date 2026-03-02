@@ -102,6 +102,12 @@ public record SchemaCacheEntry(
             List<String> includes,
             List<String> redefines
     ) {
+        public SchemaInfo {
+            imports = imports != null ? List.copyOf(imports) : List.of();
+            includes = includes != null ? List.copyOf(includes) : List.of();
+            redefines = redefines != null ? List.copyOf(redefines) : List.of();
+        }
+
         /**
          * Creates an empty SchemaInfo for cases where parsing failed.
          *
@@ -152,6 +158,10 @@ public record SchemaCacheEntry(
             long accessCount,
             List<String> referencedBy
     ) {
+        public UsageInfo {
+            referencedBy = referencedBy != null ? List.copyOf(referencedBy) : List.of();
+        }
+
         /**
          * Creates initial usage info for a newly cached schema.
          *

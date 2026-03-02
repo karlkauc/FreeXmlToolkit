@@ -38,6 +38,10 @@ public class XPath2Service {
             String errorMessage,
             XdmValue xdmValue
     ) {
+        public XPath2Result {
+            values = values != null ? List.copyOf(values) : List.of();
+        }
+
         public static XPath2Result success(List<String> values, XdmValue xdmValue) {
             return new XPath2Result(true, values, null, xdmValue);
         }

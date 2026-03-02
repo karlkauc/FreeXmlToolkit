@@ -239,7 +239,7 @@ public class XsdDocumentationService {
      * @return Set of included language codes, or null if all languages are included
      */
     public Set<String> getIncludedLanguages() {
-        return includedLanguages;
+        return includedLanguages == null ? null : Collections.unmodifiableSet(includedLanguages);
     }
 
     /**
@@ -1209,6 +1209,10 @@ public class XsdDocumentationService {
             int maxOccurs,
             List<MandatoryChildInfo> children
     ) {
+        public MandatoryChildInfo {
+            children = children == null ? java.util.List.of() : java.util.List.copyOf(children);
+        }
+
         public boolean hasChildren() {
             return children != null && !children.isEmpty();
         }
@@ -1512,21 +1516,18 @@ public class XsdDocumentationService {
         extendedElem.setElementType("External Reference (" + ref + ")");
 
         // Add a note that this is an imported element
-        extendedElem.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("default",
+        extendedElem.addDocumentation(new XsdExtendedElement.DocumentationInfo("default",
                 "Element imported from namespace: " + (namespaceUri != null ? namespaceUri : ref)));
         // Store source code from the reference node itself
         extendedElem.setSourceCode(nodeToString(node));
 
         // Add to parent's children list
         if (parentXPath != null && xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
-            List<String> parentChildren = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren();
-            if (!parentChildren.contains(elementXPath)) {
-                parentChildren.add(elementXPath);
-            }
+            xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).addChild(elementXPath);
         }
 
         // Store in the element map
-        xsdDocumentationData.getExtendedXsdElementMap().put(elementXPath, extendedElem);
+        xsdDocumentationData.putExtendedXsdElement(elementXPath, extendedElem);
         logger.debug("Added external namespace reference: {} (namespace: {})", ref, namespaceUri);
     }
 
@@ -1582,12 +1583,9 @@ public class XsdDocumentationService {
 
         // Add to parent's children list (only if not already added)
         if (parentXPath != null && xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
-            List<String> parentChildren = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren();
-            if (!parentChildren.contains(currentXPath)) {
-                parentChildren.add(currentXPath);
-            }
+            xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).addChild(currentXPath);
         }
-        xsdDocumentationData.getExtendedXsdElementMap().put(currentXPath, extendedElem);
+        xsdDocumentationData.putExtendedXsdElement(currentXPath, extendedElem);
 
         // --- Type, Documentation, and Content Processing ---
         String typeName = getAttributeValue(node, "type");
@@ -1770,10 +1768,7 @@ public class XsdDocumentationService {
 
             // Ensure attributes are added as children to the parent element (deduped)
             if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
-                List<String> parentChildren = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren();
-                if (!parentChildren.contains(childXPath)) {
-                    parentChildren.add(childXPath);
-                }
+                xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).addChild(childXPath);
             }
 
             traverseNode(child, childXPath, parentXPath, level + 1, visitedOnPath);
@@ -1802,12 +1797,9 @@ public class XsdDocumentationService {
 
             // Add container as child of parent
             if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
-                List<String> parentChildren = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren();
-                if (!parentChildren.contains(containerXPath)) {
-                    parentChildren.add(containerXPath);
-                }
+                xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).addChild(containerXPath);
             }
-            xsdDocumentationData.getExtendedXsdElementMap().put(containerXPath, containerElem);
+            xsdDocumentationData.putExtendedXsdElement(containerXPath, containerElem);
 
             // Process children of this compositor with the container as their parent
             for (Node child : getDirectChildElements(contentNode)) {
@@ -1851,10 +1843,7 @@ public class XsdDocumentationService {
                 childXPath = parentXPath + "/@" + childName;
                 // Ensure attributes are added as children of the parent element (only if not already added)
                 if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
-                    List<String> parentChildren = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren();
-                    if (!parentChildren.contains(childXPath)) {
-                        parentChildren.add(childXPath);
-                    }
+                    xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).addChild(childXPath);
                 }
             } else if ("element".equals(childLocalName)) {
                 childXPath = parentXPath + "/" + childName;
@@ -2158,6 +2147,13 @@ public class XsdDocumentationService {
      * @param errors List of validation errors
      */
     public record ValidationResult(boolean isValid, String message, List<ValidationError> errors) {
+
+        public ValidationResult(boolean isValid, String message, List<ValidationError> errors) {
+            this.isValid = isValid;
+            this.message = message;
+            this.errors = errors == null ? List.of() : List.copyOf(errors);
+        }
+
         public ValidationResult(boolean isValid, String message) {
             this(isValid, message, List.of());
         }
@@ -2793,20 +2789,20 @@ public class XsdDocumentationService {
             // Normalize language to lowercase for case-insensitive comparison
             String normalizedLang = lang != null ? lang.toLowerCase() : "default";
             discoveredLanguages.add(normalizedLang); // Track discovered language for UI configuration
-            extendedElem.getDocumentations().add(new DocumentationInfo(normalizedLang, docNode.getTextContent()));
+            extendedElem.addDocumentation(new DocumentationInfo(normalizedLang, docNode.getTextContent()));
         }
 
         // 2. Process AppInfo tags (for Javadoc and Altova examples)
         XsdDocInfo xsdDocInfo = extendedElem.getXsdDocInfo() != null ? extendedElem.getXsdDocInfo() : new XsdDocInfo();
-        List<String> genericAppInfos = extendedElem.getGenericAppInfos() != null ? extendedElem.getGenericAppInfos() : new ArrayList<>();
-        List<String> exampleValues = extendedElem.getExampleValues(); // Get list for example values
+        List<String> genericAppInfos = extendedElem.getGenericAppInfos() != null ? new ArrayList<>(extendedElem.getGenericAppInfos()) : new ArrayList<>();
+        List<String> exampleValues = new ArrayList<>(extendedElem.getExampleValues()); // Mutable copy for example values
 
         for (Node appInfoNode : getDirectChildElements(annotationNode, "appinfo")) {
             // Process Javadoc-style tags
             String source = getAttributeValue(appInfoNode, "source");
             if (source != null && !source.isBlank()) {
                 if (source.startsWith("@since")) xsdDocInfo.setSince(source.substring("@since".length()).trim());
-                else if (source.startsWith("@see")) xsdDocInfo.getSee().add(source.substring("@see".length()).trim());
+                else if (source.startsWith("@see")) xsdDocInfo.addSee(source.substring("@see".length()).trim());
                 else if (source.startsWith("@deprecated"))
                     xsdDocInfo.setDeprecated(source.substring("@deprecated".length()).trim());
                 else genericAppInfos.add(source);
@@ -2842,7 +2838,9 @@ public class XsdDocumentationService {
         if (!genericAppInfos.isEmpty()) {
             extendedElem.setGenericAppInfos(genericAppInfos);
         }
-        // The 'exampleValues' list was modified directly, setExampleValues is not needed.
+        if (!exampleValues.isEmpty()) {
+            extendedElem.setExampleValues(exampleValues);
+        }
     }
 
     /**
@@ -3206,7 +3204,8 @@ public class XsdDocumentationService {
         if (base != null && !base.startsWith("xs:") && !base.startsWith("xsd:")) {
             RestrictionInfo inheritedFacets = getInheritedFacets(base);
             if (inheritedFacets != null && inheritedFacets.facets() != null) {
-                facets.putAll(inheritedFacets.facets());
+                // Create mutable copies of inherited facet lists so they can be extended
+                inheritedFacets.facets().forEach((k, v) -> facets.put(k, new ArrayList<>(v)));
                 // Update the base to the ultimate primitive type if available
                 if (inheritedFacets.base() != null) {
                     base = inheritedFacets.base();

@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.domain;
 import org.w3c.dom.Node;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,51 +88,61 @@ public class XsdDocumentationData {
     // --- Getters and Setters ---
 
     public Map<String, List<XsdExtendedElement>> getTypeUsageMap() {
-        return typeUsageMap;
+        return Collections.unmodifiableMap(typeUsageMap);
     }
 
     public void setTypeUsageMap(Map<String, List<XsdExtendedElement>> typeUsageMap) {
-        this.typeUsageMap = typeUsageMap;
+        this.typeUsageMap = typeUsageMap != null ? new HashMap<>(typeUsageMap) : new HashMap<>();
     }
 
     public List<Node> getGlobalComplexTypes() {
-        return globalComplexTypes;
+        return Collections.unmodifiableList(globalComplexTypes);
     }
 
     public void setGlobalComplexTypes(List<Node> globalComplexTypes) {
-        this.globalComplexTypes = globalComplexTypes;
+        this.globalComplexTypes = globalComplexTypes != null ? new ArrayList<>(globalComplexTypes) : new ArrayList<>();
     }
 
     public List<Node> getGlobalSimpleTypes() {
-        return globalSimpleTypes;
+        return Collections.unmodifiableList(globalSimpleTypes);
     }
 
     public void setGlobalSimpleTypes(List<Node> globalSimpleTypes) {
-        this.globalSimpleTypes = globalSimpleTypes;
+        this.globalSimpleTypes = globalSimpleTypes != null ? new ArrayList<>(globalSimpleTypes) : new ArrayList<>();
     }
 
     public List<Node> getGlobalElements() {
-        return globalElements;
+        return Collections.unmodifiableList(globalElements);
     }
 
     public void setGlobalElements(List<Node> globalElements) {
-        this.globalElements = globalElements;
+        this.globalElements = globalElements != null ? new ArrayList<>(globalElements) : new ArrayList<>();
     }
 
     public Map<String, String> getNamespaces() {
-        return namespaces;
+        return Collections.unmodifiableMap(namespaces);
     }
 
     public void setNamespaces(Map<String, String> namespaces) {
-        this.namespaces = namespaces;
+        this.namespaces = namespaces != null ? new HashMap<>(namespaces) : new HashMap<>();
     }
 
     public Map<String, XsdExtendedElement> getExtendedXsdElementMap() {
-        return extendedXsdElementMap;
+        return Collections.unmodifiableMap(extendedXsdElementMap);
     }
 
     public void setExtendedXsdElementMap(Map<String, XsdExtendedElement> extendedXsdElementMap) {
-        this.extendedXsdElementMap = extendedXsdElementMap;
+        this.extendedXsdElementMap = extendedXsdElementMap != null ? new HashMap<>(extendedXsdElementMap) : new HashMap<>();
+    }
+
+    /**
+     * Adds or replaces an element in the extended XSD element map.
+     *
+     * @param xpath   the XPath key
+     * @param element the extended element to store
+     */
+    public void putExtendedXsdElement(String xpath, XsdExtendedElement element) {
+        extendedXsdElementMap.put(xpath, element);
     }
 
     public String getXsdFilePath() {

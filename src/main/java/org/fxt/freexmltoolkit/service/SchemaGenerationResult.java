@@ -533,7 +533,7 @@ public class SchemaGenerationResult {
      * @return the list of warning messages
      */
     public List<String> getWarnings() {
-        return warnings;
+        return warnings == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(warnings);
     }
 
     /**
@@ -542,7 +542,7 @@ public class SchemaGenerationResult {
      * @param warnings the list of warning messages
      */
     public void setWarnings(List<String> warnings) {
-        this.warnings = warnings;
+        this.warnings = warnings == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(warnings);
     }
 
     /**
@@ -551,7 +551,7 @@ public class SchemaGenerationResult {
      * @return the list of informational messages
      */
     public List<String> getInformationalMessages() {
-        return informationalMessages;
+        return informationalMessages == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(informationalMessages);
     }
 
     /**
@@ -560,7 +560,7 @@ public class SchemaGenerationResult {
      * @param informationalMessages the list of informational messages
      */
     public void setInformationalMessages(List<String> informationalMessages) {
-        this.informationalMessages = informationalMessages;
+        this.informationalMessages = informationalMessages == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(informationalMessages);
     }
 
     /**
@@ -665,7 +665,7 @@ public class SchemaGenerationResult {
      * @return the analysis metadata map
      */
     public Map<String, Object> getAnalysisMetadata() {
-        return analysisMetadata;
+        return analysisMetadata == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(analysisMetadata);
     }
 
     /**
@@ -674,7 +674,7 @@ public class SchemaGenerationResult {
      * @param analysisMetadata the analysis metadata map
      */
     public void setAnalysisMetadata(Map<String, Object> analysisMetadata) {
-        this.analysisMetadata = analysisMetadata;
+        this.analysisMetadata = analysisMetadata == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(analysisMetadata);
     }
 
     /**
@@ -791,7 +791,7 @@ public class SchemaGenerationResult {
      * @return the quality metrics map (metric name to value)
      */
     public Map<String, Double> getQualityMetrics() {
-        return qualityMetrics;
+        return qualityMetrics == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(qualityMetrics);
     }
 
     /**
@@ -800,7 +800,7 @@ public class SchemaGenerationResult {
      * @param qualityMetrics the quality metrics map
      */
     public void setQualityMetrics(Map<String, Double> qualityMetrics) {
-        this.qualityMetrics = qualityMetrics;
+        this.qualityMetrics = qualityMetrics == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(qualityMetrics);
     }
 
     /**
@@ -809,7 +809,7 @@ public class SchemaGenerationResult {
      * @return the list of optimization suggestions
      */
     public List<String> getOptimizationSuggestions() {
-        return optimizationSuggestions;
+        return optimizationSuggestions == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(optimizationSuggestions);
     }
 
     /**
@@ -818,7 +818,7 @@ public class SchemaGenerationResult {
      * @param optimizationSuggestions the list of optimization suggestions
      */
     public void setOptimizationSuggestions(List<String> optimizationSuggestions) {
-        this.optimizationSuggestions = optimizationSuggestions;
+        this.optimizationSuggestions = optimizationSuggestions == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(optimizationSuggestions);
     }
 
     /**
@@ -827,7 +827,7 @@ public class SchemaGenerationResult {
      * @return the list of validation issues
      */
     public List<String> getValidationIssues() {
-        return validationIssues;
+        return validationIssues == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(validationIssues);
     }
 
     /**
@@ -836,7 +836,7 @@ public class SchemaGenerationResult {
      * @param validationIssues the list of validation issues
      */
     public void setValidationIssues(List<String> validationIssues) {
-        this.validationIssues = validationIssues;
+        this.validationIssues = validationIssues == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(validationIssues);
     }
 
     /**
@@ -845,7 +845,7 @@ public class SchemaGenerationResult {
      * @return the generation statistics map (statistic name to count)
      */
     public Map<String, Integer> getGenerationStatistics() {
-        return generationStatistics;
+        return generationStatistics == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(generationStatistics);
     }
 
     /**
@@ -854,7 +854,7 @@ public class SchemaGenerationResult {
      * @param generationStatistics the generation statistics map
      */
     public void setGenerationStatistics(Map<String, Integer> generationStatistics) {
-        this.generationStatistics = generationStatistics;
+        this.generationStatistics = generationStatistics == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(generationStatistics);
     }
 
     /**
@@ -953,7 +953,7 @@ public class SchemaGenerationResult {
      * @return the list of processing steps with timestamps
      */
     public List<String> getProcessingSteps() {
-        return processingSteps;
+        return processingSteps == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(processingSteps);
     }
 
     /**
@@ -962,7 +962,7 @@ public class SchemaGenerationResult {
      * @param processingSteps the list of processing steps
      */
     public void setProcessingSteps(List<String> processingSteps) {
-        this.processingSteps = processingSteps;
+        this.processingSteps = processingSteps == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(processingSteps);
     }
 
     /**
@@ -971,7 +971,7 @@ public class SchemaGenerationResult {
      * @return the step timings map (step name to time in milliseconds)
      */
     public Map<String, Long> getStepTimings() {
-        return stepTimings;
+        return stepTimings == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(stepTimings);
     }
 
     /**
@@ -980,7 +980,7 @@ public class SchemaGenerationResult {
      * @param stepTimings the step timings map
      */
     public void setStepTimings(Map<String, Long> stepTimings) {
-        this.stepTimings = stepTimings;
+        this.stepTimings = stepTimings == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(stepTimings);
     }
 
     /**
@@ -989,7 +989,7 @@ public class SchemaGenerationResult {
      * @return the list of applied optimizations
      */
     public List<String> getAppliedOptimizations() {
-        return appliedOptimizations;
+        return appliedOptimizations == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(appliedOptimizations);
     }
 
     /**
@@ -998,6 +998,6 @@ public class SchemaGenerationResult {
      * @param appliedOptimizations the list of applied optimizations
      */
     public void setAppliedOptimizations(List<String> appliedOptimizations) {
-        this.appliedOptimizations = appliedOptimizations;
+        this.appliedOptimizations = appliedOptimizations == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(appliedOptimizations);
     }
 }

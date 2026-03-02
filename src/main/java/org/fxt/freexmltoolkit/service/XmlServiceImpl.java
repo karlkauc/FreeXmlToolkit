@@ -1794,7 +1794,7 @@ public class XmlServiceImpl implements XmlService {
                     if (source.startsWith("@since")) {
                         docInfo.setSince(source.substring("@since".length()).trim());
                     } else if (source.startsWith("@see")) {
-                        docInfo.getSee().add(source.substring("@see".length()).trim());
+                        docInfo.addSee(source.substring("@see".length()).trim());
                     } else if (source.startsWith("@deprecated")) {
                         docInfo.setDeprecated(source.substring("@deprecated".length()).trim());
                     }

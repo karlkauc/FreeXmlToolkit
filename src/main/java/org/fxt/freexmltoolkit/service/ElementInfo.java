@@ -1038,7 +1038,7 @@ public class ElementInfo {
      * @return map of attribute names to their info
      */
     public Map<String, AttributeInfo> getAttributes() {
-        return attributes;
+        return attributes == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(attributes);
     }
 
     /**
@@ -1047,7 +1047,7 @@ public class ElementInfo {
      * @param attributes map of attribute names to their info
      */
     public void setAttributes(Map<String, AttributeInfo> attributes) {
-        this.attributes = attributes;
+        this.attributes = attributes == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(attributes);
     }
 
     /**
@@ -1056,7 +1056,7 @@ public class ElementInfo {
      * @return list of all child elements
      */
     public List<ElementInfo> getAllChildren() {
-        return allChildren;
+        return allChildren == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(allChildren);
     }
 
     /**
@@ -1065,7 +1065,7 @@ public class ElementInfo {
      * @param allChildren list of all child elements
      */
     public void setAllChildren(List<ElementInfo> allChildren) {
-        this.allChildren = allChildren;
+        this.allChildren = allChildren == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(allChildren);
     }
 
     /**
@@ -1200,7 +1200,7 @@ public class ElementInfo {
      * @return list of sample values (limited size)
      */
     public List<String> getSampleValues() {
-        return sampleValues;
+        return sampleValues == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(sampleValues);
     }
 
     /**
@@ -1209,7 +1209,7 @@ public class ElementInfo {
      * @param sampleValues list of sample values
      */
     public void setSampleValues(List<String> sampleValues) {
-        this.sampleValues = sampleValues;
+        this.sampleValues = sampleValues == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(sampleValues);
     }
 
     /**
@@ -1218,7 +1218,7 @@ public class ElementInfo {
      * @return map of values to their frequency counts
      */
     public Map<String, Integer> getValueFrequency() {
-        return valueFrequency;
+        return valueFrequency == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(valueFrequency);
     }
 
     /**
@@ -1227,7 +1227,7 @@ public class ElementInfo {
      * @param valueFrequency map of values to their frequency counts
      */
     public void setValueFrequency(Map<String, Integer> valueFrequency) {
-        this.valueFrequency = valueFrequency;
+        this.valueFrequency = valueFrequency == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(valueFrequency);
     }
 
     /**
@@ -1236,7 +1236,7 @@ public class ElementInfo {
      * @return set of detected patterns
      */
     public Set<String> getDetectedPatterns() {
-        return detectedPatterns;
+        return detectedPatterns == null ? java.util.Collections.emptySet() : java.util.Collections.unmodifiableSet(detectedPatterns);
     }
 
     /**
@@ -1245,7 +1245,7 @@ public class ElementInfo {
      * @param detectedPatterns set of detected patterns
      */
     public void setDetectedPatterns(Set<String> detectedPatterns) {
-        this.detectedPatterns = detectedPatterns;
+        this.detectedPatterns = detectedPatterns == null ? new java.util.HashSet<>() : new java.util.HashSet<>(detectedPatterns);
     }
 
     /**
@@ -1254,7 +1254,7 @@ public class ElementInfo {
      * @return map of pattern names to their counts
      */
     public Map<String, Integer> getPatternCounts() {
-        return patternCounts;
+        return patternCounts == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(patternCounts);
     }
 
     /**
@@ -1263,7 +1263,7 @@ public class ElementInfo {
      * @param patternCounts map of pattern names to their counts
      */
     public void setPatternCounts(Map<String, Integer> patternCounts) {
-        this.patternCounts = patternCounts;
+        this.patternCounts = patternCounts == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(patternCounts);
     }
 
     /**
@@ -1434,7 +1434,7 @@ public class ElementInfo {
      * @return map of statistics
      */
     public Map<String, Object> getStatistics() {
-        return statistics;
+        return statistics == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(statistics);
     }
 
     /**
@@ -1443,7 +1443,7 @@ public class ElementInfo {
      * @param statistics map of statistics
      */
     public void setStatistics(Map<String, Object> statistics) {
-        this.statistics = statistics;
+        this.statistics = statistics == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(statistics);
     }
 
     /**
@@ -1524,7 +1524,7 @@ public class ElementInfo {
      * @return map of child names to their occurrence frequencies
      */
     public Map<String, Double> getChildFrequencies() {
-        return childFrequencies;
+        return childFrequencies == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(childFrequencies);
     }
 
     /**
@@ -1533,7 +1533,7 @@ public class ElementInfo {
      * @param childFrequencies map of child names to their occurrence frequencies
      */
     public void setChildFrequencies(Map<String, Double> childFrequencies) {
-        this.childFrequencies = childFrequencies;
+        this.childFrequencies = childFrequencies == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(childFrequencies);
     }
 
     /**
@@ -1560,7 +1560,7 @@ public class ElementInfo {
      * @return list of comments
      */
     public List<String> getComments() {
-        return comments;
+        return comments == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(comments);
     }
 
     /**
@@ -1569,7 +1569,7 @@ public class ElementInfo {
      * @param comments list of comments
      */
     public void setComments(List<String> comments) {
-        this.comments = comments;
+        this.comments = comments == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(comments);
     }
 
     /**
@@ -1668,7 +1668,7 @@ public class ElementInfo {
      * @return map of analysis context data
      */
     public Map<String, Object> getAnalysisContext() {
-        return analysisContext;
+        return analysisContext == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(analysisContext);
     }
 
     /**
@@ -1677,12 +1677,19 @@ public class ElementInfo {
      * @param analysisContext map of analysis context data
      */
     public void setAnalysisContext(Map<String, Object> analysisContext) {
-        this.analysisContext = analysisContext;
+        this.analysisContext = analysisContext == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(analysisContext);
     }
 
     @Override
     public String toString() {
         return String.format("ElementInfo{name='%s', type='%s', confidence=%.2f, occurrences=%d, children=%d}",
                 qualifiedName, inferredType, typeConfidence, totalOccurrences, childElements.size());
+    }
+
+    public void addDetectedPattern(String pattern) {
+        if (this.detectedPatterns == null) {
+            this.detectedPatterns = new java.util.HashSet<>();
+        }
+        this.detectedPatterns.add(pattern);
     }
 }

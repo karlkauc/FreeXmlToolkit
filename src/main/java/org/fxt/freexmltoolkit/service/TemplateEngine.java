@@ -466,7 +466,7 @@ public class TemplateEngine {
          * @return the list of error messages, empty if none
          */
         public List<String> getErrors() {
-            return errors;
+        return errors == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(errors);
         }
 
         /**
@@ -475,7 +475,7 @@ public class TemplateEngine {
          * @return the list of warning messages, empty if none
          */
         public List<String> getWarnings() {
-            return warnings;
+        return warnings == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(warnings);
         }
 
         /**
@@ -493,7 +493,7 @@ public class TemplateEngine {
          * @return the parameters map, empty if none
          */
         public Map<String, String> getParameters() {
-            return parameters;
+        return parameters == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(parameters);
         }
 
         /**
@@ -524,6 +524,11 @@ public class TemplateEngine {
      * @param warnings the list of warning messages
      */
     public record TemplateValidationResult(boolean valid, List<String> errors, List<String> warnings) {
+        public TemplateValidationResult {
+            errors = errors != null ? List.copyOf(errors) : List.of();
+            warnings = warnings != null ? List.copyOf(warnings) : List.of();
+        }
+
 
         /**
          * Constructs a TemplateValidationResult with only validity status and errors.
@@ -535,19 +540,6 @@ public class TemplateEngine {
             this(valid, errors, new ArrayList<>());
         }
 
-        /**
-         * Constructs a TemplateValidationResult with all fields.
-         * Null lists are converted to empty lists.
-         *
-         * @param valid whether the template is valid
-         * @param errors the list of error messages, or null
-         * @param warnings the list of warning messages, or null
-         */
-        public TemplateValidationResult(boolean valid, List<String> errors, List<String> warnings) {
-            this.valid = valid;
-            this.errors = errors != null ? errors : new ArrayList<>();
-            this.warnings = warnings != null ? warnings : new ArrayList<>();
-        }
     }
 
     /**
@@ -759,7 +751,7 @@ public class TemplateEngine {
          * @return the map of context variable names to their values
          */
         public Map<String, String> getContextVariables() {
-            return contextVariables;
+        return contextVariables == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(contextVariables);
         }
 
         /**
@@ -768,7 +760,7 @@ public class TemplateEngine {
          * @param contextVariables the map of context variable names to their values
          */
         public void setContextVariables(Map<String, String> contextVariables) {
-            this.contextVariables = contextVariables;
+        this.contextVariables = contextVariables == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(contextVariables);
         }
     }
 

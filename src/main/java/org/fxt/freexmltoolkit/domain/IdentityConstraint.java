@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.domain;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -149,7 +150,7 @@ public class IdentityConstraint implements Serializable {
      * @return a list of XPath field expressions
      */
     public List<String> getFields() {
-        return fields;
+        return fields == null ? Collections.emptyList() : Collections.unmodifiableList(fields);
     }
 
     /**
@@ -158,7 +159,7 @@ public class IdentityConstraint implements Serializable {
      * @param fields the list of XPath field expressions to set
      */
     public void setFields(List<String> fields) {
-        this.fields = fields;
+        this.fields = fields == null ? new ArrayList<>() : new ArrayList<>(fields);
     }
 
     /**

@@ -43,9 +43,9 @@ class XsdExtendedElementLanguageTest {
     @Test
     @DisplayName("Should return all languages when no filter is specified (null)")
     void testGetFilteredDocumentation_NoFilter() {
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("de", "German doc"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("fr", "French doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("de", "German doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("fr", "French doc"));
 
         Map<String, String> result = element.getFilteredLanguageDocumentation(null);
 
@@ -58,8 +58,8 @@ class XsdExtendedElementLanguageTest {
     @Test
     @DisplayName("Should return all languages when filter is empty set")
     void testGetFilteredDocumentation_EmptyFilter() {
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("de", "German doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("de", "German doc"));
 
         Map<String, String> result = element.getFilteredLanguageDocumentation(Set.of());
 
@@ -71,9 +71,9 @@ class XsdExtendedElementLanguageTest {
     @Test
     @DisplayName("Should filter to only selected languages")
     void testGetFilteredDocumentation_WithFilter() {
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("de", "German doc"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("fr", "French doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("de", "German doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("fr", "French doc"));
 
         Map<String, String> result = element.getFilteredLanguageDocumentation(Set.of("en", "fr"));
 
@@ -86,9 +86,9 @@ class XsdExtendedElementLanguageTest {
     @Test
     @DisplayName("Should always include 'default' language as fallback")
     void testGetFilteredDocumentation_DefaultFallback() {
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("default", "Default doc"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("de", "German doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("default", "Default doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("de", "German doc"));
 
         // Filter for only "en" - but "default" should also be included as fallback
         Map<String, String> result = element.getFilteredLanguageDocumentation(Set.of("en"));
@@ -102,8 +102,8 @@ class XsdExtendedElementLanguageTest {
     @Test
     @DisplayName("Should handle null language code as 'default'")
     void testGetFilteredDocumentation_NullLangCode() {
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo(null, "No lang specified"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo(null, "No lang specified"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
 
         Map<String, String> result = element.getFilteredLanguageDocumentation(null);
 
@@ -138,9 +138,9 @@ class XsdExtendedElementLanguageTest {
     @Test
     @DisplayName("Should preserve insertion order when filtering (LinkedHashMap)")
     void testGetFilteredDocumentation_PreservesOrder() {
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("de", "German doc"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("fr", "French doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("de", "German doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("fr", "French doc"));
 
         // Use a filter to trigger the LinkedHashMap code path
         Map<String, String> result = element.getFilteredLanguageDocumentation(Set.of("en", "de", "fr"));
@@ -155,8 +155,8 @@ class XsdExtendedElementLanguageTest {
     @Test
     @DisplayName("Should keep first occurrence when duplicate language codes exist")
     void testGetFilteredDocumentation_DuplicateLangs() {
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("en", "First English"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("en", "Second English"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("en", "First English"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("en", "Second English"));
 
         Map<String, String> result = element.getFilteredLanguageDocumentation(null);
 
@@ -167,7 +167,7 @@ class XsdExtendedElementLanguageTest {
     @Test
     @DisplayName("Should handle filter for non-existent language gracefully")
     void testGetFilteredDocumentation_NonExistentLanguage() {
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("en", "English doc"));
 
         // Filter for a language that doesn't exist
         Map<String, String> result = element.getFilteredLanguageDocumentation(Set.of("es"));
@@ -179,7 +179,7 @@ class XsdExtendedElementLanguageTest {
     @Test
     @DisplayName("Should work correctly with single language in documentation")
     void testGetFilteredDocumentation_SingleLanguage() {
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("en", "Only English"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("en", "Only English"));
 
         Map<String, String> result = element.getFilteredLanguageDocumentation(Set.of("en"));
 
@@ -191,9 +191,9 @@ class XsdExtendedElementLanguageTest {
     @DisplayName("Should handle case-insensitive language matching")
     void testGetFilteredDocumentation_CaseInsensitive() {
         // Add documentation with mixed case languages
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("EN", "English uppercase"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("de", "German lowercase"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("Fr", "French mixed case"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("EN", "English uppercase"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("de", "German lowercase"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("Fr", "French mixed case"));
 
         // Filter with different case than source
         Map<String, String> result = element.getFilteredLanguageDocumentation(Set.of("en", "DE", "fr"));
@@ -208,8 +208,8 @@ class XsdExtendedElementLanguageTest {
     @Test
     @DisplayName("Should normalize language codes to lowercase in output")
     void testGetFilteredDocumentation_NormalizedOutput() {
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("EN", "English doc"));
-        element.getDocumentations().add(new XsdExtendedElement.DocumentationInfo("DE", "German doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("EN", "English doc"));
+        element.addDocumentation(new XsdExtendedElement.DocumentationInfo("DE", "German doc"));
 
         Map<String, String> result = element.getFilteredLanguageDocumentation(null);
 

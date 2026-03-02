@@ -72,15 +72,15 @@ public class XsdDocumentationSvgServiceTest {
         XsdExtendedElement attributeElement = createTestElement("@id", "xs:ID", 1, true);
 
         // Set up parent-child relationships
-        rootElement.getChildren().add("/RootElement/ChildElement");
-        rootElement.getChildren().add("/RootElement/@id");
+        rootElement.addChild("/RootElement/ChildElement");
+        rootElement.addChild("/RootElement/@id");
         childElement.setParentXpath("/RootElement");
         attributeElement.setParentXpath("/RootElement");
 
         // Add elements to data
-        data.getExtendedXsdElementMap().put("/RootElement", rootElement);
-        data.getExtendedXsdElementMap().put("/RootElement/ChildElement", childElement);
-        data.getExtendedXsdElementMap().put("/RootElement/@id", attributeElement);
+        data.putExtendedXsdElement("/RootElement", rootElement);
+        data.putExtendedXsdElement("/RootElement/ChildElement", childElement);
+        data.putExtendedXsdElement("/RootElement/@id", attributeElement);
 
         return data;
     }

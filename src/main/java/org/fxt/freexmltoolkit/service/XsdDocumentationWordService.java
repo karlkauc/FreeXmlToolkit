@@ -1368,7 +1368,7 @@ public class XsdDocumentationWordService {
     }
 
     public void setIncludedLanguages(Set<String> includedLanguages) {
-        this.includedLanguages = includedLanguages;
+        this.includedLanguages = includedLanguages == null ? new java.util.LinkedHashSet<>() : new java.util.LinkedHashSet<>(includedLanguages);
     }
 
     public void setProgressListener(TaskProgressListener progressListener) {

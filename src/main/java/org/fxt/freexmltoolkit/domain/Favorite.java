@@ -60,7 +60,7 @@ public class Favorite {
          * @return array of file extensions
          */
         public String[] getExtensions() {
-            return extensions;
+            return extensions == null ? null : extensions.clone();
         }
 
         /**

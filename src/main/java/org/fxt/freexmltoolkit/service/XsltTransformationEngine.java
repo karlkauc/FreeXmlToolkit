@@ -251,8 +251,8 @@ public class XsltTransformationEngine {
 
                 // Update profile with template execution data
                 if (profile != null) {
-                    profile.getTemplateExecutionTimes().putAll(traceListener.getTemplateExecutionTimes());
-                    profile.getTemplateExecutionCounts().putAll(traceListener.getTemplateExecutionCounts());
+                    profile.putAllTemplateExecutionTimes(traceListener.getTemplateExecutionTimes());
+                    profile.putAllTemplateExecutionCounts(traceListener.getTemplateExecutionCounts());
                 }
 
                 logger.debug("Debug data collected: {} templates, {} variables, {} call stack entries",
@@ -265,7 +265,7 @@ public class XsltTransformationEngine {
             if (enableDebugging && messageListener != null) {
                 result.setMessages(messageListener.getMessages());
                 if (!messageListener.getWarnings().isEmpty()) {
-                    result.getWarnings().addAll(messageListener.getWarnings());
+                    result.addAllWarnings(messageListener.getWarnings());
                 }
             }
 
@@ -942,7 +942,7 @@ public class XsltTransformationEngine {
         }
 
         public Map<String, Object> getParameters() {
-            return parameters;
+        return parameters == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(parameters);
         }
 
         public OutputFormat getOutputFormat() {

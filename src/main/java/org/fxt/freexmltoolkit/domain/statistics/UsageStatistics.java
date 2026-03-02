@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.domain.statistics;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -473,7 +474,7 @@ public class UsageStatistics {
      * @return A map of daily statistics
      */
     public Map<LocalDate, DailyStatistics> getDailyStats() {
-        return dailyStats;
+        return Collections.unmodifiableMap(dailyStats);
     }
 
     /**
@@ -482,7 +483,7 @@ public class UsageStatistics {
      * @param dailyStats A map of daily statistics
      */
     public void setDailyStats(Map<LocalDate, DailyStatistics> dailyStats) {
-        this.dailyStats = dailyStats != null ? dailyStats : new HashMap<>();
+        this.dailyStats = dailyStats != null ? new HashMap<>(dailyStats) : new HashMap<>();
     }
 
     /**
@@ -501,7 +502,7 @@ public class UsageStatistics {
      * @return A map of feature usage statistics
      */
     public Map<String, FeatureUsage> getFeatureUsage() {
-        return featureUsage;
+        return Collections.unmodifiableMap(featureUsage);
     }
 
     /**
@@ -510,7 +511,7 @@ public class UsageStatistics {
      * @param featureUsage A map of feature usage statistics
      */
     public void setFeatureUsage(Map<String, FeatureUsage> featureUsage) {
-        this.featureUsage = featureUsage != null ? featureUsage : new HashMap<>();
+        this.featureUsage = featureUsage != null ? new HashMap<>(featureUsage) : new HashMap<>();
     }
 
     /**
@@ -521,6 +522,16 @@ public class UsageStatistics {
      */
     public FeatureUsage getFeatureUsage(String featureId) {
         return featureUsage.get(featureId);
+    }
+
+    /**
+     * Adds a feature usage entry if not already present.
+     *
+     * @param featureId the feature ID
+     * @param usage     the feature usage to add
+     */
+    public void putFeatureUsageIfAbsent(String featureId, FeatureUsage usage) {
+        featureUsage.putIfAbsent(featureId, usage);
     }
 
     /**

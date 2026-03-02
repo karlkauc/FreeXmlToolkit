@@ -18,7 +18,9 @@
 
 package org.fxt.freexmltoolkit.domain;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Record holding PDF metadata settings for document generation.
@@ -33,4 +35,20 @@ import java.util.HashMap;
  */
 public record PDFSettings(HashMap<String, String> customParameter, String producer, String author, String creator,
                           String creationDate, String title, String keywords) {
+    /**
+     * Defensive copy constructor to prevent external mutation of mutable fields.
+     */
+    public PDFSettings {
+        customParameter = customParameter != null ? new HashMap<>(customParameter) : null;
+    }
+
+    /**
+     * Returns a defensive copy of the custom parameters map.
+     *
+     * @return an unmodifiable view of the custom parameters
+     */
+    @Override
+    public HashMap<String, String> customParameter() {
+        return customParameter != null ? new HashMap<>(customParameter) : null;
+    }
 }

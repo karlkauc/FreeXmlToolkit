@@ -985,7 +985,7 @@ public class SchemaAnalysisResult {
      * @return the list of source documents
      */
     public List<String> getSourceDocuments() {
-        return sourceDocuments;
+        return sourceDocuments == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(sourceDocuments);
     }
 
     /**
@@ -994,7 +994,7 @@ public class SchemaAnalysisResult {
      * @param sourceDocuments the source documents list to set
      */
     public void setSourceDocuments(List<String> sourceDocuments) {
-        this.sourceDocuments = sourceDocuments;
+        this.sourceDocuments = sourceDocuments == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(sourceDocuments);
     }
 
     /**
@@ -1111,7 +1111,7 @@ public class SchemaAnalysisResult {
      * @return the namespace prefixes map
      */
     public Map<String, String> getNamespacePrefixes() {
-        return namespacePrefixes;
+        return namespacePrefixes == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(namespacePrefixes);
     }
 
     /**
@@ -1120,7 +1120,7 @@ public class SchemaAnalysisResult {
      * @param namespacePrefixes the prefixes map to set
      */
     public void setNamespacePrefixes(Map<String, String> namespacePrefixes) {
-        this.namespacePrefixes = namespacePrefixes;
+        this.namespacePrefixes = namespacePrefixes == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(namespacePrefixes);
     }
 
     /**
@@ -1165,7 +1165,7 @@ public class SchemaAnalysisResult {
      * @return the namespace usage map
      */
     public Map<String, Integer> getNamespaceUsage() {
-        return namespaceUsage;
+        return namespaceUsage == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(namespaceUsage);
     }
 
     /**
@@ -1174,7 +1174,7 @@ public class SchemaAnalysisResult {
      * @param namespaceUsage the usage map to set
      */
     public void setNamespaceUsage(Map<String, Integer> namespaceUsage) {
-        this.namespaceUsage = namespaceUsage;
+        this.namespaceUsage = namespaceUsage == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(namespaceUsage);
     }
 
     /**
@@ -1183,7 +1183,7 @@ public class SchemaAnalysisResult {
      * @return the inferred types map
      */
     public Map<String, String> getInferredTypes() {
-        return inferredTypes;
+        return inferredTypes == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(inferredTypes);
     }
 
     /**
@@ -1192,7 +1192,7 @@ public class SchemaAnalysisResult {
      * @param inferredTypes the types map to set
      */
     public void setInferredTypes(Map<String, String> inferredTypes) {
-        this.inferredTypes = inferredTypes;
+        this.inferredTypes = inferredTypes == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(inferredTypes);
     }
 
     /**
@@ -1201,7 +1201,7 @@ public class SchemaAnalysisResult {
      * @return the type confidences map
      */
     public Map<String, Double> getTypeConfidences() {
-        return typeConfidences;
+        return typeConfidences == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(typeConfidences);
     }
 
     /**
@@ -1210,7 +1210,7 @@ public class SchemaAnalysisResult {
      * @param typeConfidences the confidences map to set
      */
     public void setTypeConfidences(Map<String, Double> typeConfidences) {
-        this.typeConfidences = typeConfidences;
+        this.typeConfidences = typeConfidences == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(typeConfidences);
     }
 
     /**
@@ -1291,7 +1291,7 @@ public class SchemaAnalysisResult {
      * @return the common patterns list
      */
     public List<String> getCommonPatterns() {
-        return commonPatterns;
+        return commonPatterns == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(commonPatterns);
     }
 
     /**
@@ -1300,7 +1300,7 @@ public class SchemaAnalysisResult {
      * @param commonPatterns the patterns list to set
      */
     public void setCommonPatterns(List<String> commonPatterns) {
-        this.commonPatterns = commonPatterns;
+        this.commonPatterns = commonPatterns == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(commonPatterns);
     }
 
     /**
@@ -1309,7 +1309,7 @@ public class SchemaAnalysisResult {
      * @return the pattern confidences map
      */
     public Map<String, Double> getPatternConfidences() {
-        return patternConfidences;
+        return patternConfidences == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(patternConfidences);
     }
 
     /**
@@ -1318,7 +1318,7 @@ public class SchemaAnalysisResult {
      * @param patternConfidences the confidences map to set
      */
     public void setPatternConfidences(Map<String, Double> patternConfidences) {
-        this.patternConfidences = patternConfidences;
+        this.patternConfidences = patternConfidences == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(patternConfidences);
     }
 
     /**
@@ -1363,7 +1363,7 @@ public class SchemaAnalysisResult {
      * @return the occurrence patterns map
      */
     public Map<String, OccurrenceInfo> getOccurrencePatterns() {
-        return occurrencePatterns;
+        return occurrencePatterns == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(occurrencePatterns);
     }
 
     /**
@@ -1372,7 +1372,7 @@ public class SchemaAnalysisResult {
      * @param occurrencePatterns the occurrence patterns map to set
      */
     public void setOccurrencePatterns(Map<String, OccurrenceInfo> occurrencePatterns) {
-        this.occurrencePatterns = occurrencePatterns;
+        this.occurrencePatterns = occurrencePatterns == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(occurrencePatterns);
     }
 
     /**
@@ -1399,7 +1399,7 @@ public class SchemaAnalysisResult {
      * @return the occurrence constraints map
      */
     public Map<String, MinMaxInfo> getOccurrenceConstraints() {
-        return occurrenceConstraints;
+        return occurrenceConstraints == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(occurrenceConstraints);
     }
 
     /**
@@ -1408,7 +1408,7 @@ public class SchemaAnalysisResult {
      * @param occurrenceConstraints the constraints map to set
      */
     public void setOccurrenceConstraints(Map<String, MinMaxInfo> occurrenceConstraints) {
-        this.occurrenceConstraints = occurrenceConstraints;
+        this.occurrenceConstraints = occurrenceConstraints == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(occurrenceConstraints);
     }
 
     /**
@@ -1435,7 +1435,7 @@ public class SchemaAnalysisResult {
      * @return the pattern restrictions map
      */
     public Map<String, String> getPatternRestrictions() {
-        return patternRestrictions;
+        return patternRestrictions == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(patternRestrictions);
     }
 
     /**
@@ -1444,7 +1444,7 @@ public class SchemaAnalysisResult {
      * @param patternRestrictions the restrictions map to set
      */
     public void setPatternRestrictions(Map<String, String> patternRestrictions) {
-        this.patternRestrictions = patternRestrictions;
+        this.patternRestrictions = patternRestrictions == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(patternRestrictions);
     }
 
     /**
@@ -1453,7 +1453,7 @@ public class SchemaAnalysisResult {
      * @return the length constraints map
      */
     public Map<String, LengthConstraints> getLengthConstraints() {
-        return lengthConstraints;
+        return lengthConstraints == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(lengthConstraints);
     }
 
     /**
@@ -1462,7 +1462,7 @@ public class SchemaAnalysisResult {
      * @param lengthConstraints the constraints map to set
      */
     public void setLengthConstraints(Map<String, LengthConstraints> lengthConstraints) {
-        this.lengthConstraints = lengthConstraints;
+        this.lengthConstraints = lengthConstraints == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(lengthConstraints);
     }
 
     /**
@@ -1471,7 +1471,7 @@ public class SchemaAnalysisResult {
      * @return the value constraints map
      */
     public Map<String, ValueConstraints> getValueConstraints() {
-        return valueConstraints;
+        return valueConstraints == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(valueConstraints);
     }
 
     /**
@@ -1480,7 +1480,7 @@ public class SchemaAnalysisResult {
      * @param valueConstraints the constraints map to set
      */
     public void setValueConstraints(Map<String, ValueConstraints> valueConstraints) {
-        this.valueConstraints = valueConstraints;
+        this.valueConstraints = valueConstraints == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(valueConstraints);
     }
 
     /**
@@ -1507,7 +1507,7 @@ public class SchemaAnalysisResult {
      * @return the warnings list
      */
     public List<String> getWarnings() {
-        return warnings;
+        return warnings == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(warnings);
     }
 
     /**
@@ -1516,7 +1516,7 @@ public class SchemaAnalysisResult {
      * @param warnings the warnings list to set
      */
     public void setWarnings(List<String> warnings) {
-        this.warnings = warnings;
+        this.warnings = warnings == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(warnings);
     }
 
     /**
@@ -1525,7 +1525,7 @@ public class SchemaAnalysisResult {
      * @return the recommendations list
      */
     public List<String> getRecommendations() {
-        return recommendations;
+        return recommendations == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(recommendations);
     }
 
     /**
@@ -1534,7 +1534,7 @@ public class SchemaAnalysisResult {
      * @param recommendations the recommendations list to set
      */
     public void setRecommendations(List<String> recommendations) {
-        this.recommendations = recommendations;
+        this.recommendations = recommendations == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(recommendations);
     }
 
     /**
@@ -1543,7 +1543,7 @@ public class SchemaAnalysisResult {
      * @return the issues list
      */
     public List<String> getIssues() {
-        return issues;
+        return issues == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(issues);
     }
 
     /**
@@ -1552,7 +1552,7 @@ public class SchemaAnalysisResult {
      * @param issues the issues list to set
      */
     public void setIssues(List<String> issues) {
-        this.issues = issues;
+        this.issues = issues == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(issues);
     }
 
     /**
@@ -1561,7 +1561,7 @@ public class SchemaAnalysisResult {
      * @return the quality metrics map
      */
     public Map<String, Double> getQualityMetrics() {
-        return qualityMetrics;
+        return qualityMetrics == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(qualityMetrics);
     }
 
     /**
@@ -1570,7 +1570,7 @@ public class SchemaAnalysisResult {
      * @param qualityMetrics the metrics map to set
      */
     public void setQualityMetrics(Map<String, Double> qualityMetrics) {
-        this.qualityMetrics = qualityMetrics;
+        this.qualityMetrics = qualityMetrics == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(qualityMetrics);
     }
 
     /**
@@ -1579,7 +1579,7 @@ public class SchemaAnalysisResult {
      * @return the statistics map
      */
     public Map<String, Integer> getStatisticsMap() {
-        return statisticsMap;
+        return statisticsMap == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(statisticsMap);
     }
 
     /**
@@ -1588,7 +1588,7 @@ public class SchemaAnalysisResult {
      * @param statisticsMap the statistics map to set
      */
     public void setStatisticsMap(Map<String, Integer> statisticsMap) {
-        this.statisticsMap = statisticsMap;
+        this.statisticsMap = statisticsMap == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(statisticsMap);
     }
 
     /**
@@ -1705,7 +1705,7 @@ public class SchemaAnalysisResult {
      * @return the metadata map
      */
     public Map<String, Object> getAnalysisMetadata() {
-        return analysisMetadata;
+        return analysisMetadata == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(analysisMetadata);
     }
 
     /**
@@ -1714,7 +1714,7 @@ public class SchemaAnalysisResult {
      * @param analysisMetadata the metadata map to set
      */
     public void setAnalysisMetadata(Map<String, Object> analysisMetadata) {
-        this.analysisMetadata = analysisMetadata;
+        this.analysisMetadata = analysisMetadata == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(analysisMetadata);
     }
 
     /**
@@ -1723,7 +1723,7 @@ public class SchemaAnalysisResult {
      * @return the processing steps list
      */
     public List<String> getProcessingSteps() {
-        return processingSteps;
+        return processingSteps == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(processingSteps);
     }
 
     /**
@@ -1732,6 +1732,6 @@ public class SchemaAnalysisResult {
      * @param processingSteps the steps list to set
      */
     public void setProcessingSteps(List<String> processingSteps) {
-        this.processingSteps = processingSteps;
+        this.processingSteps = processingSteps == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(processingSteps);
     }
 }

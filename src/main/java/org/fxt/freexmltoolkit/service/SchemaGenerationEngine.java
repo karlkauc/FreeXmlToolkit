@@ -441,13 +441,13 @@ public class SchemaGenerationEngine {
 
         // Pattern detection for common formats
         if (EMAIL_PATTERN.matcher(text).matches()) {
-            info.getDetectedPatterns().add("email");
+            info.addDetectedPattern("email");
         } else if (URL_PATTERN.matcher(text).matches()) {
-            info.getDetectedPatterns().add("url");
+            info.addDetectedPattern("url");
         } else if (text.matches("^[A-Z]{2,3}$")) {
-            info.getDetectedPatterns().add("countryCode");
+            info.addDetectedPattern("countryCode");
         } else if (text.matches("^\\d{4,5}$")) {
-            info.getDetectedPatterns().add("postalCode");
+            info.addDetectedPattern("postalCode");
         }
     }
 

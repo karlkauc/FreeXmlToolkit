@@ -99,7 +99,7 @@ class XsdAppInfoAnnotationsTest {
 
         // Test with only @see
         XsdDocInfo seeOnlyDocInfo = new XsdDocInfo();
-        seeOnlyDocInfo.getSee().add("Some reference");
+        seeOnlyDocInfo.addSee("Some reference");
         assertTrue(seeOnlyDocInfo.hasData(), "XsdDocInfo with @see should have data");
 
         // Test with only @deprecated
@@ -110,7 +110,7 @@ class XsdAppInfoAnnotationsTest {
         // Test with all data
         XsdDocInfo fullDocInfo = new XsdDocInfo();
         fullDocInfo.setSince("1.0.0");
-        fullDocInfo.getSee().add("Reference 1");
+        fullDocInfo.addSee("Reference 1");
         fullDocInfo.setDeprecated("Deprecated");
         assertTrue(fullDocInfo.hasData(), "XsdDocInfo with all data should have data");
     }

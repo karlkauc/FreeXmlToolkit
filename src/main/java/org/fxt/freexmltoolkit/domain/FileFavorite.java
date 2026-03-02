@@ -465,7 +465,7 @@ public class FileFavorite {
      * @return array of tags
      */
     public String[] getTags() {
-        return tags;
+        return tags == null ? null : tags.clone();
     }
 
     /**
@@ -474,7 +474,7 @@ public class FileFavorite {
      * @param tags the tags to set
      */
     public void setTags(String[] tags) {
-        this.tags = tags;
+        this.tags = tags == null ? null : tags.clone();
     }
 
     /**
@@ -519,7 +519,7 @@ public class FileFavorite {
      * @return array of related file paths
      */
     public String[] getRelatedFiles() {
-        return relatedFiles;
+        return relatedFiles == null ? null : relatedFiles.clone();
     }
 
     /**
@@ -528,7 +528,7 @@ public class FileFavorite {
      * @param relatedFiles the related files to set
      */
     public void setRelatedFiles(String[] relatedFiles) {
-        this.relatedFiles = relatedFiles;
+        this.relatedFiles = relatedFiles == null ? null : relatedFiles.clone();
     }
 
     /**

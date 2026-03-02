@@ -51,7 +51,11 @@ public class SkillTracker {
         String name,
         String iconLiteral,
         List<FeatureDefinition> features
-    ) {}
+    ) {
+        public FeatureCategory {
+            features = features != null ? List.copyOf(features) : List.of();
+        }
+}
 
     // All feature definitions
     private static final Map<String, FeatureDefinition> FEATURES = new LinkedHashMap<>();

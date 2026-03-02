@@ -392,7 +392,7 @@ public class XPathExecutionResult {
     }
 
     public List<ResultItem> getResultItems() {
-        return resultItems;
+        return resultItems == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(resultItems);
     }
 
     public void setResultItems(List<ResultItem> resultItems) {
@@ -474,19 +474,19 @@ public class XPathExecutionResult {
     }
 
     public List<String> getUsedFunctions() {
-        return usedFunctions;
+        return usedFunctions == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(usedFunctions);
     }
 
     public void setUsedFunctions(List<String> usedFunctions) {
-        this.usedFunctions = usedFunctions;
+        this.usedFunctions = usedFunctions == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(usedFunctions);
     }
 
     public List<String> getNamespacesUsed() {
-        return namespacesUsed;
+        return namespacesUsed == null ? java.util.Collections.emptyList() : java.util.Collections.unmodifiableList(namespacesUsed);
     }
 
     public void setNamespacesUsed(List<String> namespacesUsed) {
-        this.namespacesUsed = namespacesUsed;
+        this.namespacesUsed = namespacesUsed == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(namespacesUsed);
     }
 
     @Override

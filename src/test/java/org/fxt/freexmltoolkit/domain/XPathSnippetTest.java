@@ -326,7 +326,7 @@ class XPathSnippetTest {
             XPathSnippet snippet = new XPathSnippet();
             assertFalse(snippet.hasParameters());
 
-            snippet.getParameters().add(new SnippetParameter("param", SnippetParameter.ParameterType.STRING, "default"));
+            snippet.setParameters(java.util.List.of(new SnippetParameter("param", SnippetParameter.ParameterType.STRING, "default")));
             assertTrue(snippet.hasParameters());
         }
 
@@ -336,7 +336,7 @@ class XPathSnippetTest {
             XPathSnippet snippet = new XPathSnippet();
             assertFalse(snippet.hasVariables());
 
-            snippet.getVariables().put("var", "value");
+            snippet.setVariables(java.util.Map.of("var", "value"));
             assertTrue(snippet.hasVariables());
         }
 
@@ -346,7 +346,7 @@ class XPathSnippetTest {
             XPathSnippet snippet = new XPathSnippet();
             assertFalse(snippet.hasNamespaces());
 
-            snippet.getNamespaces().put("xs", "http://www.w3.org/2001/XMLSchema");
+            snippet.setNamespaces(java.util.Map.of("xs", "http://www.w3.org/2001/XMLSchema"));
             assertTrue(snippet.hasNamespaces());
         }
 

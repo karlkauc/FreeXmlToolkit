@@ -101,37 +101,32 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
      * Initialize all feature definitions if not already present
      */
     private void initializeFeatureDefinitions() {
-        Map<String, FeatureUsage> featureMap = statistics.getFeatureUsage();
-
         // Core Features
-        addFeatureIfMissing(featureMap, "xml_validation", "XML Validation", "Validation");
-        addFeatureIfMissing(featureMap, "xml_formatting", "Format/Pretty Print", "Editing");
-        addFeatureIfMissing(featureMap, "xsd_validation", "XSD Schema Validation", "Validation");
-        addFeatureIfMissing(featureMap, "xsd_visualization", "XSD Visual Editor", "Editing");
+        addFeatureIfMissing("xml_validation", "XML Validation", "Validation");
+        addFeatureIfMissing("xml_formatting", "Format/Pretty Print", "Editing");
+        addFeatureIfMissing("xsd_validation", "XSD Schema Validation", "Validation");
+        addFeatureIfMissing("xsd_visualization", "XSD Visual Editor", "Editing");
 
         // Advanced Features
-        addFeatureIfMissing(featureMap, "xpath_queries", "XPath Queries", "Query");
-        addFeatureIfMissing(featureMap, "xquery_execution", "XQuery Execution", "Query");
-        addFeatureIfMissing(featureMap, "xslt_transformation", "XSLT Transformation", "Transformation");
-        addFeatureIfMissing(featureMap, "schematron_validation", "Schematron Rules", "Validation");
+        addFeatureIfMissing("xpath_queries", "XPath Queries", "Query");
+        addFeatureIfMissing("xquery_execution", "XQuery Execution", "Query");
+        addFeatureIfMissing("xslt_transformation", "XSLT Transformation", "Transformation");
+        addFeatureIfMissing("schematron_validation", "Schematron Rules", "Validation");
 
         // Specialized Features
-        addFeatureIfMissing(featureMap, "schema_generation", "Schema Generation", "Tools");
-        addFeatureIfMissing(featureMap, "digital_signature", "XML Digital Signatures", "Security");
-        addFeatureIfMissing(featureMap, "pdf_generation", "PDF Generation (FOP)", "Export");
-        addFeatureIfMissing(featureMap, "batch_validation", "Batch Validation", "Validation");
+        addFeatureIfMissing("schema_generation", "Schema Generation", "Tools");
+        addFeatureIfMissing("digital_signature", "XML Digital Signatures", "Security");
+        addFeatureIfMissing("pdf_generation", "PDF Generation (FOP)", "Export");
+        addFeatureIfMissing("batch_validation", "Batch Validation", "Validation");
 
         // Power User Features
-        addFeatureIfMissing(featureMap, "intellisense", "IntelliSense Auto-complete", "Editing");
-        addFeatureIfMissing(featureMap, "xsd_documentation", "XSD Documentation Export", "Export");
-        addFeatureIfMissing(featureMap, "favorites_system", "Favorites Management", "Organization");
+        addFeatureIfMissing("intellisense", "IntelliSense Auto-complete", "Editing");
+        addFeatureIfMissing("xsd_documentation", "XSD Documentation Export", "Export");
+        addFeatureIfMissing("favorites_system", "Favorites Management", "Organization");
     }
 
-    private void addFeatureIfMissing(Map<String, FeatureUsage> featureMap,
-                                     String id, String name, String category) {
-        if (!featureMap.containsKey(id)) {
-            featureMap.put(id, new FeatureUsage(id, name, category));
-        }
+    private void addFeatureIfMissing(String id, String name, String category) {
+        statistics.putFeatureUsageIfAbsent(id, new FeatureUsage(id, name, category));
     }
 
     // ================== Tracking Methods ==================

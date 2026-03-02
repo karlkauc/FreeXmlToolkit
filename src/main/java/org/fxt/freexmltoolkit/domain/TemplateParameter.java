@@ -938,7 +938,7 @@ public class TemplateParameter {
      * @return the list of allowed values
      */
     public List<String> getAllowedValues() {
-        return allowedValues;
+        return allowedValues == null ? Collections.emptyList() : Collections.unmodifiableList(allowedValues);
     }
 
     /**
@@ -947,7 +947,7 @@ public class TemplateParameter {
      * @param allowedValues the list of allowed values
      */
     public void setAllowedValues(List<String> allowedValues) {
-        this.allowedValues = allowedValues;
+        this.allowedValues = allowedValues == null ? new ArrayList<>() : new ArrayList<>(allowedValues);
     }
 
     /**
@@ -1048,7 +1048,7 @@ public class TemplateParameter {
      * @return the list of constraints
      */
     public List<ParameterConstraint> getConstraints() {
-        return constraints;
+        return constraints == null ? Collections.emptyList() : Collections.unmodifiableList(constraints);
     }
 
     /**
@@ -1057,7 +1057,7 @@ public class TemplateParameter {
      * @param constraints the list of constraints
      */
     public void setConstraints(List<ParameterConstraint> constraints) {
-        this.constraints = constraints;
+        this.constraints = constraints == null ? new ArrayList<>() : new ArrayList<>(constraints);
     }
 
     /**
@@ -1192,7 +1192,7 @@ public class TemplateParameter {
      * @return the list of dependency names
      */
     public List<String> getDependsOn() {
-        return dependsOn;
+        return dependsOn == null ? Collections.emptyList() : Collections.unmodifiableList(dependsOn);
     }
 
     /**
@@ -1201,7 +1201,7 @@ public class TemplateParameter {
      * @param dependsOn the list of dependency names
      */
     public void setDependsOn(List<String> dependsOn) {
-        this.dependsOn = dependsOn;
+        this.dependsOn = dependsOn == null ? new ArrayList<>() : new ArrayList<>(dependsOn);
     }
 
     /**
@@ -1211,7 +1211,7 @@ public class TemplateParameter {
      * @return the conditional defaults map
      */
     public Map<String, String> getConditionalDefaults() {
-        return conditionalDefaults;
+        return conditionalDefaults == null ? Collections.emptyMap() : Collections.unmodifiableMap(conditionalDefaults);
     }
 
     /**
@@ -1220,7 +1220,7 @@ public class TemplateParameter {
      * @param conditionalDefaults the conditional defaults map
      */
     public void setConditionalDefaults(Map<String, String> conditionalDefaults) {
-        this.conditionalDefaults = conditionalDefaults;
+        this.conditionalDefaults = conditionalDefaults == null ? new HashMap<>() : new HashMap<>(conditionalDefaults);
     }
 
     /**
@@ -1355,7 +1355,7 @@ public class TemplateParameter {
      * @return the metadata map
      */
     public Map<String, Object> getMetadata() {
-        return metadata;
+        return metadata == null ? Collections.emptyMap() : Collections.unmodifiableMap(metadata);
     }
 
     /**
@@ -1364,7 +1364,7 @@ public class TemplateParameter {
      * @param metadata the metadata map
      */
     public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
+        this.metadata = metadata == null ? new HashMap<>() : new HashMap<>(metadata);
     }
 
     /**
