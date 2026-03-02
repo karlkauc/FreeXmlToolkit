@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 public final class XmlSyntaxHighlighter {
 
     // Syntax Highlighting Patterns
-    private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
+    private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*?)(\\h*/?>))"
             + "|(?<COMMENT><!--[^<>]+-->)");
     private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
 
@@ -66,18 +66,19 @@ public final class XmlSyntaxHighlighter {
                     spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
 
                     if (attributesText != null && !attributesText.isEmpty()) {
-                        lastKwEnd = 0;
+                        int attrLastEnd = 0;
 
                         Matcher amatcher = ATTRIBUTES.matcher(attributesText);
                         while (amatcher.find()) {
-                            spansBuilder.add(Collections.emptyList(), amatcher.start() - lastKwEnd);
+                            spansBuilder.add(Collections.emptyList(), amatcher.start() - attrLastEnd);
                             spansBuilder.add(Collections.singleton("attribute"), amatcher.end(GROUP_ATTRIBUTE_NAME) - amatcher.start(GROUP_ATTRIBUTE_NAME));
                             spansBuilder.add(Collections.singleton("tagmark"), amatcher.end(GROUP_EQUAL_SYMBOL) - amatcher.end(GROUP_ATTRIBUTE_NAME));
                             spansBuilder.add(Collections.singleton("avalue"), amatcher.end(GROUP_ATTRIBUTE_VALUE) - amatcher.end(GROUP_EQUAL_SYMBOL));
-                            lastKwEnd = amatcher.end();
+                            attrLastEnd = amatcher.end();
                         }
-                        if (attributesText.length() > lastKwEnd)
-                            spansBuilder.add(Collections.emptyList(), attributesText.length() - lastKwEnd);
+                        if (attributesText.length() > attrLastEnd) {
+                            spansBuilder.add(Collections.emptyList(), attributesText.length() - attrLastEnd);
+                        }
                     }
 
                     lastKwEnd = matcher.end(GROUP_ATTRIBUTES_SECTION);

@@ -5,15 +5,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 
-import java.time.Duration;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Syntax highlighting manager for XmlCodeEditorV2.
@@ -37,19 +33,6 @@ public class SyntaxHighlightManagerV2 {
 
     // Optional: CombinedStyleManager for proper syntax+error highlighting
     private CombinedStyleManager styleManager;
-
-    // V1-compatible XML syntax patterns
-    private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
-            + "|(?<COMMENT><!--[^<>]+-->)");
-    private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
-
-    private static final int GROUP_OPEN_BRACKET = 2;
-    private static final int GROUP_ELEMENT_NAME = 3;
-    private static final int GROUP_ATTRIBUTES_SECTION = 4;
-    private static final int GROUP_CLOSE_BRACKET = 5;
-    private static final int GROUP_ATTRIBUTE_NAME = 1;
-    private static final int GROUP_EQUAL_SYMBOL = 2;
-    private static final int GROUP_ATTRIBUTE_VALUE = 3;
 
     // Debouncing
     private long lastHighlightRequest = 0;
@@ -166,78 +149,14 @@ public class SyntaxHighlightManagerV2 {
     }
 
     /**
-     * Computes syntax highlighting spans for XML text using V1-compatible CSS classes.
-     * Uses the same highlighting logic as the original XmlCodeEditor V1.
+     * Computes syntax highlighting spans for XML text.
+     * Delegates to the shared {@link XmlSyntaxHighlighter} implementation.
      *
      * @param text the XML text
-     * @return style spans with V1-compatible CSS classes (tagmark, anytag, attribute, avalue, comment)
+     * @return style spans with CSS classes (tagmark, anytag, attribute, avalue, comment)
      */
     private StyleSpans<Collection<String>> computeHighlighting(String text) {
-        Matcher matcher = XML_TAG.matcher(text);
-        int lastKwEnd = 0;
-        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-
-        while (matcher.find()) {
-            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
-
-            if (matcher.group("COMMENT") != null) {
-                // XML comment
-                spansBuilder.add(Collections.singleton("comment"), matcher.end() - matcher.start());
-            } else {
-                if (matcher.group("ELEMENT") != null) {
-                    String attributesText = matcher.group(GROUP_ATTRIBUTES_SECTION);
-
-                    // Opening bracket: < or </
-                    spansBuilder.add(Collections.singleton("tagmark"),
-                            matcher.end(GROUP_OPEN_BRACKET) - matcher.start(GROUP_OPEN_BRACKET));
-
-                    // Element name
-                    spansBuilder.add(Collections.singleton("anytag"),
-                            matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
-
-                    // Attributes section
-                    if (attributesText != null && !attributesText.isEmpty()) {
-                        int attrLastEnd = 0;
-
-                        Matcher amatcher = ATTRIBUTES.matcher(attributesText);
-                        while (amatcher.find()) {
-                            // Whitespace before attribute
-                            spansBuilder.add(Collections.emptyList(), amatcher.start() - attrLastEnd);
-
-                            // Attribute name
-                            spansBuilder.add(Collections.singleton("attribute"),
-                                    amatcher.end(GROUP_ATTRIBUTE_NAME) - amatcher.start(GROUP_ATTRIBUTE_NAME));
-
-                            // Equals sign
-                            spansBuilder.add(Collections.singleton("tagmark"),
-                                    amatcher.end(GROUP_EQUAL_SYMBOL) - amatcher.end(GROUP_ATTRIBUTE_NAME));
-
-                            // Attribute value
-                            spansBuilder.add(Collections.singleton("avalue"),
-                                    amatcher.end(GROUP_ATTRIBUTE_VALUE) - amatcher.end(GROUP_EQUAL_SYMBOL));
-
-                            attrLastEnd = amatcher.end();
-                        }
-
-                        // Remaining whitespace after attributes
-                        if (attributesText.length() > attrLastEnd) {
-                            spansBuilder.add(Collections.emptyList(), attributesText.length() - attrLastEnd);
-                        }
-                    }
-
-                    lastKwEnd = matcher.end(GROUP_ATTRIBUTES_SECTION);
-
-                    // Closing bracket: > or />
-                    spansBuilder.add(Collections.singleton("tagmark"),
-                            matcher.end(GROUP_CLOSE_BRACKET) - lastKwEnd);
-                }
-            }
-            lastKwEnd = matcher.end();
-        }
-
-        // Remaining text
-        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
-        return spansBuilder.create();
+        return XmlSyntaxHighlighter.computeHighlighting(text);
     }
 
     /**
