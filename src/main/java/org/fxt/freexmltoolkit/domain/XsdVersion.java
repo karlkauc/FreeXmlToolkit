@@ -1,9 +1,9 @@
 package org.fxt.freexmltoolkit.domain;
 
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.*;
 
 /**
  * Represents the XSD version (1.0 or 1.1) of a schema and provides
@@ -235,8 +235,12 @@ public class XsdVersion {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         XsdVersion that = (XsdVersion) o;
         return strict == that.strict && Objects.equals(version, that.version);
     }

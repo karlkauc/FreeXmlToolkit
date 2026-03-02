@@ -17,6 +17,13 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.function.Consumer;
+
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.DatePicker;
@@ -25,14 +32,8 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.function.Consumer;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 
 /**
  * Combined date and time picker widget for XSD dateTime types.
@@ -79,7 +80,9 @@ public class XmlDateTimePicker implements TypeAwareWidgetFactory.EditWidget {
 
             @Override
             public LocalDate fromString(String string) {
-                if (string == null || string.isEmpty()) return null;
+                if (string == null || string.isEmpty()) {
+                    return null;
+                }
                 try {
                     return LocalDate.parse(string, ISO_DATE_FORMAT);
                 } catch (DateTimeParseException e) {
@@ -144,8 +147,12 @@ public class XmlDateTimePicker implements TypeAwareWidgetFactory.EditWidget {
         String dtOnly = value;
         if (value.contains("+") || value.endsWith("Z")) {
             int idx = value.lastIndexOf("+");
-            if (idx < 0) idx = value.lastIndexOf("Z");
-            if (idx > 0) dtOnly = value.substring(0, idx);
+            if (idx < 0) {
+                idx = value.lastIndexOf("Z");
+            }
+            if (idx > 0) {
+                dtOnly = value.substring(0, idx);
+            }
         }
         return LocalDateTime.parse(dtOnly, ISO_DATE_TIME_FORMAT);
     }

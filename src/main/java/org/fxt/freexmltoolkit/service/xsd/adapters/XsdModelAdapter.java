@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.service.xsd.adapters;
 
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
@@ -9,10 +13,6 @@ import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Adapter for converting ParsedSchema to XsdSchema (V2 model).

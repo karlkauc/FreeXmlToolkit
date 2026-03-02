@@ -18,15 +18,15 @@
 
 package org.fxt.freexmltoolkit.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-
-import java.io.File;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for FormattingUtils utility class.

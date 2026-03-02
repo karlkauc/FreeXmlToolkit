@@ -1,15 +1,16 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.StringReader;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Round-trip tests for XSD parsing and serialization.

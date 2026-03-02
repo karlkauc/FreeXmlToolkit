@@ -18,9 +18,9 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.UpdateInfo;
-
 import java.util.concurrent.CompletableFuture;
+
+import org.fxt.freexmltoolkit.domain.UpdateInfo;
 
 /**
  * Service for checking application updates against GitHub Releases.

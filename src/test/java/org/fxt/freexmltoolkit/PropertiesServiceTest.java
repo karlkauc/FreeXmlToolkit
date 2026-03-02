@@ -18,13 +18,13 @@
 
 package org.fxt.freexmltoolkit;
 
+import java.io.File;
+import java.util.Properties;
+
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
-import java.util.Properties;
 
 public class PropertiesServiceTest {
 

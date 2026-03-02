@@ -1,17 +1,18 @@
 package org.fxt.freexmltoolkit.controls.dashboard;
 
+import java.util.List;
+import java.util.function.Consumer;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.*;
+
 import org.fxt.freexmltoolkit.domain.statistics.FeatureUsage;
 import org.fxt.freexmltoolkit.service.SkillTracker;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * A grid component showing feature discovery progress.

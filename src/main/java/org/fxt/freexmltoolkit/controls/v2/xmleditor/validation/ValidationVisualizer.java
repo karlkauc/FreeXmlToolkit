@@ -17,6 +17,9 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.validation;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -28,13 +31,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Provides visual feedback for validation results in the XML editor.
@@ -95,7 +96,9 @@ public class ValidationVisualizer {
      * @param result the validation result
      */
     public void applyValidationStyle(Node node, ValidationResult result) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String style = getValidationStyle(result);
         node.setStyle(style);
@@ -348,8 +351,12 @@ public class ValidationVisualizer {
      * @return truncated message
      */
     private String truncateMessage(String message, int maxLength) {
-        if (message == null) return "";
-        if (message.length() <= maxLength) return message;
+        if (message == null) {
+            return "";
+        }
+        if (message.length() <= maxLength) {
+            return message;
+        }
         return message.substring(0, maxLength - 3) + "...";
     }
 

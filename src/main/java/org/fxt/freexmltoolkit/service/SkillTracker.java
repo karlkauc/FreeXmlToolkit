@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.statistics.FeatureUsage;
-import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
-
 import java.util.*;
 import java.util.stream.Collectors;
+
+import org.fxt.freexmltoolkit.domain.statistics.FeatureUsage;
+import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
 
 /**
  * Helper class for skill tracking and feature discovery.
@@ -225,7 +225,9 @@ public class SkillTracker {
             .filter(f -> f.category().equals(category))
             .toList();
 
-        if (categoryFeatures.isEmpty()) return 0;
+        if (categoryFeatures.isEmpty()) {
+            return 0;
+        }
 
         long discovered = categoryFeatures.stream()
             .filter(f -> {
@@ -245,7 +247,9 @@ public class SkillTracker {
      * @return progress percentage from 0 to 100
      */
     public static double getOverallProgress(UsageStatistics stats) {
-        if (FEATURES.isEmpty()) return 0;
+        if (FEATURES.isEmpty()) {
+            return 0;
+        }
 
         long discovered = stats.getFeatureUsage().values().stream()
             .filter(FeatureUsage::isDiscovered)
@@ -330,11 +334,21 @@ public class SkillTracker {
      * @return a descriptive title for the user's skill level
      */
     public static String getSkillLevelTitle(double progress) {
-        if (progress >= 90) return "XML Master";
-        if (progress >= 70) return "Expert User";
-        if (progress >= 50) return "Proficient";
-        if (progress >= 30) return "Intermediate";
-        if (progress >= 10) return "Getting Started";
+        if (progress >= 90) {
+            return "XML Master";
+        }
+        if (progress >= 70) {
+            return "Expert User";
+        }
+        if (progress >= 50) {
+            return "Proficient";
+        }
+        if (progress >= 30) {
+            return "Intermediate";
+        }
+        if (progress >= 10) {
+            return "Getting Started";
+        }
         return "Newcomer";
     }
 }

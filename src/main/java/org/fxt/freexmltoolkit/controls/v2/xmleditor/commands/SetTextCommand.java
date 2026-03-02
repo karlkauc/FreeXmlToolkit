@@ -87,7 +87,7 @@ public class SetTextCommand implements XmlCommand {
      * Merged version of SetTextCommand that remembers the original old text.
      */
     private static class MergedSetTextCommand extends SetTextCommand {
-        public MergedSetTextCommand(XmlText textNode, String newText, String originalOldText) {
+        MergedSetTextCommand(XmlText textNode, String newText, String originalOldText) {
             super(textNode, newText);
             // Override oldText field via reflection would be needed here,
             // or we could redesign to accept oldText in constructor

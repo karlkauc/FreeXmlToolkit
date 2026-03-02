@@ -1,9 +1,6 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
-import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
-import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -13,7 +10,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
+import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test to verify that flattening XSD schemas does not create duplicate type definitions.

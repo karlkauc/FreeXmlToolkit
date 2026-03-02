@@ -18,14 +18,14 @@
 
 package org.fxt.freexmltoolkit.domain;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.io.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("XsdAssertion")
 class XsdAssertionTest {

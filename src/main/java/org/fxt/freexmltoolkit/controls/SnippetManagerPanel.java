@@ -1,5 +1,12 @@
 package org.fxt.freexmltoolkit.controls;
 
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -14,17 +21,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
+
 import org.fxt.freexmltoolkit.domain.XPathSnippet;
 import org.fxt.freexmltoolkit.service.XPathExecutionEngine;
 import org.fxt.freexmltoolkit.service.XPathExecutionResult;
 import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Revolutionary Snippet Manager Panel - the unique selling point of the XML Editor.
@@ -260,7 +261,9 @@ public class SnippetManagerPanel extends VBox {
                         snippet.getQuery().toLowerCase().contains(searchText) ||
                         snippet.getTags().stream().anyMatch(tag -> tag.toLowerCase().contains(searchText));
 
-                if (!matchesSearch) return false;
+                if (!matchesSearch) {
+                    return false;
+                }
             }
 
             // Category filter
@@ -419,7 +422,9 @@ public class SnippetManagerPanel extends VBox {
     }
 
     private void toggleFavorite() {
-        if (selectedSnippet == null) return;
+        if (selectedSnippet == null) {
+            return;
+        }
 
         boolean isFavorite = selectedSnippet.isFavorite();
         selectedSnippet.setFavorite(!isFavorite);
@@ -552,7 +557,9 @@ public class SnippetManagerPanel extends VBox {
         return scoredSnippets.entrySet().stream()
                 .sorted((a, b) -> {
                     int scoreCompare = Integer.compare(b.getValue(), a.getValue());
-                    if (scoreCompare != 0) return scoreCompare;
+                    if (scoreCompare != 0) {
+                        return scoreCompare;
+                    }
                     // Tie-breaker: favorites first, then by usage
                     if (a.getKey().isFavorite() != b.getKey().isFavorite()) {
                         return a.getKey().isFavorite() ? -1 : 1;
@@ -633,27 +640,49 @@ public class SnippetManagerPanel extends VBox {
         // Category-based scoring
         switch (snippet.getCategory()) {
             case NAVIGATION:
-                if (analysis.isNested) score += 4;
-                if (analysis.elementNames.size() > 3) score += 2;
+                if (analysis.isNested) {
+                    score += 4;
+                }
+                if (analysis.elementNames.size() > 3) {
+                    score += 2;
+                }
                 break;
             case EXTRACTION:
-                if (analysis.hasTextContent) score += 4;
-                if (analysis.hasAttributes) score += 3;
+                if (analysis.hasTextContent) {
+                    score += 4;
+                }
+                if (analysis.hasAttributes) {
+                    score += 3;
+                }
                 break;
             case FILTERING:
-                if (analysis.hasAttributes) score += 4;
-                if (analysis.elementNames.size() > 2) score += 2;
+                if (analysis.hasAttributes) {
+                    score += 4;
+                }
+                if (analysis.elementNames.size() > 2) {
+                    score += 2;
+                }
                 break;
             case TRANSFORMATION:
-                if (analysis.hasNumericContent) score += 3;
-                if (analysis.hasDateContent) score += 2;
+                if (analysis.hasNumericContent) {
+                    score += 3;
+                }
+                if (analysis.hasDateContent) {
+                    score += 2;
+                }
                 break;
             case VALIDATION:
-                if (analysis.hasAttributes) score += 2;
+                if (analysis.hasAttributes) {
+                    score += 2;
+                }
                 break;
             case ANALYSIS:
-                if (analysis.hasNamespaces) score += 4;
-                if (analysis.elementNames.size() > 5) score += 3;
+                if (analysis.hasNamespaces) {
+                    score += 4;
+                }
+                if (analysis.elementNames.size() > 5) {
+                    score += 3;
+                }
                 break;
             case UTILITY:
                 score += 1; // Always somewhat relevant
@@ -767,7 +796,7 @@ public class SnippetManagerPanel extends VBox {
         /**
          * Creates a new snippet list cell with styled labels for displaying snippet information.
          */
-        public SnippetListCell() {
+        SnippetListCell() {
             nameLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
             descriptionLabel.setFont(Font.font("System", 10));
             descriptionLabel.setStyle("-fx-text-fill: gray;");

@@ -1,14 +1,14 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for XPathFunctionLibrary.

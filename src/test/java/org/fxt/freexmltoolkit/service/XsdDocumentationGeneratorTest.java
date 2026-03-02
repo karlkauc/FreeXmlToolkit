@@ -18,9 +18,9 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.junit.jupiter.api.Test;
-
 import java.io.File;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Test class to generate XSD documentation for FundsXML4.xsd

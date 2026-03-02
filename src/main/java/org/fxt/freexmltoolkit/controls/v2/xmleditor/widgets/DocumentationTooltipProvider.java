@@ -17,6 +17,10 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -25,13 +29,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
+
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.AttributeTypeInfo;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ElementTypeInfo;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Provides rich documentation tooltips for XML elements and attributes.
@@ -348,7 +349,9 @@ public class DocumentationTooltipProvider {
         // Show first 4 values + "... and X more"
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 4; i++) {
-            if (i > 0) sb.append(", ");
+            if (i > 0) {
+                sb.append(", ");
+            }
             sb.append(values.get(i));
         }
         sb.append(" ... and ").append(values.size() - 4).append(" more");
@@ -438,7 +441,9 @@ public class DocumentationTooltipProvider {
      * @return a compact string description
      */
     public static String createCompactTypeInfo(ElementTypeInfo info) {
-        if (info == null) return "";
+        if (info == null) {
+            return "";
+        }
 
         StringBuilder sb = new StringBuilder();
 
@@ -460,7 +465,9 @@ public class DocumentationTooltipProvider {
      * @return a compact string description
      */
     public static String createCompactAttributeInfo(AttributeTypeInfo info) {
-        if (info == null) return "";
+        if (info == null) {
+            return "";
+        }
 
         StringBuilder sb = new StringBuilder();
 

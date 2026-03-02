@@ -1,13 +1,13 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.core;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.Objects;
+
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.IntelliSenseEngine;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
-
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.util.Objects;
 
 /**
  * Central context for the XML editor.

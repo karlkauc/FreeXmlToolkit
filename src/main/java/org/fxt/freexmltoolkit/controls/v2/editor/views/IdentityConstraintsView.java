@@ -1,5 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -8,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer;
@@ -17,9 +21,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstrain
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * View displaying identity constraints (Key, KeyRef, Unique) and assertions.

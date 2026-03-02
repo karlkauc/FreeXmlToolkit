@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.unified;
 
+import java.io.File;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
-
-import java.io.File;
 
 /**
  * Factory for creating Unified Editor tabs based on file type.

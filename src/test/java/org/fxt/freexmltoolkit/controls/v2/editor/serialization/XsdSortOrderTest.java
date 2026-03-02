@@ -18,10 +18,10 @@
 
 package org.fxt.freexmltoolkit.controls.v2.editor.serialization;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for XsdSortOrder enum.

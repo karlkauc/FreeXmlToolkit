@@ -18,10 +18,7 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
-import org.fxt.freexmltoolkit.domain.ConnectionResult;
-import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,7 +27,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.domain.ConnectionResult;
+import org.junit.jupiter.api.*;
+
+import com.sun.net.httpserver.HttpServer;
 
 /**
  * Comprehensive tests for ConnectionService.

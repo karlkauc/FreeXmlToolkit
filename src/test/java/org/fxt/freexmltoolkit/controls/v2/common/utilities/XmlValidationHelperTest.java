@@ -18,11 +18,11 @@
 
 package org.fxt.freexmltoolkit.controls.v2.common.utilities;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXParseException;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for XmlValidationHelper utility class.

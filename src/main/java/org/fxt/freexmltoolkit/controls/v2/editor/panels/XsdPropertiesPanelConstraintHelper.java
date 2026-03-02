@@ -20,11 +20,10 @@ package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**
  * Helper class for constraint-related functionality in XsdPropertiesPanel.

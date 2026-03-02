@@ -1,15 +1,15 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.model.*;
 
 /**
  * Extracts XPath-like element paths from an XSD schema for autocomplete suggestions.
@@ -251,8 +251,12 @@ public class XsdElementPathExtractor {
     public record LinkSuggestion(String displayText, String insertText, String type) {
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             LinkSuggestion that = (LinkSuggestion) o;
             return Objects.equals(insertText, that.insertText);
         }

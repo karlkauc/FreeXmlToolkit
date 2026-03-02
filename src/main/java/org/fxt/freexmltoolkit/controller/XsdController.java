@@ -1,73 +1,35 @@
 package org.fxt.freexmltoolkit.controller;
 
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.SimpleFileServer;
-import javafx.animation.Animation;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.web.WebView;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-import javafx.util.Duration;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.control.CheckComboBox;
-import org.fxmisc.richtext.CodeArea;
-import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.shared.utilities.FindReplaceDialog;
-import org.fxt.freexmltoolkit.controls.shared.utilities.XmlCodeFoldingManager;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
-import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.*;
 import org.fxt.freexmltoolkit.service.*;
-import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
-import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
-import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
-import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
-import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
-import org.fxt.freexmltoolkit.util.DialogHelper;
-import org.jetbrains.annotations.NotNull;
-import org.kordamp.ikonli.javafx.FontIcon;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.InetSocketAddress;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Main Controller for the XSD Editor.
@@ -175,11 +137,21 @@ public class XsdController implements FavoritesParentController {
         setupDragAndDrop();
         setupTextToGraphicSync();
         
-        if (documentationTabController != null) documentationTabController.setParentController(this);
-        if (flattenTabController != null) flattenTabController.setParentController(this);
-        if (schemaAnalysisTabController != null) schemaAnalysisTabController.setParentController(this);
-        if (favoritesPanelController != null) favoritesPanelController.setParentController(this);
-        if (favoritesPanelGraphicController != null) favoritesPanelGraphicController.setParentController(this);
+        if (documentationTabController != null) {
+            documentationTabController.setParentController(this);
+        }
+        if (flattenTabController != null) {
+            flattenTabController.setParentController(this);
+        }
+        if (schemaAnalysisTabController != null) {
+            schemaAnalysisTabController.setParentController(this);
+        }
+        if (favoritesPanelController != null) {
+            favoritesPanelController.setParentController(this);
+        }
+        if (favoritesPanelGraphicController != null) {
+            favoritesPanelGraphicController.setParentController(this);
+        }
 
         applyEditorSettings();
     }
@@ -192,7 +164,9 @@ public class XsdController implements FavoritesParentController {
 
     private void setupDragAndDrop() {
         DragDropService.setupDragDrop(tabPane, DragDropService.XSD_EXTENSIONS, files -> {
-            if (!files.isEmpty()) openXsdFile(files.get(0));
+            if (!files.isEmpty()) {
+                openXsdFile(files.get(0));
+            }
         });
     }
 
@@ -200,9 +174,15 @@ public class XsdController implements FavoritesParentController {
         xmlService.setCurrentXsdFile(file);
         this.currentXsdFile = file;
 
-        if (textInfoPathLabel != null) textInfoPathLabel.setText(file.getAbsolutePath());
-        if (flattenTabController != null) flattenTabController.setSourcePath(file.getAbsolutePath());
-        if (xsdForSampleDataPath != null) xsdForSampleDataPath.setText(file.getAbsolutePath());
+        if (textInfoPathLabel != null) {
+            textInfoPathLabel.setText(file.getAbsolutePath());
+        }
+        if (flattenTabController != null) {
+            flattenTabController.setSourcePath(file.getAbsolutePath());
+        }
+        if (xsdForSampleDataPath != null) {
+            xsdForSampleDataPath.setText(file.getAbsolutePath());
+        }
 
         try {
             String content = Files.readString(file.toPath());
@@ -238,8 +218,12 @@ public class XsdController implements FavoritesParentController {
 
         task.setOnSucceeded(e -> {
             cachedXsdSchema = task.getValue();
-            if (schemaAnalysisTabController != null) schemaAnalysisTabController.setSchema(cachedXsdSchema);
-            if (createView) createGraphicalViewFromCachedSchema();
+            if (schemaAnalysisTabController != null) {
+                schemaAnalysisTabController.setSchema(cachedXsdSchema);
+            }
+            if (createView) {
+                createGraphicalViewFromCachedSchema();
+            }
             updateTypeLibrary();
             updateTypeEditor();
         });
@@ -248,7 +232,9 @@ public class XsdController implements FavoritesParentController {
     }
 
     private void updateTypeLibrary() {
-        if (cachedXsdSchema == null || typeLibraryStackPane == null) return;
+        if (cachedXsdSchema == null || typeLibraryStackPane == null) {
+            return;
+        }
         Platform.runLater(() -> {
             typeLibraryStackPane.getChildren().clear();
             var typeLibraryView = new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(cachedXsdSchema);
@@ -261,7 +247,9 @@ public class XsdController implements FavoritesParentController {
     }
 
     private void updateTypeEditor() {
-        if (cachedXsdSchema == null || typeEditorStackPane == null) return;
+        if (cachedXsdSchema == null || typeEditorStackPane == null) {
+            return;
+        }
         Platform.runLater(() -> {
             typeEditorStackPane.getChildren().clear();
             TabPane typeEditorTabPane = new TabPane();
@@ -276,7 +264,9 @@ public class XsdController implements FavoritesParentController {
     }
 
     private void createGraphicalViewFromCachedSchema() {
-        if (cachedXsdSchema == null) return;
+        if (cachedXsdSchema == null) {
+            return;
+        }
         xsdStackPaneV2.getChildren().clear();
         currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(cachedXsdSchema);
         xsdStackPaneV2.getChildren().add(currentGraphViewV2);
@@ -288,7 +278,9 @@ public class XsdController implements FavoritesParentController {
     }
 
     private void wireTypeEditorCallbacks() {
-        if (currentGraphViewV2 == null || currentTypeEditorManager == null) return;
+        if (currentGraphViewV2 == null || currentTypeEditorManager == null) {
+            return;
+        }
         currentGraphViewV2.setOpenComplexTypeEditorCallback(complexType -> {
             Platform.runLater(() -> {
                 currentTypeEditorManager.openComplexTypeTab(complexType);
@@ -309,8 +301,12 @@ public class XsdController implements FavoritesParentController {
 
     private void setupTextToGraphicSync() {
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
-            if (oldTab == textTab && newTab == xsdTab) syncTextToGraphic();
-            if (oldTab == xsdTab && newTab == textTab) syncGraphicToText();
+            if (oldTab == textTab && newTab == xsdTab) {
+                syncTextToGraphic();
+            }
+            if (oldTab == xsdTab && newTab == textTab) {
+                syncGraphicToText();
+            }
         });
     }
 
@@ -322,7 +318,9 @@ public class XsdController implements FavoritesParentController {
     }
 
     private void syncGraphicToText() {
-        if (currentGraphViewV2 == null) return;
+        if (currentGraphViewV2 == null) {
+            return;
+        }
         XsdSerializer serializer = new XsdSerializer();
         String xml = serializer.serialize(cachedXsdSchema, XsdSortOrder.NAME_BEFORE_TYPE);
         sourceCodeEditor.getCodeArea().replaceText(xml);
@@ -339,7 +337,9 @@ public class XsdController implements FavoritesParentController {
     }
 
     public void updateBackgroundTaskTimer(String time) {
-        if (taskTimerLabel != null) taskTimerLabel.setText(time);
+        if (taskTimerLabel != null) {
+            taskTimerLabel.setText(time);
+        }
     }
 
     private void applyEditorSettings() {
@@ -442,14 +442,18 @@ public class XsdController implements FavoritesParentController {
         noFileLoadedPaneText.setManaged(false);
         textInfoPane.setVisible(true);
         textInfoPane.setManaged(true);
-        if (textInfoPathLabel != null) textInfoPathLabel.setText("New XSD File");
+        if (textInfoPathLabel != null) {
+            textInfoPathLabel.setText("New XSD File");
+        }
         tabPane.getSelectionModel().select(textTab);
     }
 
     @FXML
     public void handleToolbarLoadFile() {
         File file = openXsdFileChooser();
-        if (file != null) openXsdFile(file);
+        if (file != null) {
+            openXsdFile(file);
+        }
     }
 
     @FXML
@@ -573,7 +577,9 @@ public class XsdController implements FavoritesParentController {
     }
 
     private void toggleFavoritesPanel(VBox panel, SplitPane splitPane) {
-        if (panel == null || splitPane == null) return;
+        if (panel == null || splitPane == null) {
+            return;
+        }
         if (favoritesPanelVisible) {
             if (!splitPane.getItems().contains(panel)) {
                 splitPane.getItems().add(panel);
@@ -625,8 +631,12 @@ public class XsdController implements FavoritesParentController {
 
     @FXML
     public void saveXsdFile() {
-        if (currentXsdFile != null) saveXsdToFile(currentXsdFile);
-        else saveXsdFileAs();
+        if (currentXsdFile != null) {
+            saveXsdToFile(currentXsdFile);
+        }
+        else {
+            saveXsdFileAs();
+        }
     }
 
     @FXML

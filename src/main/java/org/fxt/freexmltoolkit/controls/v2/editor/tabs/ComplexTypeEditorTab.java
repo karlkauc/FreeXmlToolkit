@@ -1,10 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.tabs;
 
-import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.views.ComplexTypeEditorView;

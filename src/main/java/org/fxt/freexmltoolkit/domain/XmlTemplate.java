@@ -140,7 +140,9 @@ public class XmlTemplate {
 
             for (String line : lines) {
                 String trimmed = line.trim();
-                if (trimmed.isEmpty()) continue;
+                if (trimmed.isEmpty()) {
+                    continue;
+                }
 
                 // Decrease indent for closing tags
                 if (trimmed.startsWith("</")) {
@@ -761,8 +763,12 @@ public class XmlTemplate {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
         XmlTemplate that = (XmlTemplate) obj;
         return Objects.equals(id, that.id);
     }

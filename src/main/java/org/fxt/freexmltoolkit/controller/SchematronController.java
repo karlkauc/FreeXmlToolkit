@@ -1,5 +1,17 @@
 package org.fxt.freexmltoolkit.controller;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,6 +29,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
@@ -28,18 +41,6 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TestFile;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Controller for the Schematron Editor tab.
@@ -1153,7 +1154,9 @@ public class SchematronController implements FavoritesParentController {
      * Add an error section to the UI
      */
     private void addErrorSection(String title, java.util.List<SchematronErrorDetector.SchematronError> errors, String styleClass) {
-        if (errors.isEmpty()) return;
+        if (errors.isEmpty()) {
+            return;
+        }
 
         Label sectionLabel = new Label(title + " (" + errors.size() + "):");
         sectionLabel.setStyle("-fx-font-weight: bold; -fx-padding: 5px 0px 2px 0px;");
@@ -2273,7 +2276,9 @@ public class SchematronController implements FavoritesParentController {
      * Escape CSV values
      */
     private String escapeCsv(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
@@ -2351,7 +2356,9 @@ public class SchematronController implements FavoritesParentController {
      * Escape JSON values
      */
     private String escapeJson(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.replace("\\", "\\\\")
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n")
@@ -2558,7 +2565,9 @@ public class SchematronController implements FavoritesParentController {
      * Update the Overview tab with summary statistics
      */
     private void updateOverviewTab() {
-        if (overviewContent == null) return;
+        if (overviewContent == null) {
+            return;
+        }
 
         // Clear existing content
         overviewContent.getChildren().clear();
@@ -2643,7 +2652,9 @@ public class SchematronController implements FavoritesParentController {
      * Update the Details tab with detailed test results
      */
     private void updateDetailsTab() {
-        if (detailsContent == null) return;
+        if (detailsContent == null) {
+            return;
+        }
 
         // Clear existing content
         detailsContent.getChildren().clear();
@@ -2755,7 +2766,9 @@ public class SchematronController implements FavoritesParentController {
      * Update the Errors tab with only errors and violations
      */
     private void updateErrorsTab() {
-        if (errorsContent == null) return;
+        if (errorsContent == null) {
+            return;
+        }
 
         // Clear existing content
         errorsContent.getChildren().clear();
@@ -2948,7 +2961,9 @@ public class SchematronController implements FavoritesParentController {
                                      javafx.scene.control.ContentDisplay displayMode,
                                      int iconSize,
                                      String style) {
-        if (button == null) return;
+        if (button == null) {
+            return;
+        }
 
         // Set content display mode
         button.setContentDisplay(displayMode);

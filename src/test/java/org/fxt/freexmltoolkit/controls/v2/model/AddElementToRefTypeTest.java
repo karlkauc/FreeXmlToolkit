@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Minimal test to verify that elements added to a referenced ComplexType

@@ -1,5 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.ui;
 
+import java.util.List;
+import java.util.function.Consumer;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -11,14 +14,12 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Popup window for displaying IntelliSense completion suggestions.

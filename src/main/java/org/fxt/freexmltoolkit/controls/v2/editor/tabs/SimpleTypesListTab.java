@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.tabs;
 
+import java.util.function.Consumer;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.views.SimpleTypesListView;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
-
-import java.util.function.Consumer;
 
 /**
  * Tab showing a list of all SimpleTypes in the schema.

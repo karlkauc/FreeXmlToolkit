@@ -17,16 +17,17 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import java.util.Map;
+import java.util.function.Consumer;
+
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.XsdType;
-
-import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * Factory for creating type-aware editing widgets based on XSD type information.

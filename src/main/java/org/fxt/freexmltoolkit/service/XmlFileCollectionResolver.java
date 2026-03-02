@@ -18,26 +18,26 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.transform.stream.StreamSource;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.sf.saxon.Configuration;
 import net.sf.saxon.lib.CollectionFinder;
 import net.sf.saxon.lib.Resource;
 import net.sf.saxon.lib.ResourceCollection;
 import net.sf.saxon.om.NodeInfo;
-import net.sf.saxon.om.SpaceStrippingRule;
-import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.trans.XPathException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import javax.xml.transform.stream.StreamSource;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Saxon CollectionFinder implementation for batch XQuery processing.
@@ -202,7 +202,7 @@ public class XmlFileCollectionResolver implements CollectionFinder {
         private final List<File> files;
         private final Configuration configuration;
 
-        public XmlFileResourceCollection(List<File> files, Configuration configuration) {
+        XmlFileResourceCollection(List<File> files, Configuration configuration) {
             this.files = files;
             this.configuration = configuration;
         }
@@ -256,7 +256,7 @@ public class XmlFileCollectionResolver implements CollectionFinder {
         private final NodeInfo nodeInfo;
         private final String resourceURI;
 
-        public NodeResource(NodeInfo nodeInfo, String resourceURI) {
+        NodeResource(NodeInfo nodeInfo, String resourceURI) {
             this.nodeInfo = nodeInfo;
             this.resourceURI = resourceURI;
         }

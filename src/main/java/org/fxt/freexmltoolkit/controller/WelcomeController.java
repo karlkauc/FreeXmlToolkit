@@ -18,34 +18,6 @@
 
 package org.fxt.freexmltoolkit.controller;
 
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.geometry.Pos;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.dashboard.FeatureProgressGrid;
-import org.fxt.freexmltoolkit.controls.dashboard.StatisticsCard;
-import org.fxt.freexmltoolkit.controls.dashboard.TipsBanner;
-import org.fxt.freexmltoolkit.controls.dashboard.TrendSparkline;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.UpdateInfo;
-import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
-import org.fxt.freexmltoolkit.service.DragDropService;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.UpdateCheckService;
-import org.fxt.freexmltoolkit.service.UsageTrackingService;
-import org.kordamp.ikonli.javafx.FontIcon;
-
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +32,34 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Properties;
+
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.dashboard.FeatureProgressGrid;
+import org.fxt.freexmltoolkit.controls.dashboard.StatisticsCard;
+import org.fxt.freexmltoolkit.controls.dashboard.TipsBanner;
+import org.fxt.freexmltoolkit.controls.dashboard.TrendSparkline;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.UpdateInfo;
+import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
+import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.UpdateCheckService;
+import org.fxt.freexmltoolkit.service.UsageTrackingService;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Controller for the Welcome/Dashboard page.

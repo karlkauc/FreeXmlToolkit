@@ -18,13 +18,12 @@
 
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
-import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Collections;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for XsdPropertiesPanelFacetsHelper utility class.

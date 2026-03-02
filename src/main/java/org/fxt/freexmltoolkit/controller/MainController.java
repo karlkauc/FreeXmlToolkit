@@ -18,6 +18,17 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import java.io.File;
+import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -33,6 +44,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,17 +57,6 @@ import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-
-import java.io.File;
-import java.net.URL;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.ResourceBundle;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Main controller for the FreeXMLToolkit application.
@@ -72,7 +73,7 @@ public class MainController implements Initializable {
         // Default constructor for FXML initialization
     }
 
-    private final static Logger logger = LogManager.getLogger(MainController.class);
+    private static final Logger logger = LogManager.getLogger(MainController.class);
 
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
 
@@ -1263,20 +1264,48 @@ public class MainController implements Initializable {
     }
 
     private void restoreButtonText(Button button) {
-        if (button == xmlUltimate) button.setText("XML Editor");
-        else if (button == json) button.setText("JSON Editor");
-        else if (button == xsd) button.setText("XSD Editor");
-        else if (button == xsdValidation) button.setText("XSD Validation");
-        else if (button == schematron) button.setText("Schematron Editor");
-        else if (button == xslt) button.setText("XSLT Viewer");
-        else if (button == fop) button.setText("FOP");
-        else if (button == signature) button.setText("Signature");
-        else if (button == help) button.setText("Help");
-        else if (button == settings) button.setText("Settings");
-        else if (button == exit) button.setText("Exit");
-        else if (button == xsltDeveloper) button.setText("XSLT Developer");
-        else if (button == schemaGenerator) button.setText("Schema Generator");
-        else if (button == unifiedEditor) button.setText("Unified Editor");
+        if (button == xmlUltimate) {
+            button.setText("XML Editor");
+        }
+        else if (button == json) {
+            button.setText("JSON Editor");
+        }
+        else if (button == xsd) {
+            button.setText("XSD Editor");
+        }
+        else if (button == xsdValidation) {
+            button.setText("XSD Validation");
+        }
+        else if (button == schematron) {
+            button.setText("Schematron Editor");
+        }
+        else if (button == xslt) {
+            button.setText("XSLT Viewer");
+        }
+        else if (button == fop) {
+            button.setText("FOP");
+        }
+        else if (button == signature) {
+            button.setText("Signature");
+        }
+        else if (button == help) {
+            button.setText("Help");
+        }
+        else if (button == settings) {
+            button.setText("Settings");
+        }
+        else if (button == exit) {
+            button.setText("Exit");
+        }
+        else if (button == xsltDeveloper) {
+            button.setText("XSLT Developer");
+        }
+        else if (button == schemaGenerator) {
+            button.setText("Schema Generator");
+        }
+        else if (button == unifiedEditor) {
+            button.setText("Unified Editor");
+        }
     }
 
     /**

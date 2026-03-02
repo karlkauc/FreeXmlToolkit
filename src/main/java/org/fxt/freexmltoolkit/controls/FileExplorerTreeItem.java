@@ -18,16 +18,17 @@
 
 package org.fxt.freexmltoolkit.controls;
 
-import javafx.collections.ObservableList;
-import javafx.scene.control.TreeItem;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+
+import javafx.collections.ObservableList;
+import javafx.scene.control.TreeItem;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * A lazy-loading TreeItem implementation for file system browsing.
@@ -286,8 +287,12 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
                                 return allowedExtensions.contains(extension);
                             })
                             .sorted((p1, p2) -> {
-                                if (Files.isDirectory(p1) && !Files.isDirectory(p2)) return -1;
-                                if (!Files.isDirectory(p1) && Files.isDirectory(p2)) return 1;
+                                if (Files.isDirectory(p1) && !Files.isDirectory(p2)) {
+                                    return -1;
+                                }
+                                if (!Files.isDirectory(p1) && Files.isDirectory(p2)) {
+                                    return 1;
+                                }
                                 return p1.getFileName().toString().compareToIgnoreCase(p2.getFileName().toString());
                             })
                             // KORREKTUR: Wir übergeben die Filterliste an die Kind-Elemente weiter.

@@ -18,6 +18,12 @@
 
 package org.fxt.freexmltoolkit.controls.unified;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.function.Consumer;
+
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -33,6 +39,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.FavoritesParentController;
@@ -44,12 +51,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * Multi-functional side pane for the Unified Editor.
@@ -895,7 +896,9 @@ public class MultiFunctionalSidePane extends VBox {
      * Updates the XML sidebar for the given caret position.
      */
     private void updateXmlSidebarForPosition(XmlUnifiedTab tab, int caretPosition) {
-        if (xmlSidebarController == null) return;
+        if (xmlSidebarController == null) {
+            return;
+        }
 
         String content = tab.getEditorContent();
         if (content == null || content.isEmpty()) {
@@ -1162,7 +1165,9 @@ public class MultiFunctionalSidePane extends VBox {
         while (i < position && i < content.length()) {
             if (content.charAt(i) == '<') {
                 int tagEnd = content.indexOf('>', i);
-                if (tagEnd == -1) break;
+                if (tagEnd == -1) {
+                    break;
+                }
 
                 String tagContent = content.substring(i + 1, tagEnd).trim();
 

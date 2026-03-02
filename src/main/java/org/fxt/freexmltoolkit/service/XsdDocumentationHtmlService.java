@@ -18,16 +18,6 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
-import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import org.w3c.dom.Node;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +31,16 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.w3c.dom.Node;
 
 public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.service.xsd.DocumentationExporter {
 
@@ -751,10 +751,14 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     public String getDocumentationFromNode(Node node) {
-        if (node == null) return "";
+        if (node == null) {
+            return "";
+        }
 
         Node annotationNode = getDirectChildElement(node, "annotation");
-        if (annotationNode == null) return "";
+        if (annotationNode == null) {
+            return "";
+        }
 
         List<String> docStrings = new ArrayList<>();
         for (Node docNode : getDirectChildElements(annotationNode, "documentation")) {
@@ -773,10 +777,14 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      */
     public Map<String, String> getDocumentationsFromNode(Node node) {
         Map<String, String> result = new LinkedHashMap<>();
-        if (node == null) return result;
+        if (node == null) {
+            return result;
+        }
 
         Node annotationNode = getDirectChildElement(node, "annotation");
-        if (annotationNode == null) return result;
+        if (annotationNode == null) {
+            return result;
+        }
 
         for (Node docNode : getDirectChildElements(annotationNode, "documentation")) {
             // Get xml:lang attribute
@@ -808,7 +816,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
 
     public List<Node> getRestrictionFacets(Node simpleTypeNode) {
         Node restrictionNode = getDirectChildElement(simpleTypeNode, "restriction");
-        if (restrictionNode == null) return Collections.emptyList();
+        if (restrictionNode == null) {
+            return Collections.emptyList();
+        }
         List<Node> facets = new ArrayList<>();
         for (Node child = restrictionNode.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child.getNodeType() == Node.ELEMENT_NODE && !"annotation".equals(child.getLocalName())) {
@@ -819,7 +829,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     private Node getDirectChildElement(Node parent, String childName) {
-        if (parent == null) return null;
+        if (parent == null) {
+            return null;
+        }
         for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child.getNodeType() == Node.ELEMENT_NODE && childName.equals(child.getLocalName())) {
                 return child;
@@ -912,7 +924,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     public List<Node> getDirectChildElements(Node parent, String childName) {
-        if (parent == null) return Collections.emptyList();
+        if (parent == null) {
+            return Collections.emptyList();
+        }
         List<Node> children = new ArrayList<>();
         for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child.getNodeType() == Node.ELEMENT_NODE && childName.equals(child.getLocalName())) {
@@ -1043,7 +1057,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
 
     // Fügen Sie auch diese private Hilfsmethode hinzu, falls sie nicht schon existiert
     public String getAttributeValue(Node node, String attrName, String defaultValue) {
-        if (node == null || node.getAttributes() == null) return defaultValue;
+        if (node == null || node.getAttributes() == null) {
+            return defaultValue;
+        }
         Node attrNode = node.getAttributes().getNamedItem(attrName);
         return (attrNode != null) ? attrNode.getNodeValue() : defaultValue;
     }
@@ -1056,7 +1072,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @return The local name of the node, or empty string if node is null
      */
     public String getLocalName(Node node) {
-        if (node == null) return "";
+        if (node == null) {
+            return "";
+        }
         return node.getLocalName() != null ? node.getLocalName() : "";
     }
 
@@ -1068,7 +1086,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
      * @return The parent node, or null if node is null or has no parent
      */
     public Node getParentNode(Node node) {
-        if (node == null) return null;
+        if (node == null) {
+            return null;
+        }
         return node.getParentNode();
     }
 
@@ -1464,7 +1484,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     private String escapeHtml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")

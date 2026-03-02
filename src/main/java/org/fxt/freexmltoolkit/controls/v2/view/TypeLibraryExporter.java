@@ -1,10 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.ExportMetadataService;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -13,6 +8,11 @@ import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
 
 /**
  * Exports Type Library data to various formats.
@@ -246,12 +246,16 @@ public class TypeLibraryExporter {
 
             for (int j = 0; j < type.usageLocations.size(); j++) {
                 json.append("\"").append(escapeJson(type.usageLocations.get(j))).append("\"");
-                if (j < type.usageLocations.size() - 1) json.append(", ");
+                if (j < type.usageLocations.size() - 1) {
+                    json.append(", ");
+                }
             }
 
             json.append("]\n");
             json.append("    }");
-            if (i < types.size() - 1) json.append(",");
+            if (i < types.size() - 1) {
+                json.append(",");
+            }
             json.append("\n");
         }
 
@@ -287,7 +291,9 @@ public class TypeLibraryExporter {
         xml.append("  <types>\n");
         for (TypeInfo type : types) {
             xml.append("    <type kind=\"").append(escapeXml(type.kind)).append("\"");
-            if (type.usageCount == 0) xml.append(" unused=\"true\"");
+            if (type.usageCount == 0) {
+                xml.append(" unused=\"true\"");
+            }
             xml.append(">\n");
             xml.append("      <name>").append(escapeXml(type.name)).append("</name>\n");
             xml.append("      <baseType>").append(escapeXml(type.baseType)).append("</baseType>\n");
@@ -343,7 +349,9 @@ public class TypeLibraryExporter {
         for (TypeInfo type : types) {
             md.append("| ").append(type.kind).append(" | ");
             md.append("**").append(type.name).append("**");
-            if (type.usageCount == 0) md.append(" ⚠️");
+            if (type.usageCount == 0) {
+                md.append(" ⚠️");
+            }
             md.append(" | ");
             md.append(type.baseType).append(" | ");
             md.append(type.documentation.replace("\n", " ").replace("|", "\\|")).append(" | ");
@@ -467,7 +475,9 @@ public class TypeLibraryExporter {
 
     // Escape methods
     private static String escapeCsv(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
@@ -475,7 +485,9 @@ public class TypeLibraryExporter {
     }
 
     private static String escapeHtml(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.replace("&", "&amp;")
                     .replace("<", "&lt;")
                     .replace(">", "&gt;")
@@ -484,7 +496,9 @@ public class TypeLibraryExporter {
     }
 
     private static String escapeJson(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.replace("\\", "\\\\")
                     .replace("\"", "\\\"")
                     .replace("\n", "\\n")
@@ -493,7 +507,9 @@ public class TypeLibraryExporter {
     }
 
     private static String escapeXml(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.replace("&", "&amp;")
                     .replace("<", "&lt;")
                     .replace(">", "&gt;")

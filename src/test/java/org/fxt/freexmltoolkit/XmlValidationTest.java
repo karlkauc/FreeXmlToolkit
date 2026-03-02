@@ -18,14 +18,6 @@
 
 package org.fxt.freexmltoolkit;
 
-import jakarta.xml.bind.DatatypeConverter;
-import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.xml.sax.SAXParseException;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,6 +26,15 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
+
+import jakarta.xml.bind.DatatypeConverter;
+
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.xml.sax.SAXParseException;
 
 public class XmlValidationTest {
 

@@ -1,15 +1,16 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
+import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javafx.application.Platform;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
-
-import java.util.Collection;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Syntax highlighting manager for XmlCodeEditorV2.

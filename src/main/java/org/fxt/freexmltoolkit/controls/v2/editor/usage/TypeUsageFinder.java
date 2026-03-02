@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.usage;
 
+import java.nio.file.Path;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
-
-import java.nio.file.Path;
-import java.util.*;
 
 /**
  * Service for finding usages of a type within an XSD schema.

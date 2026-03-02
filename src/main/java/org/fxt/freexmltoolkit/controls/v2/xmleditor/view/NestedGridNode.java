@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
 
 /**
  * Represents a nested grid node for hierarchical XML visualization.
@@ -191,21 +191,27 @@ public class NestedGridNode {
          *
          * @return the attribute name
          */
-        public String getName() { return name; }
+        public String getName() {
+            return name;
+        }
 
         /**
          * Returns the attribute value.
          *
          * @return the attribute value
          */
-        public String getValue() { return value; }
+        public String getValue() {
+            return value;
+        }
 
         /**
          * Sets the attribute value.
          *
          * @param value the new attribute value
          */
-        public void setValue(String value) { this.value = value; }
+        public void setValue(String value) {
+            this.value = value;
+        }
     }
 
     // ==================== Constructor ====================
@@ -301,7 +307,9 @@ public class NestedGridNode {
             if (child instanceof XmlText) {
                 String t = ((XmlText) child).getText().trim();
                 if (!t.isEmpty()) {
-                    if (text.length() > 0) text.append(" ");
+                    if (text.length() > 0) {
+                        text.append(" ");
+                    }
                     text.append(t);
                 }
             }
@@ -406,7 +414,9 @@ public class NestedGridNode {
      * @param onLayoutChangedCallback callback to run when layout changes
      */
     private static void buildChildren(NestedGridNode parent, List<XmlNode> modelChildren, int depth, int loadOffset, int loadLimit, Runnable onLayoutChangedCallback) {
-        if (depth > MAX_DEPTH) return;
+        if (depth > MAX_DEPTH) {
+            return;
+        }
 
         // If this is the initial load, clear existing children and repeating tables.
         // For subsequent loads (loadMoreChildren), children are appended.
@@ -453,10 +463,14 @@ public class NestedGridNode {
             // Skip whitespace-only text nodes
             if (child instanceof XmlText) {
                 String text = ((XmlText) child).getText().trim();
-                if (text.isEmpty()) continue;
+                if (text.isEmpty()) {
+                    continue;
+                }
                 // Skip text nodes if parent has element children (mixed content)
                 // Text will be shown as #text row in parent, not as separate child
-                if (hasElementChildrenInModel) continue;
+                if (hasElementChildrenInModel) {
+                    continue;
+                }
             }
 
             // Skip elements that are in a repeating table (already handled by RepeatingElementsTable)
@@ -643,7 +657,9 @@ public class NestedGridNode {
      * Uses 7px per character as approximation (matches font size ~12px).
      */
     private double estimateTextWidth(String text) {
-        if (text == null || text.isEmpty()) return 0;
+        if (text == null || text.isEmpty()) {
+            return 0;
+        }
         return text.length() * 7.0;
     }
 
@@ -712,7 +728,9 @@ public class NestedGridNode {
      * @return index of attribute, or -1 if not found
      */
     public int getAttributeIndexAt(double px, double py) {
-        if (px < x || px > x + width) return -1;
+        if (px < x || px > x + width) {
+            return -1;
+        }
 
         double rowY = y + HEADER_HEIGHT;
         for (int i = 0; i < attributeCells.size(); i++) {
@@ -732,7 +750,9 @@ public class NestedGridNode {
      * @return true if the point is on the text content row
      */
     public boolean isTextContentHit(double px, double py) {
-        if (textContent == null || textContent.isEmpty()) return false;
+        if (textContent == null || textContent.isEmpty()) {
+            return false;
+        }
 
         double textY = y + HEADER_HEIGHT + attributeCells.size() * ROW_HEIGHT;
         return px >= x && px <= x + width &&
@@ -761,175 +781,225 @@ public class NestedGridNode {
      *
      * @return the model XML node
      */
-    public XmlNode getModelNode() { return modelNode; }
+    public XmlNode getModelNode() {
+        return modelNode;
+    }
 
     /**
      * Returns the parent NestedGridNode in the visual hierarchy.
      *
      * @return the parent node, or null if this is the root
      */
-    public NestedGridNode getParent() { return parent; }
+    public NestedGridNode getParent() {
+        return parent;
+    }
 
     /**
      * Returns the list of child NestedGridNodes.
      *
      * @return the list of children (may be empty but never null)
      */
-    public List<NestedGridNode> getChildren() { return children; }
+    public List<NestedGridNode> getChildren() {
+        return children;
+    }
 
     /**
      * Returns the list of repeating element tables for this node.
      *
      * @return the list of repeating tables (may be empty but never null)
      */
-    public List<RepeatingElementsTable> getRepeatingTables() { return repeatingTables; }
+    public List<RepeatingElementsTable> getRepeatingTables() {
+        return repeatingTables;
+    }
 
     /**
      * Checks if this node has any children (individual children, repeating tables, or more to load).
      *
      * @return true if the node has any children or children pending to load
      */
-    public boolean hasChildren() { return !children.isEmpty() || !repeatingTables.isEmpty() || hasMoreChildren; }
+    public boolean hasChildren() {
+        return !children.isEmpty() || !repeatingTables.isEmpty() || hasMoreChildren;
+    }
 
     /**
      * Checks if this node has individual (non-table) children.
      *
      * @return true if the node has individual children
      */
-    public boolean hasIndividualChildren() { return !children.isEmpty(); }
+    public boolean hasIndividualChildren() {
+        return !children.isEmpty();
+    }
 
     /**
      * Checks if this node has any repeating element tables.
      *
      * @return true if the node has repeating element tables
      */
-    public boolean hasRepeatingTables() { return !repeatingTables.isEmpty(); }
+    public boolean hasRepeatingTables() {
+        return !repeatingTables.isEmpty();
+    }
 
     /**
      * Returns the depth level of this node in the visual hierarchy.
      *
      * @return the depth (0 for root, increments for each nested level)
      */
-    public int getDepth() { return depth; }
+    public int getDepth() {
+        return depth;
+    }
 
     /**
      * Returns the element name for display purposes.
      *
      * @return the element name or special name for non-element nodes
      */
-    public String getElementName() { return elementName; }
+    public String getElementName() {
+        return elementName;
+    }
 
     /**
      * Returns the type of this XML node.
      *
      * @return the node type (ELEMENT, TEXT, COMMENT, etc.)
      */
-    public NodeType getNodeType() { return nodeType; }
+    public NodeType getNodeType() {
+        return nodeType;
+    }
 
     /**
      * Returns the list of attribute cells for this element.
      *
      * @return the list of attribute cells (may be empty but never null)
      */
-    public List<AttributeCell> getAttributeCells() { return attributeCells; }
+    public List<AttributeCell> getAttributeCells() {
+        return attributeCells;
+    }
 
     /**
      * Returns the text content of this node.
      *
      * @return the text content, or null if none
      */
-    public String getTextContent() { return textContent; }
+    public String getTextContent() {
+        return textContent;
+    }
 
     /**
      * Checks if this node has non-empty text content.
      *
      * @return true if text content exists and is not empty
      */
-    public boolean hasTextContent() { return textContent != null && !textContent.isEmpty(); }
+    public boolean hasTextContent() {
+        return textContent != null && !textContent.isEmpty();
+    }
 
     /**
      * Checks if this is a leaf element with only text content (no child elements).
      *
      * @return true if this element has only text content
      */
-    public boolean isLeafWithText() { return isLeafWithText; }
+    public boolean isLeafWithText() {
+        return isLeafWithText;
+    }
 
     /**
      * Returns the X coordinate of this node's position.
      *
      * @return the X coordinate in pixels
      */
-    public double getX() { return x; }
+    public double getX() {
+        return x;
+    }
 
     /**
      * Sets the X coordinate of this node's position.
      *
      * @param x the new X coordinate in pixels
      */
-    public void setX(double x) { this.x = x; }
+    public void setX(double x) {
+        this.x = x;
+    }
 
     /**
      * Returns the Y coordinate of this node's position.
      *
      * @return the Y coordinate in pixels
      */
-    public double getY() { return y; }
+    public double getY() {
+        return y;
+    }
 
     /**
      * Sets the Y coordinate of this node's position.
      *
      * @param y the new Y coordinate in pixels
      */
-    public void setY(double y) { this.y = y; }
+    public void setY(double y) {
+        this.y = y;
+    }
 
     /**
      * Returns the calculated width of this node.
      *
      * @return the width in pixels
      */
-    public double getWidth() { return width; }
+    public double getWidth() {
+        return width;
+    }
 
     /**
      * Sets the width of this node.
      *
      * @param width the new width in pixels
      */
-    public void setWidth(double width) { this.width = width; }
+    public void setWidth(double width) {
+        this.width = width;
+    }
 
     /**
      * Returns the calculated height of this node.
      *
      * @return the height in pixels
      */
-    public double getHeight() { return height; }
+    public double getHeight() {
+        return height;
+    }
 
     /**
      * Sets the height of this node.
      *
      * @param height the new height in pixels
      */
-    public void setHeight(double height) { this.height = height; }
+    public void setHeight(double height) {
+        this.height = height;
+    }
 
     /**
      * Returns the calculated width for the attribute name column.
      *
      * @return the name column width in pixels
      */
-    public double getCalculatedNameColumnWidth() { return calculatedNameColumnWidth; }
+    public double getCalculatedNameColumnWidth() {
+        return calculatedNameColumnWidth;
+    }
 
     /**
      * Returns the calculated width for the attribute value column.
      *
      * @return the value column width in pixels
      */
-    public double getCalculatedValueColumnWidth() { return calculatedValueColumnWidth; }
+    public double getCalculatedValueColumnWidth() {
+        return calculatedValueColumnWidth;
+    }
 
     /**
      * Checks if this node is expanded to show its children.
      *
      * @return true if the node is expanded
      */
-    public boolean isExpanded() { return expanded; }
+    public boolean isExpanded() {
+        return expanded;
+    }
 
     /**
      * Sets the expanded state of this node.
@@ -955,14 +1025,18 @@ public class NestedGridNode {
     /**
      * Toggles the expanded state of this node.
      */
-    public void toggleExpanded() { setExpanded(!expanded); }
+    public void toggleExpanded() {
+        setExpanded(!expanded);
+    }
 
     /**
      * Checks if this node is currently selected.
      *
      * @return true if the node is selected
      */
-    public boolean isSelected() { return selected; }
+    public boolean isSelected() {
+        return selected;
+    }
 
     /**
      * Sets the selection state of this node.
@@ -980,7 +1054,9 @@ public class NestedGridNode {
      *
      * @return true if the node is hovered
      */
-    public boolean isHovered() { return hovered; }
+    public boolean isHovered() {
+        return hovered;
+    }
 
     /**
      * Sets the hover state of this node.
@@ -998,7 +1074,9 @@ public class NestedGridNode {
      *
      * @return true if the header is hovered
      */
-    public boolean isHeaderHovered() { return headerHovered; }
+    public boolean isHeaderHovered() {
+        return headerHovered;
+    }
 
     /**
      * Sets the header hover state of this node.
@@ -1014,7 +1092,9 @@ public class NestedGridNode {
      *
      * @return true if the header should be skipped
      */
-    public boolean isSkipOwnHeader() { return skipOwnHeader; }
+    public boolean isSkipOwnHeader() {
+        return skipOwnHeader;
+    }
 
     /**
      * Sets whether this node should skip rendering its own header.
@@ -1030,7 +1110,9 @@ public class NestedGridNode {
      *
      * @return true if more children are available to load
      */
-    public boolean hasMoreChildren() { return hasMoreChildren; }
+    public boolean hasMoreChildren() {
+        return hasMoreChildren;
+    }
 
     /**
      * Sets whether this node has more children to load.
@@ -1046,7 +1128,9 @@ public class NestedGridNode {
      *
      * @return the index of the next child to load
      */
-    public int getNextChildIndexToLoad() { return nextChildIndexToLoad; }
+    public int getNextChildIndexToLoad() {
+        return nextChildIndexToLoad;
+    }
 
     /**
      * Sets the index of the next child to load from the model.
@@ -1153,11 +1237,15 @@ public class NestedGridNode {
      * @return the matching NestedGridNode, or null if not found
      */
     public NestedGridNode findByModel(XmlNode model) {
-        if (this.modelNode == model) return this;
+        if (this.modelNode == model) {
+            return this;
+        }
 
         for (NestedGridNode child : children) {
             NestedGridNode found = child.findByModel(model);
-            if (found != null) return found;
+            if (found != null) {
+                return found;
+            }
         }
         return null;
     }

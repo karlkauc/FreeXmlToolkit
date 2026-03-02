@@ -1,20 +1,19 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.serialization;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.common.utilities.BackupUtility;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
-import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.ExportMetadataService;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.common.utilities.BackupUtility;
+import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 /**
  * Serializer for converting XSD model to XML representation.

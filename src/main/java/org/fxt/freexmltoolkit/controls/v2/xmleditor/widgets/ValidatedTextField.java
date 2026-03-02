@@ -17,15 +17,16 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import java.util.Map;
+import java.util.function.Consumer;
+
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
-
-import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * Default text field widget with optional schema-based validation.

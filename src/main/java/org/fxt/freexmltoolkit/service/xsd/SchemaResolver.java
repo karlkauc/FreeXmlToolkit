@@ -1,5 +1,15 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
+import java.io.StringReader;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -11,15 +21,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Unified resolver for xs:include and xs:import schema references.
@@ -1167,28 +1168,76 @@ public class SchemaResolver {
         private String encoding;
         private boolean certifiedText;
 
-        public LSInputImpl(String publicId, String systemId, String baseURI, java.io.InputStream byteStream) {
+        LSInputImpl(String publicId, String systemId, String baseURI, java.io.InputStream byteStream) {
             this.publicId = publicId;
             this.systemId = systemId;
             this.baseURI = baseURI;
             this.byteStream = byteStream;
         }
 
-        @Override public java.io.Reader getCharacterStream() { return characterStream; }
-        @Override public void setCharacterStream(java.io.Reader characterStream) { this.characterStream = characterStream; }
-        @Override public java.io.InputStream getByteStream() { return byteStream; }
-        @Override public void setByteStream(java.io.InputStream byteStream) { /* immutable */ }
-        @Override public String getStringData() { return stringData; }
-        @Override public void setStringData(String stringData) { this.stringData = stringData; }
-        @Override public String getSystemId() { return systemId; }
-        @Override public void setSystemId(String systemId) { /* immutable */ }
-        @Override public String getPublicId() { return publicId; }
-        @Override public void setPublicId(String publicId) { /* immutable */ }
-        @Override public String getBaseURI() { return baseURI; }
-        @Override public void setBaseURI(String baseURI) { /* immutable */ }
-        @Override public String getEncoding() { return encoding; }
-        @Override public void setEncoding(String encoding) { this.encoding = encoding; }
-        @Override public boolean getCertifiedText() { return certifiedText; }
-        @Override public void setCertifiedText(boolean certifiedText) { this.certifiedText = certifiedText; }
+        @Override
+        public java.io.Reader getCharacterStream() {
+            return characterStream;
+        }
+        @Override
+        public void setCharacterStream(java.io.Reader characterStream) {
+            this.characterStream = characterStream;
+        }
+        @Override
+        public java.io.InputStream getByteStream() {
+            return byteStream;
+        }
+        @Override
+        public void setByteStream(java.io.InputStream byteStream) {
+            /* immutable */
+        }
+        @Override
+        public String getStringData() {
+            return stringData;
+        }
+        @Override
+        public void setStringData(String stringData) {
+            this.stringData = stringData;
+        }
+        @Override
+        public String getSystemId() {
+            return systemId;
+        }
+        @Override
+        public void setSystemId(String systemId) {
+            /* immutable */
+        }
+        @Override
+        public String getPublicId() {
+            return publicId;
+        }
+        @Override
+        public void setPublicId(String publicId) {
+            /* immutable */
+        }
+        @Override
+        public String getBaseURI() {
+            return baseURI;
+        }
+        @Override
+        public void setBaseURI(String baseURI) {
+            /* immutable */
+        }
+        @Override
+        public String getEncoding() {
+            return encoding;
+        }
+        @Override
+        public void setEncoding(String encoding) {
+            this.encoding = encoding;
+        }
+        @Override
+        public boolean getCertifiedText() {
+            return certifiedText;
+        }
+        @Override
+        public void setCertifiedText(boolean certifiedText) {
+            this.certifiedText = certifiedText;
+        }
     }
 }

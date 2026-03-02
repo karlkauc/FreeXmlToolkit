@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for XsdDatatypeFacets.

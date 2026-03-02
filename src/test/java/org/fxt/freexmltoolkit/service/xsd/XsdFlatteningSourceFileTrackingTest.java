@@ -1,14 +1,14 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.nio.file.Path;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
 import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test to verify that the "Track source files (xs:appinfo)" feature works correctly.

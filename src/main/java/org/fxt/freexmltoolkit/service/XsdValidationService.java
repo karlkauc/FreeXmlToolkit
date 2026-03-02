@@ -1,25 +1,5 @@
 package org.fxt.freexmltoolkit.service;
 
-import javafx.concurrent.Task;
-import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
-import org.fxt.freexmltoolkit.service.xsd.SchemaResolver;
-import org.w3c.dom.Document;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
 import java.io.StringReader;
 import java.net.URI;
 import java.nio.file.Files;
@@ -30,6 +10,22 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+
+import javafx.concurrent.Task;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.xsd.SchemaResolver;
+import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  * Advanced XSD Validation Service with real-time validation, schema discovery,
@@ -344,11 +340,17 @@ public class XsdValidationService {
                 try (StringReader reader = new StringReader(xmlContent)) {
                     parser.parse(new org.xml.sax.InputSource(reader), new org.xml.sax.helpers.DefaultHandler() {
                         @Override
-                        public void warning(SAXParseException e) throws SAXException { errorHandler.warning(e); }
+                        public void warning(SAXParseException e) throws SAXException {
+                            errorHandler.warning(e);
+                        }
                         @Override
-                        public void error(SAXParseException e) throws SAXException { errorHandler.error(e); }
+                        public void error(SAXParseException e) throws SAXException {
+                            errorHandler.error(e);
+                        }
                         @Override
-                        public void fatalError(SAXParseException e) throws SAXException { errorHandler.fatalError(e); }
+                        public void fatalError(SAXParseException e) throws SAXException {
+                            errorHandler.fatalError(e);
+                        }
                     });
                 }
     

@@ -18,10 +18,17 @@
 
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
@@ -29,12 +36,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDocumentationsCo
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Reusable panel for editing type documentation (multi-language) and AppInfo.

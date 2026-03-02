@@ -1,11 +1,17 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
@@ -14,12 +20,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteFacetCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditFacetCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Panel for viewing and editing XSD facets (restrictions).

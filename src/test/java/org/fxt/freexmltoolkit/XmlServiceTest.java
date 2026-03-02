@@ -18,6 +18,13 @@
 
 package org.fxt.freexmltoolkit;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,13 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.xml.sax.SAXParseException;
-
-import java.io.File;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 
 public class XmlServiceTest {

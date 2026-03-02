@@ -1,9 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.usage;
 
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-
 import java.nio.file.Path;
 import java.util.Objects;
+
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**
  * Represents a location where a type is used within an XSD schema.

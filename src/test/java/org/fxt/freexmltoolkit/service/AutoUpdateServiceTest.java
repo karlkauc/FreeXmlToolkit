@@ -18,13 +18,13 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.UpdateInfo;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.domain.UpdateInfo;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Unit tests for AutoUpdateService.

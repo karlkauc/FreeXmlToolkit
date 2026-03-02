@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.util;
 
+import java.util.Optional;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -9,9 +11,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
-import org.kordamp.ikonli.javafx.FontIcon;
 
-import java.util.Optional;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Utility class for creating consistent, modern dialogs across the application.
@@ -72,14 +73,18 @@ public class DialogHelper {
          *
          * @return The style class.
          */
-        public String getStyleClass() { return styleClass; }
+        public String getStyleClass() {
+            return styleClass;
+        }
 
         /**
          * Gets the color.
          *
          * @return The color hex string.
          */
-        public String getColor() { return color; }
+        public String getColor() {
+            return color;
+        }
     }
 
     /**
@@ -111,14 +116,18 @@ public class DialogHelper {
          *
          * @return The style class.
          */
-        public String getStyleClass() { return styleClass; }
+        public String getStyleClass() {
+            return styleClass;
+        }
 
         /**
          * Gets the icon literal.
          *
          * @return The icon literal.
          */
-        public String getIconLiteral() { return iconLiteral; }
+        public String getIconLiteral() {
+            return iconLiteral;
+        }
     }
 
     // ============================================

@@ -18,11 +18,11 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Custom Authenticator for HTTP/HTTPS proxy authentication.

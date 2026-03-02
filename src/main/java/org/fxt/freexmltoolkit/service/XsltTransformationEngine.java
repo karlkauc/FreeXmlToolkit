@@ -1,13 +1,5 @@
 package org.fxt.freexmltoolkit.service;
 
-import net.sf.saxon.Configuration;
-import net.sf.saxon.lib.Feature;
-import net.sf.saxon.s9api.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-
-import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
@@ -17,6 +9,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.transform.stream.StreamSource;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+
+import net.sf.saxon.Configuration;
+import net.sf.saxon.lib.Feature;
+import net.sf.saxon.s9api.*;
 
 /**
  * Advanced XSLT 3.0 and XQuery 3.1 Transformation Engine with Saxon integration.
@@ -440,7 +442,9 @@ public class XsltTransformationEngine {
      * Looks for patterns like: declare option output:method "html";
      */
     private OutputFormat detectXQueryOutputFormat(String xqueryContent, OutputFormat defaultFormat) {
-        if (xqueryContent == null) return defaultFormat;
+        if (xqueryContent == null) {
+            return defaultFormat;
+        }
 
         // Pattern to match: declare option output:method "html/xml/text/json";
         Pattern methodPattern = Pattern.compile(
@@ -660,7 +664,9 @@ public class XsltTransformationEngine {
     }
 
     private String escapeXml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")

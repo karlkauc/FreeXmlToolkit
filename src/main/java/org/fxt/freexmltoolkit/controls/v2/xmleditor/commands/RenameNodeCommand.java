@@ -90,7 +90,7 @@ public class RenameNodeCommand implements XmlCommand {
         private final XmlElement mergedElement;
         private final String originalOldName;
 
-        public MergedRenameCommand(XmlElement element, String newName, String originalOldName) {
+        MergedRenameCommand(XmlElement element, String newName, String originalOldName) {
             super(element, newName);
             this.mergedElement = element;
             this.originalOldName = originalOldName;

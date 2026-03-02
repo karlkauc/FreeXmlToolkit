@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import java.io.File;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -25,6 +27,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.stage.FileChooser;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -33,8 +36,6 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.fxt.freexmltoolkit.service.SignatureService;
 import org.fxt.freexmltoolkit.service.SignatureService.SignatureServiceException;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-
-import java.io.File;
 
 /**
  * Controller for XML digital signature operations.
@@ -54,7 +55,7 @@ import java.io.File;
  * @see SignatureService
  */
 public class SignatureController {
-    private final static Logger logger = LogManager.getLogger(SignatureController.class);
+    private static final Logger logger = LogManager.getLogger(SignatureController.class);
     private final SignatureService signatureService = new SignatureService();
 
     /**
@@ -274,7 +275,9 @@ public class SignatureController {
     }
 
     private void updateKeySizes() {
-        if (expertKeySize == null || expertKeyAlgorithm == null) return;
+        if (expertKeySize == null || expertKeyAlgorithm == null) {
+            return;
+        }
 
         String algorithm = expertKeyAlgorithm.getValue();
         expertKeySize.getItems().clear();
@@ -342,13 +345,27 @@ public class SignatureController {
 
         try {
             final X500NameBuilder nameBuilder = new X500NameBuilder(X500Name.getDefaultStyle());
-            if (!commonName.getText().isBlank()) nameBuilder.addRDN(BCStyle.CN, commonName.getText());
-            if (!organizationUnit.getText().isBlank()) nameBuilder.addRDN(BCStyle.OU, organizationUnit.getText());
-            if (!organizationName.getText().isBlank()) nameBuilder.addRDN(BCStyle.O, organizationName.getText());
-            if (!localityName.getText().isBlank()) nameBuilder.addRDN(BCStyle.L, localityName.getText());
-            if (!streetName.getText().isBlank()) nameBuilder.addRDN(BCStyle.ST, streetName.getText());
-            if (!country.getText().isBlank()) nameBuilder.addRDN(BCStyle.C, country.getText());
-            if (!email.getText().isBlank()) nameBuilder.addRDN(BCStyle.EmailAddress, email.getText());
+            if (!commonName.getText().isBlank()) {
+                nameBuilder.addRDN(BCStyle.CN, commonName.getText());
+            }
+            if (!organizationUnit.getText().isBlank()) {
+                nameBuilder.addRDN(BCStyle.OU, organizationUnit.getText());
+            }
+            if (!organizationName.getText().isBlank()) {
+                nameBuilder.addRDN(BCStyle.O, organizationName.getText());
+            }
+            if (!localityName.getText().isBlank()) {
+                nameBuilder.addRDN(BCStyle.L, localityName.getText());
+            }
+            if (!streetName.getText().isBlank()) {
+                nameBuilder.addRDN(BCStyle.ST, streetName.getText());
+            }
+            if (!country.getText().isBlank()) {
+                nameBuilder.addRDN(BCStyle.C, country.getText());
+            }
+            if (!email.getText().isBlank()) {
+                nameBuilder.addRDN(BCStyle.EmailAddress, email.getText());
+            }
 
             var outFile = signatureService.createNewKeystoreFile(nameBuilder, aliasText, keystorePasswordText, aliasPasswordText);
 

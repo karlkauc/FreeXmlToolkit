@@ -18,7 +18,14 @@
 
 package org.fxt.freexmltoolkit;
 
-import fr.brouillard.oss.cssfx.CSSFX;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -26,6 +33,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,13 +46,7 @@ import org.fxt.freexmltoolkit.service.SystemProxyDetector;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 import org.fxt.freexmltoolkit.service.UsageTrackingService;
 
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import fr.brouillard.oss.cssfx.CSSFX;
 
 /**
  * Main application class for FreeXMLToolkit - Universal Toolkit for XML.
@@ -80,7 +82,7 @@ public class FxtGui extends Application {
         configureLogging();
     }
 
-    private final static Logger logger = LogManager.getLogger(FxtGui.class);
+    private static final Logger logger = LogManager.getLogger(FxtGui.class);
 
     private static final java.util.concurrent.atomic.AtomicInteger threadCounter = new java.util.concurrent.atomic.AtomicInteger(1);
 
@@ -97,7 +99,7 @@ public class FxtGui extends Application {
             }
     );
 
-    final static String APP_ICON_PATH = "img/logo.png";
+    static final String APP_ICON_PATH = "img/logo.png";
 
     // Lazy initialization - loaded on first access to improve startup time
     private PropertiesService propertiesService;

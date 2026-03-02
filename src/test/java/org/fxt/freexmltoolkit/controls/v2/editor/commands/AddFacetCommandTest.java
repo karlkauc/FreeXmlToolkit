@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for {@link AddFacetCommand}.

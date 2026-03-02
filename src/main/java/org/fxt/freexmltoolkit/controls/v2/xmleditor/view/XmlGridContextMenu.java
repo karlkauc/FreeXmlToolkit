@@ -1,5 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import java.util.List;
+import java.util.Optional;
+
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -7,6 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.*;
@@ -18,9 +22,6 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Context menu for XML Grid View with all editing operations.
@@ -300,7 +301,9 @@ public class XmlGridContextMenu {
     }
 
     private boolean isFirstChild(XmlNode node) {
-        if (node == null || node.getParent() == null) return true;
+        if (node == null || node.getParent() == null) {
+            return true;
+        }
         XmlNode parent = node.getParent();
         if (parent instanceof XmlElement) {
             List<XmlNode> children = ((XmlElement) parent).getChildren();
@@ -313,7 +316,9 @@ public class XmlGridContextMenu {
     }
 
     private boolean isLastChild(XmlNode node) {
-        if (node == null || node.getParent() == null) return true;
+        if (node == null || node.getParent() == null) {
+            return true;
+        }
         XmlNode parent = node.getParent();
         if (parent instanceof XmlElement) {
             List<XmlNode> children = ((XmlElement) parent).getChildren();
@@ -329,7 +334,9 @@ public class XmlGridContextMenu {
 
     private void addChildElement() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement parent)) return;
+        if (!(selected instanceof XmlElement parent)) {
+            return;
+        }
 
         // Prevent mixed content: check for existing non-whitespace text content
         if (parent.hasNonWhitespaceTextContent()) {
@@ -362,7 +369,9 @@ public class XmlGridContextMenu {
             name = showInputDialog("Add Child Element", "Element name:", "newElement");
         }
 
-        if (name == null || name.trim().isEmpty()) return;
+        if (name == null || name.trim().isEmpty()) {
+            return;
+        }
 
         XmlElement child = new XmlElement(name.trim());
 
@@ -425,13 +434,17 @@ public class XmlGridContextMenu {
                     // Add cardinality
                     String cardinality = formatCardinality(info.minOccurs(), info.maxOccurs());
                     if (cardinality != null && !cardinality.isEmpty()) {
-                        if (sb.length() > 0) sb.append("\n");
+                        if (sb.length() > 0) {
+                            sb.append("\n");
+                        }
                         sb.append("Cardinality: ").append(cardinality);
                     }
 
                     // Add documentation
                     if (info.documentation() != null && !info.documentation().isEmpty()) {
-                        if (sb.length() > 0) sb.append("\n");
+                        if (sb.length() > 0) {
+                            sb.append("\n");
+                        }
                         sb.append(info.documentation());
                     }
 
@@ -562,7 +575,9 @@ public class XmlGridContextMenu {
 
     private void addAttribute() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement element)) return;
+        if (!(selected instanceof XmlElement element)) {
+            return;
+        }
 
         String elementXPath = buildXPath(element);
 
@@ -581,7 +596,9 @@ public class XmlGridContextMenu {
             if (!availableAttributes.isEmpty()) {
                 // Show schema-based selection dialog
                 AttributeDialogResult attrResult = showSchemaBasedAttributeDialog(availableAttributes, elementXPath);
-                if (attrResult == null) return;
+                if (attrResult == null) {
+                    return;
+                }
                 name = attrResult.name();
                 defaultValue = attrResult.defaultValue() != null ? attrResult.defaultValue() : "";
             } else if (!validAttributes.isEmpty()) {
@@ -599,11 +616,15 @@ public class XmlGridContextMenu {
             name = showInputDialog("Add Attribute", "Attribute name:", "newAttribute");
         }
 
-        if (name == null || name.trim().isEmpty()) return;
+        if (name == null || name.trim().isEmpty()) {
+            return;
+        }
 
         // Get the value (may already have a default from schema)
         String value = showInputDialog("Add Attribute", "Attribute value for '" + name + "':", defaultValue);
-        if (value == null) return;
+        if (value == null) {
+            return;
+        }
 
         XmlCommand cmd = new SetAttributeCommand(element, name.trim(), value);
         context.executeCommand(cmd);
@@ -776,7 +797,9 @@ public class XmlGridContextMenu {
 
     private void addTextContent() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement element)) return;
+        if (!(selected instanceof XmlElement element)) {
+            return;
+        }
 
         // Prevent mixed content: check for existing child elements
         if (element.hasElementChildren()) {
@@ -786,7 +809,9 @@ public class XmlGridContextMenu {
         }
 
         String text = showInputDialog("Add Text Content", "Text:", "");
-        if (text == null) return;
+        if (text == null) {
+            return;
+        }
 
         XmlCommand cmd = new SetElementTextCommand(element, text);
         context.executeCommand(cmd);
@@ -795,18 +820,26 @@ public class XmlGridContextMenu {
 
     private void addSiblingElement(boolean before) {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement)) {
+            return;
+        }
 
         XmlNode parent = selected.getParent();
-        if (!(parent instanceof XmlElement parentElement)) return;
+        if (!(parent instanceof XmlElement parentElement)) {
+            return;
+        }
 
         String name = showInputDialog("Add Sibling Element", "Element name:", "newElement");
-        if (name == null || name.trim().isEmpty()) return;
+        if (name == null || name.trim().isEmpty()) {
+            return;
+        }
 
         XmlElement sibling = new XmlElement(name.trim());
 
         int index = parentElement.getChildren().indexOf(selected);
-        if (!before) index++;
+        if (!before) {
+            index++;
+        }
 
         XmlCommand cmd = new AddElementCommand(parentElement, sibling, index);
         context.executeCommand(cmd);
@@ -815,10 +848,14 @@ public class XmlGridContextMenu {
 
     private void renameElement() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement element)) return;
+        if (!(selected instanceof XmlElement element)) {
+            return;
+        }
 
         String newName = showInputDialog("Rename Element", "New name:", element.getName());
-        if (newName == null || newName.trim().isEmpty()) return;
+        if (newName == null || newName.trim().isEmpty()) {
+            return;
+        }
 
         XmlCommand cmd = new RenameNodeCommand(element, newName.trim());
         context.executeCommand(cmd);
@@ -827,10 +864,14 @@ public class XmlGridContextMenu {
 
     private void duplicateElement() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement element)) return;
+        if (!(selected instanceof XmlElement element)) {
+            return;
+        }
 
         XmlNode parent = selected.getParent();
-        if (!(parent instanceof XmlElement parentElement)) return;
+        if (!(parent instanceof XmlElement parentElement)) {
+            return;
+        }
 
         XmlElement copy = (XmlElement) element.deepCopy("");
 
@@ -842,7 +883,9 @@ public class XmlGridContextMenu {
 
     private void copyElement() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement)) {
+            return;
+        }
 
         clipboardElement = (XmlElement) selected.deepCopy("");
         isCut = false;
@@ -850,20 +893,28 @@ public class XmlGridContextMenu {
 
     private void cutElement() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement)) {
+            return;
+        }
 
         clipboardElement = (XmlElement) selected;
         isCut = true;
     }
 
     private void pasteAsSibling() {
-        if (clipboardElement == null) return;
+        if (clipboardElement == null) {
+            return;
+        }
 
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement)) {
+            return;
+        }
 
         XmlNode parent = selected.getParent();
-        if (!(parent instanceof XmlElement parentElement)) return;
+        if (!(parent instanceof XmlElement parentElement)) {
+            return;
+        }
 
         XmlElement toPaste = isCut ? clipboardElement : (XmlElement) clipboardElement.deepCopy("");
 
@@ -883,10 +934,14 @@ public class XmlGridContextMenu {
     }
 
     private void pasteAsChild() {
-        if (clipboardElement == null) return;
+        if (clipboardElement == null) {
+            return;
+        }
 
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement parentElement)) return;
+        if (!(selected instanceof XmlElement parentElement)) {
+            return;
+        }
 
         // Prevent mixed content: check for existing non-whitespace text content
         if (parentElement.hasNonWhitespaceTextContent()) {
@@ -947,7 +1002,9 @@ public class XmlGridContextMenu {
 
         // Otherwise, use regular node content
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (selected == null) return;
+        if (selected == null) {
+            return;
+        }
 
         String content = "";
         if (selected instanceof XmlElement element) {
@@ -1004,15 +1061,21 @@ public class XmlGridContextMenu {
 
         // Otherwise, use regular node XPath
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (selected == null) return;
+        if (selected == null) {
+            return;
+        }
 
         String xpath = buildXPath(selected);
         copyToClipboard(xpath);
     }
 
     private String buildXPath(XmlNode node) {
-        if (node == null) return "";
-        if (node instanceof XmlDocument) return "";
+        if (node == null) {
+            return "";
+        }
+        if (node instanceof XmlDocument) {
+            return "";
+        }
 
         StringBuilder xpath = new StringBuilder();
         XmlNode current = node;
@@ -1073,7 +1136,9 @@ public class XmlGridContextMenu {
             if (child instanceof XmlText) {
                 String text = ((XmlText) child).getText();
                 if (text != null && !text.trim().isEmpty()) {
-                    if (sb.length() > 0) sb.append(" ");
+                    if (sb.length() > 0) {
+                        sb.append(" ");
+                    }
                     sb.append(text.trim());
                 }
             } else if (child instanceof XmlElement) {
@@ -1092,16 +1157,22 @@ public class XmlGridContextMenu {
 
     private void moveElement(int direction) {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (!(selected instanceof XmlElement)) return;
+        if (!(selected instanceof XmlElement)) {
+            return;
+        }
 
         XmlNode parent = selected.getParent();
-        if (!(parent instanceof XmlElement parentElement)) return;
+        if (!(parent instanceof XmlElement parentElement)) {
+            return;
+        }
 
         List<XmlNode> children = parentElement.getChildren();
         int currentIndex = children.indexOf(selected);
         int newIndex = currentIndex + direction;
 
-        if (newIndex < 0 || newIndex >= children.size()) return;
+        if (newIndex < 0 || newIndex >= children.size()) {
+            return;
+        }
 
         XmlCommand cmd = new MoveNodeCommand(selected, parentElement, newIndex);
         context.executeCommand(cmd);
@@ -1110,7 +1181,9 @@ public class XmlGridContextMenu {
 
     private void deleteElement() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
-        if (selected == null) return;
+        if (selected == null) {
+            return;
+        }
 
         // Confirm deletion
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -1198,7 +1271,9 @@ public class XmlGridContextMenu {
     // ==================== Public Keyboard Actions ====================
 
     public void handleKeyPress(javafx.scene.input.KeyEvent event, XmlNode selectedNode) {
-        if (selectedNode == null) return;
+        if (selectedNode == null) {
+            return;
+        }
 
         if (event.getCode() == KeyCode.DELETE) {
             context.getSelectionModel().setSelectedNode(selectedNode);

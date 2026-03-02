@@ -18,14 +18,14 @@
 
 package org.fxt.freexmltoolkit.domain.statistics;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("DailyStatistics")
 class DailyStatisticsTest {

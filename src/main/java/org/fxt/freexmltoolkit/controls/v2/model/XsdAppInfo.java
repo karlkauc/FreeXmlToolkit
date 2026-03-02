@@ -75,8 +75,12 @@ public class XsdAppInfo {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             AppInfoEntry that = (AppInfoEntry) o;
             return Objects.equals(source, that.source) &&
                     Objects.equals(tag, that.tag) &&
@@ -422,7 +426,9 @@ public class XsdAppInfo {
      * @param reference the reference to remove
      */
     public void removeSeeReference(String reference) {
-        if (reference == null) return;
+        if (reference == null) {
+            return;
+        }
         String trimmed = reference.trim();
         entries.removeIf(e -> "@see".equals(e.getTag()) &&
                 Objects.equals(trimmed, e.getContent()));

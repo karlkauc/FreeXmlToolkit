@@ -156,7 +156,7 @@ public class XmlEditorUIHelper {
      * @param name The tag name
      * @param type The type of tag (OPEN, CLOSE, SELF_CLOSING)
      */
-    public static record TagMatch(int position, String name, TagType type) {
+    public record TagMatch(int position, String name, TagType type) {
     }
 
     /**

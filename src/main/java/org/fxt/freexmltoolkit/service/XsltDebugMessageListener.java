@@ -1,14 +1,16 @@
 package org.fxt.freexmltoolkit.service;
 
-import net.sf.saxon.s9api.Message;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import javax.xml.transform.SourceLocator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+
+import javax.xml.transform.SourceLocator;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import net.sf.saxon.s9api.Message;
 
 /**
  * Custom Message handler for capturing xsl:message output.

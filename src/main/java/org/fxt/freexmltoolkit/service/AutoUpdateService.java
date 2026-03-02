@@ -18,11 +18,11 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.UpdateInfo;
-
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+
+import org.fxt.freexmltoolkit.domain.UpdateInfo;
 
 /**
  * Service for downloading and applying application updates.

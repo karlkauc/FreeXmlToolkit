@@ -1,16 +1,17 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 /**
  * Container TabPane for schema analysis views.

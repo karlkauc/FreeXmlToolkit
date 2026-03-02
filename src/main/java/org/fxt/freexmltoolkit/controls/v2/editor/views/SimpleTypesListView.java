@@ -1,5 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
+import java.util.Comparator;
+import java.util.function.Consumer;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -10,9 +13,10 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
@@ -20,9 +24,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.Comparator;
-import java.util.function.Consumer;
 
 /**
  * View showing a list of all SimpleTypes in the schema.
@@ -525,7 +526,9 @@ public class SimpleTypesListView extends BorderPane {
             if (child instanceof XsdRestriction) {
                 XsdRestriction restriction = (XsdRestriction) child;
                 for (XsdFacet facet : restriction.getFacets()) {
-                    if (facets.length() > 0) facets.append(", ");
+                    if (facets.length() > 0) {
+                        facets.append(", ");
+                    }
                     facets.append(facet.getFacetType().toString());
                 }
             }
@@ -700,34 +703,44 @@ public class SimpleTypesListView extends BorderPane {
          *
          * @return the name
          */
-        public String getName() { return name; }
+        public String getName() {
+            return name;
+        }
 
         /**
          * Returns the base type string.
          *
          * @return the base type
          */
-        public String getBaseType() { return baseType; }
+        public String getBaseType() {
+            return baseType;
+        }
 
         /**
          * Returns the facets string representation.
          *
          * @return the facets string
          */
-        public String getFacets() { return facets; }
+        public String getFacets() {
+            return facets;
+        }
 
         /**
          * Returns the usage count of this type in the schema.
          *
          * @return the usage count
          */
-        public int getUsage() { return usage; }
+        public int getUsage() {
+            return usage;
+        }
 
         /**
          * Returns the underlying XsdSimpleType instance.
          *
          * @return the XsdSimpleType
          */
-        public XsdSimpleType getSimpleType() { return simpleType; }
+        public XsdSimpleType getSimpleType() {
+            return simpleType;
+        }
     }
 }

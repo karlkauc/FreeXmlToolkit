@@ -99,14 +99,28 @@ public class FileFavorite {
          * @return the determined file type, or {@link #OTHER} if not recognized
          */
         public static FileType fromExtension(String filePath) {
-            if (filePath == null) return OTHER;
+            if (filePath == null) {
+                return OTHER;
+            }
             String lower = filePath.toLowerCase();
-            if (lower.endsWith(".xml")) return XML;
-            if (lower.endsWith(".xsd")) return XSD;
-            if (lower.endsWith(".sch")) return SCHEMATRON;
-            if (lower.endsWith(".xsl") || lower.endsWith(".xslt")) return XSLT;
-            if (lower.endsWith(".xpath")) return XPATH;
-            if (lower.endsWith(".xquery") || lower.endsWith(".xq")) return XQUERY;
+            if (lower.endsWith(".xml")) {
+                return XML;
+            }
+            if (lower.endsWith(".xsd")) {
+                return XSD;
+            }
+            if (lower.endsWith(".sch")) {
+                return SCHEMATRON;
+            }
+            if (lower.endsWith(".xsl") || lower.endsWith(".xslt")) {
+                return XSLT;
+            }
+            if (lower.endsWith(".xpath")) {
+                return XPATH;
+            }
+            if (lower.endsWith(".xquery") || lower.endsWith(".xq")) {
+                return XQUERY;
+            }
             return OTHER;
         }
     }
@@ -160,7 +174,9 @@ public class FileFavorite {
      * @return the filename, or empty string if path is null
      */
     public String getFileName() {
-        if (filePath == null) return "";
+        if (filePath == null) {
+            return "";
+        }
         return new File(filePath).getName();
     }
     

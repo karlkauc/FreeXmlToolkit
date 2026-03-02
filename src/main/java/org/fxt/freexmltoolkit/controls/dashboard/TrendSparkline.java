@@ -1,16 +1,17 @@
 package org.fxt.freexmltoolkit.controls.dashboard;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
 import javafx.geometry.Insets;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.layout.VBox;
-import org.fxt.freexmltoolkit.domain.statistics.DailyStatistics;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
+import org.fxt.freexmltoolkit.domain.statistics.DailyStatistics;
 
 /**
  * A compact sparkline chart showing activity trends over the past 7 days.

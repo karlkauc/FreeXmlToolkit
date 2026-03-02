@@ -1,32 +1,33 @@
 package org.fxt.freexmltoolkit.controls.v2.editor;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextInputDialog;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.editor.dialogs.TypeUsageDialog;
-import org.fxt.freexmltoolkit.controls.v2.editor.tabs.AbstractTypeEditorTab;
-import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
-import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
-import org.fxt.freexmltoolkit.controls.v2.editor.tabs.ComplexTypeEditorTab;
-import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SchemaStatisticsTab;
-import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypeEditorTab;
-import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypesListTab;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
-
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextInputDialog;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.dialogs.TypeUsageDialog;
+import org.fxt.freexmltoolkit.controls.v2.editor.tabs.AbstractTypeEditorTab;
+import org.fxt.freexmltoolkit.controls.v2.editor.tabs.ComplexTypeEditorTab;
+import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SchemaStatisticsTab;
+import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypeEditorTab;
+import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypesListTab;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
+import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 
 /**
  * Manages tabs for the Type Editor.

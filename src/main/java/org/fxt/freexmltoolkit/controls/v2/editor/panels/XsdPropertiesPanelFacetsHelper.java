@@ -18,21 +18,15 @@
 
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDatatypeFacets;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Helper class for facets and patterns functionality in XsdPropertiesPanel.

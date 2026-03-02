@@ -1,5 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import java.beans.PropertyChangeEvent;
+import java.util.Optional;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
@@ -7,15 +10,13 @@ import javafx.animation.Timeline;
 import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
 import javafx.scene.CacheHint;
+import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.Node;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -23,6 +24,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand;
@@ -32,11 +36,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFactory;
-
-import java.beans.PropertyChangeEvent;
-import java.util.Optional;
 
 /**
  * Nested Grid XML View - each element gets its own mini-grid.
@@ -303,7 +303,9 @@ public class XmlCanvasView extends Pane {
         double w = getWidth();
         double h = getHeight();
 
-        if (w <= 0 || h <= 0) return;
+        if (w <= 0 || h <= 0) {
+            return;
+        }
 
         // Position canvas
         double canvasW = w - SCROLLBAR_WIDTH;
@@ -342,7 +344,9 @@ public class XmlCanvasView extends Pane {
     }
 
     private void ensureLayout() {
-        if (!layoutDirty || rootNode == null) return;
+        if (!layoutDirty || rootNode == null) {
+            return;
+        }
 
         // Calculate available width
         double availableWidth = canvas.getWidth() - GRID_PADDING * 2;
@@ -511,7 +515,9 @@ public class XmlCanvasView extends Pane {
 
     private void handleKeyPress(KeyEvent event) {
         // If editing, don't handle navigation keys (let edit field handle them)
-        if (editField != null || activeWidgetNode != null) return;
+        if (editField != null || activeWidgetNode != null) {
+            return;
+        }
 
         XmlNode selected = getSelectedNode();
 
@@ -528,7 +534,9 @@ public class XmlCanvasView extends Pane {
      * Handle keyboard navigation between elements.
      */
     private void handleKeyNavigation(KeyEvent event) {
-        if (rootNode == null) return;
+        if (rootNode == null) {
+            return;
+        }
 
         switch (event.getCode()) {
             case UP -> {
@@ -611,7 +619,9 @@ public class XmlCanvasView extends Pane {
         }
 
         NestedGridNode parent = selectedNode.getParent();
-        if (parent == null) return;
+        if (parent == null) {
+            return;
+        }
 
         java.util.List<NestedGridNode> siblings = parent.getChildren();
         int index = siblings.indexOf(selectedNode);
@@ -654,7 +664,9 @@ public class XmlCanvasView extends Pane {
         NestedGridNode current = selectedNode;
         while (current != null && current != rootNode) {
             NestedGridNode parent = current.getParent();
-            if (parent == null) break;
+            if (parent == null) {
+                break;
+            }
 
             java.util.List<NestedGridNode> siblings = parent.getChildren();
             int index = siblings.indexOf(current);
@@ -675,7 +687,9 @@ public class XmlCanvasView extends Pane {
      * Select the parent node.
      */
     private void selectParent() {
-        if (selectedNode == null) return;
+        if (selectedNode == null) {
+            return;
+        }
 
         NestedGridNode parent = selectedNode.getParent();
         if (parent != null && parent != rootNode) {
@@ -688,7 +702,9 @@ public class XmlCanvasView extends Pane {
      * Select the first child of the current node.
      */
     private void selectFirstChild() {
-        if (selectedNode == null || !selectedNode.isExpanded() || !selectedNode.hasChildren()) return;
+        if (selectedNode == null || !selectedNode.isExpanded() || !selectedNode.hasChildren()) {
+            return;
+        }
 
         NestedGridNode firstChild = selectedNode.getChildren().get(0);
         selectNode(firstChild);
@@ -699,7 +715,9 @@ public class XmlCanvasView extends Pane {
      * Select the first visible node.
      */
     private void selectFirstNode() {
-        if (rootNode == null) return;
+        if (rootNode == null) {
+            return;
+        }
 
         if (rootNode.getChildren().isEmpty()) {
             selectNode(rootNode);
@@ -713,7 +731,9 @@ public class XmlCanvasView extends Pane {
      * Select the last visible node.
      */
     private void selectLastVisibleNode() {
-        if (rootNode == null) return;
+        if (rootNode == null) {
+            return;
+        }
 
         NestedGridNode last = findLastVisibleNode(rootNode);
         if (last != null) {
@@ -733,7 +753,9 @@ public class XmlCanvasView extends Pane {
         double mx = event.getX() + scrollOffsetX;
         double my = event.getY() + scrollOffsetY;
 
-        if (rootNode == null) return;
+        if (rootNode == null) {
+            return;
+        }
 
         // Handle right-click for context menu
         if (event.getButton() == MouseButton.SECONDARY) {
@@ -1072,7 +1094,9 @@ public class XmlCanvasView extends Pane {
         double mx = event.getX() + scrollOffsetX;
         double my = event.getY() + scrollOffsetY;
 
-        if (rootNode == null) return;
+        if (rootNode == null) {
+            return;
+        }
 
         boolean needsRedraw = false;
 
@@ -1189,13 +1213,17 @@ public class XmlCanvasView extends Pane {
     }
 
     private NestedGridNode findNodeAt(NestedGridNode node, double mx, double my) {
-        if (!node.containsPoint(mx, my)) return null;
+        if (!node.containsPoint(mx, my)) {
+            return null;
+        }
 
         // Check children first (they are rendered on top)
         if (node.isExpanded()) {
             for (NestedGridNode child : node.getChildren()) {
                 NestedGridNode found = findNodeAt(child, mx, my);
-                if (found != null) return found;
+                if (found != null) {
+                    return found;
+                }
             }
         }
 
@@ -1203,7 +1231,9 @@ public class XmlCanvasView extends Pane {
     }
 
     private RepeatingElementsTable findTableAt(NestedGridNode node, double mx, double my) {
-        if (!node.containsPoint(mx, my)) return null;
+        if (!node.containsPoint(mx, my)) {
+            return null;
+        }
 
         // Check tables in this node
         if (node.isExpanded()) {
@@ -1216,7 +1246,9 @@ public class XmlCanvasView extends Pane {
             // Check tables in children
             for (NestedGridNode child : node.getChildren()) {
                 RepeatingElementsTable found = findTableAt(child, mx, my);
-                if (found != null) return found;
+                if (found != null) {
+                    return found;
+                }
             }
         }
 
@@ -1296,7 +1328,9 @@ public class XmlCanvasView extends Pane {
         double w = canvas.getWidth();
         double h = canvas.getHeight();
 
-        if (w <= 0 || h <= 0) return;
+        if (w <= 0 || h <= 0) {
+            return;
+        }
 
         // Clear canvas
         gc.setFill(Color.WHITE);
@@ -1644,7 +1678,9 @@ public class XmlCanvasView extends Pane {
     }
 
     private void drawInfo() {
-        if (rootNode == null) return;
+        if (rootNode == null) {
+            return;
+        }
 
         String info = String.format("%.0f x %.0f px", totalWidth, totalHeight);
 
@@ -1676,7 +1712,9 @@ public class XmlCanvasView extends Pane {
         // Table header with element name and count
         drawTableHeader(table, x, y, w);
 
-        if (!table.isExpanded()) return;
+        if (!table.isExpanded()) {
+            return;
+        }
 
         // Column headers
         double rowY = y + HEADER_HEIGHT;
@@ -1963,10 +2001,14 @@ public class XmlCanvasView extends Pane {
     }
 
     private String truncateText(String text, double maxWidth) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
 
         int maxChars = (int) (maxWidth / 7);
-        if (text.length() <= maxChars) return text;
+        if (text.length() <= maxChars) {
+            return text;
+        }
         return text.substring(0, Math.max(0, maxChars - 3)) + "...";
     }
 
@@ -1977,7 +2019,9 @@ public class XmlCanvasView extends Pane {
      * @return the XPath string (e.g., "/Root/Child/Element")
      */
     private String getElementXPath(NestedGridNode node) {
-        if (node == null) return "";
+        if (node == null) {
+            return "";
+        }
 
         StringBuilder path = new StringBuilder();
         NestedGridNode current = node;
@@ -2001,7 +2045,9 @@ public class XmlCanvasView extends Pane {
     private void startEditingAttribute(NestedGridNode node, int attrIndex) {
         cancelEditing();
 
-        if (attrIndex < 0 || attrIndex >= node.getAttributeCells().size()) return;
+        if (attrIndex < 0 || attrIndex >= node.getAttributeCells().size()) {
+            return;
+        }
 
         editingNode = node;
         editingAttributeIndex = attrIndex;
@@ -2025,7 +2071,9 @@ public class XmlCanvasView extends Pane {
     private void startEditingTextContent(NestedGridNode node) {
         cancelEditing();
 
-        if (!node.hasTextContent()) return;
+        if (!node.hasTextContent()) {
+            return;
+        }
 
         editingNode = node;
         editingAttributeIndex = -1;
@@ -2062,7 +2110,9 @@ public class XmlCanvasView extends Pane {
 
         // Only elements can have their name edited
         XmlNode modelNode = node.getModelNode();
-        if (!(modelNode instanceof XmlElement)) return;
+        if (!(modelNode instanceof XmlElement)) {
+            return;
+        }
 
         editingNode = node;
         editingAttributeIndex = -1;
@@ -2095,7 +2145,9 @@ public class XmlCanvasView extends Pane {
      * @param grid the nested grid node to start editing in
      */
     private void startEditingFirstEditableInGrid(NestedGridNode grid) {
-        if (grid == null) return;
+        if (grid == null) {
+            return;
+        }
 
         // Ensure the grid is expanded
         if (!grid.isExpanded() && grid.hasExpandableContent()) {
@@ -2132,7 +2184,9 @@ public class XmlCanvasView extends Pane {
      * @return the first editable node, or null if none found
      */
     private NestedGridNode findFirstEditableNode(NestedGridNode node) {
-        if (node == null) return null;
+        if (node == null) {
+            return null;
+        }
 
         // Check if this node itself is editable
         if (node.isLeafWithText() && node.hasTextContent()) {
@@ -2176,7 +2230,9 @@ public class XmlCanvasView extends Pane {
     private void startEditingTableCell(RepeatingElementsTable table, int rowIndex, String columnName) {
         cancelEditing();
 
-        if (rowIndex < 0 || rowIndex >= table.getRows().size()) return;
+        if (rowIndex < 0 || rowIndex >= table.getRows().size()) {
+            return;
+        }
 
         RepeatingElementsTable.TableRow row = table.getRows().get(rowIndex);
         RepeatingElementsTable.TableColumn col = null;
@@ -2186,10 +2242,14 @@ public class XmlCanvasView extends Pane {
                 break;
             }
         }
-        if (col == null) return;
+        if (col == null) {
+            return;
+        }
 
         // Don't edit complex cells (they have children)
-        if (row.hasComplexChild(columnName)) return;
+        if (row.hasComplexChild(columnName)) {
+            return;
+        }
 
         editingTable = table;
         editingTableRowIndex = rowIndex;
@@ -2428,7 +2488,9 @@ public class XmlCanvasView extends Pane {
             }
         }
 
-        if (col == null) return;
+        if (col == null) {
+            return;
+        }
 
         if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
             // Edit attribute value
@@ -2518,7 +2580,9 @@ public class XmlCanvasView extends Pane {
      * Smoothly scrolls if the node is outside the visible area.
      */
     private void ensureNodeVisible(NestedGridNode node) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         double nodeTop = node.getY();
         double nodeBottom = nodeTop + node.getHeight();
@@ -2553,7 +2617,9 @@ public class XmlCanvasView extends Pane {
      * Flash highlight a node (used after undo/redo to show what changed).
      */
     public void flashHighlight(NestedGridNode node) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         highlightedNode = node;
         render();

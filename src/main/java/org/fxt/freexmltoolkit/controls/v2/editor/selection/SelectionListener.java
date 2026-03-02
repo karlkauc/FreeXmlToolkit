@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.selection;
 
-import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
-
 import java.util.Set;
+
+import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
  * Listener for selection changes in the XSD editor.

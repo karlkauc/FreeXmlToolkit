@@ -164,7 +164,9 @@ public class JsonPrimitive extends JsonNode {
      * @return the string representation of the value, or null if the value is null
      */
     public String getAsString() {
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
         return value.toString();
     }
 
@@ -289,7 +291,9 @@ public class JsonPrimitive extends JsonNode {
     }
 
     private String escapeString(String s) {
-        if (s == null) return "";
+        if (s == null) {
+            return "";
+        }
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);

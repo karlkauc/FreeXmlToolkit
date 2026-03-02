@@ -1,18 +1,20 @@
 package org.fxt.freexmltoolkit.service;
 
-import net.sf.saxon.s9api.XdmNode;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.StringReader;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
+import net.sf.saxon.s9api.XdmNode;
 
 /**
  * Unit tests for SaxonXPathHelper utility class.

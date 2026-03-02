@@ -1,16 +1,16 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
-import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.beans.PropertyChangeEvent;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Comprehensive unit tests for DuplicateNodeCommand.

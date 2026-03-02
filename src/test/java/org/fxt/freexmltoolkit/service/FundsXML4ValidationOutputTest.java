@@ -1,8 +1,9 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.nio.file.Files;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Test to output validation results to console

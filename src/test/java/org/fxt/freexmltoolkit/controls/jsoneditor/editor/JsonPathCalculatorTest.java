@@ -18,9 +18,9 @@
 
 package org.fxt.freexmltoolkit.controls.jsoneditor.editor;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 class JsonPathCalculatorTest {
 
@@ -56,8 +56,3 @@ class JsonPathCalculatorTest {
         assertEquals("number", valueInfo.valueType());
     }
 }
-
-
-
-
-

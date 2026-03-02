@@ -18,6 +18,25 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -39,6 +58,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.converter.DefaultStringConverter;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -58,25 +78,6 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.URL;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Ultimate XML Controller - The Complete XML Editor with All Features
@@ -419,8 +420,12 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
 
         if (matcher.find()) {
             String lineNumberStr = matcher.group(1);
-            if (lineNumberStr == null) lineNumberStr = matcher.group(2);
-            if (lineNumberStr == null) lineNumberStr = matcher.group(3);
+            if (lineNumberStr == null) {
+                lineNumberStr = matcher.group(2);
+            }
+            if (lineNumberStr == null) {
+                lineNumberStr = matcher.group(3);
+            }
 
             try {
                 int lineNumber = Integer.parseInt(lineNumberStr);
@@ -1098,7 +1103,9 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                                      javafx.scene.control.ContentDisplay displayMode,
                                      int iconSize,
                                      String style) {
-        if (button == null) return;
+        if (button == null) {
+            return;
+        }
 
         // Set content display mode
         button.setContentDisplay(displayMode);
@@ -1933,7 +1940,9 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             currentTemplateParams.clear();
             for (TemplateParameter param : selectedTemplate.getParameters()) {
                 String defaultValue = param.getDefaultValue();
-                if (defaultValue == null) defaultValue = "";
+                if (defaultValue == null) {
+                    defaultValue = "";
+                }
                 currentTemplateParams.put(param.getName(), defaultValue);
                 param.setDefaultValue(defaultValue);
             }
@@ -2084,8 +2093,12 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
             org.w3c.dom.NamedNodeMap attrs = node.getAttributes();
             for (int i = 0; i < attrs.getLength() && i < 3; i++) {
                 org.w3c.dom.Node attr = attrs.item(i);
-                if (i == 0) sb.append(" ");
-                else sb.append(", ");
+                if (i == 0) {
+                    sb.append(" ");
+                }
+                else {
+                    sb.append(", ");
+                }
                 sb.append(attr.getNodeName()).append("=\"").append(truncateText(attr.getNodeValue(), 20)).append("\"");
             }
             if (attrs.getLength() > 3) {
@@ -2128,7 +2141,9 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     }
 
     private String truncateText(String text, int maxLength) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         text = text.replace("\n", " ").replace("\r", " ").replaceAll("\\s+", " ");
         if (text.length() > maxLength) {
             return text.substring(0, maxLength) + "...";
@@ -2442,7 +2457,9 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     }
 
     private void refreshSavedXPathQueriesMenu() {
-        if (savedXPathQueriesMenu == null) return;
+        if (savedXPathQueriesMenu == null) {
+            return;
+        }
 
         savedXPathQueriesMenu.getItems().clear();
 
@@ -2477,7 +2494,9 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     }
 
     private void refreshSavedXQueryQueriesMenu() {
-        if (savedXQueryQueriesMenu == null) return;
+        if (savedXQueryQueriesMenu == null) {
+            return;
+        }
 
         savedXQueryQueriesMenu.getItems().clear();
 

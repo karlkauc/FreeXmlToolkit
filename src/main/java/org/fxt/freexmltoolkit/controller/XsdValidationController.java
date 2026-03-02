@@ -18,6 +18,16 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -42,6 +52,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
@@ -54,16 +65,6 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.xml.sax.SAXParseException;
-
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Controller class for handling XSD validation operations.
@@ -229,7 +230,9 @@ public class XsdValidationController implements FavoritesParentController {
         xsdLoadButton.setOnAction(ae -> loadFile(xsdFileChooser, file -> {
             xmlService.setCurrentXsdFile(file);
             xsdFileName.setText(file.getName());
-            if (xmlService.getCurrentXmlFile() != null) processXmlFile();
+            if (xmlService.getCurrentXmlFile() != null) {
+                processXmlFile();
+            }
         }));
 
         // Register drag and drop for the entire validation page
@@ -666,7 +669,9 @@ public class XsdValidationController implements FavoritesParentController {
      */
     private void addValidationResultsHeader() {
         File currentFile = xmlService.getCurrentXmlFile();
-        if (currentFile == null) return;
+        if (currentFile == null) {
+            return;
+        }
 
         // Create header with filename
         Label fileLabel = new Label("File: " + currentFile.getName());
@@ -702,7 +707,9 @@ public class XsdValidationController implements FavoritesParentController {
      * @param message Die anzuzeigende Nachricht.
      */
     private void updateStatus(SingleFileValidationStatus status, String message) {
-        if (statusPane == null || statusLabel == null || statusImage == null) return;
+        if (statusPane == null || statusLabel == null || statusImage == null) {
+            return;
+        }
 
         statusLabel.setText(message);
         String style = "-fx-background-radius: 5; -fx-padding: 10;";
@@ -762,7 +769,9 @@ public class XsdValidationController implements FavoritesParentController {
     }
 
     private String getFileLine(int lineNumber) {
-        if (lineNumber <= 0) return "";
+        if (lineNumber <= 0) {
+            return "";
+        }
         try {
             return Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(lineNumber - 1).trim();
         } catch (Exception e) {
@@ -912,7 +921,9 @@ public class XsdValidationController implements FavoritesParentController {
      * Helper method to apply display mode, icon size, and style to a button.
      */
     private void applyButtonSettings(ButtonBase button, ContentDisplay displayMode, int iconSize, String style) {
-        if (button == null) return;
+        if (button == null) {
+            return;
+        }
 
         // Set content display mode
         button.setContentDisplay(displayMode);
@@ -961,8 +972,12 @@ public class XsdValidationController implements FavoritesParentController {
         // Setup XSD mode radio button listeners
         if (sameXsdRadio != null) {
             sameXsdRadio.selectedProperty().addListener((obs, oldVal, newVal) -> {
-                if (batchXsdFileName != null) batchXsdFileName.setDisable(!newVal);
-                if (selectBatchXsdBtn != null) selectBatchXsdBtn.setDisable(!newVal);
+                if (batchXsdFileName != null) {
+                    batchXsdFileName.setDisable(!newVal);
+                }
+                if (selectBatchXsdBtn != null) {
+                    selectBatchXsdBtn.setDisable(!newVal);
+                }
             });
         }
 
@@ -1012,7 +1027,9 @@ public class XsdValidationController implements FavoritesParentController {
             // Accept if at least one XML, XSD file or directory is in the drag
             boolean hasValidContent = event.getDragboard().getFiles().stream()
                     .anyMatch(file -> {
-                        if (file.isDirectory()) return true;
+                        if (file.isDirectory()) {
+                            return true;
+                        }
                         String name = file.getName().toLowerCase();
                         return name.endsWith(".xml") || name.endsWith(".xsd");
                     });
@@ -1064,8 +1081,12 @@ public class XsdValidationController implements FavoritesParentController {
                 // Enable "Use same XSD" mode
                 if (sameXsdRadio != null) {
                     sameXsdRadio.setSelected(true);
-                    if (batchXsdFileName != null) batchXsdFileName.setDisable(false);
-                    if (selectBatchXsdBtn != null) selectBatchXsdBtn.setDisable(false);
+                    if (batchXsdFileName != null) {
+                        batchXsdFileName.setDisable(false);
+                    }
+                    if (selectBatchXsdBtn != null) {
+                        selectBatchXsdBtn.setDisable(false);
+                    }
                 }
                 success = true;
                 logger.info("Set batch XSD schema via drag and drop: {}", firstXsdFile.getName());
@@ -1328,9 +1349,15 @@ public class XsdValidationController implements FavoritesParentController {
             batchProgressPane.setVisible(true);
             batchProgressPane.setManaged(true);
         }
-        if (runBatchBtn != null) runBatchBtn.setDisable(true);
-        if (cancelBatchBtn != null) cancelBatchBtn.setDisable(false);
-        if (batchProgressBar != null) batchProgressBar.setProgress(0);
+        if (runBatchBtn != null) {
+            runBatchBtn.setDisable(true);
+        }
+        if (cancelBatchBtn != null) {
+            cancelBatchBtn.setDisable(false);
+        }
+        if (batchProgressBar != null) {
+            batchProgressBar.setProgress(0);
+        }
 
         int total = batchFiles.size();
 
@@ -1403,8 +1430,12 @@ public class XsdValidationController implements FavoritesParentController {
                     batchProgressPane.setVisible(false);
                     batchProgressPane.setManaged(false);
                 }
-                if (runBatchBtn != null) runBatchBtn.setDisable(false);
-                if (cancelBatchBtn != null) cancelBatchBtn.setDisable(true);
+                if (runBatchBtn != null) {
+                    runBatchBtn.setDisable(false);
+                }
+                if (cancelBatchBtn != null) {
+                    cancelBatchBtn.setDisable(true);
+                }
                 logger.info("Batch validation {} - processed {} files",
                         batchCancelled ? "cancelled" : "complete", total);
             });
@@ -1429,7 +1460,9 @@ public class XsdValidationController implements FavoritesParentController {
      */
     @FXML
     public void filterBatchResults() {
-        if (batchFilterCombo == null || filteredBatchFiles == null) return;
+        if (batchFilterCombo == null || filteredBatchFiles == null) {
+            return;
+        }
 
         String filter = batchFilterCombo.getValue();
         filteredBatchFiles.setPredicate(file -> {
@@ -1449,7 +1482,9 @@ public class XsdValidationController implements FavoritesParentController {
      * Updates the batch summary label with current statistics.
      */
     private void updateBatchSummary() {
-        if (batchSummaryLabel == null) return;
+        if (batchSummaryLabel == null) {
+            return;
+        }
 
         long total = batchFiles.size();
         long passed = batchFiles.stream().filter(f -> f.getStatus() == ValidationStatus.PASSED).count();
@@ -1464,7 +1499,9 @@ public class XsdValidationController implements FavoritesParentController {
      * Shows error details for the selected file in the error details pane.
      */
     private void showFileErrors(BatchValidationFile file) {
-        if (batchErrorDetailsBox == null) return;
+        if (batchErrorDetailsBox == null) {
+            return;
+        }
 
         batchErrorDetailsBox.getChildren().clear();
 

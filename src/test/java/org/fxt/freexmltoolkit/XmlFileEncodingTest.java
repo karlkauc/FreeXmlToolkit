@@ -1,13 +1,14 @@
 package org.fxt.freexmltoolkit;
 
-import org.junit.jupiter.api.Test;
-import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.StringReader;
 import java.nio.file.Files;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.junit.jupiter.api.Test;
+import org.xml.sax.InputSource;
 
 class XmlFileEncodingTest {
 

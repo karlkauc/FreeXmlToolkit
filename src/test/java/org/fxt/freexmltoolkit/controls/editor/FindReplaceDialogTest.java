@@ -1,21 +1,22 @@
 package org.fxt.freexmltoolkit.controls.editor;
 
-import javafx.application.Platform;
-import javafx.stage.Stage;
-import org.fxmisc.richtext.CodeArea;
-import org.fxt.freexmltoolkit.controls.shared.utilities.FindReplaceDialog;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.testfx.framework.junit5.ApplicationExtension;
-import org.testfx.framework.junit5.Start;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import javafx.application.Platform;
+import javafx.stage.Stage;
+
+import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.shared.utilities.FindReplaceDialog;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
 
 /**
  * Unit tests for FindReplaceDialog enhanced functionality

@@ -18,6 +18,21 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.util.Date;
+import java.util.HashMap;
+
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.stream.StreamSource;
+
 import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
@@ -26,20 +41,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
-
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.util.Date;
-import java.util.HashMap;
 
 /**
  * Service class for creating PDF files from XML and XSL files using Apache FOP.
@@ -53,7 +54,7 @@ public class FOPService {
         // Default constructor
     }
 
-    private final static Logger logger = LogManager.getLogger(FOPService.class);
+    private static final Logger logger = LogManager.getLogger(FOPService.class);
 
     HashMap<String, String> defaultParameter;
 
@@ -85,11 +86,21 @@ public class FOPService {
 
             final FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
             FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-            if (!pdfSettings.producer().isEmpty()) foUserAgent.setProducer(pdfSettings.producer());
-            if (!pdfSettings.author().isEmpty()) foUserAgent.setAuthor(pdfSettings.author());
-            if (!pdfSettings.creator().isEmpty()) foUserAgent.setCreator(pdfSettings.creator());
-            if (!pdfSettings.title().isEmpty()) foUserAgent.setTitle(pdfSettings.title());
-            if (!pdfSettings.keywords().isEmpty()) foUserAgent.setKeywords(pdfSettings.keywords());
+            if (!pdfSettings.producer().isEmpty()) {
+                foUserAgent.setProducer(pdfSettings.producer());
+            }
+            if (!pdfSettings.author().isEmpty()) {
+                foUserAgent.setAuthor(pdfSettings.author());
+            }
+            if (!pdfSettings.creator().isEmpty()) {
+                foUserAgent.setCreator(pdfSettings.creator());
+            }
+            if (!pdfSettings.title().isEmpty()) {
+                foUserAgent.setTitle(pdfSettings.title());
+            }
+            if (!pdfSettings.keywords().isEmpty()) {
+                foUserAgent.setKeywords(pdfSettings.keywords());
+            }
 
             Files.createDirectories(pdfOutput.toPath().getParent());
 
@@ -154,7 +165,9 @@ public class FOPService {
         ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
 
         String author = metadataService.getUserName();
-        if (author == null) author = "";
+        if (author == null) {
+            author = "";
+        }
 
         String company = metadataService.getUserCompany();
         String keywords = company != null ? company : "";

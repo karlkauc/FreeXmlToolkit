@@ -17,12 +17,12 @@
  */
 package org.fxt.freexmltoolkit.service;
 
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.IdentityConstraint;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-
-import java.util.*;
 
 /**
  * Tracks XSD identity constraints (xs:key, xs:unique, xs:keyref) during sample XML generation
@@ -352,7 +352,9 @@ public class IdentityConstraintTracker {
         if (currentElement != null && currentElement.getChildren() != null) {
             for (String childXpath : currentElement.getChildren()) {
                 XsdExtendedElement child = elementMap.get(childXpath);
-                if (child == null) continue;
+                if (child == null) {
+                    continue;
+                }
 
                 String childName = child.getElementName();
                 if (childName != null && (childName.startsWith("SEQUENCE") || childName.startsWith("CHOICE") || childName.startsWith("ALL"))) {
@@ -369,23 +371,33 @@ public class IdentityConstraintTracker {
     }
 
     private static boolean hasPattern(XsdExtendedElement element) {
-        if (element == null || element.getRestrictionInfo() == null) return false;
+        if (element == null || element.getRestrictionInfo() == null) {
+            return false;
+        }
         Map<String, List<String>> facets = element.getRestrictionInfo().facets();
-        if (facets == null) return false;
+        if (facets == null) {
+            return false;
+        }
         List<String> patterns = facets.get("pattern");
         return patterns != null && !patterns.isEmpty();
     }
 
     private static List<String> getEnumerations(XsdExtendedElement element) {
-        if (element == null || element.getRestrictionInfo() == null) return null;
+        if (element == null || element.getRestrictionInfo() == null) {
+            return null;
+        }
         Map<String, List<String>> facets = element.getRestrictionInfo().facets();
-        if (facets == null) return null;
+        if (facets == null) {
+            return null;
+        }
         List<String> enums = facets.get("enumeration");
         return (enums != null && !enums.isEmpty()) ? enums : null;
     }
 
     private static boolean isNumeric(String str) {
-        if (str == null || str.isEmpty()) return false;
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
         try {
             Long.parseLong(str.trim());
             return true;
@@ -395,7 +407,9 @@ public class IdentityConstraintTracker {
     }
 
     private static int getMaxLength(XsdExtendedElement.RestrictionInfo restrictionInfo) {
-        if (restrictionInfo == null || restrictionInfo.facets() == null) return -1;
+        if (restrictionInfo == null || restrictionInfo.facets() == null) {
+            return -1;
+        }
 
         List<String> maxLengthValues = restrictionInfo.facets().get("maxLength");
         if (maxLengthValues != null && !maxLengthValues.isEmpty()) {

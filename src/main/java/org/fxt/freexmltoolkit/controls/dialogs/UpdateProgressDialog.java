@@ -18,6 +18,10 @@
 
 package org.fxt.freexmltoolkit.controls.dialogs;
 
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -28,6 +32,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -37,10 +42,6 @@ import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateProgress;
 import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateResult;
 import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateStage;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 /**
  * Dialog that shows progress during update download and installation.

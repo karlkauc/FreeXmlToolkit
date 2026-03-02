@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.clipboard;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 
 /**
  * Clipboard for storing XSD nodes for copy/cut/paste operations.

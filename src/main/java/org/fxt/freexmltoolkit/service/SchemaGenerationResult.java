@@ -130,7 +130,7 @@ public class SchemaGenerationResult {
             StringBuilder stackTrace = new StringBuilder();
             for (StackTraceElement element : throwable.getStackTrace()) {
                 stackTrace.append(element.toString()).append("\n");
-                if (stackTrace.length() > 2000) break; // Limit stack trace length
+                if (stackTrace.length() > 2000) { break; } // Limit stack trace length
             }
             result.analysisMetadata.put("stackTrace", stackTrace.toString());
         }
@@ -267,11 +267,15 @@ public class SchemaGenerationResult {
     }
 
     private double calculateTypeReuseScore() {
-        if (analysisResult == null) return 0.0;
+        if (analysisResult == null) {
+            return 0.0;
+        }
 
         int reusableTypes = 0;
         for (List<ElementInfo> group : analysisResult.getTypeGroups().values()) {
-            if (group.size() > 1) reusableTypes++;
+            if (group.size() > 1) {
+                reusableTypes++;
+            }
         }
 
         int totalComplexTypes = analysisResult.getComplexTypes().size();
@@ -279,10 +283,14 @@ public class SchemaGenerationResult {
     }
 
     private double calculateNamespaceConsistency() {
-        if (analysisResult == null) return 100.0;
+        if (analysisResult == null) {
+            return 100.0;
+        }
 
         Set<String> namespaces = analysisResult.getDiscoveredNamespaces();
-        if (namespaces.size() <= 1) return 100.0;
+        if (namespaces.size() <= 1) {
+            return 100.0;
+        }
 
         // Check consistency of namespace usage
         Map<String, Integer> usage = analysisResult.getNamespaceUsage();
@@ -290,14 +298,18 @@ public class SchemaGenerationResult {
 
         for (String namespace : namespaces) {
             int uses = usage.getOrDefault(namespace, 0);
-            if (uses > 1) consistency += 1.0;
+            if (uses > 1) {
+                consistency += 1.0;
+            }
         }
 
         return (consistency / namespaces.size()) * 100.0;
     }
 
     private double calculateStructuralConsistency() {
-        if (analysisResult == null) return 100.0;
+        if (analysisResult == null) {
+            return 100.0;
+        }
 
         // Analyze if similar elements have similar structures
         Map<String, Set<String>> elementStructures = new HashMap<>();
@@ -310,7 +322,9 @@ public class SchemaGenerationResult {
 
         int consistentElements = 0;
         for (Set<String> structures : elementStructures.values()) {
-            if (structures.size() == 1) consistentElements++;
+            if (structures.size() == 1) {
+                consistentElements++;
+            }
         }
 
         int totalElements = analysisResult.getTotalElements();
@@ -325,7 +339,9 @@ public class SchemaGenerationResult {
     }
 
     private double calculateGenerationEfficiency() {
-        if (generationTimeMs == 0) return 100.0;
+        if (generationTimeMs == 0) {
+            return 100.0;
+        }
 
         // Calculate elements processed per second
         double elementsPerSecond = (double) totalElementsGenerated / (generationTimeMs / 1000.0);

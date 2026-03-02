@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.services;
 
+import java.util.Objects;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-
-import java.util.Objects;
 
 /**
  * Implementation of XmlSchemaProvider that adapts from XmlEditor.

@@ -18,15 +18,15 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for Open Content (xs:openContent) visualization in SVG diagrams.

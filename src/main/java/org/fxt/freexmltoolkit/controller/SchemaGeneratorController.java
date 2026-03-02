@@ -18,25 +18,6 @@
 
 package org.fxt.freexmltoolkit.controller;
 
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.concurrent.Task;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.*;
-import org.fxt.freexmltoolkit.util.DialogHelper;
-
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
@@ -49,6 +30,26 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Controller for the Intelligent Schema Generator - Revolutionary Feature #3.
@@ -464,8 +465,12 @@ public class SchemaGeneratorController implements FavoritesParentController {
         }
 
         // Set initial button states
-        if (exportSchemaBtn != null) exportSchemaBtn.setDisable(true);
-        if (generationProgressBar != null) generationProgressBar.setVisible(false);
+        if (exportSchemaBtn != null) {
+            exportSchemaBtn.setDisable(true);
+        }
+        if (generationProgressBar != null) {
+            generationProgressBar.setVisible(false);
+        }
 
         // Disable batch processing - feature not yet implemented
         if (batchProcessBtn != null) {
@@ -488,18 +493,42 @@ public class SchemaGeneratorController implements FavoritesParentController {
 
     private void setDefaultOptions() {
         // Set recommended default values
-        if (enableSmartTypeInference != null) enableSmartTypeInference.setSelected(true);
-        if (inferComplexTypes != null) inferComplexTypes.setSelected(true);
-        if (analyzeDataPatterns != null) analyzeDataPatterns.setSelected(true);
-        if (generateComplexTypes != null) generateComplexTypes.setSelected(true);
-        if (groupSimilarElements != null) groupSimilarElements.setSelected(true);
-        if (optimizeSchema != null) optimizeSchema.setSelected(true);
-        if (eliminateDuplicates != null) eliminateDuplicates.setSelected(true);
-        if (mergeCompatibleTypes != null) mergeCompatibleTypes.setSelected(true);
-        if (preserveNamespaces != null) preserveNamespaces.setSelected(true);
-        if (generateTargetNamespace != null) generateTargetNamespace.setSelected(true);
-        if (formatXsdOutput != null) formatXsdOutput.setSelected(true);
-        if (addComments != null) addComments.setSelected(true);
+        if (enableSmartTypeInference != null) {
+            enableSmartTypeInference.setSelected(true);
+        }
+        if (inferComplexTypes != null) {
+            inferComplexTypes.setSelected(true);
+        }
+        if (analyzeDataPatterns != null) {
+            analyzeDataPatterns.setSelected(true);
+        }
+        if (generateComplexTypes != null) {
+            generateComplexTypes.setSelected(true);
+        }
+        if (groupSimilarElements != null) {
+            groupSimilarElements.setSelected(true);
+        }
+        if (optimizeSchema != null) {
+            optimizeSchema.setSelected(true);
+        }
+        if (eliminateDuplicates != null) {
+            eliminateDuplicates.setSelected(true);
+        }
+        if (mergeCompatibleTypes != null) {
+            mergeCompatibleTypes.setSelected(true);
+        }
+        if (preserveNamespaces != null) {
+            preserveNamespaces.setSelected(true);
+        }
+        if (generateTargetNamespace != null) {
+            generateTargetNamespace.setSelected(true);
+        }
+        if (formatXsdOutput != null) {
+            formatXsdOutput.setSelected(true);
+        }
+        if (addComments != null) {
+            addComments.setSelected(true);
+        }
     }
 
     /**
@@ -526,8 +555,12 @@ public class SchemaGeneratorController implements FavoritesParentController {
         }
 
         // Show progress indicator
-        if (generationProgressBar != null) generationProgressBar.setVisible(true);
-        if (generateSchemaBtn != null) generateSchemaBtn.setDisable(true);
+        if (generationProgressBar != null) {
+            generationProgressBar.setVisible(true);
+        }
+        if (generateSchemaBtn != null) {
+            generateSchemaBtn.setDisable(true);
+        }
 
         Task<SchemaGenerationResult> generationTask = new Task<>() {
             @Override
@@ -543,9 +576,15 @@ public class SchemaGeneratorController implements FavoritesParentController {
                     displayGenerationResults(lastResult);
 
                     // Hide progress indicator
-                    if (generationProgressBar != null) generationProgressBar.setVisible(false);
-                    if (generateSchemaBtn != null) generateSchemaBtn.setDisable(false);
-                    if (exportSchemaBtn != null) exportSchemaBtn.setDisable(false);
+                    if (generationProgressBar != null) {
+                        generationProgressBar.setVisible(false);
+                    }
+                    if (generateSchemaBtn != null) {
+                        generateSchemaBtn.setDisable(false);
+                    }
+                    if (exportSchemaBtn != null) {
+                        exportSchemaBtn.setDisable(false);
+                    }
 
                     logger.info("Schema generation completed successfully");
                 });
@@ -555,8 +594,12 @@ public class SchemaGeneratorController implements FavoritesParentController {
             protected void failed() {
                 Platform.runLater(() -> {
                     // Hide progress indicator
-                    if (generationProgressBar != null) generationProgressBar.setVisible(false);
-                    if (generateSchemaBtn != null) generateSchemaBtn.setDisable(false);
+                    if (generationProgressBar != null) {
+                        generationProgressBar.setVisible(false);
+                    }
+                    if (generateSchemaBtn != null) {
+                        generateSchemaBtn.setDisable(false);
+                    }
 
                     logger.error("Schema generation failed", getException());
                     showAlert("Generation Error", "Failed to generate schema: " + getException().getMessage());
@@ -571,40 +614,54 @@ public class SchemaGeneratorController implements FavoritesParentController {
         SchemaGenerationOptions options = new SchemaGenerationOptions();
 
         // Type inference options
-        if (enableSmartTypeInference != null)
+        if (enableSmartTypeInference != null) {
             options.setEnableSmartTypeInference(enableSmartTypeInference.isSelected());
-        if (inferComplexTypes != null)
+        }
+        if (inferComplexTypes != null) {
             options.setInferComplexTypes(inferComplexTypes.isSelected());
-        if (strictTypeInference != null)
+        }
+        if (strictTypeInference != null) {
             options.setStrictTypeInference(strictTypeInference.isSelected());
-        if (analyzeDataPatterns != null)
+        }
+        if (analyzeDataPatterns != null) {
             options.setAnalyzeDataPatterns(analyzeDataPatterns.isSelected());
+        }
 
         // Structure options
-        if (generateComplexTypes != null)
+        if (generateComplexTypes != null) {
             options.setGenerateComplexTypes(generateComplexTypes.isSelected());
-        if (inlineSimpleTypes != null)
+        }
+        if (inlineSimpleTypes != null) {
             options.setInlineSimpleTypes(inlineSimpleTypes.isSelected());
-        if (groupSimilarElements != null)
+        }
+        if (groupSimilarElements != null) {
             options.setGroupSimilarElements(groupSimilarElements.isSelected());
-        if (generateGroups != null)
+        }
+        if (generateGroups != null) {
             options.setGenerateGroups(generateGroups.isSelected());
+        }
 
         // Optimization options
-        if (optimizeSchema != null)
+        if (optimizeSchema != null) {
             options.setOptimizeSchema(optimizeSchema.isSelected());
-        if (eliminateDuplicates != null)
+        }
+        if (eliminateDuplicates != null) {
             options.setEliminateDuplicateTypes(eliminateDuplicates.isSelected());
-        if (mergeCompatibleTypes != null)
+        }
+        if (mergeCompatibleTypes != null) {
             options.setMergeCompatibleTypes(mergeCompatibleTypes.isSelected());
+        }
 
         // Namespace handling
-        if (preserveNamespaces != null)
+        if (preserveNamespaces != null) {
             options.setPreserveNamespaces(preserveNamespaces.isSelected());
-        if (generateTargetNamespace != null)
+        }
+        if (generateTargetNamespace != null) {
             options.setGenerateTargetNamespace(generateTargetNamespace.isSelected());
-        if (targetNamespaceField != null && !targetNamespaceField.getText().trim().isEmpty())
+        }
+        if (targetNamespaceField != null && !targetNamespaceField.getText().trim().isEmpty()) {
             options.setTargetNamespaceUri(targetNamespaceField.getText().trim());
+        }
 
         return options;
     }
@@ -712,23 +769,31 @@ public class SchemaGeneratorController implements FavoritesParentController {
     }
 
     private void updateStatistics(SchemaGenerationResult result) {
-        if (complexTypesLabel != null)
+        if (complexTypesLabel != null) {
             complexTypesLabel.setText(String.valueOf(result.getTotalComplexTypesGenerated()));
-        if (simpleTypesLabel != null)
+        }
+        if (simpleTypesLabel != null) {
             simpleTypesLabel.setText(String.valueOf(result.getTotalSimpleTypesGenerated()));
-        if (elementsLabel != null)
+        }
+        if (elementsLabel != null) {
             elementsLabel.setText(String.valueOf(result.getTotalElementsGenerated()));
-        if (attributesLabel != null)
+        }
+        if (attributesLabel != null) {
             attributesLabel.setText(String.valueOf(result.getTotalAttributesGenerated()));
-        if (namespacesLabel != null)
+        }
+        if (namespacesLabel != null) {
             namespacesLabel.setText("N/A"); // Namespace count not available in current API
+        }
 
-        if (generationTimeLabel != null)
+        if (generationTimeLabel != null) {
             generationTimeLabel.setText(result.getGenerationTimeMs() + "ms");
-        if (xmlSizeLabel != null)
+        }
+        if (xmlSizeLabel != null) {
             xmlSizeLabel.setText("N/A"); // Input size not tracked in current API
-        if (xsdSizeLabel != null)
+        }
+        if (xsdSizeLabel != null) {
             xsdSizeLabel.setText(formatBytes(result.getGeneratedContentLength()));
+        }
         if (compressionLabel != null) {
             double compression = 0; // Compression calculation not available without input size
             compressionLabel.setText(String.format("%.1f%%", Math.max(0, compression)));
@@ -863,8 +928,12 @@ public class SchemaGeneratorController implements FavoritesParentController {
 
     // Utility Methods
     private String formatBytes(long bytes) {
-        if (bytes < 1024) return bytes + "B";
-        if (bytes < 1024 * 1024) return String.format("%.1fKB", bytes / 1024.0);
+        if (bytes < 1024) {
+            return bytes + "B";
+        }
+        if (bytes < 1024 * 1024) {
+            return String.format("%.1fKB", bytes / 1024.0);
+        }
         return String.format("%.1fMB", bytes / (1024.0 * 1024.0));
     }
 
@@ -1106,7 +1175,9 @@ public class SchemaGeneratorController implements FavoritesParentController {
                                      javafx.scene.control.ContentDisplay displayMode,
                                      int iconSize,
                                      String style) {
-        if (button == null) return;
+        if (button == null) {
+            return;
+        }
 
         // Set content display mode
         button.setContentDisplay(displayMode);

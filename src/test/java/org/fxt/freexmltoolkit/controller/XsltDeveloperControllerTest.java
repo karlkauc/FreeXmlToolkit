@@ -1,15 +1,16 @@
 package org.fxt.freexmltoolkit.controller;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import javafx.scene.control.*;
 import javafx.scene.web.WebView;
+
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for XsltDeveloperController.

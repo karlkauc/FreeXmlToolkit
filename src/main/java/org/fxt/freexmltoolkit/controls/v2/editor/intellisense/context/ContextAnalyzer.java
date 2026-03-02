@@ -1,11 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context;
 
+import java.util.ArrayList;
+import java.util.Stack;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
 
 /**
  * Analyzes XML text to determine the context at a specific cursor position.
@@ -341,7 +340,9 @@ public class ContextAnalyzer {
      */
     private static int findTextContentCompletionStart(String textBeforeCaret) {
         int lastCloseBracket = textBeforeCaret.lastIndexOf('>');
-        if (lastCloseBracket == -1) return 0;
+        if (lastCloseBracket == -1) {
+            return 0;
+        }
 
         // Find start of current word
         int pos = textBeforeCaret.length() - 1;

@@ -1,20 +1,21 @@
 package org.fxt.freexmltoolkit.controller;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
+
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.io.File;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for XsdValidationController.

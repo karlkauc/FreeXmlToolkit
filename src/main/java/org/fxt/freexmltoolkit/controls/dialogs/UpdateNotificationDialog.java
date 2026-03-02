@@ -18,6 +18,9 @@
 
 package org.fxt.freexmltoolkit.controls.dialogs;
 
+import java.awt.*;
+import java.net.URI;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -30,15 +33,13 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.awt.*;
-import java.net.URI;
 
 /**
  * Dialog that displays update notification with release notes.

@@ -18,10 +18,11 @@
 
 package org.fxt.freexmltoolkit.controls.v2.common.utilities;
 
-import javafx.scene.text.Font;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import javafx.scene.text.Font;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for XmlCanvasRenderingHelper utility class.

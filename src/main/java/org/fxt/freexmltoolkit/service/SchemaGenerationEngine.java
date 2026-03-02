@@ -1,17 +1,18 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.w3c.dom.*;
-import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
 
 /**
  * Revolutionary Schema Generation Engine that auto-generates XSD schemas from XML documents
@@ -725,8 +726,12 @@ public class SchemaGenerationEngine {
     }
 
     private ElementInfo mergeElementOccurrences(List<ElementInfo> occurrences) {
-        if (occurrences.isEmpty()) return null;
-        if (occurrences.size() == 1) return occurrences.get(0);
+        if (occurrences.isEmpty()) {
+            return null;
+        }
+        if (occurrences.size() == 1) {
+            return occurrences.get(0);
+        }
 
         // Merge multiple occurrences into one representative element
         ElementInfo merged = new ElementInfo();

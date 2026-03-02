@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for XSD version detection in XsdSchema.

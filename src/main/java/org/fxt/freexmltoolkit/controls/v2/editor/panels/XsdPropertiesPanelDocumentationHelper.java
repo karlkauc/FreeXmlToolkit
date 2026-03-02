@@ -18,24 +18,23 @@
 
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import java.util.List;
+import java.util.Optional;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-
-import java.util.List;
-import java.util.Optional;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Helper class for documentation-related functionality in XsdPropertiesPanel.

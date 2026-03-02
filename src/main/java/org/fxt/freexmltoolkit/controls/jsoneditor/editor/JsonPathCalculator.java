@@ -18,11 +18,11 @@
 
 package org.fxt.freexmltoolkit.controls.jsoneditor.editor;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Utility class for calculating JSONPath at a given position in JSON text.
@@ -235,15 +235,29 @@ public class JsonPathCalculator {
     }
 
     private static String detectValueType(String text, int position) {
-        if (position >= text.length()) return "unknown";
+        if (position >= text.length()) {
+            return "unknown";
+        }
         char c = text.charAt(position);
 
-        if (c == '"') return "string";
-        if (c == '{') return "object";
-        if (c == '[') return "array";
-        if (c == 't' || c == 'f') return "boolean";
-        if (c == 'n') return "null";
-        if (Character.isDigit(c) || c == '-') return "number";
+        if (c == '"') {
+            return "string";
+        }
+        if (c == '{') {
+            return "object";
+        }
+        if (c == '[') {
+            return "array";
+        }
+        if (c == 't' || c == 'f') {
+            return "boolean";
+        }
+        if (c == 'n') {
+            return "null";
+        }
+        if (Character.isDigit(c) || c == '-') {
+            return "number";
+        }
 
         return "unknown";
     }

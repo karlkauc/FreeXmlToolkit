@@ -1,13 +1,13 @@
 package org.fxt.freexmltoolkit.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
+
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for XSD appinfo annotations parsing (@since, @see, @deprecated).

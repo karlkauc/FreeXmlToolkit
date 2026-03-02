@@ -1,15 +1,16 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization;
 
+import java.io.*;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
 import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
 
 /**
  * Parses XML text/files into XML model.

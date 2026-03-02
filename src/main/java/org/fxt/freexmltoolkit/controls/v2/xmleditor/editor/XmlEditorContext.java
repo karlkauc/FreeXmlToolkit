@@ -1,5 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.editor;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CommandManager;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.selection.SelectionModel;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
@@ -11,13 +18,6 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlSerializer;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFactory;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
-
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Central context for the XML Editor V2.

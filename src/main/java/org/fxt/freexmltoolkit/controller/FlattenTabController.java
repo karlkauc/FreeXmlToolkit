@@ -1,21 +1,21 @@
 package org.fxt.freexmltoolkit.controller;
 
+import java.io.File;
+import java.nio.file.Files;
+
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
+
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
-import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.xsd.*;
 import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
-
-import java.io.File;
-import java.nio.file.Files;
 
 /**
  * Controller for the Flatten Tab.

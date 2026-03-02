@@ -1,5 +1,14 @@
 package org.fxt.freexmltoolkit.controls;
 
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
@@ -12,6 +21,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
@@ -21,15 +31,6 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Consumer;
 
 /**
  * Enhanced code editor specifically designed for Schematron documents.
@@ -222,8 +223,12 @@ public class SchematronCodeEditor extends StackPane {
      * Find safe breakpoint for chunked processing (avoid breaking XML tags)
      */
     private int findSafeBreakpoint(String text, int position, boolean forward) {
-        if (position <= 0) return 0;
-        if (position >= text.length()) return text.length();
+        if (position <= 0) {
+            return 0;
+        }
+        if (position >= text.length()) {
+            return text.length();
+        }
 
         int searchRange = Math.min(100, forward ? text.length() - position : position);
 

@@ -1,5 +1,12 @@
 package org.fxt.freexmltoolkit.controls.unified;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Collections;
+import java.util.List;
+
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
@@ -8,6 +15,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
@@ -15,7 +23,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlParser;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
@@ -23,16 +30,6 @@ import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.service.*;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Full-featured Unified Editor tab for XML files.
@@ -185,8 +182,10 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
 
     @Override
     public void setViewMode(ViewMode mode) {
-        if (this.currentViewMode == mode) return;
-        
+        if (this.currentViewMode == mode) {
+            return;
+        }
+
         logger.info("Switching XML view mode from {} to {}", currentViewMode, mode);
         this.currentViewMode = mode;
         

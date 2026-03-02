@@ -1,13 +1,13 @@
 package org.fxt.freexmltoolkit.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.*;
+
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for XsdSampleDataGenerator - generates sample data based on XSD types and restrictions.

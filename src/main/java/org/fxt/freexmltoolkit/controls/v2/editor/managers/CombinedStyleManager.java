@@ -1,13 +1,14 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
+import java.util.*;
+
 import javafx.application.Platform;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
-
-import java.util.*;
 
 /**
  * Combined style manager that merges syntax highlighting and validation error highlighting.

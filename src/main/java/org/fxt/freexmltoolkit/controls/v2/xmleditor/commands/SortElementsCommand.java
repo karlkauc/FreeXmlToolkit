@@ -1,14 +1,14 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.commands;
 
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable.ColumnDataType;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable.ColumnDataType;
 
 /**
  * Command to sort elements in a RepeatingElementsTable by a column value.
@@ -173,8 +173,12 @@ public class SortElementsCommand implements XmlCommand {
             String v2 = getColumnValue(e2);
 
             // Handle nulls/empties - always sort to end
-            if (v1 == null || v1.trim().isEmpty()) return 1;
-            if (v2 == null || v2.trim().isEmpty()) return -1;
+            if (v1 == null || v1.trim().isEmpty()) {
+                return 1;
+            }
+            if (v2 == null || v2.trim().isEmpty()) {
+                return -1;
+            }
 
             return switch (dataType) {
                 case NUMERIC -> compareNumeric(v1, v2);
@@ -220,9 +224,15 @@ public class SortElementsCommand implements XmlCommand {
         LocalDate date1 = parseDate(v1);
         LocalDate date2 = parseDate(v2);
 
-        if (date1 == null && date2 == null) return 0;
-        if (date1 == null) return 1;
-        if (date2 == null) return -1;
+        if (date1 == null && date2 == null) {
+            return 0;
+        }
+        if (date1 == null) {
+            return 1;
+        }
+        if (date2 == null) {
+            return -1;
+        }
 
         return date1.compareTo(date2);
     }
@@ -231,7 +241,9 @@ public class SortElementsCommand implements XmlCommand {
      * Attempts to parse a date string using multiple formats.
      */
     private LocalDate parseDate(String value) {
-        if (value == null || value.trim().isEmpty()) return null;
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
 
         String v = value.trim();
 

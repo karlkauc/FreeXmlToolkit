@@ -18,6 +18,24 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.stream.StreamSource;
+
 import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
@@ -30,23 +48,6 @@ import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 
 /**
  * Service for generating PDF documentation from XSD schema data using Apache FOP.
@@ -1199,8 +1200,12 @@ public class XsdDocumentationPdfService {
     }
 
     private String truncateString(String str, int maxLength) {
-        if (str == null) return "";
-        if (str.length() <= maxLength) return str;
+        if (str == null) {
+            return "";
+        }
+        if (str.length() <= maxLength) {
+            return str;
+        }
         return str.substring(0, maxLength - 3) + "...";
     }
 
@@ -1345,7 +1350,9 @@ public class XsdDocumentationPdfService {
         if (constraints != null && !constraints.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             for (var constraint : constraints) {
-                if (!sb.isEmpty()) sb.append("; ");
+                if (!sb.isEmpty()) {
+                    sb.append("; ");
+                }
                 sb.append(constraint.getType()).append(": ").append(constraint.getName());
             }
             return sb.toString();

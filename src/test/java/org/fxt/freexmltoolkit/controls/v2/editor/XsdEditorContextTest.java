@@ -1,13 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.editor;
 
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand;
-import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
-import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -16,7 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for XsdEditorContext - the central coordination point for V2 Editor.

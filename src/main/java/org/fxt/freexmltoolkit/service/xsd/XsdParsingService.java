@@ -1,9 +1,10 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import java.nio.file.Path;
 
 import javax.xml.validation.Schema;
-import java.nio.file.Path;
+
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
  * Unified service for parsing XSD schema files.

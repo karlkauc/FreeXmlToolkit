@@ -1,16 +1,17 @@
 package org.fxt.freexmltoolkit.service;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 import javafx.application.Platform;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.SchematronController;
 import org.fxt.freexmltoolkit.controller.XmlUltimateController;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Service for integrating XML Editor and Schematron Editor functionality.

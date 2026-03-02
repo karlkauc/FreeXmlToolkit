@@ -1,7 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.tabs;
 
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
@@ -180,7 +180,9 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
                                          String typeName,
                                          java.util.List<UsageInfo> usages,
                                          String path) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String nodeName = node.getName() != null ? node.getName() : node.getClass().getSimpleName();
         String currentPath = path.isEmpty() ? nodeName : path + " > " + nodeName;
@@ -229,7 +231,9 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
      * Strips namespace prefix from a type name (e.g., "tns:MyType" -> "MyType").
      */
     private String stripNamespacePrefix(String typeName) {
-        if (typeName == null) return null;
+        if (typeName == null) {
+            return null;
+        }
         int colonIndex = typeName.indexOf(':');
         return colonIndex >= 0 ? typeName.substring(colonIndex + 1) : typeName;
     }

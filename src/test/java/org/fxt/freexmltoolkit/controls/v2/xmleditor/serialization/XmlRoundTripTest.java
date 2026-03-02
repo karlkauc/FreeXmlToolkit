@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization;
 
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Round-trip tests for XML parsing and serialization.

@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.service;
 
+import java.util.List;
+
 import org.fxt.freexmltoolkit.domain.statistics.DailyStatistics;
 import org.fxt.freexmltoolkit.domain.statistics.FeatureTip;
 import org.fxt.freexmltoolkit.domain.statistics.FeatureUsage;
 import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
-
-import java.util.List;
 
 /**
  * Service for tracking application usage statistics.

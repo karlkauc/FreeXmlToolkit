@@ -1,13 +1,13 @@
 package org.fxt.freexmltoolkit.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.*;
+
 import org.fxt.freexmltoolkit.domain.IdentityConstraint;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for IdentityConstraintTracker.

@@ -1,10 +1,15 @@
 package org.fxt.freexmltoolkit.controls.v2.editor;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import javafx.application.Platform;
 import javafx.scene.control.TabPane;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.AbstractTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.ComplexTypeEditorTab;
-import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypeEditorTab;
 import org.fxt.freexmltoolkit.controls.v2.editor.tabs.SimpleTypesListTab;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
@@ -15,11 +20,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for TypeEditorTabManager.

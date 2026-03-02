@@ -18,6 +18,16 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.file.Path;
+import java.util.*;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,15 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.File;
-import java.io.RandomAccessFile;
-import java.nio.file.Path;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for XsdDocumentationPdfService.

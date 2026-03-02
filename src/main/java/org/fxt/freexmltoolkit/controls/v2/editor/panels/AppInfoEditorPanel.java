@@ -1,22 +1,21 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import java.util.Objects;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeAppinfoCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Structured editor panel for XSD AppInfo annotations (XsdDoc).
@@ -309,7 +308,7 @@ public class AppInfoEditorPanel extends VBox {
      * @param node the XSD node, or null to clear
      */
     public void setNode(XsdNode node) {
-        if (updating) return;  // Prevent recursive updates during command execution
+        if (updating) { return; } // Prevent recursive updates during command execution
         this.currentNode = node;
         updateFromModel();
     }
@@ -408,7 +407,9 @@ public class AppInfoEditorPanel extends VBox {
      * Handles changes to version info fields.
      */
     private void handleVersionInfoChange() {
-        if (updating || currentNode == null) return;
+        if (updating || currentNode == null) {
+            return;
+        }
 
         XsdAppInfo newAppInfo = createAppInfoFromUI();
         executeChangeCommand(newAppInfo);
@@ -467,7 +468,9 @@ public class AppInfoEditorPanel extends VBox {
      * Handles changes to @see references.
      */
     private void handleSeeReferencesChange() {
-        if (updating || currentNode == null) return;
+        if (updating || currentNode == null) {
+            return;
+        }
 
         XsdAppInfo newAppInfo = createAppInfoFromUI();
         executeChangeCommand(newAppInfo);
@@ -477,7 +480,9 @@ public class AppInfoEditorPanel extends VBox {
      * Handles changes to deprecation.
      */
     private void handleDeprecationChange() {
-        if (updating || currentNode == null) return;
+        if (updating || currentNode == null) {
+            return;
+        }
 
         XsdAppInfo newAppInfo = createAppInfoFromUI();
         executeChangeCommand(newAppInfo);
@@ -487,8 +492,10 @@ public class AppInfoEditorPanel extends VBox {
      * Executes a change command with the new appinfo.
      */
     private void executeChangeCommand(XsdAppInfo newAppInfo) {
-        if (editorContext == null || currentNode == null) return;
-        if (updating) return;  // Prevent recursive calls during PropertyChangeEvent handling
+        if (editorContext == null || currentNode == null) {
+            return;
+        }
+        if (updating) { return; } // Prevent recursive calls during PropertyChangeEvent handling
 
         updating = true;
         try {
@@ -534,7 +541,7 @@ public class AppInfoEditorPanel extends VBox {
         private final FontIcon icon;
         private final Label textLabel;
 
-        public SeeReferenceCell() {
+        SeeReferenceCell() {
             content = new HBox(8);
             content.setAlignment(Pos.CENTER_LEFT);
 

@@ -155,7 +155,9 @@ public class ElementInfo {
      * @param child the child element to add
      */
     public void addChildElement(ElementInfo child) {
-        if (child == null) return;
+        if (child == null) {
+            return;
+        }
 
         this.hasChildElements = true;
         child.depth = this.depth + 1;
@@ -182,7 +184,9 @@ public class ElementInfo {
      * @param attribute the attribute to add
      */
     public void addAttribute(AttributeInfo attribute) {
-        if (attribute == null) return;
+        if (attribute == null) {
+            return;
+        }
 
         this.hasAttributes = true;
         attributes.put(attribute.getQualifiedName(), attribute);
@@ -232,7 +236,9 @@ public class ElementInfo {
      * Add an observed value for simple content analysis
      */
     private void addObservedValue(String value) {
-        if (value == null || value.isEmpty()) return;
+        if (value == null || value.isEmpty()) {
+            return;
+        }
 
         observedValues.add(value);
         valueFrequency.put(value, valueFrequency.getOrDefault(value, 0) + 1);
@@ -353,29 +359,45 @@ public class ElementInfo {
 
     private boolean allValuesMatch(String type) {
         for (String value : observedValues) {
-            if (value == null || value.isEmpty()) continue;
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
 
             switch (type) {
                 case "xs:boolean":
-                    if (!isBoolean(value)) return false;
+                    if (!isBoolean(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:integer":
-                    if (!isInteger(value)) return false;
+                    if (!isInteger(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:decimal":
-                    if (!isDecimal(value)) return false;
+                    if (!isDecimal(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:date":
-                    if (!isDate(value)) return false;
+                    if (!isDate(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:dateTime":
-                    if (!isDateTime(value)) return false;
+                    if (!isDateTime(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:time":
-                    if (!isTime(value)) return false;
+                    if (!isTime(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:anyURI":
-                    if (!isUrl(value)) return false;
+                    if (!isUrl(value)) {
+                        return false;
+                    }
                     break;
             }
         }
@@ -383,7 +405,9 @@ public class ElementInfo {
     }
 
     private void updateConstraintsFromValue(String value) {
-        if (value == null) return;
+        if (value == null) {
+            return;
+        }
 
         // Update length constraints
         int length = value.length();
@@ -506,7 +530,9 @@ public class ElementInfo {
         Map<String, Integer> patternFreq = new HashMap<>();
 
         for (String value : observedValues) {
-            if (value == null || value.isEmpty()) continue;
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
 
             String pattern = detectValuePattern(value);
             patternFreq.put(pattern, patternFreq.getOrDefault(pattern, 0) + 1);
@@ -539,33 +565,59 @@ public class ElementInfo {
     }
 
     private String detectValuePattern(String value) {
-        if (isInteger(value)) return "integer";
-        if (isDecimal(value)) return "decimal";
-        if (isBoolean(value)) return "boolean";
-        if (isDate(value)) return "date";
-        if (isDateTime(value)) return "dateTime";
-        if (isTime(value)) return "time";
-        if (isEmail(value)) return "email";
-        if (isUrl(value)) return "url";
+        if (isInteger(value)) {
+            return "integer";
+        }
+        if (isDecimal(value)) {
+            return "decimal";
+        }
+        if (isBoolean(value)) {
+            return "boolean";
+        }
+        if (isDate(value)) {
+            return "date";
+        }
+        if (isDateTime(value)) {
+            return "dateTime";
+        }
+        if (isTime(value)) {
+            return "time";
+        }
+        if (isEmail(value)) {
+            return "email";
+        }
+        if (isUrl(value)) {
+            return "url";
+        }
 
         // Length-based patterns
         int length = value.length();
-        if (length <= 10) return "short_string";
-        if (length <= 50) return "medium_string";
+        if (length <= 10) {
+            return "short_string";
+        }
+        if (length <= 50) {
+            return "medium_string";
+        }
         return "long_string";
     }
 
     private boolean shouldGenerateEnumeration() {
         // Generate enumeration if simple content with limited distinct values
-        if (isComplexType || hasChildElements) return false;
+        if (isComplexType || hasChildElements) {
+            return false;
+        }
 
         int distinctValues = observedValues.size();
-        if (distinctValues > 20 || distinctValues < 2) return false;
+        if (distinctValues > 20 || distinctValues < 2) {
+            return false;
+        }
 
         // Check if values look like enumeration
         boolean looksLikeEnum = true;
         for (String value : observedValues) {
-            if (value == null) continue;
+            if (value == null) {
+                continue;
+            }
             if (value.length() > 50 || (value.contains(" ") && value.split(" ").length > 3)) {
                 looksLikeEnum = false;
                 break;
@@ -697,23 +749,35 @@ public class ElementInfo {
      * @return true if the structures are compatible, false otherwise
      */
     public boolean isStructurallyCompatible(ElementInfo other) {
-        if (other == null) return false;
+        if (other == null) {
+            return false;
+        }
 
         // Check content type compatibility
-        if (!contentType.equals(other.contentType)) return false;
+        if (!contentType.equals(other.contentType)) {
+            return false;
+        }
 
         // Check child elements
-        if (childElements.size() != other.childElements.size()) return false;
+        if (childElements.size() != other.childElements.size()) {
+            return false;
+        }
 
         for (String childName : childElements.keySet()) {
-            if (!other.childElements.containsKey(childName)) return false;
+            if (!other.childElements.containsKey(childName)) {
+                return false;
+            }
         }
 
         // Check attributes
-        if (attributes.size() != other.attributes.size()) return false;
+        if (attributes.size() != other.attributes.size()) {
+            return false;
+        }
 
         for (String attrName : attributes.keySet()) {
-            if (!other.attributes.containsKey(attrName)) return false;
+            if (!other.attributes.containsKey(attrName)) {
+                return false;
+            }
 
             AttributeInfo thisAttr = attributes.get(attrName);
             AttributeInfo otherAttr = other.attributes.get(attrName);

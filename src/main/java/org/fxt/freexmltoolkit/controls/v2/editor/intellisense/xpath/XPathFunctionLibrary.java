@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath;
 
-import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
-import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
 
 /**
  * Static library of XPath 1.0/2.0/3.1 functions, axes, operators, and XQuery keywords.

@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Command to set the text content of an element.

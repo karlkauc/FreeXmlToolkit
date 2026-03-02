@@ -18,12 +18,13 @@
 
 package org.fxt.freexmltoolkit.controls.v2.view;
 
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for XsdGraphViewEventHandler utility class.

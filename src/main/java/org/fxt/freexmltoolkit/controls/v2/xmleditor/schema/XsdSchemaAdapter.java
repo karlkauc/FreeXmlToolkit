@@ -17,15 +17,15 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.schema;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
-import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-
 import java.io.File;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 
 /**
  * Adapter that bridges XsdDocumentationData to XmlSchemaProvider.

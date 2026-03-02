@@ -18,17 +18,18 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import javafx.scene.Node;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import javafx.scene.Node;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Utility service for drag and drop functionality.

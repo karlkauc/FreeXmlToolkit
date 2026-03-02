@@ -18,14 +18,16 @@
 
 package org.fxt.freexmltoolkit;
 
-import fr.brouillard.oss.cssfx.CSSFX;
+import java.io.File;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 
-import java.io.File;
+import fr.brouillard.oss.cssfx.CSSFX;
 
 public class GuiTest extends Application {
 

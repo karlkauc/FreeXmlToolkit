@@ -18,17 +18,15 @@
 
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.kordamp.ikonli.javafx.FontIcon;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Helper class for type-related functionality in XsdPropertiesPanel.
@@ -153,8 +151,12 @@ public class XsdPropertiesPanelTypeHelper {
             boolean aBuiltin = isBuiltinType(a);
             boolean bBuiltin = isBuiltinType(b);
 
-            if (aBuiltin && !bBuiltin) return -1;
-            if (!aBuiltin && bBuiltin) return 1;
+            if (aBuiltin && !bBuiltin) {
+                return -1;
+            }
+            if (!aBuiltin && bBuiltin) {
+                return 1;
+            }
             return a.compareTo(b);
         });
 

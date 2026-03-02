@@ -1,15 +1,8 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
-import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Test to verify that XSD flattening correctly deduplicates types from

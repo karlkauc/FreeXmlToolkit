@@ -18,6 +18,13 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+import java.util.Properties;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,28 +38,22 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
-import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.service.ConnectionService;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.fxt.freexmltoolkit.service.UsageTrackingService;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
-import java.util.Properties;
 
 /**
  * Controller for the application settings panel.
@@ -77,7 +78,7 @@ public class SettingsController {
     }
 
     Properties props;
-    private final static Logger logger = LogManager.getLogger(SettingsController.class);
+    private static final Logger logger = LogManager.getLogger(SettingsController.class);
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
     private final ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
     private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);

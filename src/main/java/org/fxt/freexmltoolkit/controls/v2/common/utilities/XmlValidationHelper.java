@@ -18,7 +18,15 @@
 
 package org.fxt.freexmltoolkit.controls.v2.common.utilities;
 
+import java.io.File;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import javafx.scene.control.Alert;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ValidationError;
@@ -26,12 +34,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXParseException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.File;
-import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * Utility class for XML validation operations.

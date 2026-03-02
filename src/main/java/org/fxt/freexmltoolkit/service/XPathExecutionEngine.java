@@ -1,18 +1,5 @@
 package org.fxt.freexmltoolkit.service;
 
-import javafx.concurrent.Task;
-import net.sf.saxon.s9api.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.SnippetParameter;
-import org.fxt.freexmltoolkit.domain.XPathSnippet;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-
-import org.fxt.freexmltoolkit.util.SecureXmlFactory;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.transform.dom.DOMSource;
 import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,6 +9,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.transform.dom.DOMSource;
+
+import javafx.concurrent.Task;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.SnippetParameter;
+import org.fxt.freexmltoolkit.domain.XPathSnippet;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+
+import net.sf.saxon.s9api.*;
 
 /**
  * High-performance XPath/XQuery execution engine with Saxon integration.

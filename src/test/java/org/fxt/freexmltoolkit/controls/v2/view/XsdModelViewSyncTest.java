@@ -1,18 +1,19 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
-import javafx.application.Platform;
-import javafx.stage.Stage;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.testfx.framework.junit5.ApplicationExtension;
-import org.testfx.framework.junit5.Start;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.jupiter.api.Assertions.*;
+import javafx.application.Platform;
+import javafx.stage.Stage;
+
+import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
 
 /**
  * Integration tests for Model ↔ View synchronization.

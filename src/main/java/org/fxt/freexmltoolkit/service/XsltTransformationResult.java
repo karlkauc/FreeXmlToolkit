@@ -1,17 +1,18 @@
 package org.fxt.freexmltoolkit.service;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParser;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParser;
 
 /**
  * Comprehensive result object for XSLT transformation with detailed metadata and debugging information.
@@ -658,7 +659,9 @@ public class XsltTransformationResult {
     }
 
     public void addAllWarnings(java.util.Collection<String> newWarnings) {
-        if (newWarnings == null) return;
+        if (newWarnings == null) {
+            return;
+        }
         if (this.warnings == null) {
             this.warnings = new java.util.ArrayList<>();
         }

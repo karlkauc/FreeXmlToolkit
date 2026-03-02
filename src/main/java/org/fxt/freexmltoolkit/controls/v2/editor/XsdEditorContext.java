@@ -1,14 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.CommandManager;
-import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
-import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.nio.file.Path;
@@ -17,6 +8,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.CommandManager;
+import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
  * Central context for the XSD editor.

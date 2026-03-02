@@ -1,14 +1,13 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.XPathSnippet;
-import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.domain.XPathSnippet;
+import org.junit.jupiter.api.*;
 
 @DisplayName("XPathSnippetRepository Tests")
 public class XPathSnippetRepositoryTest {

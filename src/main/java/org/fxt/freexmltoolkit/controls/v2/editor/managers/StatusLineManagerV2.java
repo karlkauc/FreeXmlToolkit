@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
@@ -69,21 +70,27 @@ public class StatusLineManagerV2 {
          *
          * @return the human-readable status text
          */
-        public String getText() { return text; }
+        public String getText() {
+            return text;
+        }
 
         /**
          * Returns the color associated with this status.
          *
          * @return the CSS color value for this status
          */
-        public String getColor() { return color; }
+        public String getColor() {
+            return color;
+        }
 
         /**
          * Returns the icon character for this status.
          *
          * @return the Unicode icon character representing this status
          */
-        public String getIcon() { return icon; }
+        public String getIcon() {
+            return icon;
+        }
     }
 
     private final EditorContext editorContext;

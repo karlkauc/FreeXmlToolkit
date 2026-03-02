@@ -18,15 +18,6 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.ConnectionResult;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -38,6 +29,16 @@ import java.security.cert.X509Certificate;
 import java.util.Optional;
 import java.util.Properties;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.ConnectionResult;
+
 /**
  * Implementation of the ConnectionService interface.
  * Provides methods for executing HTTP requests and retrieving text content from URLs.
@@ -45,7 +46,7 @@ import java.util.Properties;
  */
 public class ConnectionServiceImpl implements ConnectionService {
 
-    private final static Logger logger = LogManager.getLogger(ConnectionServiceImpl.class);
+    private static final Logger logger = LogManager.getLogger(ConnectionServiceImpl.class);
     private static final ConnectionServiceImpl instance = new ConnectionServiceImpl();
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
 

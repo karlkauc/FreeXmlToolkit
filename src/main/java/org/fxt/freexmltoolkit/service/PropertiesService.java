@@ -18,11 +18,11 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.XmlParserType;
-
 import java.io.File;
 import java.util.List;
 import java.util.Properties;
+
+import org.fxt.freexmltoolkit.domain.XmlParserType;
 
 /**
  * Service interface for managing application properties and user preferences.

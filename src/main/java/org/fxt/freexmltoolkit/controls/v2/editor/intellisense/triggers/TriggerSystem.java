@@ -1,14 +1,15 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.triggers;
 
-import javafx.application.Platform;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import javafx.application.Platform;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * System for triggering IntelliSense based on character input or key combinations.
@@ -117,8 +118,12 @@ public class TriggerSystem {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             KeyCombination that = (KeyCombination) o;
             return ctrl == that.ctrl && keyCode == that.keyCode;
         }

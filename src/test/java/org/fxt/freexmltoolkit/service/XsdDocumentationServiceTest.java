@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class XsdDocumentationServiceTest {
 

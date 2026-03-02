@@ -1,15 +1,16 @@
 package org.fxt.freexmltoolkit.controls;
 
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+
 import org.fxt.freexmltoolkit.domain.XPathSnippet;
 import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
-
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * Context menu integration for one-click XPath/XQuery snippet execution.
@@ -169,8 +170,12 @@ public class SnippetContextMenu {
 
         // Add visual indicators
         String prefix = "";
-        if (snippet.isFavorite()) prefix += "★ ";
-        if (snippet.getUsageCount() > 10) prefix += "🔥 ";
+        if (snippet.isFavorite()) {
+            prefix += "★ ";
+        }
+        if (snippet.getUsageCount() > 10) {
+            prefix += "🔥 ";
+        }
 
         item.setText(prefix + snippet.getName());
         item.setGraphic(createIcon(getTypeIcon(snippet.getType())));
@@ -341,8 +346,12 @@ public class SnippetContextMenu {
             }
 
             int insertIndex = 0;
-            if (contextInfo.currentElement != null) insertIndex += 2;
-            if (contextInfo.inAttribute) insertIndex += 2;
+            if (contextInfo.currentElement != null) {
+                insertIndex += 2;
+            }
+            if (contextInfo.inAttribute) {
+                insertIndex += 2;
+            }
             contextMenu.getItems().add(insertIndex, selectedTextMenu);
             contextMenu.getItems().add(insertIndex + 1, new SeparatorMenuItem());
         }
@@ -467,8 +476,12 @@ public class SnippetContextMenu {
     }
 
     private String truncateText(String text, int maxLength) {
-        if (text == null) return "";
-        if (text.length() <= maxLength) return text;
+        if (text == null) {
+            return "";
+        }
+        if (text.length() <= maxLength) {
+            return text;
+        }
         return text.substring(0, maxLength - 3) + "...";
     }
 

@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.di;
 
-import org.fxt.freexmltoolkit.service.*;
-
 import static org.mockito.Mockito.mock;
+
+import org.fxt.freexmltoolkit.service.*;
 
 /**
  * Test module providing mock implementations for unit testing.

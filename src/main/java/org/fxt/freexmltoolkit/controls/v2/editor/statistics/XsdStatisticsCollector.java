@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
+import java.nio.file.Path;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
-
-import java.nio.file.Path;
-import java.util.*;
 
 /**
  * Collects comprehensive statistics from an XSD schema.

@@ -1,12 +1,13 @@
 package org.fxt.freexmltoolkit;
 
+import java.math.BigInteger;
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+
 import com.github.curiousoddman.rgxgen.RgxGen;
 import com.github.curiousoddman.rgxgen.iterators.StringIterator;
 import com.mifmif.common.regex.Generex;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigInteger;
-import java.util.Optional;
 
 public class RegexTest {
 

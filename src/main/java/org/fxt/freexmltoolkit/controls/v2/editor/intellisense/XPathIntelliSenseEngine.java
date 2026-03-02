@@ -1,12 +1,19 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Window;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathExpressionAnalyzer;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
@@ -15,12 +22,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XPathCom
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.triggers.TriggerSystem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.ui.IntelliSensePopup;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XmlDocumentElementExtractor;
-import org.fxmisc.richtext.CodeArea;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * XPath/XQuery IntelliSense engine for CodeArea.

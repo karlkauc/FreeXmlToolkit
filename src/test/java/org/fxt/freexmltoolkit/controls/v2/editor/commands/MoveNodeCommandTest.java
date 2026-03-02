@@ -1,13 +1,13 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Comprehensive unit tests for MoveNodeCommand.

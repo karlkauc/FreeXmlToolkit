@@ -1,5 +1,11 @@
 package org.fxt.freexmltoolkit.controls;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,16 +17,11 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * Advanced Search &amp; Replace Panel for XML Editor with professional features.
@@ -850,7 +851,9 @@ public class XmlSearchReplacePanel extends VBox {
      * Check if position is in current search scope
      */
     private boolean isInSearchScope(int position) {
-        if (targetCodeArea == null) return true;
+        if (targetCodeArea == null) {
+            return true;
+        }
 
         switch (currentScope) {
             case DOCUMENT:
@@ -960,7 +963,9 @@ public class XmlSearchReplacePanel extends VBox {
      * Find next result
      */
     private void findNext() {
-        if (searchResults.isEmpty()) return;
+        if (searchResults.isEmpty()) {
+            return;
+        }
 
         currentResultIndex = (currentResultIndex + 1) % searchResults.size();
         jumpToCurrentResult();
@@ -970,7 +975,9 @@ public class XmlSearchReplacePanel extends VBox {
      * Find previous result
      */
     private void findPrevious() {
-        if (searchResults.isEmpty()) return;
+        if (searchResults.isEmpty()) {
+            return;
+        }
 
         currentResultIndex = currentResultIndex <= 0 ?
                 searchResults.size() - 1 : currentResultIndex - 1;

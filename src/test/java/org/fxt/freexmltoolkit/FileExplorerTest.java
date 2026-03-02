@@ -1,9 +1,10 @@
 package org.fxt.freexmltoolkit;
 
-import org.junit.jupiter.api.Test;
+import java.io.File;
 
 import javax.swing.filechooser.FileSystemView;
-import java.io.File;
+
+import org.junit.jupiter.api.Test;
 
 public class FileExplorerTest {
 

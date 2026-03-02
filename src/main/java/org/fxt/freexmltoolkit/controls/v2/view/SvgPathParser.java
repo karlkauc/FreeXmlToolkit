@@ -18,15 +18,16 @@
 
 package org.fxt.freexmltoolkit.controls.v2.view;
 
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * SVG Path Parser and Renderer for JavaFX Canvas.

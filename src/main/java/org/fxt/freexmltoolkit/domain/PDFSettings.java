@@ -18,9 +18,7 @@
 
 package org.fxt.freexmltoolkit.domain;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Record holding PDF metadata settings for document generation.

@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Represents a fully parsed XSD schema with all includes resolved.

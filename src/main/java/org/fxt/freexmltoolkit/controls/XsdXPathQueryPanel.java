@@ -1,25 +1,5 @@
 package org.fxt.freexmltoolkit.controls;
 
-import javafx.application.Platform;
-import javafx.concurrent.Task;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import net.sf.saxon.s9api.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
-import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XsdXPathCompletionProvider;
-import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XmlDocumentElementExtractor;
-import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XsdSchemaElementExtractor;
-import org.fxmisc.flowless.VirtualizedScrollPane;
-import org.fxmisc.richtext.CodeArea;
-import org.fxmisc.richtext.LineNumberFactory;
-import org.kordamp.ikonli.javafx.FontIcon;
-
-import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.LocalTime;
@@ -27,6 +7,29 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
+
+import javax.xml.transform.stream.StreamSource;
+
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxmisc.flowless.VirtualizedScrollPane;
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XsdXPathCompletionProvider;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XmlDocumentElementExtractor;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XsdSchemaElementExtractor;
+import org.kordamp.ikonli.javafx.FontIcon;
+
+import net.sf.saxon.s9api.*;
 
 /**
  * XPath/XQuery query panel for the XSD Editor's text view.

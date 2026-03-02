@@ -18,14 +18,14 @@
 
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("PasteNodeCommand")
 class PasteNodeCommandTest {

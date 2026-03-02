@@ -1,14 +1,14 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
-import org.fxt.freexmltoolkit.controls.v2.model.*;
-import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Path;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test to debug and verify the resolution of element references from imported schemas.

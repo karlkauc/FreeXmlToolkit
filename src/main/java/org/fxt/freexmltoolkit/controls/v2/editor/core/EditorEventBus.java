@@ -1,11 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.core;
 
-import javafx.application.Platform;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javafx.application.Platform;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Event bus for editor events.

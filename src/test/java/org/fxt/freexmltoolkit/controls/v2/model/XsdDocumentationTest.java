@@ -18,11 +18,11 @@
 
 package org.fxt.freexmltoolkit.controls.v2.model;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("XsdDocumentation")
 class XsdDocumentationTest {

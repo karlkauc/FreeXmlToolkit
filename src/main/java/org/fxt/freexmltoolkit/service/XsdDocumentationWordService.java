@@ -18,20 +18,6 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.util.Units;
-import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
-import org.apache.poi.common.usermodel.PictureType;
-import org.apache.poi.xwpf.usermodel.*;
-import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
-import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
-import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,6 +28,20 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.common.usermodel.PictureType;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.util.Units;
+import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
+import org.apache.poi.xwpf.usermodel.*;
+import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.*;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * Service for generating Word (.docx) documentation from XSD schema data.

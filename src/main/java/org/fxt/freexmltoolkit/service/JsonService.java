@@ -18,22 +18,23 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import com.google.gson.*;
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
-import com.jayway.jsonpath.PathNotFoundException;
-import com.networknt.schema.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
-
 import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
+
+import com.google.gson.*;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.PathNotFoundException;
+import com.networknt.schema.*;
 
 /**
  * Service for JSON operations including parsing, formatting, validation,
@@ -562,8 +563,12 @@ public class JsonService {
         }
         if (element.isJsonPrimitive()) {
             JsonPrimitive primitive = element.getAsJsonPrimitive();
-            if (primitive.isBoolean()) return primitive.getAsBoolean();
-            if (primitive.isNumber()) return primitive.getAsNumber();
+            if (primitive.isBoolean()) {
+                return primitive.getAsBoolean();
+            }
+            if (primitive.isNumber()) {
+                return primitive.getAsNumber();
+            }
             return primitive.getAsString();
         }
         if (element.isJsonArray()) {
@@ -590,13 +595,23 @@ public class JsonService {
      * @return "object", "array", "string", "number", "boolean", or "null"
      */
     public String getJsonType(JsonElement element) {
-        if (element == null || element.isJsonNull()) return "null";
-        if (element.isJsonObject()) return "object";
-        if (element.isJsonArray()) return "array";
+        if (element == null || element.isJsonNull()) {
+            return "null";
+        }
+        if (element.isJsonObject()) {
+            return "object";
+        }
+        if (element.isJsonArray()) {
+            return "array";
+        }
         if (element.isJsonPrimitive()) {
             JsonPrimitive primitive = element.getAsJsonPrimitive();
-            if (primitive.isBoolean()) return "boolean";
-            if (primitive.isNumber()) return "number";
+            if (primitive.isBoolean()) {
+                return "boolean";
+            }
+            if (primitive.isNumber()) {
+                return "number";
+            }
             return "string";
         }
         return "unknown";

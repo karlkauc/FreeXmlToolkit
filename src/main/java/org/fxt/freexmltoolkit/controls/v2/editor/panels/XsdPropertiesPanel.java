@@ -1,45 +1,39 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import java.util.Optional;
+
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.Alert;
-import org.kordamp.ikonli.javafx.FontIcon;
+import javafx.scene.layout.VBox;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAssert;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDatatypeFacets;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdAssert;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
-
-import java.util.Optional;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Properties panel for editing XSD node properties.

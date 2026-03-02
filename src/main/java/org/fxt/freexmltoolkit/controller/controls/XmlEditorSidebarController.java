@@ -1,5 +1,10 @@
 package org.fxt.freexmltoolkit.controller.controls;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -9,6 +14,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
@@ -19,11 +25,6 @@ import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.SchematronService;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
 
 public class XmlEditorSidebarController {
 
@@ -1796,8 +1797,11 @@ public class XmlEditorSidebarController {
             org.w3c.dom.NamedNodeMap attrs = node.getAttributes();
             for (int i = 0; i < attrs.getLength() && i < 3; i++) {
                 org.w3c.dom.Node attr = attrs.item(i);
-                if (i == 0) sb.append(" ");
-                else sb.append(", ");
+                if (i == 0) {
+                    sb.append(" ");
+                } else {
+                    sb.append(", ");
+                }
                 sb.append(attr.getNodeName()).append("=\"").append(truncateText(attr.getNodeValue(), 20)).append("\"");
             }
             if (attrs.getLength() > 3) {
@@ -1848,7 +1852,9 @@ public class XmlEditorSidebarController {
      * Truncates text to a maximum length.
      */
     private String truncateText(String text, int maxLength) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         text = text.replace("\n", " ").replace("\r", " ").replaceAll("\\s+", " ");
         if (text.length() > maxLength) {
             return text.substring(0, maxLength) + "...";
@@ -1920,7 +1926,9 @@ public class XmlEditorSidebarController {
      * Navigates to the selected tree element in the code editor.
      */
     private void navigateToTreeElement(TreeItem<String> item) {
-        if (item == null) return;
+        if (item == null) {
+            return;
+        }
 
         // Build XPath from tree path
         String xpath = buildXPathFromTreeItem(item);
@@ -1935,7 +1943,9 @@ public class XmlEditorSidebarController {
      * Builds an XPath from a tree item by traversing up to the root.
      */
     private String buildXPathFromTreeItem(TreeItem<String> item) {
-        if (item == null) return "";
+        if (item == null) {
+            return "";
+        }
 
         StringBuilder xpath = new StringBuilder();
         TreeItem<String> current = item;
@@ -1965,7 +1975,9 @@ public class XmlEditorSidebarController {
      * Counts the total number of nodes in a tree.
      */
     private int countTreeNodes(TreeItem<String> item) {
-        if (item == null) return 0;
+        if (item == null) {
+            return 0;
+        }
         int count = 1;
         for (TreeItem<String> child : item.getChildren()) {
             count += countTreeNodes(child);

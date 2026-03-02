@@ -18,14 +18,14 @@
 
 package org.fxt.freexmltoolkit;
 
+import java.io.File;
+import java.util.HashMap;
+
 import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.FOPService;
 import org.fxt.freexmltoolkit.service.FOPServiceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIf;
-
-import java.io.File;
-import java.util.HashMap;
 
 public class FopTest {
 

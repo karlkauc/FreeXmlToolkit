@@ -1,7 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense;
 
+import java.util.List;
+
 import javafx.geometry.Bounds;
 import javafx.scene.input.KeyCode;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
@@ -16,8 +19,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XsdCompl
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.registry.ProviderRegistry;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.triggers.TriggerSystem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.ui.IntelliSensePopup;
-
-import java.util.List;
 
 /**
  * Main IntelliSense engine coordinating all IntelliSense functionality.

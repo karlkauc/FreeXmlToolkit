@@ -211,8 +211,12 @@ public class CompletionItem {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         CompletionItem that = (CompletionItem) o;
         return Objects.equals(label, that.label) && type == that.type;
     }

@@ -18,10 +18,10 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.w3c.dom.ls.LSInput;
-
 import java.io.InputStream;
 import java.io.Reader;
+
+import org.w3c.dom.ls.LSInput;
 
 /**
  * Simple implementation of {@link LSInput} for schema resolution.

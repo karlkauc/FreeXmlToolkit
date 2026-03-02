@@ -1,5 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import java.io.File;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -9,8 +14,8 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
@@ -18,11 +23,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Type Library View - Shows all types in the schema with their usage information.
@@ -1027,8 +1027,7 @@ public class TypeLibraryView extends BorderPane {
         /**
          * Creates a new TypeInfo instance.
          */
-        public TypeInfo() {
+        TypeInfo() {
         }
     }
 }
-

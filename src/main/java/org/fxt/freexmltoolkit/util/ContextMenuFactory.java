@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.util;
 
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
+
 import org.kordamp.ikonli.javafx.FontIcon;
 
 /**

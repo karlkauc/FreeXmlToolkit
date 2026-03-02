@@ -1,18 +1,18 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.panels;
 
+import java.beans.PropertyChangeEvent;
+import java.util.Map;
+
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.*;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.Map;
 
 /**
  * Property panel for editing XML node properties.

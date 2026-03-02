@@ -1,39 +1,29 @@
 package org.fxt.freexmltoolkit.controller;
 
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.SimpleFileServer;
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.util.Duration;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckComboBox;
-import org.fxt.freexmltoolkit.domain.DocumentationOutputFormat;
-import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
-import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.DocumentationOutputFormat;
 import org.fxt.freexmltoolkit.service.*;
-import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.file.Path;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import com.sun.net.httpserver.HttpServer;
 
 /**
  * Controller for the Documentation Tab.
@@ -167,9 +157,18 @@ public class DocumentationTabController {
     }
 
     private void showSettings(boolean html, boolean word, boolean pdf) {
-        if (htmlSettingsContainer != null) { htmlSettingsContainer.setVisible(html); htmlSettingsContainer.setManaged(html); }
-        if (wordSettingsContainer != null) { wordSettingsContainer.setVisible(word); wordSettingsContainer.setManaged(word); }
-        if (pdfSettingsContainer != null) { pdfSettingsContainer.setVisible(pdf); pdfSettingsContainer.setManaged(pdf); }
+        if (htmlSettingsContainer != null) {
+            htmlSettingsContainer.setVisible(html);
+            htmlSettingsContainer.setManaged(html);
+        }
+        if (wordSettingsContainer != null) {
+            wordSettingsContainer.setVisible(word);
+            wordSettingsContainer.setManaged(word);
+        }
+        if (pdfSettingsContainer != null) {
+            pdfSettingsContainer.setVisible(pdf);
+            pdfSettingsContainer.setManaged(pdf);
+        }
     }
 
     @FXML

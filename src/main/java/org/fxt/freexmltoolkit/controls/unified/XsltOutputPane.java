@@ -18,6 +18,9 @@
 
 package org.fxt.freexmltoolkit.controls.unified;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -30,13 +33,11 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Properties pane for XSLT editor in the MultiFunctionalSidePane.
@@ -510,7 +511,7 @@ public class XsltOutputPane extends VBox {
         private final T[] items;
 
         @SafeVarargs
-        public ComboBoxTableCell(T... items) {
+        ComboBoxTableCell(T... items) {
             this.items = items;
         }
 

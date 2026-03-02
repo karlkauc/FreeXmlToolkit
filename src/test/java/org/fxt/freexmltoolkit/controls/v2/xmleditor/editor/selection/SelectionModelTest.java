@@ -1,9 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.selection;
 
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -11,7 +8,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for SelectionModel class.

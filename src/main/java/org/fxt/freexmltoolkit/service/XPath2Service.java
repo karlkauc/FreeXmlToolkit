@@ -1,16 +1,18 @@
 package org.fxt.freexmltoolkit.service;
 
-import net.sf.saxon.s9api.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.transform.dom.DOMSource;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import javax.xml.transform.dom.DOMSource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import net.sf.saxon.s9api.*;
 
 /**
  * Service for evaluating XPath 2.0 expressions using Saxon HE.

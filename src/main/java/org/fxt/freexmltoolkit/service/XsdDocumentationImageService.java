@@ -18,6 +18,17 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
@@ -29,22 +40,12 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.w3c.dom.*;
 
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.awt.*;
-import java.awt.font.FontRenderContext;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Service for generating images and SVG diagrams from XSD documentation.
  */
 public class XsdDocumentationImageService {
 
-    private final static Logger logger = LogManager.getLogger(XsdDocumentationImageService.class);
+    private static final Logger logger = LogManager.getLogger(XsdDocumentationImageService.class);
 
     // A ThreadLocal that provides a reusable Transformer instance for each thread.
     // This avoids the high overhead of creating a new instance on every call to asString().
@@ -127,23 +128,23 @@ public class XsdDocumentationImageService {
     private static final String COLOR_BOX_FILL_STRUCTURAL = COLOR_BOX_FILL_SEQUENCE;
 
     // Style strings matching XsdDiagramView
-    final static String ELEMENT_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);";
-    final static String ELEMENT_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; stroke-dasharray: 5, 2; fill: url(#elementGradient); filter: url(#dropShadow);";
-    final static String ELEMENT_REPEATABLE_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);";
-    final static String ATTRIBUTE_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ATTRIBUTE + "; stroke-width: 1.5; fill: url(#attributeGradient); filter: url(#dropShadow);";
-    final static String ATTRIBUTE_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_ATTRIBUTE + "; stroke-width: 1; stroke-dasharray: 5, 2; fill: url(#attributeGradient); filter: url(#dropShadow);";
-    final static String SEQUENCE_FORMAT = "stroke: " + COLOR_STROKE_SEQUENCE + "; stroke-width: 2; fill: url(#sequenceGradient); filter: url(#dropShadow);";
-    final static String CHOICE_FORMAT = "stroke: " + COLOR_STROKE_CHOICE + "; stroke-width: 2; stroke-dasharray: 5, 5; fill: url(#choiceGradient); filter: url(#dropShadow);";
-    final static String ANY_FORMAT = "stroke: " + COLOR_STROKE_ANY + "; stroke-width: 1.5; stroke-dasharray: 3, 3; fill: url(#anyGradient); filter: url(#dropShadow);";
-    final static String CONNECTION_LINE = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: none;";
-    final static String CONNECTION_LINE_OPTIONAL = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 1; stroke-dasharray: 5, 5; fill: none;";
-    final static String CONNECTION_LINE_SEQUENCE = "stroke: " + COLOR_STROKE_SEQUENCE + "; stroke-width: 2; fill: none;";
-    final static String CONNECTION_LINE_CHOICE = "stroke: " + COLOR_STROKE_CHOICE + "; stroke-width: 2; stroke-dasharray: 5, 5; fill: none;";
+    static final String ELEMENT_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);";
+    static final String ELEMENT_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; stroke-dasharray: 5, 2; fill: url(#elementGradient); filter: url(#dropShadow);";
+    static final String ELEMENT_REPEATABLE_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);";
+    static final String ATTRIBUTE_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ATTRIBUTE + "; stroke-width: 1.5; fill: url(#attributeGradient); filter: url(#dropShadow);";
+    static final String ATTRIBUTE_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_ATTRIBUTE + "; stroke-width: 1; stroke-dasharray: 5, 2; fill: url(#attributeGradient); filter: url(#dropShadow);";
+    static final String SEQUENCE_FORMAT = "stroke: " + COLOR_STROKE_SEQUENCE + "; stroke-width: 2; fill: url(#sequenceGradient); filter: url(#dropShadow);";
+    static final String CHOICE_FORMAT = "stroke: " + COLOR_STROKE_CHOICE + "; stroke-width: 2; stroke-dasharray: 5, 5; fill: url(#choiceGradient); filter: url(#dropShadow);";
+    static final String ANY_FORMAT = "stroke: " + COLOR_STROKE_ANY + "; stroke-width: 1.5; stroke-dasharray: 3, 3; fill: url(#anyGradient); filter: url(#dropShadow);";
+    static final String CONNECTION_LINE = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: none;";
+    static final String CONNECTION_LINE_OPTIONAL = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 1; stroke-dasharray: 5, 5; fill: none;";
+    static final String CONNECTION_LINE_SEQUENCE = "stroke: " + COLOR_STROKE_SEQUENCE + "; stroke-width: 2; fill: none;";
+    static final String CONNECTION_LINE_CHOICE = "stroke: " + COLOR_STROKE_CHOICE + "; stroke-width: 2; stroke-dasharray: 5, 5; fill: none;";
 
     Font font;
     FontRenderContext frc;
     DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
-    final static String svgNS = "http://www.w3.org/2000/svg";
+    static final String svgNS = "http://www.w3.org/2000/svg";
 
     Map<String, XsdExtendedElement> extendedXsdElements;
 

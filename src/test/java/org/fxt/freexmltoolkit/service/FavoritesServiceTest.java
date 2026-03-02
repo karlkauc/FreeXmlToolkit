@@ -1,18 +1,17 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.FileFavorite;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.domain.FileFavorite;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 
 @DisplayName("FavoritesService Tests")
 public class FavoritesServiceTest {

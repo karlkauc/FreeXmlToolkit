@@ -18,10 +18,10 @@
 
 package org.fxt.freexmltoolkit;
 
+import java.io.File;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
 
 public class XmlEditorTest {
 

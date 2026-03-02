@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test sample XML generation for the fund_dividend_schema_v0_6.xsd

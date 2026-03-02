@@ -42,8 +42,12 @@ public record ConnectionResult(
      */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ConnectionResult other)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ConnectionResult other)) {
+            return false;
+        }
         return Objects.equals(url, other.url)
                 && Objects.equals(httpStatus, other.httpStatus)
                 && Objects.equals(duration, other.duration)

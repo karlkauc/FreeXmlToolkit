@@ -1,13 +1,15 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization;
 
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
-import org.fxt.freexmltoolkit.util.SecureXmlFactory;
+import java.io.*;
+import java.util.Stack;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.*;
-import java.util.Stack;
+
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 
 /**
  * High-performance streaming XML parser using StAX.

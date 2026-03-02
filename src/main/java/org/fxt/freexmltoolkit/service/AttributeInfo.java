@@ -234,29 +234,45 @@ public class AttributeInfo {
 
     private boolean allValuesMatch(String type) {
         for (String value : observedValues) {
-            if (value == null || value.isEmpty()) continue;
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
 
             switch (type) {
                 case "xs:boolean":
-                    if (!isBoolean(value)) return false;
+                    if (!isBoolean(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:integer":
-                    if (!isInteger(value)) return false;
+                    if (!isInteger(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:decimal":
-                    if (!isDecimal(value)) return false;
+                    if (!isDecimal(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:date":
-                    if (!isDate(value)) return false;
+                    if (!isDate(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:dateTime":
-                    if (!isDateTime(value)) return false;
+                    if (!isDateTime(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:time":
-                    if (!isTime(value)) return false;
+                    if (!isTime(value)) {
+                        return false;
+                    }
                     break;
                 case "xs:anyURI":
-                    if (!isUrl(value)) return false;
+                    if (!isUrl(value)) {
+                        return false;
+                    }
                     break;
             }
         }
@@ -269,12 +285,16 @@ public class AttributeInfo {
      * Analyze patterns in attribute values
      */
     public void analyzePatterns() {
-        if (observedValues.isEmpty()) return;
+        if (observedValues.isEmpty()) {
+            return;
+        }
 
         Map<String, Integer> patternFreq = new HashMap<>();
 
         for (String value : observedValues) {
-            if (value == null || value.isEmpty()) continue;
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
 
             // Detect various patterns
             String pattern = detectValuePattern(value);
@@ -305,24 +325,46 @@ public class AttributeInfo {
     }
 
     private String detectValuePattern(String value) {
-        if (isInteger(value)) return "integer";
-        if (isDecimal(value)) return "decimal";
-        if (isBoolean(value)) return "boolean";
-        if (isDate(value)) return "date";
-        if (isDateTime(value)) return "dateTime";
-        if (isTime(value)) return "time";
-        if (isEmail(value)) return "email";
-        if (isUrl(value)) return "url";
+        if (isInteger(value)) {
+            return "integer";
+        }
+        if (isDecimal(value)) {
+            return "decimal";
+        }
+        if (isBoolean(value)) {
+            return "boolean";
+        }
+        if (isDate(value)) {
+            return "date";
+        }
+        if (isDateTime(value)) {
+            return "dateTime";
+        }
+        if (isTime(value)) {
+            return "time";
+        }
+        if (isEmail(value)) {
+            return "email";
+        }
+        if (isUrl(value)) {
+            return "url";
+        }
 
         // Length-based patterns
         int length = value.length();
-        if (length <= 10) return "short_string";
-        if (length <= 50) return "medium_string";
+        if (length <= 10) {
+            return "short_string";
+        }
+        if (length <= 50) {
+            return "medium_string";
+        }
         return "long_string";
     }
 
     private void updateConstraintsFromValue(String value) {
-        if (value == null) return;
+        if (value == null) {
+            return;
+        }
 
         // Update length constraints
         int length = value.length();
@@ -356,13 +398,19 @@ public class AttributeInfo {
         // - Not obviously a free-form field
 
         int distinctValues = observedValues.size();
-        if (distinctValues > 20) return false;
-        if (distinctValues < 2) return false;
+        if (distinctValues > 20) {
+            return false;
+        }
+        if (distinctValues < 2) {
+            return false;
+        }
 
         // Check if values look like enumeration
         boolean looksLikeEnum = true;
         for (String value : observedValues) {
-            if (value == null) continue;
+            if (value == null) {
+                continue;
+            }
             // If any value is very long or looks like free text, probably not enum
             if (value.length() > 50 || value.contains(" ") && value.split(" ").length > 3) {
                 looksLikeEnum = false;
@@ -441,13 +489,17 @@ public class AttributeInfo {
     }
 
     private String getMostFrequentValue() {
-        if (valueFrequency.isEmpty()) return null;
+        if (valueFrequency.isEmpty()) {
+            return null;
+        }
         return Collections.max(valueFrequency.entrySet(),
                 Map.Entry.comparingByValue()).getKey();
     }
 
     private double getAverageLength() {
-        if (observedValues.isEmpty()) return 0.0;
+        if (observedValues.isEmpty()) {
+            return 0.0;
+        }
         return observedValues.stream()
                 .filter(Objects::nonNull)
                 .mapToInt(String::length)
@@ -462,7 +514,9 @@ public class AttributeInfo {
      * @return True if the attribute presence ratio meets or exceeds the threshold.
      */
     public boolean shouldBeRequired(double requiredThreshold) {
-        if (totalOccurrences == 0) return false;
+        if (totalOccurrences == 0) {
+            return false;
+        }
         double presenceRatio = (double) (totalOccurrences - nullOccurrences) / totalOccurrences;
         return presenceRatio >= requiredThreshold;
     }

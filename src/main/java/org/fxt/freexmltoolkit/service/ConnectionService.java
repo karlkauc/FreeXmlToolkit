@@ -18,10 +18,10 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.ConnectionResult;
-
 import java.net.Proxy;
 import java.net.URI;
+
+import org.fxt.freexmltoolkit.domain.ConnectionResult;
 
 /**
  * The ConnectionService interface provides methods for executing HTTP requests and retrieving text content from URLs.

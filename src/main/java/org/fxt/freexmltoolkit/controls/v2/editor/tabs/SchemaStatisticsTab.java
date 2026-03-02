@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.tabs;
 
 import javafx.scene.control.Tab;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.views.SchemaAnalysisTabPane;

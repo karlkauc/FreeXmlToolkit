@@ -1,5 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.dialogs;
 
+import java.util.List;
+import java.util.function.Consumer;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -10,15 +13,13 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Dialog displaying all locations where a type is used in the schema.

@@ -1,9 +1,11 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.io.File;
 import java.io.FileWriter;
-import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Test sample XML generation for FundsXML4.xsd with ALL nodes (not just mandatory)

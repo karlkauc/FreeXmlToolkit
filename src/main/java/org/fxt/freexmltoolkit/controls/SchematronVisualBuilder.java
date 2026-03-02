@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
+import java.util.Optional;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -14,10 +16,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.Optional;
 
 /**
  * Visual Rule Builder for creating Schematron rules through a graphical interface.
@@ -922,7 +923,7 @@ public class SchematronVisualBuilder extends VBox {
         /**
          * Creates a new assertion dialog with input fields for test, message, and flag.
          */
-        public AssertionDialog() {
+        AssertionDialog() {
             setTitle("Add Assertion");
             setHeaderText("Create a new assertion rule");
 
@@ -973,7 +974,7 @@ public class SchematronVisualBuilder extends VBox {
         /**
          * Creates a new report dialog with input fields for test, message, and flag.
          */
-        public ReportDialog() {
+        ReportDialog() {
             setTitle("Add Report");
             setHeaderText("Create a new report rule");
 

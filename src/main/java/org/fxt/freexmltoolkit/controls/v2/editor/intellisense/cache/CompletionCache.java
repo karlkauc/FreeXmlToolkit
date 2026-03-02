@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.cache;
 
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextType;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
-
-import java.util.*;
 
 /**
  * Cache for completion items to improve performance.
@@ -126,8 +126,12 @@ public class CompletionCache {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             CacheKey cacheKey = (CacheKey) o;
             return Objects.equals(xpath, cacheKey.xpath) &&
                    type == cacheKey.type &&

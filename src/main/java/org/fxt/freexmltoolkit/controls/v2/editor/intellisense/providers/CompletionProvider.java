@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers;
 
+import java.util.List;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
-
-import java.util.List;
 
 /**
  * Interface for completion providers.

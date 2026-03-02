@@ -18,10 +18,10 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import java.io.File;
+
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
-
-import java.io.File;
 
 /**
  * Model class representing an XML file entry for batch processing.
@@ -213,8 +213,12 @@ public class XmlFileEntry {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         XmlFileEntry that = (XmlFileEntry) o;
         return file.equals(that.file);
     }

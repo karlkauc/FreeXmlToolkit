@@ -18,16 +18,16 @@
 
 package org.fxt.freexmltoolkit.controls.shared;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Collection;
+
 import org.fxmisc.richtext.model.StyleSpans;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.Collection;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("JsonSyntaxHighlighter")
 class JsonSyntaxHighlighterTest {

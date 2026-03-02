@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+
 import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseException;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
@@ -7,10 +11,6 @@ import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
 import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
 import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for multi-language documentation parsing and serialization.

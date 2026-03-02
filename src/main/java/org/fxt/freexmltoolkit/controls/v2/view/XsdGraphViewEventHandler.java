@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.controls.v2.view;
 
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

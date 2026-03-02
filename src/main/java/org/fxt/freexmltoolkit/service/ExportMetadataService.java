@@ -18,19 +18,19 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.fop.apps.FOUserAgent;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.poi.ooxml.POIXMLProperties;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.fop.apps.FOUserAgent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.ooxml.POIXMLProperties;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 
 /**
  * Central service class for export metadata.
@@ -401,7 +401,9 @@ public class ExportMetadataService {
     // === Utility methods ===
 
     private String escapeHtml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
@@ -409,7 +411,9 @@ public class ExportMetadataService {
     }
 
     private String escapeXml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
@@ -418,7 +422,9 @@ public class ExportMetadataService {
     }
 
     private String escapeJson(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("\\", "\\\\")
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n")

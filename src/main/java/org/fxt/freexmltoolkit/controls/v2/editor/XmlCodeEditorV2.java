@@ -1,8 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.editor;
 
+import java.util.Objects;
+
 import javafx.application.Platform;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -14,8 +17,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.core.ModeDetector;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.IntelliSenseEngine;
 import org.fxt.freexmltoolkit.controls.v2.editor.managers.*;
 import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
-
-import java.util.Objects;
 
 /**
  * XML Code Editor V2 - Completely redesigned architecture.

@@ -1,5 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -9,6 +12,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdXPathValidator;
@@ -19,9 +23,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * View for XPath validation results.
@@ -317,7 +318,9 @@ public class XPathValidationView extends BorderPane {
      * Filters the table based on checkbox.
      */
     private void filterTable() {
-        if (currentResult == null) return;
+        if (currentResult == null) {
+            return;
+        }
 
         tableData.clear();
 

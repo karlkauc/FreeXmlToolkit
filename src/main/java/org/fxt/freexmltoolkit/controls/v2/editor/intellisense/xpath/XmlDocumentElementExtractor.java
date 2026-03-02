@@ -1,5 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath;
 
+import java.io.StringReader;
+import java.util.*;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
@@ -8,11 +14,6 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import java.io.StringReader;
-import java.util.*;
 
 /**
  * Extracts element and attribute names from XML documents.

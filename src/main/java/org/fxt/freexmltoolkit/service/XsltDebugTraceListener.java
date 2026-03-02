@@ -1,5 +1,11 @@
 package org.fxt.freexmltoolkit.service;
 
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.sf.saxon.Controller;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.expr.instruct.GlobalVariable;
@@ -8,11 +14,6 @@ import net.sf.saxon.lib.TraceListener;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.trace.Traceable;
 import net.sf.saxon.trans.Mode;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Custom TraceListener implementation for XSLT debugging.
@@ -299,8 +300,12 @@ public class XsltDebugTraceListener implements TraceListener {
     }
 
     private String truncate(String text, int maxLength) {
-        if (text == null) return "";
-        if (text.length() <= maxLength) return text;
+        if (text == null) {
+            return "";
+        }
+        if (text.length() <= maxLength) {
+            return text;
+        }
         return text.substring(0, maxLength - 3) + "...";
     }
 

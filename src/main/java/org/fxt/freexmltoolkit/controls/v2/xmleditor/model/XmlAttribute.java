@@ -136,7 +136,9 @@ public class XmlAttribute extends XmlNode {
      * @return the escaped text
      */
     private String escapeXml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")

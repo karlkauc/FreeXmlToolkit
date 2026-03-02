@@ -21,7 +21,6 @@ package org.fxt.freexmltoolkit.controls.v2.view;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
  * Helper class for node operations in XsdGraphView.

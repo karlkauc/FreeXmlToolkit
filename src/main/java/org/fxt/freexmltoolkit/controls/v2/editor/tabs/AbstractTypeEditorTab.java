@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.tabs;
 
 import javafx.scene.control.Tab;
+
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**

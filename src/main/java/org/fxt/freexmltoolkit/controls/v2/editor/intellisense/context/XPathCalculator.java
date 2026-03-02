@@ -1,9 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context;
 
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.*;
 
 /**
  * Calculates XPath contexts with caching for performance.
@@ -112,8 +112,12 @@ public class XPathCalculator {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             CacheKey cacheKey = (CacheKey) o;
             return textHash == cacheKey.textHash && position == cacheKey.position;
         }

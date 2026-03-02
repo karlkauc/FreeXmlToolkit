@@ -1,5 +1,8 @@
 package org.fxt.freexmltoolkit.controls;
 
+import java.util.Optional;
+import java.util.function.Consumer;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -13,11 +16,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * Template library for common Schematron patterns and rules.
@@ -713,7 +714,7 @@ public class SchematronTemplateLibrary extends VBox {
      * Dialog for customizing templates before insertion
      */
     private static class TemplateCustomizationDialog extends Dialog<String> {
-        public TemplateCustomizationDialog(TemplateItem template) {
+        TemplateCustomizationDialog(TemplateItem template) {
             setTitle("Customize Template");
             setHeaderText("Customize: " + template.getName());
 

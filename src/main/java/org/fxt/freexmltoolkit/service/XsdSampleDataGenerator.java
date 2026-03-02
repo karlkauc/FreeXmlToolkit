@@ -1,12 +1,5 @@
 package org.fxt.freexmltoolkit.service;
 
-import com.mifmif.common.regex.Generex;
-import jakarta.xml.bind.DatatypeConverter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -16,6 +9,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import jakarta.xml.bind.DatatypeConverter;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
+
+import com.mifmif.common.regex.Generex;
 
 /**
  * Generates sample data for XSD elements based on their type,
@@ -455,8 +457,12 @@ public class XsdSampleDataGenerator {
      * Validates if a generated result meets length and pattern requirements.
      */
     private boolean isValidResult(String result, int minLen, int maxLen, java.util.regex.Pattern regexPattern) {
-        if (result == null) return false;
-        if (result.length() < minLen || result.length() > maxLen) return false;
+        if (result == null) {
+            return false;
+        }
+        if (result.length() < minLen || result.length() > maxLen) {
+            return false;
+        }
         return regexPattern == null || regexPattern.matcher(result).matches();
     }
 
@@ -589,7 +595,9 @@ public class XsdSampleDataGenerator {
      */
     private int[] parseExplicitQuantifier(String pattern, int start) {
         int end = pattern.indexOf('}', start);
-        if (end < 0) return new int[]{1, 1, start};
+        if (end < 0) {
+            return new int[]{1, 1, start};
+        }
 
         String content = pattern.substring(start + 1, end);
         String[] parts = content.split(",");
@@ -656,7 +664,9 @@ public class XsdSampleDataGenerator {
      * Expands a character class string to all allowed characters.
      */
     private String expandCharacterClass(String charClass) {
-        if (charClass == null) return "";
+        if (charClass == null) {
+            return "";
+        }
 
         StringBuilder chars = new StringBuilder();
 
@@ -728,12 +738,24 @@ public class XsdSampleDataGenerator {
         for (int i = 0; i < targetLength; i++) {
             // Build a list of possible characters based on the pattern
             StringBuilder charOptions = new StringBuilder();
-            if (hasUppercase) charOptions.append("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-            if (hasLowercase) charOptions.append("abcdefghijklmnopqrstuvwxyz");
-            if (hasDigits) charOptions.append("0123456789");
-            if (hasHyphen) charOptions.append("-");
-            if (hasDot) charOptions.append(".");
-            if (hasComma) charOptions.append(",");
+            if (hasUppercase) {
+                charOptions.append("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+            }
+            if (hasLowercase) {
+                charOptions.append("abcdefghijklmnopqrstuvwxyz");
+            }
+            if (hasDigits) {
+                charOptions.append("0123456789");
+            }
+            if (hasHyphen) {
+                charOptions.append("-");
+            }
+            if (hasDot) {
+                charOptions.append(".");
+            }
+            if (hasComma) {
+                charOptions.append(",");
+            }
             // Note: we avoid whitespace in generated content as it can cause issues
 
             if (charOptions.isEmpty()) {
@@ -1015,7 +1037,9 @@ public class XsdSampleDataGenerator {
      * @return true if it's a base XML type, false otherwise
      */
     private boolean isBaseXmlType(String typeName) {
-        if (typeName == null) return false;
+        if (typeName == null) {
+            return false;
+        }
 
         // Remove namespace prefix for comparison
         String localName = typeName.contains(":")
@@ -1047,8 +1071,12 @@ public class XsdSampleDataGenerator {
      * @return Merged RestrictionInfo
      */
     private RestrictionInfo mergeRestrictions(RestrictionInfo primary, RestrictionInfo secondary) {
-        if (primary == null) return secondary;
-        if (secondary == null) return primary;
+        if (primary == null) {
+            return secondary;
+        }
+        if (secondary == null) {
+            return primary;
+        }
 
         // Start with primary base type (from resolved type hierarchy)
         String mergedBase = primary.base() != null ? primary.base() : secondary.base();

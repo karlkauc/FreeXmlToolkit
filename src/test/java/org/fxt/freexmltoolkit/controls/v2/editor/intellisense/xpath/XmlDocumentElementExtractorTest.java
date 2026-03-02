@@ -1,18 +1,18 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath;
 
-import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
-import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for XmlDocumentElementExtractor.

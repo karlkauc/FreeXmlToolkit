@@ -1,23 +1,22 @@
 package org.fxt.freexmltoolkit.controller;
 
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import org.fxmisc.richtext.CodeArea;
-import org.fxt.freexmltoolkit.controls.SchematronCodeEditor;
-import org.fxt.freexmltoolkit.service.FavoritesService;
-import org.fxt.freexmltoolkit.service.SchematronService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.lang.reflect.Field;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+
+import org.fxt.freexmltoolkit.controls.SchematronCodeEditor;
+import org.fxt.freexmltoolkit.service.SchematronService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit tests for SchematronController.

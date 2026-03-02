@@ -308,7 +308,9 @@ public class SchemaAnalysisResult {
      * @param element the element information to add; if null, no action is taken
      */
     public void addElement(ElementInfo element) {
-        if (element == null) return;
+        if (element == null) {
+            return;
+        }
 
         String qualifiedName = element.getQualifiedName();
         allElements.put(qualifiedName, element);
@@ -354,7 +356,9 @@ public class SchemaAnalysisResult {
      * @param attribute the attribute information to add; if null, no action is taken
      */
     public void addAttribute(AttributeInfo attribute) {
-        if (attribute == null) return;
+        if (attribute == null) {
+            return;
+        }
 
         String qualifiedName = attribute.getQualifiedName();
         allAttributes.put(qualifiedName, attribute);
@@ -672,13 +676,17 @@ public class SchemaAnalysisResult {
      * @return a score from 0.0 to 1.0 indicating namespace consistency
      */
     private double calculateNamespaceConsistency() {
-        if (discoveredNamespaces.size() <= 1) return 1.0;
+        if (discoveredNamespaces.size() <= 1) {
+            return 1.0;
+        }
 
         // Check if namespaces are used consistently
         int consistentUsage = 0;
         for (String namespace : discoveredNamespaces) {
             int usage = namespaceUsage.getOrDefault(namespace, 0);
-            if (usage > 1) consistentUsage++;
+            if (usage > 1) {
+                consistentUsage++;
+            }
         }
 
         return (double) consistentUsage / discoveredNamespaces.size();
@@ -690,11 +698,15 @@ public class SchemaAnalysisResult {
      * @return a score from 0.0 to 1.0 indicating type reusability potential
      */
     private double calculateTypeReusability() {
-        if (typeGroups.isEmpty()) return 0.0;
+        if (typeGroups.isEmpty()) {
+            return 0.0;
+        }
 
         int reusableTypes = 0;
         for (List<ElementInfo> group : typeGroups.values()) {
-            if (group.size() > 1) reusableTypes++;
+            if (group.size() > 1) {
+                reusableTypes++;
+            }
         }
 
         return (double) reusableTypes / Math.max(1, complexTypes.size());
@@ -717,7 +729,9 @@ public class SchemaAnalysisResult {
 
         int consistentElements = 0;
         for (Set<String> structures : elementStructures.values()) {
-            if (structures.size() == 1) consistentElements++;
+            if (structures.size() == 1) {
+                consistentElements++;
+            }
         }
 
         return totalElements > 0 ? (double) consistentElements / totalElements : 1.0;

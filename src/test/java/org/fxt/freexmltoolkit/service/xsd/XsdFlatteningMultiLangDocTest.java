@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
@@ -7,10 +11,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test to verify that multi-language documentations are preserved during XSD flattening.

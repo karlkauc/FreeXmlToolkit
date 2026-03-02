@@ -18,13 +18,11 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.w3c.dom.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.StringWriter;
+import java.util.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -33,11 +31,14 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.StringWriter;
-import java.util.*;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.w3c.dom.*;
 
 /**
  * Service for converting between XML and spreadsheet formats (Excel XLSX/XLS, CSV)
@@ -260,7 +261,9 @@ public class XmlSpreadsheetConverterService {
      */
     private void traverseNode(Node node, String parentXPath, List<RowData> rows, ConversionConfig config,
                               java.util.concurrent.atomic.AtomicInteger indexCounter) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String xpath = buildXPath(node, parentXPath);
 
@@ -551,7 +554,9 @@ public class XmlSpreadsheetConverterService {
 
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
-            if (row == null) continue;
+            if (row == null) {
+                continue;
+            }
 
             Cell xpathCell = row.getCell(0);
             Cell valueCell = row.getCell(1);
@@ -571,7 +576,9 @@ public class XmlSpreadsheetConverterService {
      * Gets cell value as string regardless of cell type
      */
     private String getCellValueAsString(Cell cell) {
-        if (cell == null) return "";
+        if (cell == null) {
+            return "";
+        }
 
         switch (cell.getCellType()) {
             case STRING:
@@ -591,10 +598,18 @@ public class XmlSpreadsheetConverterService {
      * Infers node type from XPath when type column is not available
      */
     private String inferTypeFromXPath(String xpath) {
-        if (xpath.contains("/@")) return "attribute";
-        if (xpath.endsWith("/text()")) return "text";
-        if (xpath.endsWith("/comment()")) return "comment";
-        if (xpath.endsWith("/cdata()")) return "cdata";
+        if (xpath.contains("/@")) {
+            return "attribute";
+        }
+        if (xpath.endsWith("/text()")) {
+            return "text";
+        }
+        if (xpath.endsWith("/comment()")) {
+            return "comment";
+        }
+        if (xpath.endsWith("/cdata()")) {
+            return "cdata";
+        }
         return "element";
     }
 

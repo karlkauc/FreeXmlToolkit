@@ -18,13 +18,14 @@
 
 package org.fxt.freexmltoolkit.domain;
 
-import javafx.beans.property.*;
-import org.xml.sax.SAXParseException;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import javafx.beans.property.*;
+
+import org.xml.sax.SAXParseException;
 
 /**
  * Represents a file to be validated during batch XSD validation.

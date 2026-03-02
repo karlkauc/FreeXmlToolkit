@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
+import java.nio.file.Path;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
-
-import java.nio.file.Path;
-import java.util.*;
 
 /**
  * Analyzes identity constraints (Key, KeyRef, Unique) and assertions in an XSD schema.
@@ -313,11 +313,17 @@ public class XsdIdentityConstraintAnalyzer {
      * Collects all key and unique constraint names for reference validation.
      */
     private void collectKeyAndUniqueNames(XsdNode node, Set<String> names, Set<String> visitedIds) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String nodeId = node.getId();
-        if (nodeId != null && visitedIds.contains(nodeId)) return;
-        if (nodeId != null) visitedIds.add(nodeId);
+        if (nodeId != null && visitedIds.contains(nodeId)) {
+            return;
+        }
+        if (nodeId != null) {
+            visitedIds.add(nodeId);
+        }
 
         if (node instanceof XsdKey key) {
             String name = key.getName();
@@ -348,11 +354,17 @@ public class XsdIdentityConstraintAnalyzer {
             Set<String> keyAndUniqueNames,
             Set<String> visitedIds) {
 
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String nodeId = node.getId();
-        if (nodeId != null && visitedIds.contains(nodeId)) return;
-        if (nodeId != null) visitedIds.add(nodeId);
+        if (nodeId != null && visitedIds.contains(nodeId)) {
+            return;
+        }
+        if (nodeId != null) {
+            visitedIds.add(nodeId);
+        }
 
         // Get parent element name for context
         String parentName = getParentElementName(node);

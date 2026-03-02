@@ -18,22 +18,15 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.*;
-import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
-import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
-import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
-import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
-import org.fxt.freexmltoolkit.util.PathValidator;
-import org.jspecify.annotations.NonNull;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.ls.LSInput;
-import org.xml.sax.InputSource;
+import java.io.*;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.CancellationException;
+import java.util.random.RandomGenerator;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -51,15 +44,23 @@ import javax.xml.validation.Validator;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.*;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.CancellationException;
-import java.util.random.RandomGenerator;
-import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.*;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
+import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
+import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
+import org.fxt.freexmltoolkit.util.PathValidator;
+import org.jspecify.annotations.NonNull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.ls.LSInput;
+import org.xml.sax.InputSource;
 
 public class XsdDocumentationService {
 
@@ -351,7 +352,9 @@ public class XsdDocumentationService {
                     .forEach(sortedLanguages::add);
 
             for (int i = 0; i < sortedLanguages.size(); i++) {
-                if (i > 0) json.append(", ");
+                if (i > 0) {
+                    json.append(", ");
+                }
                 json.append("\"").append(sortedLanguages.get(i)).append("\"");
             }
 
@@ -599,10 +602,14 @@ public class XsdDocumentationService {
         NodeList children = restriction.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
-            if (child.getNodeType() != Node.ELEMENT_NODE) continue;
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
 
             String localName = child.getLocalName();
-            if (localName == null) continue;
+            if (localName == null) {
+                continue;
+            }
 
             // These are facet elements
             switch (localName) {
@@ -630,7 +637,9 @@ public class XsdDocumentationService {
      * Checks if the given type name is a base XML Schema type.
      */
     private boolean isBaseXmlType(String typeName) {
-        if (typeName == null) return false;
+        if (typeName == null) {
+            return false;
+        }
 
         String localName = typeName.contains(":")
             ? typeName.substring(typeName.lastIndexOf(":") + 1)
@@ -839,7 +848,9 @@ public class XsdDocumentationService {
      * Higher scores indicate better matches based on context.
      */
     private int calculateContextScore(String xpath, String contextPath) {
-        if (xpath == null) return 0;
+        if (xpath == null) {
+            return 0;
+        }
 
         // Base score - prefer shorter, more specific paths
         int score = 100 - (xpath.split("/").length * 5);
@@ -925,7 +936,9 @@ public class XsdDocumentationService {
                         List<XsdExtendedElement> flattenedChildren = flattenContainerChildren(element);
 
                         for (XsdExtendedElement childElement : flattenedChildren) {
-                            if (childElement == null) continue;
+                            if (childElement == null) {
+                                continue;
+                            }
 
                             String childName = childElement.getElementName();
                             // Skip container elements - they are structural, not actual XML elements
@@ -1006,7 +1019,9 @@ public class XsdDocumentationService {
      * Recursively extracts mandatory child elements from XSD content model (sequence, choice, etc.).
      */
     private void extractMandatoryChildren(Node contentNode, List<MandatoryChildInfo> mandatoryChildren) {
-        if (contentNode == null) return;
+        if (contentNode == null) {
+            return;
+        }
 
         String localName = contentNode.getLocalName();
 
@@ -1058,7 +1073,9 @@ public class XsdDocumentationService {
      * This is similar to extractMandatoryChildren but includes all elements regardless of minOccurs.
      */
     private void extractAllChildren(Node contentNode, List<MandatoryChildInfo> allChildren) {
-        if (contentNode == null) return;
+        if (contentNode == null) {
+            return;
+        }
 
         String localName = contentNode.getLocalName();
 
@@ -1236,10 +1253,14 @@ public class XsdDocumentationService {
 
         while (!filesToProcess.isEmpty()) {
             Path currentFile = filesToProcess.poll();
-            if (!Files.exists(currentFile)) continue;
+            if (!Files.exists(currentFile)) {
+                continue;
+            }
 
             String currentFilePath = currentFile.toAbsolutePath().toString();
-            if (processedFiles.contains(currentFilePath)) continue;
+            if (processedFiles.contains(currentFilePath)) {
+                continue;
+            }
             processedFiles.add(currentFilePath);
 
             logger.debug("Processing schema file: {}", currentFile);
@@ -1285,7 +1306,7 @@ public class XsdDocumentationService {
                         modified = true;
                     }
 
-                    if (processedUrls.contains(location)) continue; // Already downloaded
+                    if (processedUrls.contains(location)) { continue; } // Already downloaded
 
                     try {
                         Path localPath = baseDirectory.resolve(fileName);
@@ -1348,10 +1369,14 @@ public class XsdDocumentationService {
 
         while (!filesToProcess.isEmpty()) {
             Path currentFile = filesToProcess.poll();
-            if (!Files.exists(currentFile)) continue;
+            if (!Files.exists(currentFile)) {
+                continue;
+            }
 
             String currentFilePath = currentFile.toAbsolutePath().toString();
-            if (processedFiles.contains(currentFilePath)) continue;
+            if (processedFiles.contains(currentFilePath)) {
+                continue;
+            }
             processedFiles.add(currentFilePath);
 
             logger.debug("Initializing caches from: {}", currentFile);
@@ -1755,14 +1780,20 @@ public class XsdDocumentationService {
      * Processes attributes that are declared directly under a complexType (outside of sequence/choice/all).
      */
     private void processAttributes(Node contextNode, String parentXPath, int level, Set<Node> visitedOnPath) {
-        if (contextNode == null) return;
+        if (contextNode == null) {
+            return;
+        }
 
         for (Node child : getDirectChildElements(contextNode)) {
             String localName = child.getLocalName();
-            if (!"attribute".equals(localName)) continue;
+            if (!"attribute".equals(localName)) {
+                continue;
+            }
 
             String childName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
-            if (childName == null || childName.isBlank()) continue;
+            if (childName == null || childName.isBlank()) {
+                continue;
+            }
 
             String childXPath = parentXPath + "/@" + childName;
 
@@ -1925,7 +1956,9 @@ public class XsdDocumentationService {
             // Include attribute if mandatory, or if it has a fixed/default value
             String fixedOrDefault = getAttributeValue(attr.getCurrentNode(), "fixed",
                     getAttributeValue(attr.getCurrentNode(), "default", null));
-            if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) continue;
+            if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) {
+                continue;
+            }
             String attrName = attr.getElementName().substring(1); // Remove @ prefix
             String attrValue = (fixedOrDefault != null)
                     ? fixedOrDefault
@@ -2308,7 +2341,9 @@ public class XsdDocumentationService {
             for (XsdExtendedElement attr : attributes) {
                 // Include attribute if mandatory, or if it has a fixed/default value even when mandatoryOnly is true
                 String fixedOrDefault = getAttributeValue(attr.getCurrentNode(), "fixed", getAttributeValue(attr.getCurrentNode(), "default", null));
-                if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) continue;
+                if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) {
+                    continue;
+                }
                 String attrName = attr.getElementName().substring(1);
                 String attrValue = (fixedOrDefault != null)
                         ? fixedOrDefault
@@ -2367,7 +2402,9 @@ public class XsdDocumentationService {
                                                    boolean mandatoryOnly, int maxOccurrences, int indentLevel, IdentityConstraintTracker constraintTracker) {
         for (XsdExtendedElement childElement : childElements) {
             String elementName = childElement.getElementName();
-            if (elementName == null) continue;
+            if (elementName == null) {
+                continue;
+            }
 
             // Check if this child is a SEQUENCE or ALL container (structural, not actual XML elements)
             if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
@@ -2506,7 +2543,9 @@ public class XsdDocumentationService {
         // Check if any child would actually be rendered
         for (XsdExtendedElement child : childElements) {
             String childName = child.getElementName();
-            if (childName == null) continue;
+            if (childName == null) {
+                continue;
+            }
 
             // Handle structural containers
             if (childName.startsWith("SEQUENCE") || childName.startsWith("ALL") || childName.startsWith("CHOICE")) {
@@ -2645,11 +2684,21 @@ public class XsdDocumentationService {
 
     private void initializeCaches(Document doc) throws Exception {
         // Initialize maps if they don't exist yet
-        if (elementMap == null) elementMap = new HashMap<>();
-        if (complexTypeMap == null) complexTypeMap = new HashMap<>();
-        if (simpleTypeMap == null) simpleTypeMap = new HashMap<>();
-        if (groupMap == null) groupMap = new HashMap<>();
-        if (attributeGroupMap == null) attributeGroupMap = new HashMap<>();
+        if (elementMap == null) {
+            elementMap = new HashMap<>();
+        }
+        if (complexTypeMap == null) {
+            complexTypeMap = new HashMap<>();
+        }
+        if (simpleTypeMap == null) {
+            simpleTypeMap = new HashMap<>();
+        }
+        if (groupMap == null) {
+            groupMap = new HashMap<>();
+        }
+        if (attributeGroupMap == null) {
+            attributeGroupMap = new HashMap<>();
+        }
 
         // Accumulate definitions from this document
         elementMap.putAll(findAndCacheGlobalDefs(doc, "element"));
@@ -2710,10 +2759,14 @@ public class XsdDocumentationService {
 
             while (!filesToProcess.isEmpty()) {
                 Path currentFile = filesToProcess.poll();
-                if (!Files.exists(currentFile)) continue;
+                if (!Files.exists(currentFile)) {
+                    continue;
+                }
 
                 String currentFilePath = currentFile.toAbsolutePath().toString();
-                if (processedFiles.contains(currentFilePath)) continue;
+                if (processedFiles.contains(currentFilePath)) {
+                    continue;
+                }
                 processedFiles.add(currentFilePath);
 
                 Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
@@ -2801,11 +2854,18 @@ public class XsdDocumentationService {
             // Process Javadoc-style tags
             String source = getAttributeValue(appInfoNode, "source");
             if (source != null && !source.isBlank()) {
-                if (source.startsWith("@since")) xsdDocInfo.setSince(source.substring("@since".length()).trim());
-                else if (source.startsWith("@see")) xsdDocInfo.addSee(source.substring("@see".length()).trim());
-                else if (source.startsWith("@deprecated"))
+                if (source.startsWith("@since")) {
+                    xsdDocInfo.setSince(source.substring("@since".length()).trim());
+                }
+                else if (source.startsWith("@see")) {
+                    xsdDocInfo.addSee(source.substring("@see".length()).trim());
+                }
+                else if (source.startsWith("@deprecated")) {
                     xsdDocInfo.setDeprecated(source.substring("@deprecated".length()).trim());
-                else genericAppInfos.add(source);
+                }
+                else {
+                    genericAppInfos.add(source);
+                }
             } else {
                 // Extract Altova example values
                 boolean isAltovaExample = false;
@@ -3280,15 +3340,21 @@ public class XsdDocumentationService {
         // Case 1: Inline definition
         if (elementNode != null) {
             Node inlineComplex = getDirectChildElement(elementNode, "complexType");
-            if (inlineComplex != null) return inlineComplex;
+            if (inlineComplex != null) {
+                return inlineComplex;
+            }
             Node inlineSimple = getDirectChildElement(elementNode, "simpleType");
-            if (inlineSimple != null) return inlineSimple;
+            if (inlineSimple != null) {
+                return inlineSimple;
+            }
         }
         // Case 2: Global reference
         if (typeName != null && !typeName.isEmpty()) {
             String cleanTypeName = stripNamespace(typeName);
             Node typeNode = complexTypeMap.get(cleanTypeName);
-            if (typeNode != null) return typeNode;
+            if (typeNode != null) {
+                return typeNode;
+            }
             return simpleTypeMap.get(cleanTypeName);
         }
         return null;
@@ -3320,44 +3386,64 @@ public class XsdDocumentationService {
 
     private Node findContentModel(Node elementNode, Node typeDefinitionNode) {
         Node contextNode = (typeDefinitionNode != null) ? typeDefinitionNode : elementNode;
-        if (contextNode == null) return null;
+        if (contextNode == null) {
+            return null;
+        }
 
         // Look inside <complexContent>
         Node complexContent = getDirectChildElement(contextNode, "complexContent");
         if (complexContent != null) {
             Node extension = getDirectChildElement(complexContent, "extension");
-            if (extension != null) return extension;
+            if (extension != null) {
+                return extension;
+            }
             Node restriction = getDirectChildElement(complexContent, "restriction");
-            if (restriction != null) return restriction;
+            if (restriction != null) {
+                return restriction;
+            }
         }
 
         // Look inside <simpleContent>
         Node simpleContent = getDirectChildElement(contextNode, "simpleContent");
         if (simpleContent != null) {
             Node extension = getDirectChildElement(simpleContent, "extension");
-            if (extension != null) return extension;
+            if (extension != null) {
+                return extension;
+            }
             Node restriction = getDirectChildElement(simpleContent, "restriction");
-            if (restriction != null) return restriction;
+            if (restriction != null) {
+                return restriction;
+            }
         }
 
         // Look for direct particles if no complex/simpleContent is present
         Node sequence = getDirectChildElement(contextNode, "sequence");
-        if (sequence != null) return sequence;
+        if (sequence != null) {
+            return sequence;
+        }
         Node choice = getDirectChildElement(contextNode, "choice");
-        if (choice != null) return choice;
+        if (choice != null) {
+            return choice;
+        }
         Node all = getDirectChildElement(contextNode, "all");
-        if (all != null) return all;
+        if (all != null) {
+            return all;
+        }
         Node group = getDirectChildElement(contextNode, "group");
         return group;
     }
 
     private Node findRestriction(Node elementNode, Node typeDefinitionNode) {
         Node contextNode = (typeDefinitionNode != null) ? typeDefinitionNode : elementNode;
-        if (contextNode == null) return null;
+        if (contextNode == null) {
+            return null;
+        }
 
         // Direct <restriction> inside a <simpleType>
         Node restriction = getDirectChildElement(contextNode, "restriction");
-        if (restriction != null) return restriction;
+        if (restriction != null) {
+            return restriction;
+        }
 
         // Restriction inside <simpleContent>
         Node simpleContent = getDirectChildElement(contextNode, "simpleContent");
@@ -3449,9 +3535,13 @@ public class XsdDocumentationService {
             }
         }
 
-        if (schemaDoc == null) return false;
+        if (schemaDoc == null) {
+            return false;
+        }
         Element root = schemaDoc.getDocumentElement();
-        if (root == null) return false;
+        if (root == null) {
+            return false;
+        }
 
         // Check for vc:minVersion attribute
         String minVersion = root.getAttributeNS("http://www.w3.org/2007/XMLSchema-versioning", "minVersion");
@@ -3557,7 +3647,9 @@ public class XsdDocumentationService {
     }
 
     private String getAttributeValue(Node node, String attrName, String defaultValue) {
-        if (node == null || node.getAttributes() == null) return defaultValue;
+        if (node == null || node.getAttributes() == null) {
+            return defaultValue;
+        }
 
         // Special handling for namespace-qualified attributes like xml:lang
         if ("xml:lang".equals(attrName) && node instanceof Element element) {
@@ -3570,7 +3662,9 @@ public class XsdDocumentationService {
     }
 
     private Node getDirectChildElement(Node parent, String childName) {
-        if (parent == null) return null;
+        if (parent == null) {
+            return null;
+        }
         for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child.getNodeType() == Node.ELEMENT_NODE && childName.equals(child.getLocalName())) {
                 return child;
@@ -3580,7 +3674,9 @@ public class XsdDocumentationService {
     }
 
     private List<Node> getDirectChildElements(Node parent) {
-        if (parent == null) return Collections.emptyList();
+        if (parent == null) {
+            return Collections.emptyList();
+        }
         List<Node> children = new ArrayList<>();
         for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child.getNodeType() == Node.ELEMENT_NODE) {
@@ -3591,7 +3687,9 @@ public class XsdDocumentationService {
     }
 
     private List<Node> getDirectChildElements(Node parent, String childName) {
-        if (parent == null) return Collections.emptyList();
+        if (parent == null) {
+            return Collections.emptyList();
+        }
         List<Node> children = new ArrayList<>();
         for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child.getNodeType() == Node.ELEMENT_NODE && childName.equals(child.getLocalName())) {
@@ -3623,13 +3721,17 @@ public class XsdDocumentationService {
     }
 
     public String stripNamespace(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         int colonIndex = value.indexOf(':');
         return (colonIndex != -1) ? value.substring(colonIndex + 1) : value;
     }
 
     private String escapeXml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
@@ -3649,7 +3751,9 @@ public class XsdDocumentationService {
         try {
             URI uri = new URI(urlString);
             String path = uri.getPath();
-            if (path == null || path.isEmpty() || path.equals("/")) return "";
+            if (path == null || path.isEmpty() || path.equals("/")) {
+                return "";
+            }
             return new File(path).getName();
         } catch (Exception e) {
             logger.warn("Could not parse URL to get filename: {}", urlString, e);

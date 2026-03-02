@@ -18,6 +18,19 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -42,8 +55,10 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
@@ -54,22 +69,6 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.awt.*;
-import java.awt.datatransfer.StringSelection;
-import javafx.stage.DirectoryChooser;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * Controller for the Advanced XSLT Developer - Revolutionary Feature #2
@@ -579,9 +578,15 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     private String getCategoryForFile(String filePath) {
-        if (filePath.endsWith(".xml")) return "XML Documents";
-        if (filePath.endsWith(".xsd")) return "XSD Schemas";
-        if (filePath.endsWith(".xsl") || filePath.endsWith(".xslt")) return "XSLT Stylesheets";
+        if (filePath.endsWith(".xml")) {
+            return "XML Documents";
+        }
+        if (filePath.endsWith(".xsd")) {
+            return "XSD Schemas";
+        }
+        if (filePath.endsWith(".xsl") || filePath.endsWith(".xslt")) {
+            return "XSLT Stylesheets";
+        }
         return "Other";
     }
 
@@ -802,7 +807,9 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     private void setDefaultValues() {
-        if (indentOutputCheckbox != null) indentOutputCheckbox.setSelected(true);
+        if (indentOutputCheckbox != null) {
+            indentOutputCheckbox.setSelected(true);
+        }
 
         // Default content is now set in initializeEditors() method
 
@@ -943,13 +950,17 @@ public class XsltDeveloperController implements FavoritesParentController {
 
     private void setupLiveTransform() {
         logger.debug("Live transform enabled");
-        if (transformBtn != null) transformBtn.setDisable(true);
+        if (transformBtn != null) {
+            transformBtn.setDisable(true);
+        }
         performTransformation();
     }
 
     private void disableLiveTransform() {
         logger.debug("Live transform disabled");
-        if (transformBtn != null) transformBtn.setDisable(false);
+        if (transformBtn != null) {
+            transformBtn.setDisable(false);
+        }
     }
 
     @FXML
@@ -1208,14 +1219,18 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     private void updatePerformanceMetrics(XsltTransformationResult result, String transformationType) {
-        if (executionTimeLabel != null)
+        if (executionTimeLabel != null) {
             executionTimeLabel.setText(result.getTransformationTime() + "ms");
-        if (compilationTimeLabel != null)
+        }
+        if (compilationTimeLabel != null) {
             compilationTimeLabel.setText("N/A"); // Saxon doesn't expose this separately
-        if (memoryUsageLabel != null)
+        }
+        if (memoryUsageLabel != null) {
             memoryUsageLabel.setText("N/A"); // Would need JVM memory monitoring
-        if (outputSizeLabel != null)
+        }
+        if (outputSizeLabel != null) {
             outputSizeLabel.setText(formatBytes(result.getOutputSize()));
+        }
 
         // Performance report
         if (performanceReportArea != null) {
@@ -2184,7 +2199,9 @@ public class XsltDeveloperController implements FavoritesParentController {
      */
     @FXML
     public void switchResultViewMode() {
-        if (lastBatchResult == null) return;
+        if (lastBatchResult == null) {
+            return;
+        }
 
         boolean perFileMode = perFileResultMode != null && perFileResultMode.isSelected();
 
@@ -2208,7 +2225,9 @@ public class XsltDeveloperController implements FavoritesParentController {
      */
     @FXML
     public void onFileResultSelected() {
-        if (lastBatchResult == null || fileResultSelector == null) return;
+        if (lastBatchResult == null || fileResultSelector == null) {
+            return;
+        }
 
         String selectedFileName = fileResultSelector.getValue();
         if (selectedFileName != null) {
@@ -2343,8 +2362,12 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     private String formatBytes(long bytes) {
-        if (bytes < 1024) return bytes + "B";
-        if (bytes < 1024 * 1024) return String.format("%.1fKB", bytes / 1024.0);
+        if (bytes < 1024) {
+            return bytes + "B";
+        }
+        if (bytes < 1024 * 1024) {
+            return String.format("%.1fKB", bytes / 1024.0);
+        }
         return String.format("%.1fMB", bytes / (1024.0 * 1024.0));
     }
 
@@ -2545,7 +2568,9 @@ public class XsltDeveloperController implements FavoritesParentController {
                                      javafx.scene.control.ContentDisplay displayMode,
                                      int iconSize,
                                      String style) {
-        if (button == null) return;
+        if (button == null) {
+            return;
+        }
 
         // Set content display mode
         button.setContentDisplay(displayMode);

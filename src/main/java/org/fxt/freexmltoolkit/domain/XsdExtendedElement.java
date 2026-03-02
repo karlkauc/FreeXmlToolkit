@@ -17,19 +17,20 @@
  */
 package org.fxt.freexmltoolkit.domain;
 
-import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
-import com.vladsch.flexmark.ext.tables.TablesExtension;
-import com.vladsch.flexmark.html.HtmlRenderer;
-import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.util.data.MutableDataSet;
-import org.w3c.dom.Node;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import org.w3c.dom.Node;
+
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.data.MutableDataSet;
 
 /**
  * Represents an extended XSD element with additional properties and methods,

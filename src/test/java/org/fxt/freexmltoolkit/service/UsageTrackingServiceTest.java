@@ -1,17 +1,17 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.fxt.freexmltoolkit.domain.statistics.DailyStatistics;
-import org.fxt.freexmltoolkit.domain.statistics.FeatureUsage;
-import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.domain.statistics.DailyStatistics;
+import org.fxt.freexmltoolkit.domain.statistics.FeatureUsage;
+import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 
 @DisplayName("UsageTrackingService Tests")
 public class UsageTrackingServiceTest {

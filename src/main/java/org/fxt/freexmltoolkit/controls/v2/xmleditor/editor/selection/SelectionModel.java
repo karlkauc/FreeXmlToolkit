@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.selection;
 
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
+
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 
 /**
  * Manages selection state in the XML editor.

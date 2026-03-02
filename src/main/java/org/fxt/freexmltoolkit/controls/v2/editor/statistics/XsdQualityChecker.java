@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
-
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.model.*;
 
 /**
  * Checks XSD schema quality including naming conventions, best practices,
@@ -231,10 +231,18 @@ public class XsdQualityChecker {
          * Gets the score description.
          */
         public String getScoreDescription() {
-            if (score >= 90) return "Excellent";
-            if (score >= 75) return "Good";
-            if (score >= 60) return "Fair";
-            if (score >= 40) return "Needs Improvement";
+            if (score >= 90) {
+                return "Excellent";
+            }
+            if (score >= 75) {
+                return "Good";
+            }
+            if (score >= 60) {
+                return "Fair";
+            }
+            if (score >= 40) {
+                return "Needs Improvement";
+            }
             return "Poor";
         }
     }
@@ -330,11 +338,17 @@ public class XsdQualityChecker {
     private void traverseAndCheck(XsdNode node, Map<NamingConvention, List<String>> namingByConvention,
                                   List<QualityIssue> issues, List<QualityIssue> deprecatedIssues,
                                   Set<String> visitedIds, int depth) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String nodeId = node.getId();
-        if (nodeId != null && visitedIds.contains(nodeId)) return;
-        if (nodeId != null) visitedIds.add(nodeId);
+        if (nodeId != null && visitedIds.contains(nodeId)) {
+            return;
+        }
+        if (nodeId != null) {
+            visitedIds.add(nodeId);
+        }
 
         String name = node.getName();
 
@@ -460,7 +474,9 @@ public class XsdQualityChecker {
      * Extracts alternative suggestion from deprecation message.
      */
     private String extractAlternative(String message) {
-        if (message == null) return null;
+        if (message == null) {
+            return null;
+        }
 
         // Look for patterns like "use X instead" or "replaced by X"
         String lower = message.toLowerCase();
@@ -562,7 +578,9 @@ public class XsdQualityChecker {
         List<String> enumerations = new ArrayList<>();
 
         for (XsdFacet facet : facets) {
-            if (facet.getFacetType() == null) continue;
+            if (facet.getFacetType() == null) {
+                continue;
+            }
             switch (facet.getFacetType()) {
                 case MIN_LENGTH -> minLength = parseIntSafe(facet.getValue());
                 case MAX_LENGTH -> maxLength = parseIntSafe(facet.getValue());
@@ -577,8 +595,12 @@ public class XsdQualityChecker {
         }
 
         // Only check if both length constraints and enumerations exist
-        if (enumerations.isEmpty()) return;
-        if (minLength == null && maxLength == null && exactLength == null) return;
+        if (enumerations.isEmpty()) {
+            return;
+        }
+        if (minLength == null && maxLength == null && exactLength == null) {
+            return;
+        }
 
         // Find violations
         List<String> tooShort = new ArrayList<>();
@@ -638,7 +660,9 @@ public class XsdQualityChecker {
      * Safely parses an integer value, returning null on failure.
      */
     private Integer parseIntSafe(String value) {
-        if (value == null || value.isBlank()) return null;
+        if (value == null || value.isBlank()) {
+            return null;
+        }
         try {
             return Integer.parseInt(value.trim());
         } catch (NumberFormatException e) {
@@ -697,7 +721,9 @@ public class XsdQualityChecker {
         // Check for same name but different content
         for (Map.Entry<String, List<XsdNode>> entry : nodesByNameAndType.entrySet()) {
             List<XsdNode> nodes = entry.getValue();
-            if (nodes.size() < 2) continue;
+            if (nodes.size() < 2) {
+                continue;
+            }
 
             // Compare content signatures of nodes with same name
             Map<String, List<XsdNode>> bySignature = new HashMap<>();
@@ -718,7 +744,9 @@ public class XsdQualityChecker {
                     List<XsdNode> variantNodes = variantEntry.getValue();
                     if (!variantNodes.isEmpty()) {
                         XsdNode representativeNode = variantNodes.get(0);
-                        if (firstNode == null) firstNode = representativeNode;
+                        if (firstNode == null) {
+                            firstNode = representativeNode;
+                        }
 
                         // Add variant header with structure description
                         affected.add("=== Variant " + variantNum + " (" + variantNodes.size() + " occurrence" + (variantNodes.size() > 1 ? "s" : "") + ") ===");
@@ -760,11 +788,17 @@ public class XsdQualityChecker {
      * Key format: "nodeType:name" (e.g., "ELEMENT:PersonName" or "COMPLEX_TYPE:AddressType")
      */
     private void collectNamedNodes(XsdNode node, Map<String, List<XsdNode>> nodesByNameAndType, Set<String> visitedIds) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String nodeId = node.getId();
-        if (nodeId != null && visitedIds.contains(nodeId)) return;
-        if (nodeId != null) visitedIds.add(nodeId);
+        if (nodeId != null && visitedIds.contains(nodeId)) {
+            return;
+        }
+        if (nodeId != null) {
+            visitedIds.add(nodeId);
+        }
 
         // Only collect named nodes that are relevant for comparison
         if (isComparableNamedNode(node)) {
@@ -805,14 +839,16 @@ public class XsdQualityChecker {
      * Recursively builds a content signature for structural comparison.
      */
     private void computeSignatureRecursive(XsdNode node, StringBuilder sig, Set<String> visited, int depth) {
-        if (node == null || depth > 20) return; // Prevent infinite recursion
+        if (node == null || depth > 20) { return; } // Prevent infinite recursion
 
         String nodeId = node.getId();
         if (nodeId != null && visited.contains(nodeId)) {
             sig.append("[REF]");
             return;
         }
-        if (nodeId != null) visited.add(nodeId);
+        if (nodeId != null) {
+            visited.add(nodeId);
+        }
 
         // Build signature from node type and essential properties
         sig.append(node.getNodeType().name());
@@ -902,7 +938,9 @@ public class XsdQualityChecker {
         Map<String, List<XsdNode>> bySignature = new HashMap<>();
         for (XsdNode node : comparableNodes) {
             String name = node.getName();
-            if (name == null || name.isBlank()) continue;
+            if (name == null || name.isBlank()) {
+                continue;
+            }
 
             String signature = computeContentSignature(node);
             // Only consider non-trivial signatures (exclude simple/empty definitions)
@@ -915,7 +953,9 @@ public class XsdQualityChecker {
         Set<String> reportedGroups = new HashSet<>();
         for (Map.Entry<String, List<XsdNode>> entry : bySignature.entrySet()) {
             List<XsdNode> nodes = entry.getValue();
-            if (nodes.size() < 2) continue;
+            if (nodes.size() < 2) {
+                continue;
+            }
 
             // Check if they have different names
             Set<String> names = new HashSet<>();
@@ -926,7 +966,9 @@ public class XsdQualityChecker {
             if (names.size() > 1) {
                 // Multiple different names with same content - potential duplicates
                 String groupKey = String.join(",", names.stream().sorted().toList());
-                if (reportedGroups.contains(groupKey)) continue;
+                if (reportedGroups.contains(groupKey)) {
+                    continue;
+                }
                 reportedGroups.add(groupKey);
 
                 List<String> affected = new ArrayList<>();
@@ -937,7 +979,9 @@ public class XsdQualityChecker {
                     uniqueNames.add(node.getName());
                     String xpath = node.getXPath();
                     affected.add(xpath != null ? xpath : node.getName());
-                    if (firstNode == null) firstNode = node;
+                    if (firstNode == null) {
+                        firstNode = node;
+                    }
                 }
 
                 // Generate human-readable structure description
@@ -964,11 +1008,17 @@ public class XsdQualityChecker {
      * Collects all nodes that should be compared for duplication.
      */
     private void collectAllComparableNodes(XsdNode node, List<XsdNode> result, Set<String> visitedIds) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String nodeId = node.getId();
-        if (nodeId != null && visitedIds.contains(nodeId)) return;
-        if (nodeId != null) visitedIds.add(nodeId);
+        if (nodeId != null && visitedIds.contains(nodeId)) {
+            return;
+        }
+        if (nodeId != null) {
+            visitedIds.add(nodeId);
+        }
 
         if (isComparableNamedNode(node) && node.getName() != null && !node.getName().isBlank()) {
             result.add(node);
@@ -1001,11 +1051,17 @@ public class XsdQualityChecker {
      */
     private void checkDuplicateElementsInContainersRecursive(XsdNode node, List<QualityIssue> issues,
                                                               Set<String> visitedIds) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String nodeId = node.getId();
-        if (nodeId != null && visitedIds.contains(nodeId)) return;
-        if (nodeId != null) visitedIds.add(nodeId);
+        if (nodeId != null && visitedIds.contains(nodeId)) {
+            return;
+        }
+        if (nodeId != null) {
+            visitedIds.add(nodeId);
+        }
 
         // Check if this node is a container (sequence, choice, all)
         if (node instanceof XsdSequence || node instanceof XsdChoice || node instanceof XsdAll) {
@@ -1071,7 +1127,9 @@ public class XsdQualityChecker {
      */
     private String getContainerParentContext(XsdNode container) {
         XsdNode parent = container.getParent();
-        if (parent == null) return "";
+        if (parent == null) {
+            return "";
+        }
 
         StringBuilder context = new StringBuilder();
         context.append(" within ");
@@ -1120,14 +1178,18 @@ public class XsdQualityChecker {
      */
     private void generateReadableStructureRecursive(XsdNode node, StringBuilder sb, String indent,
                                                      Set<String> visited, int depth) {
-        if (node == null || depth > 10) return;
+        if (node == null || depth > 10) {
+            return;
+        }
 
         String nodeId = node.getId();
         if (nodeId != null && visited.contains(nodeId)) {
             sb.append(indent).append("(circular reference)\n");
             return;
         }
-        if (nodeId != null) visited.add(nodeId);
+        if (nodeId != null) {
+            visited.add(nodeId);
+        }
 
         // Format based on node type
         switch (node.getNodeType()) {
@@ -1243,7 +1305,9 @@ public class XsdQualityChecker {
      * Compares structural characteristics to highlight what makes each variant unique.
      */
     private String generateVariantDifferenceSummary(Map<String, List<XsdNode>> bySignature) {
-        if (bySignature.size() < 2) return "";
+        if (bySignature.size() < 2) {
+            return "";
+        }
 
         StringBuilder sb = new StringBuilder();
         List<VariantInfo> variants = new ArrayList<>();
@@ -1371,9 +1435,13 @@ public class XsdQualityChecker {
      */
     private boolean hasChildOfType(XsdNode node, XsdNodeType type) {
         for (XsdNode child : node.getChildren()) {
-            if (child.getNodeType() == type) return true;
+            if (child.getNodeType() == type) {
+                return true;
+            }
             // Check nested children (e.g., complexType inside element)
-            if (hasChildOfType(child, type)) return true;
+            if (hasChildOfType(child, type)) {
+                return true;
+            }
         }
         return false;
     }
@@ -1383,9 +1451,13 @@ public class XsdQualityChecker {
      */
     private XsdComplexType findComplexTypeChild(XsdNode node) {
         for (XsdNode child : node.getChildren()) {
-            if (child instanceof XsdComplexType ct) return ct;
+            if (child instanceof XsdComplexType ct) {
+                return ct;
+            }
             XsdComplexType nested = findComplexTypeChild(child);
-            if (nested != null) return nested;
+            if (nested != null) {
+                return nested;
+            }
         }
         return null;
     }
@@ -1396,7 +1468,9 @@ public class XsdQualityChecker {
     private int countChildElements(XsdNode node) {
         int count = 0;
         for (XsdNode child : node.getChildren()) {
-            if (child.getNodeType() == XsdNodeType.ELEMENT) count++;
+            if (child.getNodeType() == XsdNodeType.ELEMENT) {
+                count++;
+            }
             count += countChildElements(child);
         }
         return count;
@@ -1408,7 +1482,9 @@ public class XsdQualityChecker {
     private int countAttributes(XsdNode node) {
         int count = 0;
         for (XsdNode child : node.getChildren()) {
-            if (child.getNodeType() == XsdNodeType.ATTRIBUTE) count++;
+            if (child.getNodeType() == XsdNodeType.ATTRIBUTE) {
+                count++;
+            }
             count += countAttributes(child);
         }
         return count;

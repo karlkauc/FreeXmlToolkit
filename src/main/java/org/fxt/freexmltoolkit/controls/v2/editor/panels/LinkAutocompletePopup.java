@@ -1,22 +1,22 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import java.util.List;
+import java.util.function.Consumer;
+
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.Window;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Popup for autocomplete suggestions when typing link references.
@@ -238,7 +238,9 @@ public class LinkAutocompletePopup extends Popup {
      * @return the position, or -1 if not found
      */
     public static int findLinkTriggerPosition(String text) {
-        if (text == null) return -1;
+        if (text == null) {
+            return -1;
+        }
         return text.lastIndexOf(LINK_TRIGGER);
     }
 
@@ -251,7 +253,7 @@ public class LinkAutocompletePopup extends Popup {
         private final Label textLabel;
         private final Label typeLabel;
 
-        public SuggestionCell() {
+        SuggestionCell() {
             content = new HBox(8);
             content.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 

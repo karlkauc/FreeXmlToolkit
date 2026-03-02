@@ -1,12 +1,13 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
-import net.sf.saxon.s9api.*;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.w3c.dom.Document;
 
-import java.util.*;
+import net.sf.saxon.s9api.*;
 
 /**
  * Validates XPath expressions in XSD schemas.
@@ -236,11 +237,17 @@ public class XsdXPathValidator {
     }
 
     private void collectElementNamesRecursive(XsdNode node, Set<String> names, Set<String> visitedIds) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String nodeId = node.getId();
-        if (nodeId != null && visitedIds.contains(nodeId)) return;
-        if (nodeId != null) visitedIds.add(nodeId);
+        if (nodeId != null && visitedIds.contains(nodeId)) {
+            return;
+        }
+        if (nodeId != null) {
+            visitedIds.add(nodeId);
+        }
 
         if (node instanceof XsdElement element) {
             String name = element.getName();
@@ -259,11 +266,17 @@ public class XsdXPathValidator {
      */
     private void traverseAndValidate(XsdNode node, List<XPathValidationIssue> issues,
                                      Set<String> elementNames, Set<String> visitedIds) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         String nodeId = node.getId();
-        if (nodeId != null && visitedIds.contains(nodeId)) return;
-        if (nodeId != null) visitedIds.add(nodeId);
+        if (nodeId != null && visitedIds.contains(nodeId)) {
+            return;
+        }
+        if (nodeId != null) {
+            visitedIds.add(nodeId);
+        }
 
         // Validate Key
         if (node instanceof XsdKey key) {

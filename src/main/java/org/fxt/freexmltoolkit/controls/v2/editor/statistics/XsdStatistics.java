@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
-import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
-
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
+
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 
 /**
  * Immutable data model containing comprehensive statistics about an XSD schema.

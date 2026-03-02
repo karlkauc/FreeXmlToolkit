@@ -1,15 +1,15 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.TemplateParameter;
-import org.fxt.freexmltoolkit.domain.XmlTemplate;
-
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.TemplateParameter;
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
 
 /**
  * Advanced template processing engine with parameter substitution,

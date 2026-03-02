@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.fxt.freexmltoolkit.service.TaskProgressListener;
-
 import java.io.File;
 import java.util.Set;
+
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.service.TaskProgressListener;
 
 /**
  * Interface for XSD documentation exporters.

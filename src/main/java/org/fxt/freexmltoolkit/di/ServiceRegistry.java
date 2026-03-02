@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.di;
 
-import org.fxt.freexmltoolkit.service.*;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+
+import org.fxt.freexmltoolkit.service.*;
 
 /**
  * Central registry for service instances with support for dependency injection.

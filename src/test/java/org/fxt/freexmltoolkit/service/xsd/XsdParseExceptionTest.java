@@ -1,10 +1,10 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link XsdParseException}.

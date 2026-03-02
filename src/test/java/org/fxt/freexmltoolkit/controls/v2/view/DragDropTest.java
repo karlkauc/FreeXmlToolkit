@@ -1,12 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.MoveNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for drag & drop functionality in the XSD Editor.

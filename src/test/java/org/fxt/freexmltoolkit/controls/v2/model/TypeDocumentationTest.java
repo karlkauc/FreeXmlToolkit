@@ -1,13 +1,13 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
-import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test to verify that type-level documentation is correctly parsed, accessible, and preserved during round-trip.

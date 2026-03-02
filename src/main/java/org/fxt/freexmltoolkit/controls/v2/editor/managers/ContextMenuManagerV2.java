@@ -7,6 +7,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
@@ -86,7 +87,9 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
      */
     private void addUndoRedoItems() {
         ContextMenu menu = contextMenuManager.getContextMenu();
-        if (menu == null) return;
+        if (menu == null) {
+            return;
+        }
 
         // Create Undo item
         undoMenuItem = new MenuItem("Undo (Ctrl+Z)");
@@ -182,12 +185,16 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
                                            boolean isXmlContent, boolean hasSchema,
                                            boolean clipboardHasText, boolean foldingEnabled) {
         ContextMenu menu = contextMenuManager.getContextMenu();
-        if (menu == null) return;
+        if (menu == null) {
+            return;
+        }
 
         for (var item : menu.getItems()) {
             if (item instanceof MenuItem menuItem && !(item instanceof SeparatorMenuItem)) {
                 String text = menuItem.getText();
-                if (text == null) continue;
+                if (text == null) {
+                    continue;
+                }
 
                 // Cut/Copy require selection
                 if (text.startsWith("Cut") || (text.startsWith("Copy") && !text.contains("XPath"))) {
@@ -227,7 +234,9 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
      */
     private boolean isContentXml() {
         String text = codeArea.getText();
-        if (text == null || text.isEmpty()) return false;
+        if (text == null || text.isEmpty()) {
+            return false;
+        }
 
         String trimmed = text.trim();
         return trimmed.startsWith("<?xml") ||
@@ -345,7 +354,9 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
         int caretPos = codeArea.getCaretPosition();
         String text = codeArea.getText();
 
-        if (text == null || text.isEmpty()) return;
+        if (text == null || text.isEmpty()) {
+            return;
+        }
 
         XmlContext context = ContextAnalyzer.analyze(text, caretPos);
 
@@ -414,7 +425,9 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
     @Override
     public void formatXmlContent() {
         String currentText = codeArea.getText();
-        if (currentText == null || currentText.isEmpty()) return;
+        if (currentText == null || currentText.isEmpty()) {
+            return;
+        }
 
         try {
             String formattedXml = XmlService.prettyFormat(currentText, 4);

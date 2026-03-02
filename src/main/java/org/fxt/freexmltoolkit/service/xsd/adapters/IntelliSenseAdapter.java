@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.service.xsd.adapters;
 
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
@@ -7,8 +9,6 @@ import org.fxt.freexmltoolkit.service.xsd.XsdParseException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import java.util.*;
 
 /**
  * Adapter for converting ParsedSchema to IntelliSense data structures.
@@ -270,8 +270,12 @@ public class IntelliSenseAdapter {
             Element extension = findChildElement(complexContent, "extension");
             if (extension != null) {
                 Element extCompositor = findChildElement(extension, "sequence");
-                if (extCompositor == null) extCompositor = findChildElement(extension, "choice");
-                if (extCompositor == null) extCompositor = findChildElement(extension, "all");
+                if (extCompositor == null) {
+                    extCompositor = findChildElement(extension, "choice");
+                }
+                if (extCompositor == null) {
+                    extCompositor = findChildElement(extension, "all");
+                }
                 if (extCompositor != null) {
                     compositor = extCompositor;
                 }

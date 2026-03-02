@@ -1,20 +1,21 @@
 package org.fxt.freexmltoolkit.controls.unified;
 
-import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.control.TabPane;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.testfx.framework.junit5.ApplicationExtension;
-import org.testfx.framework.junit5.Start;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.jupiter.api.Assertions.*;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.TabPane;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
 
 /**
  * Tests for XsdUnifiedTab validation functionality.

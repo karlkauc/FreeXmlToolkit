@@ -7,6 +7,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+
 import org.kordamp.ikonli.javafx.FontIcon;
 
 /**

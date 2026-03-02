@@ -21,6 +21,10 @@ plugins {
     application
     idea
     jacoco
+    pmd
+    checkstyle
+    id("com.github.spotbugs") version "6.4.8"
+    id("com.diffplug.spotless") version "7.0.2"
     id("com.github.ben-manes.versions") version "0.53.0"
 }
 
@@ -1075,4 +1079,43 @@ tasks.register("generateLocReport") {
     group = "reporting"
     description = "Generate complete LOC analysis report for last 100 commits (Java only)"
     dependsOn("assembleLocReport")
+}
+
+// ===============================
+// Static Analysis Configuration
+// ===============================
+
+pmd {
+    toolVersion = "7.14.0"
+    isIgnoreFailures = true
+    ruleSetFiles = files("config/pmd/ruleset.xml")
+    ruleSets = listOf()
+}
+
+checkstyle {
+    toolVersion = "10.25.0"
+    isIgnoreFailures = true
+    configFile = file("config/checkstyle/checkstyle.xml")
+    configProperties = mapOf("suppressionFile" to file("config/checkstyle/suppressions.xml").absolutePath)
+}
+
+spotbugs {
+    ignoreFailures = true
+    excludeFilter = file("config/spotbugs/exclude.xml")
+    effort = com.github.spotbugs.snom.Effort.DEFAULT
+    reportLevel = com.github.spotbugs.snom.Confidence.DEFAULT
+}
+
+tasks.withType<com.github.spotbugs.snom.SpotBugsTask>().configureEach {
+    reports {
+        create("xml") { required = true }
+        create("html") { required = true }
+    }
+}
+
+spotless {
+    java {
+        importOrder("java", "javax", "jakarta", "javafx", "org", "com", "")
+        removeUnusedImports()
+    }
 }

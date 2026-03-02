@@ -1,7 +1,20 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.stream.StreamSource;
+
 import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
@@ -15,19 +28,8 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.*;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.ExportMetadataService;
 
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * Exports XSD quality check results to various formats (CSV, JSON, PDF, HTML, Excel).
@@ -124,7 +126,9 @@ public class XsdQualityExporter {
      * Escapes a value for CSV.
      */
     private String escapeCsv(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
@@ -361,7 +365,9 @@ public class XsdQualityExporter {
                     fo.append("          Affected (").append(issue.affectedElements().size()).append("): ");
                     int count = 0;
                     for (String elem : issue.affectedElements()) {
-                        if (count > 0) fo.append(", ");
+                        if (count > 0) {
+                            fo.append(", ");
+                        }
                         if (count >= 5) {
                             fo.append("... and ").append(issue.affectedElements().size() - 5).append(" more");
                             break;
@@ -392,7 +398,9 @@ public class XsdQualityExporter {
      * Escapes XML special characters.
      */
     private String escapeXml(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.replace("&", "&amp;")
                    .replace("<", "&lt;")
                    .replace(">", "&gt;")
@@ -404,10 +412,18 @@ public class XsdQualityExporter {
      * Gets color for score value.
      */
     private String getScoreColor(int score) {
-        if (score >= 90) return "#28a745";
-        if (score >= 75) return "#17a2b8";
-        if (score >= 60) return "#ffc107";
-        if (score >= 40) return "#fd7e14";
+        if (score >= 90) {
+            return "#28a745";
+        }
+        if (score >= 75) {
+            return "#17a2b8";
+        }
+        if (score >= 60) {
+            return "#ffc107";
+        }
+        if (score >= 40) {
+            return "#fd7e14";
+        }
         return "#dc3545";
     }
 
@@ -648,10 +664,18 @@ public class XsdQualityExporter {
     }
 
     private String getScoreColorClass(int score) {
-        if (score >= 90) return "excellent";
-        if (score >= 75) return "good";
-        if (score >= 60) return "average";
-        if (score >= 40) return "poor";
+        if (score >= 90) {
+            return "excellent";
+        }
+        if (score >= 75) {
+            return "good";
+        }
+        if (score >= 60) {
+            return "average";
+        }
+        if (score >= 40) {
+            return "poor";
+        }
         return "critical";
     }
 
@@ -665,7 +689,9 @@ public class XsdQualityExporter {
     }
 
     private String escapeHtml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                    .replace("<", "&lt;")
                    .replace(">", "&gt;")

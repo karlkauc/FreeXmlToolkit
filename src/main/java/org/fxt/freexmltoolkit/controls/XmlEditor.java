@@ -1,48 +1,5 @@
 package org.fxt.freexmltoolkit.controls;
 
-import javafx.animation.PauseTransition;
-import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
-import javafx.geometry.Side;
-import javafx.scene.CacheHint;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.util.Duration;
-import net.sf.saxon.s9api.XdmNode;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.controlsfx.control.PopOver;
-import org.fxmisc.richtext.CodeArea;
-import org.fxmisc.richtext.model.StyleSpans;
-import org.fxt.freexmltoolkit.controller.MainController;
-import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
-import org.fxt.freexmltoolkit.controls.v2.common.utilities.XmlValidationHelper;
-import org.fxt.freexmltoolkit.controls.v2.common.utilities.XmlEditorUIHelper;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.ValidationError;
-import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
-import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-import org.fxt.freexmltoolkit.service.*;
-import org.kordamp.ikonli.javafx.FontIcon;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -54,6 +11,45 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
+
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Side;
+import javafx.scene.CacheHint;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.controlsfx.control.PopOver;
+import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controller.MainController;
+import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
+import org.fxt.freexmltoolkit.controls.v2.common.utilities.XmlEditorUIHelper;
+import org.fxt.freexmltoolkit.controls.v2.common.utilities.XmlValidationHelper;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.ValidationError;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.service.*;
+import org.kordamp.ikonli.javafx.FontIcon;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
+
+import net.sf.saxon.s9api.XdmNode;
 
 /**
  * XML Editor tab component.
@@ -72,7 +68,7 @@ public class XmlEditor extends Tab {
     public final CodeArea codeArea;
 
 
-    private final static Logger logger = LogManager.getLogger(XmlEditor.class);
+    private static final Logger logger = LogManager.getLogger(XmlEditor.class);
 
     File xmlFile;
     File xsdFile;

@@ -231,8 +231,12 @@ public final class XsdParseOptions {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         XsdParseOptions that = (XsdParseOptions) o;
         return resolveImports == that.resolveImports &&
                 cacheEnabled == that.cacheEnabled &&

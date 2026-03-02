@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
+import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javafx.application.Platform;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -18,6 +22,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
@@ -26,10 +31,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityExporter;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.io.File;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * View displaying XSD schema quality analysis results.
@@ -336,7 +337,9 @@ public class QualityChecksView extends BorderPane {
      * Updates the progress ring with the given score.
      */
     private void updateProgressRing(int score) {
-        if (progressArc == null || scoreText == null) return;
+        if (progressArc == null || scoreText == null) {
+            return;
+        }
 
         // Calculate arc length: negative for clockwise from top
         // -3.6 * score gives the arc length in degrees
@@ -711,10 +714,18 @@ public class QualityChecksView extends BorderPane {
      * Gets the color for a score value.
      */
     private Color getScoreColor(int score) {
-        if (score >= 90) return Color.web("#28a745"); // Green - Excellent
-        if (score >= 75) return Color.web("#17a2b8"); // Blue - Good
-        if (score >= 60) return Color.web("#ffc107"); // Yellow - Fair
-        if (score >= 40) return Color.web("#fd7e14"); // Orange - Needs Improvement
+        if (score >= 90) {
+            return Color.web("#28a745"); // Green - Excellent
+        }
+        if (score >= 75) {
+            return Color.web("#17a2b8"); // Blue - Good
+        }
+        if (score >= 60) {
+            return Color.web("#ffc107"); // Yellow - Fair
+        }
+        if (score >= 40) {
+            return Color.web("#fd7e14"); // Orange - Needs Improvement
+        }
         return Color.web("#dc3545"); // Red - Poor
     }
 

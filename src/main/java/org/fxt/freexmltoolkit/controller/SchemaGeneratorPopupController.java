@@ -18,21 +18,6 @@
 
 package org.fxt.freexmltoolkit.controller;
 
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.concurrent.Task;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
-import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
-import org.fxt.freexmltoolkit.service.SchemaGenerationResult;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -42,6 +27,22 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
+import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
+import org.fxt.freexmltoolkit.service.SchemaGenerationResult;
 
 /**
  * Controller for the Schema Generator Popup

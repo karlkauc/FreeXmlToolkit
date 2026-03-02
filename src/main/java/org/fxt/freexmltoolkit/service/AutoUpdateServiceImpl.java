@@ -18,14 +18,9 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
@@ -39,6 +34,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.UpdateInfo;
 
 /**
  * Implementation of AutoUpdateService that downloads and applies updates from GitHub Releases.

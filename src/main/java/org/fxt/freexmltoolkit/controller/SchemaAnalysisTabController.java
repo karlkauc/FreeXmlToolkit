@@ -5,10 +5,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.editor.views.SchemaAnalysisTabPane;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
  * Controller for the Schema Analysis Tab.
@@ -48,7 +49,9 @@ public class SchemaAnalysisTabController {
                     SchemaAnalysisTabPane analysisPane = new SchemaAnalysisTabPane(currentSchema);
                     schemaAnalysisStackPane.getChildren().add(analysisPane);
                     initialized = true;
-                    if (noFileLoadedPane != null) noFileLoadedPane.setVisible(false);
+                    if (noFileLoadedPane != null) {
+                        noFileLoadedPane.setVisible(false);
+                    }
                     long elapsed = System.currentTimeMillis() - startTime;
                     logger.info("SchemaAnalysisTabPane initialized in {}ms", elapsed);
                 }
@@ -62,8 +65,12 @@ public class SchemaAnalysisTabController {
         if (schemaAnalysisTab != null && schemaAnalysisTab.isSelected()) {
             ensureInitialized();
         } else if (schema == null) {
-            if (noFileLoadedPane != null) noFileLoadedPane.setVisible(true);
-            if (schemaAnalysisStackPane != null) schemaAnalysisStackPane.getChildren().clear();
+            if (noFileLoadedPane != null) {
+                noFileLoadedPane.setVisible(true);
+            }
+            if (schemaAnalysisStackPane != null) {
+                schemaAnalysisStackPane.getChildren().clear();
+            }
         }
     }
 

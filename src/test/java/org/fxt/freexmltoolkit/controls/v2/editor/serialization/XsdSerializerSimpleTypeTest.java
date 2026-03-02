@@ -1,18 +1,11 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.serialization;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import javax.xml.XMLConstants;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-import java.io.StringReader;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration tests for XsdSerializer SimpleType serialization.

@@ -1,5 +1,13 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
@@ -10,14 +18,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionIt
 import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Provides completions based on XSD schema.

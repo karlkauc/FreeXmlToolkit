@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.service;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.net.URL;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test that external namespace references (like ds:Signature from xmldsig) are properly handled

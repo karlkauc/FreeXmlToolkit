@@ -1,17 +1,18 @@
 package org.fxt.freexmltoolkit.controls.unified;
 
+import java.io.File;
+import java.util.List;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
+
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
 import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * Abstract base class for all Unified Editor tabs.

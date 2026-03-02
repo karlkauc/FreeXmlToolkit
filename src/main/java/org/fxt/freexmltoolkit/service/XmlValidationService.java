@@ -18,10 +18,10 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.xml.sax.SAXParseException;
-
 import java.io.File;
 import java.util.List;
+
+import org.xml.sax.SAXParseException;
 
 /**
  * Interface for XML validation services.

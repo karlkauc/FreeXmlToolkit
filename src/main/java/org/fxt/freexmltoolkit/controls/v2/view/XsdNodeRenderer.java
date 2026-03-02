@@ -2,7 +2,6 @@ package org.fxt.freexmltoolkit.controls.v2.view;
 
 import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
@@ -1020,7 +1019,9 @@ public class XsdNodeRenderer {
                         // Extract just the type name (remove flags like [Q], [U])
                         String typeName = detail.split("\\s*\\[")[0].trim();
                         String icon = getDataTypeIcon(typeName);
-                        if (!"bi-code".equals(icon)) return icon;
+                        if (!"bi-code".equals(icon)) {
+                            return icon;
+                        }
                     }
                     return "bi-at";  // @ symbol
                 case COMPLEX_TYPE:
@@ -1645,7 +1646,9 @@ public class XsdNodeRenderer {
                 if (type != null) {
                     String baseType = resolveBaseTypeToPrimitive(type, 0, new java.util.HashSet<>());
                     String icon = getDataTypeIcon(baseType);
-                    if (!"bi-code".equals(icon)) return icon;
+                    if (!"bi-code".equals(icon)) {
+                        return icon;
+                    }
                 }
                 return "bi-file-earmark";  // Fallback for Element
             }
@@ -1657,7 +1660,9 @@ public class XsdNodeRenderer {
                 if (type != null) {
                     String baseType = resolveBaseTypeToPrimitive(type, 0, new java.util.HashSet<>());
                     String icon = getDataTypeIcon(baseType);
-                    if (!"bi-code".equals(icon)) return icon;
+                    if (!"bi-code".equals(icon)) {
+                        return icon;
+                    }
                 }
                 return "bi-at";  // Fallback for Attribute
             }

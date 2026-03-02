@@ -1,13 +1,13 @@
 package org.fxt.freexmltoolkit.service;
 
-import net.sf.saxon.s9api.*;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import javax.xml.transform.dom.DOMSource;
-import java.util.*;
+import net.sf.saxon.s9api.*;
 
 /**
  * Utility class for Saxon XPath 3.1 operations.

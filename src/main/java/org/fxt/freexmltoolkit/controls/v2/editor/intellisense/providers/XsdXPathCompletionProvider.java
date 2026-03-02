@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathContextType;
@@ -7,10 +11,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathEdito
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XmlDocumentElementExtractor;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XsdSchemaElementExtractor;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * XPath/XQuery completion provider specialized for XSD documents.

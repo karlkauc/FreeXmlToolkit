@@ -1,5 +1,11 @@
 package org.fxt.freexmltoolkit.controls;
 
+import java.io.File;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -16,17 +22,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.XmlValidationError;
 import org.fxt.freexmltoolkit.service.XmlValidationResult;
 import org.fxt.freexmltoolkit.service.XsdValidationService;
-
-import java.io.File;
-import java.time.format.DateTimeFormatter;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Consumer;
 
 /**
  * Advanced XML Validation Panel with error reporting, navigation, and quick fixes.

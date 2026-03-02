@@ -18,6 +18,9 @@
 
 package org.fxt.freexmltoolkit.controls.shared.utilities;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -26,10 +29,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import org.fxmisc.richtext.CodeArea;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.fxmisc.richtext.CodeArea;
 
 /**
  * Dialog for finding and replacing text in a CodeArea.

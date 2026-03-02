@@ -18,10 +18,10 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test for XPath/XQuery comment removal functionality.

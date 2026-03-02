@@ -1,7 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
-import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -9,7 +8,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests round-trip serialization by counting nodes by type.

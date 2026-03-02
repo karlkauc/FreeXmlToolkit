@@ -18,14 +18,14 @@
 
 package org.fxt.freexmltoolkit.domain;
 
-import org.w3c.dom.Node;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.w3c.dom.Node;
 
 /**
  * DTO to hold all relevant data parsed from an XSD for documentation generation.

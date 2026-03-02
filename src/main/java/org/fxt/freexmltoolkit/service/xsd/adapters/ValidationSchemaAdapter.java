@@ -1,5 +1,13 @@
 package org.fxt.freexmltoolkit.service.xsd.adapters;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
@@ -9,13 +17,6 @@ import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Adapter for converting ParsedSchema to javax.xml.validation.Schema.

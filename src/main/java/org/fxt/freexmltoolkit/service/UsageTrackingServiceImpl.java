@@ -1,17 +1,5 @@
 package org.fxt.freexmltoolkit.service;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.statistics.DailyStatistics;
-import org.fxt.freexmltoolkit.domain.statistics.FeatureTip;
-import org.fxt.freexmltoolkit.domain.statistics.FeatureUsage;
-import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
-
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
@@ -27,6 +15,19 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.statistics.DailyStatistics;
+import org.fxt.freexmltoolkit.domain.statistics.FeatureTip;
+import org.fxt.freexmltoolkit.domain.statistics.FeatureUsage;
+import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Implementation of UsageTrackingService with JSON persistence.
@@ -133,7 +134,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackFileValidation(int errorCount) {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         statistics.incrementFilesValidated();
         statistics.addValidationErrors(errorCount);
@@ -150,7 +153,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackErrorCorrected(int count) {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         statistics.incrementErrorsCorrected(count);
         statistics.getTodayStats().addErrorsFixed(count);
@@ -161,7 +166,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackTransformation() {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         statistics.incrementTransformations();
         statistics.getTodayStats().incrementTransformations();
@@ -173,7 +180,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackFeatureUsed(String featureId) {
-        if (!isTrackingEnabled() || featureId == null) return;
+        if (!isTrackingEnabled() || featureId == null) {
+            return;
+        }
 
         FeatureUsage feature = statistics.getFeatureUsage().get(featureId);
         if (feature != null) {
@@ -190,7 +199,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackXPathQuery() {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         statistics.incrementXpathQueries();
         statistics.getTodayStats().incrementXpathQueries();
@@ -202,7 +213,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackXQueryExecution() {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         statistics.incrementXqueryExecutions();
         trackFeatureUsed("xquery_execution");
@@ -213,7 +226,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackSchematronValidation() {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         statistics.incrementSchematronValidations();
         statistics.getTodayStats().incrementSchematronValidations();
@@ -225,7 +240,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackFormatting() {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         statistics.incrementDocumentsFormatted();
         statistics.getTodayStats().incrementFormattings();
@@ -237,7 +254,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackSchemaGeneration() {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         statistics.incrementSchemasGenerated();
         trackFeatureUsed("schema_generation");
@@ -248,7 +267,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackSignatureOperation(boolean isSign) {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         if (isSign) {
             statistics.incrementSignaturesCreated();
@@ -263,7 +284,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackPdfGeneration() {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         statistics.incrementPdfsGenerated();
         trackFeatureUsed("pdf_generation");
@@ -274,7 +297,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
 
     @Override
     public void trackFileOpened() {
-        if (!isTrackingEnabled()) return;
+        if (!isTrackingEnabled()) {
+            return;
+        }
 
         statistics.incrementFilesOpened();
         markDirty();
@@ -362,10 +387,18 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
     @Override
     public String getProductivityLevel() {
         int score = getProductivityScore();
-        if (score >= 91) return "Expert";
-        if (score >= 71) return "Professional";
-        if (score >= 51) return "Advanced";
-        if (score >= 31) return "Intermediate";
+        if (score >= 91) {
+            return "Expert";
+        }
+        if (score >= 71) {
+            return "Professional";
+        }
+        if (score >= 51) {
+            return "Advanced";
+        }
+        if (score >= 31) {
+            return "Intermediate";
+        }
         return "Beginner";
     }
 
@@ -389,7 +422,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
         // Generate tips for undiscovered features (max 3)
         int tipCount = 0;
         for (FeatureUsage feature : unusedFeatures) {
-            if (tipCount >= 3) break;
+            if (tipCount >= 3) {
+                break;
+            }
 
             FeatureTip tip = createTipForFeature(feature);
             if (tip != null) {
@@ -502,7 +537,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
     @Override
     public boolean isTrackingEnabled() {
         PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
-        if (propertiesService == null) return true; // Default to enabled if service not available
+        if (propertiesService == null) { return true; } // Default to enabled if service not available
 
         String value = propertiesService.get(TRACKING_ENABLED_KEY);
         return value == null || Boolean.parseBoolean(value);

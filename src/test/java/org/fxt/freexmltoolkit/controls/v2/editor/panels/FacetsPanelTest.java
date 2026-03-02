@@ -1,9 +1,16 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
+
+import java.util.Set;
+import java.util.concurrent.TimeoutException;
+
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
@@ -14,12 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
-
-import java.util.Set;
-import java.util.concurrent.TimeoutException;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 /**
  * Unit tests for FacetsPanel.

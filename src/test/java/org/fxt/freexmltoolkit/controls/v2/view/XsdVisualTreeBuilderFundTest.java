@@ -1,14 +1,14 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
+
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for XsdVisualTreeBuilder with Fund element that has type reference and inline identity constraints.

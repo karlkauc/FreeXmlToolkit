@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers;
 
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
@@ -8,10 +12,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextTyp
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Pattern-based completion provider that suggests previously used elements and attributes.
