@@ -40,9 +40,7 @@ public class XPathExecutionEngine {
     private final XQueryCompiler xqueryCompiler;
 
     // Execution settings
-    private long executionTimeoutMs = 30000; // 30 seconds
     private int maxResultSize = 10000; // Max number of result items
-    private boolean enableProfiling = true;
 
     // Performance caching for Saxon compiled expressions
     private final Map<String, XPathExecutable> compiledXPathExecutables = new ConcurrentHashMap<>();
@@ -451,7 +449,6 @@ public class XPathExecutionEngine {
     // ========== Configuration ==========
 
     public void setExecutionTimeout(long timeoutMs) {
-        this.executionTimeoutMs = timeoutMs;
         logger.debug("Execution timeout set to {}ms", timeoutMs);
     }
 
@@ -461,7 +458,6 @@ public class XPathExecutionEngine {
     }
 
     public void setProfilingEnabled(boolean enabled) {
-        this.enableProfiling = enabled;
         logger.debug("Execution profiling {}", enabled ? "enabled" : "disabled");
     }
 

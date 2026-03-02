@@ -233,15 +233,6 @@ public class ComplexTypeEditorView extends BorderPane {
     }
 
     /**
-     * Handles save action from XsdGraphView toolbar.
-     * Merges changes from virtual schema back to main schema.
-     */
-    private void handleSave() {
-        logger.info("Save requested for ComplexType: {}", complexType.getName());
-        save();
-    }
-
-    /**
      * Saves changes from virtual schema back to main schema.
      * Called by the parent tab's save() method.
      *

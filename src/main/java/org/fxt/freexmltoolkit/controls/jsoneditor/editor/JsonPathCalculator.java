@@ -109,7 +109,7 @@ public class JsonPathCalculator {
         int arrayIndex = -1;
         int lastKeyStart = -1;
         int lastKeyEnd = -1;
-        int lastValueStart = -1;
+        int lastValueStart;
         String lastValueType = "unknown";
         StringBuilder currentValue = new StringBuilder();
         boolean collectingValue = false;
@@ -293,7 +293,7 @@ public class JsonPathCalculator {
     }
 
     private static JsonHoverInfo buildHoverInfo(Deque<PathElement> pathStack, String currentKey,
-                                                 String valueType, String value, int arrayIndex, boolean onKey) {
+                                                 String valueType, String value, int arrayIndex, boolean _onKey) {
         StringBuilder path = new StringBuilder();
 
         // Build path from stack (forward order, from root to leaf)

@@ -37,8 +37,6 @@ public class LinkAutocompletePopup extends Popup {
     private final XsdElementPathExtractor pathExtractor;
 
     private Consumer<String> onSelect;
-    private TextInputControl targetControl;
-    private int triggerPosition = -1;
 
     /**
      * Creates a new autocomplete popup.
@@ -105,8 +103,6 @@ public class LinkAutocompletePopup extends Popup {
      * @param onSelectHandler callback when a suggestion is selected
      */
     public void showFor(TextInputControl control, int caretPosition, Consumer<String> onSelectHandler) {
-        this.targetControl = control;
-        this.triggerPosition = caretPosition;
         this.onSelect = onSelectHandler;
 
         // Position popup near caret

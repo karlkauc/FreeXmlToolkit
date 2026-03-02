@@ -80,17 +80,17 @@ public class TemplateValidationRule {
         }
     }
 
-    private boolean validateRequiredIf(Map<String, String> parameters) {
+    private boolean validateRequiredIf(Map<String, String> _parameters) {
         // Implementation for required-if logic
         return true;
     }
 
-    private boolean validateMutuallyExclusive(Map<String, String> parameters) {
+    private boolean validateMutuallyExclusive(Map<String, String> _parameters) {
         // Implementation for mutually exclusive parameters
         return true;
     }
 
-    private boolean validateDependency(Map<String, String> parameters) {
+    private boolean validateDependency(Map<String, String> _parameters) {
         // Implementation for parameter dependencies
         return true;
     }

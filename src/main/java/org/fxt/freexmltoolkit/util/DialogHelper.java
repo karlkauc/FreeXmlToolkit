@@ -10,8 +10,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import org.kordamp.ikonli.javafx.FontIcon;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -32,7 +30,7 @@ import java.util.Optional;
  */
 public class DialogHelper {
 
-    private static final Logger logger = LoggerFactory.getLogger(DialogHelper.class);
+
 
     /**
      * Private constructor to prevent instantiation of this utility class.

@@ -482,8 +482,8 @@ public class SvgPathParser {
      * @param y2 the ending y coordinate
      */
     private static void renderArcAsBezier(GraphicsContext gc, double offsetX, double offsetY, double scale,
-                                          double x1, double y1, double rx, double ry, double rotation,
-                                          boolean largeArc, boolean sweep, double x2, double y2) {
+                                          double x1, double y1, double rx, double ry, double _rotation,
+                                          boolean _largeArc, boolean sweep, double x2, double y2) {
         // Simple arc approximation using quadratic curves
         // For a full implementation, this would need proper elliptical arc parameterization
 

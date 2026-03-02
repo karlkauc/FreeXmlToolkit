@@ -531,7 +531,7 @@ public class TypeLibraryView extends BorderPane {
                 } else if (child instanceof XsdList list) {
                     baseType = "list of " + (list.getItemType() != null ? list.getItemType() : "?");
                     break;
-                } else if (child instanceof XsdUnion union) {
+                } else if (child instanceof XsdUnion) {
                     baseType = "union";
                     break;
                 }

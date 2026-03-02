@@ -107,9 +107,6 @@ public class XsdDocumentationImageService {
     private static final String COLOR_STROKE_SEPARATOR = "#dee2e6";      // Separator lines
     private static final String COLOR_TEXT_PRIMARY = "#2c5aa0";          // Element text
     private static final String COLOR_TEXT_SECONDARY = "#6c757d";        // Secondary text
-    private static final String COLOR_TEXT_ATTRIBUTE = "#8b6914";        // Attribute text
-    private static final String COLOR_TEXT_SEQUENCE = "#495057";         // Sequence text
-    private static final String COLOR_TEXT_CHOICE = "#b45309";           // Choice text
     private static final String COLOR_SHADOW = "rgba(0, 0, 0, 0.2)";     // Drop shadow
 
     // Type-specific colors from XsdDiagramView
@@ -676,27 +673,6 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Calculates the maximum height of child elements for symmetric layout
-     */
-    private double calculateMaxChildHeight(List<XsdExtendedElement> childElements) {
-        double maxHeight = 0;
-        for (XsdExtendedElement childElement : childElements) {
-            String elementName = childElement.getElementName();
-            String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
-
-            var nameBounds = font.getStringBounds(elementName, frc);
-            var typeBounds = font.getStringBounds(elementType, frc);
-
-            double nameHeight = nameBounds.getBounds2D().getHeight();
-            double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
-            double totalHeight = boxPadding * 2 + nameHeight + typeHeight;
-
-            maxHeight = Math.max(maxHeight, totalHeight);
-        }
-        return maxHeight;
-    }
-
-    /**
      * Calculates the maximum width of child elements for symmetric layout
      */
     private double calculateMaxChildWidth(List<XsdExtendedElement> childElements) {
@@ -716,7 +692,7 @@ public class XsdDocumentationImageService {
             double cardinalityWidth = font.getStringBounds(cardinality, frc).getBounds2D().getWidth() + 8; // +8 for badge padding
 
             // Calculate width of second line: Type + spacing + cardinality badge (right-aligned)
-            double secondLineWidth = 0;
+            double secondLineWidth;
             if (!elementType.isBlank()) {
                 var typeBounds = font.getStringBounds(elementType, frc);
                 double typeWidth = typeBounds.getBounds2D().getWidth();
@@ -738,7 +714,7 @@ public class XsdDocumentationImageService {
      * Draws modern sequence/choice symbols
      */
     private void drawModernSequenceChoiceSymbol(Document document, double rootPathEndX, double rootPathCenterY,
-                                                double gapBetweenSides, boolean isSequence, boolean isChoice,
+                                                double gapBetweenSides, boolean isSequence, boolean _isChoice,
                                                 List<XsdExtendedElement> childElements, Element svgRoot,
                                                 double[] maxRightEdge) {
 
@@ -875,30 +851,6 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Creates a modern dot for sequence symbols
-     */
-    private Element createModernDot(Document document, double cx, double cy) {
-        Element circle = document.createElementNS(svgNS, "circle");
-        circle.setAttribute("cx", String.valueOf(cx));
-        circle.setAttribute("cy", String.valueOf(cy));
-        circle.setAttribute("r", "2");
-        circle.setAttribute("fill", COLOR_ACCENT);
-        return circle;
-    }
-
-    /**
-     * Creates a small SVG circle element, used as a dot in diagrams.
-     */
-    private Element createDot(Document document, double cx, double cy) {
-        Element circle = document.createElementNS(svgNS, "circle");
-        circle.setAttribute("cx", String.valueOf(cx));
-        circle.setAttribute("cy", String.valueOf(cy));
-        circle.setAttribute("r", "1.5");
-        circle.setAttribute("fill", COLOR_TEXT_SECONDARY);
-        return circle;
-    }
-
-    /**
      * Formats minOccurs and maxOccurs into a human-readable cardinality string.
      * Uses XMLSpy-style formatting with infinity symbol and smart defaults.
      *
@@ -936,22 +888,6 @@ public class XsdDocumentationImageService {
         }
         Node attrNode = node.getAttributes().getNamedItem(attrName);
         return (attrNode != null) ? attrNode.getNodeValue() : defaultValue;
-    }
-
-    /**
-     * Creates an SVG rectangle element in the correct namespace.
-     */
-    private Element createSvgRect(Document document, String id, double contentHeight, double contentWidth, String x, String y) {
-        Element rect = document.createElementNS(svgNS, "rect");
-        rect.setAttribute("fill", COLOR_BOX_FILL_ELEMENT);
-        rect.setAttribute("id", id);
-        rect.setAttribute("height", String.valueOf(margin + contentHeight + margin));
-        rect.setAttribute("width", String.valueOf(margin + contentWidth + margin));
-        rect.setAttribute("x", x);
-        rect.setAttribute("y", y);
-        rect.setAttribute("rx", "4"); // Slightly rounded corners
-        rect.setAttribute("ry", "4");
-        return rect;
     }
 
     /**
@@ -1579,159 +1515,6 @@ public class XsdDocumentationImageService {
         choicePath.setAttribute("fill", COLOR_STROKE_CHOICE);
         choiceIcon.appendChild(choicePath);
         defs.appendChild(choiceIcon);
-    }
-
-    /**
-     * Creates a type-specific icon based on the element type
-     */
-    private Element createTypeSpecificIcon(Document document, String elementType) {
-        if (elementType == null || elementType.isBlank()) {
-            return null;
-        }
-
-        String iconId = determineIconType(elementType);
-        if (iconId != null) {
-            Element iconUse = document.createElementNS(svgNS, "use");
-            iconUse.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#" + iconId);
-            return iconUse;
-        }
-        return null;
-    }
-
-    /**
-     * Determines the appropriate icon type based on element type
-     */
-    private String determineIconType(String elementType) {
-        if (elementType == null || elementType.isBlank()) {
-            return "default-icon";
-        }
-
-        String lowerType = elementType.toLowerCase();
-
-        // String types
-        if (lowerType.contains("string") || lowerType.contains("token") ||
-                lowerType.contains("normalizedstring") || lowerType.contains("name") ||
-                lowerType.contains("ncname") || lowerType.contains("id") || lowerType.contains("idref")) {
-            return "string-icon";
-        }
-
-        // Numeric types
-        if (lowerType.contains("int") || lowerType.contains("decimal") ||
-                lowerType.contains("float") || lowerType.contains("double") ||
-                lowerType.contains("long") || lowerType.contains("short") ||
-                lowerType.contains("byte") || lowerType.contains("unsignedint") ||
-                lowerType.contains("positiveinteger") || lowerType.contains("negativeinteger") ||
-                lowerType.contains("nonnegativeinteger") || lowerType.contains("nonpositiveinteger")) {
-            return "numeric-icon";
-        }
-
-        // Date/Time types
-        if (lowerType.contains("date") || lowerType.contains("time") ||
-                lowerType.contains("datetime") || lowerType.contains("duration") ||
-                lowerType.contains("gyear") || lowerType.contains("gmonth") ||
-                lowerType.contains("gday")) {
-            return "date-icon";
-        }
-
-        // Boolean types
-        if (lowerType.contains("boolean")) {
-            return "boolean-icon";
-        }
-
-        // Binary types
-        if (lowerType.contains("base64binary") || lowerType.contains("hexbinary")) {
-            return "binary-icon";
-        }
-
-        // URI types
-        if (lowerType.contains("anyuri")) {
-            return "uri-icon";
-        }
-
-        // QName types
-        if (lowerType.contains("qname")) {
-            return "qname-icon";
-        }
-
-        // Language types
-        if (lowerType.contains("language")) {
-            return "language-icon";
-        }
-
-        // Complex types (user-defined)
-        if (!lowerType.startsWith("xs:") && !lowerType.startsWith("xsd:")) {
-            return "complex-icon";
-        }
-
-        return "default-icon";
-    }
-
-    /**
-     * Gets the appropriate color for a specific type
-     */
-    private String getTypeSpecificColor(String elementType) {
-        if (elementType == null || elementType.isBlank()) {
-            return COLOR_DEFAULT_TYPE;
-        }
-
-        String lowerType = elementType.toLowerCase();
-
-        // String types
-        if (lowerType.contains("string") || lowerType.contains("token") ||
-                lowerType.contains("normalizedstring") || lowerType.contains("name") ||
-                lowerType.contains("ncname") || lowerType.contains("id") || lowerType.contains("idref")) {
-            return COLOR_STRING_TYPE;
-        }
-
-        // Numeric types
-        if (lowerType.contains("int") || lowerType.contains("decimal") ||
-                lowerType.contains("float") || lowerType.contains("double") ||
-                lowerType.contains("long") || lowerType.contains("short") ||
-                lowerType.contains("byte") || lowerType.contains("unsignedint") ||
-                lowerType.contains("positiveinteger") || lowerType.contains("negativeinteger") ||
-                lowerType.contains("nonnegativeinteger") || lowerType.contains("nonpositiveinteger")) {
-            return COLOR_NUMERIC_TYPE;
-        }
-
-        // Date/Time types
-        if (lowerType.contains("date") || lowerType.contains("time") ||
-                lowerType.contains("datetime") || lowerType.contains("duration") ||
-                lowerType.contains("gyear") || lowerType.contains("gmonth") ||
-                lowerType.contains("gday")) {
-            return COLOR_DATE_TYPE;
-        }
-
-        // Boolean types
-        if (lowerType.contains("boolean")) {
-            return COLOR_BOOLEAN_TYPE;
-        }
-
-        // Binary types
-        if (lowerType.contains("base64binary") || lowerType.contains("hexbinary")) {
-            return COLOR_BINARY_TYPE;
-        }
-
-        // URI types
-        if (lowerType.contains("anyuri")) {
-            return COLOR_URI_TYPE;
-        }
-
-        // QName types
-        if (lowerType.contains("qname")) {
-            return COLOR_QNAME_TYPE;
-        }
-
-        // Language types
-        if (lowerType.contains("language")) {
-            return COLOR_LANGUAGE_TYPE;
-        }
-
-        // Complex types (user-defined)
-        if (!lowerType.startsWith("xs:") && !lowerType.startsWith("xsd:")) {
-            return COLOR_COMPLEX_TYPE;
-        }
-
-        return COLOR_DEFAULT_TYPE;
     }
 
     /**

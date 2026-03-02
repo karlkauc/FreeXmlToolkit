@@ -43,7 +43,6 @@ import java.util.regex.Pattern;
 public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
 
     private final Spinner<Double> spinner;
-    private final Consumer<String> onValueChange;
     private final boolean integerOnly;
     private final Double minValue;
     private final Double maxValue;
@@ -65,7 +64,6 @@ public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
      */
     public NumericSpinner(String currentValue, Consumer<String> onValueChange,
                           Map<String, String> facets, boolean integerOnly) {
-        this.onValueChange = onValueChange;
         this.integerOnly = integerOnly;
 
         // Parse facets

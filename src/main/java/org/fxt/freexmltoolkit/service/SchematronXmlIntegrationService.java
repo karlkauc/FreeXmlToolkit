@@ -25,8 +25,6 @@ public class SchematronXmlIntegrationService {
     private static final Logger logger = LogManager.getLogger(SchematronXmlIntegrationService.class);
 
     private MainController mainController;
-    private XmlUltimateController xmlController;
-    private SchematronController schematronController;
 
     // Integration state
     private File currentXmlFile;
@@ -49,14 +47,12 @@ public class SchematronXmlIntegrationService {
      * This method must be called before using any integration features.
      *
      * @param mainController the main application controller for navigation
-     * @param xmlController the XML editor controller
-     * @param schematronController the Schematron editor controller
+     * @param _xmlController the XML editor controller
+     * @param _schematronController the Schematron editor controller
      */
-    public void initialize(MainController mainController, XmlUltimateController xmlController,
-                           SchematronController schematronController) {
+    public void initialize(MainController mainController, XmlUltimateController _xmlController,
+                           SchematronController _schematronController) {
         this.mainController = mainController;
-        this.xmlController = xmlController;
-        this.schematronController = schematronController;
 
         logger.info("Integration service initialized with controllers");
     }
@@ -346,7 +342,7 @@ public class SchematronXmlIntegrationService {
     /**
      * Show validation results (simplified - in full implementation would use proper UI)
      */
-    private void showValidationResults(String title, String message,
+    private void showValidationResults(String _title, String message,
                                        SchematronService.SchematronValidationResult result) {
         // In a full implementation, this would show results in a proper dialog
         // For now, just log the results

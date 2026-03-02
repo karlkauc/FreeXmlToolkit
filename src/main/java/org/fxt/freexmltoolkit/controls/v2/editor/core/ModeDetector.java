@@ -27,10 +27,6 @@ public class ModeDetector {
         Pattern.DOTALL
     );
 
-    private static final Pattern NAMESPACE_PATTERN = Pattern.compile(
-        "xmlns(?::([a-zA-Z_][\\w.-]*))?\\s*=\\s*['\"]([^'\"]+)['\"]"
-    );
-
     // Known namespace URIs
     private static final String XSLT_NS = "http://www.w3.org/1999/XSL/Transform";
     private static final String FO_NS = "http://www.w3.org/1999/XSL/Format";

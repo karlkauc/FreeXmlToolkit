@@ -20,7 +20,6 @@ import javafx.scene.text.TextAlignment;
 public class XsdNodeRenderer {
 
     private static final double MIN_NODE_WIDTH = 200;  // Minimum width
-    private static final double MAX_NODE_WIDTH = 800;  // Increased max width for larger content
     private static final double HEADER_HEIGHT = 32.0;  // Reduced header height for less dominance
     private static final double MIN_BODY_HEIGHT = 20.0;  // Minimum body height (no content)
     private static final double PROPERTY_LINE_HEIGHT = 20.0;  // Height per property line
@@ -32,13 +31,11 @@ public class XsdNodeRenderer {
     private static final double CORNER_RADIUS = 6;  // Updated to 6px for modern look
     private static final double PADDING = 30; // Increased padding for better text spacing
 
-    private final XsdNodeStyler styler;
     private final Font nodeFont;
     private final Font detailFont;
     private final javafx.scene.text.Text textMeasurer;
 
     public XsdNodeRenderer() {
-        this.styler = new XsdNodeStyler();
         // XMLSpy uses Segoe UI font family
         this.nodeFont = Font.font("Segoe UI", 12); // Slightly larger for readability
         this.detailFont = Font.font("Segoe UI", 10);
@@ -478,9 +475,6 @@ public class XsdNodeRenderer {
             }
         }
 
-        // Apply visual state indicators over both header and body
-        Color borderColor = node.getBorderColor();
-
         // Draw selection highlight (outer border)
         if (node.isSelected()) {
             gc.setStroke(Color.rgb(59, 130, 246));  // Blue highlight
@@ -764,50 +758,6 @@ public class XsdNodeRenderer {
     }
 
     /**
-     * Gets the fill gradient for a node based on its type (XMLSpy style).
-     * XMLSpy uses vertical gradients from white to a light color.
-     */
-    private LinearGradient getNodeFillGradient(NodeWrapperType type, double x, double y, double width, double height) {
-        Stop[] stops = switch (type) {
-            case ELEMENT -> new Stop[]{
-                    new Stop(0, Color.WHITE),
-                    new Stop(1, Color.rgb(240, 248, 255))  // #f0f8ff - XMLSpy element background
-            };
-            case ATTRIBUTE -> new Stop[]{
-                    new Stop(0, Color.WHITE),
-                    new Stop(1, Color.rgb(255, 254, 247))  // #fffef7 - XMLSpy attribute background
-            };
-            case COMPLEX_TYPE, SCHEMA -> new Stop[]{
-                    new Stop(0, Color.WHITE),
-                    new Stop(1, Color.rgb(248, 249, 250))  // #f8f9fa - XMLSpy structural background
-            };
-            case SIMPLE_TYPE -> new Stop[]{
-                    new Stop(0, Color.WHITE),
-                    new Stop(1, Color.rgb(220, 252, 231))  // Light green
-            };
-            case SEQUENCE -> new Stop[]{
-                    new Stop(0, Color.WHITE),
-                    new Stop(1, Color.rgb(207, 250, 254))  // Light cyan
-            };
-            case CHOICE -> new Stop[]{
-                    new Stop(0, Color.WHITE),
-                    new Stop(1, Color.rgb(254, 243, 199))  // Light amber
-            };
-            case ALL -> new Stop[]{
-                    new Stop(0, Color.WHITE),
-                    new Stop(1, Color.rgb(237, 233, 254))  // Light violet
-            };
-            default -> new Stop[]{
-                    new Stop(0, Color.WHITE),
-                    new Stop(1, Color.WHITE)
-            };
-        };
-
-        // Create vertical gradient (top to bottom)
-        return new LinearGradient(0, y, 0, y + height, false, CycleMethod.NO_CYCLE, stops);
-    }
-
-    /**
      * Gets the border color for a node based on its type (XMLSpy style).
      */
     private Color getXMLSpyBorderColor(NodeWrapperType type) {
@@ -819,44 +769,6 @@ public class XsdNodeRenderer {
             case SEQUENCE -> Color.rgb(8, 145, 178);          // Cyan
             case CHOICE -> Color.rgb(245, 158, 11);           // Amber
             case ALL -> Color.rgb(139, 92, 246);              // Violet
-            default -> Color.LIGHTGRAY;
-        };
-    }
-
-    /**
-     * Brightens a gradient for hover/selection effects.
-     */
-    private LinearGradient brightenGradient(LinearGradient gradient) {
-        Stop[] oldStops = gradient.getStops().toArray(new Stop[0]);
-        Stop[] newStops = new Stop[oldStops.length];
-
-        for (int i = 0; i < oldStops.length; i++) {
-            Color oldColor = oldStops[i].getColor();
-            Color newColor = oldColor.brighter();
-            newStops[i] = new Stop(oldStops[i].getOffset(), newColor);
-        }
-
-        return new LinearGradient(
-                gradient.getStartX(), gradient.getStartY(),
-                gradient.getEndX(), gradient.getEndY(),
-                gradient.isProportional(), gradient.getCycleMethod(), newStops
-        );
-    }
-
-    /**
-     * Gets the header background color for a node type.
-     * Returns semantic colors from STYLE_GUIDE.jsonc.
-     */
-    private Color getHeaderColor(NodeWrapperType type) {
-        return switch (type) {
-            case SCHEMA -> Color.rgb(111, 66, 193);            // #6f42c1 - Purple
-            case ELEMENT -> Color.rgb(0, 123, 255);             // #007bff - Blue
-            case ATTRIBUTE -> Color.rgb(32, 201, 151);          // #20c997 - Teal
-            case COMPLEX_TYPE -> Color.rgb(108, 117, 125);      // #6c757d - Gray
-            case SIMPLE_TYPE -> Color.rgb(40, 167, 69);         // #28a745 - Green
-            case SEQUENCE -> Color.rgb(23, 162, 184);           // #17a2b8 - Cyan
-            case CHOICE -> Color.rgb(253, 126, 20);             // #fd7e14 - Orange
-            case ALL -> Color.rgb(111, 66, 193);                // #6f42c1 - Purple
             default -> Color.LIGHTGRAY;
         };
     }
@@ -874,87 +786,6 @@ public class XsdNodeRenderer {
                 new Stop(0, lighter),
                 new Stop(1, darker)
         );
-    }
-
-    /**
-     * Gets the icon literal for rendering the node icon.
-     * Returns Bootstrap Icons names or custom XSD type icons.
-     */
-    private String getIconLiteral(NodeWrapperType type) {
-        return switch (type) {
-            case SCHEMA -> "bi-hdd-stack";
-            case ELEMENT -> "bi-file-earmark-code";
-            case ATTRIBUTE -> "bi-at";
-            case COMPLEX_TYPE -> "xsd-complex-type";  // Custom ComplexType icon
-            case SIMPLE_TYPE -> "xsd-simple-generic"; // Custom SimpleType icon with S-badge
-            case SEQUENCE -> "bi-list-ol";
-            case CHOICE -> "bi-signpost-split";
-            case ALL -> "bi-collection";
-            default -> "bi-diagram-2";
-        };
-    }
-
-    /**
-     * Formats cardinality as a badge string.
-     * Examples: "ROOT", "1..1", "0..*", "2..5", "required", "optional"
-     */
-    private String formatCardinalityBadge(NodeWrapperType type, int minOccurs, int maxOccurs) {
-        // Special case for SCHEMA - show "ROOT"
-        if (type == NodeWrapperType.SCHEMA) {
-            return "ROOT";
-        }
-
-        // Format minOccurs..maxOccurs
-        String maxStr = maxOccurs == Integer.MAX_VALUE || maxOccurs == -1 ? "*" : String.valueOf(maxOccurs);
-        return minOccurs + ".." + maxStr;
-    }
-
-    /**
-     * Truncates text to fit within the specified width using accurate text measurement.
-     */
-    private String truncateText(String text, double maxWidth, Font font) {
-        if (text == null || text.isEmpty()) return "";
-        
-        // Measure actual text width
-        textMeasurer.setFont(font);
-        textMeasurer.setText(text);
-        double textWidth = textMeasurer.getBoundsInLocal().getWidth();
-        
-        // If text fits, return as is
-        if (textWidth <= maxWidth) {
-            return text;
-        }
-        
-        // Text doesn't fit, truncate with ellipsis
-        String ellipsis = "...";
-        textMeasurer.setText(ellipsis);
-        double ellipsisWidth = textMeasurer.getBoundsInLocal().getWidth();
-        double availableWidth = maxWidth - ellipsisWidth;
-        
-        if (availableWidth <= 0) {
-            return ellipsis;
-        }
-        
-        // Binary search for the right length
-        int left = 0;
-        int right = text.length();
-        String bestFit = "";
-        
-        while (left <= right) {
-            int mid = (left + right) / 2;
-            String candidate = text.substring(0, mid);
-            textMeasurer.setText(candidate);
-            double candidateWidth = textMeasurer.getBoundsInLocal().getWidth();
-            
-            if (candidateWidth <= availableWidth) {
-                bestFit = candidate;
-                left = mid + 1;
-            } else {
-                right = mid - 1;
-            }
-        }
-        
-        return bestFit.isEmpty() ? ellipsis : bestFit + ellipsis;
     }
 
     public double getNodeWidth() {
@@ -1063,7 +894,7 @@ public class XsdNodeRenderer {
         private boolean childrenLoaded = true;  // True if children have been loaded (or no lazy loading)
         private boolean hasLazyChildren = false;  // True if this node has children that haven't been loaded
         private java.util.function.Supplier<java.util.List<VisualNode>> lazyChildrenLoader;  // Loader for lazy children
-        private boolean loadingChildren = false;  // True while children are being loaded
+        private boolean loadingChildren;  // True while children are being loaded
 
         // New properties for improved visual representation
         private String iconLiteral;             // Bootstrap icon code (e.g., "bi-diagram-3")
@@ -1846,35 +1677,6 @@ public class XsdNodeRenderer {
                 String base = extractBaseType(child);
                 if (base != null) {
                     return resolveBaseTypeToPrimitive(base, 0, new java.util.HashSet<>());
-                }
-            }
-            return null;
-        }
-
-        /**
-         * Extracts the primitive base type from an XsdComplexType with SimpleContent.
-         * Follows the type chain up to 5 levels.
-         *
-         * @param complexType the complex type to extract from
-         * @return the base type, or null if not found
-         */
-        private String extractBaseTypeFromComplexType(org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
-            for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : complexType.getChildren()) {
-                if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent) {
-                    org.fxt.freexmltoolkit.controls.v2.model.XsdExtension extension = simpleContent.getExtension();
-                    if (extension != null) {
-                        String base = extension.getBase();
-                        if (base != null && !base.isEmpty()) {
-                            return resolveBaseTypeToPrimitive(base, 0, new java.util.HashSet<>());
-                        }
-                    }
-                    org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction = simpleContent.getRestriction();
-                    if (restriction != null) {
-                        String base = restriction.getBase();
-                        if (base != null && !base.isEmpty()) {
-                            return resolveBaseTypeToPrimitive(base, 0, new java.util.HashSet<>());
-                        }
-                    }
                 }
             }
             return null;

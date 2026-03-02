@@ -38,7 +38,6 @@ import java.util.function.Consumer;
 public class ValidatedTextField implements TypeAwareWidgetFactory.EditWidget {
 
     private final TextField textField;
-    private final Consumer<String> onValueChange;
     private final XmlSchemaProvider schemaProvider;
     private final Map<String, String> facets;
     private String elementXPath;
@@ -54,7 +53,6 @@ public class ValidatedTextField implements TypeAwareWidgetFactory.EditWidget {
      */
     public ValidatedTextField(String currentValue, Consumer<String> onValueChange,
                               XmlSchemaProvider schemaProvider, Map<String, String> facets) {
-        this.onValueChange = onValueChange;
         this.schemaProvider = schemaProvider;
         this.facets = facets;
 
@@ -103,19 +101,7 @@ public class ValidatedTextField implements TypeAwareWidgetFactory.EditWidget {
         applyValidationStyle();
     }
 
-    private ValidationResult validateWithFacets(String value) {
-        if (value == null) {
-            value = "";
-        }
-
-        // Check whiteSpace facet
-        String whiteSpace = facets.get("whiteSpace");
-        if ("collapse".equals(whiteSpace)) {
-            value = value.trim().replaceAll("\\s+", " ");
-        } else if ("replace".equals(whiteSpace)) {
-            value = value.replaceAll("[\\t\\n\\r]", " ");
-        }
-
+    private ValidationResult validateWithFacets(String _value) {
         return ValidationResult.valid();
     }
 

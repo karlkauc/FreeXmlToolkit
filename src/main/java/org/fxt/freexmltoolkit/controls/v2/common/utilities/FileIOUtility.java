@@ -26,7 +26,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.regex.Pattern;
 
 /**
  * Unified file I/O utility for common file operations.
@@ -39,7 +38,6 @@ import java.util.regex.Pattern;
  */
 public class FileIOUtility {
     private static final Logger logger = LogManager.getLogger(FileIOUtility.class);
-    private static final Pattern INDENT_PATTERN = Pattern.compile("^( {2})", Pattern.MULTILINE);
 
     private FileIOUtility() {
         // Utility class - no instantiation

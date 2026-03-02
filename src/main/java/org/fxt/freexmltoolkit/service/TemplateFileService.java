@@ -151,7 +151,7 @@ public class TemplateFileService {
      */
     public XmlTemplate loadTemplateFromFile(Path filePath) throws IOException {
         Properties props = new Properties();
-        String content = "";
+        String content;
 
         try (BufferedReader reader = Files.newBufferedReader(filePath)) {
             String line;

@@ -167,7 +167,6 @@ public class JsonService {
             if (!inString && Character.isLetter(c) || c == '_' || c == '$') {
                 // Collect the identifier
                 StringBuilder key = new StringBuilder();
-                int start = i;
                 while (i < json.length() && (Character.isLetterOrDigit(json.charAt(i)) ||
                         json.charAt(i) == '_' || json.charAt(i) == '$')) {
                     key.append(json.charAt(i));

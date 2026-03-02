@@ -26,8 +26,6 @@ public class XslFoCompletionProvider implements CompletionProvider {
 
     private static final Logger logger = LogManager.getLogger(XslFoCompletionProvider.class);
 
-    private static final String FO_NS = "http://www.w3.org/1999/XSL/Format";
-
     // XSL-FO elements
     private static final String[] FO_ELEMENTS = {
         // Root and structure
@@ -386,7 +384,7 @@ public class XslFoCompletionProvider implements CompletionProvider {
     /**
      * Gets description for an attribute.
      */
-    private String getAttributeDescription(String element, String attribute) {
+    private String getAttributeDescription(String _element, String attribute) {
         if ("master-reference".equals(attribute) || "master-name".equals(attribute)) {
             return "Reference to page master";
         } else if ("flow-name".equals(attribute) || "region-name".equals(attribute)) {

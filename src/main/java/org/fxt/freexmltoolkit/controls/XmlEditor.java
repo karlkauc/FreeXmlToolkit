@@ -100,7 +100,6 @@ public class XmlEditor extends Tab {
 
     private PopOver hoverPopOver;
     private final Label popOverLabel = new Label();
-    private final PauseTransition hoverDelay = new PauseTransition(Duration.millis(500));
 
 
     // --- Sidebar Components ---
@@ -888,60 +887,6 @@ public class XmlEditor extends Tab {
     }
 
     /**
-     * Updates the child elements list based on the current XPath using XsdDocumentationData.
-     *
-     * @param xpath The current XPath to find child elements for
-     */
-    private void updateChildElements(String xpath) {
-        if (sidebarController == null) return;
-
-        if (xsdDocumentationData == null || xpath == null || xpath.equals("Invalid XML structure") ||
-                xpath.equals("No XML content") || xpath.equals("Unable to determine XPath")) {
-            sidebarController.setPossibleChildElements(Collections.singletonList("No XSD documentation data loaded or invalid XPath"));
-            return;
-        }
-
-        try {
-            // Look up the element information in the extendedXsdElementMap
-            XsdExtendedElement elementInfo = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
-
-            if (elementInfo == null) {
-                // Try to find a partial match or parent element
-                elementInfo = findBestMatchingElement(xpath);
-            }
-
-            if (elementInfo != null) {
-                List<String> childElements = elementInfo.getChildren();
-                if (childElements != null && !childElements.isEmpty()) {
-                    // Format child elements to show names and types for sidebar, not full XPaths
-                    List<String> formattedChildren = formatChildElementsForDisplay(childElements, true);
-                    sidebarController.setPossibleChildElements(formattedChildren);
-                } else {
-                    sidebarController.setPossibleChildElements(Collections.singletonList("No child elements defined for this element"));
-                }
-            } else {
-                // Fallback: try to find child elements using element name from xpath
-                String elementName = getElementNameFromXPath(xpath);
-                if (elementName != null) {
-                    List<String> childElements = getChildElementsFromXsdByName(elementName);
-                    if (!childElements.isEmpty()) {
-                        // Format child elements to show names and types for sidebar, not full XPaths
-                        List<String> formattedChildren = formatChildElementsForDisplay(childElements, true);
-                        sidebarController.setPossibleChildElements(formattedChildren);
-                    } else {
-                        sidebarController.setPossibleChildElements(Collections.singletonList("No child elements found for: " + elementName));
-                    }
-                } else {
-                    sidebarController.setPossibleChildElements(Collections.singletonList("Element not found in XSD"));
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Error getting child elements from XSD documentation data", e);
-            sidebarController.setPossibleChildElements(Collections.singletonList("Error: " + e.getMessage()));
-        }
-    }
-
-    /**
      * Formats child element XPaths for display in the sidebar.
      * Extracts element name and type information instead of showing full XPath.
      *
@@ -1357,55 +1302,6 @@ public class XmlEditor extends Tab {
         return XmlValidationHelper.extractContextElementNamesFromXsd(xsdFile);
     }
 
-    private void applyStyles() {
-        if (codeArea.getText().length() >= MAX_SIZE_FOR_FORMATTING) return;
-        StyleSpans<Collection<String>> syntaxHighlighting = org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter.computeHighlighting(codeArea.getText());
-        codeArea.setStyleSpans(0, syntaxHighlighting);
-    }
-
-    /**
-     * Updates element information using XSD-based implementation for better accuracy.
-     * This method tries to get the current element name and type from the XSD schema.
-     *
-     * @param caretPosition The current cursor position
-     */
-    private void updateElementInfoFromXsd(int caretPosition) {
-        try {
-            // Get the current XPath position in the XML
-            String currentXPath = getCurrentXPath(codeArea.getText(), caretPosition);
-
-            if (xsdDocumentationData != null && currentXPath != null && !currentXPath.isEmpty()) {
-                // Look up the element information in the extendedXsdElementMap
-                XsdExtendedElement elementInfo = xsdDocumentationData.getExtendedXsdElementMap().get(currentXPath);
-
-                if (elementInfo == null) {
-                    // Try to find a partial match or parent element
-                    elementInfo = findBestMatchingElement(currentXPath);
-                }
-
-                if (elementInfo != null) {
-                    // Update sidebar with XSD-based information
-                    sidebarController.setElementName(elementInfo.getElementName());
-                    sidebarController.setElementType(elementInfo.getElementType() != null ? elementInfo.getElementType() : "");
-                    return;
-                }
-            }
-
-            // Fallback to manual parsing if XSD data is not available
-            ElementInfo fallbackInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
-            sidebarController.setElementName(fallbackInfo.name);
-            sidebarController.setElementType(fallbackInfo.type);
-
-        } catch (Exception e) {
-            logger.debug("Error getting element info from XSD: {}", e.getMessage());
-            // Fallback to manual parsing
-            ElementInfo elementInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
-            sidebarController.setElementName(elementInfo.name);
-            sidebarController.setElementType(elementInfo.type);
-        }
-    }
-
-
     /**
      * Extracts element name by analyzing the text around the cursor position.
      * This method finds the innermost/current XML node, not just the root element.
@@ -1475,18 +1371,6 @@ public class XmlEditor extends Tab {
 
     private enum TagType {
         OPEN, CLOSE, SELF_CLOSING
-    }
-
-    /**
-     * Updates element documentation using XSD documentation data.
-     *
-     * @param caretPosition The current cursor position
-     */
-    private void updateElementDocumentation(int caretPosition) {
-        if (xmlFile == null) return;
-
-        // Use XSD documentation data directly
-        tryXsdDocumentationFallback(caretPosition);
     }
 
     /**
@@ -1718,61 +1602,6 @@ public class XmlEditor extends Tab {
     }
 
     /**
-     * Extracts documentation for a specific element from the XSD schema.
-     *
-     * @param elementName The name of the element to find documentation for
-     * @return The documentation string or null if not found
-     */
-    private String extractDocumentationFromXsd(String elementName) {
-        if (xsdFile == null || !xsdFile.exists() || elementName == null || elementName.isEmpty()) {
-            return null;
-        }
-
-        try {
-            DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document xsdDoc = builder.parse(xsdFile);
-
-            // Look for element documentation in various locations using Saxon XPath 3.1
-            String[] xpathQueries = {
-                    "//xs:element[@name='" + elementName + "']/xs:annotation/xs:documentation",
-                    "//xsd:element[@name='" + elementName + "']/xsd:annotation/xsd:documentation",
-                    "//element[@name='" + elementName + "']/annotation/documentation",
-                    // Also check complexTypes and simpleTypes that might be referenced
-                    "//xs:complexType[@name='" + elementName + "']/xs:annotation/xs:documentation",
-                    "//xsd:complexType[@name='" + elementName + "']/xsd:annotation/xsd:documentation",
-                    "//xs:simpleType[@name='" + elementName + "']/xs:annotation/xs:documentation",
-                    "//xsd:simpleType[@name='" + elementName + "']/xsd:annotation/xsd:documentation"
-            };
-
-            for (String query : xpathQueries) {
-                List<XdmNode> nodes = SaxonXPathHelper.evaluateNodes(xsdDoc, query, SaxonXPathHelper.XSD_NAMESPACES);
-                if (!nodes.isEmpty()) {
-                    StringBuilder documentation = new StringBuilder();
-                    for (XdmNode node : nodes) {
-                        String content = SaxonXPathHelper.getTextContent(node);
-                        if (content != null && !content.trim().isEmpty()) {
-                            if (documentation.length() > 0) {
-                                documentation.append("\n\n");
-                            }
-                            documentation.append(content.trim());
-                        }
-                    }
-                    if (documentation.length() > 0) {
-                        return documentation.toString();
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            logger.debug("Error parsing XSD for documentation: {}", e.getMessage());
-        }
-
-        return null;
-    }
-
-    /**
      * Loads XSD documentation data asynchronously to avoid blocking the UI.
      */
     private void loadXsdDocumentationDataAsync() {
@@ -1827,58 +1656,6 @@ public class XmlEditor extends Tab {
     private void updateDocumentationDisplay(String documentation) {
         if (sidebarController != null) {
             sidebarController.setDocumentation(documentation);
-        }
-    }
-
-    /**
-     * Updates the example values display in the sidebar.
-     *
-     * @param exampleValues The list of example values to display
-     */
-    private void updateExampleValuesDisplay(List<String> exampleValues) {
-        if (sidebarController != null) {
-            sidebarController.setExampleValues(exampleValues);
-        }
-    }
-
-    /**
-     * Updates example values based on the current XPath and XSD schema.
-     *
-     * @param xpath The current XPath to find example values for
-     */
-    private void updateExampleValuesFromXsd(String xpath) {
-        if (sidebarController == null) return;
-        
-        if (xsdFile == null || xpath == null || xpath.equals("Invalid XML structure") ||
-                xpath.equals("No XML content") || xpath.equals("Unable to determine XPath")) {
-            sidebarController.setExampleValues(Collections.singletonList("No XSD schema loaded"));
-            return;
-        }
-
-        try {
-            // Get the current element name from XPath
-            String[] pathParts = xpath.split("/");
-            if (pathParts.length == 0) {
-                sidebarController.setExampleValues(Collections.singletonList("No element selected"));
-                return;
-            }
-
-            String currentElementName = pathParts[pathParts.length - 1];
-            if (currentElementName.isEmpty()) {
-                sidebarController.setExampleValues(Collections.singletonList("No element selected"));
-                return;
-            }
-
-            // Extract example values from XSD
-            List<String> exampleValues = getExampleValuesFromXsd(currentElementName);
-            if (exampleValues.isEmpty()) {
-                sidebarController.setExampleValues(Collections.singletonList("No example values found for: " + currentElementName));
-            } else {
-                sidebarController.setExampleValues(exampleValues);
-            }
-        } catch (Exception e) {
-            logger.error("Error getting example values", e);
-            sidebarController.setExampleValues(Collections.singletonList("Error: " + e.getMessage()));
         }
     }
 
@@ -1943,11 +1720,6 @@ public class XmlEditor extends Tab {
         }
 
         return exampleValues;
-    }
-
-    private void showPopOver() {
-        Point2D screenPos = codeArea.localToScreen(codeArea.getCaretBounds().get().getMaxX(), codeArea.getCaretBounds().get().getMaxY());
-        hoverPopOver.show(codeArea.getScene().getWindow(), screenPos.getX(), screenPos.getY() + 5);
     }
 
     /**

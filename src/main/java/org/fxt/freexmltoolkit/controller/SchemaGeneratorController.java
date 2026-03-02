@@ -220,7 +220,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
     private List<TypeDefinition> allTypeDefinitions = new ArrayList<>();
 
     @FXML
-    private void initialize() {
+    public void initialize() {
         logger.info("Initializing Intelligent Schema Generator Controller - Revolutionary Feature #3");
 
         initializeUI();
@@ -736,7 +736,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
     }
 
     @FXML
-    private void exportSchema() {
+    public void exportSchema() {
         if (lastResult == null || xsdOutputArea == null) {
             showAlert("No Schema", "Please generate a schema first.");
             return;
@@ -766,7 +766,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
     }
 
     @FXML
-    private void copyXsd() {
+    public void copyXsd() {
         if (xsdOutputArea != null && !xsdOutputArea.getText().isEmpty()) {
             Toolkit.getDefaultToolkit().getSystemClipboard()
                     .setContents(new StringSelection(xsdOutputArea.getText()), null);
@@ -775,7 +775,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
     }
 
     @FXML
-    private void loadXml() {
+    public void loadXml() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Load XML File");
         fileChooser.getExtensionFilters().addAll(
@@ -801,7 +801,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
     }
 
     @FXML
-    private void pasteXml() {
+    public void pasteXml() {
         try {
             String clipboardContent = (String) Toolkit.getDefaultToolkit()
                     .getSystemClipboard().getData(java.awt.datatransfer.DataFlavor.stringFlavor);
@@ -815,16 +815,10 @@ public class SchemaGeneratorController implements FavoritesParentController {
     }
 
     @FXML
-    private void clearXml() {
+    public void clearXml() {
         if (xmlInputArea != null) {
             xmlInputArea.clear();
         }
-    }
-
-    @FXML
-    private void batchProcess() {
-        // Feature not yet implemented - button is disabled in initializeUI()
-        logger.debug("Batch processing requested but feature is not yet implemented");
     }
 
     private void filterTypeDefinitions() {
@@ -1040,7 +1034,7 @@ public class SchemaGeneratorController implements FavoritesParentController {
      * Shows help dialog.
      */
     @FXML
-    private void showHelp() {
+    public void showHelp() {
         var features = java.util.List.of(
                 new String[]{"bi-diagram-3", "Smart Type Inference", "Automatically detects and infers XSD types from your XML data"},
                 new String[]{"bi-box-seam", "Complex Type Generation", "Generates complex types with proper structure and constraints"},

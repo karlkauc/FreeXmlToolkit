@@ -47,8 +47,6 @@ import java.util.Optional;
 public class XsdPropertiesPanelDocumentationHelper {
     private static final Logger logger = LogManager.getLogger(XsdPropertiesPanelDocumentationHelper.class);
 
-    private final XsdEditorContext editorContext;
-    private XsdNode currentNode;
     private boolean isEditMode;
 
     /**
@@ -56,9 +54,7 @@ public class XsdPropertiesPanelDocumentationHelper {
      *
      * @param editorContext the editor context
      */
-    public XsdPropertiesPanelDocumentationHelper(XsdEditorContext editorContext) {
-        this.editorContext = editorContext;
-        this.currentNode = null;
+    public XsdPropertiesPanelDocumentationHelper(XsdEditorContext _editorContext) {
         this.isEditMode = false;
     }
 
@@ -68,8 +64,7 @@ public class XsdPropertiesPanelDocumentationHelper {
      * @param node the current node
      * @param editMode whether in edit mode
      */
-    public void setContext(XsdNode node, boolean editMode) {
-        this.currentNode = node;
+    public void setContext(XsdNode _node, boolean editMode) {
         this.isEditMode = editMode;
     }
 

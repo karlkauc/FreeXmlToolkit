@@ -190,7 +190,7 @@ public class TemplateParameter {
         return errors;
     }
 
-    private List<String> validateString(String value) {
+    private List<String> validateString(String _value) {
         List<String> errors = new ArrayList<>();
         // String-specific validation can be added here
         return errors;

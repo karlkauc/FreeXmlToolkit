@@ -269,7 +269,7 @@ public class XmlSpreadsheetConverterService {
                 Element element = (Element) node;
 
                 // Add element itself
-                String elementValue = "";
+                String elementValue;
                 boolean hasOnlyTextChild = hasOnlyTextContent(element);
                 boolean hasOnlyCDataChild = hasOnlyCDataContent(element);
 
@@ -537,7 +537,7 @@ public class XmlSpreadsheetConverterService {
     /**
      * Reads data from Excel sheet
      */
-    private void readExcelSheet(Sheet sheet, List<RowData> rows, ConversionConfig config) {
+    private void readExcelSheet(Sheet sheet, List<RowData> rows, ConversionConfig _config) {
         boolean hasTypeColumn = false;
 
         // Check header to determine if type column exists

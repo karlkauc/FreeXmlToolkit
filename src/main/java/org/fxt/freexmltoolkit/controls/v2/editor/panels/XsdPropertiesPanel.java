@@ -326,7 +326,7 @@ public class XsdPropertiesPanel extends BorderPane {
         grid.add(new Label("Version:"), 0, row);
         schemaVersionLabel = new Label("-");
         schemaVersionLabel.setStyle("-fx-text-fill: #666666;");
-        grid.add(schemaVersionLabel, 1, row++);
+        grid.add(schemaVersionLabel, 1, row);
 
         TitledPane pane = new TitledPane("Schema Information", grid);
         pane.setExpanded(true);
@@ -369,7 +369,7 @@ public class XsdPropertiesPanel extends BorderPane {
         typeIcon.setStyle("-fx-icon-color: #666666;");
 
         typeBox.getChildren().addAll(typeComboBox, typeIcon);
-        grid.add(typeBox, 1, row++);
+        grid.add(typeBox, 1, row);
 
         // Setup autocomplete for type combobox
         setupTypeComboBoxAutoComplete();
@@ -408,7 +408,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Unbounded checkbox
         unboundedCheckBox = new CheckBox("Unbounded");
-        grid.add(unboundedCheckBox, 1, row++);
+        grid.add(unboundedCheckBox, 1, row);
 
         TitledPane titledPane = new TitledPane("Cardinality", grid);
         titledPane.setExpanded(true);
@@ -479,7 +479,7 @@ public class XsdPropertiesPanel extends BorderPane {
         grid.add(new Label("Substitution Group:"), 0, row);
         substitutionGroupField = new TextField();
         substitutionGroupField.setPromptText("Element name");
-        grid.add(substitutionGroupField, 1, row++);
+        grid.add(substitutionGroupField, 1, row);
 
         TitledPane titledPane = new TitledPane("Advanced", grid);
         titledPane.setExpanded(false);
@@ -1265,7 +1265,7 @@ public class XsdPropertiesPanel extends BorderPane {
         Object modelObject = currentNode.getModelObject();
 
         // Get current type from model
-        String currentType = null;
+        String currentType;
         if (modelObject instanceof XsdElement element) {
             currentType = element.getType();
         } else if (modelObject instanceof XsdAttribute attribute) {
@@ -1797,26 +1797,6 @@ public class XsdPropertiesPanel extends BorderPane {
     }
 
     /**
-     * Handles changes to the appinfo field.
-     */
-    private void handleAppinfoChange() {
-        if (currentNode == null || currentNode.getModelObject() == null) {
-            return;
-        }
-
-        String newAppinfo = appinfoArea.getText();
-        XsdNode node = (XsdNode) currentNode.getModelObject();
-        String currentAppinfo = node.getAppinfoAsString();
-
-        // Only create command if value actually changed
-        if (!java.util.Objects.equals(newAppinfo, currentAppinfo)) {
-            ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, node, newAppinfo);
-            editorContext.getCommandManager().executeCommand(command);
-            logger.debug("Executed ChangeAppinfoCommand");
-        }
-    }
-
-    /**
      * Handles changes to constraint checkboxes (nillable, abstract, fixed).
      */
     private void handleConstraintsChange() {
@@ -1868,7 +1848,7 @@ public class XsdPropertiesPanel extends BorderPane {
         Object modelObject = currentNode.getModelObject();
 
         // Get current form from model
-        String currentForm = null;
+        String currentForm;
         if (modelObject instanceof XsdElement element) {
             currentForm = element.getForm();
         } else if (modelObject instanceof XsdAttribute attribute) {

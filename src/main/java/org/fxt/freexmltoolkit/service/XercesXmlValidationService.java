@@ -62,8 +62,6 @@ public class XercesXmlValidationService implements XmlValidationService {
     private static final String XERCES_CTA_FULL_XPATH_CHECKING =
             "http://apache.org/xml/features/validation/cta-full-xpath-checking";
     private static final String XSD_11_NAMESPACE = "http://www.w3.org/XML/XMLSchema/v1.1";
-    private static final String XSD_11_VERSION = "http://www.w3.org/2009/XMLSchema/XMLSchema.xsd";
-    private static final String XSD_10_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
 
     private final SchemaFactory schemaFactory10;
     private final SchemaFactory schemaFactory11;

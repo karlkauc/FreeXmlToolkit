@@ -6,8 +6,6 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Analyzes XML text to determine the context at a specific cursor position.
@@ -18,11 +16,6 @@ import java.util.regex.Pattern;
 public class ContextAnalyzer {
 
     private static final Logger logger = LogManager.getLogger(ContextAnalyzer.class);
-
-    // Regex patterns for XML parsing
-    private static final Pattern OPENING_TAG_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:-]*)([^/>]*)(?<!/)>");
-    private static final Pattern CLOSING_TAG_PATTERN = Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:-]*)>");
-    private static final Pattern ELEMENT_NAME_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:-]*)");
 
     private ContextAnalyzer() {
         // Utility class - no instantiation
@@ -203,7 +196,7 @@ public class ContextAnalyzer {
     /**
      * Determines the context type at the cursor position.
      */
-    private static ContextType determineContextType(String textBeforeCaret, int caretPosition) {
+    private static ContextType determineContextType(String textBeforeCaret, int _caretPosition) {
         // Check if we just typed '<' for element completion
         if (textBeforeCaret.endsWith("<")) {
             return ContextType.ELEMENT;

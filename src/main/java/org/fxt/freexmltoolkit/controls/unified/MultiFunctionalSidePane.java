@@ -1155,12 +1155,9 @@ public class MultiFunctionalSidePane extends VBox {
             return "/";
         }
 
-        StringBuilder xpath = new StringBuilder("/");
         java.util.List<String> pathParts = new java.util.ArrayList<>();
 
-        int depth = 0;
         int i = 0;
-        String currentTag = null;
 
         while (i < position && i < content.length()) {
             if (content.charAt(i) == '<') {
@@ -1176,17 +1173,12 @@ public class MultiFunctionalSidePane extends VBox {
                     if (!pathParts.isEmpty()) {
                         pathParts.remove(pathParts.size() - 1);
                     }
-                    depth--;
                 } else if (!tagContent.endsWith("/")) {
                     // Opening tag (not self-closing)
                     String tagName = tagContent.split("\\s")[0];
                     pathParts.add(tagName);
-                    currentTag = tagName;
-                    depth++;
                 } else {
                     // Self-closing tag
-                    String tagName = tagContent.replace("/", "").split("\\s")[0];
-                    currentTag = tagName;
                 }
 
                 i = tagEnd;
@@ -1244,26 +1236,6 @@ public class MultiFunctionalSidePane extends VBox {
         String tagName = tagContent.split("\\s")[0].replace("/", "");
 
         return new ElementInfo(tagName, null);
-    }
-
-    /**
-     * Gets documentation for an element from XSD data.
-     */
-    private String getDocumentationForElement(org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdData, String elementName) {
-        if (xsdData == null || elementName == null) {
-            return null;
-        }
-
-        // Try to get documentation from XSD element map
-        var elementMap = xsdData.getExtendedXsdElementMap();
-        if (elementMap != null && elementMap.containsKey(elementName)) {
-            var element = elementMap.get(elementName);
-            if (element != null) {
-                return element.getDocumentationAsHtml();
-            }
-        }
-
-        return null;
     }
 
     /**

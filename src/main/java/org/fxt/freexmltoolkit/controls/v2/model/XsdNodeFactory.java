@@ -221,13 +221,6 @@ public class XsdNodeFactory {
         return schema;
     }
 
-    /**
-     * Parses the xs:schema root element.
-     */
-    private XsdSchema parseSchema(Element schemaElement) {
-        return parseSchema(schemaElement, null, null);
-    }
-
     private XsdSchema parseSchema(Element schemaElement, Path baseDirectory, DocumentBuilderFactory factory) {
         XsdSchema schema = new XsdSchema();
 
@@ -640,47 +633,6 @@ public class XsdNodeFactory {
         }
 
         return element;
-    }
-
-    /**
-     * Parses inline complex type within an element.
-     */
-    private void parseInlineComplexType(Element complexTypeElement, XsdElement parentElement) {
-        // Parse mixed attribute
-        boolean mixed = false;
-        if (complexTypeElement.hasAttribute("mixed")) {
-            mixed = Boolean.parseBoolean(complexTypeElement.getAttribute("mixed"));
-        }
-
-        NodeList children = complexTypeElement.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
-            if (child.getNodeType() != Node.ELEMENT_NODE) {
-                continue;
-            }
-
-            Element childElement = (Element) child;
-
-            if (isXsdElement(childElement, "sequence")) {
-                XsdSequence sequence = parseSequence(childElement);
-                parentElement.addChild(sequence);
-            } else if (isXsdElement(childElement, "choice")) {
-                XsdChoice choice = parseChoice(childElement);
-                parentElement.addChild(choice);
-            } else if (isXsdElement(childElement, "all")) {
-                XsdAll all = parseAll(childElement);
-                parentElement.addChild(all);
-            } else if (isXsdElement(childElement, "attribute")) {
-                XsdAttribute attribute = parseAttribute(childElement);
-                parentElement.addChild(attribute);
-            } else if (isXsdElement(childElement, "simpleContent")) {
-                XsdSimpleContent simpleContent = parseSimpleContent(childElement);
-                parentElement.addChild(simpleContent);
-            } else if (isXsdElement(childElement, "complexContent")) {
-                XsdComplexContent complexContent = parseComplexContent(childElement);
-                parentElement.addChild(complexContent);
-            }
-        }
     }
 
     /**
@@ -1936,7 +1888,7 @@ public class XsdNodeFactory {
      * @param xsdImport the XsdImport node that triggered this import
      * @param resolvedPath the resolved path of the imported schema file
      */
-    private void mergeSchemaComponents(XsdSchema importedSchema, XsdSchema mainSchema,
+    private void mergeSchemaComponents(XsdSchema importedSchema, XsdSchema _mainSchema,
                                         XsdImport xsdImport, Path resolvedPath) {
         int taggedElements = 0;
         int taggedTypes = 0;

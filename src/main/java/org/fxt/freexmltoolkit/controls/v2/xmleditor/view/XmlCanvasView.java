@@ -81,7 +81,6 @@ public class XmlCanvasView extends Pane {
     private static final double INDENT = 20;
     private static final double CHILD_SPACING = 8;
     private static final double GRID_PADDING = 8;
-    private static final double MIN_GRID_WIDTH = 200;
     private static final double ATTR_NAME_WIDTH = 120;
     private static final double SCROLLBAR_WIDTH = 14;
 
@@ -181,8 +180,6 @@ public class XmlCanvasView extends Pane {
     // Grid frame
     private static final Color GRID_BORDER = Color.rgb(209, 213, 219);
     private static final Color GRID_HEADER_BG = Color.rgb(243, 244, 246);
-    private static final Color GRID_HEADER_TEXT = Color.rgb(55, 65, 81);
-
     // Depth-based colors (alternating)
     private static final Color[] DEPTH_COLORS = {
         Color.rgb(255, 255, 255),      // Depth 0: White
@@ -1421,7 +1418,6 @@ public class XmlCanvasView extends Pane {
         // (leaf text is shown directly in header)
         if (node.hasTextContent() && !node.isLeafWithText()) {
             drawTextContentRow(node, x, rowY, w);
-            rowY += ROW_HEIGHT;
         }
 
         // Children header - REMOVED: No longer displayed to save screen space
@@ -1537,7 +1533,6 @@ public class XmlCanvasView extends Pane {
 
         // Use calculated column widths for proper alignment
         double nameColWidth = node.getCalculatedNameColumnWidth();
-        double valueColWidth = node.getCalculatedValueColumnWidth();
 
         // Attribute name (@name)
         gc.setFont(ROW_FONT);
@@ -1567,7 +1562,6 @@ public class XmlCanvasView extends Pane {
 
         // Use calculated column widths for proper alignment
         double nameColWidth = node.getCalculatedNameColumnWidth();
-        double valueColWidth = node.getCalculatedValueColumnWidth();
 
         // Text label
         gc.setFont(ROW_FONT);
@@ -1581,21 +1575,6 @@ public class XmlCanvasView extends Pane {
             gc.setFill(TEXT_CONTENT);
             gc.fillText(node.getTextContent(), x + nameColWidth, y + ROW_HEIGHT / 2);
         }
-    }
-
-    private void drawChildrenHeader(NestedGridNode node, double x, double y, double w) {
-        // Background
-        gc.setFill(CHILDREN_HEADER_BG);
-        gc.fillRect(x + 1, y, w - 2, CHILDREN_HEADER_HEIGHT);
-
-        // Text
-        gc.setFont(SMALL_FONT);
-        gc.setFill(CHILDREN_HEADER_TEXT);
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-
-        String text = node.isExpanded() ? "Children:" : "Children: (collapsed)";
-        gc.fillText(text, x + GRID_PADDING, y + CHILDREN_HEADER_HEIGHT / 2);
     }
 
     private void drawElementIcon(NestedGridNode.NodeType type, double x, double y) {
@@ -1782,7 +1761,6 @@ public class XmlCanvasView extends Pane {
                 if (childGrid != null) {
                     double childX = colX + 2;
                     double childY = y + ROW_HEIGHT;  // Below the text
-                    double childW = col.getWidth() - 4;
 
                     // Size already calculated in calculateRowHeight
                     positionNodesRecursively(childGrid, childX, childY);
@@ -2494,7 +2472,7 @@ public class XmlCanvasView extends Pane {
 
     // ==================== Event Handlers ====================
 
-    private void onDocumentChanged(PropertyChangeEvent evt) {
+    private void onDocumentChanged(PropertyChangeEvent _evt) {
         cancelEditing();
         rebuildTree();
     }
@@ -2643,31 +2621,6 @@ public class XmlCanvasView extends Pane {
             String xml = context.serializeToString();
             onDocumentModified.accept(xml);
         }
-    }
-
-    /**
-     * Navigate to a node (used by breadcrumb clicks).
-     */
-    private void navigateToNode(XmlNode node) {
-        if (rootNode != null && node != null) {
-            NestedGridNode found = rootNode.findByModel(node);
-            if (found != null) {
-                selectNode(found);
-                ensureNodeVisible(found);
-            }
-        }
-    }
-
-    private int countElements(NestedGridNode node) {
-        if (node == null) return 0;
-        int count = 1;  // This node
-        for (NestedGridNode child : node.getChildren()) {
-            count += countElements(child);
-        }
-        for (RepeatingElementsTable table : node.getRepeatingTables()) {
-            count += table.getElementCount();
-        }
-        return count;
     }
 
     // ==================== Public API ====================

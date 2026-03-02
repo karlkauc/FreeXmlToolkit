@@ -55,9 +55,6 @@ public class XsdVisualTreeBuilder {
     /** Maximum depth for visual tree to prevent extremely deep trees */
     private static final int MAX_DEPTH = 30;
 
-    /** Maximum number of children per node before truncation */
-    private static final int MAX_CHILDREN_PER_NODE = 200;
-
     /**
      * Static cache for type indexes per schema.
      * Key: Schema identity hash code (System.identityHashCode)
@@ -254,8 +251,6 @@ public class XsdVisualTreeBuilder {
             } else {
                 // Build and cache indexes for imported schema
                 logger.info("Indexing imported schema: namespace='{}'", namespace);
-                int typesBefore = typeIndex.size();
-                int elementsBefore = globalElementIndex.size();
                 buildTypeIndex(importedSchema);
                 buildGlobalElementIndex(importedSchema);
 
@@ -582,7 +577,7 @@ public class XsdVisualTreeBuilder {
      * Process complex type for lazy loading, adding children to the provided list.
      */
     private void processComplexTypeForLazyLoad(XsdComplexType complexType, VisualNode parentNode,
-                                                Set<String> visitedTypes, Set<String> visitedElements,
+                                                Set<String> visitedTypes, Set<String> _visitedElements,
                                                 java.util.List<VisualNode> children) {
         Set<String> localVisitedElements = new HashSet<>();
 
@@ -610,7 +605,7 @@ public class XsdVisualTreeBuilder {
     /**
      * Resolve element reference for lazy loading.
      */
-    private void resolveElementReferenceForLazyLoad(String ref, VisualNode parentNode, XsdElement element,
+    private void resolveElementReferenceForLazyLoad(String ref, VisualNode parentNode, XsdElement _element,
                                                      Set<String> visitedTypes, Set<String> visitedElements,
                                                      java.util.List<VisualNode> children) {
         // Strip namespace prefix if present
@@ -636,7 +631,7 @@ public class XsdVisualTreeBuilder {
     /**
      * Resolve type reference for lazy loading.
      */
-    private void resolveTypeReferenceForLazyLoad(String typeName, VisualNode parentNode, XsdElement element,
+    private void resolveTypeReferenceForLazyLoad(String typeName, VisualNode parentNode, XsdElement _element,
                                                   Set<String> visitedTypes, Set<String> visitedElements,
                                                   java.util.List<VisualNode> children) {
         if (visitedTypes.contains(typeName)) {
@@ -659,8 +654,8 @@ public class XsdVisualTreeBuilder {
      * Process simple content for lazy loading.
      */
     private void processSimpleContentForLazyLoad(org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent,
-                                                  VisualNode parentNode, Set<String> visitedTypes,
-                                                  Set<String> visitedElements, java.util.List<VisualNode> children) {
+                                                  VisualNode parentNode, Set<String> _visitedTypes,
+                                                  Set<String> _visitedElements, java.util.List<VisualNode> children) {
         for (XsdNode child : simpleContent.getChildren()) {
             if (child instanceof XsdExtension extension) {
                 for (XsdNode extChild : extension.getChildren()) {
@@ -721,7 +716,7 @@ public class XsdVisualTreeBuilder {
      * @param visitedTypes set of type names currently being processed (to prevent circular type references)
      * @param visitedElements set of element IDs from parent context (not used internally, kept for signature compatibility)
      */
-    private void processComplexType(XsdComplexType complexType, VisualNode parentNode, Set<String> visitedTypes, Set<String> visitedElements) {
+    private void processComplexType(XsdComplexType complexType, VisualNode parentNode, Set<String> visitedTypes, Set<String> _visitedElements) {
         logger.debug("Processing complexType with {} children", complexType.getChildren().size());
 
         // Create a fresh visitedElements set for this type instance
@@ -876,7 +871,7 @@ public class XsdVisualTreeBuilder {
             current = current.getParent();
         }
 
-        if (!(current instanceof XsdSchema schema)) {
+        if (!(current instanceof XsdSchema)) {
             logger.warn("Cannot resolve type '{}': schema root not found", typeName);
             return;
         }
@@ -1036,7 +1031,7 @@ public class XsdVisualTreeBuilder {
      * @param visitedElements set of visited element IDs
      */
     private void processSimpleContent(org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent,
-                                     VisualNode parentNode, Set<String> visitedTypes, Set<String> visitedElements) {
+                                     VisualNode parentNode, Set<String> _visitedTypes, Set<String> _visitedElements) {
         // SimpleContent contains either extension or restriction
         for (XsdNode child : simpleContent.getChildren()) {
             if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdExtension extension) {

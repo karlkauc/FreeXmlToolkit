@@ -76,7 +76,6 @@ public class XsdValidationController implements FavoritesParentController {
     private final FileChooser xsdFileChooser = new FileChooser();
     private final FileChooser excelFileChooser = new FileChooser();
     private List<SAXParseException> validationErrors;
-    private MainController parentController;
 
     // Enum for single file validation status display
     private enum SingleFileValidationStatus {SUCCESS, ERROR, READY}
@@ -195,7 +194,7 @@ public class XsdValidationController implements FavoritesParentController {
      * @param parentController the parent controller
      */
     public void setParentController(MainController parentController) {
-        this.parentController = parentController;
+        // Parent controller reference stored for potential future use
     }
 
     /**
@@ -218,7 +217,7 @@ public class XsdValidationController implements FavoritesParentController {
      * Initializes the controller and sets up the file choosers and event handlers.
      */
     @FXML
-    private void initialize() {
+    public void initialize() {
         Path path = FileSystems.getDefault().getPath(".");
         xmlFileChooser.setInitialDirectory(path.toFile());
         xsdFileChooser.setInitialDirectory(path.toFile());
@@ -1353,7 +1352,7 @@ public class XsdValidationController implements FavoritesParentController {
                 });
 
                 // Determine XSD to use
-                File xsdToUse = null;
+                File xsdToUse;
                 if (sameXsdRadio != null && sameXsdRadio.isSelected()) {
                     xsdToUse = batchXsdFile;
                 } else {

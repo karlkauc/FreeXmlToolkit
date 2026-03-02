@@ -38,7 +38,6 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.TemplateEngine;
 import org.fxt.freexmltoolkit.service.TemplateRepository;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
@@ -71,8 +70,6 @@ public class TemplatesController {
 
     // Revolutionary Services
     private final TemplateRepository templateRepository = TemplateRepository.getInstance();
-    private final TemplateEngine templateEngine = TemplateEngine.getInstance();
-
     // Background processing
     private final ExecutorService executorService = Executors.newCachedThreadPool(runnable -> {
         Thread t = new Thread(runnable);
@@ -148,7 +145,7 @@ public class TemplatesController {
     private final Map<String, String> currentParameterValues = new HashMap<>();
 
     @FXML
-    private void initialize() {
+    public void initialize() {
         logger.info("Initializing Smart Templates Controller - Revolutionary Feature #4");
 
         initializeUI();
@@ -265,7 +262,7 @@ public class TemplatesController {
     }
 
     @FXML
-    private void onTemplateSelected() {
+    public void onTemplateSelected() {
         XmlTemplate selected = templatesListView.getSelectionModel().getSelectedItem();
         if (selected != null) {
             selectedTemplate = selected;
@@ -407,7 +404,7 @@ public class TemplatesController {
     }
 
     @FXML
-    private void applySelectedTemplate() {
+    public void applySelectedTemplate() {
         if (selectedTemplate != null) {
             Task<String> applyTask = new Task<>() {
                 @Override
@@ -446,7 +443,7 @@ public class TemplatesController {
     }
 
     @FXML
-    private void previewSelectedTemplate() {
+    public void previewSelectedTemplate() {
         generatePreview();
     }
 
@@ -518,7 +515,7 @@ public class TemplatesController {
     }
 
     @FXML
-    private void resetParameters() {
+    public void resetParameters() {
         if (selectedTemplate != null) {
             updateParametersTable();
             generatePreview();
@@ -526,7 +523,7 @@ public class TemplatesController {
     }
 
     @FXML
-    private void copyToClipboard() {
+    public void copyToClipboard() {
         if (xmlPreviewArea != null && !xmlPreviewArea.getText().isEmpty()) {
             Toolkit.getDefaultToolkit().getSystemClipboard()
                     .setContents(new StringSelection(xmlPreviewArea.getText()), null);
@@ -535,12 +532,12 @@ public class TemplatesController {
     }
 
     @FXML
-    private void refreshTemplates() {
+    public void refreshTemplates() {
         loadTemplates();
     }
 
     @FXML
-    private void createTemplate() {
+    public void createTemplate() {
         try {
             // Show template creation dialog
             showCreateTemplateDialog();
@@ -714,7 +711,7 @@ public class TemplatesController {
      * Shows help dialog.
      */
     @FXML
-    private void showHelp() {
+    public void showHelp() {
         var features = java.util.List.of(
                 new String[]{"bi-file-earmark-text", "Template Management", "Create, edit, and organize your XML templates"},
                 new String[]{"bi-lightning", "Quick Generation", "Generate XML documents from templates with custom parameters"},

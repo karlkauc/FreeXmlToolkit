@@ -256,7 +256,7 @@ public class XPathParser {
             }
 
             // Navigate through the path, creating elements as needed
-            currentElement = navigateToElement(doc, currentElement, components, value, nodeType);
+            navigateToElement(doc, currentElement, components, value, nodeType);
 
         } catch (Exception e) {
             logger.error("Error creating node from XPath '{}': {}", xpath, e.getMessage(), e);
@@ -267,7 +267,7 @@ public class XPathParser {
      * Navigates to the target element, creating intermediate elements as needed
      */
     private Element navigateToElement(Document doc, Element startElement, List<XPathComponent> components,
-                                      String value, String nodeType) {
+                                      String value, String _nodeType) {
         Element currentElement = startElement;
 
         for (int i = 0; i < components.size(); i++) {

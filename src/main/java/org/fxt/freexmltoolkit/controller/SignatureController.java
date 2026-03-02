@@ -124,18 +124,16 @@ public class SignatureController {
     // Additional files for expert mode
     private File expertXmlFile, expertKeystoreFile, expertValidateFile;
 
-    private MainController parentController;
-
     /**
      * Sets the parent controller for navigation and coordination.
      *
-     * <p>This method establishes the connection to the main application controller,
-     * allowing this controller to communicate with other parts of the application.</p>
+     * <p>This method is called from MainController but the reference is currently unused.
+     * Kept for API compatibility.</p>
      *
-     * @param parentController the main controller instance
+     * @param _parentController the main controller instance (currently unused)
      */
-    public void setParentController(MainController parentController) {
-        this.parentController = parentController;
+    public void setParentController(MainController _parentController) {
+        // Currently unused - kept for API compatibility with MainController
     }
 
     /**
@@ -157,7 +155,7 @@ public class SignatureController {
     }
 
     @FXML
-    private void initialize() {
+    public void initialize() {
         if (new File("certs").exists()) {
             fileChooserCertificate.setInitialDirectory(new File("certs"));
         }
@@ -472,14 +470,14 @@ public class SignatureController {
         event.consume();
     }
 
-    private void handleXmlOnAction(ActionEvent e) {
+    private void handleXmlOnAction(ActionEvent _e) {
         File file = fileChooserXMl.showOpenDialog(null);
         if (file != null) {
             updateXmlFile(file);
         }
     }
 
-    private void handleKeystoreOnAction(ActionEvent e) {
+    private void handleKeystoreOnAction(ActionEvent _e) {
         File file = fileChooserCertificate.showOpenDialog(null);
         if (file != null) {
             updateKeystoreFile(file);
@@ -518,21 +516,21 @@ public class SignatureController {
     }
 
     // Expert Mode Event Handlers
-    private void handleExpertXmlOnAction(ActionEvent e) {
+    private void handleExpertXmlOnAction(ActionEvent _e) {
         File file = fileChooserXMl.showOpenDialog(null);
         if (file != null) {
             updateExpertXmlFile(file);
         }
     }
 
-    private void handleExpertKeystoreOnAction(ActionEvent e) {
+    private void handleExpertKeystoreOnAction(ActionEvent _e) {
         File file = fileChooserCertificate.showOpenDialog(null);
         if (file != null) {
             updateExpertKeystoreFile(file);
         }
     }
 
-    private void handleExpertValidateOnAction(ActionEvent e) {
+    private void handleExpertValidateOnAction(ActionEvent _e) {
         File file = fileChooserXMl.showOpenDialog(null);
         if (file != null) {
             updateExpertValidateFile(file);
@@ -848,7 +846,7 @@ public class SignatureController {
      * Show help dialog with instructions
      */
     @FXML
-    private void showHelp() {
+    public void showHelp() {
         var features = java.util.List.of(
                 new String[]{"bi-key", "Certificate Creation", "Generate self-signed digital certificates with RSA, DSA, EC, or ECDSA algorithms"},
                 new String[]{"bi-pen", "XML Signing", "Apply enveloped, enveloping, or detached digital signatures to XML documents"},
@@ -883,7 +881,7 @@ public class SignatureController {
      * Switch to the Create Certificate tab
      */
     @FXML
-    private void switchToCreateCertificateTab() {
+    public void switchToCreateCertificateTab() {
         if (tabPane != null) {
             tabPane.getSelectionModel().select(0); // Create Certificate is tab 0
         }
@@ -893,7 +891,7 @@ public class SignatureController {
      * Switch to the Sign XML File tab
      */
     @FXML
-    private void switchToSignTab() {
+    public void switchToSignTab() {
         if (tabPane != null) {
             tabPane.getSelectionModel().select(1); // Sign XML File is tab 1
         }
@@ -903,7 +901,7 @@ public class SignatureController {
      * Switch to the Validate Signed File tab
      */
     @FXML
-    private void switchToValidateTab() {
+    public void switchToValidateTab() {
         if (tabPane != null) {
             tabPane.getSelectionModel().select(2); // Validate is tab 2
         }
@@ -913,7 +911,7 @@ public class SignatureController {
      * Switch to the Expert Mode tab
      */
     @FXML
-    private void switchToExpertTab() {
+    public void switchToExpertTab() {
         if (tabPane != null) {
             tabPane.getSelectionModel().select(3); // Expert Mode is tab 3
         }

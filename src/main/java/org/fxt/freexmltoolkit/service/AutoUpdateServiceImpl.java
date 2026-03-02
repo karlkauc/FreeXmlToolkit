@@ -123,8 +123,8 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
         cancelRequested.set(false);
 
         return CompletableFuture.supplyAsync(() -> {
-            Path tempDir = null;
-            Path zipFile = null;
+            Path tempDir;
+            Path zipFile;
 
             // Write debug log to user's home directory (always accessible)
             Path debugLog = Path.of(System.getProperty("user.home"), "fxt-update-debug.log");

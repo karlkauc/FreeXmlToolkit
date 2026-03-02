@@ -270,7 +270,7 @@ public class XmlPropertiesPanel extends VBox {
     /**
      * Called when edit mode changes.
      */
-    private void onEditModeChanged(PropertyChangeEvent evt) {
+    private void onEditModeChanged(PropertyChangeEvent _evt) {
         updateEditability();
     }
 
@@ -495,7 +495,7 @@ public class XmlPropertiesPanel extends VBox {
     /**
      * Called when a node property changes.
      */
-    private void onNodePropertyChanged(PropertyChangeEvent evt) {
+    private void onNodePropertyChanged(PropertyChangeEvent _evt) {
         updateDisplay();
     }
 

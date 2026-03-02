@@ -408,7 +408,7 @@ public class XsdXPathValidator {
      * @param isXPath2 whether to use XPath 2.0 validation
      * @return error message or null if valid
      */
-    private String validateXPathSyntax(String xpath, boolean isXPath2) {
+    private String validateXPathSyntax(String xpath, boolean _isXPath2) {
         try {
             XPathCompiler compiler = processor.newXPathCompiler();
 

@@ -224,7 +224,7 @@ public class SchemaStatisticsView extends BorderPane {
         elementFormDefaultLabel = addStatRow(grid, "Element Form Default:", row++);
         attributeFormDefaultLabel = addStatRow(grid, "Attribute Form Default:", row++);
         namespaceCountLabel = addStatRow(grid, "Namespaces:", row++);
-        fileCountLabel = addStatRow(grid, "Schema Files:", row++);
+        fileCountLabel = addStatRow(grid, "Schema Files:", row);
 
         TitledPane pane = new TitledPane("Schema Information", grid);
         pane.setExpanded(true);
@@ -366,7 +366,7 @@ public class SchemaStatisticsView extends BorderPane {
         simpleTypesLabel = addStatRow(grid, "Simple Types:", row++);
         groupsLabel = addStatRow(grid, "Groups:", row++);
         sequencesLabel = addStatRow(grid, "Sequences:", row++);
-        choicesLabel = addStatRow(grid, "Choices:", row++);
+        choicesLabel = addStatRow(grid, "Choices:", row);
 
         TitledPane pane = new TitledPane("Node Counts", grid);
         pane.setExpanded(true);
@@ -390,7 +390,7 @@ public class SchemaStatisticsView extends BorderPane {
         withAppInfoLabel = addStatRow(grid, "Nodes with AppInfo:", row++);
         deprecatedLabel = addStatRow(grid, "@deprecated tags:", row++);
         sinceLabel = addStatRow(grid, "@since tags:", row++);
-        languagesLabel = addStatRow(grid, "Languages:", row++);
+        languagesLabel = addStatRow(grid, "Languages:", row);
 
         TitledPane pane = new TitledPane("Documentation Statistics", grid);
         pane.setExpanded(true);
@@ -425,7 +425,7 @@ public class SchemaStatisticsView extends BorderPane {
         int row = 0;
         optionalLabel = addStatRow(grid, "Optional Elements (minOccurs=0):", row++);
         requiredLabel = addStatRow(grid, "Required Elements (minOccurs≥1):", row++);
-        unboundedLabel = addStatRow(grid, "Unbounded Elements:", row++);
+        unboundedLabel = addStatRow(grid, "Unbounded Elements:", row);
 
         TitledPane pane = new TitledPane("Cardinality Statistics", grid);
         pane.setExpanded(true);
@@ -474,7 +474,7 @@ public class SchemaStatisticsView extends BorderPane {
     /**
      * Called when the schema changes.
      */
-    private void onSchemaChanged(PropertyChangeEvent evt) {
+    private void onSchemaChanged(PropertyChangeEvent _evt) {
         // Debounce - only refresh if not already loading
         if (!loadingIndicator.isVisible()) {
             Platform.runLater(this::refreshStatistics);

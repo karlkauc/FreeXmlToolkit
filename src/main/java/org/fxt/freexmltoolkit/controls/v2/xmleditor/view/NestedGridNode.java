@@ -393,18 +393,6 @@ public class NestedGridNode {
     }
 
     /**
-     * Helper method to build children with default load parameters.
-     *
-     * @param parent the parent node to add children to
-     * @param modelChildren the list of XML nodes to process
-     * @param depth the current depth level
-     * @param onLayoutChangedCallback callback to run when layout changes
-     */
-    private static void buildChildren(NestedGridNode parent, List<XmlNode> modelChildren, int depth, Runnable onLayoutChangedCallback) {
-        buildChildren(parent, modelChildren, depth, 0, MAX_INITIAL_CHILDREN, onLayoutChangedCallback);
-    }
-
-    /**
      * Builds child nodes from a list of XML nodes with pagination support.
      *
      * <p>This method handles repeating element detection, text node filtering,

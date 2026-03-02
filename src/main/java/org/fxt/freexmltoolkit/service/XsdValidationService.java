@@ -5,8 +5,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
-import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
-import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
 import org.fxt.freexmltoolkit.service.xsd.SchemaResolver;
 import org.w3c.dom.Document;
 import org.xml.sax.ErrorHandler;
@@ -72,9 +70,6 @@ public class XsdValidationService {
     // Built-in schema paths for common XML types
     private final Map<String, String> commonSchemas = new HashMap<>();
 
-    // Unified XSD parsing service
-    private final XsdParsingService xsdParsingService;
-
     /**
      * Returns the singleton instance of XsdValidationService.
      *
@@ -89,7 +84,6 @@ public class XsdValidationService {
 
     private XsdValidationService() {
         initializeCommonSchemas();
-        this.xsdParsingService = new XsdParsingServiceImpl();
         logger.info("XSD Validation Service initialized with caching enabled");
     }
 

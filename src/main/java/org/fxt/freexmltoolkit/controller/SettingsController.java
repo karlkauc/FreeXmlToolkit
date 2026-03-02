@@ -305,7 +305,7 @@ public class SettingsController {
     }
 
     @FXML
-    private void performCheck() {
+    public void performCheck() {
         logger.debug("Perform Connection Check");
 
         // Create temporary properties with current UI values
@@ -357,7 +357,7 @@ public class SettingsController {
     }
 
     @FXML
-    private void checkForUpdatesNow() {
+    public void checkForUpdatesNow() {
         logger.debug("Manual update check triggered");
         checkForUpdatesButton.setDisable(true);
         checkForUpdatesButton.setText("Checking...");
@@ -445,7 +445,7 @@ public class SettingsController {
     }
 
     @FXML
-    private void performSave() {
+    public void performSave() {
         try {
             props.setProperty("customTempFolder", customTempFolder.getText());
             props.setProperty("useCustomTempFolder", String.valueOf(useCustomTempFolder.isSelected()));
@@ -569,7 +569,7 @@ public class SettingsController {
     }
 
     @FXML
-    private void selectCustomTempFolder() {
+    public void selectCustomTempFolder() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select Custom Temporary Folder");
         File selectedDirectory = directoryChooser.showDialog(null);
@@ -603,7 +603,7 @@ public class SettingsController {
     }
 
     @FXML
-    private void loadCurrentSettings() {
+    public void loadCurrentSettings() {
         props = propertiesService.loadProperties();
 
         // Load proxy settings
@@ -791,7 +791,7 @@ public class SettingsController {
     }
 
     @FXML
-    private void openSelectedFavorite() {
+    public void openSelectedFavorite() {
         FileFavorite selectedFavorite = favoritesTable.getSelectionModel().getSelectedItem();
         if (selectedFavorite == null) {
             return;
@@ -824,7 +824,7 @@ public class SettingsController {
     }
 
     @FXML
-    private void editSelectedFavorite() {
+    public void editSelectedFavorite() {
         FileFavorite selectedFavorite = favoritesTable.getSelectionModel().getSelectedItem();
         if (selectedFavorite == null) {
             return;
@@ -878,7 +878,7 @@ public class SettingsController {
     }
 
     @FXML
-    private void removeSelectedFavorite() {
+    public void removeSelectedFavorite() {
         FileFavorite selectedFavorite = favoritesTable.getSelectionModel().getSelectedItem();
         if (selectedFavorite == null) {
             return;
@@ -900,7 +900,7 @@ public class SettingsController {
     }
 
     @FXML
-    private void removeNonExistentFavorites() {
+    public void removeNonExistentFavorites() {
         List<FileFavorite> allFavorites = favoritesService.getAllFavorites();
         List<FileFavorite> nonExistentFavorites = allFavorites.stream()
                 .filter(favorite -> !new File(favorite.getFilePath()).exists())
@@ -932,7 +932,7 @@ public class SettingsController {
     }
 
     @FXML
-    private void createNewCategory() {
+    public void createNewCategory() {
         String categoryName = newCategoryField.getText().trim();
         if (categoryName.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Invalid Category Name",
@@ -1031,7 +1031,7 @@ public class SettingsController {
      * Clears the local cache folder.
      */
     @FXML
-    private void clearCache() {
+    public void clearCache() {
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Clear Cache");
         confirmDialog.setHeaderText("Clear Local Cache?");
@@ -1093,7 +1093,7 @@ public class SettingsController {
      * Opens the cache folder in the system file explorer.
      */
     @FXML
-    private void openCacheFolder() {
+    public void openCacheFolder() {
         try {
             File cacheDir = getCacheFolder();
             if (cacheDir != null) {

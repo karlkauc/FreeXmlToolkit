@@ -17,7 +17,6 @@ public class XPathCalculator {
 
     // Cache: text hash + position -> XPathContext
     private final Map<CacheKey, XPathContext> cache;
-    private final int maxCacheSize;
 
     /**
      * Creates a new XPath calculator with default cache size (1000).
@@ -33,7 +32,6 @@ public class XPathCalculator {
      * @param maxCacheSize the maximum number of cached entries
      */
     public XPathCalculator(int maxCacheSize) {
-        this.maxCacheSize = maxCacheSize;
         // Create LRU cache using LinkedHashMap with access-order
         // accessOrder=true: ordering mode - true for access-order, false for insertion-order
         this.cache = Collections.synchronizedMap(

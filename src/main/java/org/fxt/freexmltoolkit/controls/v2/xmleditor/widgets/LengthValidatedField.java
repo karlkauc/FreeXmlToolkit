@@ -44,7 +44,6 @@ public class LengthValidatedField implements TypeAwareWidgetFactory.EditWidget {
     private final VBox container;
     private final TextField textField;
     private final Label counterLabel;
-    private final Consumer<String> onValueChange;
     private final Integer minLength;
     private final Integer maxLength;
     private final Integer exactLength;
@@ -61,7 +60,6 @@ public class LengthValidatedField implements TypeAwareWidgetFactory.EditWidget {
      */
     public LengthValidatedField(String currentValue, Consumer<String> onValueChange,
                                 Integer minLength, Integer maxLength, Integer exactLength) {
-        this.onValueChange = onValueChange;
         this.minLength = minLength;
         this.maxLength = maxLength;
         this.exactLength = exactLength;

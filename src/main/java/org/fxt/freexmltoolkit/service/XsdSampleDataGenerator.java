@@ -303,7 +303,6 @@ public class XsdSampleDataGenerator {
 
         // Determine target length for fallback
         int targetMinLen = exactLength != null ? exactLength : (minLength != null ? minLength : 1);
-        int targetMaxLen = exactLength != null ? exactLength : (maxLength != null ? maxLength : 50);
 
         // Check if pattern is too complex for Generex (may cause StackOverflowError)
         // Patterns with nested groups, lookahead/lookbehind, or recursive structures are problematic
@@ -928,7 +927,7 @@ public class XsdSampleDataGenerator {
     /**
      * Constrains a BigDecimal to have at most the specified total number of digits.
      */
-    private BigDecimal constrainToTotalDigits(BigDecimal value, int totalDigits, int fractionDigits) {
+    private BigDecimal constrainToTotalDigits(BigDecimal value, int totalDigits, int _fractionDigits) {
         String strValue = value.abs().toPlainString();
         String[] parts = strValue.split("\\.");
         int intDigits = parts[0].length();

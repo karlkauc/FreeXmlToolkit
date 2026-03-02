@@ -390,7 +390,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
     /**
      * Validates a value against type constraints.
      */
-    private ValidationResult validateValue(String value, String typeName, XsdType xsdType,
+    private ValidationResult validateValue(String value, String _typeName, XsdType xsdType,
                                            List<String> enumerationValues, Map<String, String> facets) {
         if (value == null) {
             value = "";

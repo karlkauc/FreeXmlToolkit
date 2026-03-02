@@ -17,7 +17,6 @@ public class CompletionCache {
     private static final Logger logger = LogManager.getLogger(CompletionCache.class);
 
     private final Map<CacheKey, List<CompletionItem>> cache;
-    private final int maxSize;
 
     /**
      * Creates a cache with default size (1000).
@@ -33,7 +32,6 @@ public class CompletionCache {
      * @param maxSize the maximum number of cached entries
      */
     public CompletionCache(int maxSize) {
-        this.maxSize = maxSize;
         // Create LRU cache using LinkedHashMap with access-order
         // accessOrder=true: ordering mode - true for access-order, false for insertion-order
         this.cache = Collections.synchronizedMap(

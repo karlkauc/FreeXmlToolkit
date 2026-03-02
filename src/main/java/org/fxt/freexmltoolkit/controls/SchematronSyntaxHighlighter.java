@@ -75,52 +75,6 @@ public class SchematronSyntaxHighlighter {
             "parent", "preceding", "preceding-sibling", "self"
     };
 
-    // Compiled patterns for performance
-    private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT></?\\s*[a-zA-Z][\\w:-]*(?:\\s+[^<>]*?)?>)");
-    private static final Pattern ATTRIBUTES = Pattern.compile("(?<ATTRIBUTE>\\s+[a-zA-Z][\\w:-]*\\s*=\\s*(?:\"[^\"]*\"|'[^']*'))");
-    private static final Pattern XML_COMMENT = Pattern.compile("(?<COMMENT><!--[\\s\\S]*?-->)");
-    private static final Pattern XML_DECLARATION = Pattern.compile("(?<XMLDECL><\\?xml[\\s\\S]*?\\?>)");
-    private static final Pattern CDATA = Pattern.compile("(?<CDATA><!\\[CDATA\\[[\\s\\S]*?\\]\\]>)");
-
-    // Schematron-specific patterns
-    private static final Pattern SCHEMATRON_ELEMENT_PATTERN;
-    private static final Pattern SCHEMATRON_ATTRIBUTE_PATTERN;
-    private static final Pattern XPATH_EXPRESSION_PATTERN;
-    private static final Pattern XPATH_FUNCTION_PATTERN;
-
-    static {
-        // Build Schematron element pattern
-        String elementRegex = "\\b(?:" + String.join("|", SCHEMATRON_ELEMENTS) + ")\\b";
-        SCHEMATRON_ELEMENT_PATTERN = Pattern.compile("(?<SCHELEMENT>" + elementRegex + ")");
-
-        // Build Schematron attribute pattern
-        String attributeRegex = "\\b(?:" + String.join("|", SCHEMATRON_ATTRIBUTES) + ")\\s*=";
-        SCHEMATRON_ATTRIBUTE_PATTERN = Pattern.compile("(?<SCHATTRIBUTE>" + attributeRegex + ")");
-
-        // XPath expressions in test/context attributes (simplified)
-        XPATH_EXPRESSION_PATTERN = Pattern.compile(
-                "(?<XPATH>(?:test|context|select)\\s*=\\s*[\"']([^\"']*)[\"'])"
-        );
-
-        // XPath functions
-        String functionRegex = "\\b(?:" + String.join("|", XPATH_FUNCTIONS) + ")\\s*\\(";
-        XPATH_FUNCTION_PATTERN = Pattern.compile("(?<XPATHFUNC>" + functionRegex + ")");
-    }
-
-    // Build XPath operator pattern (word boundary required for proper matching)
-    private static final Pattern XPATH_OPERATOR_PATTERN;
-    private static final Pattern XPATH_AXIS_PATTERN;
-
-    static {
-        // Build operator pattern - must be word-bounded
-        String operatorRegex = "\\b(?:" + String.join("|", XPATH_OPERATORS) + ")\\b";
-        XPATH_OPERATOR_PATTERN = Pattern.compile(operatorRegex);
-
-        // Build axis pattern - ends with ::
-        String axisRegex = "\\b(?:" + String.join("|", XPATH_AXES) + ")::";
-        XPATH_AXIS_PATTERN = Pattern.compile(axisRegex);
-    }
-
     // Master pattern combining all patterns
     private static final Pattern PATTERN = Pattern.compile(
             "(?<XMLDECL><\\?xml[\\s\\S]*?\\?>)"

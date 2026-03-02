@@ -35,8 +35,6 @@ public class XPathAnalyzer {
     private static final Pattern ELEMENT_TAG_PATTERN = Pattern.compile("<\\s*([a-zA-Z_:][a-zA-Z0-9_:.-]*)");
     private static final Pattern OPENING_TAG_PATTERN = Pattern.compile("<\\s*([a-zA-Z_:][a-zA-Z0-9_:.-]*)(?:\\s|>)");
     private static final Pattern CLOSING_TAG_PATTERN = Pattern.compile("</\\s*([a-zA-Z_:][a-zA-Z0-9_:.-]*)\\s*>");
-    private static final Pattern SELF_CLOSING_TAG_PATTERN = Pattern.compile("<\\s*([a-zA-Z_:][a-zA-Z0-9_:.-]*)(?:\\s[^>]*)?>\\s*<");
-
     private XPathAnalyzer() {
         // Utility class - no instantiation
     }

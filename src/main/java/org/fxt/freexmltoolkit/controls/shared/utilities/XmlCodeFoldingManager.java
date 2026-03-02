@@ -288,7 +288,6 @@ public class XmlCodeFoldingManager {
             collapsedText.put(line, hiddenText.toString());
 
             // Calculate positions
-            int startPos = getLineStartPosition(startLine);
             int endPos = getLineEndPosition(endLine);
 
             // Replace the content with placeholder
@@ -340,7 +339,6 @@ public class XmlCodeFoldingManager {
             int oldAnchor = codeArea.getAnchor();
             FoldingRegion region = foldingRegions.get(line);
             String text = codeArea.getText();
-            String[] lines = text.split("\n");
 
             // Find the placeholder
             String placeholder = String.format("<%s.../>", region.elementName);

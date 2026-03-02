@@ -91,9 +91,6 @@ public class FavoritesPanelController implements Initializable {
     private ObservableList<FileFavorite> allFavorites;
     private ObservableList<FileFavorite> filteredFavorites;
 
-    // Drag and Drop support
-    private static final DataFormat FAVORITE_DATA_FORMAT = new DataFormat("application/x-favorite");
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         favoritesService = ServiceRegistry.get(FavoritesService.class);
@@ -504,8 +501,6 @@ public class FavoritesPanelController implements Initializable {
             boolean success = false;
 
             if (dragboard.hasString()) {
-                // Handle dropped file
-                String filePath = dragboard.getString();
                 success = true;
             }
 

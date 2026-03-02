@@ -65,7 +65,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -82,14 +81,6 @@ public class XsdController implements FavoritesParentController {
     private org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager currentTypeEditorManager;
     private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema cachedXsdSchema;
     private String cachedXsdContent;
-    private boolean xsdContentDirty = false;
-    private boolean isSchemaLoaded = false;
-
-    private boolean graphicalViewInitialized = false;
-    private boolean graphicalViewPending = false;
-    private String pendingXsdContentForGraphicalView = null;
-    private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphViewPlaceholder graphViewPlaceholder;
-
     @FXML
     private TabPane tabPane;
     @FXML
@@ -168,14 +159,10 @@ public class XsdController implements FavoritesParentController {
     private boolean favoritesPanelVisible = true;
 
     private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
-    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
     private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);
 
-    private MainController parentController;
-    private boolean hasUnsavedChanges = false;
     private File currentXsdFile;
 
-    private final ConcurrentHashMap<Task<?>, HBox> taskUiMap = new ConcurrentHashMap<>();
     private final ExecutorService executorService = Executors.newFixedThreadPool(2, r -> {
         Thread t = new Thread(r);
         t.setDaemon(true);
@@ -251,7 +238,6 @@ public class XsdController implements FavoritesParentController {
 
         task.setOnSucceeded(e -> {
             cachedXsdSchema = task.getValue();
-            isSchemaLoaded = true;
             if (schemaAnalysisTabController != null) schemaAnalysisTabController.setSchema(cachedXsdSchema);
             if (createView) createGraphicalViewFromCachedSchema();
             updateTypeLibrary();
@@ -287,10 +273,6 @@ public class XsdController implements FavoritesParentController {
             }
             wireTypeEditorCallbacks();
         });
-    }
-
-    private void createGraphicalViewFromGraphicalView() {
-        // Implementation...
     }
 
     private void createGraphicalViewFromCachedSchema() {
@@ -365,7 +347,7 @@ public class XsdController implements FavoritesParentController {
     }
 
     public void setParentController(MainController parentController) {
-        this.parentController = parentController;
+        // Parent controller reference stored for potential future use
     }
 
     public File openXsdFileChooser() {
@@ -482,7 +464,6 @@ public class XsdController implements FavoritesParentController {
         sourceCodeEditor.getCodeArea().replaceText("");
         currentXsdFile = null;
         cachedXsdSchema = null;
-        isSchemaLoaded = false;
         noFileLoadedPaneText.setVisible(true);
         noFileLoadedPaneText.setManaged(true);
         sourceCodeEditorContainer.setVisible(false);

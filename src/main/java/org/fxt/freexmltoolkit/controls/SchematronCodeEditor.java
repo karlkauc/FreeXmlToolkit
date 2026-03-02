@@ -50,7 +50,6 @@ public class SchematronCodeEditor extends StackPane {
     private static final int LARGE_FILE_THRESHOLD = 50000; // 50KB threshold
     private static final int SYNTAX_HIGHLIGHTING_CHUNK_SIZE = 10000; // Process in 10KB chunks
     private boolean isLargeFile = false;
-    private long lastHighlightingTime = 0;
 
     // Validation status bar
     private final HBox validationStatusBar;
@@ -156,7 +155,6 @@ public class SchematronCodeEditor extends StackPane {
                 .subscribe(highlighting -> {
                     if (highlighting != null) {
                         codeArea.setStyleSpans(0, highlighting);
-                        lastHighlightingTime = System.currentTimeMillis();
                     }
                 });
 

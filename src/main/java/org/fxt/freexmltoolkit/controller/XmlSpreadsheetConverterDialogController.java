@@ -29,8 +29,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
@@ -57,8 +55,6 @@ import java.util.stream.Collectors;
  * Controller for the XML&lt;-&gt;Spreadsheet Converter Dialog
  */
 public class XmlSpreadsheetConverterDialogController implements Initializable {
-    private static final Logger logger = LogManager.getLogger(XmlSpreadsheetConverterDialogController.class);
-
     // Services
     private final XmlSpreadsheetConverterService converterService = new XmlSpreadsheetConverterService();
     private final ExecutorService executorService = Executors.newCachedThreadPool(r -> {
@@ -307,7 +303,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
     }
 
     @FXML
-    private void browseSourceFile() {
+    public void browseSourceFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Source File");
 
@@ -332,7 +328,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
     }
 
     @FXML
-    private void browseTargetFile() {
+    public void browseTargetFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Target File");
 
@@ -402,7 +398,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
     }
 
     @FXML
-    private void generatePreview() {
+    public void generatePreview() {
         statusLabel.setText("Generating preview...");
         statusLabel.setStyle("-fx-text-fill: orange;");
         progressBar.setVisible(true);
@@ -465,7 +461,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
     }
 
     @FXML
-    private void clearPreview() {
+    public void clearPreview() {
         previewTable.getItems().clear();
         xmlPreviewCodeArea.clear();
         clearStatistics();

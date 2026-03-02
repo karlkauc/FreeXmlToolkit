@@ -234,7 +234,6 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
                         updateAvailable
                 );
 
-                updateCheckPerformed = true;
                 logger.info("Update check complete. Latest version: {}, Update available: {}",
                         latestVersion, updateAvailable);
 

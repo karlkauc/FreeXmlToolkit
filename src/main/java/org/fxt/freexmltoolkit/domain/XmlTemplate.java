@@ -112,7 +112,6 @@ public class XmlTemplate {
 
         for (Map.Entry<String, String> condition : conditionalBlocks.entrySet()) {
             String conditionName = condition.getKey();
-            String conditionContent = condition.getValue();
 
             // Simple condition evaluation: if parameter is present and not empty
             String conditionPattern = "\\{\\{#if\\s+" + conditionName + "\\}\\}([\\s\\S]*?)\\{\\{/if\\}\\}";

@@ -254,30 +254,6 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     }
 
     /**
-     * Extracts the element name from an XPath expression.
-     *
-     * @param xpath the XPath expression
-     * @return the extracted element name, or null if none found
-     */
-    private String extractElementName(String xpath) {
-        if (xpath == null || xpath.isEmpty()) {
-            return null;
-        }
-
-        // Get the last segment
-        int lastSlash = xpath.lastIndexOf('/');
-        String lastSegment = lastSlash >= 0 ? xpath.substring(lastSlash + 1) : xpath;
-
-        // Remove predicates
-        int bracketIndex = lastSegment.indexOf('[');
-        if (bracketIndex >= 0) {
-            lastSegment = lastSegment.substring(0, bracketIndex);
-        }
-
-        return lastSegment.isEmpty() ? null : lastSegment;
-    }
-
-    /**
      * Adds a property change listener for schema changes.
      *
      * @param listener the listener to add

@@ -41,8 +41,6 @@ public class XmlDatePicker implements TypeAwareWidgetFactory.EditWidget {
     private static final DateTimeFormatter ISO_DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final DatePicker datePicker;
-    private final Consumer<String> onValueChange;
-    private final boolean includeTime;
     private ValidationResult validationResult = ValidationResult.valid();
 
     /**
@@ -53,9 +51,6 @@ public class XmlDatePicker implements TypeAwareWidgetFactory.EditWidget {
      * @param includeTime   whether to include time component (not used yet)
      */
     public XmlDatePicker(String currentValue, Consumer<String> onValueChange, boolean includeTime) {
-        this.onValueChange = onValueChange;
-        this.includeTime = includeTime;
-
         this.datePicker = new DatePicker();
         this.datePicker.setEditable(true);
         this.datePicker.setPrefWidth(150);

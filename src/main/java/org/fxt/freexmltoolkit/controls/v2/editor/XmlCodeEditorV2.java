@@ -43,7 +43,6 @@ public class XmlCodeEditorV2 extends VBox {
 
     // Managers
     private final SyntaxHighlightManagerV2 syntaxManager;
-    private final ValidationManagerV2 validationManager;
     private final FoldingManagerV2 foldingManager;
     private final StatusLineManagerV2 statusLineManager;
     private final EventHandlerManager eventHandlerManager;
@@ -80,7 +79,7 @@ public class XmlCodeEditorV2 extends VBox {
 
         // Create managers
         this.syntaxManager = new SyntaxHighlightManagerV2(codeArea);
-        this.validationManager = new ValidationManagerV2(editorContext);
+        new ValidationManagerV2(editorContext);
         this.foldingManager = new FoldingManagerV2(codeArea);
         this.statusLineManager = new StatusLineManagerV2(editorContext);
         this.eventHandlerManager = new EventHandlerManager(editorContext);
@@ -529,7 +528,6 @@ public class XmlCodeEditorV2 extends VBox {
 
     // ==================== Search & Replace ====================
 
-    private int lastSearchPos = -1;
     private String lastSearchText = "";
 
     /**
@@ -551,7 +549,6 @@ public class XmlCodeEditorV2 extends VBox {
 
         // Reset search position if search text changed
         if (!searchText.equals(lastSearchText)) {
-            lastSearchPos = -1;
             lastSearchText = searchText;
         }
 
@@ -577,7 +574,6 @@ public class XmlCodeEditorV2 extends VBox {
         }
 
         if (foundPos >= 0) {
-            lastSearchPos = foundPos;
             codeArea.selectRange(foundPos, foundPos + searchText.length());
             codeArea.requestFollowCaret();
             return true;
@@ -675,7 +671,6 @@ public class XmlCodeEditorV2 extends VBox {
 
         if (count > 0) {
             // Perform case-insensitive replace
-            String newContent = content;
             StringBuilder result = new StringBuilder();
             int lastEnd = 0;
             pos = 0;
@@ -700,7 +695,6 @@ public class XmlCodeEditorV2 extends VBox {
      * Clears the search state.
      */
     public void clearSearch() {
-        lastSearchPos = -1;
         lastSearchText = "";
     }
 }

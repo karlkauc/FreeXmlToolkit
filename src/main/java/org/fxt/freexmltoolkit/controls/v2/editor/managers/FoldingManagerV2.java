@@ -324,7 +324,6 @@ public class FoldingManagerV2 {
             collapsedText.put(line, hiddenText.toString());
 
             // Calculate positions
-            int startPos = getLineStartPosition(startLine);
             int endPos = getLineEndPosition(endLine);
 
             // Replace the content with placeholder

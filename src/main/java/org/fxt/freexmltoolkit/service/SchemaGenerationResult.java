@@ -27,7 +27,7 @@ public class SchemaGenerationResult {
 
     // Generation metadata
     private String generationId = UUID.randomUUID().toString();
-    private LocalDateTime generatedAt = LocalDateTime.now();
+    private LocalDateTime generatedAt;
     private long generationTimeMs = 0;
     private SchemaGenerationOptions usedOptions;
     private String generatorVersion = "1.0";

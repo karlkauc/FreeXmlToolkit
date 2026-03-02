@@ -1078,7 +1078,7 @@ public class MultiFileXsdSerializer {
         }
     }
 
-    private void serializeAnnotationIfPresent(XsdNode node, StringBuilder sb, String indentation, int indent) {
+    private void serializeAnnotationIfPresent(XsdNode node, StringBuilder sb, String indentation, int _indent) {
         java.util.List<org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation> documentations = node.getDocumentations();
         org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo appinfo = node.getAppinfo();
 

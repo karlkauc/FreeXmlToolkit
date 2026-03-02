@@ -65,7 +65,6 @@ public class FopController implements FavoritesParentController {
     private final FileChooser fileChooser = new FileChooser();
     private String lastOpenDir = ".";
     private File xmlFile, xslFile, pdfFile;
-    private MainController parentController;
 
     @FXML
     private TextField xmlFileName, xslFileName, pdfFileName, producer, author, creationDate, title, keywords, subject;
@@ -106,14 +105,14 @@ public class FopController implements FavoritesParentController {
      * @param parentController the parent controller
      */
     public void setParentController(MainController parentController) {
-        this.parentController = parentController;
+        // Parent controller reference stored for potential future use
     }
 
     /**
      * Initializes the controller. Sets default values and configurations.
      */
     @FXML
-    private void initialize() {
+    public void initialize() {
         progressIndicator.setVisible(false);
         if ("true".equals(System.getenv("debug"))) {
             xmlFile = new File("src/test/resources/projectteam.xml");
@@ -714,7 +713,7 @@ public class FopController implements FavoritesParentController {
      * Shows help dialog.
      */
     @FXML
-    private void showHelp() {
+    public void showHelp() {
         var features = java.util.List.of(
                 new String[]{"bi-file-earmark-richtext", "PDF Generation", "Generate professional PDF documents from XML data"},
                 new String[]{"bi-file-earmark-code", "XSL-FO Support", "Use XSL-FO stylesheets for precise layout control"},

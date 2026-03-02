@@ -266,13 +266,6 @@ public class XsdQualityChecker {
             namingByConvention.put(conv, new ArrayList<>());
         }
 
-        // Track best practice metrics
-        int localTypesCount = 0;
-        int globalTypesCount = 0;
-        List<String> unboundedElements = new ArrayList<>();
-        List<String> anyElements = new ArrayList<>();
-        int maxNestingDepth = 0;
-
         // Track deprecated elements
         List<QualityIssue> deprecatedIssues = new ArrayList<>();
 

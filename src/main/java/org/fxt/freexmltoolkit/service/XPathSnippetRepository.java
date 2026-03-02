@@ -36,8 +36,6 @@ public class XPathSnippetRepository {
     // Configuration
     private Path snippetsDirectory;
     private boolean autoSaveEnabled = true;
-    private long lastSaveTime = 0;
-    private final long autoSaveInterval = 30000; // 30 seconds
 
     // Caching and performance
     private final Map<String, List<XPathSnippet>> searchCache = new ConcurrentHashMap<>();
@@ -106,23 +104,6 @@ public class XPathSnippetRepository {
 
         } catch (Exception e) {
             logger.error("Failed to load built-in snippets", e);
-        }
-    }
-
-    private void loadUserSnippets() {
-        try {
-            if (!Files.exists(snippetsDirectory)) {
-                return;
-            }
-
-            Files.list(snippetsDirectory)
-                    .filter(path -> path.toString().endsWith(".json"))
-                    .forEach(this::loadSnippetFromFile);
-
-            logger.debug("Loaded user snippets from: {}", snippetsDirectory);
-
-        } catch (Exception e) {
-            logger.error("Failed to load user snippets", e);
         }
     }
 
@@ -492,7 +473,6 @@ public class XPathSnippetRepository {
     private void saveSnippetToFile(XPathSnippet snippet) {
         // Note: JSON serialization temporarily disabled
         logger.debug("Skipping snippet file save (JSON support not available): {}", snippet.getName());
-        lastSaveTime = System.currentTimeMillis();
     }
 
     private void deleteSnippetFile(XPathSnippet snippet) {

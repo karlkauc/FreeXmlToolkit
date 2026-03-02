@@ -406,22 +406,12 @@ public class SchemaResolver {
                         schemaLocation, realPath, null, "Root element is not xs:schema");
             }
 
-            // Build ParsedSchema for the include
-            ParsedSchema includedParsed = ParsedSchema.builder()
-                    .document(includedDoc)
-                    .schemaElement(includedRoot)
-                    .sourceFile(realPath)
-                    .targetNamespace(includedRoot.getAttribute("targetNamespace"))
-                    .namespaceDeclarations(extractNamespaces(includedRoot))
-                    .options(options)
-                    .build();
-
             // Recursively resolve includes in the included schema
             Path nextBaseDir = realPath.getParent();
             List<ParsedSchema.ResolvedInclude> nestedIncludes = resolveIncludes(includedRoot, nextBaseDir, depth + 1);
 
-            // Update the parsed schema with nested includes
-            includedParsed = ParsedSchema.builder()
+            // Build ParsedSchema for the include with nested includes
+            ParsedSchema includedParsed = ParsedSchema.builder()
                     .document(includedDoc)
                     .schemaElement(includedRoot)
                     .sourceFile(realPath)

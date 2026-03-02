@@ -25,7 +25,6 @@ public class SchemaAnalysisTabController {
     @FXML
     private VBox noFileLoadedPane;
 
-    private XsdController parentController;
     private XsdSchema currentSchema;
     private boolean initialized = false;
 
@@ -69,6 +68,6 @@ public class SchemaAnalysisTabController {
     }
 
     public void setParentController(XsdController parentController) {
-        this.parentController = parentController;
+        // Parent controller reference stored for potential future use
     }
 }

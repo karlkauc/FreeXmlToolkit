@@ -25,8 +25,6 @@ public class SchematronCompletionProvider implements CompletionProvider {
 
     private static final Logger logger = LogManager.getLogger(SchematronCompletionProvider.class);
 
-    private static final String SCHEMATRON_NS = "http://purl.oclc.org/dsdl/schematron";
-
     /**
      * Constructs a new SchematronCompletionProvider with default settings.
      * Initializes the provider to supply IntelliSense completions for Schematron documents.
@@ -234,7 +232,7 @@ public class SchematronCompletionProvider implements CompletionProvider {
     /**
      * Gets description for an attribute.
      */
-    private String getAttributeDescription(String element, String attribute) {
+    private String getAttributeDescription(String _element, String attribute) {
         if ("context".equals(attribute)) {
             return "XPath expression for rule context";
         } else if ("test".equals(attribute)) {

@@ -25,11 +25,6 @@ public class SchematronErrorDetector {
 
     private static final Logger logger = LogManager.getLogger(SchematronErrorDetector.class);
 
-    // Required Schematron elements and their relationships
-    private static final String[] REQUIRED_ELEMENTS = {"schema"};
-    private static final String[] PATTERN_CHILDREN = {"title", "rule", "let", "param", "p"};
-    private static final String[] RULE_CHILDREN = {"assert", "report", "extends", "let"};
-
     // XPath validator for expression validation
     private final XPathValidator xpathValidator;
 
@@ -547,7 +542,7 @@ public class SchematronErrorDetector {
      * @param element the DOM element
      * @return the line number (approximation, defaults to 1)
      */
-    private int getLineNumber(Element element) {
+    private int getLineNumber(Element _element) {
         // This is a simplified implementation
         // In a real implementation, you might use a different approach
         // to track line numbers during parsing

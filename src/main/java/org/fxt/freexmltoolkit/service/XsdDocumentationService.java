@@ -83,7 +83,6 @@ public class XsdDocumentationService {
 
     private TaskProgressListener progressListener;
     private final XsdSampleDataGenerator xsdSampleDataGenerator = new XsdSampleDataGenerator();
-    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
     private final RandomGenerator random = RandomGenerator.getDefault();
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
     XsdDocumentationSvgService xsdDocumentationSvgService = new XsdDocumentationSvgService();
@@ -897,45 +896,6 @@ public class XsdDocumentationService {
      * @param parentXPath The XPath of the parent element
      * @return List of mandatory child element information
      */
-    private List<MandatoryChildInfo> getMandatoryChildElementsByXPath(String parentXPath) {
-        List<MandatoryChildInfo> mandatoryChildren = new ArrayList<>();
-
-        if (xsdDocumentationData == null || xsdDocumentationData.getExtendedXsdElementMap() == null) {
-            return mandatoryChildren;
-        }
-
-        XsdExtendedElement parentElement = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath);
-        if (parentElement == null || !parentElement.hasChildren()) {
-            return mandatoryChildren;
-        }
-
-        // Process children directly using their XPath
-        for (String childXPath : parentElement.getChildren()) {
-            XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
-            if (childElement != null && childElement.isMandatory()) {
-                // Skip attributes (elements starting with @)
-                if (childElement.getElementName().startsWith("@")) {
-                    logger.debug("Skipping attribute: {} (xpath={})", childElement.getElementName(), childXPath);
-                    continue;
-                }
-
-                // For mandatory children, only create empty elements without recursive nesting
-                // This prevents complex choice elements from being expanded
-                MandatoryChildInfo childInfo = new MandatoryChildInfo(
-                        childElement.getElementName(),
-                        1, // Default minOccurs for mandatory elements
-                        1, // Default maxOccurs
-                        new ArrayList<>() // No nested children - just create empty elements
-                );
-                mandatoryChildren.add(childInfo);
-                logger.debug("Added mandatory child by XPath: {} (xpath={}, isAttribute=false)",
-                        childElement.getElementName(), childXPath);
-            }
-        }
-
-        return mandatoryChildren;
-    }
-
     /**
      * Gets all child elements (mandatory and optional) for a given element name.
      * This method is similar to getMandatoryChildElements but returns all children regardless of minOccurs.
@@ -2219,130 +2179,6 @@ public class XsdDocumentationService {
         @Override
         public @NonNull String toString() {
             return String.format("[%s] Line %d, Column %d: %s", severity, lineNumber, columnNumber, message);
-        }
-    }
-
-    private void buildXmlElement(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel, IdentityConstraintTracker constraintTracker) {
-        if (element == null || (mandatoryOnly && !element.isMandatory())) {
-            return;
-        }
-        String elementName = element.getElementName();
-        if (elementName == null || elementName.startsWith("@")) {
-            return; // Attributes are handled by their parent
-        }
-
-        // Handle container elements (SEQUENCE, CHOICE, ALL) - output their children, not the container itself
-        if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
-            // For SEQUENCE and ALL, just process all children
-            List<XsdExtendedElement> containerChildren = element.getChildren().stream()
-                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                    .filter(Objects::nonNull)
-                    .filter(e -> !e.getElementName().startsWith("@"))
-                    .toList();
-            for (XsdExtendedElement child : containerChildren) {
-                buildXmlElement(sb, child, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
-            }
-            return;
-        }
-        if (elementName.startsWith("CHOICE")) {
-            // For CHOICE, randomly select one option
-            List<XsdExtendedElement> choiceOptions = element.getChildren().stream()
-                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                    .filter(Objects::nonNull)
-                    .filter(e -> !e.getElementName().startsWith("@"))
-                    .toList();
-            if (!choiceOptions.isEmpty()) {
-                XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
-                buildXmlElement(sb, selected, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
-            }
-            return;
-        }
-
-        String maxOccurs = getAttributeValue(element.getCurrentNode(), "maxOccurs", "1");
-        int repeatCount = 1;
-        if (!"1".equals(maxOccurs)) {
-            if ("unbounded".equalsIgnoreCase(maxOccurs)) {
-                repeatCount = maxOccurrences;
-            } else {
-                try {
-                    repeatCount = Math.min(Integer.parseInt(maxOccurs), maxOccurrences);
-                } catch (NumberFormatException e) {
-                    repeatCount = 1;
-                }
-            }
-        }
-
-        for (int i = 0; i < repeatCount; i++) {
-            String indent = "\t".repeat(indentLevel);
-
-            // Build qualified element name with namespace prefix if needed
-            String qualifiedName = element.getElementName();
-            String prefix = element.getSourceNamespacePrefix();
-            if (prefix != null && !prefix.isEmpty()) {
-                qualifiedName = prefix + ":" + qualifiedName;
-            }
-
-            sb.append(indent).append("<").append(qualifiedName);
-
-            // Find all attributes for this element by searching for elements with @ prefix in the children
-            List<XsdExtendedElement> attributes = element.getChildren().stream()
-                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                    .filter(Objects::nonNull)
-                    .filter(e -> e.getElementName().startsWith("@"))
-                    .toList();
-
-            List<XsdExtendedElement> childElements = element.getChildren().stream()
-                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                    .filter(Objects::nonNull)
-                    .filter(e -> !e.getElementName().startsWith("@"))
-                    .toList();
-
-            // Render attributes
-            for (XsdExtendedElement attr : attributes) {
-                // Include attribute if mandatory, or if it has a fixed/default value even when mandatoryOnly is true
-                String fixedOrDefault = getAttributeValue(attr.getCurrentNode(), "fixed", getAttributeValue(attr.getCurrentNode(), "default", null));
-                if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) continue;
-                String attrName = attr.getElementName().substring(1);
-                String attrValue = (fixedOrDefault != null)
-                        ? fixedOrDefault
-                        : (attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
-
-                // Apply constraint tracking for attributes
-                String attrXpath = element.getCurrentXpath() + "/@" + attrName;
-                if (constraintTracker != null && fixedOrDefault == null) {
-                    if (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath)) {
-                        attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
-                    }
-                }
-
-                sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
-            }
-
-            String sampleData = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
-
-            // Apply constraint tracking for element text content
-            if (constraintTracker != null && !sampleData.isEmpty()) {
-                String elemXpath = element.getCurrentXpath();
-                if (constraintTracker.isConstrainedField(elemXpath) || constraintTracker.isKeyrefField(elemXpath)) {
-                    sampleData = constraintTracker.getUniqueValue(elemXpath, sampleData, element);
-                }
-            }
-
-            if (childElements.isEmpty() && sampleData.isEmpty()) {
-                sb.append("/>\n"); // Self-closing tag
-            } else {
-                sb.append(">");
-                sb.append(escapeXml(sampleData));
-
-                if (!childElements.isEmpty()) {
-                    sb.append("\n");
-                    for (XsdExtendedElement childElement : childElements) {
-                        buildXmlElement(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel + 1, constraintTracker);
-                    }
-                    sb.append(indent);
-                }
-                sb.append("</").append(qualifiedName).append(">\n");
-            }
         }
     }
 
@@ -3820,62 +3656,6 @@ public class XsdDocumentationService {
             logger.warn("Could not parse URL to get filename: {}", urlString, e);
             return "";
         }
-    }
-
-    /**
-     * Generates source code for a node, optionally including the full definition of referenced types.
-     * When includeTypeDefinitionsInSourceCode is enabled and the node references a complexType or simpleType,
-     * the complete type definition is appended to the source code.
-     *
-     * @param node               The current node (element or attribute)
-     * @param typeName           The name of the referenced type (if any)
-     * @param typeDefinitionNode The type definition node (if found)
-     * @return The source code string, potentially including the type definition
-     */
-    private String generateSourceCodeWithOptionalTypeDefinition(Node node, String typeName, Node typeDefinitionNode) {
-        // Always include the node's own source code
-        String baseSourceCode = nodeToString(node);
-
-        // If the option is disabled or there's no type reference, return base source code
-        if (!includeTypeDefinitionsInSourceCode || typeName == null || typeName.isEmpty()) {
-            return baseSourceCode;
-        }
-
-        // Check if this is a built-in XSD type (xs:string, xs:int, etc.)
-        if (typeName.startsWith("xs:") || typeName.startsWith("xsd:")) {
-            logger.debug("Skipping built-in type definition for: {}", typeName);
-            return baseSourceCode;
-        }
-
-        // If we have an inline type definition, it's already included in the base source code
-        if (typeDefinitionNode != null && typeDefinitionNode.getParentNode() == node) {
-            logger.debug("Type definition is inline, already included in base source code");
-            return baseSourceCode;
-        }
-
-        // Look up the global type definition
-        String cleanTypeName = stripNamespace(typeName);
-        Node globalTypeNode = complexTypeMap.get(cleanTypeName);
-        if (globalTypeNode == null) {
-            globalTypeNode = simpleTypeMap.get(cleanTypeName);
-        }
-
-        // If we found a global type definition, append it to the source code
-        if (globalTypeNode != null) {
-            String typeSourceCode = nodeToString(globalTypeNode);
-            logger.debug("Including type definition for '{}' in source code", cleanTypeName);
-
-            // Combine the base source code with the type definition
-
-            return "<!-- Element Definition -->\n" +
-                    baseSourceCode +
-                    "\n\n" +
-                    "<!-- Referenced Type Definition: " + cleanTypeName + " -->\n" +
-                    typeSourceCode;
-        }
-
-        logger.debug("No global type definition found for: {}", cleanTypeName);
-        return baseSourceCode;
     }
 
     /**

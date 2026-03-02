@@ -38,19 +38,14 @@ public class XsltTransformationEngine {
     // Saxon processor for XSLT 3.0 support
     private final Processor saxonProcessor;
     private final XsltCompiler xsltCompiler;
-    private final XsltTransformer transformer;
-
     // Transformation settings
     private boolean enableProfiling = true;
     private boolean enableDebugging = false;
-    private long transformationTimeoutMs = 60000; // 60 seconds
-    private final int maxOutputSize = 50 * 1024 * 1024; // 50MB
 
     // Caching and performance
     private final Map<String, XsltExecutable> compiledStylesheets = new ConcurrentHashMap<>();
     private final Map<String, XQueryExecutable> compiledXQueries = new ConcurrentHashMap<>();
     private final Map<String, TransformationProfile> profileCache = new ConcurrentHashMap<>();
-    private final long cacheTimeout = 300000; // 5 minutes
 
     // Background execution
     private final ExecutorService executorService;
@@ -94,7 +89,6 @@ public class XsltTransformationEngine {
         configureSecuritySettings();
 
         xsltCompiler = saxonProcessor.newXsltCompiler();
-        transformer = null; // Will be created per transformation
 
         // Configure Saxon for optimal performance
         configureXsltCompiler();
@@ -899,7 +893,6 @@ public class XsltTransformationEngine {
     }
 
     public void setTransformationTimeout(long timeoutMs) {
-        this.transformationTimeoutMs = timeoutMs;
         logger.debug("XSLT transformation timeout set to {}ms", timeoutMs);
     }
 

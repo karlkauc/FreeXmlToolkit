@@ -34,7 +34,6 @@ public class FacetsPanel extends VBox {
 
     private final XsdEditorContext editorContext;
     private XsdRestriction currentRestriction;
-    private XsdElement currentElement; // For showing referenced type facets
     private boolean isInheritedView; // True if showing facets from referenced type
 
     private GridPane facetsGridPane;
@@ -115,7 +114,6 @@ public class FacetsPanel extends VBox {
      */
     public void setRestriction(XsdRestriction restriction) {
         this.currentRestriction = restriction;
-        this.currentElement = null;
         this.isInheritedView = false;
 
         // Hide info label
@@ -139,7 +137,6 @@ public class FacetsPanel extends VBox {
      * @param element the element, or null to clear
      */
     public void setElement(XsdElement element) {
-        this.currentElement = element;
         this.currentRestriction = null;
         this.isInheritedView = false;
 

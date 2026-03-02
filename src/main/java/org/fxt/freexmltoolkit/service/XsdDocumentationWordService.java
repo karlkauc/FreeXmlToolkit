@@ -62,8 +62,6 @@ public class XsdDocumentationWordService {
             {"7C3AED", "EC4899", "FEF3C7", "DDD6FE"}   // purple, pink, light yellow, light purple
     };
 
-    private static final int TABLE_WIDTH_TWIPS = 9000;
-
     private XsdDocumentationData documentationData;
     private XsdDocumentationImageService imageService;
     private Set<String> includedLanguages;

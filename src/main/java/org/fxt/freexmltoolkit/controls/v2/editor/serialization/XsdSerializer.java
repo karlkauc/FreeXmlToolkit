@@ -394,7 +394,7 @@ public class XsdSerializer {
      * @param indentation the indentation string
      * @param indent      the indentation level
      */
-    private void serializeInlineConstraints(XsdElement element, StringBuilder sb, String indentation, int indent) {
+    private void serializeInlineConstraints(XsdElement element, StringBuilder sb, String indentation, int _indent) {
         String innerIndent = indentation + indentString;
         String facetIndent = innerIndent + indentString;
 
@@ -819,7 +819,7 @@ public class XsdSerializer {
      * @param indentation the indentation string
      * @param indent      the indentation level
      */
-    private void serializeAnnotation(XsdNode node, StringBuilder sb, String indentation, int indent) {
+    private void serializeAnnotation(XsdNode node, StringBuilder sb, String indentation, int _indent) {
         List<XsdDocumentation> documentations = node.getDocumentations();
         XsdAppInfo appinfo = node.getAppinfo();
 

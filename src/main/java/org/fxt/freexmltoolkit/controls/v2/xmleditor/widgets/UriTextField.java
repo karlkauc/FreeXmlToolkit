@@ -44,7 +44,6 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
 
     private final HBox container;
     private final TextField textField;
-    private final Consumer<String> onValueChange;
     private ValidationResult validationResult = ValidationResult.valid();
 
     // Common URI prefixes
@@ -57,8 +56,6 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
      * @param onValueChange callback when value changes
      */
     public UriTextField(String currentValue, Consumer<String> onValueChange) {
-        this.onValueChange = onValueChange;
-
         container = new HBox(3);
         container.setAlignment(Pos.CENTER_LEFT);
         container.setPadding(new Insets(0));

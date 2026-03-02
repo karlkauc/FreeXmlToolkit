@@ -44,7 +44,6 @@ public class FindReplaceDialog extends Dialog<Void> {
     private final CheckBox wholeWordCheck = new CheckBox("Whole Word");
     private final CheckBox regexCheck = new CheckBox("Regex");
 
-    private int lastFoundIndex = -1;
 
     /**
      * Creates a new FindReplaceDialog for the given CodeArea.
@@ -271,9 +270,6 @@ public class FindReplaceDialog extends Dialog<Void> {
         // Auto-focus on find field when dialog opens
         setOnShowing(e -> javafx.application.Platform.runLater(() -> findField.requestFocus()));
         
-        // Reset search index when find text changes
-        findField.textProperty().addListener((obs, old, text) -> lastFoundIndex = -1);
-        
         // Keyboard shortcuts
         findField.setOnAction(e -> findNext());
         replaceField.setOnAction(e -> replace());
@@ -329,13 +325,10 @@ public class FindReplaceDialog extends Dialog<Void> {
         boolean found = false;
         if (matcher.find(fromIndex)) {
             selectAndScrollToMatch(matcher.start(), matcher.end());
-            lastFoundIndex = matcher.start();
             found = true;
         } else { // Wrap search
-            lastFoundIndex = -1;
             if (matcher.find(0)) {
                 selectAndScrollToMatch(matcher.start(), matcher.end());
-                lastFoundIndex = matcher.start();
                 found = true;
             }
         }
@@ -384,7 +377,6 @@ public class FindReplaceDialog extends Dialog<Void> {
 
         if (found) {
             selectAndScrollToMatch(lastMatchStart, lastMatchEnd);
-            lastFoundIndex = lastMatchStart;
         }
 
         // Provide visual feedback

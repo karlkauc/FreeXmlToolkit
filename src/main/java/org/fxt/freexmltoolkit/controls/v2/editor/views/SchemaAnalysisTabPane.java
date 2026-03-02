@@ -175,7 +175,7 @@ public class SchemaAnalysisTabPane extends TabPane {
      *
      * @param evt the property change event containing details about the schema modification
      */
-    private void onSchemaChanged(PropertyChangeEvent evt) {
+    private void onSchemaChanged(PropertyChangeEvent _evt) {
         logger.debug("Schema changed, refreshing analysis views");
         refreshAll();
     }

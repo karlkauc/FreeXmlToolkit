@@ -179,8 +179,6 @@ public class DragDropService {
      * @return FileType enum value
      */
     public static FileType getFileType(File file) {
-        String fileName = file.getName().toLowerCase();
-
         if (matchesExtension(file, XSD_EXTENSIONS)) {
             return FileType.XSD;
         } else if (matchesExtension(file, SCHEMATRON_EXTENSIONS)) {

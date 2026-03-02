@@ -103,7 +103,7 @@ public class XPathValidator {
             }
 
             // Compile the XPath expression
-            XPathExecutable executable = compiler.compile(xpathExpression);
+            compiler.compile(xpathExpression);
 
             result.setValid(true);
             logger.debug("XPath expression validated successfully: {}", xpathExpression);

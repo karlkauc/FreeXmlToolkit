@@ -4,8 +4,6 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
@@ -23,8 +21,6 @@ import java.nio.file.Files;
  * Controller for the Flatten Tab.
  */
 public class FlattenTabController {
-
-    private static final Logger logger = LogManager.getLogger(FlattenTabController.class);
 
     @FXML
     private Tab flattenTab;

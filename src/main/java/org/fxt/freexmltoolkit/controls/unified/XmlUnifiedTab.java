@@ -63,9 +63,7 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
 
     // Services
     private final XmlService xmlService;
-    private final XsdDocumentationService xsdDocumentationService;
     private final SchematronService schematronService;
-    private DocumentBuilder documentBuilder;
 
     // Debouncing for real-time updates
     private final javafx.animation.PauseTransition debounce = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
@@ -94,14 +92,7 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
 
         // Initialize services
         this.xmlService = new XmlServiceImpl();
-        this.xsdDocumentationService = new XsdDocumentationService();
         this.schematronService = new SchematronServiceImpl();
-
-        try {
-            this.documentBuilder = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory().newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            logger.error("Failed to create DocumentBuilder", e);
-        }
 
         // Create mutable schema provider and text editor
         this.schemaProvider = new org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider();

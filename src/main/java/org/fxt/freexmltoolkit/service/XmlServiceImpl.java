@@ -409,49 +409,6 @@ public class XmlServiceImpl implements XmlService {
      * @param xmlString Der zu prüfende XML-String.
      * @return Eine Liste von SAXParseExceptions. Die Liste ist leer, wenn der String wohlgeformt ist.
      */
-    private List<SAXParseException> checkWellFormednessOnly(String xmlString) {
-        final List<SAXParseException> exceptions = new LinkedList<>();
-        try {
-            // Use SecureXmlFactory to prevent XXE attacks while checking well-formedness
-            DocumentBuilderFactory dbf = SecureXmlFactory.createSecureDocumentBuilderFactory(true);
-            dbf.setValidating(false); // Explicitly disable DTD validation
-            DocumentBuilder db = dbf.newDocumentBuilder();
-
-            // Ein ErrorHandler fängt alle Parsing-Fehler ab.
-            db.setErrorHandler(new ErrorHandler() {
-                @Override
-                public void warning(SAXParseException e) { /* Für Wohlgeformtheit ignorieren wir Warnungen */ }
-
-                @Override
-                public void error(SAXParseException e) {
-                    exceptions.add(e);
-                }
-
-                @Override
-                public void fatalError(SAXParseException e) {
-                    exceptions.add(e);
-                }
-            });
-
-            // Parsen des Strings. Fehler werden vom ErrorHandler abgefangen.
-            db.parse(new org.xml.sax.InputSource(new StringReader(xmlString)));
-
-        } catch (SAXException | IOException | ParserConfigurationException e) {
-            // Wenn der Parser früh abbricht (z.B. bei einem leeren String), wird der ErrorHandler
-            // möglicherweise nicht aufgerufen. Wir fangen die Exception hier ab, um sicherzustellen,
-            // dass immer ein Fehler gemeldet wird.
-            if (exceptions.isEmpty()) {
-                if (e instanceof SAXParseException) {
-                    exceptions.add((SAXParseException) e);
-                } else {
-                    // Erstellen einer synthetischen Exception für andere Fehler (z.B. IO-Probleme).
-                    exceptions.add(new SAXParseException(e.getMessage(), null, e));
-                }
-            }
-        }
-        return exceptions;
-    }
-
     /**
      * Detects if a schema uses XSD 1.1 features.
      * @param schemaContent The XSD content to check.
@@ -601,10 +558,6 @@ public class XmlServiceImpl implements XmlService {
      *
      * @return the configured validation service
      */
-    private XmlValidationService getValidationService() {
-        return getValidationService(null);
-    }
-
     /**
      * Checks if the given XSD file contains XSD 1.1 features.
      *
@@ -1575,7 +1528,6 @@ public class XmlServiceImpl implements XmlService {
         // 1. Parse the document with XXE protection
         DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
         Document doc = builder.parse(xsdFile);
-        Element root = doc.getDocumentElement();
 
         // 2. Define namespaces
         final String xsdNs = "http://www.w3.org/2001/XMLSchema";

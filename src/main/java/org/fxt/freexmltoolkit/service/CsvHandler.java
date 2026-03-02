@@ -432,7 +432,6 @@ public class CsvHandler {
         List<String> fields = new ArrayList<>();
         StringBuilder currentField = new StringBuilder();
         boolean inQuotes = false;
-        boolean quoteEncountered = false;
 
         for (int i = 0; i < line.length(); i++) {
             char c = line.charAt(i);
@@ -445,16 +444,13 @@ public class CsvHandler {
                         i++; // Skip the next quote
                     } else {
                         inQuotes = false;
-                        quoteEncountered = true;
                     }
                 } else {
                     inQuotes = true;
-                    quoteEncountered = true;
                 }
             } else if (c == csvConfig.getDelimiter() && !inQuotes) {
                 fields.add(currentField.toString());
                 currentField.setLength(0);
-                quoteEncountered = false;
             } else {
                 currentField.append(c);
             }

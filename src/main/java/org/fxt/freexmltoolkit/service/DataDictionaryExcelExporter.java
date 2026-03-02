@@ -289,7 +289,7 @@ public class DataDictionaryExcelExporter {
             createCell(row, colNum++, element.getDisplaySampleData(), normalStyle);
 
             // Level
-            createCell(row, colNum++, String.valueOf(element.getLevel()), normalStyle);
+            createCell(row, colNum, String.valueOf(element.getLevel()), normalStyle);
         }
 
         // Set column widths

@@ -38,7 +38,6 @@ import java.util.regex.PatternSyntaxException;
 public class PatternTextField implements TypeAwareWidgetFactory.EditWidget {
 
     private final TextField textField;
-    private final Consumer<String> onValueChange;
     private final String patternString;
     private final Pattern pattern;
     private ValidationResult validationResult = ValidationResult.valid();
@@ -51,7 +50,6 @@ public class PatternTextField implements TypeAwareWidgetFactory.EditWidget {
      * @param patternString the XSD pattern (regex)
      */
     public PatternTextField(String currentValue, Consumer<String> onValueChange, String patternString) {
-        this.onValueChange = onValueChange;
         this.patternString = patternString;
 
         // Compile pattern

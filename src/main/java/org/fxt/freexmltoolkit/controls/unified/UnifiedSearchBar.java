@@ -9,8 +9,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -21,7 +19,6 @@ import org.kordamp.ikonli.javafx.FontIcon;
  */
 public class UnifiedSearchBar extends HBox {
 
-    private static final Logger logger = LogManager.getLogger(UnifiedSearchBar.class);
 
     private final TextField searchField;
     private final TextField replaceField;

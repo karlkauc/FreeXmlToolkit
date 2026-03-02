@@ -3,8 +3,6 @@ package org.fxt.freexmltoolkit.util;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import org.kordamp.ikonli.javafx.FontIcon;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for creating consistent, modern context menus across the application.
@@ -23,8 +21,6 @@ import org.slf4j.LoggerFactory;
  * @since 2.0
  */
 public class ContextMenuFactory {
-
-    private static final Logger logger = LoggerFactory.getLogger(ContextMenuFactory.class);
 
     /** Semantic color: Green. */
     public static final String COLOR_SUCCESS = "#28a745";

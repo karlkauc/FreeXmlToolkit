@@ -18,9 +18,6 @@
 
 package org.fxt.freexmltoolkit.controls.v2.common.utilities;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -35,8 +32,6 @@ import java.util.regex.Pattern;
  * @since 2.0
  */
 public class XmlEditorUIHelper {
-    private static final Logger logger = LogManager.getLogger(XmlEditorUIHelper.class);
-
     // Pre-compiled patterns for optimization
     private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]*>");
     private static final Pattern NBSP_PATTERN = Pattern.compile("&nbsp;");

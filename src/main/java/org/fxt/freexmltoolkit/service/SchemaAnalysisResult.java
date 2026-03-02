@@ -45,7 +45,7 @@ public class SchemaAnalysisResult {
     /**
      * Timestamp when the analysis was performed.
      */
-    private LocalDateTime analyzedAt = LocalDateTime.now();
+    private LocalDateTime analyzedAt;
 
     /**
      * Duration of the analysis in milliseconds.

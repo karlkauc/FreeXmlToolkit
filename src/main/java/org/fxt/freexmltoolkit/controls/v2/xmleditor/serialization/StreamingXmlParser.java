@@ -2,9 +2,6 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
 import org.fxt.freexmltoolkit.util.SecureXmlFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -27,8 +24,6 @@ import java.util.Stack;
  * </ul>
  */
 public class StreamingXmlParser {
-
-    private static final Logger logger = LogManager.getLogger(StreamingXmlParser.class);
 
     private boolean namespaceAware = true;
 

@@ -61,13 +61,11 @@ import java.util.concurrent.TimeUnit;
 public class XsltController {
 
     private static final Logger logger = LogManager.getLogger(XsltController.class);
-    private static final int PANE_SIZE = 500;
     private static final int FILE_WATCH_INTERVAL_SECONDS = 3;
     private static final int FILE_EXPLORER_REFRESH_INTERVAL_SECONDS = 5;
 
     private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
-    private MainController parentController;
     private File xmlFile, xsltFile;
     private WebEngine webEngine;
     private final CodeArea codeArea = new CodeArea();
@@ -96,11 +94,11 @@ public class XsltController {
     private TextArea performanceArea;
 
     public void setParentController(MainController parentController) {
-        this.parentController = parentController;
+        // Parent controller reference stored for potential future use
     }
 
     @FXML
-    private void initialize() {
+    public void initialize() {
         xmlFileExplorer.setAllowedFileExtensions(List.of("xml"));
         xsltFileExplorer.setAllowedFileExtensions(List.of("xslt", "xsl"));
 
@@ -687,7 +685,7 @@ public class XsltController {
      * Shows help dialog.
      */
     @FXML
-    private void showHelp() {
+    public void showHelp() {
         var features = java.util.List.of(
                 new String[]{"bi-arrow-repeat", "Auto-Refresh", "File lists update automatically every 5 seconds to show new files"},
                 new String[]{"bi-lightning-charge", "Auto-Recompile", "Stylesheets are automatically recompiled when changes are detected"},

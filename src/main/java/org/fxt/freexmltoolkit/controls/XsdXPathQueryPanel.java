@@ -283,9 +283,9 @@ public class XsdXPathQueryPanel extends VBox {
 
         try {
             // Create custom providers with XSD support
-            XsdXPathCompletionProvider xpathProvider = new XsdXPathCompletionProvider(
+            new XsdXPathCompletionProvider(
                     elementExtractor, xsdExtractor, false);
-            XsdXPathCompletionProvider xqueryProvider = new XsdXPathCompletionProvider(
+            new XsdXPathCompletionProvider(
                     elementExtractor, xsdExtractor, true);
 
             // Create IntelliSense engines with standard XPathIntelliSenseEngine

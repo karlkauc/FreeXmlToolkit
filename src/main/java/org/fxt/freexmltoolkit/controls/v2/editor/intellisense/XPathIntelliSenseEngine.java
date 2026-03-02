@@ -48,9 +48,6 @@ public class XPathIntelliSenseEngine {
     private Supplier<String> xmlContentSupplier;
     private boolean enabled = true;
 
-    // Track last trigger character for context
-    private char lastTriggerChar = 0;
-
     // Track popup state for filtering
     private int popupStartPosition = -1;
     private List<CompletionItem> allCompletions = new ArrayList<>();
@@ -82,27 +79,22 @@ public class XPathIntelliSenseEngine {
     private void setupTriggers() {
         // Character triggers
         triggerSystem.addCharTrigger('/', () -> {
-            lastTriggerChar = '/';
             showCompletionsDelayed();
         });
 
         triggerSystem.addCharTrigger('[', () -> {
-            lastTriggerChar = '[';
             showCompletionsDelayed();
         });
 
         triggerSystem.addCharTrigger('@', () -> {
-            lastTriggerChar = '@';
             showCompletionsDelayed();
         });
 
         triggerSystem.addCharTrigger('(', () -> {
-            lastTriggerChar = '(';
             showCompletionsDelayed();
         });
 
         triggerSystem.addCharTrigger('$', () -> {
-            lastTriggerChar = '$';
             showCompletionsDelayed();
         });
 
@@ -111,14 +103,12 @@ public class XPathIntelliSenseEngine {
             String text = codeArea.getText();
             int pos = codeArea.getCaretPosition();
             if (pos >= 2 && text.charAt(pos - 2) == ':') {
-                lastTriggerChar = ':';
                 showCompletionsDelayed();
             }
         });
 
         // Manual trigger: Ctrl+Space
         triggerSystem.addKeyTrigger(KeyCode.SPACE, true, () -> {
-            lastTriggerChar = 0;
             showCompletions();
         });
     }

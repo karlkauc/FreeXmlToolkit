@@ -99,8 +99,6 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     // Internal components
     private UnifiedEditorTabManager tabManager;
-    private LinkedFileDetector linkDetector;
-    private MainController parentController;
 
     // Services
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
@@ -128,7 +126,6 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
         // Initialize components
         tabManager = new UnifiedEditorTabManager(editorTabPane);
-        linkDetector = new LinkedFileDetector();
 
         // Setup linked files list
         linkedFilesList.setItems(linkedFiles);
@@ -269,7 +266,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
      * @param parentController the main controller
      */
     public void setParentController(MainController parentController) {
-        this.parentController = parentController;
+        // Parent controller reference stored for potential future use
     }
 
     // ==================== File Operations ====================

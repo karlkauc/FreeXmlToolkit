@@ -165,9 +165,6 @@ public class XmlEditorSidebarController {
 
     // XSD management
     private File originalXsdFile; // Store the original linked XSD
-    private File currentXsdFile; // Current XSD file for unified tab mode
-
-    private String xsdPath;
 
     private boolean sidebarVisible = true;
 
@@ -223,7 +220,6 @@ public class XmlEditorSidebarController {
         }
 
         try {
-            currentXsdFile = xsdFile;
             xsdDocumentationService.setXsdFilePath(xsdFile.getAbsolutePath());
             xsdDocumentationService.processXsd(true);
             unifiedTabXsdData = xsdDocumentationService.xsdDocumentationData;
@@ -269,7 +265,7 @@ public class XmlEditorSidebarController {
     }
 
     @FXML
-    private void initialize() {
+    public void initialize() {
         // Add click handler for element name field to show node information
         if (elementNameField != null) {
             elementNameField.setOnMouseClicked(event -> {
@@ -405,7 +401,7 @@ public class XmlEditorSidebarController {
     }
 
     @FXML
-    private void toggleSidebar() {
+    public void toggleSidebar() {
         // Use the global sidebar toggle functionality instead of local minimize/maximize
         if (mainController != null) {
             // Get the current state from the main controller's menu
@@ -424,8 +420,7 @@ public class XmlEditorSidebarController {
             try {
                 // Get the current stage and find MainController through the window
                 javafx.stage.Window window = toggleSidebarButton.getScene().getWindow();
-                if (window instanceof javafx.stage.Stage stage) {
-                    Object userData = stage.getUserData();
+                if (window instanceof javafx.stage.Stage) {
                     // This is a fallback - in practice, we should ensure MainController is available
                     // For now, just use local toggle as fallback
                     toggleSidebarLocal();
@@ -495,7 +490,6 @@ public class XmlEditorSidebarController {
     }
 
     public void setXsdPath(String absolutePath) {
-        this.xsdPath = absolutePath;
         if (xsdPathField != null) {
             xsdPathField.setText(absolutePath != null ? absolutePath : "No XSD schema selected");
         }
@@ -605,7 +599,7 @@ public class XmlEditorSidebarController {
     }
 
     @FXML
-    private void showSchematronDetails() {
+    public void showSchematronDetails() {
         if (currentSchematronErrors.isEmpty()) {
             return;
         }
@@ -1339,7 +1333,7 @@ public class XmlEditorSidebarController {
      * Toggles XSD documentation comments in the XML editor.
      */
     @FXML
-    private void toggleXsdDocumentationComments() {
+    public void toggleXsdDocumentationComments() {
         if (xmlEditor == null) {
             logger.warn("Cannot toggle XSD comments - xmlEditor is null");
             return;
@@ -1533,7 +1527,7 @@ public class XmlEditorSidebarController {
     /**
      * Builds XPath for an element (simplified version).
      */
-    private String buildXPathForElement(String elementName, String line) {
+    private String buildXPathForElement(String elementName, String _line) {
         // Simplified XPath building - in a real implementation, 
         // you would need to track the full element hierarchy
         return "/" + elementName;

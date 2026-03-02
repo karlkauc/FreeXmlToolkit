@@ -285,7 +285,7 @@ public class XsltDeveloperController implements FavoritesParentController {
     private BatchTransformationResult lastBatchResult;
 
     @FXML
-    private void initialize() {
+    public void initialize() {
         logger.info("Initializing Advanced XSLT Developer Controller - Revolutionary Feature #2");
 
         initializeUI();
@@ -541,16 +541,6 @@ public class XsltDeveloperController implements FavoritesParentController {
             contentPane.setVisible(true);
             contentPane.setManaged(true);
             logger.debug("Switched from empty state to content view");
-        }
-    }
-
-    private void showEmptyState() {
-        if (emptyStatePane != null && contentPane != null) {
-            emptyStatePane.setVisible(true);
-            emptyStatePane.setManaged(true);
-            contentPane.setVisible(false);
-            contentPane.setManaged(false);
-            logger.debug("Switched from content to empty state view");
         }
     }
 
@@ -877,18 +867,6 @@ public class XsltDeveloperController implements FavoritesParentController {
         PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
         propertiesService.clearRecentXsltFiles();
         populateRecentFilesMenu();
-    }
-
-    /**
-     * Adds a default parameter to the grid.
-     */
-    private void addDefaultParameter(String name, String value, String type) {
-        XsltParameter param = new XsltParameter(name, value, type);
-        parameters.add(param);
-        currentParameters.put(name, value);
-        if (parametersContainer != null) {
-            parametersContainer.getChildren().add(createParameterRow(param));
-        }
     }
 
     /**
@@ -1276,7 +1254,7 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     @FXML
-    private void addParameter() {
+    public void addParameter() {
         if (parametersContainer != null) {
             XsltParameter param = new XsltParameter(
                     "param" + (parameters.size() + 1),
@@ -1318,7 +1296,7 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     @FXML
-    private void validateXml() {
+    public void validateXml() {
         if (xmlInputEditor == null || xmlInputEditor.getCodeArea().getText().trim().isEmpty()) {
             showAlert("No Content", "No XML content to validate.");
             return;
@@ -1394,7 +1372,7 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     @FXML
-    private void validateXslt() {
+    public void validateXslt() {
         if (xsltInputEditor == null || xsltInputEditor.getCodeArea().getText().trim().isEmpty()) {
             showAlert("No Content", "No XSLT content to validate.");
             return;
@@ -1413,7 +1391,7 @@ public class XsltDeveloperController implements FavoritesParentController {
                     // Compile the stylesheet to check for syntax errors
                     javax.xml.transform.stream.StreamSource source =
                             new javax.xml.transform.stream.StreamSource(new java.io.StringReader(xsltContent));
-                    net.sf.saxon.s9api.XsltExecutable executable = compiler.compile(source);
+                    compiler.compile(source);
 
                     return "XSLT stylesheet is valid and compiles successfully.";
 
@@ -1509,7 +1487,7 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     @FXML
-    private void saveXsltFile() {
+    public void saveXsltFile() {
         if (xsltInputEditor == null || xsltInputEditor.getCodeArea().getText().isEmpty()) {
             showAlert("No Content", "No XSLT content to save.");
             return;
@@ -2337,14 +2315,14 @@ public class XsltDeveloperController implements FavoritesParentController {
     }
 
     @FXML
-    private void refreshPreview() {
+    public void refreshPreview() {
         if (lastResult != null && previewWebView != null && "HTML".equals(outputFormatCombo.getValue())) {
             previewWebView.getEngine().loadContent(lastResult.getOutputContent());
         }
     }
 
     @FXML
-    private void clearDebug() {
+    public void clearDebug() {
         if (messagesListView != null) {
             messagesListView.getItems().clear();
         }
@@ -2497,7 +2475,7 @@ public class XsltDeveloperController implements FavoritesParentController {
      * Shows help dialog.
      */
     @FXML
-    private void showHelp() {
+    public void showHelp() {
         var features = java.util.List.of(
                 new String[]{"bi-code-slash", "XSLT 3.0 Support", "Full support for XSLT 3.0, 2.0, and 1.0 transformations with Saxon HE engine"},
                 new String[]{"bi-lightning", "Live Transform Mode", "Enable real-time transformation preview as you edit XML or XSLT content"},

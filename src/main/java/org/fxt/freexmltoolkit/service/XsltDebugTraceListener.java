@@ -50,7 +50,6 @@ public class XsltDebugTraceListener implements TraceListener {
 
     // Template rule search tracking
     private long ruleSearchStartTime;
-    private String currentMatchPattern;
 
     /**
      * Called when a traceable instruction is entered.
@@ -132,7 +131,6 @@ public class XsltDebugTraceListener implements TraceListener {
     @Override
     public void startRuleSearch() {
         ruleSearchStartTime = System.nanoTime();
-        currentMatchPattern = null;
     }
 
     /**
@@ -162,7 +160,6 @@ public class XsltDebugTraceListener implements TraceListener {
                         new XsltTransformationEngine.TemplateMatchInfo(pattern, fullName, lineNumber, executionTime);
 
                 templateMatches.add(matchInfo);
-                currentMatchPattern = pattern;
 
                 logger.trace("Template matched: {} at line {}", pattern, lineNumber);
             }
@@ -252,7 +249,7 @@ public class XsltDebugTraceListener implements TraceListener {
         }
     }
 
-    private Object evaluateVariableValue(GlobalVariable variable, XPathContext context) {
+    private Object evaluateVariableValue(GlobalVariable variable, XPathContext _context) {
         try {
             // Get the select expression if available
             if (variable.getBody() != null) {

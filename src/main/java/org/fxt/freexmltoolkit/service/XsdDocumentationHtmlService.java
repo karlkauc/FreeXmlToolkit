@@ -1212,7 +1212,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         return matcher.replaceAll(matchResult -> {
             String target = matchResult.group(1).trim();
 
-            XsdExtendedElement targetElement = null;
+            XsdExtendedElement targetElement;
 
             // Check if target is an XPath (starts with /)
             if (target.startsWith("/")) {

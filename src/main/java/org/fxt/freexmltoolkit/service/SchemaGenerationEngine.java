@@ -113,17 +113,6 @@ public class SchemaGenerationEngine {
     private final boolean enableDocumentationGeneration = true;
 
     /**
-     * Flag indicating whether schema optimization is enabled.
-     * When enabled, the engine optimizes the generated schema structure.
-     */
-    private boolean optimizeSchema = true;
-
-    /**
-     * Maximum number of sample values to collect for analysis.
-     */
-    private final int maxSampleValues = 10;
-
-    /**
      * Cache for storing schema analysis results to improve performance on repeated analyses.
      */
     private final Map<String, SchemaAnalysisResult> analysisCache = new ConcurrentHashMap<>();
@@ -825,7 +814,6 @@ public class SchemaGenerationEngine {
      * @param enabled {@code true} to enable schema optimization, {@code false} to disable
      */
     public void setSchemaOptimization(boolean enabled) {
-        this.optimizeSchema = enabled;
         logger.debug("Schema optimization {}", enabled ? "enabled" : "disabled");
     }
 

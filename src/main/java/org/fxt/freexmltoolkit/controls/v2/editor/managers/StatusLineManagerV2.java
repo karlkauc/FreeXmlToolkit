@@ -212,7 +212,6 @@ public class StatusLineManagerV2 {
      * Updates the line/column display.
      */
     private void updateLineColumn() {
-        int caretPos = codeArea.getCaretPosition();
         int line = codeArea.getCurrentParagraph() + 1; // 1-based
         int column = codeArea.getCaretColumn() + 1; // 1-based
 

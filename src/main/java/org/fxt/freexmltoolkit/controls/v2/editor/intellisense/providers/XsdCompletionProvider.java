@@ -654,7 +654,7 @@ public class XsdCompletionProvider implements CompletionProvider {
      * @param xsdData the XSD documentation data
      * @return list of attribute completion items (currently empty)
      */
-    private List<CompletionItem> getAttributeCompletions(XmlContext context, XsdDocumentationData xsdData) {
+    private List<CompletionItem> getAttributeCompletions(XmlContext _context, XsdDocumentationData _xsdData) {
         // Future enhancement: Parse XSD for attribute definitions
         // See JavaDoc above for implementation requirements
         logger.debug("Attribute completions from XSD not yet implemented");

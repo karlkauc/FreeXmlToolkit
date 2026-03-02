@@ -900,7 +900,7 @@ public class MainController implements Initializable {
                 logger.debug("set Signature Controller");
                 signatureController.setParentController(this);
             }
-            case HelpController helpController -> {
+            case HelpController _ -> {
                 logger.debug("set Help Controller");
             }
             case TemplatesController templatesController1 -> {
@@ -966,7 +966,7 @@ public class MainController implements Initializable {
      * Handles the About menu action by displaying the application information dialog.
      */
     @FXML
-    private void handleAboutAction() {
+    public void handleAboutAction() {
         Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
         aboutDialog.setTitle("About FreeXMLToolkit");
         aboutDialog.setHeaderText("FreeXMLToolkit - Universal Toolkit for XML");
@@ -1216,7 +1216,7 @@ public class MainController implements Initializable {
      * Toggles the left menu bar between expanded and collapsed states.
      */
     @FXML
-    private void toggleMenuBar() {
+    public void toggleMenuBar() {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
@@ -1283,7 +1283,7 @@ public class MainController implements Initializable {
      * Toggles the visibility of the XML editor sidebar and persists the preference.
      */
     @FXML
-    private void toggleXmlEditorSidebar() {
+    public void toggleXmlEditorSidebar() {
         if (xmlEditorSidebarMenuItem == null) {
             return;
         }
@@ -1331,7 +1331,7 @@ public class MainController implements Initializable {
      * Toggles the visibility of the XPath query pane and persists the preference.
      */
     @FXML
-    private void toggleXPathQueryPane() {
+    public void toggleXPathQueryPane() {
         if (xpathQueryPaneMenuItem == null) {
             return;
         }
@@ -1413,7 +1413,7 @@ public class MainController implements Initializable {
      * Handles the Undo menu action by delegating to the active tab controller.
      */
     @FXML
-    private void handleUndo() {
+    public void handleUndo() {
         logger.debug("Undo action triggered");
 
         // Check if XSD tab is active and has undo capability
@@ -1426,7 +1426,7 @@ public class MainController implements Initializable {
      * Handles the Redo menu action by delegating to the active tab controller.
      */
     @FXML
-    private void handleRedo() {
+    public void handleRedo() {
         logger.debug("Redo action triggered");
 
         // Check if XSD tab is active and has redo capability
@@ -1776,16 +1776,6 @@ public class MainController implements Initializable {
                 switchToXmlViewAndLoadFile(file);
             }
         }
-    }
-
-    /**
-     * Checks if the list of files contains at least one XML-related file.
-     *
-     * @param files the list of files to check
-     * @return true if at least one file is an XML-related file, false otherwise
-     */
-    private boolean hasXmlFiles(java.util.List<java.io.File> files) {
-        return files.stream().anyMatch(this::isXmlFile);
     }
 
     /**

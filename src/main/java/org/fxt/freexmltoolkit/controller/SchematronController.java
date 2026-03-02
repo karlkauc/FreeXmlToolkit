@@ -19,7 +19,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.*;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
@@ -240,7 +239,6 @@ public class SchematronController implements FavoritesParentController {
     // Additional components
     private SchematronErrorDetector errorDetector;
     private SchematronTester tester;
-    private CodeArea codeArea;
     private SchematronService schematronService;
     private PropertiesService propertiesService;
     private MainController parentController;
@@ -258,7 +256,7 @@ public class SchematronController implements FavoritesParentController {
      * Initialize the controller - called automatically by JavaFX
      */
     @FXML
-    private void initialize() {
+    public void initialize() {
         logger.info("Initializing SchematronController");
 
         // Initialize services
@@ -671,7 +669,7 @@ public class SchematronController implements FavoritesParentController {
      * Create a new empty Schematron file
      */
     @FXML
-    private void newSchematronFile() {
+    public void newSchematronFile() {
         createNewSchematron();
     }
 
@@ -679,7 +677,7 @@ public class SchematronController implements FavoritesParentController {
      * Save As button action - enhanced version with current file pre-population
      */
     @FXML
-    private void saveAsSchematron() {
+    public void saveAsSchematron() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Schematron File As");
         fileChooser.getExtensionFilters().addAll(
@@ -903,7 +901,7 @@ public class SchematronController implements FavoritesParentController {
      * Format the current Schematron file
      */
     @FXML
-    private void formatSchematron() {
+    public void formatSchematron() {
         if (xmlCodeEditor == null || xmlCodeEditor.getText().isEmpty()) {
             DialogHelper.showWarning("Format", "", "No Schematron content to format");
             return;
@@ -1500,7 +1498,7 @@ public class SchematronController implements FavoritesParentController {
      * Load schema from file for testing
      */
     @FXML
-    private void loadSchemaFromFile() {
+    public void loadSchemaFromFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Load Schematron Schema");
         fileChooser.getExtensionFilters().addAll(
@@ -1542,7 +1540,7 @@ public class SchematronController implements FavoritesParentController {
      * Use current schema from code editor for testing
      */
     @FXML
-    private void useCurrentSchema() {
+    public void useCurrentSchema() {
         if (xmlCodeEditor == null || xmlCodeEditor.getText().isEmpty()) {
             DialogHelper.showWarning("No Schema", "", "No Schematron schema in the code editor");
             return;
@@ -1585,7 +1583,7 @@ public class SchematronController implements FavoritesParentController {
      * Add XML file for testing
      */
     @FXML
-    private void addXmlFile() {
+    public void addXmlFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Add XML File for Testing");
         fileChooser.getExtensionFilters().addAll(
@@ -1628,7 +1626,7 @@ public class SchematronController implements FavoritesParentController {
      * Add folder of XML files for testing
      */
     @FXML
-    private void addFolder() {
+    public void addFolder() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select Folder with XML Files");
 
@@ -1677,7 +1675,7 @@ public class SchematronController implements FavoritesParentController {
      * Load sample XML files for testing
      */
     @FXML
-    private void loadSampleXmls() {
+    public void loadSampleXmls() {
         // Check for sample files in resources or a predefined location
         File samplesDir = new File("release/examples/xml");
 
@@ -2029,7 +2027,7 @@ public class SchematronController implements FavoritesParentController {
      * Remove selected files from test list
      */
     @FXML
-    private void removeSelected() {
+    public void removeSelected() {
         ObservableList<TestFile> selectedItems = testFilesTable.getSelectionModel().getSelectedItems();
 
         if (selectedItems.isEmpty()) {
@@ -2045,7 +2043,7 @@ public class SchematronController implements FavoritesParentController {
      * Remove all files from test list
      */
     @FXML
-    private void removeAll() {
+    public void removeAll() {
         if (testFiles.isEmpty()) {
             return;
         }
@@ -2428,7 +2426,7 @@ public class SchematronController implements FavoritesParentController {
      * Load a Schematron file using file chooser
      */
     @FXML
-    private void loadSchematronFile() {
+    public void loadSchematronFile() {
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Load Schematron File");
@@ -2848,7 +2846,7 @@ public class SchematronController implements FavoritesParentController {
      * Shows help dialog.
      */
     @FXML
-    private void showHelp() {
+    public void showHelp() {
         var features = java.util.List.of(
                 new String[]{"bi-code-slash", "Code Editor", "Create and edit Schematron rules with syntax highlighting"},
                 new String[]{"bi-diagram-2", "Visual Builder", "Create rules visually without XML knowledge"},

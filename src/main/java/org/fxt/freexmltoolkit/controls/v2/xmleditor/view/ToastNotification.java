@@ -53,7 +53,6 @@ public class ToastNotification extends HBox {
 
     private final Label messageLabel;
     private final FontIcon icon;
-    private final Type type;
 
     /**
      * Creates a new toast notification.
@@ -63,7 +62,6 @@ public class ToastNotification extends HBox {
      */
     public ToastNotification(String message, Type type) {
         super(8);  // spacing
-        this.type = type;
 
         setAlignment(Pos.CENTER_LEFT);
         setPadding(new Insets(10, 16, 10, 12));

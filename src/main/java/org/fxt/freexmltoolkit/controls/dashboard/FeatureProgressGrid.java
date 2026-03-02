@@ -97,7 +97,7 @@ public class FeatureProgressGrid extends VBox {
         updateProgress(discovered, total);
     }
 
-    private void addFeatureChip(String featureId, String featureName, String iconLiteral,
+    private void addFeatureChip(String _featureId, String featureName, String iconLiteral,
                                 boolean discovered, String pageLink) {
         HBox chip = new HBox(6);
         chip.setAlignment(Pos.CENTER_LEFT);

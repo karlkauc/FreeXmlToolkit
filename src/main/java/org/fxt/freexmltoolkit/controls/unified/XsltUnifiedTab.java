@@ -69,7 +69,6 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
     // State
     private String lastSavedContent;
     private LinkedFileDetector linkDetector;
-    private File xmlInputFile;
 
     /**
      * Creates a new XSLT Unified Editor tab.
@@ -309,7 +308,6 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
             try {
                 String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
                 xmlInputEditor.setText(content);
-                xmlInputFile = file;
                 setStatus("Loaded XML: " + file.getName(), false);
             } catch (IOException e) {
                 logger.error("Failed to load XML file: {}", file, e);

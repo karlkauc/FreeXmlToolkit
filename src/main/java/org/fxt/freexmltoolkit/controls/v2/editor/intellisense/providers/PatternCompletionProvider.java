@@ -89,7 +89,7 @@ public class PatternCompletionProvider implements CompletionProvider {
     /**
      * Gets the full document text from EditorContext.
      */
-    private String getDocumentText(XmlContext context) {
+    private String getDocumentText(XmlContext _context) {
         return editorContext.getText();
     }
 

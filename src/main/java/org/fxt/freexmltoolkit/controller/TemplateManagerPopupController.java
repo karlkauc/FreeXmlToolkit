@@ -48,7 +48,6 @@ public class TemplateManagerPopupController implements Initializable {
 
     // Services
     private final XmlContentProvider contentProvider;
-    private final TemplateEngine templateEngine;
     private final TemplateRepository templateRepository;
 
     // UI Components
@@ -101,14 +100,13 @@ public class TemplateManagerPopupController implements Initializable {
      * browse, create, edit, and apply XML templates.
      *
      * @param contentProvider the provider for accessing and modifying current XML content
-     * @param templateEngine the engine for processing templates with parameter substitution
+     * @param _templateEngine the engine for processing templates with parameter substitution (currently unused)
      * @param templateRepository the repository for accessing and storing templates
      */
     public TemplateManagerPopupController(XmlContentProvider contentProvider,
-                                          TemplateEngine templateEngine,
+                                          TemplateEngine _templateEngine,
                                           TemplateRepository templateRepository) {
         this.contentProvider = contentProvider;
-        this.templateEngine = templateEngine;
         this.templateRepository = templateRepository;
     }
 
@@ -175,13 +173,13 @@ public class TemplateManagerPopupController implements Initializable {
     }
 
     @FXML
-    private void refreshTemplates() {
+    public void refreshTemplates() {
         logger.info("Refreshing templates");
         loadTemplates();
     }
 
     @FXML
-    private void onTemplateSelected() {
+    public void onTemplateSelected() {
         XmlTemplate template = templatesListView.getSelectionModel().getSelectedItem();
         if (template != null) {
             selectTemplate(template);

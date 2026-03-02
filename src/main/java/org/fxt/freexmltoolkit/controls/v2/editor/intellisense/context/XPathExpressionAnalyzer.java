@@ -6,8 +6,6 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Analyzes XPath/XQuery expressions to determine the context at the cursor position.
@@ -39,17 +37,6 @@ public class XPathExpressionAnalyzer {
     private static final Set<String> OPERATORS = Set.of(
             "and", "or", "not", "div", "mod", "to", "eq", "ne", "lt", "le", "gt", "ge",
             "is", "union", "intersect", "except", "instance", "of", "treat", "as", "cast", "castable"
-    );
-
-    // Pattern to detect function call (name followed by opening parenthesis)
-    private static final Pattern FUNCTION_PATTERN = Pattern.compile(
-            "([a-zA-Z_][a-zA-Z0-9_\\-]*(?::[a-zA-Z_][a-zA-Z0-9_\\-]*)?)\\s*\\($"
-    );
-
-    // Pattern to detect axis
-    private static final Pattern AXIS_PATTERN = Pattern.compile(
-            "(ancestor|ancestor-or-self|attribute|child|descendant|descendant-or-self|" +
-                    "following|following-sibling|namespace|parent|preceding|preceding-sibling|self)::$"
     );
 
     private XPathExpressionAnalyzer() {

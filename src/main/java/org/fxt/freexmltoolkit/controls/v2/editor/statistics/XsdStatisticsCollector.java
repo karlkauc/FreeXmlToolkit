@@ -19,10 +19,6 @@ public class XsdStatisticsCollector {
 
     private static final Logger logger = LogManager.getLogger(XsdStatisticsCollector.class);
 
-    private static final Set<String> KNOWN_APPINFO_TAGS = Set.of(
-            "@since", "@version", "@author", "@deprecated", "@see", "@param", "@return"
-    );
-
     private final XsdSchema schema;
 
     /**

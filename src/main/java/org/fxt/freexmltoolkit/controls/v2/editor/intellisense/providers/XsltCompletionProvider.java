@@ -26,8 +26,6 @@ public class XsltCompletionProvider implements CompletionProvider {
 
     private static final Logger logger = LogManager.getLogger(XsltCompletionProvider.class);
 
-    private static final String XSLT_NS = "http://www.w3.org/1999/XSL/Transform";
-
     // XSLT elements
     private static final String[] XSLT_ELEMENTS = {
         // Structure
@@ -251,7 +249,7 @@ public class XsltCompletionProvider implements CompletionProvider {
     /**
      * Gets description for an attribute.
      */
-    private String getAttributeDescription(String element, String attribute) {
+    private String getAttributeDescription(String _element, String attribute) {
         if ("match".equals(attribute)) {
             return "XPath pattern to match nodes";
         } else if ("select".equals(attribute)) {

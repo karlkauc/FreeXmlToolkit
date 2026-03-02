@@ -40,7 +40,6 @@ public class BooleanToggle implements TypeAwareWidgetFactory.EditWidget {
     private final HBox container;
     private final ToggleButton trueButton;
     private final ToggleButton falseButton;
-    private final Consumer<String> onValueChange;
     private String currentValue;
 
     /**
@@ -50,7 +49,6 @@ public class BooleanToggle implements TypeAwareWidgetFactory.EditWidget {
      * @param onValueChange callback when value changes
      */
     public BooleanToggle(String currentValue, Consumer<String> onValueChange) {
-        this.onValueChange = onValueChange;
         this.currentValue = currentValue;
 
         container = new HBox(2);

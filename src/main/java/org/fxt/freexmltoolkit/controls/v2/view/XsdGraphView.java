@@ -58,7 +58,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private ToggleButton propertiesToggle;
 
     private VisualNode rootNode;
-    private VisualNode selectedNode;
     private VisualNode hoveredNode;
     private final Map<String, VisualNode> nodeMap = new HashMap<>();
 
@@ -148,12 +147,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             VisualNode primarySelection = getSelectionModel().getPrimarySelection();
             if (primarySelection != null) {
                 primarySelection.setFocused(true);
-            }
-            // Update legacy selectedNode reference
-            if (!newSelection.isEmpty()) {
-                selectedNode = newSelection.iterator().next();
-            } else {
-                selectedNode = null;
             }
             // Update source file indicator
             updateSourceFileIndicator();
@@ -273,7 +266,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         double subtreeBottom = subtreeBounds[1] * zoomLevel;
 
         double vpRight = viewportX + viewportWidth + VIEWPORT_MARGIN;
-        double vpBottom = viewportY + viewportHeight + VIEWPORT_MARGIN;
 
         // If subtree is entirely to the left of viewport or above it, no children are visible
         return subtreeRight >= viewportX - VIEWPORT_MARGIN &&
@@ -577,43 +569,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         // Recursively process children
         for (VisualNode child : node.getChildren()) {
             restoreExpansionState(child, collapsedIds);
-        }
-    }
-
-    /**
-     * Finds a VisualNode by its model's ID.
-     */
-    private VisualNode findNodeById(VisualNode node, String id) {
-        if (node == null) return null;
-
-        Object modelObj = node.getModelObject();
-        if (modelObj instanceof XsdNode xsdNode) {
-            if (xsdNode.getId().equals(id)) {
-                return node;
-            }
-        }
-
-        for (VisualNode child : node.getChildren()) {
-            VisualNode found = findNodeById(child, id);
-            if (found != null) {
-                return found;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Updates the callback for all VisualNodes in the tree.
-     * This is needed after rebuilding to ensure all nodes use the correct callback.
-     */
-    private void updateCallbacks(VisualNode node, Runnable callback) {
-        if (node == null) return;
-
-        node.setOnModelChangeCallback(callback);
-
-        for (VisualNode child : node.getChildren()) {
-            updateCallbacks(child, callback);
         }
     }
 
@@ -1579,7 +1534,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     /**
      * Determines the index for inserting the dragged node.
      */
-    private int determineDropIndex(XsdNode draggedNode, XsdNode dropTargetXsdNode, XsdNode newParent) {
+    private int determineDropIndex(XsdNode _draggedNode, XsdNode dropTargetXsdNode, XsdNode newParent) {
         if (newParent == null) {
             return 0;
         }

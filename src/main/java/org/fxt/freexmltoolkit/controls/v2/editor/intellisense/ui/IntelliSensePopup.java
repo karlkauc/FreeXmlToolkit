@@ -10,7 +10,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Popup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -250,16 +249,6 @@ public class IntelliSensePopup {
         private static final String ICON_VARIABLE = "bi-braces";
         private static final String ICON_TYPE = "bi-diagram-3";
         private static final String ICON_DEFAULT = "bi-circle";
-
-        // Color mappings - WCAG AA compliant (minimum 4.5:1 contrast on white)
-        private static final Color COLOR_ELEMENT = Color.web("#0056b3");    // Darker blue (7.0:1)
-        private static final Color COLOR_ATTRIBUTE = Color.web("#1e7e34");  // Darker green (5.3:1)
-        private static final Color COLOR_VALUE = Color.web("#495057");      // Darker gray (7.4:1)
-        private static final Color COLOR_SNIPPET = Color.web("#856404");    // Dark gold (6.2:1)
-        private static final Color COLOR_FUNCTION = Color.web("#0c5460");   // Dark cyan (8.6:1)
-        private static final Color COLOR_AXIS = Color.web("#5a32a3");       // Darker purple (7.1:1)
-        private static final Color COLOR_TYPE = Color.web("#c45000");       // Darker orange (5.1:1)
-        private static final Color COLOR_REQUIRED = Color.web("#bd2130");   // Darker red (5.5:1)
 
         @Override
         protected void updateItem(CompletionItem item, boolean empty) {

@@ -139,7 +139,7 @@ public class CombinedStyleManager {
      * @param text the text
      * @return merged StyleSpans
      */
-    private StyleSpans<Collection<String>> mergeStyles(String text) {
+    private StyleSpans<Collection<String>> mergeStyles(String _text) {
         StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
 
         int pos = 0;
@@ -151,7 +151,6 @@ public class CombinedStyleManager {
 
             // Check if this span overlaps with any error ranges
             Set<String> mergedClasses = new HashSet<>(syntaxClasses);
-            boolean hasError = false;
 
             for (Map.Entry<Integer, Integer> error : errorRanges.entrySet()) {
                 int errorStart = error.getKey();
@@ -160,7 +159,6 @@ public class CombinedStyleManager {
                 // Check for overlap
                 if (!(pos >= errorEnd || (pos + spanLength) <= errorStart)) {
                     mergedClasses.add("validation-error");
-                    hasError = true;
                     break;
                 }
             }
