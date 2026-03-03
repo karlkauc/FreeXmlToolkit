@@ -458,8 +458,9 @@ public class FxtGui extends Application {
         // Prefer hardware rendering: Direct3D on Windows, OpenGL ES2 on Mac/Linux, software fallback
         setPropertyIfAbsent("prism.order", "d3d,es2,sw");
 
-        // Force GPU usage when hardware acceleration is available
-        setPropertyIfAbsent("prism.forceGPU", "true");
+        // Do NOT force GPU - allow graceful fallback to software rendering if GPU/D3D fails
+        // prism.forceGPU=true can cause JVM crashes (EXCEPTION_ACCESS_VIOLATION in glass.dll)
+        // on certain GPU/driver combinations, especially in jpackage builds
 
         // Enable vertical sync for smoother rendering (reduces tearing)
         setPropertyIfAbsent("prism.vsync", "true");
@@ -479,7 +480,6 @@ public class FxtGui extends Application {
         // Log which rendering pipeline is being used
         System.out.println("JavaFX hardware acceleration configured:");
         System.out.println("  prism.order: " + System.getProperty("prism.order"));
-        System.out.println("  prism.forceGPU: " + System.getProperty("prism.forceGPU"));
     }
 
     /**

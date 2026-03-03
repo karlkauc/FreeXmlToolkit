@@ -550,11 +550,7 @@ $runtimeArg
 --java-options
 --enable-preview
 --java-options
---enable-native-access=ALL-UNNAMED
---java-options
---enable-native-access=javafx.graphics
---java-options
---enable-native-access=javafx.web
+--enable-native-access=ALL-UNNAMED,javafx.graphics,javafx.web
 --java-options
 -Xms512m
 --java-options
@@ -562,7 +558,9 @@ $runtimeArg
 --java-options
 -XX:+UseG1GC
 --java-options
--Dprism.order=d3d,sw
+-Dprism.order=d3d,es2,sw
+--java-options
+-Dprism.forceGPU=false
 --verbose
 $platformArgs""".trimIndent())
             

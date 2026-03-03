@@ -17,7 +17,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
@@ -81,7 +80,10 @@ public class SplashScreen {
      * Shows the splash screen with entrance animations.
      */
     public void show() {
-        stage = new Stage(StageStyle.TRANSPARENT);
+        // Use UNDECORATED instead of TRANSPARENT to avoid JVM crashes
+        // (EXCEPTION_ACCESS_VIOLATION in glass.dll) on certain Windows
+        // GPU/driver configurations where transparent compositing fails
+        stage = new Stage(StageStyle.UNDECORATED);
         stage.setAlwaysOnTop(true);
         stage.setTitle("FreeXmlToolkit");
 
@@ -149,10 +151,8 @@ public class SplashScreen {
         statusLabel.setOpacity(0);
 
         StackPane root = new StackPane(container);
-        root.setStyle("-fx-background-color: transparent;");
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
-        scene.setFill(Color.TRANSPARENT);
 
         // Load CSS
         try {
