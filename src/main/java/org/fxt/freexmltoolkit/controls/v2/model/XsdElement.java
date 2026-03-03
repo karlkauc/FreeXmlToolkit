@@ -395,9 +395,8 @@ public class XsdElement extends XsdNode {
                         return true;
                     }
                 }
-            }
             // Or direct compositor (shouldn't happen for element, but check anyway)
-            else if (child instanceof XsdSequence ||
+            } else if (child instanceof XsdSequence ||
                      child instanceof XsdChoice ||
                      child instanceof XsdAll) {
                 return true;

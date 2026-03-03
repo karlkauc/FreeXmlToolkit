@@ -9,7 +9,14 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
 
 /**
  * Extracts XPath-like element paths from an XSD schema for autocomplete suggestions.
@@ -146,27 +153,23 @@ public class XsdElementPathExtractor {
                         collectPaths(child, newPath, paths, depth + 1);
                     }
                 }
-            }
             // Handle complex types - traverse but don't add to path
-            else if (node instanceof XsdComplexType complexType) {
+            } else if (node instanceof XsdComplexType complexType) {
                 for (XsdNode child : complexType.getChildren()) {
                     collectPaths(child, currentPath, paths, depth + 1);
                 }
-            }
             // Handle sequences, choices, all - traverse without adding to path
-            else if (node instanceof XsdSequence || node instanceof XsdChoice || node instanceof XsdAll) {
+            } else if (node instanceof XsdSequence || node instanceof XsdChoice || node instanceof XsdAll) {
                 for (XsdNode child : node.getChildren()) {
                     collectPaths(child, currentPath, paths, depth + 1);
                 }
-            }
             // Handle groups - traverse
-            else if (node instanceof XsdGroup group) {
+            } else if (node instanceof XsdGroup group) {
                 for (XsdNode child : group.getChildren()) {
                     collectPaths(child, currentPath, paths, depth + 1);
                 }
-            }
             // Handle other nodes that may contain elements
-            else {
+            } else {
                 for (XsdNode child : node.getChildren()) {
                     collectPaths(child, currentPath, paths, depth + 1);
                 }

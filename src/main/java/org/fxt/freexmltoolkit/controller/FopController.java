@@ -29,10 +29,22 @@ import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.*;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
@@ -44,7 +56,11 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.FOPService;
+import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
@@ -416,8 +432,11 @@ public class FopController implements FavoritesParentController {
      * @param event the drag event
      */
     private void handleDragOver(DragEvent event) {
-        if (event.getDragboard().hasFiles()) event.acceptTransferModes(TransferMode.COPY);
-        else event.consume();
+        if (event.getDragboard().hasFiles()) {
+            event.acceptTransferModes(TransferMode.COPY);
+        } else {
+            event.consume();
+        }
     }
 
     /**
@@ -432,7 +451,9 @@ public class FopController implements FavoritesParentController {
             logger.debug("Dropped Files: {}", db.getFiles());
             fileConsumer.accept(db.getFiles().getFirst());
             event.setDropCompleted(true);
-        } else event.setDropCompleted(false);
+        } else {
+            event.setDropCompleted(false);
+        }
         event.consume();
     }
 
@@ -784,7 +805,9 @@ public class FopController implements FavoritesParentController {
                                      javafx.scene.control.ContentDisplay displayMode,
                                      int iconSize,
                                      String style) {
-        if (button == null) return;
+        if (button == null) {
+            return;
+        }
 
         // Set content display mode
         button.setContentDisplay(displayMode);

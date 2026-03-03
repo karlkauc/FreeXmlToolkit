@@ -18,7 +18,7 @@
 
 package org.fxt.freexmltoolkit.controller;
 
-import java.awt.*;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -34,11 +34,25 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -79,7 +93,9 @@ public class XsdValidationController implements FavoritesParentController {
     private List<SAXParseException> validationErrors;
 
     // Enum for single file validation status display
-    private enum SingleFileValidationStatus {SUCCESS, ERROR, READY}
+    private enum SingleFileValidationStatus {
+        SUCCESS, ERROR, READY
+    }
 
     @FXML
     private VBox rootVBox;
@@ -728,6 +744,7 @@ public class XsdValidationController implements FavoritesParentController {
                 style += "-fx-background-color: -fx-background-color-subtle;"; // Default background
                 imagePath = null;
             }
+            default -> throw new IllegalStateException("Unexpected value: " + status);
         }
 
         statusPane.setStyle(style);

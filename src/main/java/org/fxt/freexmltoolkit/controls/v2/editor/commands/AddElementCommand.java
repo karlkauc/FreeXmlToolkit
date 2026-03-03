@@ -119,9 +119,8 @@ public class AddElementCommand implements XsdCommand {
                         return complexTypeChild;
                     }
                 }
-            }
             // If it's directly a compositor (for ref elements or groups)
-            else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSequence ||
+            } else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSequence ||
                     child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdChoice ||
                     child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAll) {
                 logger.debug("Found direct compositor {}, using as target parent",

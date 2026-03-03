@@ -18,7 +18,7 @@
 
 package org.fxt.freexmltoolkit.controller;
 
-import java.awt.*;
+import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,12 +32,23 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
@@ -194,8 +205,12 @@ public class TemplatesController {
         }
 
         // Set initial button states
-        if (applyTemplateBtn != null) applyTemplateBtn.setDisable(true);
-        if (previewTemplateBtn != null) previewTemplateBtn.setDisable(true);
+        if (applyTemplateBtn != null) {
+            applyTemplateBtn.setDisable(true);
+        }
+        if (previewTemplateBtn != null) {
+            previewTemplateBtn.setDisable(true);
+        }
     }
 
     private void loadTemplates() {
@@ -271,8 +286,12 @@ public class TemplatesController {
             updateParametersTable();
 
             // Enable action buttons
-            if (applyTemplateBtn != null) applyTemplateBtn.setDisable(false);
-            if (previewTemplateBtn != null) previewTemplateBtn.setDisable(false);
+            if (applyTemplateBtn != null) {
+                applyTemplateBtn.setDisable(false);
+            }
+            if (previewTemplateBtn != null) {
+                previewTemplateBtn.setDisable(false);
+            }
 
             logger.debug("Selected template: {}", selected.getName());
         }
@@ -778,7 +797,9 @@ public class TemplatesController {
      * @param style the CSS style string to apply to the button
      */
     private void applyButtonSettings(ButtonBase button, ContentDisplay displayMode, int iconSize, String style) {
-        if (button == null) return;
+        if (button == null) {
+            return;
+        }
 
         // Set content display mode
         button.setContentDisplay(displayMode);

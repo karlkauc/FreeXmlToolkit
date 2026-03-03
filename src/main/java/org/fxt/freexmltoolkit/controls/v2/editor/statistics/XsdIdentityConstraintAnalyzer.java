@@ -1,11 +1,29 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAssert;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdField;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdIdentityConstraint;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdKey;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdKeyRef;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSelector;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdUnique;
 
 /**
  * Analyzes identity constraints (Key, KeyRef, Unique) and assertions in an XSD schema.
@@ -374,21 +392,18 @@ public class XsdIdentityConstraintAnalyzer {
             ValidationStatus status = validateIdentityConstraint(key);
             String message = status == ValidationStatus.VALID ? "Valid" : getValidationMessage(key);
             keys.add(IdentityConstraintInfo.fromIdentityConstraint(key, parentName, status, message));
-        }
         // Process KeyRefs
-        else if (node instanceof XsdKeyRef keyRef) {
+        } else if (node instanceof XsdKeyRef keyRef) {
             ValidationStatus status = validateKeyRef(keyRef, keyAndUniqueNames);
             String message = getKeyRefValidationMessage(keyRef, keyAndUniqueNames);
             keyRefs.add(IdentityConstraintInfo.fromIdentityConstraint(keyRef, parentName, status, message));
-        }
         // Process Uniques
-        else if (node instanceof XsdUnique unique) {
+        } else if (node instanceof XsdUnique unique) {
             ValidationStatus status = validateIdentityConstraint(unique);
             String message = status == ValidationStatus.VALID ? "Valid" : getValidationMessage(unique);
             uniques.add(IdentityConstraintInfo.fromIdentityConstraint(unique, parentName, status, message));
-        }
         // Process Asserts
-        else if (node instanceof XsdAssert assertion) {
+        } else if (node instanceof XsdAssert assertion) {
             ValidationStatus status = validateAssert(assertion);
             String message = status == ValidationStatus.VALID ? "Valid XPath 2.0" : getAssertValidationMessage(assertion);
             asserts.add(IdentityConstraintInfo.fromAssert(assertion, parentName, status, message));

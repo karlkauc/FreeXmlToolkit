@@ -18,7 +18,14 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -469,10 +476,18 @@ public class CsvHandler {
      * @return The inferred node type
      */
     private String inferTypeFromXPath(String xpath) {
-        if (xpath.contains("/@")) return "attribute";
-        if (xpath.endsWith("/text()")) return "text";
-        if (xpath.endsWith("/comment()")) return "comment";
-        if (xpath.endsWith("/cdata()")) return "cdata";
+        if (xpath.contains("/@")) {
+            return "attribute";
+        }
+        if (xpath.endsWith("/text()")) {
+            return "text";
+        }
+        if (xpath.endsWith("/comment()")) {
+            return "comment";
+        }
+        if (xpath.endsWith("/cdata()")) {
+            return "cdata";
+        }
         return "element";
     }
 

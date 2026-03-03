@@ -11,7 +11,15 @@ import javafx.animation.PauseTransition;
 import javafx.scene.CacheHint;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
@@ -30,8 +38,17 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.PasteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.menu.XsdContextMenuFactory;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdPropertiesPanel;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
@@ -529,7 +546,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * This inverse logic ensures that new nodes are expanded by default.
      */
     private void collectCollapsedNodes(VisualNode node, Set<String> collapsedIds) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         // Only track nodes that have children but are collapsed
         if (node.hasChildren() && !node.isExpanded()) {
@@ -553,7 +572,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * @param collapsedIds set of node IDs that should be collapsed
      */
     private void restoreExpansionState(VisualNode node, Set<String> collapsedIds) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
         // Determine expansion state: expand unless it was in the collapsed set
         Object modelObj = node.getModelObject();
@@ -823,6 +844,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                         event.consume();
                         pasteToSelectedNode();
                     }
+                    default -> { }
                 }
             } else {
                 // Non-Ctrl shortcuts
@@ -831,6 +853,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                         event.consume();
                         deleteSelectedNode();
                     }
+                    default -> { }
                 }
             }
         });
@@ -972,12 +995,13 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         return null;
     }
 
-
     /**
      * Expands all nodes recursively.
      */
     private void expandAll(VisualNode node) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
         node.setExpanded(true);
         for (VisualNode child : node.getChildren()) {
             expandAll(child);
@@ -988,7 +1012,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * Collapses all nodes recursively.
      */
     private void collapseAll(VisualNode node) {
-        if (node == null) return;
+        if (node == null) {
+            return;
+        }
         // Keep root expanded
         if (node != rootNode) {
             node.setExpanded(false);

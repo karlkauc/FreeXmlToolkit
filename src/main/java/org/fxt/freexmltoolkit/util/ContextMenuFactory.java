@@ -1,6 +1,12 @@
 package org.fxt.freexmltoolkit.util;
 
-import javafx.scene.control.*;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioMenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.paint.Color;
 
 import org.kordamp.ikonli.javafx.FontIcon;

@@ -354,6 +354,8 @@ public class SnippetParameter {
                     result.addError("Parameter '" + name + "' must be a valid URI");
                 }
                 break;
+            default:
+                break;
         }
 
         // Pattern validation
@@ -415,11 +417,15 @@ public class SnippetParameter {
      * @return true if the value is a valid XML name, false otherwise
      */
     private boolean isValidXmlName(String value) {
-        if (value == null || value.isEmpty()) return false;
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
 
         // Simplified XML name validation
         char first = value.charAt(0);
-        if (!Character.isLetter(first) && first != '_') return false;
+        if (!Character.isLetter(first) && first != '_') {
+            return false;
+        }
 
         for (int i = 1; i < value.length(); i++) {
             char c = value.charAt(i);
@@ -672,8 +678,12 @@ public class SnippetParameter {
      */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         SnippetParameter that = (SnippetParameter) o;
         return Objects.equals(name, that.name);
     }

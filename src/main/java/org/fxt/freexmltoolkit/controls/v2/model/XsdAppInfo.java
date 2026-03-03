@@ -506,8 +506,12 @@ public class XsdAppInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         XsdAppInfo that = (XsdAppInfo) o;
         return Objects.equals(entries, that.entries);
     }

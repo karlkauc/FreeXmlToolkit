@@ -15,7 +15,12 @@ import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorEventBus;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.ModeDetector;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.IntelliSenseEngine;
-import org.fxt.freexmltoolkit.controls.v2.editor.managers.*;
+import org.fxt.freexmltoolkit.controls.v2.editor.managers.ContextMenuManagerV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.managers.EventHandlerManager;
+import org.fxt.freexmltoolkit.controls.v2.editor.managers.FoldingManagerV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.managers.StatusLineManagerV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.managers.SyntaxHighlightManagerV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.managers.ValidationManagerV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
 
 /**

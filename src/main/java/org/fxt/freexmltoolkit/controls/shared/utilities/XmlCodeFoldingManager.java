@@ -1,6 +1,14 @@
 package org.fxt.freexmltoolkit.controls.shared.utilities;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+import java.util.TreeMap;
 import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -248,7 +256,9 @@ public class XmlCodeFoldingManager {
      */
     public void toggleFold(int line) {
         FoldingRegion region = foldingRegions.get(line);
-        if (region == null) return;
+        if (region == null) {
+            return;
+        }
 
         if (foldedRegions.contains(line)) {
             unfold(line);
@@ -262,7 +272,9 @@ public class XmlCodeFoldingManager {
      */
     public void fold(int line) {
         FoldingRegion region = foldingRegions.get(line);
-        if (region == null) return;
+        if (region == null) {
+            return;
+        }
 
         try {
             isUpdatingFromFoldOperation = true;
@@ -329,10 +341,14 @@ public class XmlCodeFoldingManager {
      * Unfolds a region at the specified line
      */
     public void unfold(int line) {
-        if (!foldedRegions.contains(line)) return;
+        if (!foldedRegions.contains(line)) {
+            return;
+        }
 
         String originalText = collapsedText.get(line);
-        if (originalText == null) return;
+        if (originalText == null) {
+            return;
+        }
 
         try {
             isUpdatingFromFoldOperation = true;

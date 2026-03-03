@@ -93,6 +93,7 @@ public class ContextAnalyzer {
                 builder.currentElement(elementName);
                 builder.completionStartPosition(findTextContentCompletionStart(textBeforeCaret));
             }
+            default -> { }
         }
 
         XmlContext context = builder.build();
@@ -147,10 +148,14 @@ public class ContextAnalyzer {
         int pos = 0;
         while (pos < textBeforeCaret.length()) {
             int nextOpen = textBeforeCaret.indexOf('<', pos);
-            if (nextOpen == -1) break;
+            if (nextOpen == -1) {
+                break;
+            }
 
             int nextClose = textBeforeCaret.indexOf('>', nextOpen);
-            if (nextClose == -1) break;
+            if (nextClose == -1) {
+                break;
+            }
 
             String tag = textBeforeCaret.substring(nextOpen + 1, nextClose);
 
@@ -240,7 +245,9 @@ public class ContextAnalyzer {
         int lastSingleQuote = tagContent.lastIndexOf('\'');
         int lastQuote = Math.max(lastDoubleQuote, lastSingleQuote);
 
-        if (lastQuote == -1) return false;
+        if (lastQuote == -1) {
+            return false;
+        }
 
         // Count quotes before last quote to see if we're inside
         char quoteChar = lastDoubleQuote > lastSingleQuote ? '"' : '\'';
@@ -281,7 +288,9 @@ public class ContextAnalyzer {
      */
     private static String getElementNameForAttributes(String textBeforeCaret) {
         int lastOpenBracket = textBeforeCaret.lastIndexOf('<');
-        if (lastOpenBracket == -1) return null;
+        if (lastOpenBracket == -1) {
+            return null;
+        }
 
         String tagContent = textBeforeCaret.substring(lastOpenBracket + 1);
         return extractElementName(tagContent);
@@ -293,7 +302,9 @@ public class ContextAnalyzer {
     private static String getCurrentAttributeName(String textBeforeCaret) {
         // Find the last '=' before cursor
         int lastEquals = textBeforeCaret.lastIndexOf('=');
-        if (lastEquals == -1) return null;
+        if (lastEquals == -1) {
+            return null;
+        }
 
         // Find attribute name before '='
         String beforeEquals = textBeforeCaret.substring(0, lastEquals).trim();

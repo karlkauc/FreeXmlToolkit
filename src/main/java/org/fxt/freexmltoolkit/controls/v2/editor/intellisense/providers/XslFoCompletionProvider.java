@@ -261,6 +261,8 @@ public class XslFoCompletionProvider implements CompletionProvider {
                 items.add(createValueItem("center", "Center align"));
                 items.add(createValueItem("after", "Align to after"));
                 break;
+            default:
+                break;
         }
 
         return items;

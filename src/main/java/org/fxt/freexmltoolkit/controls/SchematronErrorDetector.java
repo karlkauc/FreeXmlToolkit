@@ -589,6 +589,7 @@ public class SchematronErrorDetector {
                 case ERROR -> errors.add(error);
                 case WARNING -> warnings.add(error);
                 case INFO -> infos.add(error);
+                default -> throw new IllegalStateException("Unexpected value: " + error.severity());
             }
         }
 

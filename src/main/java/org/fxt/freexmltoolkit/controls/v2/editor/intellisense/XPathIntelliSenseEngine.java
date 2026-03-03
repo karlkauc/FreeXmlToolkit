@@ -182,6 +182,7 @@ public class XPathIntelliSenseEngine {
                         resetPopupState();
                         event.consume();
                     }
+                    default -> { }
                 }
             } else {
                 // Check for manual trigger

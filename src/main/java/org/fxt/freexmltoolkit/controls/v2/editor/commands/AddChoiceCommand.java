@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 
 /**
  * Command to add a choice compositor to an element.

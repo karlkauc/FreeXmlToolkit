@@ -6,8 +6,21 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TitledPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -308,7 +321,9 @@ public class AppInfoEditorPanel extends VBox {
      * @param node the XSD node, or null to clear
      */
     public void setNode(XsdNode node) {
-        if (updating) { return; } // Prevent recursive updates during command execution
+        if (updating) {
+            return; // Prevent recursive updates during command execution
+        }
         this.currentNode = node;
         updateFromModel();
     }
@@ -495,7 +510,9 @@ public class AppInfoEditorPanel extends VBox {
         if (editorContext == null || currentNode == null) {
             return;
         }
-        if (updating) { return; } // Prevent recursive calls during PropertyChangeEvent handling
+        if (updating) {
+            return; // Prevent recursive calls during PropertyChangeEvent handling
+        }
 
         updating = true;
         try {

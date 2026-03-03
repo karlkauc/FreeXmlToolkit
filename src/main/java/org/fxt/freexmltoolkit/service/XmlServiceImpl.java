@@ -18,7 +18,14 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -28,13 +35,21 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -60,11 +75,29 @@ import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.ProcessingInstruction;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import net.sf.saxon.s9api.*;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.XPathCompiler;
+import net.sf.saxon.s9api.XPathExecutable;
+import net.sf.saxon.s9api.XPathSelector;
+import net.sf.saxon.s9api.XQueryCompiler;
+import net.sf.saxon.s9api.XQueryEvaluator;
+import net.sf.saxon.s9api.XQueryExecutable;
+import net.sf.saxon.s9api.XdmItem;
+import net.sf.saxon.s9api.XdmNode;
+import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.s9api.Xslt30Transformer;
+import net.sf.saxon.s9api.XsltCompiler;
+import net.sf.saxon.s9api.XsltExecutable;
 
 public class XmlServiceImpl implements XmlService {
 
@@ -1546,7 +1579,9 @@ public class XmlServiceImpl implements XmlService {
         Node contextNode = doc; // Start from the document root
 
         for (String part : parts) {
-            if (part.isEmpty()) continue;
+            if (part.isEmpty()) {
+                continue;
+            }
 
             String query = getQuery(part);
             Node foundNode = evaluateSaxonXPath(query, contextNode);
@@ -1651,7 +1686,9 @@ public class XmlServiceImpl implements XmlService {
         Node contextNode = doc; // Start from the document root
 
         for (String part : parts) {
-            if (part.isEmpty()) continue;
+            if (part.isEmpty()) {
+                continue;
+            }
 
             String query = getQuery(part);
             Node foundNode = evaluateSaxonXPath(query, contextNode);
@@ -1746,7 +1783,9 @@ public class XmlServiceImpl implements XmlService {
         Node contextNode = doc;
 
         for (String part : parts) {
-            if (part.isEmpty()) continue;
+            if (part.isEmpty()) {
+                continue;
+            }
 
             String query = getQuery(part);
             Node foundNode = evaluateSaxonXPath(query, contextNode);
@@ -2108,13 +2147,16 @@ public class XmlServiceImpl implements XmlService {
                                     }
                                 }
                                 case "redefine", "override" -> {
-                                    if ("override".equals(localName)) xsdVersion = "1.1";
+                                    if ("override".equals(localName)) {
+                                        xsdVersion = "1.1";
+                                    }
                                     String schemaLocation = reader.getAttributeValue(null, "schemaLocation");
                                     if (schemaLocation != null && !schemaLocation.isBlank()) {
                                         redefines.add(schemaLocation);
                                     }
                                 }
                                 case "assert", "assertion", "openContent", "defaultOpenContent" -> xsdVersion = "1.1";
+                                default -> { }
                             }
                         }
                     }

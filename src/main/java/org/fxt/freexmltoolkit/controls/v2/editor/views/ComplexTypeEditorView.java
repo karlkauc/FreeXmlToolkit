@@ -1,6 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
@@ -210,6 +216,8 @@ public class ComplexTypeEditorView extends BorderPane {
                         save();
                         event.consume();
                         break;
+                    default:
+                        break;
                 }
             } else {
                 // Non-Ctrl shortcuts
@@ -220,6 +228,8 @@ public class ComplexTypeEditorView extends BorderPane {
                             onCloseCallback.run();
                             event.consume();
                         }
+                        break;
+                    default:
                         break;
                 }
             }

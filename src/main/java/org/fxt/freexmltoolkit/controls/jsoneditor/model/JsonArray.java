@@ -179,7 +179,9 @@ public class JsonArray extends JsonNode {
             StringBuilder sb = new StringBuilder("[");
             boolean first = true;
             for (JsonNode child : children) {
-                if (!first) sb.append(", ");
+                if (!first) {
+                    sb.append(", ");
+                }
                 first = false;
                 sb.append(child.serialize(indent, 0));
             }

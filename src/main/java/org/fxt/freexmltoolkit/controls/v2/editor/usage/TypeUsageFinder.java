@@ -1,11 +1,24 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.usage;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAlternative;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdList;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
 
 /**
  * Service for finding usages of a type within an XSD schema.

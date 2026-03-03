@@ -26,7 +26,15 @@ import java.util.List;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToolBar;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -255,7 +263,9 @@ public class JsonController {
      * Loads recent files into the menu.
      */
     private void loadRecentFiles() {
-        if (toolbarRecentFiles == null) return;
+        if (toolbarRecentFiles == null) {
+            return;
+        }
 
         toolbarRecentFiles.getItems().clear();
 
@@ -870,6 +880,7 @@ public class JsonController {
                     case '{', '}' -> {
                         // Track nested objects within array
                     }
+                    default -> { }
                 }
             }
         }

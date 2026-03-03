@@ -1,13 +1,33 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAssert;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdField;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdIdentityConstraint;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdKey;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdKeyRef;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSelector;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdUnique;
 import org.w3c.dom.Document;
 
-import net.sf.saxon.s9api.*;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XPathCompiler;
+import net.sf.saxon.s9api.XPathExecutable;
+import net.sf.saxon.s9api.XPathSelector;
+import net.sf.saxon.s9api.XdmNode;
+import net.sf.saxon.s9api.XdmValue;
 
 /**
  * Validates XPath expressions in XSD schemas.
@@ -198,6 +218,7 @@ public class XsdXPathValidator {
                 case ERROR -> errorCount++;
                 case WARNING -> warningCount++;
                 case INFO -> infoCount++;
+                default -> throw new IllegalStateException("Unexpected value: " + issue.severity());
             }
         }
 
@@ -281,17 +302,14 @@ public class XsdXPathValidator {
         // Validate Key
         if (node instanceof XsdKey key) {
             validateIdentityConstraint(key, XPathSource.KEY_SELECTOR, XPathSource.KEY_FIELD, issues, elementNames);
-        }
         // Validate KeyRef
-        else if (node instanceof XsdKeyRef keyRef) {
+        } else if (node instanceof XsdKeyRef keyRef) {
             validateIdentityConstraint(keyRef, XPathSource.KEYREF_SELECTOR, XPathSource.KEYREF_FIELD, issues, elementNames);
-        }
         // Validate Unique
-        else if (node instanceof XsdUnique unique) {
+        } else if (node instanceof XsdUnique unique) {
             validateIdentityConstraint(unique, XPathSource.UNIQUE_SELECTOR, XPathSource.UNIQUE_FIELD, issues, elementNames);
-        }
         // Validate Assert
-        else if (node instanceof XsdAssert assertion) {
+        } else if (node instanceof XsdAssert assertion) {
             validateAssert(assertion, issues);
         }
 

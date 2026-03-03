@@ -18,7 +18,25 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -33,13 +51,26 @@ import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
-import org.fxt.freexmltoolkit.controls.*;
+import org.fxt.freexmltoolkit.controls.ProgressManager;
+import org.fxt.freexmltoolkit.controls.SchematronDocumentationGenerator;
+import org.fxt.freexmltoolkit.controls.SchematronErrorDetector;
+import org.fxt.freexmltoolkit.controls.SchematronTemplateLibrary;
+import org.fxt.freexmltoolkit.controls.SchematronTester;
+import org.fxt.freexmltoolkit.controls.SchematronVisualBuilder;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TestFile;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
+import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.SchematronLoadException;
+import org.fxt.freexmltoolkit.service.SchematronService;
+import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
+import org.fxt.freexmltoolkit.service.UsageTrackingService;
+import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
@@ -1766,7 +1797,7 @@ public class SchematronController implements FavoritesParentController {
                 }
 
                 DialogHelper.showInformation("Test Results", "",
-                        String.format("Tests completed:\n✓ Passed: %d\n✗ Failed: %d", passed, failed));
+                        String.format("Tests completed:%n✓ Passed: %d%n✗ Failed: %d", passed, failed));
 
                 // Track Schematron validation usage
                 try {
@@ -2073,12 +2104,12 @@ public class SchematronController implements FavoritesParentController {
 
         StringBuilder content = new StringBuilder();
         content.append(String.format(
-                "File: %s\n" +
-                        "Status: %s\n" +
-                        "Violations: %d\n" +
-                        "Warnings: %d\n" +
-                        "Duration: %s\n" +
-                        "Last Tested: %s\n\n",
+                "File: %s%n" +
+                        "Status: %s%n" +
+                        "Violations: %d%n" +
+                        "Warnings: %d%n" +
+                        "Duration: %s%n" +
+                        "Last Tested: %s%n%n",
                 testFile.getFilename(),
                 testFile.getStatus(),
                 testFile.getViolations(),
@@ -2094,10 +2125,10 @@ public class SchematronController implements FavoritesParentController {
 
             for (TestFile.TestResult result : testFile.getDetailedResults()) {
                 content.append(String.format(
-                        "[%s] %s\n" +
-                                "  Location: %s (Line %d)\n" +
-                                "  Rule ID: %s\n" +
-                                "  Pattern: %s\n\n",
+                        "[%s] %s%n" +
+                                "  Location: %s (Line %d)%n" +
+                                "  Rule ID: %s%n" +
+                                "  Pattern: %s%n%n",
                         result.type().toUpperCase(),
                         result.message(),
                         result.location(),

@@ -169,6 +169,7 @@ public class XPathCompletionProvider {
                 // Fallback: show all common completions
                 items.addAll(getAllCompletions(prefix));
             }
+            default -> throw new IllegalStateException("Unexpected value: " + contextType);
         }
 
         // Sort by relevance score (descending) then by label

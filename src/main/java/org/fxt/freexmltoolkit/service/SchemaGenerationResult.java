@@ -1,7 +1,13 @@
 package org.fxt.freexmltoolkit.service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Result object for XML schema generation operations.
@@ -130,7 +136,9 @@ public class SchemaGenerationResult {
             StringBuilder stackTrace = new StringBuilder();
             for (StackTraceElement element : throwable.getStackTrace()) {
                 stackTrace.append(element.toString()).append("\n");
-                if (stackTrace.length() > 2000) { break; } // Limit stack trace length
+                if (stackTrace.length() > 2000) {
+                    break; // Limit stack trace length
+                }
             }
             result.analysisMetadata.put("stackTrace", stackTrace.toString());
         }
@@ -427,21 +435,21 @@ public class SchemaGenerationResult {
 
         // Statistics
         summary.append("Generation Statistics:\n");
-        summary.append(String.format("  Generation Time: %d ms\n", generationTimeMs));
-        summary.append(String.format("  Elements Generated: %d\n", totalElementsGenerated));
-        summary.append(String.format("  Attributes Generated: %d\n", totalAttributesGenerated));
-        summary.append(String.format("  Complex Types: %d\n", totalComplexTypesGenerated));
-        summary.append(String.format("  Simple Types: %d\n", totalSimpleTypesGenerated));
-        summary.append(String.format("  Total Lines: %d\n", totalLinesGenerated));
-        summary.append(String.format("  Content Length: %d chars\n", generatedContentLength));
+        summary.append(String.format("  Generation Time: %d ms%n", generationTimeMs));
+        summary.append(String.format("  Elements Generated: %d%n", totalElementsGenerated));
+        summary.append(String.format("  Attributes Generated: %d%n", totalAttributesGenerated));
+        summary.append(String.format("  Complex Types: %d%n", totalComplexTypesGenerated));
+        summary.append(String.format("  Simple Types: %d%n", totalSimpleTypesGenerated));
+        summary.append(String.format("  Total Lines: %d%n", totalLinesGenerated));
+        summary.append(String.format("  Content Length: %d chars%n", generatedContentLength));
         summary.append("\n");
 
         // Quality metrics
         summary.append("Quality Assessment:\n");
-        summary.append(String.format("  Overall Score: %.1f/100\n", schemaQualityScore));
-        summary.append(String.format("  Warnings: %d\n", warnings.size()));
-        summary.append(String.format("  Validation Issues: %d\n", validationIssues.size()));
-        summary.append(String.format("  Optimizations Applied: %d\n", appliedOptimizations.size()));
+        summary.append(String.format("  Overall Score: %.1f/100%n", schemaQualityScore));
+        summary.append(String.format("  Warnings: %d%n", warnings.size()));
+        summary.append(String.format("  Validation Issues: %d%n", validationIssues.size()));
+        summary.append(String.format("  Optimizations Applied: %d%n", appliedOptimizations.size()));
         summary.append("\n");
 
         // Processing information

@@ -1,6 +1,13 @@
 package org.fxt.freexmltoolkit.service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.fxt.freexmltoolkit.domain.statistics.FeatureUsage;

@@ -1,6 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.util.Stack;
 
 import javax.xml.stream.XMLInputFactory;
@@ -8,7 +12,12 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 
 /**
@@ -174,6 +183,8 @@ public class StreamingXmlParser {
                         } else {
                             elementStack.peek().addChild(pi);
                         }
+                        break;
+                    default:
                         break;
                 }
             }

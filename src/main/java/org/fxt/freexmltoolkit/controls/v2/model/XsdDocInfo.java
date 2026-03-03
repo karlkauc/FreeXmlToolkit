@@ -177,8 +177,12 @@ public class XsdDocInfo {
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
                 SeeReference that = (SeeReference) o;
                 return Objects.equals(text, that.text);
             }
@@ -216,8 +220,12 @@ public class XsdDocInfo {
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
                 DeprecationInfo that = (DeprecationInfo) o;
                 return Objects.equals(message, that.message);
             }

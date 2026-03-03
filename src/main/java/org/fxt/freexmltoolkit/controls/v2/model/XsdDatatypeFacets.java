@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Defines applicable facets for each XSD 1.1 datatype.

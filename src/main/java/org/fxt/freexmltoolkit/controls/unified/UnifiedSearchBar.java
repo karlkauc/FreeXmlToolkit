@@ -335,10 +335,14 @@ public class UnifiedSearchBar extends HBox {
 
     // Fallback methods for direct CodeArea usage
     private boolean findInCodeArea(String text, boolean forward) {
-        if (currentCodeArea == null) return false;
+        if (currentCodeArea == null) {
+            return false;
+        }
 
         String content = currentCodeArea.getText();
-        if (content == null) return false;
+        if (content == null) {
+            return false;
+        }
 
         int currentPos = currentCodeArea.getCaretPosition();
         String lowerContent = content.toLowerCase();
@@ -366,7 +370,9 @@ public class UnifiedSearchBar extends HBox {
     }
 
     private boolean replaceInCodeArea(String findText, String replaceText) {
-        if (currentCodeArea == null) return false;
+        if (currentCodeArea == null) {
+            return false;
+        }
 
         String selected = currentCodeArea.getSelectedText();
         if (selected != null && selected.equalsIgnoreCase(findText)) {
@@ -380,10 +386,14 @@ public class UnifiedSearchBar extends HBox {
     }
 
     private int replaceAllInCodeArea(String findText, String replaceText) {
-        if (currentCodeArea == null) return 0;
+        if (currentCodeArea == null) {
+            return 0;
+        }
 
         String content = currentCodeArea.getText();
-        if (content == null) return 0;
+        if (content == null) {
+            return 0;
+        }
 
         String lowerContent = content.toLowerCase();
         String lowerFind = findText.toLowerCase();

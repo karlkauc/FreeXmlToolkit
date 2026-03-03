@@ -4,15 +4,28 @@ import java.beans.PropertyChangeEvent;
 import java.util.Map;
 
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToolBar;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.*;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RemoveAttributeCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 
 /**
  * Property panel for editing XML node properties.

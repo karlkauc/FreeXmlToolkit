@@ -356,6 +356,7 @@ public class SchemaResourceCache {
                                     // XSD 1.1 features
                                     xsdVersion = "1.1";
                                 }
+                                default -> { }
                             }
                         }
                     }

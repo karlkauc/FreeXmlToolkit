@@ -11,7 +11,15 @@ import java.util.concurrent.Executors;
 
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
@@ -404,7 +412,9 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
      * Escapes HTML special characters.
      */
     private String escapeHtml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")

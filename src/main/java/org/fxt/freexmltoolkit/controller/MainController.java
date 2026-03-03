@@ -35,10 +35,21 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.*;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -995,13 +1006,11 @@ public class MainController implements Initializable {
         }
 
         aboutDialog.setContentText(
-                """
-                        Version: %s
-                        Copyright (c) Karl Kauc 2024-2025.
-                        
-                        This product is licensed under the Apache License, Version 2.0.
-                        A copy of the license is available at:
-                        http://www.apache.org/licenses/LICENSE-2.0""".formatted(version)
+                "Version: " + version + "\n" +
+                "Copyright (c) Karl Kauc 2024-2025.\n\n" +
+                "This product is licensed under the Apache License, Version 2.0.\n" +
+                "A copy of the license is available at:\n" +
+                "http://www.apache.org/licenses/LICENSE-2.0"
         );
 
         aboutDialog.showAndWait();
@@ -1266,44 +1275,31 @@ public class MainController implements Initializable {
     private void restoreButtonText(Button button) {
         if (button == xmlUltimate) {
             button.setText("XML Editor");
-        }
-        else if (button == json) {
+        } else if (button == json) {
             button.setText("JSON Editor");
-        }
-        else if (button == xsd) {
+        } else if (button == xsd) {
             button.setText("XSD Editor");
-        }
-        else if (button == xsdValidation) {
+        } else if (button == xsdValidation) {
             button.setText("XSD Validation");
-        }
-        else if (button == schematron) {
+        } else if (button == schematron) {
             button.setText("Schematron Editor");
-        }
-        else if (button == xslt) {
+        } else if (button == xslt) {
             button.setText("XSLT Viewer");
-        }
-        else if (button == fop) {
+        } else if (button == fop) {
             button.setText("FOP");
-        }
-        else if (button == signature) {
+        } else if (button == signature) {
             button.setText("Signature");
-        }
-        else if (button == help) {
+        } else if (button == help) {
             button.setText("Help");
-        }
-        else if (button == settings) {
+        } else if (button == settings) {
             button.setText("Settings");
-        }
-        else if (button == exit) {
+        } else if (button == exit) {
             button.setText("Exit");
-        }
-        else if (button == xsltDeveloper) {
+        } else if (button == xsltDeveloper) {
             button.setText("XSLT Developer");
-        }
-        else if (button == schemaGenerator) {
+        } else if (button == schemaGenerator) {
             button.setText("Schema Generator");
-        }
-        else if (button == unifiedEditor) {
+        } else if (button == unifiedEditor) {
             button.setText("Unified Editor");
         }
     }
@@ -1434,6 +1430,7 @@ public class MainController implements Initializable {
                 case "XSLT" -> {
                     xslt.fire();
                 }
+                default -> { }
             }
         });
     }

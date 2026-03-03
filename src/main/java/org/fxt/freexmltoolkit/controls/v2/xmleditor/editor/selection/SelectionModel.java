@@ -2,7 +2,9 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.selection;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 

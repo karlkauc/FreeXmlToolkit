@@ -21,7 +21,14 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.security.MessageDigest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.w3c.dom.Node;
@@ -333,12 +340,16 @@ public class XsdExtendedElement implements Serializable {
     }
 
     private String capitalize(String str) {
-        if (str == null || str.isEmpty()) return str;
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
     private String escapeHtml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
@@ -347,7 +358,9 @@ public class XsdExtendedElement implements Serializable {
     }
 
     public boolean isMandatory() {
-        if (this.currentNode == null) return false;
+        if (this.currentNode == null) {
+            return false;
+        }
 
         // Default for element is "1", for attribute it's based on "use"
         if (elementName != null && elementName.startsWith("@")) {
@@ -377,7 +390,9 @@ public class XsdExtendedElement implements Serializable {
     }
 
     private String getAttributeValue(Node node, String attrName) {
-        if (node == null || node.getAttributes() == null) return null;
+        if (node == null || node.getAttributes() == null) {
+            return null;
+        }
         Node attrNode = node.getAttributes().getNamedItem(attrName);
         return (attrNode != null) ? attrNode.getNodeValue() : null;
     }

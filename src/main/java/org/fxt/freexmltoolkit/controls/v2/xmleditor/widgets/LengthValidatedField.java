@@ -112,7 +112,9 @@ public class LengthValidatedField implements TypeAwareWidgetFactory.EditWidget {
                 tip.append("min ").append(minLength);
             }
             if (maxLength != null) {
-                if (minLength != null) tip.append(", ");
+                if (minLength != null) {
+                    tip.append(", ");
+                }
                 tip.append("max ").append(maxLength);
             }
         }

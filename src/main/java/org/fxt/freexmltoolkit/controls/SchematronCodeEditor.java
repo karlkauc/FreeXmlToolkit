@@ -261,6 +261,7 @@ public class SchematronCodeEditor extends StackPane {
             switch (event.getCode()) {
                 case ENTER -> handleEnterKey();
                 case TAB -> handleTabKey();
+                default -> { }
             }
         });
     }

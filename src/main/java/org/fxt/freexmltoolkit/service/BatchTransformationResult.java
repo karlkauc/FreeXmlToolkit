@@ -158,16 +158,16 @@ public class BatchTransformationResult {
         StringBuilder sb = new StringBuilder();
         sb.append("Batch XQuery Transformation Results\n");
         sb.append("====================================\n\n");
-        sb.append(String.format("Total Files: %d\n", totalFiles));
-        sb.append(String.format("Successful:  %d\n", successCount));
-        sb.append(String.format("Errors:      %d\n", errorCount));
-        sb.append(String.format("Skipped:     %d\n", skippedCount));
-        sb.append(String.format("Total Time:  %d ms\n", totalExecutionTime));
+        sb.append(String.format("Total Files: %d%n", totalFiles));
+        sb.append(String.format("Successful:  %d%n", successCount));
+        sb.append(String.format("Errors:      %d%n", errorCount));
+        sb.append(String.format("Skipped:     %d%n", skippedCount));
+        sb.append(String.format("Total Time:  %d ms%n", totalExecutionTime));
 
         if (!perFileErrors.isEmpty()) {
             sb.append("\nErrors:\n");
             for (Map.Entry<File, String> entry : perFileErrors.entrySet()) {
-                sb.append(String.format("  - %s: %s\n", entry.getKey().getName(), entry.getValue()));
+                sb.append(String.format("  - %s: %s%n", entry.getKey().getName(), entry.getValue()));
             }
         }
 

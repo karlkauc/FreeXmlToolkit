@@ -4,7 +4,16 @@ import java.util.Optional;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -494,6 +503,7 @@ public class DialogHelper {
                 case WARNING -> icon.setIconColor(Color.web("#ffc107"));
                 case ERROR -> icon.setIconColor(Color.web("#dc3545"));
                 case CONFIRMATION -> icon.setIconColor(Color.web("#007bff"));
+                default -> throw new IllegalStateException("Unexpected value: " + type);
             }
 
             alert.setGraphic(icon);

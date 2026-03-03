@@ -191,7 +191,9 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
 
     @Override
     public void setViewMode(ViewMode mode) {
-        if (this.currentViewMode == mode) return;
+        if (this.currentViewMode == mode) {
+            return;
+        }
         
         logger.info("Switching XSD view mode from {} to {}", currentViewMode, mode);
         this.currentViewMode = mode;

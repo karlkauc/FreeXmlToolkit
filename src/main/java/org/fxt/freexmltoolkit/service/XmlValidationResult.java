@@ -208,7 +208,9 @@ public class XmlValidationResult {
         return allIssues.stream()
                 .sorted((a, b) -> {
                     int lineCompare = Integer.compare(a.getLineNumber(), b.getLineNumber());
-                    if (lineCompare != 0) return lineCompare;
+                    if (lineCompare != 0) {
+                        return lineCompare;
+                    }
                     return Integer.compare(a.getColumnNumber(), b.getColumnNumber());
                 })
                 .collect(Collectors.toList());

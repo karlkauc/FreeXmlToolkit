@@ -57,6 +57,7 @@ public class XsdCompletionProvider implements CompletionProvider {
             case ELEMENT -> items.addAll(getElementCompletions(context, xsdData));
             case ATTRIBUTE -> items.addAll(getAttributeCompletions(context, xsdData));
             case TEXT_CONTENT -> items.addAll(getTextContentCompletions(context, xsdData));
+            default -> { }
         }
 
         logger.debug("XSD provider returned {} completions for context: {}", items.size(), context.getType());

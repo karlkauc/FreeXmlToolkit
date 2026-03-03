@@ -23,7 +23,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,39 +79,39 @@ public class XsdDocumentationSvgService {
     }
 
     // SVG Layout Constants
-    private final int NODE_WIDTH = 200;
-    private final int NODE_HEIGHT = 80;
-    private final int HORIZONTAL_SPACING = 350;  // Increased from 250 for better spacing
-    private final int VERTICAL_SPACING = 150;    // Increased from 120 for better spacing
-    private final int START_X = 50;
-    private final int START_Y = 50;
-    private final int FONT_SIZE = 12;
-    private final int TITLE_FONT_SIZE = 14;
+    private static final int NODE_WIDTH = 200;
+    private static final int NODE_HEIGHT = 80;
+    private static final int HORIZONTAL_SPACING = 350;  // Increased from 250 for better spacing
+    private static final int VERTICAL_SPACING = 150;    // Increased from 120 for better spacing
+    private static final int START_X = 50;
+    private static final int START_Y = 50;
+    private static final int FONT_SIZE = 12;
+    private static final int TITLE_FONT_SIZE = 14;
 
     // Colors matching XsdDiagramView styles
-    private final String COLOR_ROOT = "#4A90E2";
-    private final String COLOR_ELEMENT = "#4a90e2"; // NODE_LABEL_STYLE
-    private final String COLOR_ATTRIBUTE = "#d4a147"; // ATTRIBUTE_LABEL_STYLE
-    private final String COLOR_SEQUENCE = "#6c757d"; // SEQUENCE_NODE_STYLE
-    private final String COLOR_CHOICE = "#ff8c00"; // CHOICE_NODE_STYLE
-    private final String COLOR_ANY = "#adb5bd"; // ANY_NODE_STYLE
-    private final String COLOR_OPTIONAL = "#FF6B6B";
-    private final String COLOR_MANDATORY = "#4CAF50";
-    private final String COLOR_BORDER = "#333333";
-    private final String COLOR_TEXT = "#2C3E50";
-    private final String COLOR_BACKGROUND = "#f0f8ff";
+    private static final String COLOR_ROOT = "#4A90E2";
+    private static final String COLOR_ELEMENT = "#4a90e2"; // NODE_LABEL_STYLE
+    private static final String COLOR_ATTRIBUTE = "#d4a147"; // ATTRIBUTE_LABEL_STYLE
+    private static final String COLOR_SEQUENCE = "#6c757d"; // SEQUENCE_NODE_STYLE
+    private static final String COLOR_CHOICE = "#ff8c00"; // CHOICE_NODE_STYLE
+    private static final String COLOR_ANY = "#adb5bd"; // ANY_NODE_STYLE
+    private static final String COLOR_OPTIONAL = "#FF6B6B";
+    private static final String COLOR_MANDATORY = "#4CAF50";
+    private static final String COLOR_BORDER = "#333333";
+    private static final String COLOR_TEXT = "#2C3E50";
+    private static final String COLOR_BACKGROUND = "#f0f8ff";
 
     // Type-specific colors from XsdDiagramView
-    private final String COLOR_STRING_TYPE = "#28a745";
-    private final String COLOR_NUMERIC_TYPE = "#007bff";
-    private final String COLOR_DATE_TYPE = "#fd7e14";
-    private final String COLOR_BOOLEAN_TYPE = "#6f42c1";
-    private final String COLOR_BINARY_TYPE = "#6c757d";
-    private final String COLOR_URI_TYPE = "#17a2b8";
-    private final String COLOR_QNAME_TYPE = "#e83e8c";
-    private final String COLOR_LANGUAGE_TYPE = "#20c997";
-    private final String COLOR_COMPLEX_TYPE = "#dc3545";
-    private final String COLOR_DEFAULT_TYPE = "#4a90e2";
+    private static final String COLOR_STRING_TYPE = "#28a745";
+    private static final String COLOR_NUMERIC_TYPE = "#007bff";
+    private static final String COLOR_DATE_TYPE = "#fd7e14";
+    private static final String COLOR_BOOLEAN_TYPE = "#6f42c1";
+    private static final String COLOR_BINARY_TYPE = "#6c757d";
+    private static final String COLOR_URI_TYPE = "#17a2b8";
+    private static final String COLOR_QNAME_TYPE = "#e83e8c";
+    private static final String COLOR_LANGUAGE_TYPE = "#20c997";
+    private static final String COLOR_COMPLEX_TYPE = "#dc3545";
+    private static final String COLOR_DEFAULT_TYPE = "#4a90e2";
 
     public XsdDocumentationSvgService() {
         resolver = new ClassLoaderTemplateResolver();
@@ -679,6 +683,7 @@ public class XsdDocumentationSvgService {
                         badgeColor = "#10b981"; // Green
                         backgroundColor = "#d1fae5";
                     }
+                    default -> throw new IllegalStateException("Unexpected value: " + constraint.getType());
                 }
 
                 int currentBadgeX = badgeStartX + offsetX;
@@ -761,13 +766,13 @@ public class XsdDocumentationSvgService {
                 int midX = startX + (endX - startX) / 2;    // Midpoint for the corner
 
                 svgBuilder.append(String.format(
-                        "<path d=\"M %d %d L %d %d L %d %d L %d %d\" stroke=\"%s\" stroke-width=\"2\" fill=\"none\" class=\"connection\"%s/>\n",
+                        "<path d=\"M %d %d L %d %d L %d %d L %d %d\" stroke=\"%s\" stroke-width=\"2\" fill=\"none\" class=\"connection\"%s/>",
                         startX, startY,      // Start at right of parent
                         midX, startY,        // Horizontal line to midpoint
                         midX, endY,          // Vertical line to child level
                         endX, endY,          // Horizontal line to left of child
                         connectorColor, connectorDash
-                ));
+                )).append('\n');
             }
         }
 
@@ -1023,7 +1028,9 @@ public class XsdDocumentationSvgService {
      */
     private boolean isElementOptional(XsdExtendedElement element) {
         Node node = element.getCurrentNode();
-        if (node == null) return false;
+        if (node == null) {
+            return false;
+        }
 
         if (element.getElementName().startsWith("@")) {
             String use = getAttributeValue(node, "use", "optional");
@@ -1039,7 +1046,9 @@ public class XsdDocumentationSvgService {
      */
     private boolean isElementRepeatable(XsdExtendedElement element) {
         Node node = element.getCurrentNode();
-        if (node == null) return false;
+        if (node == null) {
+            return false;
+        }
 
         if (element.getElementName().startsWith("@")) {
             return false; // Attributes cannot repeat
@@ -1060,7 +1069,9 @@ public class XsdDocumentationSvgService {
 
     private String getCardinality(XsdExtendedElement element) {
         Node node = element.getCurrentNode();
-        if (node == null) return "";
+        if (node == null) {
+            return "";
+        }
 
         String minOccurs = getAttributeValue(node, "minOccurs", "1");
         String maxOccurs = getAttributeValue(node, "maxOccurs", "1");
@@ -1083,13 +1094,17 @@ public class XsdDocumentationSvgService {
 
 
     private String getAttributeValue(Node node, String attrName, String defaultValue) {
-        if (node == null || node.getAttributes() == null) return defaultValue;
+        if (node == null || node.getAttributes() == null) {
+            return defaultValue;
+        }
         Node attrNode = node.getAttributes().getNamedItem(attrName);
         return (attrNode != null) ? attrNode.getNodeValue() : defaultValue;
     }
 
     private String escapeXml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")

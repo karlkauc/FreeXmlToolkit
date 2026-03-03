@@ -9,7 +9,16 @@ import java.util.regex.PatternSyntaxException;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -647,6 +656,8 @@ public class XmlSearchReplacePanel extends VBox {
             case ALL:
                 searchAllXmlParts(searchText, documentText);
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + currentXmlSearchType);
         }
     }
 

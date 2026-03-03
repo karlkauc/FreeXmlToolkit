@@ -540,10 +540,15 @@ public class SnippetValidationRule {
                         int openParens = 0;
 
                         for (char c : query.toCharArray()) {
-                            if (c == '[') openBrackets++;
-                            else if (c == ']') openBrackets--;
-                            else if (c == '(') openParens++;
-                            else if (c == ')') openParens--;
+                            if (c == '[') {
+                                openBrackets++;
+                            } else if (c == ']') {
+                                openBrackets--;
+                            } else if (c == '(') {
+                                openParens++;
+                            } else if (c == ')') {
+                                openParens--;
+                            }
                         }
 
                         if (openBrackets != 0) {

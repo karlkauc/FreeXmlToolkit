@@ -72,7 +72,9 @@ public class XmlEditorUIHelper {
      * @return truncated text with ellipsis if needed
      */
     public static String truncateText(String text, int maxLength) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         if (text.length() <= maxLength) {
             return text;
         }

@@ -106,7 +106,9 @@ public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
 
                 @Override
                 public Double fromString(String string) {
-                    if (string == null || string.isEmpty()) return 0.0;
+                    if (string == null || string.isEmpty()) {
+                        return 0.0;
+                    }
                     try {
                         return (double) Long.parseLong(string);
                     } catch (NumberFormatException e) {
@@ -130,7 +132,9 @@ public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
 
                 @Override
                 public Double fromString(String string) {
-                    if (string == null || string.isEmpty()) return 0.0;
+                    if (string == null || string.isEmpty()) {
+                        return 0.0;
+                    }
                     try {
                         return df.parse(string).doubleValue();
                     } catch (ParseException e) {
@@ -170,7 +174,9 @@ public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
     }
 
     private Double parseFacetDouble(Map<String, String> facets, String name) {
-        if (facets == null || !facets.containsKey(name)) return null;
+        if (facets == null || !facets.containsKey(name)) {
+            return null;
+        }
         try {
             return Double.parseDouble(facets.get(name));
         } catch (NumberFormatException e) {
@@ -179,7 +185,9 @@ public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
     }
 
     private Integer parseFacetInt(Map<String, String> facets, String name) {
-        if (facets == null || !facets.containsKey(name)) return null;
+        if (facets == null || !facets.containsKey(name)) {
+            return null;
+        }
         try {
             return Integer.parseInt(facets.get(name));
         } catch (NumberFormatException e) {

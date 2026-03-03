@@ -1,7 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -9,7 +10,22 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Separator;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -19,7 +35,15 @@ import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdList;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -945,6 +969,7 @@ public class TypeLibraryView extends BorderPane {
                 case "JSON" -> TypeLibraryExporter.exportToJSON(exportTypes, file, schemaName);
                 case "XML" -> TypeLibraryExporter.exportToXML(exportTypes, file, schemaName);
                 case "MARKDOWN" -> TypeLibraryExporter.exportToMarkdown(exportTypes, file, schemaName);
+                default -> { }
             }
 
             logger.info("Exported type library to {} format: {}", format, file.getAbsolutePath());

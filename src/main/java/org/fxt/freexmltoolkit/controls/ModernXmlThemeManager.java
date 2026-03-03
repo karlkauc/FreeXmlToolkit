@@ -1,6 +1,10 @@
 package org.fxt.freexmltoolkit.controls;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.prefs.Preferences;
 
 import javafx.collections.FXCollections;

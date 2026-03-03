@@ -1,14 +1,33 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.*;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 import org.fxt.freexmltoolkit.util.SecureXmlFactory;
-import org.w3c.dom.*;
+import org.w3c.dom.Attr;
+import org.w3c.dom.CDATASection;
+import org.w3c.dom.Comment;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.ProcessingInstruction;
+import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 

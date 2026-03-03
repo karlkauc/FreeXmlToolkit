@@ -8,7 +8,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -238,7 +243,9 @@ public class FavoritesService {
      * @param favorite the favorite with updated values
      */
     public void updateFavorite(FileFavorite favorite) {
-        if (favorite == null || favorite.getId() == null) return;
+        if (favorite == null || favorite.getId() == null) {
+            return;
+        }
         
         for (int i = 0; i < favorites.size(); i++) {
             if (favorites.get(i).getId().equals(favorite.getId())) {
@@ -348,7 +355,9 @@ public class FavoritesService {
      * @param newName the new folder name
      */
     public void renameFolder(String oldName, String newName) {
-        if (oldName == null || newName == null || oldName.equals(newName)) return;
+        if (oldName == null || newName == null || oldName.equals(newName)) {
+            return;
+        }
         
         List<FileFavorite> favoritesInFolder = favoritesByFolder.get(oldName);
         if (favoritesInFolder != null) {
@@ -365,7 +374,9 @@ public class FavoritesService {
      * @param folderName the name of the folder to delete
      */
     public void deleteFolder(String folderName) {
-        if (folderName == null || "Uncategorized".equals(folderName)) return;
+        if (folderName == null || "Uncategorized".equals(folderName)) {
+            return;
+        }
         
         List<FileFavorite> favoritesInFolder = favoritesByFolder.get(folderName);
         if (favoritesInFolder != null) {
@@ -533,7 +544,9 @@ public class FavoritesService {
      * @return the query name without extension, or empty string if file is null
      */
     public static String getQueryName(File file) {
-        if (file == null) return "";
+        if (file == null) {
+            return "";
+        }
         String name = file.getName();
         int dotIndex = name.lastIndexOf('.');
         return dotIndex > 0 ? name.substring(0, dotIndex) : name;

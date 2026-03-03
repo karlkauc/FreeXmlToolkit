@@ -149,6 +149,7 @@ public class SvgPathParser {
             case 'T' -> parseSmoothQuadraticCurve(commands, args, relative);
             case 'A' -> parseArc(commands, args, relative);
             case 'Z' -> commands.add(new PathCommand(CommandType.CLOSE_PATH, new double[0], false));
+            default -> { }
         }
     }
 
@@ -450,6 +451,7 @@ public class SvgPathParser {
                     currentX = startX;
                     currentY = startY;
                 }
+                default -> throw new IllegalStateException("Unexpected value: " + cmd.type());
             }
 
             lastCommand = cmd.type();

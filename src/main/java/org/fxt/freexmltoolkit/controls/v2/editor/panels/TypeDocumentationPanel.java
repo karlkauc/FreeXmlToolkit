@@ -26,8 +26,23 @@ import java.util.Optional;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -218,7 +233,9 @@ public class TypeDocumentationPanel extends BorderPane implements PropertyChange
      * Updates the UI from the current node's model.
      */
     private void updateFromModel() {
-        if (updating) return;
+        if (updating) {
+            return;
+        }
         updating = true;
 
         try {
@@ -340,7 +357,9 @@ public class TypeDocumentationPanel extends BorderPane implements PropertyChange
      * @param index the index of the documentation to edit
      */
     private void handleEditDocumentation(int index) {
-        if (index < 0 || index >= currentDocumentations.size()) return;
+        if (index < 0 || index >= currentDocumentations.size()) {
+            return;
+        }
 
         XsdDocumentation existing = currentDocumentations.get(index);
         Optional<XsdDocumentation> result = showDocumentationDialog("Edit Documentation", existing);
@@ -357,7 +376,9 @@ public class TypeDocumentationPanel extends BorderPane implements PropertyChange
      * @param index the index of the documentation to delete
      */
     private void handleDeleteDocumentation(int index) {
-        if (index < 0 || index >= currentDocumentations.size()) return;
+        if (index < 0 || index >= currentDocumentations.size()) {
+            return;
+        }
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Delete Documentation");
@@ -452,7 +473,9 @@ public class TypeDocumentationPanel extends BorderPane implements PropertyChange
         dialog.setResultConverter(buttonType -> {
             if (buttonType == ButtonType.OK) {
                 String lang = defaultLangCheck.isSelected() ? null : langField.getText().trim();
-                if (lang != null && lang.isEmpty()) lang = null;
+                if (lang != null && lang.isEmpty()) {
+                    lang = null;
+                }
                 String content = contentArea.getText();
                 return new XsdDocumentation(lang, content);
             }

@@ -4,7 +4,22 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.AutoUpdateService;
+import org.fxt.freexmltoolkit.service.AutoUpdateServiceImpl;
+import org.fxt.freexmltoolkit.service.ConnectionService;
+import org.fxt.freexmltoolkit.service.ConnectionServiceImpl;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
+import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.service.SchematronService;
+import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
+import org.fxt.freexmltoolkit.service.UpdateCheckService;
+import org.fxt.freexmltoolkit.service.UpdateCheckServiceImpl;
+import org.fxt.freexmltoolkit.service.UsageTrackingService;
+import org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl;
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
 /**
  * Central registry for service instances with support for dependency injection.

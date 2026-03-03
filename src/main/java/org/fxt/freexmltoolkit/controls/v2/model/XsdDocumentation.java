@@ -121,8 +121,12 @@ public class XsdDocumentation {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         XsdDocumentation that = (XsdDocumentation) o;
         return Objects.equals(text, that.text) &&
                Objects.equals(lang, that.lang) &&

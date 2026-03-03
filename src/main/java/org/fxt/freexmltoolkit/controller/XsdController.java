@@ -4,14 +4,19 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -27,8 +32,9 @@ import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.*;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.XmlService;
 
 
 /**
@@ -633,8 +639,7 @@ public class XsdController implements FavoritesParentController {
     public void saveXsdFile() {
         if (currentXsdFile != null) {
             saveXsdToFile(currentXsdFile);
-        }
-        else {
+        } else {
             saveXsdFileAs();
         }
     }

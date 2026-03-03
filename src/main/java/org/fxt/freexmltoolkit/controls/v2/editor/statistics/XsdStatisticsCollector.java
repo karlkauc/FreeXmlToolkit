@@ -1,12 +1,31 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdImport;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdInclude;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 
 /**
  * Collects comprehensive statistics from an XSD schema.

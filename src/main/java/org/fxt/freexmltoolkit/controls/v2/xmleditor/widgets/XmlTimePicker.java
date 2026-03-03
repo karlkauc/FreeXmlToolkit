@@ -118,8 +118,12 @@ public class XmlTimePicker implements TypeAwareWidgetFactory.EditWidget {
         String timeOnly = value;
         if (value.contains("+") || value.contains("Z")) {
             int idx = value.indexOf("+");
-            if (idx < 0) idx = value.indexOf("Z");
-            if (idx > 0) timeOnly = value.substring(0, idx);
+            if (idx < 0) {
+                idx = value.indexOf("Z");
+            }
+            if (idx > 0) {
+                timeOnly = value.substring(0, idx);
+            }
         }
         return LocalTime.parse(timeOnly, ISO_TIME_FORMAT);
     }

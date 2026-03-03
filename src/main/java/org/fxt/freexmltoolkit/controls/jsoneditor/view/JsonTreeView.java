@@ -26,7 +26,13 @@ import java.util.Map;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -34,7 +40,11 @@ import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.jsoneditor.model.*;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonArray;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 /**

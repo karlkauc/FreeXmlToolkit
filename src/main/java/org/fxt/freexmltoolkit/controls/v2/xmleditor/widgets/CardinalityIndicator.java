@@ -230,8 +230,12 @@ public class CardinalityIndicator {
      * @return true if multiple allowed
      */
     public static boolean allowsMultiple(String maxOccurs) {
-        if (maxOccurs == null) return false;
-        if ("unbounded".equalsIgnoreCase(maxOccurs)) return true;
+        if (maxOccurs == null) {
+            return false;
+        }
+        if ("unbounded".equalsIgnoreCase(maxOccurs)) {
+            return true;
+        }
         try {
             return Integer.parseInt(maxOccurs) > 1;
         } catch (NumberFormatException e) {

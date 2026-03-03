@@ -180,10 +180,18 @@ public class FeatureUsage {
      * @return the usage level
      */
     public UsageLevel getUsageLevel() {
-        if (useCount == 0) return UsageLevel.NEVER;
-        if (useCount < 5) return UsageLevel.RARELY;
-        if (useCount < 20) return UsageLevel.OCCASIONALLY;
-        if (useCount < 50) return UsageLevel.FREQUENTLY;
+        if (useCount == 0) {
+            return UsageLevel.NEVER;
+        }
+        if (useCount < 5) {
+            return UsageLevel.RARELY;
+        }
+        if (useCount < 20) {
+            return UsageLevel.OCCASIONALLY;
+        }
+        if (useCount < 50) {
+            return UsageLevel.FREQUENTLY;
+        }
         return UsageLevel.EXPERT;
     }
 

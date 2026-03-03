@@ -1,6 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -79,6 +83,7 @@ public class PatternCompletionProvider implements CompletionProvider {
         switch (context.getType()) {
             case ELEMENT -> items.addAll(getElementCompletions());
             case ATTRIBUTE -> items.addAll(getAttributeCompletions());
+            default -> { }
         }
 
         logger.debug("PatternProvider returned {} completions for context: {}",

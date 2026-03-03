@@ -22,10 +22,18 @@ public record ValidationError(
      */
     public ValidationError {
         // Validation to ensure reasonable values
-        if (lineNumber < 0) lineNumber = 0;
-        if (columnNumber < 0) columnNumber = 0;
-        if (message == null) message = "Unknown validation error";
-        if (severity == null) severity = "ERROR";
+        if (lineNumber < 0) {
+            lineNumber = 0;
+        }
+        if (columnNumber < 0) {
+            columnNumber = 0;
+        }
+        if (message == null) {
+            message = "Unknown validation error";
+        }
+        if (severity == null) {
+            severity = "ERROR";
+        }
     }
 
     /**

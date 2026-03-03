@@ -1,6 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.core;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javafx.application.Platform;

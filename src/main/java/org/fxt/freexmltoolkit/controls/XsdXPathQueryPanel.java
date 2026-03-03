@@ -14,8 +14,16 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
@@ -29,7 +37,19 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XmlDocumentE
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XsdSchemaElementExtractor;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import net.sf.saxon.s9api.*;
+import net.sf.saxon.s9api.DocumentBuilder;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.XPathCompiler;
+import net.sf.saxon.s9api.XPathExecutable;
+import net.sf.saxon.s9api.XPathSelector;
+import net.sf.saxon.s9api.XQueryCompiler;
+import net.sf.saxon.s9api.XQueryEvaluator;
+import net.sf.saxon.s9api.XQueryExecutable;
+import net.sf.saxon.s9api.XdmItem;
+import net.sf.saxon.s9api.XdmNode;
+import net.sf.saxon.s9api.XdmValue;
 
 /**
  * XPath/XQuery query panel for the XSD Editor's text view.
@@ -497,8 +517,12 @@ public class XsdXPathQueryPanel extends VBox {
      * Truncates a message to a maximum length.
      */
     private String truncateMessage(String message, int maxLength) {
-        if (message == null) return "";
-        if (message.length() <= maxLength) return message;
+        if (message == null) {
+            return "";
+        }
+        if (message.length() <= maxLength) {
+            return message;
+        }
         return message.substring(0, maxLength - 3) + "...";
     }
 

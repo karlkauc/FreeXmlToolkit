@@ -186,7 +186,9 @@ public class TransformationProfile {
     }
 
     private long getElapsedTime() {
-        if (startTime == 0) return 0;
+        if (startTime == 0) {
+            return 0;
+        }
         return (System.nanoTime() - startTime) / 1_000_000; // Convert to milliseconds
     }
 
@@ -198,7 +200,9 @@ public class TransformationProfile {
      * @return The total execution time in milliseconds
      */
     public long getTotalExecutionTime() {
-        if (startTime == 0 || endTime == 0) return 0;
+        if (startTime == 0 || endTime == 0) {
+            return 0;
+        }
         return (endTime - startTime) / 1_000_000; // Convert to milliseconds
     }
 
@@ -208,7 +212,9 @@ public class TransformationProfile {
      * @return The memory usage delta in bytes
      */
     public long getMemoryDelta() {
-        if (memoryBefore == 0 || memoryAfter == 0) return 0;
+        if (memoryBefore == 0 || memoryAfter == 0) {
+            return 0;
+        }
         return memoryAfter - memoryBefore;
     }
 
@@ -249,27 +255,27 @@ public class TransformationProfile {
 
         // Overall timing
         summary.append("Execution Overview:\n");
-        summary.append(String.format("  Total Time: %d ms\n", getTotalExecutionTime()));
-        summary.append(String.format("  Compilation: %d ms (%.1f%%)\n",
+        summary.append(String.format("  Total Time: %d ms%n", getTotalExecutionTime()));
+        summary.append(String.format("  Compilation: %d ms (%.1f%%)%n",
                 compilationTime, (compilationTime * 100.0) / getTotalExecutionTime()));
-        summary.append(String.format("  Transformation: %d ms (%.1f%%)\n",
+        summary.append(String.format("  Transformation: %d ms (%.1f%%)%n",
                 transformationTime, (transformationTime * 100.0) / getTotalExecutionTime()));
-        summary.append(String.format("  Serialization: %d ms (%.1f%%)\n",
+        summary.append(String.format("  Serialization: %d ms (%.1f%%)%n",
                 serializationTime, (serializationTime * 100.0) / getTotalExecutionTime()));
 
         // Memory analysis
         summary.append("\nMemory Analysis:\n");
-        summary.append(String.format("  Memory Before: %s\n", formatBytes(memoryBefore)));
-        summary.append(String.format("  Memory After: %s\n", formatBytes(memoryAfter)));
-        summary.append(String.format("  Memory Delta: %s\n", formatBytes(getMemoryDelta())));
-        summary.append(String.format("  Peak Usage: %s\n", formatBytes(peakMemoryUsage)));
+        summary.append(String.format("  Memory Before: %s%n", formatBytes(memoryBefore)));
+        summary.append(String.format("  Memory After: %s%n", formatBytes(memoryAfter)));
+        summary.append(String.format("  Memory Delta: %s%n", formatBytes(getMemoryDelta())));
+        summary.append(String.format("  Peak Usage: %s%n", formatBytes(peakMemoryUsage)));
 
         // Size information
         if (inputSize > 0 && outputSize > 0) {
             summary.append("\nData Processing:\n");
-            summary.append(String.format("  Input Size: %s\n", formatBytes(inputSize)));
-            summary.append(String.format("  Output Size: %s\n", formatBytes(outputSize)));
-            summary.append(String.format("  Throughput: %.2f KB/s\n",
+            summary.append(String.format("  Input Size: %s%n", formatBytes(inputSize)));
+            summary.append(String.format("  Output Size: %s%n", formatBytes(outputSize)));
+            summary.append(String.format("  Throughput: %.2f KB/s%n",
                     (inputSize / 1024.0) / (getTotalExecutionTime() / 1000.0)));
         }
 
@@ -278,7 +284,7 @@ public class TransformationProfile {
             summary.append("\nTemplate Performance (Top 5):\n");
             List<TemplatePerformanceInfo> topTemplates = getMostExpensiveTemplates(5);
             for (TemplatePerformanceInfo template : topTemplates) {
-                summary.append(String.format("  %s: %d ms (%d executions, %.1f ms avg)\n",
+                summary.append(String.format("  %s: %d ms (%d executions, %.1f ms avg)%n",
                         template.name(), template.totalTime(),
                         template.executionCount(), template.averageTime()));
             }
@@ -299,7 +305,7 @@ public class TransformationProfile {
         log.append("==============================\n\n");
 
         for (ProfileEvent event : events) {
-            log.append(String.format("[%6d ms] %s: %s\n",
+            log.append(String.format("[%6d ms] %s: %s%n",
                     event.timestamp(), event.type().toUpperCase(), event.description()));
         }
 
@@ -584,12 +590,16 @@ public class TransformationProfile {
     }
 
     public void putAllTemplateExecutionTimes(Map<String, Long> times) {
-        if (times == null) return;
+        if (times == null) {
+            return;
+        }
         this.templateExecutionTimes.putAll(times);
     }
 
     public void putAllTemplateExecutionCounts(Map<String, Integer> counts) {
-        if (counts == null) return;
+        if (counts == null) {
+            return;
+        }
         this.templateExecutionCounts.putAll(counts);
     }
 }

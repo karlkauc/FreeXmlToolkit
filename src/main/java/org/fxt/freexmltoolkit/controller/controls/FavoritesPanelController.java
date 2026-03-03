@@ -15,8 +15,24 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
-import javafx.scene.input.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TitledPane;
+import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -364,6 +380,8 @@ public class FavoritesPanelController implements Initializable {
                                 Comparator.nullsLast(Comparator.reverseOrder())))
                         .collect(Collectors.toCollection(FXCollections::observableArrayList));
                 break;
+            default:
+                break;
         }
 
         updateCategoriesTree();
@@ -538,10 +556,18 @@ public class FavoritesPanelController implements Initializable {
     }
 
     private String getCategoryForFile(String filePath) {
-        if (filePath.endsWith(".xml")) return "XML Documents";
-        if (filePath.endsWith(".xsd")) return "XSD Schemas";
-        if (filePath.endsWith(".xsl") || filePath.endsWith(".xslt")) return "XSLT Stylesheets";
-        if (filePath.endsWith(".xq") || filePath.endsWith(".xquery")) return "XQuery Scripts";
+        if (filePath.endsWith(".xml")) {
+            return "XML Documents";
+        }
+        if (filePath.endsWith(".xsd")) {
+            return "XSD Schemas";
+        }
+        if (filePath.endsWith(".xsl") || filePath.endsWith(".xslt")) {
+            return "XSLT Stylesheets";
+        }
+        if (filePath.endsWith(".xq") || filePath.endsWith(".xquery")) {
+            return "XQuery Scripts";
+        }
         return "Other";
     }
 
@@ -727,7 +753,7 @@ public class FavoritesPanelController implements Initializable {
 
     private void showProperties(FileFavorite favorite) {
         String content = String.format(
-                "Path: %s\nCategory: %s\nAdded: %s\nLast Accessed: %s\nAccess Count: %d",
+                "Path: %s%nCategory: %s%nAdded: %s%nLast Accessed: %s%nAccess Count: %d",
                 favorite.getFilePath(),
                 favorite.getCategory(),
                 favorite.getDateAdded() != null ? DATE_FORMAT.format(favorite.getDateAdded()) : "Unknown",

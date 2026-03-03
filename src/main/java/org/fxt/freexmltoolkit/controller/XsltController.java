@@ -18,7 +18,7 @@
 
 package org.fxt.freexmltoolkit.controller;
 
-import java.awt.*;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,8 +37,11 @@ import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -319,7 +322,7 @@ public class XsltController {
 
         // Timing
         stats.append("─── Timing ───────────────────────────────────────────────\n");
-        stats.append(String.format("  Total Transformation Time:  %,d ms\n", transformationTime));
+        stats.append(String.format("  Total Transformation Time:  %,d ms%n", transformationTime));
         if (transformationTime < 100) {
             stats.append("  Performance Rating:         ★★★★★ Excellent\n");
         } else if (transformationTime < 500) {
@@ -335,24 +338,24 @@ public class XsltController {
 
         // File sizes
         stats.append("─── Input Files ──────────────────────────────────────────\n");
-        stats.append(String.format("  XML Source:    %s (%s)\n",
+        stats.append(String.format("  XML Source:    %s (%s)%n",
                 xmlFile != null ? xmlFile.getName() : "N/A",
                 formatBytes(xmlFileSize)));
-        stats.append(String.format("  XSLT File:     %s (%s)\n",
+        stats.append(String.format("  XSLT File:     %s (%s)%n",
                 xsltFile != null ? xsltFile.getName() : "N/A",
                 formatBytes(xsltFileSize)));
         stats.append("\n");
 
         // Output
         stats.append("─── Output ───────────────────────────────────────────────\n");
-        stats.append(String.format("  Output Size:   %s\n", formatBytes(outputSize)));
-        stats.append(String.format("  Output Method: %s\n",
+        stats.append(String.format("  Output Size:   %s%n", formatBytes(outputSize)));
+        stats.append(String.format("  Output Method: %s%n",
                 xmlService.getXsltOutputMethod() != null ? xmlService.getXsltOutputMethod() : "text"));
 
         // Size ratio
         if (xmlFileSize > 0) {
             double ratio = (double) outputSize / xmlFileSize;
-            stats.append(String.format("  Size Ratio:    %.2fx %s\n", ratio,
+            stats.append(String.format("  Size Ratio:    %.2fx %s%n", ratio,
                     ratio > 1 ? "(expansion)" : "(compression)"));
         }
         stats.append("\n");
@@ -361,13 +364,13 @@ public class XsltController {
         stats.append("─── Throughput ───────────────────────────────────────────\n");
         if (transformationTime > 0) {
             double throughputKBps = (xmlFileSize / 1024.0) / (transformationTime / 1000.0);
-            stats.append(String.format("  Processing Speed: %.2f KB/s\n", throughputKBps));
+            stats.append(String.format("  Processing Speed: %.2f KB/s%n", throughputKBps));
         }
         stats.append("\n");
 
         // Summary
         stats.append("═══════════════════════════════════════════════════════════\n");
-        stats.append(String.format("  Processed %s → %s in %d ms\n",
+        stats.append(String.format("  Processed %s → %s in %d ms%n",
                 formatBytes(xmlFileSize), formatBytes(outputSize), transformationTime));
         stats.append("═══════════════════════════════════════════════════════════\n");
 
@@ -404,11 +407,11 @@ public class XsltController {
         // Input files info
         stats.append("─── Input Files ──────────────────────────────────────────\n");
         if (xmlFile != null) {
-            stats.append(String.format("  XML Source:    %s (%s)\n",
+            stats.append(String.format("  XML Source:    %s (%s)%n",
                     xmlFile.getName(), formatBytes(xmlFile.length())));
         }
         if (xsltFile != null) {
-            stats.append(String.format("  XSLT File:     %s (%s)\n",
+            stats.append(String.format("  XSLT File:     %s (%s)%n",
                     xsltFile.getName(), formatBytes(xsltFile.length())));
         }
 
@@ -535,7 +538,6 @@ public class XsltController {
             logger.error(e.getLocalizedMessage());
         }
     }
-
 
     // ==================== AUTO-REFRESH AND FILE WATCHING ====================
 
@@ -753,7 +755,9 @@ public class XsltController {
                                      javafx.scene.control.ContentDisplay displayMode,
                                      int iconSize,
                                      String style) {
-        if (button == null) return;
+        if (button == null) {
+            return;
+        }
 
         // Set content display mode
         button.setContentDisplay(displayMode);

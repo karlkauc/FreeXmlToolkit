@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
 
 /**
  * Command to add a sequence compositor to an element.

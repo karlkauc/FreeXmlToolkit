@@ -18,7 +18,7 @@
 
 package org.fxt.freexmltoolkit.controller;
 
-import java.awt.*;
+import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
@@ -35,11 +35,19 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -48,7 +56,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
+import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
+import org.fxt.freexmltoolkit.service.SchemaGenerationResult;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**

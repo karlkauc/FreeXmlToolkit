@@ -155,8 +155,12 @@ public final class IncludeSourceInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         IncludeSourceInfo that = (IncludeSourceInfo) o;
         return mainSchema == that.mainSchema &&
                Objects.equals(sourceFile, that.sourceFile) &&

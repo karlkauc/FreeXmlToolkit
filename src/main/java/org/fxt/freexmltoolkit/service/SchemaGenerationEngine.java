@@ -2,7 +2,12 @@ package org.fxt.freexmltoolkit.service;
 
 import java.io.StringReader;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -11,7 +16,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.w3c.dom.*;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 /**
@@ -111,7 +121,7 @@ public class SchemaGenerationEngine {
      * Flag indicating whether documentation generation is enabled.
      * When enabled, the generated schema includes annotation elements with documentation.
      */
-    private final boolean enableDocumentationGeneration = true;
+    private static final boolean enableDocumentationGeneration = true;
 
     /**
      * Cache for storing schema analysis results to improve performance on repeated analyses.

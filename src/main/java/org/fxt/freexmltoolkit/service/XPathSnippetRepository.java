@@ -7,7 +7,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -40,7 +45,7 @@ public class XPathSnippetRepository {
     // Caching and performance
     private final Map<String, List<XPathSnippet>> searchCache = new ConcurrentHashMap<>();
     private long cacheTimestamp = 0;
-    private final long cacheTimeout = 60000; // 1 minute
+    private static final long cacheTimeout = 60000; // 1 minute
 
     // Statistics
     private long totalExecutions = 0;
@@ -218,13 +223,19 @@ public class XPathSnippetRepository {
     private int compareSearchRelevance(XPathSnippet a, XPathSnippet b, String searchLower) {
         // Prioritize by execution count, then name match, then favorites
         int executionDiff = Long.compare(b.getExecutionCount(), a.getExecutionCount());
-        if (executionDiff != 0) return executionDiff;
+        if (executionDiff != 0) {
+            return executionDiff;
+        }
 
         boolean aNameMatch = a.getName() != null && a.getName().toLowerCase().contains(searchLower);
         boolean bNameMatch = b.getName() != null && b.getName().toLowerCase().contains(searchLower);
-        if (aNameMatch != bNameMatch) return aNameMatch ? -1 : 1;
+        if (aNameMatch != bNameMatch) {
+            return aNameMatch ? -1 : 1;
+        }
 
-        if (a.isFavorite() != b.isFavorite()) return a.isFavorite() ? -1 : 1;
+        if (a.isFavorite() != b.isFavorite()) {
+            return a.isFavorite() ? -1 : 1;
+        }
 
         return a.getName().compareToIgnoreCase(b.getName());
     }
@@ -331,9 +342,13 @@ public class XPathSnippetRepository {
 
     private int compareByUsage(XPathSnippet a, XPathSnippet b) {
         // Compare by favorite first, then execution count, then name
-        if (a.isFavorite() != b.isFavorite()) return a.isFavorite() ? -1 : 1;
+        if (a.isFavorite() != b.isFavorite()) {
+            return a.isFavorite() ? -1 : 1;
+        }
         int executionDiff = Long.compare(b.getExecutionCount(), a.getExecutionCount());
-        if (executionDiff != 0) return executionDiff;
+        if (executionDiff != 0) {
+            return executionDiff;
+        }
         return a.getName().compareToIgnoreCase(b.getName());
     }
 

@@ -8,7 +8,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
@@ -137,6 +148,7 @@ public class XsdVisualTreeBuilder {
             case LAZY_FIRST_LEVEL -> this.lazyLoadDepthThreshold = 1;
             case LAZY_TWO_LEVELS -> this.lazyLoadDepthThreshold = 2;
             case FULL -> this.lazyLoadDepthThreshold = MAX_DEPTH;  // Effectively no limit
+            default -> throw new IllegalStateException("Unexpected value: " + mode);
         }
         logger.debug("Build mode set to {} (lazy depth threshold: {})", mode, lazyLoadDepthThreshold);
         return this;

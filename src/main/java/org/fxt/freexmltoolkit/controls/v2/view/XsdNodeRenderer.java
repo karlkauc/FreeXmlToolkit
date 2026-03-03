@@ -643,6 +643,7 @@ public class XsdNodeRenderer {
                     gc.fillText("*", x + size / 2, y + size / 2);
                 }
             }
+            default -> throw new IllegalStateException("Unexpected value: " + node.getType());
         }
 
         // Draw drop target indicator (green highlight)
@@ -1498,26 +1499,22 @@ public class XsdNodeRenderer {
                         if (base != null && !base.isEmpty()) {
                             return resolveBaseTypeToPrimitive(base, depth + 1, visited);
                         }
-                    }
                     // Check for List
-                    else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdList list) {
+                    } else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdList list) {
                         String itemType = list.getItemType();
                         if (itemType != null && !itemType.isEmpty()) {
                             return resolveBaseTypeToPrimitive(itemType, depth + 1, visited);
                         }
-                    }
                     // Check for Union - use first member type
-                    else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdUnion union) {
+                    } else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdUnion union) {
                         java.util.List<String> memberTypes = union.getMemberTypes();
                         if (!memberTypes.isEmpty()) {
                             return resolveBaseTypeToPrimitive(memberTypes.get(0), depth + 1, visited);
                         }
                     }
                 }
-            }
-
             // Handle ComplexType (only SimpleContent)
-            else if (typeDef instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+            } else if (typeDef instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
                 for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : complexType.getChildren()) {
                     if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent) {
                         // Check for Extension
@@ -1633,12 +1630,10 @@ public class XsdNodeRenderer {
                     return getSimpleTypeIcon(baseType);
                 }
                 return "xsd-simple-generic";  // Fallback for SimpleType with generic S-badge
-            }
-            else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType) {
+            } else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType) {
                 // ComplexType: use the custom ComplexType icon
                 return "xsd-complex-type";
-            }
-            else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement) {
+            } else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement) {
                 // Element: extract type and determine icon
                 org.fxt.freexmltoolkit.controls.v2.model.XsdElement element =
                     (org.fxt.freexmltoolkit.controls.v2.model.XsdElement) this.modelObject;
@@ -1651,8 +1646,7 @@ public class XsdNodeRenderer {
                     }
                 }
                 return "bi-file-earmark";  // Fallback for Element
-            }
-            else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute) {
+            } else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute) {
                 // Attribute: extract type and determine icon
                 org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute =
                     (org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute) this.modelObject;

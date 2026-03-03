@@ -22,7 +22,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -35,10 +39,23 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Service for converting between XML and spreadsheet formats (Excel XLSX/XLS, CSV)
@@ -347,6 +364,7 @@ public class XmlSpreadsheetConverterService {
                                     rows.add(new RowData(cdataXPath, child.getNodeValue(), "cdata", indexCounter.getAndIncrement()));
                                 }
                             }
+                            default -> { }
                         }
                     }
                 }
@@ -367,6 +385,7 @@ public class XmlSpreadsheetConverterService {
                     rows.add(new RowData(xpath + "/cdata()", node.getNodeValue(), "cdata", indexCounter.getAndIncrement()));
                 }
             }
+            default -> { }
         }
     }
 

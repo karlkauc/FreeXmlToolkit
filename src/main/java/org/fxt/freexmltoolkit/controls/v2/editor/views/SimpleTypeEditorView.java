@@ -3,7 +3,19 @@ package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -15,7 +27,13 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.FacetsPanel;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.TypeDocumentationPanel;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdList;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -126,6 +144,8 @@ public class SimpleTypeEditorView extends BorderPane {
                             event.consume();
                         }
                         break;
+                    default:
+                        break;
                 }
             } else {
                 // Non-Ctrl shortcuts
@@ -136,6 +156,8 @@ public class SimpleTypeEditorView extends BorderPane {
                             onCloseCallback.run();
                             event.consume();
                         }
+                        break;
+                    default:
                         break;
                 }
             }

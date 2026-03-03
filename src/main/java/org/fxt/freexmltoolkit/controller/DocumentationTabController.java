@@ -9,7 +9,16 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
@@ -20,7 +29,8 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckComboBox;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.DocumentationOutputFormat;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.XmlService;
 import org.jetbrains.annotations.NotNull;
 
 import com.sun.net.httpserver.HttpServer;
@@ -175,7 +185,9 @@ public class DocumentationTabController {
     public void generateDocumentation() {
         // Validation and setup logic...
         String xsdPath = xsdFilePath.getText();
-        if (xsdPath == null || xsdPath.isBlank()) return;
+        if (xsdPath == null || xsdPath.isBlank()) {
+            return;
+        }
 
         File xsdFile = new File(xsdPath);
         DocumentationOutputFormat format = getSelectedOutputFormat();
@@ -188,8 +200,12 @@ public class DocumentationTabController {
     }
 
     private DocumentationOutputFormat getSelectedOutputFormat() {
-        if (outputFormatWord != null && outputFormatWord.isSelected()) return DocumentationOutputFormat.WORD;
-        if (outputFormatPdf != null && outputFormatPdf.isSelected()) return DocumentationOutputFormat.PDF;
+        if (outputFormatWord != null && outputFormatWord.isSelected()) {
+            return DocumentationOutputFormat.WORD;
+        }
+        if (outputFormatPdf != null && outputFormatPdf.isSelected()) {
+            return DocumentationOutputFormat.PDF;
+        }
         return DocumentationOutputFormat.HTML;
     }
 
@@ -217,7 +233,9 @@ public class DocumentationTabController {
     }
 
     private void stopDocumentationTimer() {
-        if (documentationTimer != null) documentationTimer.stop();
+        if (documentationTimer != null) {
+            documentationTimer.stop();
+        }
     }
 
     @FXML
@@ -252,7 +270,9 @@ public class DocumentationTabController {
 
     @FXML
     public void cancelDocumentationGeneration() {
-        if (currentDocumentationTask != null) currentDocumentationTask.cancel(true);
+        if (currentDocumentationTask != null) {
+            currentDocumentationTask.cancel(true);
+        }
         stopDocumentationTimer();
     }
 

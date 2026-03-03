@@ -3,7 +3,13 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.commands;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;

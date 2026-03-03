@@ -276,7 +276,7 @@ public class Xsd11BuiltinTypes {
 
         for (String typeName : getXsd11TypeNames()) {
             TypeInfo info = BUILTIN_TYPES.get(typeName);
-            list.append(String.format("• %s\n  %s\n  Example: %s\n\n",
+            list.append(String.format("• %s%n  %s%n  Example: %s%n%n",
                     info.name(), info.description(), info.example()));
         }
 

@@ -1,7 +1,13 @@
 package org.fxt.freexmltoolkit.domain;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -354,7 +360,9 @@ public class TemplateParameter {
             String[] values = processedValue.split(Pattern.quote(separator));
             StringBuilder result = new StringBuilder();
             for (int i = 0; i < values.length; i++) {
-                if (i > 0) result.append(separator);
+                if (i > 0) {
+                    result.append(separator);
+                }
                 result.append(values[i].trim());
             }
             processedValue = result.toString();
@@ -473,7 +481,9 @@ public class TemplateParameter {
         String[] words = formatted.split("\\s+");
         StringBuilder result = new StringBuilder();
         for (String word : words) {
-            if (result.length() > 0) result.append(" ");
+            if (result.length() > 0) {
+                result.append(" ");
+            }
             if (!word.isEmpty()) {
                 result.append(Character.toUpperCase(word.charAt(0)))
                         .append(word.substring(1).toLowerCase());
@@ -1375,8 +1385,12 @@ public class TemplateParameter {
      */
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
         TemplateParameter that = (TemplateParameter) obj;
         return Objects.equals(name, that.name);
     }

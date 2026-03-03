@@ -18,12 +18,34 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
@@ -48,7 +70,14 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.*;
+import org.fxt.freexmltoolkit.domain.IdentityConstraint;
+import org.fxt.freexmltoolkit.domain.OpenContent;
+import org.fxt.freexmltoolkit.domain.TypeAlternative;
+import org.fxt.freexmltoolkit.domain.Wildcard;
+import org.fxt.freexmltoolkit.domain.XsdAssertion;
+import org.fxt.freexmltoolkit.domain.XsdDocInfo;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
@@ -76,7 +105,9 @@ public class XsdDocumentationService {
     int counter;
     boolean parallelProcessing = true;
 
-    public enum ImageOutputMethod {SVG, PNG, JPG}
+    public enum ImageOutputMethod {
+        SVG, PNG, JPG
+    }
 
     public ImageOutputMethod imageOutputMethod = ImageOutputMethod.SVG;
     Boolean useMarkdownRenderer = true;
@@ -627,6 +658,7 @@ public class XsdDocumentationService {
                         facets.put(localName, List.of(value));
                     }
                 }
+                default -> { }
             }
         }
 
@@ -1306,7 +1338,9 @@ public class XsdDocumentationService {
                         modified = true;
                     }
 
-                    if (processedUrls.contains(location)) { continue; } // Already downloaded
+                    if (processedUrls.contains(location)) {
+                        continue; // Already downloaded
+                    }
 
                     try {
                         Path localPath = baseDirectory.resolve(fileName);
@@ -2421,9 +2455,8 @@ public class XsdDocumentationService {
                     // Recursively process children (they may contain nested CHOICE/SEQUENCE)
                     processChildElementsForGeneration(sb, containerChildren, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
                 }
-            }
             // Check if this child is a CHOICE container
-            else if (elementName.startsWith("CHOICE")) {
+            } else if (elementName.startsWith("CHOICE")) {
                 // Get the choice's cardinality
                 Node choiceNode = childElement.getCurrentNode();
                 String minOccursStr = getAttributeValue(choiceNode, "minOccurs", "1");
@@ -2856,14 +2889,11 @@ public class XsdDocumentationService {
             if (source != null && !source.isBlank()) {
                 if (source.startsWith("@since")) {
                     xsdDocInfo.setSince(source.substring("@since".length()).trim());
-                }
-                else if (source.startsWith("@see")) {
+                } else if (source.startsWith("@see")) {
                     xsdDocInfo.addSee(source.substring("@see".length()).trim());
-                }
-                else if (source.startsWith("@deprecated")) {
+                } else if (source.startsWith("@deprecated")) {
                     xsdDocInfo.setDeprecated(source.substring("@deprecated".length()).trim());
-                }
-                else {
+                } else {
                     genericAppInfos.add(source);
                 }
             } else {

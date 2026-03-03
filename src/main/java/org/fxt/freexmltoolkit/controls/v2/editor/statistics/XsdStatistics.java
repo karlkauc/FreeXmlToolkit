@@ -2,7 +2,14 @@ package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 

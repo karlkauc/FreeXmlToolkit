@@ -8,7 +8,21 @@ import java.util.regex.Pattern;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -1117,7 +1131,7 @@ public class XmlEditorSidebarController {
 
                         // Add tooltip with detailed information
                         String tooltipText = String.format(
-                                "Severity: %s\nRule ID: %s\nContext: %s\nLine: %d, Column: %d\n\nClick to navigate to error location",
+                                "Severity: %s%nRule ID: %s%nContext: %s%nLine: %d, Column: %d%n%nClick to navigate to error location",
                                 error.severity() != null ? error.severity() : "Error",
                                 error.ruleId() != null ? error.ruleId() : "Unknown",
                                 error.context() != null ? error.context() : "Unknown",

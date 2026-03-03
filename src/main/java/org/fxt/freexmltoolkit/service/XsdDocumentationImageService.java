@@ -18,14 +18,26 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.transform.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
@@ -38,7 +50,11 @@ import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-import org.w3c.dom.*;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Service for generating images and SVG diagrams from XSD documentation.
@@ -86,11 +102,11 @@ public class XsdDocumentationImageService {
     });
 
     // Modern spacing and layout parameters
-    final int margin = 16;
-    final int gapBetweenSides = 120;
-    final int boxPadding = 12;
-    final int borderRadius = 8;
-    final int plusIconApproxWidth = 24;
+    static final int margin = 16;
+    static final int gapBetweenSides = 120;
+    static final int boxPadding = 12;
+    static final int borderRadius = 8;
+    static final int plusIconApproxWidth = 24;
 
     // Colors matching XsdDiagramView styles
     private static final String COLOR_BG = "#f0f8ff";                    // Background matching XsdDiagramView
@@ -480,6 +496,8 @@ public class XsdDocumentationImageService {
                         break;
                     case "all":
                         isAll = true;
+                        break;
+                    default:
                         break;
                 }
             }
@@ -1015,7 +1033,9 @@ public class XsdDocumentationImageService {
      */
     private void simplifyFontFamiliesForBatik(Document svg) {
         Element root = svg.getDocumentElement();
-        if (root == null) return;
+        if (root == null) {
+            return;
+        }
 
         // Simple, Batik-compatible font family
         final String batikSafeFontFamily = "Arial, Helvetica, sans-serif";
@@ -1073,7 +1093,9 @@ public class XsdDocumentationImageService {
      */
     private void removeInteractiveStyles(Document svg) {
         Element root = svg.getDocumentElement();
-        if (root == null) return;
+        if (root == null) {
+            return;
+        }
 
         // Remove style elements that contain interactive CSS
         NodeList styleElements = root.getElementsByTagNameNS(svgNS, "style");
@@ -1094,7 +1116,9 @@ public class XsdDocumentationImageService {
      */
     private void removeHoverEffects(Document svg) {
         Element root = svg.getDocumentElement();
-        if (root == null) return;
+        if (root == null) {
+            return;
+        }
 
         // Remove class attributes that reference interactive styles
         removeClassAttributes(root);
@@ -1120,7 +1144,9 @@ public class XsdDocumentationImageService {
      */
     private void applyExplicitStyles(Document svg) {
         Element root = svg.getDocumentElement();
-        if (root == null) return;
+        if (root == null) {
+            return;
+        }
 
         // Apply explicit styles to rectangles (boxes)
         NodeList rects = root.getElementsByTagNameNS(svgNS, "rect");

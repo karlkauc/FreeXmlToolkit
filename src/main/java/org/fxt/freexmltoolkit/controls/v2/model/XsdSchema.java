@@ -235,10 +235,14 @@ public class XsdSchema extends XsdNode {
      * @param include the XsdInclude that brought this node in
      */
     public void registerNodeForInclude(XsdNode node, XsdInclude include) {
-        if (include == null || node == null) return;
+        if (include == null || node == null) {
+            return;
+        }
 
         String location = include.getSchemaLocation();
-        if (location == null) return;
+        if (location == null) {
+            return;
+        }
 
         nodesByInclude.computeIfAbsent(location, k -> new ArrayList<>()).add(node);
         includeMap.put(location, include);

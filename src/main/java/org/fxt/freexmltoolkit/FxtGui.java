@@ -18,7 +18,8 @@
 
 package org.fxt.freexmltoolkit;
 
-import java.awt.*;
+import java.awt.Taskbar;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -272,7 +273,6 @@ public class FxtGui extends Application {
             logger.debug("All fonts loaded in background");
         });
     }
-
 
     /**
      * Performs application shutdown and cleanup operations.

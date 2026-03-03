@@ -18,7 +18,8 @@
 
 package org.fxt.freexmltoolkit.controls.v2.common.utilities;
 
-import java.util.*;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

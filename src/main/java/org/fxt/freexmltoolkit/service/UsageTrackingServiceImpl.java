@@ -9,7 +9,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -537,7 +539,9 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
     @Override
     public boolean isTrackingEnabled() {
         PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
-        if (propertiesService == null) { return true; } // Default to enabled if service not available
+        if (propertiesService == null) {
+            return true; // Default to enabled if service not available
+        }
 
         String value = propertiesService.get(TRACKING_ENABLED_KEY);
         return value == null || Boolean.parseBoolean(value);

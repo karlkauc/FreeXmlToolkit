@@ -6,7 +6,13 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,8 +32,14 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.CacheHint;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,7 +55,14 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.SaxonXPathHelper;
+import org.fxt.freexmltoolkit.service.SchematronLoadException;
+import org.fxt.freexmltoolkit.service.SchematronService;
+import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -449,7 +468,9 @@ public class XmlEditor extends Tab {
      * @return true if it's a built-in type
      */
     private boolean isBuiltInType(String typeName) {
-        if (typeName == null) return false;
+        if (typeName == null) {
+            return false;
+        }
 
         // Remove namespace prefix if present
         String cleanTypeName = typeName;
@@ -549,7 +570,9 @@ public class XmlEditor extends Tab {
      * Uses findBestMatchingElement with path-cleaning to properly handle XSD SEQUENCE/CHOICE/ALL markers.
      */
     private void updateCursorInformation() {
-        if (sidebarController == null) return;
+        if (sidebarController == null) {
+            return;
+        }
 
         String text = codeArea.getText();
         int caretPosition = codeArea.getCaretPosition();
@@ -745,6 +768,7 @@ public class XmlEditor extends Tab {
                         // Self-closing tags don't affect the stack for XPath
                         // but we might want to include them in some cases
                     }
+                    default -> throw new IllegalStateException("Unexpected value: " + tag.type);
                 }
             }
 
@@ -1115,7 +1139,9 @@ public class XmlEditor extends Tab {
     }
 
     public void validateXml() {
-        if (sidebarController == null) return;
+        if (sidebarController == null) {
+            return;
+        }
 
         if (xsdFile == null) {
             sidebarController.updateValidationStatus("No XSD selected", "orange", null);
@@ -1225,7 +1251,9 @@ public class XmlEditor extends Tab {
 
 
     public void validateSchematron() {
-        if (sidebarController == null) return;
+        if (sidebarController == null) {
+            return;
+        }
 
         if (schematronFile == null) {
             sidebarController.updateSchematronValidationStatus("No Schematron rules selected", "orange", null);

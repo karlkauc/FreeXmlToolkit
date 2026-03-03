@@ -3,7 +3,11 @@ package org.fxt.freexmltoolkit.service;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,7 +22,22 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 
 import net.sf.saxon.Configuration;
 import net.sf.saxon.lib.Feature;
-import net.sf.saxon.s9api.*;
+import net.sf.saxon.s9api.Destination;
+import net.sf.saxon.s9api.DocumentBuilder;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.XQueryCompiler;
+import net.sf.saxon.s9api.XQueryEvaluator;
+import net.sf.saxon.s9api.XQueryExecutable;
+import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XdmEmptySequence;
+import net.sf.saxon.s9api.XdmNode;
+import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.s9api.XsltCompiler;
+import net.sf.saxon.s9api.XsltExecutable;
+import net.sf.saxon.s9api.XsltTransformer;
 
 /**
  * Advanced XSLT 3.0 and XQuery 3.1 Transformation Engine with Saxon integration.
@@ -769,6 +788,8 @@ public class XsltTransformationEngine {
                     break;
                 case TEXT:
                     serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
+                    break;
+                default:
                     break;
             }
         }

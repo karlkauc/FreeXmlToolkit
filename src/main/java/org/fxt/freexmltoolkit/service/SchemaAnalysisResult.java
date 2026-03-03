@@ -1,7 +1,16 @@
 package org.fxt.freexmltoolkit.service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Comprehensive results from XML schema analysis.
@@ -822,31 +831,31 @@ public class SchemaAnalysisResult {
 
                 // Basic statistics
                 "Structure Overview:\n" +
-                String.format("  Documents Analyzed: %d\n", documentsAnalyzed) +
-                String.format("  Total Elements: %d\n", totalElements) +
-                String.format("  Total Attributes: %d\n", totalAttributes) +
-                String.format("  Max Depth: %d\n", maxDepth) +
-                String.format("  Namespaces: %d\n", discoveredNamespaces.size()) +
+                String.format("  Documents Analyzed: %d%n", documentsAnalyzed) +
+                String.format("  Total Elements: %d%n", totalElements) +
+                String.format("  Total Attributes: %d%n", totalAttributes) +
+                String.format("  Max Depth: %d%n", maxDepth) +
+                String.format("  Namespaces: %d%n", discoveredNamespaces.size()) +
 
                 // Type analysis
                 "\nType Analysis:\n" +
-                String.format("  Complex Types: %d\n", complexTypes.size()) +
-                String.format("  Simple Types: %d\n", simpleTypes.size()) +
-                String.format("  Overall Confidence: %.2f\n", overallConfidence) +
-                String.format("  Complexity Score: %.2f\n", complexityScore) +
+                String.format("  Complex Types: %d%n", complexTypes.size()) +
+                String.format("  Simple Types: %d%n", simpleTypes.size()) +
+                String.format("  Overall Confidence: %.2f%n", overallConfidence) +
+                String.format("  Complexity Score: %.2f%n", complexityScore) +
 
                 // Pattern analysis
                 "\nPattern Analysis:\n" +
-                String.format("  Detected Patterns: %d\n", detectedPatterns.size()) +
-                String.format("  Common Patterns: %d\n", commonPatterns.size()) +
-                String.format("  Optional Elements: %d\n", optionalElements.size()) +
-                String.format("  Repeating Elements: %d\n", repeatingElements.size()) +
+                String.format("  Detected Patterns: %d%n", detectedPatterns.size()) +
+                String.format("  Common Patterns: %d%n", commonPatterns.size()) +
+                String.format("  Optional Elements: %d%n", optionalElements.size()) +
+                String.format("  Repeating Elements: %d%n", repeatingElements.size()) +
 
                 // Quality metrics
                 "\nQuality Metrics:\n" +
-                String.format("  Warnings: %d\n", warnings.size()) +
-                String.format("  Recommendations: %d\n", recommendations.size()) +
-                String.format("  Analysis Time: %d ms\n", analysisTimeMs);
+                String.format("  Warnings: %d%n", warnings.size()) +
+                String.format("  Recommendations: %d%n", recommendations.size()) +
+                String.format("  Analysis Time: %d ms%n", analysisTimeMs);
 
         return summary;
     }

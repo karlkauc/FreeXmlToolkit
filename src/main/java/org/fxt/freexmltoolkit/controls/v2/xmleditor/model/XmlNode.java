@@ -261,8 +261,12 @@ public abstract class XmlNode {
      */
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
         XmlNode other = (XmlNode) obj;
         return id.equals(other.id);
     }

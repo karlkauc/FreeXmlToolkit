@@ -18,7 +18,7 @@
 
 package org.fxt.freexmltoolkit.controller;
 
-import java.awt.*;
+import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
@@ -39,14 +39,28 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -66,7 +80,14 @@ import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.BatchTransformationResult;
+import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.XmlFileEntry;
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
+import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -1175,7 +1196,7 @@ public class XsltDeveloperController implements FavoritesParentController {
             if (templateMatches != null && !templateMatches.isEmpty()) {
                 trace.append("=== Template Matches (").append(templateMatches.size()).append(") ===\n");
                 for (var match : templateMatches) {
-                    trace.append(String.format("  %s - %s (line %d, %dms)\n",
+                    trace.append(String.format("  %s - %s (line %d, %dms)%n",
                             match.pattern(), match.name(), match.lineNumber(), match.executionTime()));
                 }
                 trace.append("\n");
@@ -1192,7 +1213,7 @@ public class XsltDeveloperController implements FavoritesParentController {
                     if (value.length() > 100) {
                         value = value.substring(0, 97) + "...";
                     }
-                    trace.append(String.format("  %s = %s\n", entry.getKey(), value));
+                    trace.append(String.format("  %s = %s%n", entry.getKey(), value));
                 }
                 trace.append("\n");
             } else {

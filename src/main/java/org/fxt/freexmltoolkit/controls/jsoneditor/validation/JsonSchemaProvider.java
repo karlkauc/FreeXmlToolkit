@@ -204,7 +204,7 @@ public class JsonSchemaProvider {
                       "$schema": "https://json-schema.org/draft/2020-12/schema",
                       "type": "%s"
                     }
-                    """.formatted(type);
+                    """.replace("%s", type);
         }
 
         /**
@@ -266,7 +266,7 @@ public class JsonSchemaProvider {
                         "type": "%s"
                       }
                     }
-                    """.formatted(itemType);
+                    """.replace("%s", itemType);
         }
     }
 }

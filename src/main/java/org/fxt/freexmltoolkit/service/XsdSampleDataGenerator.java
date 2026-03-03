@@ -6,7 +6,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -507,9 +512,8 @@ public class XsdSampleDataGenerator {
                 int[] repeatInfo = parseQuantifier(pattern, end + 1);
                 segments.add(new PatternSegment(charClass, false, null, repeatInfo[0], repeatInfo[1]));
                 i = repeatInfo[2]; // Move past quantifier
-            }
             // Escaped character: \x
-            else if (c == '\\' && i + 1 < pattern.length()) {
+            } else if (c == '\\' && i + 1 < pattern.length()) {
                 char escaped = pattern.charAt(i + 1);
                 // \s, \d, \w are character class shorthands
                 if (escaped == 's' || escaped == 'd' || escaped == 'w' ||
@@ -522,26 +526,22 @@ public class XsdSampleDataGenerator {
                     segments.add(new PatternSegment(null, true, String.valueOf(escaped), 1, 1));
                     i += 2;
                 }
-            }
             // Grouping: (...) - skip but process contents
-            else if (c == '(' || c == ')') {
+            } else if (c == '(' || c == ')') {
                 i++;
-            }
             // Quantifiers without preceding element (skip)
-            else if (c == '*' || c == '+' || c == '?' || c == '{') {
+            } else if (c == '*' || c == '+' || c == '?' || c == '{') {
                 i++;
                 // Skip digits and closing brace for {n,m}
                 while (i < pattern.length() && (Character.isDigit(pattern.charAt(i)) || pattern.charAt(i) == ',' || pattern.charAt(i) == '}')) {
                     i++;
                 }
-            }
             // Literal character (like @, /, -)
-            else if (!isRegexMetachar(c)) {
+            } else if (!isRegexMetachar(c)) {
                 segments.add(new PatternSegment(null, true, String.valueOf(c), 1, 1));
                 i++;
-            }
             // Other metacharacters (skip)
-            else {
+            } else {
                 i++;
             }
         }

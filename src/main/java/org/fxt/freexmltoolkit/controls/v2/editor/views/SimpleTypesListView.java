@@ -8,7 +8,19 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
@@ -21,7 +33,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdList;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -201,6 +219,8 @@ public class SimpleTypesListView extends BorderPane {
                         }
                         event.consume();
                         break;
+                    default:
+                        break;
                 }
             } else {
                 // Non-Ctrl shortcuts
@@ -221,6 +241,8 @@ public class SimpleTypesListView extends BorderPane {
                             handleDeleteType(selectedForDelete.getSimpleType());
                         }
                         event.consume();
+                        break;
+                    default:
                         break;
                 }
             }

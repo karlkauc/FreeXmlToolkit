@@ -63,8 +63,12 @@ public class XsdLinkTag {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         XsdLinkTag that = (XsdLinkTag) o;
         return Objects.equals(xpathExpression, that.xpathExpression);
     }

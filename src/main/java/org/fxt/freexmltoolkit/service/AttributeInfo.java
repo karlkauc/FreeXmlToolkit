@@ -1,7 +1,15 @@
 package org.fxt.freexmltoolkit.service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Information about an XML attribute discovered during schema analysis.
@@ -273,6 +281,8 @@ public class AttributeInfo {
                     if (!isUrl(value)) {
                         return false;
                     }
+                    break;
+                default:
                     break;
             }
         }

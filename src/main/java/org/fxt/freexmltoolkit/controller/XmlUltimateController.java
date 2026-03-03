@@ -24,7 +24,12 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,10 +51,38 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.input.*;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -73,7 +106,16 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseE
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.ExportMetadataService;
+import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
+import org.fxt.freexmltoolkit.service.TemplateEngine;
+import org.fxt.freexmltoolkit.service.TemplateRepository;
+import org.fxt.freexmltoolkit.service.UsageTrackingService;
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
+import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.Document;
@@ -310,7 +352,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     // Track open files to prevent duplicates
     final Map<File, XmlEditor> openFiles = new HashMap<>(); // Package-private for testing
     private String currentXsltContent = "";
-    private final String generatedSchemaContent = "";
+    private static final String generatedSchemaContent = "";
 
     // Lazy initialization flags for performance optimization
     private boolean xsltDevelopmentInitialized = false;
@@ -2095,8 +2137,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                 org.w3c.dom.Node attr = attrs.item(i);
                 if (i == 0) {
                     sb.append(" ");
-                }
-                else {
+                } else {
                     sb.append(", ");
                 }
                 sb.append(attr.getNodeName()).append("=\"").append(truncateText(attr.getNodeValue(), 20)).append("\"");

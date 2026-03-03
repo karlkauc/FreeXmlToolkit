@@ -28,7 +28,11 @@ import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.service.LinkedFileDetector;
+import org.fxt.freexmltoolkit.service.SchematronService;
+import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 /**

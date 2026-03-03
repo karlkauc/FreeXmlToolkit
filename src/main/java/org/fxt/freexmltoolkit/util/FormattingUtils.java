@@ -106,7 +106,9 @@ public final class FormattingUtils {
      * @return escaped and possibly quoted value
      */
     public static String escapeCsv(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
@@ -120,7 +122,9 @@ public final class FormattingUtils {
      * @return escaped value
      */
     public static String escapeJson(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.replace("\\", "\\\\")
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n")
@@ -135,7 +139,9 @@ public final class FormattingUtils {
      * @return the extension (without dot), or empty string if none
      */
     public static String getFileExtension(File file) {
-        if (file == null) return "";
+        if (file == null) {
+            return "";
+        }
         String name = file.getName();
         int lastIndexOf = name.lastIndexOf(".");
         if (lastIndexOf == -1) {
@@ -151,7 +157,9 @@ public final class FormattingUtils {
      * @return the extension (without dot), or empty string if none
      */
     public static String getFileExtension(String filename) {
-        if (filename == null || filename.isEmpty()) return "";
+        if (filename == null || filename.isEmpty()) {
+            return "";
+        }
         int lastIndexOf = filename.lastIndexOf(".");
         if (lastIndexOf == -1) {
             return "";

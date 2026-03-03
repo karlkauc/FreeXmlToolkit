@@ -2,7 +2,14 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
@@ -1802,22 +1809,34 @@ public class RepeatingElementsTable {
      * Supports common formats: ISO 8601, yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy
      */
     private boolean looksLikeDate(String value) {
-        if (value == null || value.trim().isEmpty()) return false;
+        if (value == null || value.trim().isEmpty()) {
+            return false;
+        }
 
         String v = value.trim();
 
         // ISO 8601: 2024-01-15 or 2024-01-15T10:30:00
-        if (v.matches("\\d{4}-\\d{2}-\\d{2}(T.*)?")) return true;
+        if (v.matches("\\d{4}-\\d{2}-\\d{2}(T.*)?")) {
+            return true;
+        }
 
         // European: 15.01.2024
-        if (v.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) return true;
+        if (v.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) {
+            return true;
+        }
 
         // US format: 01/15/2024
-        if (v.matches("\\d{2}/\\d{2}/\\d{4}")) return true;
+        if (v.matches("\\d{2}/\\d{2}/\\d{4}")) {
+            return true;
+        }
 
         // Short formats: 2024-01, 01/2024
-        if (v.matches("\\d{4}-\\d{2}")) return true;
-        if (v.matches("\\d{2}/\\d{4}")) return true;
+        if (v.matches("\\d{4}-\\d{2}")) {
+            return true;
+        }
+        if (v.matches("\\d{2}/\\d{4}")) {
+            return true;
+        }
 
         return false;
     }

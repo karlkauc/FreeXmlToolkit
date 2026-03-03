@@ -3,7 +3,11 @@ package org.fxt.freexmltoolkit.controls.v2.editor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 
 /**
  * Factory for creating virtual XSD schemas for isolated type editing.
@@ -137,9 +141,8 @@ public class VirtualSchemaFactory {
                         virtualSchema.addChild(ct);
                         copiedComplexTypes++;
                     }
-                }
-                // Copy SimpleType definitions for type references
-                else if (child instanceof XsdSimpleType st) {
+                } else if (child instanceof XsdSimpleType st) {
+                    // Copy SimpleType definitions for type references
                     if (st.getName() != null) {
                         virtualSchema.addChild(st);
                         copiedSimpleTypes++;

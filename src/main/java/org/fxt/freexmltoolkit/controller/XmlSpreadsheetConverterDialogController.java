@@ -35,7 +35,23 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -479,7 +495,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
 
         if (data.size() > 1000) {
             processingInfoArea.appendText(String.format(
-                    "Table preview limited to first 1000 rows (total: %d rows)\n", data.size()));
+                    "Table preview limited to first 1000 rows (total: %d rows)%n", data.size()));
         }
     }
 
@@ -509,10 +525,10 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
         commentsCountLabel.setText(String.valueOf(typeCounts.getOrDefault("comment", 0L)));
         cdataCountLabel.setText(String.valueOf(typeCounts.getOrDefault("cdata", 0L)));
 
-        processingInfoArea.appendText(String.format("Statistics updated: %d total rows processed\n", data.size()));
+        processingInfoArea.appendText(String.format("Statistics updated: %d total rows processed%n", data.size()));
         processingInfoArea.appendText("Breakdown by type:\n");
         typeCounts.forEach((type, count) ->
-                processingInfoArea.appendText(String.format("  %s: %d\n", type, count)));
+                processingInfoArea.appendText(String.format("  %s: %d%n", type, count)));
     }
 
     private void clearStatistics() {
@@ -564,6 +580,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
                     config.setDelimiter(custom.charAt(0));
                 }
             }
+            default -> { }
         }
 
         config.setIncludeBOM(includeBomCheckBox.isSelected());

@@ -6,7 +6,31 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeTracker;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAny;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexContent;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdImport;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdInclude;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdList;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
 import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseException;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
@@ -564,6 +588,7 @@ public class XsdModelAdapter {
                         XsdAttributeGroup attrGroup = parseAttributeGroup(child);
                         complexType.addChild(attrGroup);
                     }
+                    default -> { }
                 }
             }
         }
@@ -593,6 +618,7 @@ public class XsdModelAdapter {
                         XsdAll all = parseAll(child);
                         group.addChild(all);
                     }
+                    default -> { }
                 }
             }
         }
@@ -660,6 +686,7 @@ public class XsdModelAdapter {
                         XsdAny any = parseAny(child);
                         compositor.addChild(any);
                     }
+                    default -> { }
                 }
             }
         }
@@ -734,6 +761,7 @@ public class XsdModelAdapter {
                     case "all" -> extension.addChild(parseAll(child));
                     case "attribute" -> extension.addChild(parseAttribute(child));
                     case "attributeGroup" -> extension.addChild(parseAttributeGroup(child));
+                    default -> { }
                 }
             }
         }

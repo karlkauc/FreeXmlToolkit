@@ -2,7 +2,13 @@ package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 
 /**
  * Command to add a new attribute to an XSD element or complex type.

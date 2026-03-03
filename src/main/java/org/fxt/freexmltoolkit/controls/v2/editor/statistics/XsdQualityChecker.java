@@ -1,12 +1,39 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAny;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAnyAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 
 /**
  * Checks XSD schema quality including naming conventions, best practices,
@@ -839,7 +866,9 @@ public class XsdQualityChecker {
      * Recursively builds a content signature for structural comparison.
      */
     private void computeSignatureRecursive(XsdNode node, StringBuilder sig, Set<String> visited, int depth) {
-        if (node == null || depth > 20) { return; } // Prevent infinite recursion
+        if (node == null || depth > 20) {
+            return; // Prevent infinite recursion
+        }
 
         String nodeId = node.getId();
         if (nodeId != null && visited.contains(nodeId)) {

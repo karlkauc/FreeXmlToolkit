@@ -230,7 +230,7 @@ public class JsonCodeEditor extends VBox {
                     case PLUS, EQUALS -> increaseFontSize();
                     case MINUS -> decreaseFontSize();
                     case DIGIT0 -> resetFontSize();
-                    default -> {}
+                    default -> { }
                 }
             }
         });
@@ -388,7 +388,9 @@ public class JsonCodeEditor extends VBox {
      * Checks if a file is a JSON file.
      */
     private boolean isJsonFile(File file) {
-        if (file == null || !file.isFile()) return false;
+        if (file == null || !file.isFile()) {
+            return false;
+        }
         String name = file.getName().toLowerCase();
         return name.endsWith(".json") || name.endsWith(".jsonc") || name.endsWith(".json5");
     }

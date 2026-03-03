@@ -23,7 +23,13 @@ import java.util.regex.Pattern;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -296,6 +302,7 @@ public class FindReplaceDialog extends Dialog<Void> {
                     close();
                     event.consume();
                 }
+                default -> { }
             }
         });
     }

@@ -5,7 +5,15 @@ import java.nio.file.Files;
 
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
@@ -14,7 +22,10 @@ import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.xsd.*;
+import org.fxt.freexmltoolkit.service.xsd.ParsedSchema;
+import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
+import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
 import org.fxt.freexmltoolkit.service.xsd.adapters.XsdModelAdapter;
 
 /**
