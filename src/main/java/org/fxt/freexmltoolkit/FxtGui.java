@@ -27,6 +27,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -34,6 +36,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
+import org.fxt.freexmltoolkit.app.SplashScreen;
+import org.fxt.freexmltoolkit.app.SplashScreen.LoadingStep;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
@@ -190,7 +196,12 @@ public class FxtGui extends Application {
     }
 
     /**
-     * Starts the application.
+     * Starts the application with an animated splash screen.
+     *
+     * <p>The splash screen is shown immediately while the main UI loads
+     * in the background. Progress updates are displayed during each
+     * loading phase. Once ready, the splash fades out and the main
+     * window fades in.
      *
      * @param primaryStage the primary stage for this application, onto which
      *                     the application scene can be set
@@ -198,51 +209,92 @@ public class FxtGui extends Application {
     @Override
     public void start(Stage primaryStage) {
         startWatch.start();
+
+        SplashScreen splash = new SplashScreen();
+        splash.show();
+        splash.updateProgress(LoadingStep.INITIALIZING);
+
         loadFontsAsync();
+        splash.updateProgress(LoadingStep.LOADING_FONTS);
 
+        // Yield to let the splash screen render, then load the main UI
+        Platform.runLater(() -> {
+            try {
+                splash.updateProgress(LoadingStep.LOADING_UI);
+
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
+                Parent root = loader.load();
+                mainController = loader.getController();
+
+                splash.updateProgress(LoadingStep.CONFIGURING);
+
+                var scene = new Scene(root, 1024, 768);
+
+                setupTaskbarIcons(primaryStage);
+
+                CSSFX.start();
+
+                primaryStage.setScene(scene);
+                primaryStage.setMaximized(true);
+                primaryStage.setOnCloseRequest(t -> Platform.exit());
+
+                // Show main window fully transparent, then fade in after splash dismissal
+                primaryStage.setOpacity(0);
+                primaryStage.show();
+
+                splash.updateProgress(LoadingStep.READY);
+
+                // Brief pause to show "Ready" state, then dismiss splash and fade in main window
+                PauseTransition readyPause = new PauseTransition(Duration.millis(500));
+                readyPause.setOnFinished(e -> splash.dismiss(() -> {
+                    FadeTransition fadeIn = new FadeTransition(Duration.millis(400), primaryStage.getScene().getRoot());
+                    primaryStage.setOpacity(1);
+                    fadeIn.setFromValue(0);
+                    fadeIn.setToValue(1.0);
+                    fadeIn.play();
+                }));
+                readyPause.play();
+
+                startUsageTracking();
+            } catch (IOException e) {
+                logger.error("Failed to load main UI", e);
+                splash.dismiss(null);
+            }
+        });
+    }
+
+    /**
+     * Sets up platform-specific taskbar icons.
+     *
+     * @param primaryStage the stage to set icons on
+     */
+    private void setupTaskbarIcons(Stage primaryStage) {
+        // MAC Taskbar Image
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
-            Parent root = loader.load();
-            mainController = loader.getController();
+            final Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
+            final Taskbar taskbar = Taskbar.getTaskbar();
+            taskbar.setIconImage(defaultToolkit.getImage(FxtGui.class.getClassLoader().getResource(APP_ICON_PATH)));
+        } catch (UnsupportedOperationException ignore) {
+        }
 
-            var scene = new Scene(root, 1024, 768);
+        // Icon in Taskbar WINDOWS
+        try {
+            primaryStage.getIcons().add(new javafx.scene.image.Image(Objects.requireNonNull(FxtGui.class.getResourceAsStream("/" + APP_ICON_PATH))));
+        } catch (Exception ignore) {
+        }
+    }
 
-            // MAC Taskbar Image
-            try {
-                final Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
-                final Taskbar taskbar = Taskbar.getTaskbar();
-                taskbar.setIconImage(defaultToolkit.getImage(FxtGui.class.getClassLoader().getResource(APP_ICON_PATH)));
-            } catch (UnsupportedOperationException ignore) {
+    /**
+     * Starts the usage tracking session asynchronously.
+     */
+    private void startUsageTracking() {
+        try {
+            UsageTrackingService trackingService = ServiceRegistry.get(UsageTrackingService.class);
+            if (trackingService != null) {
+                trackingService.startSession();
             }
-
-            // Icon in Taskbar WINDOWS
-            try {
-                primaryStage.getIcons().add(new javafx.scene.image.Image(Objects.requireNonNull(FxtGui.class.getResourceAsStream("/" + APP_ICON_PATH))));
-            } catch (Exception ignore) {
-            }
-
-            CSSFX.start();
-
-            primaryStage.setScene(scene);
-            primaryStage.setMaximized(true);
-
-            primaryStage.setOnCloseRequest(t -> {
-                Platform.exit();
-            });
-
-            primaryStage.show();
-
-            // Start usage tracking session
-            try {
-                UsageTrackingService trackingService = ServiceRegistry.get(UsageTrackingService.class);
-                if (trackingService != null) {
-                    trackingService.startSession();
-                }
-            } catch (Exception e) {
-                logger.debug("Usage tracking not available: {}", e.getMessage());
-            }
-        } catch (IOException e) {
-            logger.error(e.getMessage());
+        } catch (Exception e) {
+            logger.debug("Usage tracking not available: {}", e.getMessage());
         }
     }
 

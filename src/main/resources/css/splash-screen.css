@@ -1,0 +1,58 @@
+/*
+ * FreeXmlToolkit - Splash Screen Theme
+ * Modern gradient splash screen with animated loading indicators.
+ */
+
+/* ============================================
+   SPLASH CONTAINER
+   ============================================ */
+
+.splash-container {
+    -fx-background-color: linear-gradient(to bottom right, #1a1a2e, #16213e, #0f3460);
+    -fx-background-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0.3, 0, 8);
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+.splash-title {
+    -fx-font-family: "Roboto";
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.splash-version {
+    -fx-font-family: "Roboto";
+    -fx-font-size: 13px;
+    -fx-text-fill: rgba(255, 255, 255, 0.55);
+}
+
+.splash-status {
+    -fx-font-family: "Roboto";
+    -fx-font-size: 12px;
+    -fx-text-fill: rgba(255, 255, 255, 0.7);
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+
+.splash-progress-bar {
+    -fx-pref-height: 6;
+    -fx-max-height: 6;
+}
+
+.splash-progress-bar > .track {
+    -fx-background-color: rgba(255, 255, 255, 0.12);
+    -fx-background-radius: 3;
+    -fx-background-insets: 0;
+}
+
+.splash-progress-bar > .bar {
+    -fx-background-color: #17a2b8;
+    -fx-background-radius: 3;
+    -fx-background-insets: 0;
+}
