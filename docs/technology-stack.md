@@ -2,7 +2,7 @@
 
 FreeXmlToolkit is built using modern Java technologies and libraries to provide a robust, cross-platform XML and JSON processing environment.
 
-> **Last Updated:** January 2026 | **Version:** 1.3.0
+> **Last Updated:** March 2026 | **Version:** 1.6.3
 
 ## Core Technologies
 
@@ -206,7 +206,7 @@ dependencies {
 ### JavaFX Runtime
 JavaFX 24.0.1 is bundled with Liberica Full JDK, providing:
 - Cross-platform GUI consistency
-- Hardware-accelerated graphics
+- Hardware-accelerated graphics with automatic fallback to software rendering for maximum compatibility
 - Web content rendering (WebView)
 - Swing interoperability
 

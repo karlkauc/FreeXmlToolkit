@@ -1,6 +1,6 @@
 # FreeXmlToolkit Documentation
 
-> **Last Updated:** January 2026 | **Version:** 1.3.0
+> **Last Updated:** March 2026 | **Version:** 1.6.3
 
 ## Welcome
 
@@ -168,6 +168,26 @@ The application includes example files in the `examples/` folder to help you get
 - **xsd/** - Sample XSD schemas
 - **xslt/** - Sample transformation stylesheets
 - **schematron/** - Sample business rules
+
+---
+
+## Troubleshooting
+
+### Application Does Not Start (Windows)
+
+On some Windows computers, the application may fail to start or crash immediately after launch. This is typically caused by incompatible graphics drivers.
+
+**What to try:**
+
+1. **Update your graphics drivers** -- Visit your GPU manufacturer's website (NVIDIA, AMD, or Intel) and install the latest driver for your graphics card.
+2. **Try the portable version** -- If you used the installer (.exe or .msi), try the portable (.zip) version instead.
+3. **Report the issue** -- If the problem persists, please report it on the project's GitHub Issues page with your Windows version and graphics card model.
+
+> **Note:** Starting with version 1.6.3, FreeXmlToolkit automatically falls back to software rendering if your graphics hardware is not fully compatible. This resolves most startup crashes on Windows.
+
+### Application Looks Blurry or Slow
+
+If the interface appears blurry or animations are slow, your system may be using software rendering instead of hardware acceleration. Updating your graphics drivers usually resolves this.
 
 ---
 

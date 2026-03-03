@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<!--
+    Checkstyle suppressions for FreeXmlToolkit.
+    Suppress known false positives and demo code.
+-->
+<suppressions>
+    <!-- Suppress all checks for demo code -->
+    <suppress files="[/\\]demo[/\\]" checks=".*"/>
+
+    <!-- Suppress naming checks for FXML-injected fields (often match component IDs) -->
+    <suppress files=".*Controller\.java$" checks="MemberName" message=".*"/>
+
+    <!-- Suppress line length for FXML string literals and long method chains -->
+    <suppress checks="LineLength" files=".*\.java$" lines="0"/>
+</suppressions>
