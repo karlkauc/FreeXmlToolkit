@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -107,7 +108,7 @@ public class SchematronErrorDetector {
             });
 
             // Parse the document
-            builder.parse(new ByteArrayInputStream(schematronText.getBytes()));
+            builder.parse(new ByteArrayInputStream(schematronText.getBytes(StandardCharsets.UTF_8)));
 
         } catch (Exception e) {
             // Parse failed - extract line/column information if possible
@@ -136,7 +137,7 @@ public class SchematronErrorDetector {
             DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.parse(new ByteArrayInputStream(schematronText.getBytes()));
+            Document document = builder.parse(new ByteArrayInputStream(schematronText.getBytes(StandardCharsets.UTF_8)));
 
             Element root = document.getDocumentElement();
 

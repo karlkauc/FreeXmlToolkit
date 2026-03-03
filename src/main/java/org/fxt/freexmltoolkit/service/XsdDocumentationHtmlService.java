@@ -449,7 +449,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             context.setVariable("flattenedChildren", getFlattenedChildren(element));
 
             // Bestehende Variablen (aus anderen Templates abgeleitet)
-            context.setVariable("diagramType", xsdDocService.imageOutputMethod.name());
+            context.setVariable("diagramType", xsdDocService.getImageOutputMethod().name());
             context.setVariable("diagramContent", generateDiagram(element));
             context.setVariable("breadCrumbs", generateBreadcrumbs(element));
             context.setVariable("namespace", formatNamespaces(xsdDocumentationData.getNamespaces()));
@@ -477,10 +477,10 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
             return "<!-- Image service not available -->";
         }
         try {
-            if (xsdDocService.imageOutputMethod == XsdDocumentationService.ImageOutputMethod.SVG) {
+            if (xsdDocService.getImageOutputMethod() == XsdDocumentationService.ImageOutputMethod.SVG) {
                 // Gibt den rohen SVG-String direkt zurück
                 return xsdDocumentationImageService.generateSvgString(element);
-            } else if (xsdDocService.imageOutputMethod == XsdDocumentationService.ImageOutputMethod.JPG) {
+            } else if (xsdDocService.getImageOutputMethod() == XsdDocumentationService.ImageOutputMethod.JPG) {
                 // Generiert eine JPG-Datei und gibt den relativen Pfad zurück
                 String relativePath = ASSETS_PATH + "/" + element.getPageName().replace(".html", ".jpg");
                 File outputFile = new File(outputDirectory, relativePath);

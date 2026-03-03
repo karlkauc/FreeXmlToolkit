@@ -1340,11 +1340,11 @@ public class MultiFileXsdSerializer {
                     Path normalizedFilePath = filePath.normalize();
                     logger.warn("Exact path lookup failed for: {}. Trying normalized: {}", filePath, normalizedFilePath);
 
-                    for (Path groupedPath : nodesByFile.keySet()) {
-                        if (groupedPath.normalize().equals(normalizedFilePath)) {
-                            nodes = nodesByFile.get(groupedPath);
-                            actualFilePath = groupedPath;  // Use the path from node grouping
-                            logger.info("Found match via normalization: {} matches {}", filePath, groupedPath);
+                    for (Map.Entry<Path, List<XsdNode>> groupedEntry : nodesByFile.entrySet()) {
+                        if (groupedEntry.getKey().normalize().equals(normalizedFilePath)) {
+                            nodes = groupedEntry.getValue();
+                            actualFilePath = groupedEntry.getKey();  // Use the path from node grouping
+                            logger.info("Found match via normalization: {} matches {}", filePath, groupedEntry.getKey());
                             break;
                         }
                     }

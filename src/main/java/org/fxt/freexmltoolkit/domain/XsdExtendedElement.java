@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.domain;
 import java.io.Serial;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -402,7 +403,7 @@ public class XsdExtendedElement implements Serializable {
     public static String getMD5Hex(final String inputString) {
         try {
             var md = MessageDigest.getInstance("MD5");
-            md.update(inputString.getBytes());
+            md.update(inputString.getBytes(StandardCharsets.UTF_8));
             return convertByteToHex(md.digest());
         } catch (Exception e) {
             return UUID.randomUUID().toString().replace("-", "");

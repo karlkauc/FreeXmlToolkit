@@ -775,8 +775,8 @@ public class ElementInfo {
             return false;
         }
 
-        for (String childName : childElements.keySet()) {
-            if (!other.childElements.containsKey(childName)) {
+        for (Map.Entry<String, List<ElementInfo>> childEntry : childElements.entrySet()) {
+            if (!other.childElements.containsKey(childEntry.getKey())) {
                 return false;
             }
         }
@@ -786,12 +786,13 @@ public class ElementInfo {
             return false;
         }
 
-        for (String attrName : attributes.keySet()) {
+        for (Map.Entry<String, AttributeInfo> attrEntry : attributes.entrySet()) {
+            String attrName = attrEntry.getKey();
             if (!other.attributes.containsKey(attrName)) {
                 return false;
             }
 
-            AttributeInfo thisAttr = attributes.get(attrName);
+            AttributeInfo thisAttr = attrEntry.getValue();
             AttributeInfo otherAttr = other.attributes.get(attrName);
 
             if (!thisAttr.getInferredType().equals(otherAttr.getInferredType())) {

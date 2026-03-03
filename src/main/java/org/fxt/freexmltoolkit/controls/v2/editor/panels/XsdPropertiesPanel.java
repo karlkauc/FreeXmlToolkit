@@ -1628,7 +1628,7 @@ public class XsdPropertiesPanel extends BorderPane {
         deleteBtn.setDisable(!editMode);
 
         // Add row background for alternating colors
-        if (row % 2 == 1) {
+        if (row % 2 != 0) {
             langBadge.setStyle(langBadge.getStyle() + "-fx-background-insets: 0;");
             textLabel.setStyle(textLabel.getStyle() + " -fx-background-color: #f8f9fa;");
         }

@@ -109,7 +109,7 @@ public class XsdDocumentationService {
         SVG, PNG, JPG
     }
 
-    public ImageOutputMethod imageOutputMethod = ImageOutputMethod.SVG;
+    private ImageOutputMethod imageOutputMethod = ImageOutputMethod.SVG;
     Boolean useMarkdownRenderer = true;
     Boolean includeTypeDefinitionsInSourceCode = false;
 
@@ -170,6 +170,10 @@ public class XsdDocumentationService {
     public void setXsdFilePath(String xsdFilePath) {
         this.xsdFilePath = xsdFilePath;
         this.xsdDocumentationData.setXsdFilePath(xsdFilePath);
+    }
+
+    public ImageOutputMethod getImageOutputMethod() {
+        return imageOutputMethod;
     }
 
     public void setMethod(ImageOutputMethod method) {
@@ -3592,7 +3596,7 @@ public class XsdDocumentationService {
         @Override
             public Reader getCharacterStream() {
                 try {
-                    return new FileReader(file);
+                    return new FileReader(file, java.nio.charset.StandardCharsets.UTF_8);
                 } catch (Exception e) {
                     return null;
                 }

@@ -395,14 +395,14 @@ public class SignatureService {
 
         // Write public key (certificate) to PEM
         Path certFile = outputDir.resolve(alias + "_publicKey.pem");
-        try (JcaPEMWriter certWriter = new JcaPEMWriter(new FileWriter(certFile.toFile()))) {
+        try (JcaPEMWriter certWriter = new JcaPEMWriter(new FileWriter(certFile.toFile(), java.nio.charset.StandardCharsets.UTF_8))) {
             certWriter.writeObject(certificate);
         }
 
         // Write encrypted private key to PEM
         Path keyFile = outputDir.resolve(alias + "_privateKey.pem");
         JcePEMEncryptorBuilder encryptorBuilder = new JcePEMEncryptorBuilder(PEM_ENCRYPT_ALGORITHM).setProvider(SECURITY_PROVIDER);
-        try (JcaPEMWriter keyWriter = new JcaPEMWriter(new FileWriter(keyFile.toFile()))) {
+        try (JcaPEMWriter keyWriter = new JcaPEMWriter(new FileWriter(keyFile.toFile(), java.nio.charset.StandardCharsets.UTF_8))) {
             keyWriter.writeObject(keyPair.getPrivate(), encryptorBuilder.build(keystorePassword.toCharArray()));
         }
         logger.info("PEM files and summary written to '{}'", outputDir.toAbsolutePath());

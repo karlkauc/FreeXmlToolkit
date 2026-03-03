@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -111,14 +112,14 @@ public class FOPService {
                 TransformerFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
                 Transformer transformer = factory.newTransformer(new StreamSource(xslFile));
 
-                for (String key : defaultParameter.keySet()) {
-                    logger.debug("Set default parameter: '{}' - '{}'", key, defaultParameter.get(key));
-                    transformer.setParameter(key, defaultParameter.get(key));
+                for (Map.Entry<String, String> entry : defaultParameter.entrySet()) {
+                    logger.debug("Set default parameter: '{}' - '{}'", entry.getKey(), entry.getValue());
+                    transformer.setParameter(entry.getKey(), entry.getValue());
                 }
 
-                for (String key : pdfSettings.customParameter().keySet()) {
-                    logger.debug("Set individual parameter: '{}' - '{}'", key, pdfSettings.customParameter().get(key));
-                    transformer.setParameter(key, pdfSettings.customParameter().get(key));
+                for (Map.Entry<String, String> entry : pdfSettings.customParameter().entrySet()) {
+                    logger.debug("Set individual parameter: '{}' - '{}'", entry.getKey(), entry.getValue());
+                    transformer.setParameter(entry.getKey(), entry.getValue());
                 }
                 Source src = new StreamSource(xmlFile);
                 Result res = new SAXResult(fop.getDefaultHandler());

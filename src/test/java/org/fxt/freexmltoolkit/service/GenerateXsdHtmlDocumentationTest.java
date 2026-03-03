@@ -214,7 +214,7 @@ public class GenerateXsdHtmlDocumentationTest {
         XsdDocumentationService sequentialService = new XsdDocumentationService();
         sequentialService.setXsdFilePath(xsdFile);
         sequentialService.setParallelProcessing(false);
-        sequentialService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
+        sequentialService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
 
         long startTimeSequential = System.currentTimeMillis();
         sequentialService.generateXsdDocumentation(outputDirSequential);
@@ -227,7 +227,7 @@ public class GenerateXsdHtmlDocumentationTest {
         XsdDocumentationService parallelService = new XsdDocumentationService();
         parallelService.setXsdFilePath(xsdFile);
         parallelService.setParallelProcessing(true);
-        parallelService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
+        parallelService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
 
         long startTimeParallel = System.currentTimeMillis();
         parallelService.generateXsdDocumentation(outputDirParallel);

@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.service;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -171,7 +172,7 @@ public class SchemaCacheIndex {
             return index;
         }
 
-        try (FileReader reader = new FileReader(indexFile.toFile())) {
+        try (FileReader reader = new FileReader(indexFile.toFile(), StandardCharsets.UTF_8)) {
             logger.debug("Loading cache index from: {}", indexFile);
             SchemaCacheIndex index = gson.fromJson(reader, SchemaCacheIndex.class);
 
@@ -207,7 +208,7 @@ public class SchemaCacheIndex {
      * @param indexFile the path to save the index to
      */
     public void save(Path indexFile) {
-        try (FileWriter writer = new FileWriter(indexFile.toFile())) {
+        try (FileWriter writer = new FileWriter(indexFile.toFile(), StandardCharsets.UTF_8)) {
             this.lastUpdated = Instant.now();
             updateStatistics();
             gson.toJson(this, writer);

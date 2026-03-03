@@ -259,7 +259,7 @@ public class ContextAnalyzer {
         }
 
         // Odd number of quotes means we're inside
-        return quoteCount % 2 == 1;
+        return quoteCount % 2 != 0;
     }
 
     /**

@@ -520,11 +520,8 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
                             msg.contains("xml:") || msg.contains("xsi:"))) {
                         logger.debug("Ignoring import-related error: {}", msg);
                         importWarnings.add(msg);
-                    } else if (msg != null && msg.contains("xs:")) {
-                        // Errors with xs: prefix are real XSD type errors
-                        logger.warn("Schema error: {}", msg);
-                        schemaErrors.add(msg);
                     } else {
+                        // All other errors including xs: prefix type errors
                         logger.warn("Schema error: {}", msg);
                         schemaErrors.add(msg);
                     }

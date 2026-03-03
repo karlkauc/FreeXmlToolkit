@@ -40,7 +40,11 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.*;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.IssueCategory;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.IssueSeverity;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.NamingConvention;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.QualityIssue;
+import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.QualityResult;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.ExportMetadataService;
 

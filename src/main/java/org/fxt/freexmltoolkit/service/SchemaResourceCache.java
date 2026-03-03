@@ -492,7 +492,7 @@ public class SchemaResourceCache {
     private String generateFilename(String url) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] hash = md.digest(url.getBytes());
+            byte[] hash = md.digest(url.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             String hashString = HexFormat.of().formatHex(hash);
 
             // Extract extension from URL

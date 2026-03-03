@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,7 +56,6 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -127,7 +127,6 @@ public class XmlServiceImpl implements XmlService {
     Document xmlDocument;
 
     Schema schema;
-    Validator validator;
     Element rootElement;
     String targetNamespace;
 
@@ -235,8 +234,8 @@ public class XmlServiceImpl implements XmlService {
         try {
             var temp = Files.readString(this.currentXmlFile.toPath());
             temp = XmlService.prettyFormat(temp, propertiesService.getXmlIndentSpaces());
-            Files.write(this.currentXmlFile.toPath(), temp.getBytes());
-            logger.debug("done: {}", temp.getBytes().length);
+            Files.write(this.currentXmlFile.toPath(), temp.getBytes(StandardCharsets.UTF_8));
+            logger.debug("done: {}", temp.getBytes(StandardCharsets.UTF_8).length);
         } catch (IOException ioException) {
             logger.error(ioException.getMessage());
         }
@@ -1190,7 +1189,7 @@ public class XmlServiceImpl implements XmlService {
                                 String textContent = connectionService.getTextContentFromURL(new URI(possibleSchemaLocation.get()));
                                 // NEU: Schema-Inhalt vor dem Speichern validieren
                                 if (isSchemaValid(textContent)) {
-                                    byte[] contentBytes = textContent.getBytes();
+                                    byte[] contentBytes = textContent.getBytes(StandardCharsets.UTF_8);
                                     Files.write(pathNew, contentBytes);
                                     logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());
 
@@ -1917,7 +1916,7 @@ public class XmlServiceImpl implements XmlService {
         try {
             // Parse as XML DOM with XXE protection
             DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
-            Document doc = builder.parse(new ByteArrayInputStream(xsdContent.getBytes()));
+            Document doc = builder.parse(new ByteArrayInputStream(xsdContent.getBytes(StandardCharsets.UTF_8)));
 
             // Find all xs:import elements
             NodeList importNodes = doc.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "import");
@@ -1960,7 +1959,7 @@ public class XmlServiceImpl implements XmlService {
             // Generate cache filename for imported schema
             String filename = extractFilenameFromUrl(resolvedUrl);
             if (filename == null || filename.isEmpty()) {
-                filename = "imported_" + Math.abs(resolvedUrl.hashCode()) + ".xsd";
+                filename = "imported_" + (resolvedUrl.hashCode() & 0x7fffffff) + ".xsd";
             }
 
             Path importedSchemaPath = cacheDir.resolve(filename);
@@ -1978,7 +1977,7 @@ public class XmlServiceImpl implements XmlService {
 
             // Validate imported schema
             if (isSchemaValid(importedContent)) {
-                byte[] contentBytes = importedContent.getBytes();
+                byte[] contentBytes = importedContent.getBytes(StandardCharsets.UTF_8);
                 Files.write(importedSchemaPath, contentBytes);
                 logger.info("Downloaded imported schema: {} -> {}", resolvedUrl, importedSchemaPath);
 

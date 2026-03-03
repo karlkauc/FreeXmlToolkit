@@ -17,7 +17,7 @@ import java.util.UUID;
  * Represents an XPath/XQuery snippet with metadata, execution context, and performance metrics.
  * This is a core model for the revolutionary XPath/XQuery Snippet Manager system.
  */
-public class XPathSnippet {
+public class XPathSnippet implements Cloneable {
 
     public enum SnippetType {
         XPATH("XPath Expression", "xpath", "XPath"),
@@ -409,8 +409,15 @@ public class XPathSnippet {
     /**
      * Clone this snippet with a new ID
      */
+    @Override
     public XPathSnippet clone() {
-        XPathSnippet clone = new XPathSnippet();
+        XPathSnippet clone;
+        try {
+            clone = (XPathSnippet) super.clone();
+        } catch (CloneNotSupportedException e) {
+            clone = new XPathSnippet();
+        }
+        clone.id = UUID.randomUUID().toString();
         clone.name = this.name + " (Copy)";
         clone.description = this.description;
         clone.type = this.type;

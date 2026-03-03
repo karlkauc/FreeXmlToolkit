@@ -291,14 +291,9 @@ public class XmlSpreadsheetConverterService {
                 // Add element itself
                 String elementValue;
                 boolean hasOnlyTextChild = hasOnlyTextContent(element);
-                boolean hasOnlyCDataChild = hasOnlyCDataContent(element);
 
                 if (hasOnlyTextChild) {
                     elementValue = element.getTextContent().trim();
-                } else if (hasOnlyCDataChild && config.isIncludeCData()) {
-                    // Don't add element value for CDATA-only elements, 
-                    // the CDATA will be added separately
-                    elementValue = "";
                 } else {
                     elementValue = "";
                 }
@@ -339,11 +334,7 @@ public class XmlSpreadsheetConverterService {
                                 int currentCount = currentCounts.getOrDefault(childName, 0) + 1;
                                 currentCounts.put(childName, currentCount);
 
-                                String childParentXPath = xpath;
-                                if (elementCounts.get(childName) > 1) {
-                                    childParentXPath = xpath;
-                                }
-                                traverseNode(child, childParentXPath, rows, config, indexCounter);
+                                traverseNode(child, xpath, rows, config, indexCounter);
                             }
                             case Node.TEXT_NODE -> {
                                 String textContent = child.getNodeValue();

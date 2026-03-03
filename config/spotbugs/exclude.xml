@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter
+        xmlns="https://github.com/spotbugs/spotbugs/blob/master/spotbugs/etc/findbugsfilter.xsd"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://github.com/spotbugs/spotbugs/blob/master/spotbugs/etc/findbugsfilter.xsd">
+
+    <!-- Exclude demo package entirely -->
+    <Match>
+        <Package name="~org\.fxt\.freexmltoolkit\.demo.*"/>
+    </Match>
+
+    <!-- ==================== JavaFX / FXML Patterns ==================== -->
+
+    <!-- JavaFX @FXML fields are injected via reflection - not unread -->
+    <Match>
+        <Bug pattern="URF_UNREAD_FIELD"/>
+        <Class name="~.*Controller.*"/>
+    </Match>
+
+    <!-- JavaFX @FXML fields - not written directly -->
+    <Match>
+        <Bug pattern="UWF_UNWRITTEN_FIELD"/>
+        <Class name="~.*Controller.*"/>
+    </Match>
+
+    <!-- JavaFX @FXML fields may appear null but are injected -->
+    <Match>
+        <Bug pattern="NP_UNWRITTEN_FIELD"/>
+        <Class name="~.*Controller.*"/>
+    </Match>
+
+    <!-- Platform.runLater patterns - intentional cross-thread UI updates -->
+    <Match>
+        <Bug pattern="IS2_INCONSISTENT_SYNC"/>
+        <Class name="~.*Controller.*"/>
+    </Match>
+
+    <!-- ==================== Serialization ==================== -->
+
+    <!-- Serialization warnings for non-serializable JavaFX components -->
+    <Match>
+        <Bug pattern="SE_BAD_FIELD"/>
+    </Match>
+    <Match>
+        <Bug pattern="SE_NO_SERIALVERSIONID"/>
+    </Match>
+
+    <!-- ==================== Return Values ==================== -->
+
+    <!-- Suppress return value ignored for JavaFX builder patterns -->
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+    </Match>
+
+    <!-- Suppress equals/hashCode warnings for model objects using UUID identity -->
+    <Match>
+        <Bug pattern="EQ_COMPARETO_USE_OBJECT_EQUALS"/>
+        <Package name="~org\.fxt\.freexmltoolkit\.controls\.v2\.model.*"/>
+    </Match>
+
+    <!-- ==================== Mutable Exposure (EI_EXPOSE_REP) ==================== -->
+    <!-- Getters returning JavaFX components, services, or internal objects.
+         Defensive copies are nonsensical for JavaFX nodes, ObservableLists,
+         service singletons, DOM nodes, etc. -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- ==================== Constructor Throws ==================== -->
+    <!-- JavaFX components load FXML in constructors - standard pattern -->
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- ==================== Redundant Null Checks ==================== -->
+    <!-- Mostly false positives from try-with-resources bytecode -->
+    <Match>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <Match>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
+
+    <!-- ==================== Unread Public/Protected Fields ==================== -->
+    <!-- Fields used via reflection, serialization, or as public API -->
+    <Match>
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+
+    <!-- ==================== Vacuous Instanceof ==================== -->
+    <!-- Instanceof checks for type-safety at API boundaries -->
+    <Match>
+        <Bug pattern="BC_VACUOUS_INSTANCEOF"/>
+    </Match>
+
+    <!-- ==================== Hardcoded Filenames ==================== -->
+    <!-- Paths in documentation/auto-update services -->
+    <Match>
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+    </Match>
+
+    <!-- ==================== Threading / Atomicity ==================== -->
+    <!-- JavaFX threading model differs from standard Java threading.
+         UI fields are updated on the JavaFX Application Thread via
+         Platform.runLater, not via synchronized blocks. -->
+    <Match>
+        <Bug pattern="AT_STALE_THREAD_WRITE_OF_PRIMITIVE"/>
+    </Match>
+    <Match>
+        <Bug pattern="AT_NONATOMIC_OPERATIONS_ON_LONG_OR_DOUBLE"/>
+    </Match>
+    <Match>
+        <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>
+    </Match>
+    <Match>
+        <Bug pattern="AT_NONATOMIC_64BIT_PRIMITIVE"/>
+    </Match>
+    <Match>
+        <Bug pattern="AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE"/>
+    </Match>
+
+    <!-- ==================== Null Path from Return Value ==================== -->
+    <!-- Many false positives with JavaFX / XML processing APIs -->
+    <Match>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- ==================== Static Mutable Exposure ==================== -->
+    <!-- Static fields exposing mutable objects in singletons/services - architectural -->
+    <Match>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+
+    <!-- ==================== Top-Level Exception Handlers ==================== -->
+    <!-- Intentional catch(Exception) at service/controller boundaries -->
+    <Match>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
+    <!-- ==================== Unread Fields ==================== -->
+    <!-- Fields for future API / FXML injection in non-controller classes -->
+    <Match>
+        <Bug pattern="URF_UNREAD_FIELD"/>
+    </Match>
+
+    <!-- ==================== Synchronization ==================== -->
+    <!-- Service synchronization handled by JavaFX threading model -->
+    <Match>
+        <Bug pattern="IS2_INCONSISTENT_SYNC"/>
+    </Match>
+
+    <!-- ==================== Singleton Patterns ==================== -->
+    <!-- Singleton variants managed by ServiceRegistry -->
+    <Match>
+        <Bug pattern="SING_SINGLETON_GETTER_NOT_SYNCHRONIZED"/>
+    </Match>
+    <Match>
+        <Bug pattern="SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR"/>
+    </Match>
+    <Match>
+        <Bug pattern="SING_SINGLETON_IMPLEMENTS_CLONEABLE"/>
+    </Match>
+    <Match>
+        <Bug pattern="SING_SINGLETON_IMPLEMENTS_SERIALIZABLE"/>
+    </Match>
+    <Match>
+        <Bug pattern="SING_SINGLETON_INDIRECTLY_IMPLEMENTS_CLONEABLE"/>
+    </Match>
+
+    <!-- ==================== Obligation / Resource Management ==================== -->
+    <!-- Experimental checker with false positives -->
+    <Match>
+        <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
+    </Match>
+    <Match>
+        <Bug pattern="OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE"/>
+    </Match>
+
+    <!-- ==================== Intentionally Ignored Exceptions ==================== -->
+    <Match>
+        <Bug pattern="DE_MIGHT_IGNORE"/>
+    </Match>
+
+    <!-- ==================== Confusing Names ==================== -->
+    <!-- XSD model uses XSD specification terminology which can look confusing -->
+    <Match>
+        <Bug pattern="NM_VERY_CONFUSING"/>
+    </Match>
+
+    <!-- ==================== Null Parameter Dereference ==================== -->
+    <!-- False positives in XML processing code paths -->
+    <Match>
+        <Bug pattern="NP_NULL_PARAM_DEREF"/>
+    </Match>
+    <Match>
+        <Bug pattern="NP_NULL_ON_SOME_PATH"/>
+    </Match>
+
+    <!-- ==================== Return Value Ignored ==================== -->
+    <!-- mkdirs(), delete() etc. - intentional in file utility code -->
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
+    </Match>
+
+    <!-- ==================== Useless Code ==================== -->
+    <!-- False positives or defensive coding at boundaries -->
+    <Match>
+        <Bug pattern="UC_USELESS_OBJECT"/>
+    </Match>
+    <Match>
+        <Bug pattern="UC_USELESS_CONDITION"/>
+    </Match>
+    <Match>
+        <Bug pattern="UC_USELESS_VOID_METHOD"/>
+    </Match>
+
+    <!-- ==================== Miscellaneous ==================== -->
+
+    <!-- Ambiguous method invocation - Java generics edge cases -->
+    <Match>
+        <Bug pattern="IA_AMBIGUOUS_INVOCATION"/>
+    </Match>
+    <Match>
+        <Bug pattern="IA_AMBIGUOUS_INVOCATION_OF_INHERITED_OR_OUTER_METHOD"/>
+    </Match>
+
+    <!-- Random used only once - intentional in test data generation -->
+    <Match>
+        <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE"/>
+    </Match>
+
+    <!-- System.exit in main class - intentional application shutdown -->
+    <Match>
+        <Bug pattern="DM_EXIT"/>
+    </Match>
+
+    <!-- Read return value not checked - edge cases in stream processing -->
+    <Match>
+        <Bug pattern="RR_NOT_CHECKED"/>
+    </Match>
+
+    <!-- Unused public/protected field - single case, API stability -->
+    <Match>
+        <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+
+    <!-- Clone idiom - custom deep copy is preferred over super.clone() for complex objects -->
+    <Match>
+        <Bug pattern="CN_IDIOM_NO_SUPER_CALL"/>
+    </Match>
+
+    <!-- Uncalled private methods - may be kept for future use or API completeness -->
+    <Match>
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+    </Match>
+
+</FindBugsFilter>

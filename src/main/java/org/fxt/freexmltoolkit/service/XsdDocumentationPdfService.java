@@ -455,7 +455,7 @@ public class XsdDocumentationPdfService {
         try (InputStream is = getClass().getResourceAsStream(XSL_FO_TEMPLATE_PATH)) {
             if (is != null) {
                 // Read into a string and create a StreamSource
-                String xslContent = new String(is.readAllBytes());
+                String xslContent = new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
                 return new StreamSource(new StringReader(xslContent));
             }
         }

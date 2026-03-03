@@ -432,7 +432,6 @@ public class XmlEditor extends Tab {
                 }
 
                 // Check if element has inline type definition
-                String inlineSimpleTypeQuery = ".//xs:simpleType";
                 if (SaxonXPathHelper.evaluateBoolean(xsdDoc,
                         "//xs:element[@name='" + cleanElementName + "']/xs:simpleType",
                         SaxonXPathHelper.XSD_NAMESPACES)) {
@@ -1105,9 +1104,6 @@ public class XmlEditor extends Tab {
 
         // Extract element names from XSD and update IntelliSense
         if (xsdFile != null) {
-            List<String> elementNames = extractElementNamesFromXsd(xsdFile);
-            Map<String, List<String>> contextElementNames = extractContextElementNamesFromXsd(xsdFile);
-
             // Update IntelliSense
             // Schema provider is already connected, invalidate cache to trigger reload
             if (xmlCodeEditorV2 != null && xmlCodeEditorV2.getIntelliSenseEngine() != null) {

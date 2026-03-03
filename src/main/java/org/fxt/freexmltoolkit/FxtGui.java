@@ -38,13 +38,12 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import org.fxt.freexmltoolkit.app.SplashScreen;
-import org.fxt.freexmltoolkit.app.SplashScreen.LoadingStep;
-
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.fxt.freexmltoolkit.app.SplashScreen;
+import org.fxt.freexmltoolkit.app.SplashScreen.LoadingStep;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
@@ -96,7 +95,7 @@ public class FxtGui extends Application {
     /**
      * Global executor service for background tasks.
      */
-    public static ExecutorService executorService = Executors.newFixedThreadPool(
+    public static final ExecutorService executorService = Executors.newFixedThreadPool(
             Runtime.getRuntime().availableProcessors(),
             runnable -> {
                 Thread t = new Thread(runnable);

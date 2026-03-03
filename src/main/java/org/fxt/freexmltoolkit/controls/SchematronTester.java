@@ -637,6 +637,11 @@ public class SchematronTester extends VBox {
                 return file.equals(testFile.file);
             }
 
+            @Override
+            public int hashCode() {
+                return file.hashCode();
+            }
+
     }
 
     /**
