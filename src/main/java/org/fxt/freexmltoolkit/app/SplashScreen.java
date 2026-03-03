@@ -322,6 +322,6 @@ public class SplashScreen {
         if (pkg != null && pkg.getImplementationVersion() != null) {
             return pkg.getImplementationVersion();
         }
-        return "1.6.2";
+        return "1.6.3";
     }
 }
