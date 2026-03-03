@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="img/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
     
     
       
@@ -702,6 +702,45 @@
     <span class="md-ellipsis">
       
         Sample Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#application-does-not-start-windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Does Not Start (Windows)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-looks-blurry-or-slow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Looks Blurry or Slow
       
     </span>
   </a>
@@ -1956,6 +1995,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#application-does-not-start-windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Does Not Start (Windows)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-looks-blurry-or-slow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Looks Blurry or Slow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#keyboard-shortcuts" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2060,7 +2138,7 @@
 
 <h1 id="freexmltoolkit-documentation">FreeXmlToolkit Documentation<a class="headerlink" href="#freexmltoolkit-documentation" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> January 2026 | <strong>Version:</strong> 1.3.0</p>
+<p><strong>Last Updated:</strong> March 2026 | <strong>Version:</strong> 1.6.3</p>
 </blockquote>
 <h2 id="welcome">Welcome<a class="headerlink" href="#welcome" title="Permanent link">&para;</a></h2>
 <p>FreeXmlToolkit is a free desktop application for working with XML files. It helps you edit, validate, transform, and secure your XML documents - all in one place.</p>
@@ -2383,6 +2461,21 @@
 <li><strong>xslt/</strong> - Sample transformation stylesheets</li>
 <li><strong>schematron/</strong> - Sample business rules</li>
 </ul>
+<hr />
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="application-does-not-start-windows">Application Does Not Start (Windows)<a class="headerlink" href="#application-does-not-start-windows" title="Permanent link">&para;</a></h3>
+<p>On some Windows computers, the application may fail to start or crash immediately after launch. This is typically caused by incompatible graphics drivers.</p>
+<p><strong>What to try:</strong></p>
+<ol>
+<li><strong>Update your graphics drivers</strong> -- Visit your GPU manufacturer's website (NVIDIA, AMD, or Intel) and install the latest driver for your graphics card.</li>
+<li><strong>Try the portable version</strong> -- If you used the installer (.exe or .msi), try the portable (.zip) version instead.</li>
+<li><strong>Report the issue</strong> -- If the problem persists, please report it on the project's GitHub Issues page with your Windows version and graphics card model.</li>
+</ol>
+<blockquote>
+<p><strong>Note:</strong> Starting with version 1.6.3, FreeXmlToolkit automatically falls back to software rendering if your graphics hardware is not fully compatible. This resolves most startup crashes on Windows.</p>
+</blockquote>
+<h3 id="application-looks-blurry-or-slow">Application Looks Blurry or Slow<a class="headerlink" href="#application-looks-blurry-or-slow" title="Permanent link">&para;</a></h3>
+<p>If the interface appears blurry or animations are slow, your system may be using software rendering instead of hardware acceleration. Updating your graphics drivers usually resolves this.</p>
 <hr />
 <h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
 <table>
