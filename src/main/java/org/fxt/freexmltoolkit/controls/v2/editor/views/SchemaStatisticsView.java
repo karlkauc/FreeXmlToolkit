@@ -260,8 +260,7 @@ public class SchemaStatisticsView extends BorderPane {
 
         // Warning label for unresolved references
         schemaReferencesWarningLabel = new Label();
-        schemaReferencesWarningLabel.setStyle("-fx-background-color: #fff3cd; -fx-padding: 8; " +
-                "-fx-text-fill: #856404; -fx-background-radius: 4;");
+        schemaReferencesWarningLabel.getStyleClass().add("warning-box");
         schemaReferencesWarningLabel.setGraphic(new FontIcon(BootstrapIcons.EXCLAMATION_TRIANGLE));
         schemaReferencesWarningLabel.setVisible(false);
         schemaReferencesWarningLabel.setManaged(false);
@@ -457,12 +456,13 @@ public class SchemaStatisticsView extends BorderPane {
      */
     private HBox createStatusBar() {
         lastUpdatedLabel = new Label("Last updated: -");
-        lastUpdatedLabel.setStyle("-fx-font-size: 10pt; -fx-text-fill: #666666;");
+        lastUpdatedLabel.getStyleClass().add("theme-text-secondary");
+        lastUpdatedLabel.setStyle("-fx-font-size: 10pt;");
 
         HBox statusBar = new HBox(lastUpdatedLabel);
         statusBar.setPadding(new Insets(5, 10, 5, 10));
         statusBar.setAlignment(Pos.CENTER_RIGHT);
-        statusBar.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+        statusBar.getStyleClass().add("validation-status-bar");
         return statusBar;
     }
 
@@ -582,7 +582,7 @@ public class SchemaStatisticsView extends BorderPane {
                 bar.setPrefWidth(150);
 
                 Label countLabel = new Label(entry.usageCount() + " usages");
-                countLabel.setStyle("-fx-text-fill: #666666;");
+                countLabel.getStyleClass().add("theme-text-secondary");
 
                 row.getChildren().addAll(nameLabel, bar, countLabel);
                 typeUsageBox.getChildren().add(row);

@@ -436,7 +436,7 @@ public class XmlGridContextMenu {
         Label infoLabel = new Label();
         infoLabel.setWrapText(true);
         infoLabel.setMaxWidth(300);
-        infoLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
+        infoLabel.getStyleClass().add("desc-label");
 
         // Update info when selection changes
         elementComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -693,7 +693,7 @@ public class XmlGridContextMenu {
         Label infoLabel = new Label();
         infoLabel.setWrapText(true);
         infoLabel.setMaxWidth(300);
-        infoLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
+        infoLabel.getStyleClass().add("desc-label");
 
         // Store default values for later use
         final String[] currentDefaultValue = {""};

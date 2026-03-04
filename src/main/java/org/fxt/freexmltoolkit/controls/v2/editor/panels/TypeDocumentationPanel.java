@@ -137,7 +137,7 @@ public class TypeDocumentationPanel extends BorderPane implements PropertyChange
         // Description
         Label descLabel = new Label("Add documentation in multiple languages. Each language has its own entry.");
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        descLabel.getStyleClass().add("desc-label");
 
         // Cards container
         documentationCards = new FlowPane();
@@ -147,7 +147,8 @@ public class TypeDocumentationPanel extends BorderPane implements PropertyChange
 
         // Placeholder when no documentation
         Label placeholder = new Label("No documentation defined. Click 'Add Documentation' to create one.");
-        placeholder.setStyle("-fx-text-fill: #999999; -fx-font-style: italic;");
+        placeholder.getStyleClass().add("theme-text-muted");
+        placeholder.setStyle("-fx-font-style: italic;");
         documentationCards.getChildren().add(placeholder);
 
         // Add button
@@ -272,7 +273,8 @@ public class TypeDocumentationPanel extends BorderPane implements PropertyChange
 
         if (currentDocumentations.isEmpty()) {
             Label placeholder = new Label("No documentation defined. Click 'Add Documentation' to create one.");
-            placeholder.setStyle("-fx-text-fill: #999999; -fx-font-style: italic;");
+            placeholder.getStyleClass().add("theme-text-muted");
+            placeholder.setStyle("-fx-font-style: italic;");
             documentationCards.getChildren().add(placeholder);
             return;
         }
@@ -293,7 +295,7 @@ public class TypeDocumentationPanel extends BorderPane implements PropertyChange
      */
     private VBox createDocumentationCard(XsdDocumentation doc, int index) {
         VBox card = new VBox(5);
-        card.setStyle("-fx-border-color: #cccccc; -fx-border-radius: 4; -fx-padding: 8; -fx-background-color: #ffffff; -fx-background-radius: 4;");
+        card.getStyleClass().add("type-doc-card");
         card.setPrefWidth(220);
         card.setMaxWidth(250);
 

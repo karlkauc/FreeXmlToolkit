@@ -94,7 +94,7 @@ public class SchematronCodeEditor extends StackPane {
         validationStatusBar = new HBox(8);
         validationStatusBar.setAlignment(Pos.CENTER_LEFT);
         validationStatusBar.setPadding(new Insets(4, 8, 4, 8));
-        validationStatusBar.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;");
+        validationStatusBar.getStyleClass().add("validation-status-bar");
         validationStatusBar.getChildren().addAll(validationStatusIcon, validationStatusLabel);
 
         // Create layout with code area and status bar

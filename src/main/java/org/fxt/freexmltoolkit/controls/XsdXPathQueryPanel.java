@@ -147,13 +147,14 @@ public class XsdXPathQueryPanel extends VBox {
         clearResultButton.setOnAction(e -> clearResult());
 
         statusLabel = new Label("Ready");
-        statusLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 12px;");
+        statusLabel.getStyleClass().add("theme-text-secondary");
+        statusLabel.setStyle("-fx-font-size: 12px;");
         HBox.setHgrow(statusLabel, Priority.ALWAYS);
 
         HBox toolbar = new HBox(10);
         toolbar.setAlignment(Pos.CENTER_LEFT);
         toolbar.setPadding(new Insets(5, 10, 5, 10));
-        toolbar.setStyle("-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;");
+        toolbar.getStyleClass().add("query-panel-toolbar");
         toolbar.getChildren().addAll(
                 closeButton,
                 new Separator(javafx.geometry.Orientation.VERTICAL),
@@ -193,7 +194,8 @@ public class XsdXPathQueryPanel extends VBox {
 
         // Result section with header
         Label resultLabel = new Label("Result");
-        resultLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #495057;");
+        resultLabel.getStyleClass().add("theme-text-primary");
+        resultLabel.setStyle("-fx-font-weight: bold;");
         VBox resultSection = new VBox(5);
         resultSection.setPadding(new Insets(5, 0, 0, 0));
         resultSection.getChildren().addAll(resultLabel, resultScrollPane);
@@ -209,7 +211,7 @@ public class XsdXPathQueryPanel extends VBox {
 
         // Add all to this VBox
         this.getChildren().addAll(toolbar, contentSplitPane);
-        this.setStyle("-fx-background-color: #ffffff;");
+        this.getStyleClass().add("query-panel-root");
 
         // Setup keyboard shortcuts
         setupKeyboardShortcuts();
@@ -271,7 +273,7 @@ public class XsdXPathQueryPanel extends VBox {
         button.setGraphic(icon);
         button.setTooltip(new Tooltip(tooltip));
         button.setStyle("-fx-background-color: transparent; -fx-padding: 5;");
-        button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: #e9ecef; -fx-padding: 5;"));
+        button.setOnMouseEntered(e -> button.setStyle("-fx-padding: 5;"));
         button.setOnMouseExited(e -> button.setStyle("-fx-background-color: transparent; -fx-padding: 5;"));
         return button;
     }
@@ -510,7 +512,7 @@ public class XsdXPathQueryPanel extends VBox {
         statusLabel.setText("[" + timestamp + "] " + message);
         statusLabel.setStyle(isError
                 ? "-fx-text-fill: #dc3545; -fx-font-size: 12px;"
-                : "-fx-text-fill: #6c757d; -fx-font-size: 12px;");
+                : "-fx-text-fill: -text-secondary; -fx-font-size: 12px;");
     }
 
     /**

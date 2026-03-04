@@ -144,7 +144,7 @@ public class DocumentationTooltipProvider {
         // Element name as header
         Label nameLabel = new Label(info.name());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
-        nameLabel.setStyle("-fx-text-fill: #212529;");
+        nameLabel.getStyleClass().add("theme-text-primary");
         content.getChildren().add(nameLabel);
 
         // Type name
@@ -202,7 +202,8 @@ public class DocumentationTooltipProvider {
             Label docLabel = createInfoLabel(info.documentation(), "#212529");
             docLabel.setWrapText(true);
             docLabel.setMaxWidth(350);
-            docLabel.setStyle("-fx-text-fill: #212529; -fx-padding: 5 0 0 0;");
+            docLabel.getStyleClass().add("theme-text-primary");
+            docLabel.setStyle("-fx-padding: 5 0 0 0;");
             content.getChildren().add(docLabel);
         }
 
@@ -219,7 +220,7 @@ public class DocumentationTooltipProvider {
         // Attribute name as header
         Label nameLabel = new Label("@" + info.name());
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 13));
-        nameLabel.setStyle("-fx-text-fill: #212529;");
+        nameLabel.getStyleClass().add("theme-text-primary");
         content.getChildren().add(nameLabel);
 
         // Type name
@@ -269,7 +270,8 @@ public class DocumentationTooltipProvider {
             Label docLabel = createInfoLabel(info.documentation(), "#212529");
             docLabel.setWrapText(true);
             docLabel.setMaxWidth(350);
-            docLabel.setStyle("-fx-text-fill: #212529; -fx-padding: 5 0 0 0;");
+            docLabel.getStyleClass().add("theme-text-primary");
+            docLabel.setStyle("-fx-padding: 5 0 0 0;");
             content.getChildren().add(docLabel);
         }
 

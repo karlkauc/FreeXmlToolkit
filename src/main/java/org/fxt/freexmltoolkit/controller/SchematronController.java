@@ -1196,11 +1196,12 @@ public class SchematronController implements FavoritesParentController {
         for (SchematronErrorDetector.SchematronError error : errors) {
             HBox errorItem = new HBox(5);
             errorItem.getStyleClass().add(styleClass);
-            errorItem.setStyle("-fx-padding: 2px 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1px 0;");
+            errorItem.setStyle("-fx-padding: 2px 10px; -fx-border-color: -border-light; -fx-border-width: 0 0 1px 0;");
 
             // Line number label (clickable)
             Label lineLabel = new Label("Line " + error.line() + ":");
-            lineLabel.setStyle("-fx-text-fill: #666; -fx-min-width: 60px; -fx-cursor: hand;");
+            lineLabel.getStyleClass().add("theme-text-secondary");
+            lineLabel.setStyle("-fx-min-width: 60px; -fx-cursor: hand;");
             lineLabel.setOnMouseClicked(e -> navigateToLine(error.line()));
 
             // Error message
@@ -2034,7 +2035,7 @@ public class SchematronController implements FavoritesParentController {
 
         Label descriptionLabel = new Label("When enabled, the export will include detailed information about each rule violation and warning, including location, rule ID, and message.");
         descriptionLabel.setWrapText(true);
-        descriptionLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #666666;");
+        descriptionLabel.getStyleClass().add("desc-label");
 
         grid.add(includeDetailsCheckBox, 0, 0);
         grid.add(descriptionLabel, 0, 1);
@@ -2673,7 +2674,8 @@ public class SchematronController implements FavoritesParentController {
         valueLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
 
         Label labelLabel = new Label(label);
-        labelLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+        labelLabel.getStyleClass().add("theme-text-secondary");
+        labelLabel.setStyle("-fx-font-size: 12px;");
 
         statBox.getChildren().addAll(valueLabel, labelLabel);
         grid.add(statBox, col, row);
@@ -2714,7 +2716,7 @@ public class SchematronController implements FavoritesParentController {
      */
     private VBox createFileDetailsBox(TestFile testFile) {
         VBox fileBox = new VBox(8);
-        fileBox.setStyle("-fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-padding: 15; -fx-background-color: #f8f9fa;");
+        fileBox.getStyleClass().add("schematron-file-box");
 
         // File header
         HBox headerBox = new HBox(10);
@@ -2725,7 +2727,7 @@ public class SchematronController implements FavoritesParentController {
 
         Label statusLabel = new Label(testFile.getStatus());
         String statusColor = "Passed".equals(testFile.getStatus()) ? "#28a745" :
-                "Failed".equals(testFile.getStatus()) ? "#dc3545" : "#6c757d";
+                "Failed".equals(testFile.getStatus()) ? "#dc3545" : "-text-secondary";
         statusLabel.setStyle("-fx-text-fill: " + statusColor + "; -fx-font-weight: bold;");
 
         headerBox.getChildren().addAll(fileNameLabel, statusLabel);
@@ -2741,7 +2743,8 @@ public class SchematronController implements FavoritesParentController {
         warningsLabel.setStyle("-fx-font-size: 12px;");
 
         Label durationLabel = new Label("Duration: " + testFile.getTestDuration());
-        durationLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+        durationLabel.getStyleClass().add("theme-text-secondary");
+        durationLabel.setStyle("-fx-font-size: 12px;");
 
         statsBox.getChildren().addAll(violationsLabel, warningsLabel, durationLabel);
 
@@ -2752,7 +2755,8 @@ public class SchematronController implements FavoritesParentController {
             VBox resultsBox = new VBox(5);
 
             Label resultsHeader = new Label("Details:");
-            resultsHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #495057;");
+            resultsHeader.getStyleClass().add("theme-text-primary");
+            resultsHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
             resultsBox.getChildren().add(resultsHeader);
 
             for (TestFile.TestResult result : testFile.getDetailedResults()) {
@@ -2771,7 +2775,7 @@ public class SchematronController implements FavoritesParentController {
      */
     private VBox createResultBox(TestFile.TestResult result) {
         VBox resultBox = new VBox(3);
-        resultBox.setStyle("-fx-padding: 8; -fx-background-color: #ffffff; -fx-border-color: #e9ecef; -fx-border-radius: 3;");
+        resultBox.getStyleClass().add("schematron-result-box");
 
         String typeColor = "assert".equals(result.type()) ? "#dc3545" : "#ffc107";
 
@@ -2780,13 +2784,15 @@ public class SchematronController implements FavoritesParentController {
         typeLabel.setWrapText(true);
 
         Label locationLabel = new Label("Location: " + result.location() + " (Line " + result.lineNumber() + ")");
-        locationLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;");
+        locationLabel.getStyleClass().add("info-label-secondary");
+        locationLabel.setStyle("-fx-font-size: 10px;");
 
         resultBox.getChildren().addAll(typeLabel, locationLabel);
 
         if (result.ruleId() != null && !result.ruleId().trim().isEmpty()) {
             Label ruleLabel = new Label("Rule: " + result.ruleId());
-            ruleLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #6c757d;");
+            ruleLabel.getStyleClass().add("theme-text-secondary");
+            ruleLabel.setStyle("-fx-font-size: 10px;");
             resultBox.getChildren().add(ruleLabel);
         }
 
@@ -2828,7 +2834,8 @@ public class SchematronController implements FavoritesParentController {
             messageLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #28a745; -fx-font-weight: bold;");
 
             Label subLabel = new Label("All tests passed validation");
-            subLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #6c757d;");
+            subLabel.getStyleClass().add("theme-text-secondary");
+            subLabel.setStyle("-fx-font-size: 14px;");
 
             noErrorsBox.getChildren().addAll(iconLabel, messageLabel, subLabel);
             errorsContent.getChildren().add(noErrorsBox);

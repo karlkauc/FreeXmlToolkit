@@ -184,7 +184,8 @@ public class XPathValidationView extends BorderPane {
         HBox row = new HBox(20, totalBox, validBox, errorsBox, warningsBox, validationProgress);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(10));
-        row.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 5;");
+        row.getStyleClass().add("theme-bg-secondary");
+        row.setStyle("-fx-background-radius: 5;");
 
         return row;
     }

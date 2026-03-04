@@ -310,8 +310,7 @@ public class WelcomeController {
         card.setPrefHeight(100);
         card.setMinHeight(100);
         card.setMaxHeight(100);
-        card.setStyle("-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 8; " +
-                "-fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;");
+        card.getStyleClass().add("welcome-file-card");
 
         // Icon wrapper
         StackPane iconWrapper = new StackPane();
@@ -326,21 +325,15 @@ public class WelcomeController {
 
         // File name
         Label fileName = new Label(entry.fileName());
-        fileName.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #111827;");
+        fileName.getStyleClass().add("welcome-file-name");
         fileName.setWrapText(true);
         fileName.setMaxWidth(156);
 
         // File type and time
         Label metaInfo = new Label(entry.fileType() + " • " + entry.lastModified());
-        metaInfo.setStyle("-fx-font-size: 11px; -fx-text-fill: #6b7280;");
+        metaInfo.getStyleClass().add("welcome-file-meta");
 
         card.getChildren().addAll(iconWrapper, fileName, metaInfo);
-
-        // Hover effect
-        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; " +
-                "-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;"));
-        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: white; -fx-border-color: #e5e7eb; " +
-                "-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;"));
 
         // Click to open
         card.setOnMouseClicked(event -> {

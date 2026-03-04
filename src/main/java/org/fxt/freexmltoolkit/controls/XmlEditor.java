@@ -1994,7 +1994,8 @@ public class XmlEditor extends Tab {
         vBox.setPadding(new Insets(20));
 
         Label infoLabel = new Label(message);
-        infoLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+        infoLabel.getStyleClass().add("theme-text-secondary");
+        infoLabel.setStyle("-fx-font-size: 14px;");
         infoLabel.setWrapText(true);
         vBox.getChildren().add(infoLabel);
 

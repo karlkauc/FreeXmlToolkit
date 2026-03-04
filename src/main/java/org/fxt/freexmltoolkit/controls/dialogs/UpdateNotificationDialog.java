@@ -100,8 +100,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         // Load CSS
         try {
             dialogPane.getStylesheets().addAll(
-                    getClass().getResource("/css/app-theme.css").toExternalForm(),
-                    getClass().getResource("/css/dialog-theme.css").toExternalForm()
+                    org.fxt.freexmltoolkit.util.DialogHelper.getThemeStylesheets()
             );
         } catch (Exception e) {
             logger.warn("Could not load dialog theme CSS", e);
@@ -201,7 +200,8 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         HBox versionBox = new HBox(30);
         versionBox.setAlignment(Pos.CENTER);
         versionBox.setPadding(new Insets(15));
-        versionBox.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 6px;");
+        versionBox.getStyleClass().add("theme-bg-secondary");
+        versionBox.setStyle("-fx-background-radius: 6px;");
 
         // Current version
         VBox currentBox = createVersionBox("Current Version", updateInfo.currentVersion(), "#6c757d");
@@ -228,7 +228,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         box.setAlignment(Pos.CENTER);
 
         Label labelLbl = new Label(label);
-        labelLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+        labelLbl.getStyleClass().add("desc-label");
 
         Label versionLbl = new Label(version != null ? version : "Unknown");
         versionLbl.setStyle(String.format(
@@ -252,11 +252,13 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         notesIcon.setIconColor(Color.web("#007bff"));
 
         Label headerLabel = new Label("What's New");
-        headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;");
+        headerLabel.getStyleClass().add("theme-text-primary");
+        headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
         if (updateInfo.publishedDate() != null && !updateInfo.publishedDate().isBlank()) {
             Label dateLabel = new Label(" - " + updateInfo.publishedDate());
-            dateLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+            dateLabel.getStyleClass().add("theme-text-secondary");
+            dateLabel.setStyle("-fx-font-size: 12px;");
             headerBox.getChildren().addAll(notesIcon, headerLabel, dateLabel);
         } else {
             headerBox.getChildren().addAll(notesIcon, headerLabel);
@@ -269,11 +271,11 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         releaseNotes.setEditable(false);
         releaseNotes.setWrapText(true);
         VBox.setVgrow(releaseNotes, Priority.ALWAYS);
+        releaseNotes.getStyleClass().add("theme-bg-secondary");
         releaseNotes.setStyle(
                 "-fx-font-family: 'Consolas', 'Courier New', monospace; " +
                         "-fx-font-size: 12px; " +
-                        "-fx-background-color: #f8f9fa; " +
-                        "-fx-border-color: #dee2e6; " +
+                        "-fx-border-color: -border-light; " +
                         "-fx-border-radius: 4px; " +
                         "-fx-background-radius: 4px;"
         );
@@ -293,10 +295,9 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         HBox infoBox = new HBox(10);
         infoBox.setAlignment(Pos.CENTER_LEFT);
         infoBox.setPadding(new Insets(10, 15, 10, 15));
+        infoBox.getStyleClass().add("info-tip-box");
         infoBox.setStyle(
-                "-fx-background-color: #e7f3ff; " +
-                        "-fx-background-radius: 4px; " +
-                        "-fx-border-color: #b6d4fe; " +
+                "-fx-background-radius: 4px; " +
                         "-fx-border-radius: 4px;"
         );
 
@@ -305,7 +306,8 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         infoIcon.setIconColor(Color.web("#0d6efd"));
 
         Label infoLabel = new Label("Click 'Download & Install' to automatically update. The application will restart after installation.");
-        infoLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #0a58ca;");
+        infoLabel.getStyleClass().add("info-tip-text");
+        infoLabel.setStyle("-fx-font-size: 12px;");
         infoLabel.setWrapText(true);
 
         infoBox.getChildren().addAll(infoIcon, infoLabel);

@@ -114,7 +114,7 @@ public class IdentityConstraintsView extends BorderPane {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         summaryLabel = new Label("Loading...");
-        summaryLabel.setStyle("-fx-text-fill: #666666;");
+        summaryLabel.getStyleClass().add("theme-text-secondary");
 
         Button refreshBtn = new Button("Refresh");
         refreshBtn.setGraphic(new FontIcon(BootstrapIcons.ARROW_CLOCKWISE));

@@ -376,7 +376,8 @@ public class SimpleTypeEditorView extends BorderPane {
                 "When set, other types cannot use this type as a base."
         );
         infoLabel.setWrapText(true);
-        infoLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+        infoLabel.getStyleClass().add("theme-text-secondary");
+        infoLabel.setStyle("-fx-font-size: 11px;");
         infoLabel.setPrefWidth(400);
 
         panel.getChildren().addAll(title, grid, new Label(""), infoLabel);
@@ -483,7 +484,7 @@ public class SimpleTypeEditorView extends BorderPane {
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
         Label descLabel = new Label("Define a list of allowed values for this type (e.g., 'red', 'green', 'blue')");
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        descLabel.getStyleClass().add("desc-label");
 
         // Enumerations list
         enumerationsListView = new ListView<>();
@@ -547,7 +548,7 @@ public class SimpleTypeEditorView extends BorderPane {
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
         Label descLabel = new Label("Define regex patterns that values must match (e.g., [0-9]{3}-[0-9]{2}-[0-9]{4})");
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        descLabel.getStyleClass().add("desc-label");
 
         // Patterns list
         patternsListView = new ListView<>();
@@ -607,7 +608,7 @@ public class SimpleTypeEditorView extends BorderPane {
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
         Label descLabel = new Label("XPath-based assertions for complex validation rules (XSD 1.1 feature)");
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        descLabel.getStyleClass().add("desc-label");
 
         // Assertions list
         assertionsListView = new ListView<>();
@@ -1138,7 +1139,8 @@ public class SimpleTypeEditorView extends BorderPane {
                 "Example: \"DE AT CH FR\" (list of country codes)"
         );
         description.setWrapText(true);
-        description.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+        description.getStyleClass().add("theme-text-secondary");
+        description.setStyle("-fx-font-size: 11px;");
 
         panel.getChildren().addAll(
                 title,
@@ -1243,7 +1245,8 @@ public class SimpleTypeEditorView extends BorderPane {
                 "Example: Value can be either string OR decimal."
         );
         description.setWrapText(true);
-        description.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+        description.getStyleClass().add("theme-text-secondary");
+        description.setStyle("-fx-font-size: 11px;");
 
         panel.getChildren().addAll(
                 title,
@@ -1360,7 +1363,8 @@ public class SimpleTypeEditorView extends BorderPane {
                 "Documentation supports multiple languages."
         );
         description.setWrapText(true);
-        description.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+        description.getStyleClass().add("theme-text-secondary");
+        description.setStyle("-fx-font-size: 11px;");
 
         // TypeDocumentationPanel - reusable component for multi-language docs and AppInfo
         typeDocumentationPanel = new TypeDocumentationPanel(editorContext);

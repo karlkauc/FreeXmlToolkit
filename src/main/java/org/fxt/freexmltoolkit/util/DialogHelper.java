@@ -21,6 +21,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
@@ -40,13 +41,33 @@ import org.kordamp.ikonli.javafx.FontIcon;
  */
 public class DialogHelper {
 
-
-
     /**
      * Private constructor to prevent instantiation of this utility class.
      */
     private DialogHelper() {
         // Utility class
+    }
+
+    /**
+     * Returns the list of theme-aware stylesheets for dialogs.
+     * Includes app-theme.css, the active theme (dark or light), and dialog-theme.css.
+     */
+    public static java.util.List<String> getThemeStylesheets() {
+        var sheets = new java.util.ArrayList<String>();
+        sheets.add(DialogHelper.class.getResource("/css/app-theme.css").toExternalForm());
+        String theme;
+        try {
+            theme = PropertiesServiceImpl.getInstance().get("ui.theme");
+        } catch (Exception e) {
+            theme = "light";
+        }
+        if ("dark".equals(theme)) {
+            sheets.add(DialogHelper.class.getResource("/css/dark-theme.css").toExternalForm());
+        } else {
+            sheets.add(DialogHelper.class.getResource("/css/light-theme.css").toExternalForm());
+        }
+        sheets.add(DialogHelper.class.getResource("/css/dialog-theme.css").toExternalForm());
+        return sheets;
     }
 
     /**
@@ -275,10 +296,7 @@ public class DialogHelper {
         root.setCenter(contentContainer);
 
         dialogPane.setContent(root);
-        dialogPane.getStylesheets().addAll(
-            DialogHelper.class.getResource("/css/app-theme.css").toExternalForm(),
-            DialogHelper.class.getResource("/css/dialog-theme.css").toExternalForm()
-        );
+        dialogPane.getStylesheets().addAll(getThemeStylesheets());
 
         // Add standard buttons
         dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -511,10 +529,7 @@ public class DialogHelper {
 
         // Apply dialog theme stylesheet
         DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().addAll(
-            DialogHelper.class.getResource("/css/app-theme.css").toExternalForm(),
-            DialogHelper.class.getResource("/css/dialog-theme.css").toExternalForm()
-        );
+        dialogPane.getStylesheets().addAll(getThemeStylesheets());
 
         // Add type-specific style class
         String typeClass = switch (type) {
@@ -551,23 +566,10 @@ public class DialogHelper {
         Label keyLabel = new Label(shortcut);
         keyLabel.getStyleClass().add("dialog-shortcut-key");
         keyLabel.setMinWidth(120);
-        keyLabel.setStyle("""
-                -fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef);
-                -fx-border-color: #dee2e6;
-                -fx-border-width: 1;
-                -fx-border-radius: 6;
-                -fx-background-radius: 6;
-                -fx-padding: 6 12;
-                -fx-font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
-                -fx-font-size: 12px;
-                -fx-font-weight: bold;
-                -fx-text-fill: #495057;
-                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 2, 0, 0, 1);
-                """);
 
         // Description
         Label descLabel = new Label(description);
-        descLabel.setStyle("-fx-text-fill: #495057; -fx-font-size: 14px;");
+        descLabel.getStyleClass().add("dialog-shortcut-description");
 
         item.getChildren().addAll(keyLabel, descLabel);
         return item;
@@ -623,9 +625,7 @@ public class DialogHelper {
         dialog.initModality(Modality.APPLICATION_MODAL);
 
         DialogPane dialogPane = dialog.getDialogPane();
-        dialogPane.getStylesheets().addAll(
-                DialogHelper.class.getResource("/css/app-theme.css").toExternalForm(),
-                DialogHelper.class.getResource("/css/dialog-theme.css").toExternalForm()
+        dialogPane.getStylesheets().addAll(getThemeStylesheets()
         );
 
         // Create header
@@ -634,19 +634,12 @@ public class DialogHelper {
         // Create content
         VBox content = new VBox(20);
         content.setPadding(new Insets(25));
-        content.setStyle("-fx-background-color: #ffffff;");
+        content.getStyleClass().add("dialog-help-content");
 
         // Features section
         if (features != null && !features.isEmpty()) {
             VBox featuresSection = createSection("Features", null);
-            featuresSection.setStyle("""
-                    -fx-background-color: #f8f9fa;
-                    -fx-border-color: #e9ecef;
-                    -fx-border-width: 1;
-                    -fx-border-radius: 10;
-                    -fx-background-radius: 10;
-                    -fx-padding: 20;
-                    """);
+            featuresSection.getStyleClass().add("dialog-help-section");
 
             VBox featuresContent = new VBox(12);
             String[] colors = {"#007bff", "#28a745", "#17a2b8", "#fd7e14", "#6f42c1", "#e83e8c"};
@@ -671,14 +664,7 @@ public class DialogHelper {
         // Keyboard shortcuts section
         if (shortcuts != null && !shortcuts.isEmpty()) {
             VBox shortcutsSection = new VBox(15);
-            shortcutsSection.setStyle("""
-                    -fx-background-color: #f8f9fa;
-                    -fx-border-color: #e9ecef;
-                    -fx-border-width: 1;
-                    -fx-border-radius: 10;
-                    -fx-background-radius: 10;
-                    -fx-padding: 20;
-                    """);
+            shortcutsSection.getStyleClass().add("dialog-help-section");
 
             // Section header
             HBox sectionHeader = createHelpSectionTitle("bi-keyboard", "#6f42c1", "Keyboard Shortcuts");
@@ -715,15 +701,7 @@ public class DialogHelper {
         // Style the OK button
         Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
         if (okButton != null) {
-            okButton.setStyle("""
-                    -fx-background-color: linear-gradient(to bottom, #007bff, #0056b3);
-                    -fx-text-fill: white;
-                    -fx-font-weight: bold;
-                    -fx-font-size: 14px;
-                    -fx-padding: 8 24;
-                    -fx-background-radius: 6;
-                    -fx-cursor: hand;
-                    """);
+            okButton.getStyleClass().add("dialog-help-ok-button");
         }
 
         return dialog;

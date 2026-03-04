@@ -159,7 +159,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
 
     private Label createHelpText() {
         Label helpLabel = new Label("Double-click a row to navigate to the usage location");
-        helpLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #666666;");
+        helpLabel.getStyleClass().add("desc-label");
         return helpLabel;
     }
 

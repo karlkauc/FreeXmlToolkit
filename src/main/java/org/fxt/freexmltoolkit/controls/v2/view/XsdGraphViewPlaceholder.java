@@ -33,7 +33,7 @@ public class XsdGraphViewPlaceholder extends VBox {
     public XsdGraphViewPlaceholder() {
         setAlignment(Pos.CENTER);
         setSpacing(20);
-        setStyle("-fx-background-color: #f8f9fa; -fx-padding: 40;");
+        getStyleClass().add("graph-view-placeholder");
 
         // Icon
         FontIcon icon = new FontIcon("bi-diagram-3");
@@ -42,12 +42,12 @@ public class XsdGraphViewPlaceholder extends VBox {
 
         // Message label
         messageLabel = new Label("Graphical View Not Loaded");
-        messageLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #495057;");
+        messageLabel.getStyleClass().add("graph-view-placeholder-title");
 
         // Description
         Label descriptionLabel = new Label("The graphical schema visualization will be loaded when you click the button below.\n" +
                 "This helps conserve system resources when working with the text view.");
-        descriptionLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #6c757d; -fx-text-alignment: center;");
+        descriptionLabel.getStyleClass().add("graph-view-placeholder-description");
         descriptionLabel.setWrapText(true);
         descriptionLabel.setMaxWidth(400);
 
@@ -76,13 +76,15 @@ public class XsdGraphViewPlaceholder extends VBox {
 
         // Status label for loading progress (initially hidden)
         statusLabel = new Label("Loading...");
-        statusLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #495057;");
+        statusLabel.getStyleClass().add("graph-view-placeholder-title");
+        statusLabel.setStyle("-fx-font-size: 14px;");
         statusLabel.setVisible(false);
         statusLabel.setManaged(false);
 
         // Detail label for sub-status (initially hidden)
         detailLabel = new Label("");
-        detailLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+        detailLabel.getStyleClass().add("theme-text-secondary");
+        detailLabel.setStyle("-fx-font-size: 12px;");
         detailLabel.setVisible(false);
         detailLabel.setManaged(false);
 
@@ -107,7 +109,9 @@ public class XsdGraphViewPlaceholder extends VBox {
         loadButton.setVisible(false);
         loadButton.setManaged(false);
         messageLabel.setText("Loading Graphical View...");
-        messageLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #495057;");
+        messageLabel.setStyle("");
+        messageLabel.getStyleClass().remove("graph-view-placeholder-title");
+        messageLabel.getStyleClass().add("graph-view-placeholder-title");
 
         progressIndicator.setVisible(true);
         progressIndicator.setManaged(true);
@@ -165,7 +169,9 @@ public class XsdGraphViewPlaceholder extends VBox {
         loadButton.setManaged(true);
         loadButton.setText("Load Graphical View");  // Reset button text
         messageLabel.setText("Graphical View Not Loaded");
-        messageLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #495057;");
+        messageLabel.setStyle("");
+        messageLabel.getStyleClass().remove("graph-view-placeholder-title");
+        messageLabel.getStyleClass().add("graph-view-placeholder-title");
 
         progressIndicator.setVisible(false);
         progressIndicator.setManaged(false);
@@ -204,7 +210,9 @@ public class XsdGraphViewPlaceholder extends VBox {
         statusLabel.setManaged(true);
 
         detailLabel.setText("Click 'Try Again' to retry loading");
-        detailLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+        detailLabel.getStyleClass().remove("theme-text-secondary");
+        detailLabel.getStyleClass().add("theme-text-secondary");
+        detailLabel.setStyle("-fx-font-size: 12px;");
         detailLabel.setVisible(true);
         detailLabel.setManaged(true);
     }

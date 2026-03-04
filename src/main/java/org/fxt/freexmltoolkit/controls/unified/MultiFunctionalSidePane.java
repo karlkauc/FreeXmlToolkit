@@ -152,7 +152,7 @@ public class MultiFunctionalSidePane extends VBox {
         getChildren().addAll(header, new Separator(), contentStack);
 
         // Apply initial styles
-        setStyle("-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 0 1;");
+        getStyleClass().add("side-pane-container");
     }
 
     /**
@@ -162,7 +162,7 @@ public class MultiFunctionalSidePane extends VBox {
         HBox headerBox = new HBox(8);
         headerBox.setAlignment(Pos.CENTER_LEFT);
         headerBox.setPadding(new Insets(8, 12, 8, 12));
-        headerBox.setStyle("-fx-background-color: #e9ecef;");
+        headerBox.getStyleClass().add("side-pane-header");
 
         // Toggle button
         toggleButton = new ToggleButton();
@@ -297,7 +297,8 @@ public class MultiFunctionalSidePane extends VBox {
         icon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
 
         Label label = new Label("Open an XSD file to see schema properties");
-        label.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 13px;");
+        label.getStyleClass().add("theme-text-secondary");
+        label.setStyle("-fx-font-size: 13px;");
         label.setWrapText(true);
         label.setAlignment(Pos.CENTER);
 
@@ -341,7 +342,8 @@ public class MultiFunctionalSidePane extends VBox {
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
 
         Label infoLabel = new Label("JSON property panel coming in Phase 4");
-        infoLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 13px;");
+        infoLabel.getStyleClass().add("theme-text-secondary");
+        infoLabel.setStyle("-fx-font-size: 13px;");
         infoLabel.setWrapText(true);
         infoLabel.setAlignment(Pos.CENTER);
 

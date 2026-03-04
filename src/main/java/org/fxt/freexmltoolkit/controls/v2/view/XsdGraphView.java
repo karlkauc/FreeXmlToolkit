@@ -132,7 +132,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         this.canvas = new Canvas(2000, 2000);
         this.scrollPane = new ScrollPane(canvas);
         scrollPane.setPannable(true);
-        scrollPane.setStyle("-fx-background-color: white;");
+        scrollPane.getStyleClass().add("theme-bg-primary");
 
         // Pass the existing selectionModel to EditorContext so they share the same instance
         this.editorContext = new XsdEditorContext(schema, this.selectionModel);
@@ -343,7 +343,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         mainSplitPane.setDividerPositions(0.7);
 
         setCenter(mainSplitPane);
-        setStyle("-fx-background-color: #f5f5f5;");
+        getStyleClass().add("theme-bg-secondary");
     }
 
     /**
@@ -415,7 +415,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         currentSourceFileLabel.setVisible(false);
 
         Label infoLabel = new Label("XSD Editor V2 - Graphical View");
-        infoLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-style: italic;");
+        infoLabel.getStyleClass().add("info-label-secondary");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

@@ -338,20 +338,20 @@ public class XsdPropertiesPanel extends BorderPane {
         grid.add(new Label("File Path:"), 0, row);
         schemaFilePathLabel = new Label("No file loaded");
         schemaFilePathLabel.setWrapText(true);
-        schemaFilePathLabel.setStyle("-fx-text-fill: #666666;");
+        schemaFilePathLabel.getStyleClass().add("theme-text-secondary");
         grid.add(schemaFilePathLabel, 1, row++);
 
         // Target Namespace
         grid.add(new Label("Target Namespace:"), 0, row);
         schemaNamespaceLabel = new Label("No namespace");
         schemaNamespaceLabel.setWrapText(true);
-        schemaNamespaceLabel.setStyle("-fx-text-fill: #666666;");
+        schemaNamespaceLabel.getStyleClass().add("theme-text-secondary");
         grid.add(schemaNamespaceLabel, 1, row++);
 
         // Version
         grid.add(new Label("Version:"), 0, row);
         schemaVersionLabel = new Label("-");
-        schemaVersionLabel.setStyle("-fx-text-fill: #666666;");
+        schemaVersionLabel.getStyleClass().add("theme-text-secondary");
         grid.add(schemaVersionLabel, 1, row);
 
         TitledPane pane = new TitledPane("Schema Information", grid);
@@ -528,7 +528,7 @@ public class XsdPropertiesPanel extends BorderPane {
         // Description
         Label descLabel = new Label("Facets define restrictions on data types (e.g., minLength, maxLength, totalDigits)");
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        descLabel.getStyleClass().add("desc-label");
 
         // Grid for facet name/value pairs
         facetsGridPane = new GridPane();
@@ -560,7 +560,7 @@ public class XsdPropertiesPanel extends BorderPane {
         // Description
         Label descLabel = new Label("Define regex patterns that values must match");
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        descLabel.getStyleClass().add("desc-label");
 
         // Patterns list
         patternsListView = new ListView<>();
@@ -575,18 +575,20 @@ public class XsdPropertiesPanel extends BorderPane {
                 if (empty || item == null) {
                     setText(null);
                     setGraphic(null);
-                    setStyle("");
+                    getStyleClass().remove("theme-text-secondary");
                 } else {
                     setText(item);
                     if (patternsFromReferencedType) {
                         FontIcon lockIcon = new FontIcon("bi-lock-fill");
                         lockIcon.setIconSize(12);
-                        lockIcon.setStyle("-fx-icon-color: #999999;");
+                        lockIcon.getStyleClass().add("lock-icon-muted");
                         setGraphic(lockIcon);
-                        setStyle("-fx-text-fill: #666666;");
+                        if (!getStyleClass().contains("theme-text-secondary")) {
+                            getStyleClass().add("theme-text-secondary");
+                        }
                     } else {
                         setGraphic(null);
-                        setStyle("");
+                        getStyleClass().remove("theme-text-secondary");
                     }
                 }
             }
@@ -641,7 +643,7 @@ public class XsdPropertiesPanel extends BorderPane {
         // Description
         Label descLabel = new Label("Define allowed values for this element");
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        descLabel.getStyleClass().add("desc-label");
 
         // Enumerations list
         enumerationsListView = new ListView<>();
@@ -697,7 +699,7 @@ public class XsdPropertiesPanel extends BorderPane {
         // Description
         Label descLabel = new Label("XPath-based assertions (XSD 1.1)");
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        descLabel.getStyleClass().add("desc-label");
 
         // Assertions list
         assertionsListView = new ListView<>();
@@ -799,7 +801,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Placeholder when empty
         Label placeholder = new Label("No documentation entries. Click 'Add' to create one.");
-        placeholder.setStyle("-fx-text-fill: #6c757d; -fx-font-style: italic;");
+        placeholder.getStyleClass().add("info-label-secondary");
         documentationGridPane.add(placeholder, 0, 0, 4, 1);
 
         // Wrap in ScrollPane for overflow
@@ -835,7 +837,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // AppInfo - Structured Editor (XsdDoc)
         Label appInfoLabel = new Label("XsdDoc structured metadata:");
-        appInfoLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        appInfoLabel.getStyleClass().add("desc-label");
         vbox.getChildren().add(appInfoLabel);
 
         appInfoEditorPanel = new AppInfoEditorPanel(editorContext);
@@ -1554,7 +1556,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         if (currentDocumentations.isEmpty()) {
             Label placeholder = new Label("No documentation entries. Click 'Add' to create one.");
-            placeholder.setStyle("-fx-text-fill: #6c757d; -fx-font-style: italic;");
+            placeholder.getStyleClass().add("info-label-secondary");
             documentationGridPane.add(placeholder, 0, 0, 4, 1);
         } else {
             int row = 0;
@@ -1602,7 +1604,8 @@ public class XsdPropertiesPanel extends BorderPane {
         textLabel.setWrapText(false);
         textLabel.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);
         textLabel.setMaxWidth(Double.MAX_VALUE);
-        textLabel.setStyle("-fx-text-fill: #212529; -fx-padding: 2 0 2 8;");
+        textLabel.getStyleClass().add("theme-text-primary");
+        textLabel.setStyle("-fx-padding: 2 0 2 8;");
         textLabel.setTooltip(new Tooltip(text)); // Show full text on hover
         GridPane.setHgrow(textLabel, Priority.ALWAYS);
         GridPane.setFillWidth(textLabel, true);
@@ -2783,7 +2786,7 @@ public class XsdPropertiesPanel extends BorderPane {
                 textField.setText(fixedValue);
                 textField.setDisable(true);
                 textField.setStyle("-fx-opacity: 0.6;");
-                label.setStyle("-fx-text-fill: #999999;");
+                label.getStyleClass().add("theme-text-muted");
                 logger.debug("Facet {} is fixed to '{}' for datatype '{}'", facetType.getXmlName(), fixedValue, datatype);
             } else {
                 // Load current facet value from model
@@ -2796,14 +2799,14 @@ public class XsdPropertiesPanel extends BorderPane {
                 if (facetsFromReferencedType) {
                     textField.setDisable(true);
                     textField.setStyle("-fx-opacity: 0.7;");
-                    label.setStyle("-fx-text-fill: #666666;");
+                    label.getStyleClass().add("theme-text-secondary");
                     // Add lock icon to indicate read-only
                     FontIcon lockIcon = new FontIcon("bi-lock-fill");
                     lockIcon.setIconSize(12);
-                    lockIcon.setStyle("-fx-icon-color: #999999;");
+                    lockIcon.getStyleClass().add("lock-icon-muted");
                     Label labelWithIcon = new Label(facetType.getXmlName() + ":", lockIcon);
                     labelWithIcon.setMinWidth(100);
-                    labelWithIcon.setStyle("-fx-text-fill: #666666;");
+                    labelWithIcon.getStyleClass().add("theme-text-secondary");
                     facetLabels.put(facetType, labelWithIcon);
                     facetsGridPane.add(labelWithIcon, 0, row);
                     facetsGridPane.add(textField, 1, row);
@@ -2834,7 +2837,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         if (row == 0) {
             Label noFacetsLabel = new Label("No applicable facets for datatype: " + datatype);
-            noFacetsLabel.setStyle("-fx-text-fill: #999999;");
+            noFacetsLabel.getStyleClass().add("theme-text-muted");
             facetsGridPane.add(noFacetsLabel, 0, 0, 2, 1);
         }
 

@@ -1578,7 +1578,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
                 if (item.isResolved()) {
                     icon.setIconColor(javafx.scene.paint.Color.web(item.getFileType().getColor()));
-                    setStyle("-fx-text-fill: #212529;");
+                    setStyle("-fx-text-fill: -text-primary;");
                 } else {
                     icon.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
                     setStyle("-fx-text-fill: #dc3545; -fx-font-style: italic;");

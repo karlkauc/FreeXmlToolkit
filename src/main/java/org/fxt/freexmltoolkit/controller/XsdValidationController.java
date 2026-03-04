@@ -701,7 +701,8 @@ public class XsdValidationController implements FavoritesParentController {
         String timestamp = java.time.LocalDateTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         Label timestampLabel = new Label("Validated: " + timestamp);
-        timestampLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+        timestampLabel.getStyleClass().add("theme-text-secondary");
+        timestampLabel.setStyle("-fx-font-size: 12px;");
         FontIcon clockIcon = new FontIcon("bi-clock");
         clockIcon.setIconSize(14);
         clockIcon.setIconColor(Color.web("#6c757d"));
@@ -710,7 +711,7 @@ public class XsdValidationController implements FavoritesParentController {
 
         // Create header container
         VBox headerBox = new VBox(3);
-        headerBox.setStyle("-fx-padding: 0 0 10 0; -fx-border-color: transparent transparent #dee2e6 transparent; -fx-border-width: 0 0 1 0;");
+        headerBox.setStyle("-fx-padding: 0 0 10 0; -fx-border-color: -border-light; -fx-border-width: 0 0 1 0;");
         headerBox.getChildren().addAll(fileLabel, timestampLabel);
 
         errorListBox.getChildren().add(headerBox);
@@ -1524,7 +1525,7 @@ public class XsdValidationController implements FavoritesParentController {
 
         if (file == null) {
             Label placeholder = new Label("Select a file to view error details");
-            placeholder.setStyle("-fx-text-fill: #6c757d;");
+            placeholder.getStyleClass().add("theme-text-secondary");
             batchErrorDetailsBox.getChildren().add(placeholder);
             return;
         }
@@ -1563,14 +1564,15 @@ public class XsdValidationController implements FavoritesParentController {
             for (int i = 0; i < errors.size(); i++) {
                 SAXParseException ex = errors.get(i);
                 VBox errorBox = new VBox(3);
-                errorBox.setStyle("-fx-padding: 5; -fx-background-color: #fff3cd; -fx-background-radius: 3;");
+                errorBox.getStyleClass().add("warning-box");
+                errorBox.setStyle("-fx-padding: 5; -fx-background-radius: 3;");
 
                 Label errorLabel = new Label("#" + (i + 1) + ": " + ex.getLocalizedMessage());
                 errorLabel.setWrapText(true);
                 errorLabel.setStyle("-fx-font-size: 12px;");
 
                 Label locationLabel = new Label("Line: " + ex.getLineNumber() + ", Column: " + ex.getColumnNumber());
-                locationLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+                locationLabel.getStyleClass().add("desc-label");
 
                 errorBox.getChildren().addAll(errorLabel, locationLabel);
                 batchErrorDetailsBox.getChildren().add(errorBox);

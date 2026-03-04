@@ -173,7 +173,7 @@ public class QualityChecksView extends BorderPane {
         scoreLabel.setStyle("-fx-font-size: 14pt; -fx-font-weight: bold;");
 
         scoreDescriptionLabel = new Label("");
-        scoreDescriptionLabel.setStyle("-fx-text-fill: #666666;");
+        scoreDescriptionLabel.getStyleClass().add("theme-text-secondary");
 
         Button refreshBtn = new Button("Refresh");
         refreshBtn.setGraphic(new FontIcon(BootstrapIcons.ARROW_CLOCKWISE));
@@ -261,7 +261,8 @@ public class QualityChecksView extends BorderPane {
     private VBox createScorePanel() {
         VBox panel = new VBox(10);
         panel.setPadding(new Insets(10));
-        panel.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 5;");
+        panel.getStyleClass().add("theme-bg-secondary");
+        panel.setStyle("-fx-background-radius: 5;");
 
         // Score ring
         StackPane scorePane = createScoreDisplay();
@@ -353,7 +354,8 @@ public class QualityChecksView extends BorderPane {
         rect.setArcWidth(2);
         rect.setArcHeight(2);
         Label text = new Label(label);
-        text.setStyle("-fx-font-size: 9px; -fx-text-fill: #6c757d;");
+        text.getStyleClass().add("theme-text-secondary");
+        text.setStyle("-fx-font-size: 9px;");
         HBox item = new HBox(2, rect, text);
         item.setAlignment(Pos.CENTER_LEFT);
         return item;
@@ -776,7 +778,7 @@ public class QualityChecksView extends BorderPane {
         // Add dominant info
         if (dominant != NamingConvention.UNKNOWN) {
             Label dominantLabel = new Label("Dominant: " + dominant.getDisplayName());
-            dominantLabel.setStyle("-fx-font-style: italic; -fx-text-fill: #666666;");
+            dominantLabel.getStyleClass().add("info-label-secondary");
             namingDistributionBox.getChildren().add(dominantLabel);
         }
     }

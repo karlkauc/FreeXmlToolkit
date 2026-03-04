@@ -65,7 +65,7 @@ public class XsdPropertiesPanelTypeHelper {
     public void updateTypeIcon(FontIcon typeIcon, String datatype) {
         if (datatype == null || datatype.isEmpty()) {
             typeIcon.setIconLiteral("bi-diagram-3");
-            typeIcon.setStyle("-fx-icon-color: #666666;");
+            typeIcon.getStyleClass().add("lock-icon-muted");
             return;
         }
 

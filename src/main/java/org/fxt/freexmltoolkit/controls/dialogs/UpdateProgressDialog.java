@@ -104,8 +104,7 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
         // Load CSS
         try {
             dialogPane.getStylesheets().addAll(
-                    getClass().getResource("/css/app-theme.css").toExternalForm(),
-                    getClass().getResource("/css/dialog-theme.css").toExternalForm()
+                    org.fxt.freexmltoolkit.util.DialogHelper.getThemeStylesheets()
             );
         } catch (Exception e) {
             logger.warn("Could not load dialog theme CSS", e);
@@ -169,7 +168,8 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
 
         Label versionLabel = new Label(String.format("Updating to version %s",
                 updateInfo.latestVersion() != null ? updateInfo.latestVersion() : "latest"));
-        versionLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+        versionLabel.getStyleClass().add("theme-text-secondary");
+        versionLabel.setStyle("-fx-font-size: 12px;");
         header.getChildren().add(versionLabel);
 
         return header;
@@ -195,7 +195,7 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
         VBox section = new VBox(5);
 
         detailsLabel = new Label("Platform: " + autoUpdateService.getPlatformIdentifier());
-        detailsLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
+        detailsLabel.getStyleClass().add("desc-label");
 
         section.getChildren().add(detailsLabel);
 

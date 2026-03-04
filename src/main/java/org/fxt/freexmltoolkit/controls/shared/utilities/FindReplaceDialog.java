@@ -181,13 +181,16 @@ public class FindReplaceDialog extends Dialog<Void> {
      * Applies CSS styles and loads the stylesheet.
      */
     private void applyCssStyles() {
-        // Load the popup CSS stylesheet
+        // Load theme-aware stylesheets + popup CSS
+        getDialogPane().getStylesheets().addAll(
+                org.fxt.freexmltoolkit.util.DialogHelper.getThemeStylesheets()
+        );
         String cssPath = "/css/popups.css";
         var cssResource = getClass().getResource(cssPath);
         if (cssResource != null) {
             getDialogPane().getStylesheets().add(cssResource.toExternalForm());
         }
-        
+
         // Set dialog pane styling
         getDialogPane().getStyleClass().add("popup-container");
     }

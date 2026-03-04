@@ -18,6 +18,49 @@
  */
 
 /* =================================================================
+   PHASE 1: CSS Variable Overrides
+   Override app-theme.css color variables for dark mode
+   ================================================================= */
+.root {
+    /* Neutral/Gray Scale (inverted for dark mode) */
+    -color-white: #1e1e1e;
+    -color-gray-100: #252526;
+    -color-gray-200: #2d2d30;
+    -color-gray-300: #3c3c3c;
+    -color-gray-400: #4a4a4a;
+    -color-gray-500: #6a6a6a;
+    -color-gray-600: #9d9d9d;
+    -color-gray-700: #c0c0c0;
+    -color-gray-800: #d4d4d4;
+    -color-gray-900: #e1e1e1;
+    -color-black: #ffffff;
+
+    /* Background Colors */
+    -bg-primary: #1e1e1e;
+    -bg-secondary: #252526;
+    -bg-tertiary: #2d2d30;
+    -bg-hover: rgba(55, 148, 255, 0.15);
+    -bg-active: rgba(55, 148, 255, 0.25);
+
+    /* Border Colors */
+    -border-light: #3c3c3c;
+    -border-medium: #4a4a4a;
+    -border-dark: #5a5a5a;
+    -border-focus: #3794ff;
+
+    /* Text Colors */
+    -text-primary: #d4d4d4;
+    -text-secondary: #9d9d9d;
+    -text-muted: #6a6a6a;
+    -text-white: #1e1e1e;
+
+    /* Tab Category Colors (darker variants for dark mode) */
+    -color-tab-primary-light: #3a1f4e;
+    -color-tab-output-light: #1a3a1a;
+    -color-tab-utility-light: #1a2a4e;
+}
+
+/* =================================================================
    XML Syntax Highlighting (Dark Mode)
    ================================================================= */
 .tagmark {
@@ -1166,4 +1209,1028 @@
 /* Cache path label */
 .settings-cache-path-label {
   -fx-text-fill: #9d9d9d;
+}
+
+/* =================================================================
+   PHASE 2: fxt-theme.css Dark Mode Overrides
+   Override hardcoded light colors from fxt-theme.css
+   ================================================================= */
+
+/* --- Revolutionary Page Layout --- */
+.revolutionary-page {
+  -fx-background-color: linear-gradient(to bottom, #252526 0%, #1e1e1e 100%);
+}
+
+.revolutionary-split-pane .split-pane-divider {
+  -fx-background-color: #3c3c3c;
+}
+
+/* --- Revolutionary Panels --- */
+.templates-sidebar, .schema-config-sidebar, .xslt-input-section {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.templates-content, .schema-results, .xslt-output-section {
+  -fx-background-color: #1e1e1e;
+}
+
+.config-panel, .xml-input-panel, .template-info-panel,
+.template-params-panel, .template-preview-panel {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+/* --- Section Headers --- */
+.section-header {
+  -fx-text-fill: #d4d4d4;
+}
+
+.subsection-header {
+  -fx-text-fill: #c0c0c0;
+}
+
+.section-label {
+  -fx-text-fill: #9d9d9d;
+}
+
+/* --- Revolutionary Controls --- */
+.revolutionary-combo {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+}
+
+.revolutionary-search, .revolutionary-input {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+  -fx-text-fill: #d4d4d4;
+  -fx-prompt-text-fill: #6a6a6a;
+}
+
+.revolutionary-list-view {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.revolutionary-list-view .list-cell {
+  -fx-border-color: #252526;
+  -fx-text-fill: #d4d4d4;
+}
+
+.revolutionary-list-view .list-cell:selected {
+  -fx-background-color: #094771;
+  -fx-text-fill: white;
+}
+
+.revolutionary-table {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.revolutionary-table .column-header {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.revolutionary-table .column-header .label {
+  -fx-text-fill: #d4d4d4;
+}
+
+.revolutionary-table .table-cell {
+  -fx-border-color: #252526;
+  -fx-text-fill: #d4d4d4;
+}
+
+/* --- Revolutionary Tab Panes --- */
+.revolutionary-tab-pane .tab-header-area {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.revolutionary-tab-pane .tab {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+}
+
+.revolutionary-tab-pane .tab:selected {
+  -fx-background-color: #1e1e1e;
+}
+
+.revolutionary-tab-pane .tab-content-area {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+/* --- Toggle Button --- */
+.btn-toggle {
+  -fx-background-color: #3c3c3c;
+  -fx-text-fill: #c0c0c0;
+  -fx-border-color: #4a4a4a;
+}
+
+/* --- Code Areas --- */
+.code-input, .code-preview {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+  -fx-text-fill: #d4d4d4;
+}
+
+/* --- Stats and Labels --- */
+.generation-stats, .result-stats {
+  -fx-text-fill: #9d9d9d;
+}
+
+.template-name {
+  -fx-text-fill: #d4d4d4;
+}
+
+.template-description {
+  -fx-text-fill: #9d9d9d;
+}
+
+.stats-grid {
+  -fx-background-color: #252526;
+}
+
+.stats-grid .label {
+  -fx-text-fill: #c0c0c0;
+}
+
+/* --- Output Config --- */
+.output-config {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+/* --- Minimap --- */
+.minimap-container {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.minimap-toggle-button {
+  -fx-border-color: #9d9d9d;
+  -fx-text-fill: #9d9d9d;
+}
+
+.minimap-toggle-button:hover {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #c0c0c0;
+  -fx-text-fill: #c0c0c0;
+}
+
+/* --- Status Line --- */
+.status-line {
+  -fx-background-color: linear-gradient(to bottom, #2d2d30 0%, #252526 100%);
+  -fx-border-color: #4a4a4a;
+}
+
+.status-label {
+  -fx-text-fill: #d4d4d4;
+}
+
+.status-separator {
+  -fx-background-color: #4a4a4a;
+  -fx-border-color: #4a4a4a;
+}
+
+/* --- Dashboard / Welcome Page --- */
+.dashboard-root {
+  -fx-background-color: #1e1e1e;
+}
+
+.dashboard-title {
+  -fx-text-fill: #e1e1e1;
+}
+
+.dashboard-subtitle {
+  -fx-text-fill: #9d9d9d;
+}
+
+.update-notification {
+  -fx-background-color: #1e3a5f;
+  -fx-border-color: #3794ff;
+}
+
+.action-card {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.action-card:hover {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #4a4a4a;
+}
+
+.action-card-title {
+  -fx-text-fill: #e1e1e1;
+}
+
+.action-card-description {
+  -fx-text-fill: #9d9d9d;
+}
+
+.action-link-text {
+  -fx-text-fill: #3794ff;
+}
+
+.section-title {
+  -fx-text-fill: #e1e1e1;
+}
+
+/* --- Recent Projects Card --- */
+.recent-projects-card {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.recent-projects-header {
+  -fx-border-color: #3c3c3c;
+}
+
+/* --- Drag & Drop Area --- */
+.drag-drop-area {
+  -fx-border-color: #4a4a4a;
+  -fx-background-color: #252526;
+}
+
+.drag-drop-text {
+  -fx-text-fill: #6a6a6a;
+}
+
+/* --- Recent Files Table --- */
+.recent-files-table .column-header-background {
+  -fx-background-color: #252526;
+}
+
+.recent-files-table .column-header {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent transparent #3c3c3c transparent;
+}
+
+.recent-files-table .column-header .label {
+  -fx-text-fill: #9d9d9d;
+}
+
+.recent-files-table .table-row-cell {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent transparent #2d2d30 transparent;
+}
+
+.recent-files-table .table-row-cell:hover {
+  -fx-background-color: #2d2d30;
+}
+
+.recent-files-table .table-row-cell:selected {
+  -fx-background-color: #094771;
+}
+
+.recent-files-table .table-cell {
+  -fx-text-fill: #d4d4d4;
+}
+
+.placeholder-text {
+  -fx-text-fill: #6a6a6a;
+}
+
+/* --- Quick Tool Cards --- */
+.quick-tool-card {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.quick-tool-card:hover {
+  -fx-border-color: #3794ff;
+}
+
+.quick-tool-label {
+  -fx-text-fill: #d4d4d4;
+}
+
+/* --- System Updates Card --- */
+.system-updates-card {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.version-badge {
+  -fx-background-color: #1e3a5f;
+  -fx-text-fill: #3794ff;
+}
+
+.update-check-icon {
+  -fx-background-color: #1a2a1a;
+}
+
+.update-item-text {
+  -fx-text-fill: #d4d4d4;
+}
+
+/* --- Menu Button Active States --- */
+.menu_button.active {
+  -fx-background-color: #1e3a5f;
+  -fx-border-color: #3794ff;
+}
+
+.menu_button.active:hover {
+  -fx-background-color: #264a6f;
+}
+
+/* --- Collapsed Menu Button States --- */
+.menu_button_collapsed:hover {
+  -fx-background-color: rgba(60, 60, 60, 0.3);
+}
+
+.menu_button_collapsed:pressed {
+  -fx-background-color: rgba(60, 60, 60, 0.5);
+}
+
+.menu_button_collapsed.active {
+  -fx-background-color: rgba(30, 58, 95, 0.8);
+  -fx-border-color: #3794ff;
+}
+
+.menu_button_collapsed.active:hover {
+  -fx-background-color: rgba(38, 74, 111, 0.9);
+}
+
+/* --- Table Selected Row Text --- */
+.table-row-cell:selected .table-cell {
+  -fx-text-fill: #d4d4d4;
+}
+
+.table-row-cell:selected:focused .table-cell {
+  -fx-text-fill: #d4d4d4;
+}
+
+.table-view .table-row-cell:selected .table-cell .text {
+  -fx-fill: #d4d4d4;
+}
+
+.table-row-cell:selected .table-cell .label {
+  -fx-text-fill: #d4d4d4;
+}
+
+/* --- Info Tip Box --- */
+.info-tip-box {
+  -fx-background-color: #1e3a5f;
+}
+
+.info-tip-text {
+  -fx-text-fill: #7ec8e3;
+}
+
+/* --- Empty State --- */
+.empty-state-title {
+  -fx-text-fill: #c0c0c0;
+}
+
+.empty-state-description {
+  -fx-text-fill: #9d9d9d;
+}
+
+.empty-state-hint {
+  -fx-text-fill: #6a6a6a;
+}
+
+/* --- Placeholder --- */
+.placeholder-title {
+  -fx-text-fill: #9d9d9d;
+}
+
+.placeholder-description {
+  -fx-text-fill: #6a6a6a;
+}
+
+/* --- Status Bar --- */
+.status-bar {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.status-bar-label {
+  -fx-text-fill: #9d9d9d;
+}
+
+/* --- Panel Light / Panel Header --- */
+.panel-light {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.panel-header {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+/* --- Query Editor --- */
+.query-editor-border {
+  -fx-border-color: #4a4a4a;
+  -fx-background-color: #1e1e1e;
+}
+
+/* --- Footer --- */
+.footer-label {
+  -fx-text-fill: #9d9d9d;
+}
+
+/* --- Action Card Icon Wrappers (dark-tinted variants) --- */
+.action-card-icon-blue {
+  -fx-background-color: #1e3a5f;
+}
+
+.action-card-icon-purple {
+  -fx-background-color: #2a1a3a;
+}
+
+.action-card-icon-green {
+  -fx-background-color: #1a2a1a;
+}
+
+.action-card-icon-yellow {
+  -fx-background-color: #2a2a1a;
+}
+
+.action-card-icon-orange {
+  -fx-background-color: #2a1f1a;
+}
+
+.action-card-icon-pink {
+  -fx-background-color: #2a1a26;
+}
+
+.action-card-icon-cyan {
+  -fx-background-color: #1a2a30;
+}
+
+.action-card-icon-violet {
+  -fx-background-color: #221a3a;
+}
+
+.action-card-icon-amber {
+  -fx-background-color: #2a281a;
+}
+
+/* =================================================================
+   PHASE 5: Secondary CSS Files Dark Mode Overrides
+   ================================================================= */
+
+/* --- xml-editor.css overrides --- */
+.xml-editor-root {
+  -fx-background-color: #1e1e1e;
+  -fx-text-fill: #d4d4d4;
+}
+
+.xml-toolbar {
+  -fx-background-color: linear-gradient(to bottom, #2d2d30, #252526);
+  -fx-border-color: #3c3c3c;
+}
+
+.secondary-button {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+  -fx-text-fill: #d4d4d4;
+}
+
+.secondary-button:hover {
+  -fx-background-color: #4a4a4a;
+}
+
+.xml-split-pane .split-pane-divider {
+  -fx-background-color: #3c3c3c;
+}
+
+.xml-editor-tabs .tab {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.xml-editor-tabs .tab:selected {
+  -fx-background-color: #1e1e1e;
+}
+
+.sidebar-section > .title {
+  -fx-background-color: #3c3c3c;
+}
+
+.sidebar-section > .title .text {
+  -fx-fill: #d4d4d4;
+}
+
+.sidebar-section > .content {
+  -fx-background-color: #2d2d30;
+}
+
+.xml-main-tab-pane .tab {
+  -fx-background-color: #2d2d30;
+}
+
+.xml-main-tab-pane .tab:selected {
+  -fx-background-color: #1e1e1e;
+}
+
+.xml-sidebar {
+  -fx-background-color: #2d2d30;
+}
+
+.xml-sidebar .titled-pane > .title {
+  -fx-background-color: #3c3c3c;
+}
+
+.xml-sidebar .titled-pane > .title .text {
+  -fx-fill: #d4d4d4;
+}
+
+.xml-sidebar .titled-pane > .content {
+  -fx-background-color: #2d2d30;
+}
+
+.xml-structure-tree {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.xml-properties-table {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.xml-properties-table .column-header {
+  -fx-background-color: #3c3c3c;
+}
+
+.xml-list-view {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.xml-text-field {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+  -fx-text-fill: #d4d4d4;
+}
+
+.xml-text-area {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+  -fx-text-fill: #d4d4d4;
+}
+
+.xml-combo-box {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+}
+
+.xml-tool-section {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.xpath-query-container {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.xpath-results-table {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.xpath-results-table .table-row-cell:odd {
+  -fx-background-color: #252526;
+}
+
+.xml-code-area {
+  -fx-background-color: #1e1e1e;
+}
+
+.xml-code-area .paragraph-box {
+  -fx-background-color: #2d2d30;
+}
+
+.xml-code-area .paragraph-box:hover {
+  -fx-background-color: #3c3c3c;
+}
+
+.auto-completion-popup {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.xml-validation-panel {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.validation-statistics {
+  -fx-background-color: #3c3c3c;
+}
+
+.xml-validation-table {
+  -fx-background-color: #1e1e1e;
+}
+
+.xml-validation-table .column-header-background {
+  -fx-background-color: #3c3c3c;
+}
+
+.xml-validation-table .table-row-cell {
+  -fx-border-color: transparent transparent #3c3c3c transparent;
+}
+
+.xml-details-area {
+  -fx-background-color: #2d2d30;
+}
+
+.xml-search-replace-panel {
+  -fx-background-color: #2d2d30;
+}
+
+.xml-validation-panel .text-field {
+  -fx-background-color: #3c3c3c;
+  -fx-text-fill: #d4d4d4;
+}
+
+.xml-validation-panel .check-box .box {
+  -fx-background-color: #3c3c3c;
+}
+
+.sidebar-section-header {
+  -fx-background-color: linear-gradient(to bottom, #3c3c3c, #2d2d30);
+}
+
+.xml-sidebar-titled-pane > .title {
+  -fx-background-color: #2d2d30;
+}
+
+.xml-sidebar-titled-pane > .content {
+  -fx-background-color: #2d2d30;
+}
+
+.xsd-required-overlay {
+  -fx-background-color: rgba(50, 50, 50, 0.95);
+}
+
+.xml-editor-sidebar {
+  -fx-background-color: #2d2d30;
+}
+
+.sidebar-toggle-button {
+  -fx-background-color: #3c3c3c;
+}
+
+.sidebar-scroll-pane > .scroll-bar:vertical > .thumb {
+  -fx-background-color: #4a4a4a;
+}
+
+.sidebar-scroll-pane > .scroll-bar:vertical > .thumb:hover {
+  -fx-background-color: #5a5a5a;
+}
+
+.sidebar-list-view {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.documentation-text-area {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.cursor-info-field {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.xml-folding-indicator {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.xml-folding-indicator:hover {
+  -fx-background-color: #3c3c3c;
+}
+
+.line-number-gutter .folding-button:hover {
+  -fx-background-color: #2d2d30;
+}
+
+.search-results-list {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+/* --- xml-intellisense.css overrides --- */
+.intellisense-popup {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.intellisense-list .list-cell:filled:selected {
+  -fx-background-color: #094771;
+}
+
+.intellisense-list .list-cell:filled:hover:not(:selected) {
+  -fx-background-color: #2a3a4a;
+}
+
+.completion-namespace {
+  -fx-background-color: #3c3c3c;
+}
+
+.doc-tooltip {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+  -fx-text-fill: #d4d4d4;
+}
+
+.quick-actions-menu {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3794ff;
+}
+
+.quick-actions-menu .menu-item:focused {
+  -fx-background-color: #094771;
+}
+
+.fold-button:hover {
+  -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
+.folded-placeholder {
+  -fx-background-color: rgba(100, 100, 100, 0.3);
+  -fx-border-color: #4a4a4a;
+}
+
+.current-line {
+  -rtfx-background-color: rgba(100, 100, 50, 0.3);
+}
+
+/* --- popups.css overrides --- */
+.popup-container {
+  -fx-background-color: #2d2d30;
+}
+
+.popup-header {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+/* --- json-editor.css overrides --- */
+.json-editor-root {
+  -fx-background-color: #1e1e1e;
+}
+
+.json-toolbar {
+  -fx-background-color: linear-gradient(to bottom, #2d2d30, #252526);
+  -fx-border-color: #4a4a4a;
+}
+
+.json-tab {
+  -fx-background-color: #2d2d30;
+}
+
+.json-code-area {
+  -fx-background-color: #1e1e1e;
+}
+
+.json-code-area .paragraph-box {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.json-code-area .paragraph-box:hover {
+  -fx-background-color: #3c3c3c;
+}
+
+.json-tree-view {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.json-properties-panel {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.json-validation-panel {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.jsonpath-panel {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.jsonpath-input {
+  -fx-background-color: #3c3c3c;
+  -fx-text-fill: #d4d4d4;
+}
+
+.jsonpath-results {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.json-format-selector {
+  -fx-background-color: #3c3c3c;
+}
+
+.json-collapse-indicator {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #4a4a4a;
+}
+
+.json-collapse-indicator:hover {
+  -fx-background-color: #3c3c3c;
+}
+
+/* --- schematron-editor.css overrides --- */
+.schematron-toolbar {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.schematron-toolbar .button:hover {
+  -fx-background-color: #3c3c3c;
+}
+
+.schematron-toolbar .button:pressed {
+  -fx-background-color: #4a4a4a;
+}
+
+.schematron-sidebar {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.schematron-sidebar .titled-pane > .title {
+  -fx-background-color: #3c3c3c;
+}
+
+.schematron-sidebar .titled-pane > .content {
+  -fx-background-color: #1e1e1e;
+}
+
+.schematron-status {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.template-item:hover {
+  -fx-background-color: #2a3a4a;
+}
+
+.visual-builder-section {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.testing-section {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.doc-generator-section {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.template-library-section {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+.xpath-expression {
+  -fx-background-color: #1a3a1a;
+}
+
+.code-area .bracket-highlight {
+  -fx-background-color: #4a4a00;
+}
+
+.error-highlight {
+  -fx-background-color: #4a1a1a;
+}
+
+.warning-highlight {
+  -fx-background-color: #4a3a1a;
+}
+
+.code-area .folding-indicator {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #4a4a4a;
+}
+
+.code-area .folding-indicator:hover {
+  -fx-background-color: #4a4a4a;
+}
+
+.autocompletion-popup {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #4a4a4a;
+}
+
+.autocompletion-popup .list-cell:hover {
+  -fx-background-color: #2a3a4a;
+}
+
+.autocompletion-popup .list-cell:selected {
+  -fx-background-color: #094771;
+}
+
+/* --- unified-editor.css overrides --- */
+.unified-tab.xml-tab {
+  -fx-background-color: linear-gradient(to bottom, #1a3a5a, #0a2a4a);
+}
+
+.unified-tab.xml-tab:selected {
+  -fx-background-color: linear-gradient(to bottom, #3794ff, #1177bb);
+}
+
+.unified-tab.xsd-tab {
+  -fx-background-color: linear-gradient(to bottom, #1a3a1a, #0a2a0a);
+}
+
+.unified-tab.xsd-tab:selected {
+  -fx-background-color: linear-gradient(to bottom, #4caf50, #388e3c);
+}
+
+.unified-tab.xslt-tab {
+  -fx-background-color: linear-gradient(to bottom, #3a2a1a, #2a1a0a);
+}
+
+.unified-tab.xslt-tab:selected {
+  -fx-background-color: linear-gradient(to bottom, #ff9800, #f57c00);
+}
+
+.unified-tab.schematron-tab {
+  -fx-background-color: linear-gradient(to bottom, #3a1a5a, #2a0a4a);
+}
+
+.unified-tab.schematron-tab:selected {
+  -fx-background-color: linear-gradient(to bottom, #ab47bc, #7b1fa2);
+}
+
+.linked-files-panel {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+.unified-editor .context-menu {
+  -fx-background-color: #2d2d30;
+  -fx-border-color: #3c3c3c;
+}
+
+/* --- xsd-tab-groups.css overrides --- */
+.tab-pane .tab.primary-tab {
+  -fx-background-color: linear-gradient(to bottom, #3a1f4e, #2a0a3e);
+}
+
+.tab-pane .tab.primary-tab:selected {
+  -fx-background-color: linear-gradient(to bottom, #ab47bc, #7b1fa2);
+}
+
+.tab-pane .tab.primary-tab:hover {
+  -fx-background-color: linear-gradient(to bottom, #5a2a7a, #4a1a6a);
+}
+
+.tab-pane .tab.output-tab {
+  -fx-background-color: linear-gradient(to bottom, #1a3a1a, #0a2a0a);
+}
+
+.tab-pane .tab.output-tab:selected {
+  -fx-background-color: linear-gradient(to bottom, #4caf50, #388e3c);
+}
+
+.tab-pane .tab.output-tab:hover {
+  -fx-background-color: linear-gradient(to bottom, #2a5a2a, #1a4a1a);
+}
+
+.tab-pane .tab.utility-tab {
+  -fx-background-color: linear-gradient(to bottom, #1a3a5a, #0a2a4a);
+}
+
+.tab-pane .tab.utility-tab:selected {
+  -fx-background-color: linear-gradient(to bottom, #3794ff, #1177bb);
+}
+
+.tab-pane .tab.utility-tab:hover {
+  -fx-background-color: linear-gradient(to bottom, #3a5a7a, #2a4a6a);
+}
+
+.xsd-toolbar {
+  -fx-background-color: linear-gradient(to bottom, #2d2d30, #252526);
+  -fx-border-color: #3c3c3c;
+}
+
+.xsd-toolbar .button:hover {
+  -fx-background-color: rgba(55, 148, 255, 0.2);
+}
+
+/* --- app-theme.css utility class overrides for dark mode --- */
+.warning-box {
+  -fx-background-color: #3a3000;
+  -fx-text-fill: #ffc107;
 }

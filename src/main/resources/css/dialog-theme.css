@@ -549,3 +549,54 @@
     -fx-pref-width: 1000px;
     -fx-pref-height: 750px;
 }
+
+/* ============================================
+   HELP DIALOG COMPONENTS
+   ============================================ */
+
+/* Shortcut key badge */
+.dialog-shortcut-key {
+    -fx-background-color: linear-gradient(to bottom, -bg-secondary, -bg-tertiary);
+    -fx-border-color: -border-light;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 6 12;
+    -fx-font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -text-primary;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 2, 0, 0, 1);
+}
+
+/* Shortcut description */
+.dialog-shortcut-description {
+    -fx-text-fill: -text-primary;
+    -fx-font-size: 14px;
+}
+
+/* Help dialog content background */
+.dialog-help-content {
+    -fx-background-color: -bg-primary;
+}
+
+/* Help dialog section (features / shortcuts) */
+.dialog-help-section {
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: -border-light;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 20;
+}
+
+/* Help dialog OK button */
+.dialog-help-ok-button {
+    -fx-background-color: linear-gradient(to bottom, #007bff, #0056b3);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 8 24;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
