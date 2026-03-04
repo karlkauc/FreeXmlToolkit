@@ -438,7 +438,20 @@ fun createJPackageTask(taskName: String, platform: String, arch: String, package
             mkdir(outputDir)
         }
         
-        val jpackageCmd = if (System.getProperty("os.name").lowercase().contains("windows")) "jpackage.exe" else "jpackage"
+        // Resolve jpackage from Gradle toolchain JDK (ensures same JDK as compilation)
+        // Falls back to JAVA_HOME / java.home only if toolchain resolution fails
+        val toolchainJavaHome = try {
+            val launcher = javaToolchains.launcherFor {
+                languageVersion = java.toolchain.languageVersion
+                vendor = java.toolchain.vendor
+            }.get()
+            launcher.metadata.installationPath.asFile.absolutePath
+        } catch (e: Exception) {
+            System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
+        }
+
+        val jpackageCmd = if (System.getProperty("os.name").lowercase().contains("windows"))
+            "$toolchainJavaHome/bin/jpackage.exe" else "$toolchainJavaHome/bin/jpackage"
         
         // Determine app name based on package type and platform
         val appName = when {
@@ -561,10 +574,13 @@ $runtimeArg
 -Dprism.order=d3d,es2,sw
 --java-options
 -Dprism.forceGPU=false
+--java-options
+-Djava.library.path=${'$'}ROOTDIR/runtime/bin
 --verbose
 $platformArgs""".trimIndent())
             
             // Add debug output after creating the file
+            println("📍 jpackage from: $toolchainJavaHome")
             println("🔧 jpackage command: $jpackageCmd")
             println("📋 Arguments file: ${argsFile.absolutePath}")
             println("📄 Arguments file contents:")
@@ -801,20 +817,47 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
         group = "runtime"
         description = "Create native jlink runtime image for $platform-$arch using configured JDK"
         dependsOn("jar")
-        
+
         val runtimeDir = project.layout.buildDirectory.dir("runtime/$platform-$arch").get().asFile
-        
+
+        // Resolve JDK from Gradle toolchain (ensures we get the Liberica Full JDK with JavaFX)
+        // Falls back to JAVA_HOME / java.home only if toolchain resolution fails
+        val toolchainJavaHome = try {
+            val launcher = javaToolchains.launcherFor {
+                languageVersion = java.toolchain.languageVersion
+                vendor = java.toolchain.vendor
+            }.get()
+            launcher.metadata.installationPath.asFile.absolutePath
+        } catch (e: Exception) {
+            System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
+        }
+
         doFirst {
             delete(runtimeDir)
             println("🔨 Creating native runtime for $platform-$arch")
+            println("📍 Using JDK: $toolchainJavaHome")
+
+            // Verify JavaFX modules are available in the JDK
+            val jmodsDir = File(toolchainJavaHome, "jmods")
+            val javafxGraphicsMod = File(jmodsDir, "javafx.graphics.jmod")
+            if (!javafxGraphicsMod.exists()) {
+                throw GradleException("""
+                    ❌ JavaFX modules not found in JDK at: $toolchainJavaHome
+
+                    The jlink runtime requires a JDK with JavaFX (e.g., Liberica Full JDK).
+                    Found jmods at: ${jmodsDir.absolutePath}
+                    Missing: javafx.graphics.jmod
+
+                    Please install Liberica Full JDK 25 or set JAVA_HOME to a JDK that includes JavaFX.
+                """.trimIndent())
+            }
+            println("✅ JavaFX modules found in JDK")
         }
-        
-        // Use configured JDK from toolchain (works with any JDK that includes JavaFX)
-        val currentJavaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
-        val jlinkCmd = if (currentOs == "windows") 
-            "$currentJavaHome/bin/jlink.exe" else "$currentJavaHome/bin/jlink"
-        val modulePath = "$currentJavaHome/jmods"
-        
+
+        val jlinkCmd = if (currentOs == "windows")
+            "$toolchainJavaHome/bin/jlink.exe" else "$toolchainJavaHome/bin/jlink"
+        val modulePath = "$toolchainJavaHome/jmods"
+
         // Required modules including JavaFX (works with any JDK that includes JavaFX)
         val requiredModules = setOf(
             "java.base",
@@ -835,7 +878,7 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "javafx.web",
             "javafx.swing"
         )
-        
+
         commandLine(
             jlinkCmd,
             "--module-path", modulePath,
@@ -847,9 +890,21 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "--strip-debug",
             "--strip-native-commands"
         )
-        
+
         doLast {
             println("✅ Native runtime image created for $platform-$arch in ${runtimeDir.absolutePath}")
+
+            // Verify the runtime contains JavaFX native libraries
+            val runtimeBinDir = File(runtimeDir, "bin")
+            val expectedNativeLib = if (currentOs == "windows") "glass.dll" else if (currentOs == "macos") "libglass.dylib" else "libglass.so"
+            val nativeLib = File(runtimeBinDir, expectedNativeLib)
+            if (!nativeLib.exists()) {
+                println("⚠️ WARNING: JavaFX native library '$expectedNativeLib' not found in runtime/bin!")
+                println("   This will cause EXCEPTION_ACCESS_VIOLATION on Windows if another JDK is on PATH.")
+                println("   Ensure the JDK used for jlink includes JavaFX (Liberica Full JDK).")
+            } else {
+                println("✅ JavaFX native library verified: ${nativeLib.absolutePath}")
+            }
         }
     }
 }

@@ -1,8 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
 import java.util.Collection;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javafx.application.Platform;
 
@@ -19,8 +21,9 @@ import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
  * <p>Features:</p>
  * <ul>
  *   <li>XML syntax highlighting (tags, attributes, values, comments, CDATA)</li>
- *   <li>Configurable debouncing to reduce CPU usage</li>
- *   <li>Background processing via ExecutorService</li>
+ *   <li>Proper debouncing via ScheduledExecutorService (cancels pending tasks)</li>
+ *   <li>Large file mode: longer debounce for files &gt; 500KB</li>
+ *   <li>Very large file guard: disables highlighting for files &gt; 2MB</li>
  *   <li>CSS-based styling for flexibility</li>
  * </ul>
  */
@@ -28,16 +31,20 @@ public class SyntaxHighlightManagerV2 {
 
     private static final Logger logger = LogManager.getLogger(SyntaxHighlightManagerV2.class);
 
+    private static final long LARGE_FILE_THRESHOLD = 500 * 1024;        // 500KB
+    private static final long VERY_LARGE_FILE_THRESHOLD = 2 * 1024 * 1024; // 2MB
+    private static final long LARGE_FILE_DEBOUNCE_MS = 800;
+
     private final CodeArea codeArea;
-    private final ExecutorService executor;
+    private final ScheduledExecutorService scheduler;
     private final long debounceMillis;
 
     // Optional: CombinedStyleManager for proper syntax+error highlighting
     private CombinedStyleManager styleManager;
 
-    // Debouncing
-    private long lastHighlightRequest = 0;
-    private String pendingText = null;
+    // Debouncing: pending scheduled task (cancelled on new input)
+    private Future<?> pendingHighlight;
+    private boolean highlightingDisabled = false;
 
     /**
      * Creates a new SyntaxHighlightManagerV2 with default debouncing (300ms).
@@ -57,7 +64,7 @@ public class SyntaxHighlightManagerV2 {
     public SyntaxHighlightManagerV2(CodeArea codeArea, long debounceMillis) {
         this.codeArea = codeArea;
         this.debounceMillis = debounceMillis;
-        this.executor = Executors.newSingleThreadExecutor(r -> {
+        this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "SyntaxHighlightV2");
             t.setDaemon(true);
             return t;
@@ -68,7 +75,9 @@ public class SyntaxHighlightManagerV2 {
 
     /**
      * Applies syntax highlighting to the given text.
-     * This method uses debouncing to avoid excessive CPU usage.
+     * Uses proper debouncing: cancels any pending highlight task before scheduling a new one.
+     * For large files (&gt; 500KB), uses a longer debounce. For very large files (&gt; 2MB),
+     * disables highlighting entirely.
      *
      * @param text the text to highlight
      */
@@ -77,25 +86,36 @@ public class SyntaxHighlightManagerV2 {
             return;
         }
 
-        long now = System.currentTimeMillis();
-        pendingText = text;
-
-        // Debouncing: only process if enough time has passed
-        if (now - lastHighlightRequest < debounceMillis) {
-            // Schedule delayed processing
-            executor.submit(() -> {
-                try {
-                    Thread.sleep(debounceMillis);
-                    processHighlighting(pendingText);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            });
-        } else {
-            // Process immediately
-            lastHighlightRequest = now;
-            executor.submit(() -> processHighlighting(text));
+        // Very large file guard: disable highlighting
+        if (text.length() > VERY_LARGE_FILE_THRESHOLD) {
+            if (!highlightingDisabled) {
+                highlightingDisabled = true;
+                logger.info("Syntax highlighting disabled for very large content ({}KB)", text.length() / 1024);
+            }
+            return;
         }
+
+        // Re-enable if file shrunk below threshold
+        if (highlightingDisabled) {
+            highlightingDisabled = false;
+            logger.info("Syntax highlighting re-enabled (content size: {}KB)", text.length() / 1024);
+        }
+
+        // Cancel any pending highlight task
+        if (pendingHighlight != null && !pendingHighlight.isDone()) {
+            pendingHighlight.cancel(false);
+        }
+
+        // Use longer debounce for large files
+        long effectiveDebounce = text.length() > LARGE_FILE_THRESHOLD ? LARGE_FILE_DEBOUNCE_MS : debounceMillis;
+
+        // Schedule new highlight with debounce delay
+        final String textToHighlight = text;
+        pendingHighlight = scheduler.schedule(
+                () -> processHighlighting(textToHighlight),
+                effectiveDebounce,
+                TimeUnit.MILLISECONDS
+        );
     }
 
     /**
@@ -108,8 +128,12 @@ public class SyntaxHighlightManagerV2 {
             return;
         }
 
-        lastHighlightRequest = System.currentTimeMillis();
-        executor.submit(() -> processHighlighting(text));
+        // Cancel pending and process immediately
+        if (pendingHighlight != null && !pendingHighlight.isDone()) {
+            pendingHighlight.cancel(false);
+        }
+
+        scheduler.execute(() -> processHighlighting(text));
     }
 
     /**
@@ -165,7 +189,7 @@ public class SyntaxHighlightManagerV2 {
      * Should be called when the editor is closed.
      */
     public void shutdown() {
-        executor.shutdown();
+        scheduler.shutdown();
         logger.debug("SyntaxHighlightManagerV2 shut down");
     }
 }

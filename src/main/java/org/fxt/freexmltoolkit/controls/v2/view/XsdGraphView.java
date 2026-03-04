@@ -97,7 +97,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
     // Debounce for model change events (prevents multiple rebuilds from rapid events)
     private PauseTransition rebuildDebounce;
-    private static final double DEBOUNCE_DELAY_MS = 50.0; // 50ms debounce delay
+    private PauseTransition incrementalUpdateDebounce;
+    private static final double DEBOUNCE_DELAY_MS = 150.0; // 150ms debounce for structural changes
+    private static final double INCREMENTAL_DEBOUNCE_MS = 80.0; // 80ms debounce for property changes
 
     // Viewport tracking for culling optimization (Phase 3)
     private double viewportX = 0;
@@ -1097,8 +1099,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 rebuildDebounce = new PauseTransition(Duration.millis(DEBOUNCE_DELAY_MS));
                 rebuildDebounce.setOnFinished(e -> {
                     logger.debug("Debounced full rebuild triggered");
-                    // Invalidate cache for this schema since structure changed
+                    // Invalidate caches since structure changed
                     XsdVisualTreeBuilder.invalidateCacheFor(xsdSchema);
+                    renderer.clearTextWidthCache();
                     rebuildVisualTree();
                     redraw();
                 });
@@ -1108,10 +1111,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
-     * Schedules an incremental update for property changes.
+     * Schedules an incremental update for property changes with debouncing.
      * Since VisualNode already updates itself via its PropertyChangeListener,
      * we just need to trigger a redraw to show the changes.
-     * This is a significant performance optimization - no full tree rebuild needed!
+     * Debouncing coalesces rapid property changes (e.g., typing a name) into one redraw.
      */
     private void scheduleIncrementalUpdate(PropertyChangeEvent evt) {
         javafx.application.Platform.runLater(() -> {
@@ -1119,12 +1122,15 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 return;
             }
 
-            // VisualNode.updateFromModel() is already called by VisualNode's own listener
-            // We just need to redraw to show the changes
             logger.debug("Incremental update (redraw only) for property '{}' on '{}'",
                     evt.getPropertyName(),
                     evt.getSource() instanceof XsdNode xsdNode ? xsdNode.getName() : "unknown");
-            redraw();
+
+            if (incrementalUpdateDebounce == null) {
+                incrementalUpdateDebounce = new PauseTransition(Duration.millis(INCREMENTAL_DEBOUNCE_MS));
+                incrementalUpdateDebounce.setOnFinished(e -> redraw());
+            }
+            incrementalUpdateDebounce.playFromStart();
         });
     }
 

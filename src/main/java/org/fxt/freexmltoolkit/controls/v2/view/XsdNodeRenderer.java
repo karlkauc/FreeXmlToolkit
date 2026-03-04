@@ -1,5 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -34,11 +37,22 @@ public class XsdNodeRenderer {
     private final Font detailFont;
     private final javafx.scene.text.Text textMeasurer;
 
+    // Text width cache: key = "fontName:fontSize:text", value = measured width
+    // Avoids expensive Text.getBoundsInLocal() calls on repeated rendering (zoom, scroll, redraw)
+    private final Map<String, Double> textWidthCache = new ConcurrentHashMap<>();
+
     public XsdNodeRenderer() {
         // XMLSpy uses Segoe UI font family
         this.nodeFont = Font.font("Segoe UI", 12); // Slightly larger for readability
         this.detailFont = Font.font("Segoe UI", 10);
         this.textMeasurer = new javafx.scene.text.Text();
+    }
+
+    /**
+     * Clears the text width cache. Call when fonts change or schema is reloaded.
+     */
+    public void clearTextWidthCache() {
+        textWidthCache.clear();
     }
 
     /**
@@ -63,10 +77,9 @@ public class XsdNodeRenderer {
         // Calculate header width components
         double headerWidth = ICON_SIZE + ICON_SPACING;  // Icon and spacing
 
-        // Measure label text with proper font
-        textMeasurer.setFont(nodeFont);
-        textMeasurer.setText(node.getLabel() != null ? node.getLabel() : "");
-        double labelWidth = textMeasurer.getBoundsInLocal().getWidth();
+        // Measure label text with proper font (cached)
+        String label = node.getLabel() != null ? node.getLabel() : "";
+        double labelWidth = estimateTextWidth(label, nodeFont);
         headerWidth += labelWidth;
 
         // Add cardinality badge width
@@ -83,12 +96,10 @@ public class XsdNodeRenderer {
         // Add left and right padding
         headerWidth += PADDING + PADDING;
 
-        // Also measure detail text width for body
+        // Also measure detail text width for body (cached)
         double detailWidth = 0;
         if (node.getDetail() != null && !node.getDetail().isEmpty()) {
-            textMeasurer.setFont(detailFont);
-            textMeasurer.setText(node.getDetail());
-            detailWidth = textMeasurer.getBoundsInLocal().getWidth();
+            detailWidth = estimateTextWidth(node.getDetail(), detailFont);
             // Add "Type: " prefix width and spacing
             detailWidth += 50;  // Estimated width of "Type: " label + spacing
         }
@@ -277,9 +288,12 @@ public class XsdNodeRenderer {
      * Estimates text width for layout purposes.
      */
     private double estimateTextWidth(String text, Font font) {
-        textMeasurer.setFont(font);
-        textMeasurer.setText(text);
-        return textMeasurer.getBoundsInLocal().getWidth();
+        String cacheKey = font.getName() + ":" + font.getSize() + ":" + text;
+        return textWidthCache.computeIfAbsent(cacheKey, k -> {
+            textMeasurer.setFont(font);
+            textMeasurer.setText(text);
+            return textMeasurer.getBoundsInLocal().getWidth();
+        });
     }
 
     /**

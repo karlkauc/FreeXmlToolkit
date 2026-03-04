@@ -60,6 +60,14 @@ public class ValidationManagerV2 {
     // Optional: CombinedStyleManager for proper error highlighting
     private CombinedStyleManager styleManager;
 
+    // Cached SAXParserFactory (thread-safe after configuration)
+    private final SAXParserFactory cachedSaxParserFactory;
+
+    // Cached Schema object (only recreated when XSD file changes)
+    private Schema cachedSchema;
+    private String cachedSchemaFilePath;
+    private long cachedSchemaLastModified;
+
     /**
      * Creates a new ValidationManagerV2.
      *
@@ -73,6 +81,10 @@ public class ValidationManagerV2 {
             t.setDaemon(true);
             return t;
         });
+
+        // Pre-create and configure SAXParserFactory (thread-safe after configuration)
+        this.cachedSaxParserFactory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureSAXParserFactory();
+        this.cachedSaxParserFactory.setNamespaceAware(true);
 
         logger.info("ValidationManagerV2 created");
     }
@@ -150,9 +162,7 @@ public class ValidationManagerV2 {
         List<ValidationError> errors = new ArrayList<>();
 
         try {
-            SAXParserFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureSAXParserFactory();
-            factory.setNamespaceAware(true);
-            SAXParser parser = factory.newSAXParser();
+            SAXParser parser = cachedSaxParserFactory.newSAXParser();
 
             // Custom error handler
             parser.parse(
@@ -226,11 +236,10 @@ public class ValidationManagerV2 {
                 return errors;
             }
 
-            // Create schema factory and load XSD
-            SchemaFactory schemaFactory = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = schemaFactory.newSchema(schemaFile);
+            // Use cached Schema (only recreate when XSD file changes)
+            Schema schema = getCachedSchema(schemaFile, xsdFilePath);
 
-            // Create validator
+            // Create validator (lightweight operation from cached Schema)
             Validator validator = schema.newValidator();
 
             // Custom error handler to collect validation errors
@@ -282,6 +291,34 @@ public class ValidationManagerV2 {
         }
 
         return errors;
+    }
+
+    /**
+     * Returns a cached Schema instance, only recreating it when the XSD file has changed.
+     * SchemaFactory.newSchema() is expensive, so caching the Schema significantly improves
+     * repeated validation performance.
+     *
+     * @param schemaFile the XSD file
+     * @param filePath the file path string
+     * @return the Schema instance
+     * @throws SAXException if schema parsing fails
+     */
+    private Schema getCachedSchema(File schemaFile, String filePath) throws SAXException {
+        long lastModified = schemaFile.lastModified();
+
+        if (cachedSchema != null
+                && filePath.equals(cachedSchemaFilePath)
+                && lastModified == cachedSchemaLastModified) {
+            logger.debug("Using cached Schema for: {}", filePath);
+            return cachedSchema;
+        }
+
+        logger.debug("Creating new Schema for: {}", filePath);
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        cachedSchema = schemaFactory.newSchema(schemaFile);
+        cachedSchemaFilePath = filePath;
+        cachedSchemaLastModified = lastModified;
+        return cachedSchema;
     }
 
     /**

@@ -206,10 +206,11 @@ public class XmlServiceImpl implements XmlService {
         }
 
         try {
-            FileInputStream fileIS = new FileInputStream(this.currentXmlFile);
-            this.builder = builderFactory.newDocumentBuilder();
-            this.xmlDocument = builder.parse(fileIS);
+            // Read file once, use for both DOM parse and string content
             this.xmlContent = Files.readString(this.currentXmlFile.toPath());
+            this.builder = builderFactory.newDocumentBuilder();
+            this.xmlDocument = builder.parse(
+                    new ByteArrayInputStream(this.xmlContent.getBytes(StandardCharsets.UTF_8)));
 
         } catch (Exception e) {
             logger.error(e.getMessage());

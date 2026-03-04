@@ -28,6 +28,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
@@ -40,6 +41,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -103,6 +105,14 @@ public class XmlEditor extends Tab {
 
     // Cache for XSD documentation data to avoid reparsing
     private XsdDocumentationData xsdDocumentationData;
+
+    // Debounce for live validation (avoids validation on every keystroke)
+    private PauseTransition validationDebounce;
+    private PauseTransition schematronDebounce;
+    private static final long VALIDATION_DEBOUNCE_MS = 500;
+    private static final long LARGE_FILE_DEBOUNCE_MS = 1500;
+    private static final long LARGE_FILE_THRESHOLD = 1024 * 1024;       // 1MB
+    private static final long VERY_LARGE_FILE_THRESHOLD = 5 * 1024 * 1024; // 5MB
 
     // Reference to the current XmlEditorContext used by the graphic view (V2)
     // This is updated when xsdDocumentationData is loaded asynchronously
@@ -234,12 +244,33 @@ public class XmlEditor extends Tab {
 
         // --- Add Listeners ---
         // Note: Syntax highlighting is handled by XmlCodeEditor's text listener
+        // Debounced validation to avoid triggering on every keystroke
+        validationDebounce = new PauseTransition(Duration.millis(VALIDATION_DEBOUNCE_MS));
+        validationDebounce.setOnFinished(e -> validateXml());
+        schematronDebounce = new PauseTransition(Duration.millis(VALIDATION_DEBOUNCE_MS));
+        schematronDebounce.setOnFinished(e -> validateSchematron());
+
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             if (sidebarController != null && sidebarController.isContinuousValidationSelected()) {
-                validateXml();
+                long textLength = newText != null ? newText.length() : 0;
+                if (textLength > VERY_LARGE_FILE_THRESHOLD) {
+                    // Very large files: skip live validation entirely
+                    logger.debug("Skipping live validation for very large file ({}KB)", textLength / 1024);
+                    return;
+                }
+                // Large files: use longer debounce
+                long debounceMs = textLength > LARGE_FILE_THRESHOLD ? LARGE_FILE_DEBOUNCE_MS : VALIDATION_DEBOUNCE_MS;
+                validationDebounce.setDuration(Duration.millis(debounceMs));
+                validationDebounce.playFromStart();
             }
             if (sidebarController != null && sidebarController.isContinuousSchematronValidationSelected()) {
-                validateSchematron();
+                long textLength = newText != null ? newText.length() : 0;
+                if (textLength > VERY_LARGE_FILE_THRESHOLD) {
+                    return;
+                }
+                long debounceMs = textLength > LARGE_FILE_THRESHOLD ? LARGE_FILE_DEBOUNCE_MS : VALIDATION_DEBOUNCE_MS;
+                schematronDebounce.setDuration(Duration.millis(debounceMs));
+                schematronDebounce.playFromStart();
             }
         });
 
