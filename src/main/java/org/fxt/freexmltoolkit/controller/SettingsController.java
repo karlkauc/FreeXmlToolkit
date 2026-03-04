@@ -476,13 +476,13 @@ public class SettingsController {
             props.setProperty("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
 
             // Save Update settings
-            propertiesService.setUpdateCheckEnabled(checkForUpdatesOnStartup.isSelected());
+            props.setProperty("update.check.enabled", String.valueOf(checkForUpdatesOnStartup.isSelected()));
 
             props.setProperty("xml.indent.spaces", xmlIndentSpaces.getValue().toString());
             props.setProperty("xml.autoformat.after.loading", String.valueOf(autoFormatXmlAfterLoading.isSelected()));
 
             // Save Schematron settings
-            propertiesService.setSchematronPrettyPrintOnLoad(schematronPrettyPrintOnLoad.isSelected());
+            props.setProperty("schematron.prettyPrint.onLoad", String.valueOf(schematronPrettyPrintOnLoad.isSelected()));
 
             // Save XML Auto-Creation settings
             props.setProperty("xml.createAllChildNodes", String.valueOf(createAllChildNodes.isSelected()));
@@ -496,14 +496,14 @@ public class SettingsController {
             props.setProperty("xsd.prettyPrint.onSave", String.valueOf(xsdPrettyPrintOnSave.isSelected()));
 
             // Save backup directory settings
-            propertiesService.setBackupUseSeparateDirectory(backupSeparateDirectory.isSelected());
-            propertiesService.setBackupDirectory(backupDirectoryPath.getText());
+            props.setProperty("backup.use.separate.directory", String.valueOf(backupSeparateDirectory.isSelected()));
+            props.setProperty("backup.directory", backupDirectoryPath.getText());
 
             // Save XSD sort order setting
             XsdSortOrder selectedSortOrder = sortTypeBeforeName.isSelected()
                     ? XsdSortOrder.TYPE_BEFORE_NAME
                     : XsdSortOrder.NAME_BEFORE_TYPE;
-            propertiesService.setXsdSortOrder(selectedSortOrder.name());
+            props.setProperty("xsd.sort.order", selectedSortOrder.name());
 
             // Save UI settings
             props.setProperty("ui.theme", darkTheme.isSelected() ? "dark" : "light");
@@ -538,7 +538,7 @@ public class SettingsController {
             // Save XML parser type
             XmlParserType selectedParser = xmlParserComboBox.getSelectionModel().getSelectedItem();
             if (selectedParser != null) {
-                propertiesService.setXmlParserType(selectedParser);
+                props.setProperty("xml.parser.type", selectedParser.name());
             }
 
             // Save usage statistics setting
