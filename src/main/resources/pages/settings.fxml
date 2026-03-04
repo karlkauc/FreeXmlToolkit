@@ -173,7 +173,7 @@
                                                styleClass="settings-section-subtitle"/>
                                     </HBox>
                                     <Label fx:id="cachePathLabel" text="Loading..."
-                                           style="-fx-font-size: 11px; -fx-text-fill: #495057; -fx-font-family: monospace;" wrapText="true"/>
+                                           styleClass="settings-cache-path-label" wrapText="true"/>
                                     <HBox spacing="12" alignment="CENTER_LEFT">
                                         <Label fx:id="cacheSizeLabel" text="Cache size: calculating..."
                                                styleClass="settings-section-hint"/>

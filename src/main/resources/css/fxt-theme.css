@@ -1515,6 +1515,13 @@
     -fx-padding: 0 0 0 24;
 }
 
+/* Settings Cache Path Label */
+.settings-cache-path-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #495057;
+    -fx-font-family: monospace;
+}
+
 /* Button Variant: Warning (Orange) */
 .btn-warning-action {
     -fx-background-color: #fd7e14;

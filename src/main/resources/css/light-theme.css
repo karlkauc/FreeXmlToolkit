@@ -202,6 +202,20 @@
   -fx-text-fill: #24292f;
 }
 
+/* Ensure RadioButton and CheckBox text is always dark in light mode */
+.radio-button {
+  -fx-text-fill: #24292f;
+}
+
+.check-box {
+  -fx-text-fill: #24292f;
+}
+
+/* Spinner text */
+.spinner .text-field {
+  -fx-text-fill: #24292f;
+}
+
 .text-field, .text-area {
   -fx-background-color: #ffffff;
   -fx-background-insets: 0;

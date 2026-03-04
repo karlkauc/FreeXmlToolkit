@@ -1065,3 +1065,105 @@
   -fx-font-size: 11px;
   -fx-text-fill: #9d9d9d;
 }
+
+/* =================================================================
+   Settings Page (Dark Mode)
+   ================================================================= */
+
+/* Root & content */
+.settings-root {
+  -fx-background-color: #1e1e1e;
+}
+
+.settings-tab-content {
+  -fx-background-color: #1e1e1e;
+}
+
+.settings-tab-pane {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+}
+
+/* Page header */
+.settings-page-header {
+  -fx-background-color: linear-gradient(to bottom, #2d2d30, #252526);
+  -fx-border-color: #3c3c3c;
+}
+
+/* Text colors for dark backgrounds */
+.settings-page-title {
+  -fx-text-fill: #6aa8ff;
+}
+
+.settings-section-title {
+  -fx-text-fill: #6aa8ff;
+}
+
+.settings-section-subtitle {
+  -fx-text-fill: #6aa8ff;
+}
+
+.settings-section-hint {
+  -fx-text-fill: #9d9d9d;
+}
+
+.settings-section-hint-indented {
+  -fx-text-fill: #9d9d9d;
+}
+
+.settings-subsection-title {
+  -fx-text-fill: #d4d4d4;
+}
+
+/* Section backgrounds - dark pastel tints */
+.settings-section-blue {
+  -fx-background-color: #1a2a3a;
+}
+
+.settings-section-purple {
+  -fx-background-color: #2a1a3a;
+}
+
+.settings-section-yellow {
+  -fx-background-color: #2a2a1a;
+}
+
+.settings-section-green {
+  -fx-background-color: #1a2a1a;
+}
+
+.settings-section-cyan {
+  -fx-background-color: #1a2a30;
+}
+
+.settings-section-green-dark {
+  -fx-background-color: #1a2e1a;
+}
+
+/* Action bar */
+.settings-action-bar {
+  -fx-background-color: linear-gradient(to bottom, #2d2d30, #252526);
+  -fx-border-color: #3c3c3c;
+}
+
+/* Text fields in settings */
+.settings-text-field {
+  -fx-background-color: #3c3c3c;
+  -fx-border-color: #3794ff;
+  -fx-text-fill: #d4d4d4;
+}
+
+/* Favorites sections */
+.favorites-action-bar {
+  -fx-background-color: #1a2a3a;
+}
+
+.category-management-section {
+  -fx-background-color: #2a2a1a;
+  -fx-border-color: #3c3c3c;
+}
+
+/* Cache path label */
+.settings-cache-path-label {
+  -fx-text-fill: #9d9d9d;
+}
