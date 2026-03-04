@@ -548,7 +548,7 @@ public class SettingsController {
             usageTrackingService.setTrackingEnabled(localTrackingEnabled.isSelected());
 
             // Save toolbar icon size setting
-            propertiesService.setUseSmallIcons(useSmallIcons.isSelected());
+            props.setProperty("ui.use.small.icons", String.valueOf(useSmallIcons.isSelected()));
 
             // Note: XML Editor V1/V2 toggle removed - V2 is now the only editor
 
