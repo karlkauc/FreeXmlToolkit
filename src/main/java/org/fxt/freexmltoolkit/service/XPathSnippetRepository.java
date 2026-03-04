@@ -72,9 +72,9 @@ public class XPathSnippetRepository {
 
     private void initializeSnippetsDirectory() {
         try {
-            // Default location: user.home/.freexml-toolkit/snippets
+            // Default location: user.home/.freeXmlToolkit/snippets
             String userHome = System.getProperty("user.home");
-            Path toolkitDir = Paths.get(userHome, ".freexml-toolkit");
+            Path toolkitDir = Paths.get(userHome, ".freeXmlToolkit");
             snippetsDirectory = toolkitDir.resolve("snippets");
 
             // Create directories if they don't exist

@@ -424,11 +424,11 @@ public class PropertiesServiceImpl implements PropertiesService {
     // Backup directory settings implementation
 
     /**
-     * Default backup directory path: ~/.freexmltoolkit/backups
+     * Default backup directory path: ~/.freeXmlToolkit/backups
      */
     private static final String DEFAULT_BACKUP_DIR =
             System.getProperty("user.home") + File.separator +
-                    ".freexmltoolkit" + File.separator + "backups";
+                    ".freeXmlToolkit" + File.separator + "backups";
 
     @Override
     public boolean isBackupUseSeparateDirectory() {

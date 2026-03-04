@@ -330,7 +330,7 @@ public interface PropertiesService {
     /**
      * Gets the backup directory path where backup files are stored when using a separate directory.
      *
-     * @return the backup directory path (default: ~/.freexmltoolkit/backups)
+     * @return the backup directory path (default: ~/.freeXmlToolkit/backups)
      */
     String getBackupDirectory();
 

@@ -44,7 +44,7 @@ public class FavoritesService {
     private FavoritesService() {
         // Initialize favorites file in user's home directory
         String userHome = System.getProperty("user.home");
-        Path configDir = Paths.get(userHome, ".freexmltoolkit");
+        Path configDir = Paths.get(userHome, ".freeXmlToolkit");
 
         try {
             Files.createDirectories(configDir);

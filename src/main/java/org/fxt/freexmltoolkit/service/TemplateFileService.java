@@ -72,7 +72,7 @@ public class TemplateFileService {
                 currentDir.resolve("release/examples/templates"),
                 currentDir.resolve("../release/examples/templates"),
                 currentDir.resolve("templates"),
-                Paths.get(System.getProperty("user.home")).resolve(".freexmltoolkit/templates")
+                Paths.get(System.getProperty("user.home")).resolve(".freeXmlToolkit/templates")
         };
 
         for (Path path : possiblePaths) {
@@ -83,7 +83,7 @@ public class TemplateFileService {
         }
 
         // Fallback to user home if nothing else works
-        Path fallback = Paths.get(System.getProperty("user.home")).resolve(".freexmltoolkit/templates");
+        Path fallback = Paths.get(System.getProperty("user.home")).resolve(".freeXmlToolkit/templates");
         tryCreateDirectory(fallback);
         logger.warn("Using fallback templates directory: {}", fallback);
         return fallback;

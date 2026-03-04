@@ -768,7 +768,7 @@ class UpdateCheckServiceTest {
 
         @Override
         public String getBackupDirectory() {
-            return properties.getProperty("backup.directory", System.getProperty("user.home") + "/.freexmltoolkit/backups");
+            return properties.getProperty("backup.directory", System.getProperty("user.home") + "/.freeXmlToolkit/backups");
         }
 
         @Override

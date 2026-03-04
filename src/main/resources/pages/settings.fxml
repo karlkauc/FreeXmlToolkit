@@ -411,7 +411,7 @@
                                                  toggleGroup="$backupLocation"/>
                                     <HBox spacing="8" alignment="CENTER_LEFT" style="-fx-padding: 0 0 0 24">
                                         <TextField fx:id="backupDirectoryPath" prefWidth="350"
-                                                   promptText="~/.freexmltoolkit/backups" HBox.hgrow="ALWAYS"
+                                                   promptText="~/.freeXmlToolkit/backups" HBox.hgrow="ALWAYS"
                                                    styleClass="settings-text-field"/>
                                         <Button fx:id="browseBackupDirectory" onAction="#browseBackupDirectory" text="Browse..."
                                                 styleClass="btn-gray">
