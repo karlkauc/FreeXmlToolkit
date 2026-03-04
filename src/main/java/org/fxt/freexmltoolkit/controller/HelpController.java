@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.controller;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 import java.util.Properties;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -38,6 +39,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.SystemProxyDetector;
 
 /**
  * Controller for the Help tab providing access to documentation and external resources.
@@ -174,7 +176,17 @@ public class HelpController {
             }
         } else if (useSystemProxy) {
             System.setProperty("java.net.useSystemProxies", "true");
-            logger.debug("System proxy configured for WebEngine");
+
+            // WebView's WebKit engine reads only http(s).proxyHost/Port system properties,
+            // not java.net.useSystemProxies. Actively detect and set them.
+            Optional<SystemProxyDetector.ProxyConfig> proxyConfig = SystemProxyDetector.detectSystemProxy();
+            if (proxyConfig.isPresent()) {
+                SystemProxyDetector.ProxyConfig config = proxyConfig.get();
+                SystemProxyDetector.configureProxy(config.host(), config.port());
+                logger.info("System proxy detected and configured for WebEngine: {}:{}", config.host(), config.port());
+            } else {
+                logger.debug("No system proxy detected; WebEngine will attempt direct connection");
+            }
         }
     }
 
