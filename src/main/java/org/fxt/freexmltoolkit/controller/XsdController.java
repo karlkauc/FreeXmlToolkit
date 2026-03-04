@@ -11,7 +11,10 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
@@ -34,6 +37,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 
 
@@ -124,10 +128,24 @@ public class XsdController implements FavoritesParentController {
     @FXML
     private FavoritesPanelController favoritesPanelGraphicController;
 
+    @FXML
+    private Button toolbarNewFile, toolbarLoadFile, toolbarSave, toolbarSaveAs;
+    @FXML
+    private Button toolbarReload, toolbarClose, toolbarValidate;
+    @FXML
+    private Button toolbarUndo, toolbarRedo, toolbarFind, toolbarFormat;
+    @FXML
+    private Button toolbarAddFavorite, toolbarShowFavorites, toolbarXPathQuery;
+    @FXML
+    private MenuButton toolbarRecentFiles;
+    @FXML
+    private Button toolbarHelp;
+
     private boolean favoritesPanelVisible = true;
 
     private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
     private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);
+    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
 
     private File currentXsdFile;
 
@@ -160,6 +178,7 @@ public class XsdController implements FavoritesParentController {
         }
 
         applyEditorSettings();
+        applySmallIconsSetting();
     }
 
     private void initializeSourceCodeEditor() {
@@ -404,7 +423,57 @@ public class XsdController implements FavoritesParentController {
         executorService.shutdown();
     }
 
-    public void refreshToolbarIcons() {}
+    public void refreshToolbarIcons() {
+        applySmallIconsSetting();
+    }
+
+    private void applySmallIconsSetting() {
+        boolean useSmallIcons = propertiesService.isUseSmallIcons();
+        logger.debug("Applying small icons setting to XSD toolbar: {}", useSmallIcons);
+
+        ContentDisplay displayMode = useSmallIcons
+                ? ContentDisplay.GRAPHIC_ONLY
+                : ContentDisplay.TOP;
+
+        int iconSize = useSmallIcons ? 14 : 20;
+
+        String buttonStyle = useSmallIcons
+                ? "-fx-padding: 4px;"
+                : "";
+
+        applyButtonSettings(toolbarNewFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarLoadFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarSave, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarSaveAs, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarReload, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarClose, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarValidate, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarUndo, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarRedo, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarFind, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarFormat, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarAddFavorite, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarShowFavorites, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarXPathQuery, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarRecentFiles, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarHelp, displayMode, iconSize, buttonStyle);
+
+        logger.info("Small icons setting applied to XSD toolbar (size: {}px)", iconSize);
+    }
+
+    private void applyButtonSettings(javafx.scene.control.ButtonBase button,
+                                     ContentDisplay displayMode,
+                                     int iconSize,
+                                     String style) {
+        if (button == null) {
+            return;
+        }
+        button.setContentDisplay(displayMode);
+        button.setStyle(style);
+        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+            fontIcon.setIconSize(iconSize);
+        }
+    }
 
     public void selectTextTab() {
         tabPane.getSelectionModel().select(textTab);
