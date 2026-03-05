@@ -573,6 +573,18 @@ public class MainController implements Initializable {
             logger.debug("Refreshed Templates Controller toolbar icons");
         }
 
+        // Refresh JSON Controller toolbar
+        if (jsonController != null) {
+            jsonController.refreshToolbarIcons();
+            logger.debug("Refreshed JSON Controller toolbar icons");
+        }
+
+        // Refresh Unified Editor Controller toolbar
+        if (unifiedEditorController != null) {
+            unifiedEditorController.refreshToolbarIcons();
+            logger.debug("Refreshed Unified Editor Controller toolbar icons");
+        }
+
         logger.info("Toolbar icon refresh completed for all controllers");
     }
 

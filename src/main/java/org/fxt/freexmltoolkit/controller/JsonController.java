@@ -96,10 +96,21 @@ public class JsonController {
     @FXML private TextArea jsonPathResultArea;
     @FXML private Label queryResultLabel;
     @FXML private Label formatLabel;
+    @FXML private Button newFile;
+    @FXML private Button openFile;
+    @FXML private Button saveFile;
+    @FXML private Button saveAsFile;
     @FXML private MenuButton toolbarRecentFiles;
     @FXML private ToggleButton treeViewToggle;
     @FXML private Button undoBtn;
     @FXML private Button redoBtn;
+    @FXML private Button formatJson;
+    @FXML private Button minifyJson;
+    @FXML private Button validateBtn;
+    @FXML private MenuButton schemaBtn;
+    @FXML private Button jsonPathBtn;
+    @FXML private MenuButton treeViewOptions;
+    @FXML private Button helpButton;
 
     /**
      * Sets the parent controller for this JSON controller.
@@ -181,6 +192,9 @@ public class JsonController {
         // Show tree view and JSONPath panel by default
         showTreeViewByDefault();
         showJsonPathPanelByDefault();
+
+        // Apply small icons setting
+        applySmallIconsSetting();
 
         logger.info("JsonController initialized");
     }
@@ -1043,6 +1057,63 @@ public class JsonController {
         if (redoBtn != null) {
             redoBtn.setDisable(!jsonEditor.canRedo());
         }
+    }
+
+    // ==================== Small Icons ====================
+
+    private void applySmallIconsSetting() {
+        boolean useSmallIcons = propertiesService.isUseSmallIcons();
+        logger.debug("Applying small icons setting to JSON toolbar: {}", useSmallIcons);
+
+        javafx.scene.control.ContentDisplay displayMode = useSmallIcons
+                ? javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
+                : javafx.scene.control.ContentDisplay.TOP;
+
+        int iconSize = useSmallIcons ? 14 : 20;
+
+        String buttonStyle = useSmallIcons
+                ? "-fx-padding: 4px;"
+                : "";
+
+        applyButtonSettings(newFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(openFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(saveFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(saveAsFile, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(toolbarRecentFiles, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(undoBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(redoBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(formatJson, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(minifyJson, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(validateBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(schemaBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(jsonPathBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(treeViewToggle, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(treeViewOptions, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(helpButton, displayMode, iconSize, buttonStyle);
+
+        logger.info("Small icons setting applied to JSON toolbar (size: {}px)", iconSize);
+    }
+
+    private void applyButtonSettings(javafx.scene.control.ButtonBase button,
+                                     javafx.scene.control.ContentDisplay displayMode,
+                                     int iconSize,
+                                     String style) {
+        if (button == null) {
+            return;
+        }
+        button.setContentDisplay(displayMode);
+        button.setStyle(style);
+        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+            fontIcon.setIconSize(iconSize);
+        }
+    }
+
+    /**
+     * Public method to refresh toolbar icons.
+     * Called from MainController when icon size preference changes.
+     */
+    public void refreshToolbarIcons() {
+        applySmallIconsSetting();
     }
 
     /**

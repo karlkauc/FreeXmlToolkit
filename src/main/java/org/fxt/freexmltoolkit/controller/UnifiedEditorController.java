@@ -194,6 +194,10 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         }
 
         updateStatus("Ready");
+
+        // Apply small icons setting
+        applySmallIconsSetting();
+
         logger.info("UnifiedEditorController initialized");
     }
 
@@ -1435,6 +1439,68 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                 - Ctrl+G: Generate XSD Schema
                 """);
         alert.showAndWait();
+    }
+
+    // ==================== Small Icons ====================
+
+    private void applySmallIconsSetting() {
+        PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+        boolean useSmallIcons = props.isUseSmallIcons();
+        logger.debug("Applying small icons setting to Unified Editor toolbar: {}", useSmallIcons);
+
+        javafx.scene.control.ContentDisplay displayMode = useSmallIcons
+                ? javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
+                : javafx.scene.control.ContentDisplay.TOP;
+
+        int iconSize = useSmallIcons ? 14 : 20;
+
+        String buttonStyle = useSmallIcons
+                ? "-fx-padding: 4px;"
+                : "";
+
+        applyButtonSettings(newFileMenu, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(openFileButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(saveButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(saveAllButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(recentFilesMenu, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(closeTabButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(validateButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(formatButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(undoButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(redoButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(viewModeMenu, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(linkedFilesToggle, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(xpathPanelToggle, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(propertiesToggle, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(favoritesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(helpButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(convertMenu, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(templatesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(generatorButton, displayMode, iconSize, buttonStyle);
+
+        logger.info("Small icons setting applied to Unified Editor toolbar (size: {}px)", iconSize);
+    }
+
+    private void applyButtonSettings(javafx.scene.control.ButtonBase button,
+                                     javafx.scene.control.ContentDisplay displayMode,
+                                     int iconSize,
+                                     String style) {
+        if (button == null) {
+            return;
+        }
+        button.setContentDisplay(displayMode);
+        button.setStyle(style);
+        if (button.getGraphic() instanceof FontIcon fontIcon) {
+            fontIcon.setIconSize(iconSize);
+        }
+    }
+
+    /**
+     * Public method to refresh toolbar icons.
+     * Called from MainController when icon size preference changes.
+     */
+    public void refreshToolbarIcons() {
+        applySmallIconsSetting();
     }
 
     // ==================== Utility Methods ====================

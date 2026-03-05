@@ -2573,6 +2573,8 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         // Apply to main toolbar buttons only (not inner tab buttons)
         applyButtonSettings(loadXmlBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(loadXsltBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(recentFilesMenuBtn, displayMode, iconSize, buttonStyle);
         applyButtonSettings(transformBtn, displayMode, iconSize, buttonStyle);
         applyButtonSettings(liveTransformToggle, displayMode, iconSize, buttonStyle);
         applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, buttonStyle);
