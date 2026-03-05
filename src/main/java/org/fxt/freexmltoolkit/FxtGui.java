@@ -142,6 +142,12 @@ public class FxtGui extends Application {
         // lazy service creation via ServiceRegistry.get() could trigger HTTP requests
         logger.info("Enabling NTLM proxy authentication...");
         SystemProxyDetector.enableNtlmAuthentication();
+        
+        // Detect and set global proxy properties for WebEngine compatibility
+        SystemProxyDetector.detectSystemProxy().ifPresent(config -> {
+            SystemProxyDetector.configureProxyForWebEngine(config.host(), config.port());
+        });
+        
         logger.info("NTLM proxy authentication enabled");
 
         logger.info("Initializing service registry...");

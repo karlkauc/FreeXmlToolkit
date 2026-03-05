@@ -175,6 +175,37 @@ public final class SystemProxyDetector {
     }
 
     /**
+     * Configures JVM proxy properties specifically for WebEngine (WebKit).
+     *
+     * <p>In addition to standard host and port, this method also sets:
+     * <ul>
+     *   <li>Enables NTLM for tunneling and proxying</li>
+     *   <li>Disables HTTP/2 loader (improves compatibility with some proxies)</li>
+     * </ul>
+     *
+     * @param host the proxy host
+     * @param port the proxy port
+     */
+    public static void configureProxyForWebEngine(String host, int port) {
+        // Standard proxy settings
+        configureProxy(host, port);
+        
+        // Ensure NTLM is enabled for tunneling and proxying
+        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
+        System.setProperty("jdk.http.auth.proxying.disabledSchemes", "");
+        
+        // WebEngine-specific compatibility settings
+        // Disabling HTTP/2 loader helps with some corporate proxies that don't support it correctly
+        System.setProperty("com.sun.webkit.useHTTP2Loader", "false");
+        System.setProperty("com.sun.webkit.webview.useHTTP2Loader", "false");
+        
+        // Force TLS version for WebEngine compatibility
+        System.setProperty("https.protocols", "TLSv1.2,TLSv1.3");
+        
+        logger.info("WebEngine proxy properties configured: {}:{} (HTTP/2 loader disabled)", host, port);
+    }
+
+    /**
      * Configures JVM proxy properties with a bypass list.
      *
      * @param host the proxy host
@@ -247,13 +278,27 @@ public final class SystemProxyDetector {
                     // Format: "Proxyserver: proxy.example.com:8080" (German)
                     // Format: "Proxy Server: proxy.example.com:8080" (English)
                     if (line.contains("Proxyserver") || line.contains("Proxy Server")) {
-                        String[] parts = line.split(":");
-                        if (parts.length >= 3) {
-                            // "Proxyserver: host:port" -> parts[1] = host, parts[2] = port
-                            String host = parts[1].trim();
-                            String port = parts[2].trim();
-                            logger.debug("Proxy detected via netsh: {}:{}", host, port);
-                            return new String[]{host, port};
+                        String[] parts = line.split(":", 2);
+                        if (parts.length >= 2) {
+                            String proxyString = parts[1].trim();
+                            
+                            // Check for multiple protocols (e.g., "http=proxy:8080;https=proxy:8080")
+                            if (proxyString.contains("=")) {
+                                for (String part : proxyString.split(";")) {
+                                    if (part.startsWith("http=") || part.startsWith("https=")) {
+                                        proxyString = part.substring(part.indexOf("=") + 1);
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // Parse host:port
+                            if (proxyString.contains(":")) {
+                                String host = proxyString.substring(0, proxyString.lastIndexOf(":"));
+                                String port = proxyString.substring(proxyString.lastIndexOf(":") + 1);
+                                logger.debug("Proxy detected via netsh: {}:{}", host, port);
+                                return new String[]{host, port};
+                            }
                         }
                     }
                 }
@@ -364,23 +409,31 @@ public final class SystemProxyDetector {
                 return null;
             }
 
-            URI testUri = URI.create("https://github.com");
-            List<Proxy> proxies = selector.select(testUri);
+            // Try both HTTP and HTTPS to find the proxy, as PAC can return different values
+            URI[] testUris = {
+                URI.create("https://github.com"),
+                URI.create("http://www.google.com")
+            };
+            
+            for (URI testUri : testUris) {
+                List<Proxy> proxies = selector.select(testUri);
 
-            for (Proxy proxy : proxies) {
-                // Accept both HTTP and SOCKS — PAC/WPAD can misclassify HTTP proxies as SOCKS
-                if ((proxy.type() == Proxy.Type.HTTP || proxy.type() == Proxy.Type.SOCKS)
-                        && proxy.address() instanceof InetSocketAddress addr) {
-                    String host = addr.getHostString();
-                    int port = addr.getPort();
-                    if (host != null && !host.isEmpty() && port > 0) {
-                        logger.debug("Proxy detected via Java ProxySelector: {}:{}", host, port);
-                        return new String[]{host, String.valueOf(port)};
+                for (Proxy proxy : proxies) {
+                    // Accept both HTTP and SOCKS — PAC/WPAD can misclassify HTTP proxies as SOCKS
+                    if ((proxy.type() == Proxy.Type.HTTP || proxy.type() == Proxy.Type.SOCKS)
+                            && proxy.address() instanceof InetSocketAddress addr) {
+                        String host = addr.getHostString();
+                        int port = addr.getPort();
+                        if (host != null && !host.isEmpty() && port > 0) {
+                            logger.debug("Proxy detected via Java ProxySelector ({}): {}:{}", 
+                                    testUri.getScheme(), host, port);
+                            return new String[]{host, String.valueOf(port)};
+                        }
                     }
                 }
             }
 
-            logger.debug("ProxySelector returned {} proxies, none usable (likely DIRECT)", proxies.size());
+            logger.debug("ProxySelector returned no usable proxies (likely DIRECT)");
         } catch (Exception e) {
             logger.debug("Error reading proxy from ProxySelector: {}", e.getMessage());
         }

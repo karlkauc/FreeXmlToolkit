@@ -151,41 +151,33 @@ public class HelpController {
         if (useManualProxy) {
             String proxyHost = props.getProperty("http.proxy.host", "");
             String proxyPort = props.getProperty("http.proxy.port", "");
-            String proxyUser = props.getProperty("http.proxy.user", "");
-            String proxyPass = props.getProperty("http.proxy.password", "");
             
             if (!proxyHost.isEmpty() && !proxyPort.isEmpty()) {
-                System.setProperty("http.proxyHost", proxyHost);
-                System.setProperty("http.proxyPort", proxyPort);
-                System.setProperty("https.proxyHost", proxyHost);
-                System.setProperty("https.proxyPort", proxyPort);
-                
-                if (!proxyUser.isEmpty()) {
-                    System.setProperty("http.proxyUser", proxyUser);
-                    System.setProperty("http.proxyPassword", proxyPass);
-                    System.setProperty("https.proxyUser", proxyUser);
-                    System.setProperty("https.proxyPassword", proxyPass);
+                try {
+                    int port = Integer.parseInt(proxyPort);
+                    SystemProxyDetector.configureProxyForWebEngine(proxyHost, port);
+                    logger.debug("Manual proxy configured for WebEngine: {}:{}", proxyHost, port);
+                } catch (NumberFormatException e) {
+                    logger.error("Invalid proxy port: {}", proxyPort);
                 }
-                
-                String noProxyHosts = props.getProperty("noProxyHost", "");
-                if (!noProxyHosts.isEmpty()) {
-                    System.setProperty("http.nonProxyHosts", noProxyHosts.replace(',', '|').replace(";", "|"));
-                }
-                
-                logger.debug("Manual proxy configured for WebEngine: {}:{}", proxyHost, proxyPort);
             }
         } else if (useSystemProxy) {
             System.setProperty("java.net.useSystemProxies", "true");
 
-            // WebView's WebKit engine reads only http(s).proxyHost/Port system properties,
-            // not java.net.useSystemProxies. Actively detect and set them.
-            Optional<SystemProxyDetector.ProxyConfig> proxyConfig = SystemProxyDetector.detectSystemProxy();
-            if (proxyConfig.isPresent()) {
-                SystemProxyDetector.ProxyConfig config = proxyConfig.get();
-                SystemProxyDetector.configureProxy(config.host(), config.port());
-                logger.info("System proxy detected and configured for WebEngine: {}:{}", config.host(), config.port());
+            // Check if global proxy is already configured (e.g., from FxtGui.init)
+            Optional<SystemProxyDetector.ProxyConfig> currentConfig = SystemProxyDetector.getCurrentConfig();
+            if (currentConfig.isPresent()) {
+                SystemProxyDetector.ProxyConfig config = currentConfig.get();
+                SystemProxyDetector.configureProxyForWebEngine(config.host(), config.port());
+                logger.info("Using already configured system proxy for WebEngine: {}:{}", config.host(), config.port());
             } else {
-                logger.debug("No system proxy detected; WebEngine will attempt direct connection");
+                // If not set yet, attempt detection now
+                SystemProxyDetector.detectSystemProxy().ifPresentOrElse(config -> {
+                    SystemProxyDetector.configureProxyForWebEngine(config.host(), config.port());
+                    logger.info("System proxy detected and configured for WebEngine: {}:{}", config.host(), config.port());
+                }, () -> {
+                    logger.debug("No system proxy detected; WebEngine will attempt direct connection or PAC delegation");
+                });
             }
         }
     }
@@ -194,6 +186,10 @@ public class HelpController {
      * Configures SSL settings for WebEngine based on application properties
      */
     private void configureSSLSettings(Properties props) {
+        // ALWAYS disable HTTP/2 loader for better corporate proxy compatibility
+        System.setProperty("com.sun.webkit.useHTTP2Loader", "false");
+        System.setProperty("com.sun.webkit.webview.useHTTP2Loader", "false");
+        
         boolean trustAllCerts = Boolean.parseBoolean(props.getProperty("ssl.trustAllCerts", "false"));
         
         if (trustAllCerts) {
@@ -203,34 +199,20 @@ public class HelpController {
                 // Create a trust-all SSL context for WebEngine
                 configureGlobalSSLTrustAll();
                 
-                // Additional system properties for WebEngine
-                System.setProperty("javax.net.ssl.trustStore", "");
-                System.setProperty("javax.net.ssl.trustStorePassword", "");
+                // Additional system properties for WebEngine SSL bypass
                 System.setProperty("com.sun.net.ssl.checkRevocation", "false");
                 System.setProperty("sun.security.ssl.allowUnsafeRenegotiation", "true");
                 System.setProperty("sun.security.ssl.allowLegacyHelloMessages", "true");
-                
-                // Disable all SSL/TLS verification
-                System.setProperty("trust_all_cert", "true");
-                System.setProperty("javax.net.ssl.trustStoreType", "");
-                
-                // Additional WebEngine-specific SSL bypass
-                System.setProperty("com.sun.webkit.useHTTP2Loader", "false");
-                System.setProperty("com.sun.webkit.webview.useHTTP2Loader", "false");
                 
                 // Force TLS version for WebEngine compatibility
                 System.setProperty("https.protocols", "TLSv1.2,TLSv1.3");
                 System.setProperty("jdk.tls.client.protocols", "TLSv1.2,TLSv1.3");
                 
-                logger.debug("SSL bypass configured globally for WebEngine with additional WebKit settings");
+                logger.debug("SSL bypass configured globally for WebEngine");
             } catch (Exception e) {
                 logger.error("Failed to configure SSL bypass for WebEngine: {}", e.getMessage(), e);
             }
         }
-        
-        // Configure tunneling for WebEngine
-        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
-        System.setProperty("jdk.https.auth.tunneling.disabledSchemes", "");
     }
     
     /**
