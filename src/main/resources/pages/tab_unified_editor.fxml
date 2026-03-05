@@ -269,7 +269,7 @@
             </tooltip>
         </Button>
 
-        <Button text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
+        <Button fx:id="addFavoriteButton" text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
             <graphic>
                 <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>

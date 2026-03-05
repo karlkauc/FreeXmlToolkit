@@ -106,6 +106,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     @FXML private ToggleButton xpathPanelToggle;
     @FXML private ToggleButton propertiesToggle;
     @FXML private Button favoritesButton;
+    @FXML private Button addFavoriteButton;
     @FXML private Button helpButton;
     @FXML
     private MenuButton convertMenu;
@@ -1473,6 +1474,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         applyButtonSettings(xpathPanelToggle, displayMode, iconSize, buttonStyle);
         applyButtonSettings(propertiesToggle, displayMode, iconSize, buttonStyle);
         applyButtonSettings(favoritesButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(addFavoriteButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(helpButton, displayMode, iconSize, buttonStyle);
         applyButtonSettings(convertMenu, displayMode, iconSize, buttonStyle);
         applyButtonSettings(templatesButton, displayMode, iconSize, buttonStyle);
