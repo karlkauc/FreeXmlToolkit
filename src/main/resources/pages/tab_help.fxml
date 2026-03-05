@@ -17,55 +17,19 @@
             <graphic>
                 <FontIcon iconLiteral="bi-book" iconSize="16"/>
             </graphic>
-            <VBox>
-                <ToolBar styleClass="xsd-toolbar">
-                    <Button onAction="#openFxtDocInBrowser" styleClass="toolbar-button">
-                        <graphic><FontIcon iconLiteral="bi-box-arrow-up-right" iconSize="16"/></graphic>
-                        <tooltip><Tooltip text="Open in Browser"/></tooltip>
-                    </Button>
-                    <Button onAction="#reloadFxtDoc" styleClass="toolbar-button">
-                        <graphic><FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/></graphic>
-                        <tooltip><Tooltip text="Reload"/></tooltip>
-                    </Button>
-                </ToolBar>
-                <WebView fx:id="viewFXTDoc" VBox.vgrow="ALWAYS"/>
-            </VBox>
+            <WebView fx:id="viewFXTDoc"/>
         </Tab>
         <Tab text="FundsXML Webseite" fx:id="tabFundsXMlSite" styleClass="primary-tab">
             <graphic>
                 <FontIcon iconLiteral="bi-file-text" iconSize="16"/>
             </graphic>
-            <VBox>
-                <ToolBar styleClass="xsd-toolbar">
-                    <Button onAction="#openFundsXmlInBrowser" styleClass="toolbar-button">
-                        <graphic><FontIcon iconLiteral="bi-box-arrow-up-right" iconSize="16"/></graphic>
-                        <tooltip><Tooltip text="Open in Browser"/></tooltip>
-                    </Button>
-                    <Button onAction="#reloadFundsXml" styleClass="toolbar-button">
-                        <graphic><FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/></graphic>
-                        <tooltip><Tooltip text="Reload"/></tooltip>
-                    </Button>
-                </ToolBar>
-                <WebView fx:id="viewFundsXMLSite" VBox.vgrow="ALWAYS"/>
-            </VBox>
+            <WebView fx:id="viewFundsXMLSite"/>
         </Tab>
         <Tab text="FundsXML4 Schema Documentation" fx:id="tabMigrationGuide" styleClass="utility-tab">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16"/>
             </graphic>
-            <VBox>
-                <ToolBar styleClass="xsd-toolbar">
-                    <Button onAction="#openMigrationGuideInBrowser" styleClass="toolbar-button">
-                        <graphic><FontIcon iconLiteral="bi-box-arrow-up-right" iconSize="16"/></graphic>
-                        <tooltip><Tooltip text="Open in Browser"/></tooltip>
-                    </Button>
-                    <Button onAction="#reloadMigrationGuide" styleClass="toolbar-button">
-                        <graphic><FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/></graphic>
-                        <tooltip><Tooltip text="Reload"/></tooltip>
-                    </Button>
-                </ToolBar>
-                <WebView fx:id="viewMigrationGuide" VBox.vgrow="ALWAYS"/>
-            </VBox>
+            <WebView fx:id="viewMigrationGuide"/>
         </Tab>
     </TabPane>
 
