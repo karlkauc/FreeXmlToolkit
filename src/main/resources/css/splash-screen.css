@@ -10,7 +10,10 @@
 .splash-container {
     -fx-background-color: linear-gradient(to bottom right, #1a1a2e, #16213e, #0f3460);
     -fx-background-radius: 16;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0.3, 0, 8);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 40, 0.4, 0, 10);
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
 }
 
 /* ============================================
@@ -19,21 +22,31 @@
 
 .splash-title {
     -fx-font-family: "Roboto";
-    -fx-font-size: 28px;
+    -fx-font-size: 32px;
     -fx-font-weight: bold;
     -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 2);
 }
 
 .splash-version {
     -fx-font-family: "Roboto";
-    -fx-font-size: 13px;
-    -fx-text-fill: rgba(255, 255, 255, 0.55);
+    -fx-font-size: 14px;
+    -fx-text-fill: rgba(255, 255, 255, 0.5);
+    -fx-padding: 0 0 15 0;
 }
 
 .splash-status {
     -fx-font-family: "Roboto";
     -fx-font-size: 12px;
-    -fx-text-fill: rgba(255, 255, 255, 0.7);
+    -fx-font-style: italic;
+    -fx-text-fill: rgba(255, 255, 255, 0.8);
+    -fx-padding: 10 0 0 0;
+}
+
+.splash-footer {
+    -fx-font-family: "Roboto";
+    -fx-font-size: 10px;
+    -fx-text-fill: rgba(255, 255, 255, 0.3);
 }
 
 /* ============================================
@@ -41,18 +54,19 @@
    ============================================ */
 
 .splash-progress-bar {
-    -fx-pref-height: 6;
-    -fx-max-height: 6;
+    -fx-pref-height: 8;
+    -fx-max-height: 8;
 }
 
 .splash-progress-bar > .track {
-    -fx-background-color: rgba(255, 255, 255, 0.12);
-    -fx-background-radius: 3;
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 4;
     -fx-background-insets: 0;
 }
 
 .splash-progress-bar > .bar {
-    -fx-background-color: #17a2b8;
-    -fx-background-radius: 3;
+    -fx-background-color: linear-gradient(to right, #00d2ff, #3a7bd5);
+    -fx-background-radius: 4;
     -fx-background-insets: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 210, 255, 0.5), 8, 0.2, 0, 0);
 }

@@ -74,20 +74,18 @@ public class SplashScreen {
     private Label versionLabel;
     private ProgressBar progressBar;
     private Label statusLabel;
+    private Label footerLabel;
     private long showTimeMs;
 
     /**
      * Shows the splash screen with entrance animations.
      */
     public void show() {
-        // Use UNDECORATED instead of TRANSPARENT to avoid JVM crashes
-        // (EXCEPTION_ACCESS_VIOLATION in glass.dll) on certain Windows
-        // GPU/driver configurations where transparent compositing fails
+        // ... (Stage setup unchanged)
         stage = new Stage(StageStyle.UNDECORATED);
         stage.setAlwaysOnTop(true);
         stage.setTitle("FreeXmlToolkit");
 
-        // Try to set the taskbar icon
         try {
             stage.getIcons().add(new Image(
                     getClass().getResourceAsStream("/img/logo.png")));
@@ -97,13 +95,15 @@ public class SplashScreen {
 
         container = new VBox(12);
         container.setAlignment(Pos.CENTER);
-        container.setPadding(new Insets(40, 40, 30, 40));
+        container.setPadding(new Insets(40, 40, 20, 40));
         container.setPrefSize(WIDTH, HEIGHT);
         container.setMaxSize(WIDTH, HEIGHT);
         container.getStyleClass().add("splash-container");
 
-        // Logo
+        // Logo with glow effect container
         logoView = createLogo();
+        var logoContainer = new StackPane(logoView);
+        logoContainer.setPadding(new Insets(0, 0, 10, 0));
 
         // Title
         titleLabel = new Label("FreeXmlToolkit");
@@ -122,21 +122,29 @@ public class SplashScreen {
         // Status
         statusLabel = new Label("Initializing...");
         statusLabel.getStyleClass().add("splash-status");
+        
+        // Footer (Copyright)
+        footerLabel = new Label("© 2024-2026 Karl Kauc. All rights reserved.");
+        footerLabel.getStyleClass().add("splash-footer");
 
         // Spacers for visual balance
         var topSpacer = new javafx.scene.layout.Region();
-        topSpacer.setPrefHeight(10);
+        topSpacer.setPrefHeight(15);
         var midSpacer = new javafx.scene.layout.Region();
         midSpacer.setPrefHeight(8);
+        var bottomSpacer = new javafx.scene.layout.Region();
+        VBox.setVgrow(bottomSpacer, javafx.scene.layout.Priority.ALWAYS);
 
         container.getChildren().addAll(
                 topSpacer,
-                logoView,
+                logoContainer,
                 titleLabel,
                 versionLabel,
                 midSpacer,
                 progressBar,
-                statusLabel
+                statusLabel,
+                bottomSpacer,
+                footerLabel
         );
 
         // Set initial animation states
@@ -149,10 +157,12 @@ public class SplashScreen {
         versionLabel.setOpacity(0);
         progressBar.setOpacity(0);
         statusLabel.setOpacity(0);
+        footerLabel.setOpacity(0);
 
         StackPane root = new StackPane(container);
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
+        // ... (CSS loading unchanged)
 
         // Load CSS
         try {
@@ -298,22 +308,52 @@ public class SplashScreen {
         FadeTransition statusFade = new FadeTransition(Duration.millis(250), statusLabel);
         statusFade.setFromValue(0);
         statusFade.setToValue(1.0);
+        
+        // 6. Footer fades in (200ms), starts at T+850ms
+        PauseTransition footerPause = new PauseTransition(Duration.millis(150));
+        FadeTransition footerFade = new FadeTransition(Duration.millis(200), footerLabel);
+        footerFade.setFromValue(0);
+        footerFade.setToValue(1.0);
 
         // Build the sequence
         SequentialTransition sequence = new SequentialTransition(
                 containerFade,
                 logoPause,
-                // Logo animations run together via parallel trick: start both, use longer duration
                 new javafx.animation.ParallelTransition(logoScale, logoFade),
                 titlePause,
                 new javafx.animation.ParallelTransition(titleFade, titleSlide),
                 versionPause,
                 versionFade,
                 progressPause,
-                new javafx.animation.ParallelTransition(progressFade, statusFade)
+                new javafx.animation.ParallelTransition(progressFade, statusFade),
+                footerPause,
+                footerFade
         );
 
+        sequence.setOnFinished(e -> startPostEntranceAnimations());
         sequence.play();
+    }
+
+    private void startPostEntranceAnimations() {
+        // Logo pulse (subtle breath)
+        ScaleTransition pulse = new ScaleTransition(Duration.millis(1500), logoView);
+        pulse.setFromX(1.0);
+        pulse.setFromY(1.0);
+        pulse.setToX(1.05);
+        pulse.setToY(1.05);
+        pulse.setCycleCount(Timeline.INDEFINITE);
+        pulse.setAutoReverse(true);
+        pulse.setInterpolator(Interpolator.EASE_BOTH);
+        pulse.play();
+
+        // Status blink (subtle)
+        Timeline blink = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(statusLabel.opacityProperty(), 0.6)),
+                new KeyFrame(Duration.millis(1000), new KeyValue(statusLabel.opacityProperty(), 1.0)),
+                new KeyFrame(Duration.millis(2000), new KeyValue(statusLabel.opacityProperty(), 0.6))
+        );
+        blink.setCycleCount(Timeline.INDEFINITE);
+        blink.play();
     }
 
     private String getVersion() {
