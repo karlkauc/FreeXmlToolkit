@@ -18,17 +18,10 @@
 
 package org.fxt.freexmltoolkit.controller;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.Optional;
-import java.util.Properties;
+import java.awt.Desktop;
+import java.net.URI;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
@@ -37,41 +30,24 @@ import javafx.scene.web.WebView;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.SystemProxyDetector;
+import org.fxt.freexmltoolkit.service.ConnectionService;
 
 /**
  * Controller for the Help tab providing access to documentation and external resources.
  *
- * <p>This controller manages multiple WebView components that display:
- * <ul>
- *     <li>FreeXmlToolkit documentation (GitHub Pages)</li>
- *     <li>FundsXML official website</li>
- *     <li>FundsXML schema migration guide</li>
- * </ul>
- *
- * <p>The controller configures WebEngine instances with appropriate proxy and SSL settings
- * based on the application's connection configuration, ensuring compatibility with
- * various network environments including corporate proxies.
- *
- * @author FreeXmlToolkit Team
- * @since 1.0
+ * <p>Uses Java's HTTP stack (via {@link ConnectionService}) to fetch web content,
+ * bypassing WebEngine's built-in networking which cannot handle NTLM proxy authentication
+ * in corporate environments. Content is displayed via {@code engine.loadContent()}.
  */
 public class HelpController {
 
-    /**
-     * Creates a new HelpController instance.
-     *
-     * <p>The controller is instantiated by the JavaFX FXML loader. Initialization
-     * of WebView components and connection settings occurs in the {@link #initialize()} method.
-     */
-    public HelpController() {
-        // Default constructor for FXML instantiation
-    }
-
     private static final Logger logger = LogManager.getLogger(HelpController.class);
-    private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+
+    private static final String URL_FXT_DOC = "https://karlkauc.github.io/FreeXmlToolkit";
+    private static final String URL_FUNDSXML = "http://www.fundsxml.org";
+    private static final String URL_MIGRATION = "https://fundsxml.github.io/";
 
     @FXML
     AnchorPane anchorPane;
@@ -82,237 +58,131 @@ public class HelpController {
     @FXML
     Tab tabFXTDoc, tabFundsXMlSite, tabMigrationGuide;
 
-    /**
-     * Initializes the Help controller after FXML injection is complete.
-     *
-     * <p>This method performs the following initialization tasks:
-     * <ol>
-     *     <li>Configures global WebEngine proxy and SSL settings based on application properties</li>
-     *     <li>Initializes each WebView component with individual SSL configurations</li>
-     *     <li>Loads the documentation URLs into their respective WebView components</li>
-     * </ol>
-     *
-     * <p>The following URLs are loaded:
-     * <ul>
-     *     <li>FXT Documentation: https://karlkauc.github.io/FreeXmlToolkit</li>
-     *     <li>FundsXML Website: http://www.fundsxml.org</li>
-     *     <li>Migration Guide: https://fundsxml.github.io/</li>
-     * </ul>
-     *
-     * <p>Error handling is implemented with retry capability for network issues.
-     */
     @FXML
     public void initialize() {
-        logger.info("Initializing HelpController with connection settings");
-        
-        // Configure WebEngine proxy and SSL settings BEFORE creating engines
-        configureWebEngineSettings();
+        logger.info("Initializing HelpController with Java HTTP bridge");
 
-        // Configure each WebEngine individually for better SSL handling
-        WebEngine viewFXTDocEngine = viewFXTDoc.getEngine();
-        configureWebEngineForSSL(viewFXTDocEngine);
-        loadUrlWithRetry(viewFXTDocEngine, "https://karlkauc.github.io/FreeXmlToolkit", "FXT Documentation");
+        loadViaJavaHttp(viewFXTDoc.getEngine(), URL_FXT_DOC, "FXT Documentation");
+        loadViaJavaHttp(viewFundsXMLSite.getEngine(), URL_FUNDSXML, "FundsXML Webseite");
+        loadViaJavaHttp(viewMigrationGuide.getEngine(), URL_MIGRATION, "FundsXML4 Schema Documentation");
 
-        WebEngine engineFundsXMLSite = viewFundsXMLSite.getEngine();
-        configureWebEngineForSSL(engineFundsXMLSite);
-        loadUrlWithRetry(engineFundsXMLSite, "http://www.fundsxml.org", "FundsXML Webseite");
-
-        WebEngine engineMigrationGuide = viewMigrationGuide.getEngine();
-        configureWebEngineForSSL(engineMigrationGuide);
-        loadUrlWithRetry(engineMigrationGuide, "https://fundsxml.github.io/", "FundsXML4 Schema Documentation");
+        interceptNavigation(viewFXTDoc.getEngine(), "FXT Documentation");
+        interceptNavigation(viewFundsXMLSite.getEngine(), "FundsXML Webseite");
+        interceptNavigation(viewMigrationGuide.getEngine(), "FundsXML4 Schema Documentation");
     }
 
     /**
-     * Configures WebEngine to use the same proxy and SSL settings as ConnectionServiceImpl
+     * Fetches HTML content via Java's HTTP stack and displays it in the WebEngine.
+     * This bypasses WebEngine's native networking, which cannot authenticate with NTLM proxies.
      */
-    private void configureWebEngineSettings() {
-        try {
-            Properties props = propertiesService.loadProperties();
-            
-            // Configure proxy settings for WebEngine
-            configureProxySettings(props);
-            
-            // Configure SSL settings for WebEngine
-            configureSSLSettings(props);
-            
-            logger.debug("WebEngine configured with proxy and SSL settings from ConnectionServiceImpl");
-        } catch (Exception e) {
-            logger.error("Failed to configure WebEngine settings: {}", e.getMessage(), e);
-        }
-    }
+    private void loadViaJavaHttp(WebEngine engine, String url, String description) {
+        Platform.runLater(() -> engine.loadContent(
+                "<html><body style=\"font-family: sans-serif; padding: 20px;\">"
+                        + "<p>Loading " + escapeHtml(description) + "...</p></body></html>"));
 
-    /**
-     * Configures proxy settings for WebEngine based on application properties
-     */
-    private void configureProxySettings(Properties props) {
-        boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
-        boolean useSystemProxy = Boolean.parseBoolean(props.getProperty("useSystemProxy", "true"));
-        
-        if (useManualProxy) {
-            String proxyHost = props.getProperty("http.proxy.host", "");
-            String proxyPort = props.getProperty("http.proxy.port", "");
-            String proxyUser = props.getProperty("http.proxy.user", "");
-            String proxyPass = props.getProperty("http.proxy.password", "");
-            
-            if (!proxyHost.isEmpty() && !proxyPort.isEmpty()) {
-                System.setProperty("http.proxyHost", proxyHost);
-                System.setProperty("http.proxyPort", proxyPort);
-                System.setProperty("https.proxyHost", proxyHost);
-                System.setProperty("https.proxyPort", proxyPort);
-                
-                if (!proxyUser.isEmpty()) {
-                    System.setProperty("http.proxyUser", proxyUser);
-                    System.setProperty("http.proxyPassword", proxyPass);
-                    System.setProperty("https.proxyUser", proxyUser);
-                    System.setProperty("https.proxyPassword", proxyPass);
-                }
-                
-                String noProxyHosts = props.getProperty("noProxyHost", "");
-                if (!noProxyHosts.isEmpty()) {
-                    System.setProperty("http.nonProxyHosts", noProxyHosts.replace(',', '|').replace(";", "|"));
-                }
-                
-                logger.debug("Manual proxy configured for WebEngine: {}:{}", proxyHost, proxyPort);
-            }
-        } else if (useSystemProxy) {
-            System.setProperty("java.net.useSystemProxies", "true");
-
-            // WebView's WebKit engine reads only http(s).proxyHost/Port system properties,
-            // not java.net.useSystemProxies. Actively detect and set them.
-            Optional<SystemProxyDetector.ProxyConfig> proxyConfig = SystemProxyDetector.detectSystemProxy();
-            if (proxyConfig.isPresent()) {
-                SystemProxyDetector.ProxyConfig config = proxyConfig.get();
-                SystemProxyDetector.configureProxy(config.host(), config.port());
-                logger.info("System proxy detected and configured for WebEngine: {}:{}", config.host(), config.port());
-            } else {
-                logger.debug("No system proxy detected; WebEngine will attempt direct connection");
-            }
-        }
-    }
-
-    /**
-     * Configures SSL settings for WebEngine based on application properties
-     */
-    private void configureSSLSettings(Properties props) {
-        boolean trustAllCerts = Boolean.parseBoolean(props.getProperty("ssl.trustAllCerts", "false"));
-        
-        if (trustAllCerts) {
-            logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled for WebEngine.");
-            
+        FxtGui.executorService.submit(() -> {
             try {
-                // Create a trust-all SSL context for WebEngine
-                configureGlobalSSLTrustAll();
-                
-                // Additional system properties for WebEngine
-                System.setProperty("javax.net.ssl.trustStore", "");
-                System.setProperty("javax.net.ssl.trustStorePassword", "");
-                System.setProperty("com.sun.net.ssl.checkRevocation", "false");
-                System.setProperty("sun.security.ssl.allowUnsafeRenegotiation", "true");
-                System.setProperty("sun.security.ssl.allowLegacyHelloMessages", "true");
-                
-                // Disable all SSL/TLS verification
-                System.setProperty("trust_all_cert", "true");
-                System.setProperty("javax.net.ssl.trustStoreType", "");
-                
-                // Additional WebEngine-specific SSL bypass
-                System.setProperty("com.sun.webkit.useHTTP2Loader", "false");
-                System.setProperty("com.sun.webkit.webview.useHTTP2Loader", "false");
-                
-                // Force TLS version for WebEngine compatibility
-                System.setProperty("https.protocols", "TLSv1.2,TLSv1.3");
-                System.setProperty("jdk.tls.client.protocols", "TLSv1.2,TLSv1.3");
-                
-                logger.debug("SSL bypass configured globally for WebEngine with additional WebKit settings");
+                ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
+                String html = connectionService.getTextContentFromURL(URI.create(url));
+
+                // Inject <base> tag so relative URLs (CSS, images, links) resolve correctly
+                html = injectBaseTag(html, url);
+
+                final String finalHtml = html;
+                Platform.runLater(() -> engine.loadContent(finalHtml));
+                logger.debug("Successfully loaded {} via Java HTTP", description);
             } catch (Exception e) {
-                logger.error("Failed to configure SSL bypass for WebEngine: {}", e.getMessage(), e);
+                logger.error("Failed to load {}: {}", description, e.getMessage(), e);
+                Platform.runLater(() -> engine.loadContent(
+                        "<html><body style=\"font-family: sans-serif; padding: 20px;\">"
+                                + "<h3>Could not load " + escapeHtml(description) + "</h3>"
+                                + "<p>" + escapeHtml(e.getMessage()) + "</p>"
+                                + "<p><a href=\"" + escapeHtml(url) + "\">Open in browser</a></p>"
+                                + "</body></html>"));
             }
+        });
+    }
+
+    /**
+     * Injects a {@code <base href>} tag into the HTML so that relative URLs resolve
+     * against the original page URL.
+     */
+    private String injectBaseTag(String html, String url) {
+        String baseTag = "<base href=\"" + escapeHtml(url) + "\">";
+        if (html.contains("<head")) {
+            return html.replaceFirst("(<head[^>]*>)", "$1" + baseTag);
+        } else if (html.contains("<html")) {
+            return html.replaceFirst("(<html[^>]*>)", "$1<head>" + baseTag + "</head>");
         }
-        
-        // Configure tunneling for WebEngine
-        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
-        System.setProperty("jdk.https.auth.tunneling.disabledSchemes", "");
+        return "<head>" + baseTag + "</head>" + html;
     }
-    
+
     /**
-     * Configures global SSL settings to trust all certificates for WebEngine
+     * Intercepts WebEngine navigation so that clicked links are loaded via Java HTTP
+     * instead of WebEngine's native networking.
      */
-    private void configureGlobalSSLTrustAll() throws NoSuchAlgorithmException, KeyManagementException {
-        // Create a trust manager that trusts all certificates
-        TrustManager[] trustAllCerts = new TrustManager[]{
-            new X509TrustManager() {
-                @Override
-                public X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[0];
-                }
-
-                @Override
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                    // Trust all client certificates
-                }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                    // Trust all server certificates
-                }
+    private void interceptNavigation(WebEngine engine, String description) {
+        engine.locationProperty().addListener((obs, oldUrl, newUrl) -> {
+            if (newUrl != null && !newUrl.isEmpty()
+                    && !newUrl.startsWith("about:")
+                    && !newUrl.equals(oldUrl)) {
+                Platform.runLater(() -> loadViaJavaHttp(engine, newUrl, description));
             }
-        };
+        });
+    }
 
-        // Install the all-trusting trust manager as default
-        SSLContext sc = SSLContext.getInstance("TLS");
-        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        
-        // Set as default SSL context for the entire JVM
-        SSLContext.setDefault(sc);
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
-        
-        logger.debug("Global SSL context configured to trust all certificates");
+    // --- "Open in Browser" button handlers ---
+
+    @FXML
+    public void openFxtDocInBrowser() {
+        openInBrowser(URL_FXT_DOC);
+    }
+
+    @FXML
+    public void openFundsXmlInBrowser() {
+        openInBrowser(URL_FUNDSXML);
+    }
+
+    @FXML
+    public void openMigrationGuideInBrowser() {
+        openInBrowser(URL_MIGRATION);
+    }
+
+    // --- Reload button handlers ---
+
+    @FXML
+    public void reloadFxtDoc() {
+        loadViaJavaHttp(viewFXTDoc.getEngine(), URL_FXT_DOC, "FXT Documentation");
+    }
+
+    @FXML
+    public void reloadFundsXml() {
+        loadViaJavaHttp(viewFundsXMLSite.getEngine(), URL_FUNDSXML, "FundsXML Webseite");
+    }
+
+    @FXML
+    public void reloadMigrationGuide() {
+        loadViaJavaHttp(viewMigrationGuide.getEngine(), URL_MIGRATION, "FundsXML4 Schema Documentation");
     }
 
     /**
-     * Configures individual WebEngine instances for SSL bypass
+     * Opens the given URL in the user's default system browser.
      */
-    private void configureWebEngineForSSL(WebEngine engine) {
+    private void openInBrowser(String url) {
         try {
-            Properties props = propertiesService.loadProperties();
-            boolean trustAllCerts = Boolean.parseBoolean(props.getProperty("ssl.trustAllCerts", "false"));
-            
-            if (trustAllCerts) {
-                // Set user agent to help with some sites
-                engine.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 FreeXmlToolkit/2.0");
-                
-                // Configure additional WebEngine settings for better compatibility
-                engine.setJavaScriptEnabled(true);
-                
-                logger.debug("WebEngine configured for SSL bypass with enhanced compatibility settings");
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                Desktop.getDesktop().browse(URI.create(url));
             }
         } catch (Exception e) {
-            logger.warn("Could not configure individual WebEngine SSL settings: {}", e.getMessage());
+            logger.error("Failed to open browser for {}: {}", url, e.getMessage());
         }
     }
 
-    /**
-     * Loads URL with error handling and retry capability
-     */
-    private void loadUrlWithRetry(WebEngine engine, String url, String description) {
-        try {
-            logger.debug("Loading {} from: {}", description, url);
-            
-            engine.setOnError(event -> {
-                logger.error("WebEngine error loading {}: {}", description, event.getMessage());
-            });
-            
-            engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
-                if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
-                    logger.debug("Successfully loaded {}", description);
-                } else if (newState == javafx.concurrent.Worker.State.FAILED) {
-                    logger.error("Failed to load {}: {}", description, engine.getLoadWorker().getException());
-                }
-            });
-            
-            engine.load(url);
-        } catch (Exception e) {
-            logger.error("Exception loading {}: {}", description, e.getMessage(), e);
-        }
+    private static String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
     }
 }
