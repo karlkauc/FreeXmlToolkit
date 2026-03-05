@@ -3,6 +3,7 @@
     "build": "sass input.scss ../css/fxt-theme.css --no-charset"
   },
   "dependencies": {
+    "immutable": "^5.1.5",
     "prism-js-fold": "^1.0.1",
     "prismjs": "^1.30.0"
   },
