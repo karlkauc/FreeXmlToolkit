@@ -24,7 +24,7 @@ plugins {
     pmd
     checkstyle
     id("com.github.spotbugs") version "6.4.8"
-    id("com.diffplug.spotless") version "7.0.2"
+    id("com.diffplug.spotless") version "8.3.0"
     id("com.github.ben-manes.versions") version "0.53.0"
 }
 
@@ -72,7 +72,7 @@ dependencies {
     // JSON Editor support
     implementation("de.marhali:json5-java:3.0.0")                  // JSON5 support (comments, trailing commas)
     implementation("com.networknt:json-schema-validator:1.5.9")    // JSON Schema validation
-    implementation("com.jayway.jsonpath:json-path:2.10.0")          // JSONPath queries
+    implementation("com.jayway.jsonpath:json-path:3.0.0")          // JSONPath queries
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-win10-pack:12.4.0")
