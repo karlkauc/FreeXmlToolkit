@@ -66,12 +66,12 @@ dependencies {
     })
     */
 
-    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.4")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
     implementation("com.google.code.gson:gson:2.13.2")
 
     // JSON Editor support
     implementation("de.marhali:json5-java:3.0.0")                  // JSON5 support (comments, trailing commas)
-    implementation("com.networknt:json-schema-validator:1.5.3")    // JSON Schema validation
+    implementation("com.networknt:json-schema-validator:1.5.9")    // JSON Schema validation
     implementation("com.jayway.jsonpath:json-path:2.10.0")          // JSONPath queries
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.4.0")
@@ -83,9 +83,9 @@ dependencies {
 
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")
 
-    implementation("org.apache.logging.log4j:log4j-api:2.24.1")
-    implementation("org.apache.logging.log4j:log4j-core:2.24.1")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.24.1")
+    implementation("org.apache.logging.log4j:log4j-api:2.25.3")
+    implementation("org.apache.logging.log4j:log4j-core:2.25.3")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3")
 
     implementation("org.apache.santuario:xmlsec:4.0.4")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.83")
@@ -109,9 +109,9 @@ dependencies {
     implementation("fr.brouillard.oss:cssfx:11.5.1")
     implementation("org.thymeleaf:thymeleaf:3.1.3.RELEASE")
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
-    implementation("jakarta.activation:jakarta.activation-api:2.1.3")
+    implementation("jakarta.activation:jakarta.activation-api:2.1.4")
 
-    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4")
+    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.2")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.6")
 
     implementation("com.github.mifmif:generex:1.0.2")
@@ -120,18 +120,18 @@ dependencies {
     // Note: Guice 7.0.0 doesn't support Java 25 (class file version 69)
     // Using manual DI pattern instead - see org.fxt.freexmltoolkit.di package
 
-    testImplementation(platform("org.junit:junit-bom:6.0.1"))
+    testImplementation(platform("org.junit:junit-bom:6.0.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.mockito:mockito-core:5.21.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
+    testImplementation("org.mockito:mockito-core:5.22.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.22.0")
     testImplementation("org.testfx:testfx-core:4.0.18")
     testImplementation("org.testfx:testfx-junit5:4.0.18")
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
     testImplementation("org.hamcrest:hamcrest:3.0")
 
     implementation("com.helger.schematron:ph-schematron-parent-pom:9.1.1")
-    implementation("com.helger.commons:ph-io:12.1.1")
+    implementation("com.helger.commons:ph-io:12.1.3")
     // implementation("com.helger.commons:ph-commons:12.0.3")
     // implementation("com.helger.commons:ph-xml:12.0.3")
     implementation("com.helger.schematron:ph-schematron-api:9.1.1")
