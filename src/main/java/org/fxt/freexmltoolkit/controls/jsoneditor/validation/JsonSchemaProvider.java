@@ -29,9 +29,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaLocation;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
 
 /**
  * Provider for JSON Schema objects with caching support.
@@ -41,48 +42,48 @@ public class JsonSchemaProvider {
 
     private static final Logger logger = LogManager.getLogger(JsonSchemaProvider.class);
 
-    // Schema factories for different versions
-    private static final Map<SpecVersion.VersionFlag, JsonSchemaFactory> factories = new ConcurrentHashMap<>();
+    // Schema registries for different versions
+    private static final Map<SpecificationVersion, SchemaRegistry> registries = new ConcurrentHashMap<>();
 
     // Schema cache (file path -> schema)
     private final Map<String, CachedSchema> schemaCache = new ConcurrentHashMap<>();
 
     // Cache entry with timestamp
-    private record CachedSchema(JsonSchema schema, long timestamp) {}
+    private record CachedSchema(Schema schema, long timestamp) {}
 
     // Cache TTL in milliseconds (5 minutes)
     private static final long CACHE_TTL = 5 * 60 * 1000;
 
     /**
      * Creates a new JsonSchemaProvider with an empty cache.
-     * Schema factories are initialized lazily when needed.
+     * Schema registries are initialized lazily when needed.
      */
     public JsonSchemaProvider() {
-        // Initialize factories lazily
+        // Initialize registries lazily
     }
 
     /**
-     * Gets a JsonSchemaFactory for the specified version.
+     * Gets a SchemaRegistry for the specified version.
      */
-    private JsonSchemaFactory getFactory(SpecVersion.VersionFlag version) {
-        return factories.computeIfAbsent(version, JsonSchemaFactory::getInstance);
+    private SchemaRegistry getRegistry(SpecificationVersion version) {
+        return registries.computeIfAbsent(version, SchemaRegistry::withDefaultDialect);
     }
 
     /**
-     * Gets the default factory (latest version: 2020-12).
+     * Gets the default registry (latest version: 2020-12).
      */
-    private JsonSchemaFactory getDefaultFactory() {
-        return getFactory(SpecVersion.VersionFlag.V202012);
+    private SchemaRegistry getDefaultRegistry() {
+        return getRegistry(SpecificationVersion.DRAFT_2020_12);
     }
 
     /**
      * Loads a JSON Schema from a file.
      *
      * @param schemaFile the schema file
-     * @return the compiled JsonSchema
+     * @return the compiled Schema
      * @throws IOException if reading fails
      */
-    public JsonSchema loadSchema(File schemaFile) throws IOException {
+    public Schema loadSchema(File schemaFile) throws IOException {
         String path = schemaFile.getAbsolutePath();
 
         // Check cache
@@ -96,7 +97,7 @@ public class JsonSchemaProvider {
 
         // Load and parse schema
         String content = Files.readString(schemaFile.toPath(), StandardCharsets.UTF_8);
-        JsonSchema schema = loadSchemaFromString(content);
+        Schema schema = loadSchemaFromString(content);
 
         // Cache it
         schemaCache.put(path, new CachedSchema(schema, System.currentTimeMillis()));
@@ -109,49 +110,49 @@ public class JsonSchemaProvider {
      * Loads a JSON Schema from a string.
      *
      * @param schemaJson the schema as JSON string
-     * @return the compiled JsonSchema
+     * @return the compiled Schema
      */
-    public JsonSchema loadSchemaFromString(String schemaJson) {
+    public Schema loadSchemaFromString(String schemaJson) {
         // Detect schema version from $schema property
-        SpecVersion.VersionFlag version = detectSchemaVersion(schemaJson);
-        JsonSchemaFactory factory = getFactory(version);
+        SpecificationVersion version = detectSchemaVersion(schemaJson);
+        SchemaRegistry registry = getRegistry(version);
 
-        return factory.getSchema(schemaJson);
+        return registry.getSchema(schemaJson);
     }
 
     /**
      * Loads a JSON Schema from a URI.
      *
      * @param schemaUri the schema URI
-     * @return the compiled JsonSchema
+     * @return the compiled Schema
      */
-    public JsonSchema loadSchema(URI schemaUri) {
-        return getDefaultFactory().getSchema(schemaUri);
+    public Schema loadSchema(URI schemaUri) {
+        return getDefaultRegistry().getSchema(SchemaLocation.of(schemaUri.toString()));
     }
 
     /**
      * Detects the JSON Schema version from the $schema property.
      */
-    private SpecVersion.VersionFlag detectSchemaVersion(String schemaJson) {
+    private SpecificationVersion detectSchemaVersion(String schemaJson) {
         // Look for $schema property
         if (schemaJson.contains("draft-04")) {
-            return SpecVersion.VersionFlag.V4;
+            return SpecificationVersion.DRAFT_4;
         }
         if (schemaJson.contains("draft-06")) {
-            return SpecVersion.VersionFlag.V6;
+            return SpecificationVersion.DRAFT_6;
         }
         if (schemaJson.contains("draft-07")) {
-            return SpecVersion.VersionFlag.V7;
+            return SpecificationVersion.DRAFT_7;
         }
         if (schemaJson.contains("2019-09")) {
-            return SpecVersion.VersionFlag.V201909;
+            return SpecificationVersion.DRAFT_2019_09;
         }
         if (schemaJson.contains("2020-12")) {
-            return SpecVersion.VersionFlag.V202012;
+            return SpecificationVersion.DRAFT_2020_12;
         }
 
         // Default to latest
-        return SpecVersion.VersionFlag.V202012;
+        return SpecificationVersion.DRAFT_2020_12;
     }
 
     /**

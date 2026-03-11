@@ -23,14 +23,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.networknt.schema.Error;
 import com.networknt.schema.InputFormat;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Schema;
 
 /**
  * Service for validating JSON documents against JSON Schema.
@@ -75,7 +74,7 @@ public class JsonValidationService {
         }
 
         try {
-            JsonSchema schema = schemaProvider.loadSchema(schemaFile);
+            Schema schema = schemaProvider.loadSchema(schemaFile);
             return validateWithSchema(jsonContent, schema);
         } catch (IOException e) {
             logger.error("Failed to load schema: {}", schemaFile, e);
@@ -100,7 +99,7 @@ public class JsonValidationService {
         }
 
         try {
-            JsonSchema schema = schemaProvider.loadSchemaFromString(schemaJson);
+            Schema schema = schemaProvider.loadSchemaFromString(schemaJson);
             return validateWithSchema(jsonContent, schema);
         } catch (Exception e) {
             logger.error("Failed to parse schema", e);
@@ -111,18 +110,18 @@ public class JsonValidationService {
     /**
      * Validates JSON content with a compiled schema.
      */
-    private ValidationResult validateWithSchema(String jsonContent, JsonSchema schema) {
+    private ValidationResult validateWithSchema(String jsonContent, Schema schema) {
         List<ValidationError> errors = new ArrayList<>();
 
         try {
-            Set<ValidationMessage> messages = schema.validate(jsonContent, InputFormat.JSON);
+            List<Error> messages = schema.validate(jsonContent, InputFormat.JSON);
 
             if (messages.isEmpty()) {
                 logger.debug("JSON validated successfully");
                 return new ValidationResult(true, Collections.emptyList());
             }
 
-            for (ValidationMessage message : messages) {
+            for (Error message : messages) {
                 String path = message.getInstanceLocation() != null ?
                         message.getInstanceLocation().toString() : "";
                 String errorMessage = message.getMessage();

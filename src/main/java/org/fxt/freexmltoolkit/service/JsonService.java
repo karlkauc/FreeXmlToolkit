@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,11 +44,12 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
+import com.networknt.schema.Error;
 import com.networknt.schema.InputFormat;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaLocation;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
 
 /**
  * Service for JSON operations including parsing, formatting, validation,
@@ -62,8 +62,8 @@ public class JsonService {
     private final Gson gson;
     private final Gson gsonPretty;
 
-    // Cached JSON Schema factory
-    private JsonSchemaFactory schemaFactory;
+    // Cached JSON Schema registry
+    private SchemaRegistry schemaRegistry;
 
     /**
      * Creates a new JsonService with default Gson configurations.
@@ -399,13 +399,13 @@ public class JsonService {
         }
 
         try {
-            JsonSchemaFactory factory = getSchemaFactory();
-            JsonSchema schema = factory.getSchema(schemaJson);
+            SchemaRegistry registry = getSchemaRegistry();
+            Schema schema = registry.getSchema(schemaJson);
 
-            Set<ValidationMessage> validationMessages = schema.validate(json, InputFormat.JSON);
+            List<Error> validationErrors = schema.validate(json, InputFormat.JSON);
 
-            for (ValidationMessage message : validationMessages) {
-                errors.add(message.getMessage());
+            for (Error error : validationErrors) {
+                errors.add(error.getMessage());
             }
         } catch (Exception e) {
             errors.add("Schema validation error: " + e.getMessage());
@@ -442,13 +442,13 @@ public class JsonService {
         List<String> errors = new ArrayList<>();
 
         try {
-            JsonSchemaFactory factory = getSchemaFactory();
-            JsonSchema schema = factory.getSchema(schemaUri);
+            SchemaRegistry registry = getSchemaRegistry();
+            Schema schema = registry.getSchema(SchemaLocation.of(schemaUri.toString()));
 
-            Set<ValidationMessage> validationMessages = schema.validate(json, InputFormat.JSON);
+            List<Error> validationErrors = schema.validate(json, InputFormat.JSON);
 
-            for (ValidationMessage message : validationMessages) {
-                errors.add(message.getMessage());
+            for (Error error : validationErrors) {
+                errors.add(error.getMessage());
             }
         } catch (Exception e) {
             errors.add("Schema validation error: " + e.getMessage());
@@ -458,11 +458,11 @@ public class JsonService {
         return errors;
     }
 
-    private JsonSchemaFactory getSchemaFactory() {
-        if (schemaFactory == null) {
-            schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012);
+    private SchemaRegistry getSchemaRegistry() {
+        if (schemaRegistry == null) {
+            schemaRegistry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
         }
-        return schemaFactory;
+        return schemaRegistry;
     }
 
     // ==================== JSONPath ====================

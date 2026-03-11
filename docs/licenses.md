@@ -17,7 +17,7 @@ FreeXmlToolkit (Version 1.3.0) uses several third-party libraries. The following
 | Library | Version | License |
 |---------|---------|---------|
 | **JSONPath** (com.jayway.jsonpath:json-path) | 2.10.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **JSON Schema Validator** (com.networknt:json-schema-validator) | 1.5.3 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **JSON Schema Validator** (com.networknt:json-schema-validator) | 3.0.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## XML Validation (XSD 1.1 Support)
 

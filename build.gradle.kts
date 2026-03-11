@@ -71,7 +71,7 @@ dependencies {
 
     // JSON Editor support
     implementation("de.marhali:json5-java:3.0.0")                  // JSON5 support (comments, trailing commas)
-    implementation("com.networknt:json-schema-validator:1.5.9")    // JSON Schema validation
+    implementation("com.networknt:json-schema-validator:3.0.0")    // JSON Schema validation
     implementation("com.jayway.jsonpath:json-path:3.0.0")          // JSONPath queries
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.4.0")
