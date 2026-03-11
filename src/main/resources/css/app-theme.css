@@ -522,3 +522,67 @@
     -fx-background-color: -bg-primary;
     -fx-background-radius: 4;
 }
+
+/* ============================================
+   INLINE DOCUMENTATION EDITOR
+   ============================================ */
+
+/* Tab bar container */
+.doc-tab-bar {
+    -fx-padding: 2 0 2 0;
+}
+
+/* Pill toggle button (language tab) */
+.doc-tab-pill {
+    -fx-background-color: transparent;
+    -fx-text-fill: #0d6efd;
+    -fx-background-radius: 12;
+    -fx-padding: 2 10 2 10;
+    -fx-font-size: 11px;
+    -fx-border-color: #0d6efd;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+
+.doc-tab-pill:selected {
+    -fx-background-color: #0d6efd;
+    -fx-text-fill: white;
+}
+
+.doc-tab-pill:hover {
+    -fx-background-color: #e7f1ff;
+}
+
+.doc-tab-pill:selected:hover {
+    -fx-background-color: #0b5ed7;
+}
+
+/* Gray variant for (default) / no-language entries */
+.doc-tab-pill-default {
+    -fx-text-fill: #6c757d;
+    -fx-border-color: #6c757d;
+}
+
+.doc-tab-pill-default:selected {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+}
+
+.doc-tab-pill-default:hover {
+    -fx-background-color: #f0f0f0;
+}
+
+.doc-tab-pill-default:selected:hover {
+    -fx-background-color: #5a6268;
+}
+
+/* Empty state placeholder */
+.doc-empty-state {
+    -fx-border-color: -border-light;
+    -fx-border-style: dashed;
+    -fx-border-radius: 6;
+    -fx-background-color: -color-gray-100;
+    -fx-background-radius: 6;
+    -fx-padding: 20;
+}

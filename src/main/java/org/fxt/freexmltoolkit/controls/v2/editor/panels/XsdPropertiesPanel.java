@@ -42,7 +42,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddFacetCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddPatternCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeCardinalityCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeConstraintsCommand;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDocumentationsCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFormCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSubstitutionGroupCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand;
@@ -58,7 +57,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdAssert;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDatatypeFacets;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
@@ -109,12 +107,8 @@ public class XsdPropertiesPanel extends BorderPane {
     private CheckBox unboundedCheckBox;
 
     // Documentation section controls
-    private GridPane documentationGridPane;
-    private Button addDocBtn;
-    private TextArea documentationArea; // Legacy field, hidden
-    private TextArea appinfoArea; // Kept for backward compatibility
-    private AppInfoEditorPanel appInfoEditorPanel; // New structured editor
-    private java.util.List<XsdDocumentation> currentDocumentations = new java.util.ArrayList<>();
+    private InlineDocumentationEditor documentationEditor;
+    private AppInfoEditorPanel appInfoEditorPanel;
 
     // Constraints section controls
     private CheckBox nillableCheckBox;
@@ -307,8 +301,15 @@ public class XsdPropertiesPanel extends BorderPane {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
 
-        // Create TitledPanes for documentation
-        TitledPane documentationPane = createDocumentationTitledPane();
+        // Inline documentation editor (replaces old GridPane + modal dialogs)
+        documentationEditor = new InlineDocumentationEditor(editorContext);
+        TitledPane documentationPane = new TitledPane("Documentation", documentationEditor);
+        documentationPane.setExpanded(true);
+        FontIcon docIcon = new FontIcon("bi-book");
+        docIcon.setIconSize(14);
+        docIcon.setIconColor(Color.web(DOCS_COLOR));
+        documentationPane.setGraphic(docIcon);
+
         TitledPane appInfoPane = createAppInfoTitledPane();
 
         content.getChildren().addAll(
@@ -752,84 +753,6 @@ public class XsdPropertiesPanel extends BorderPane {
     }
 
     /**
-     * Creates the Documentation TitledPane for the Docs column.
-     */
-    private TitledPane createDocumentationTitledPane() {
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
-
-        // Header with Add button
-        HBox headerBox = new HBox(10);
-        headerBox.setAlignment(Pos.CENTER_LEFT);
-        Label docLabel = new Label("Multi-Language Documentation:");
-        docLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        addDocBtn = new Button("Add");
-        addDocBtn.setGraphic(new FontIcon("bi-plus-circle"));
-        addDocBtn.setOnAction(e -> handleAddDocumentation());
-
-        headerBox.getChildren().addAll(docLabel, spacer, addDocBtn);
-        vbox.getChildren().add(headerBox);
-
-        // GridPane for documentation rows (one language per row)
-        documentationGridPane = new GridPane();
-        documentationGridPane.setHgap(8);
-        documentationGridPane.setVgap(6);
-        documentationGridPane.setPadding(new Insets(5));
-
-        // Set column constraints for proper sizing
-        javafx.scene.layout.ColumnConstraints langCol = new javafx.scene.layout.ColumnConstraints();
-        langCol.setMinWidth(60);
-        langCol.setPrefWidth(70);
-        langCol.setMaxWidth(80);
-
-        javafx.scene.layout.ColumnConstraints textCol = new javafx.scene.layout.ColumnConstraints();
-        textCol.setHgrow(Priority.ALWAYS);
-        textCol.setFillWidth(true);
-
-        javafx.scene.layout.ColumnConstraints editCol = new javafx.scene.layout.ColumnConstraints();
-        editCol.setMinWidth(28);
-        editCol.setPrefWidth(28);
-
-        javafx.scene.layout.ColumnConstraints deleteCol = new javafx.scene.layout.ColumnConstraints();
-        deleteCol.setMinWidth(28);
-        deleteCol.setPrefWidth(28);
-
-        documentationGridPane.getColumnConstraints().addAll(langCol, textCol, editCol, deleteCol);
-
-        // Placeholder when empty
-        Label placeholder = new Label("No documentation entries. Click 'Add' to create one.");
-        placeholder.getStyleClass().add("info-label-secondary");
-        documentationGridPane.add(placeholder, 0, 0, 4, 1);
-
-        // Wrap in ScrollPane for overflow
-        ScrollPane scrollPane = new ScrollPane(documentationGridPane);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPrefViewportHeight(150);
-        scrollPane.setStyle("-fx-background-color: transparent;");
-
-        vbox.getChildren().add(scrollPane);
-
-        // Hidden legacy fields for backward compatibility (not shown in UI)
-        documentationArea = new TextArea();
-        documentationArea.setManaged(false);
-        documentationArea.setVisible(false);
-
-        TitledPane titledPane = new TitledPane("Documentation", vbox);
-        titledPane.setExpanded(true);
-
-        FontIcon icon = new FontIcon("bi-book");
-        icon.setIconSize(14);
-        icon.setIconColor(Color.web(DOCS_COLOR));
-        titledPane.setGraphic(icon);
-
-        return titledPane;
-    }
-
-    /**
      * Creates the AppInfo TitledPane for the Docs column.
      */
     private TitledPane createAppInfoTitledPane() {
@@ -844,11 +767,6 @@ public class XsdPropertiesPanel extends BorderPane {
         appInfoEditorPanel = new AppInfoEditorPanel(editorContext);
         vbox.getChildren().add(appInfoEditorPanel);
         VBox.setVgrow(appInfoEditorPanel, Priority.ALWAYS);
-
-        // Hidden legacy field for backward compatibility
-        appinfoArea = new TextArea();
-        appinfoArea.setManaged(false);
-        appinfoArea.setVisible(false);
 
         TitledPane titledPane = new TitledPane("AppInfo", vbox);
         titledPane.setExpanded(true);
@@ -995,14 +913,8 @@ public class XsdPropertiesPanel extends BorderPane {
             maxOccursSpinner.setDisable(!isEditMode || unboundedCheckBox.isSelected());
             unboundedCheckBox.setDisable(!isEditMode);
 
-            // Documentation cards and add button
-            addDocBtn.setDisable(!isEditMode);
-            // Cards' edit/delete buttons are controlled in createDocumentationCard() based on edit mode
-            refreshDocumentationCards();
-
-            // Legacy fields (hidden)
-            documentationArea.setEditable(isEditMode);
-            appinfoArea.setEditable(isEditMode);
+            // Documentation editor
+            documentationEditor.setEditMode(isEditMode);
 
             // Constraint checkboxes only for elements
             boolean isElement = node.getModelObject() instanceof XsdElement;
@@ -1020,8 +932,8 @@ public class XsdPropertiesPanel extends BorderPane {
             // Use ComboBox only for attributes
             useComboBox.setDisable(!isEditMode || !isAttribute);
 
-            logger.debug("Controls editable state set: nameField={}, documentationArea={}, isEditMode={}, isElement={}, constraintsEnabled={}",
-                    nameField.isEditable(), documentationArea.isEditable(), isEditMode, isElement, constraintsEnabled);
+            logger.debug("Controls editable state set: nameField={}, isEditMode={}, isElement={}, constraintsEnabled={}",
+                    nameField.isEditable(), isEditMode, isElement, constraintsEnabled);
 
             // Update General section
             nameField.setText(node.getLabel());
@@ -1061,19 +973,12 @@ public class XsdPropertiesPanel extends BorderPane {
             // Update Documentation section from model
             logger.debug("ModelObject type: {}", modelObject != null ? modelObject.getClass().getName() : "null");
             if (modelObject instanceof XsdNode xsdNode) {
-                // Load multi-language documentations into FlowPane cards
-                java.util.List<XsdDocumentation> docs = xsdNode.getDocumentations();
-                logger.debug("Loading {} documentation entries", docs.size());
-                currentDocumentations = new java.util.ArrayList<>(docs);
-                refreshDocumentationCards();
-
-                // Update the structured AppInfo editor panel
+                documentationEditor.setNode(xsdNode);
                 appInfoEditorPanel.setNode(xsdNode);
-                logger.debug("Documentation panel and AppInfo editor updated with values");
+                logger.debug("Documentation editor and AppInfo editor updated with values");
             } else {
                 logger.warn("ModelObject is not an XsdNode, cannot load documentation/appinfo");
-                currentDocumentations.clear();
-                refreshDocumentationCards();
+                documentationEditor.setNode(null);
                 appInfoEditorPanel.setNode(null);
             }
 
@@ -1218,9 +1123,8 @@ public class XsdPropertiesPanel extends BorderPane {
             unboundedCheckBox.setSelected(false);
             maxOccursSpinner.setDisable(false);
 
-            currentDocumentations.clear();
-            refreshDocumentationCards();
-            appInfoEditorPanel.setNode(null); // Clear the structured AppInfo editor
+            documentationEditor.setNode(null);
+            appInfoEditorPanel.setNode(null);
 
             nillableCheckBox.setSelected(false);
             abstractCheckBox.setSelected(false);
@@ -1519,311 +1423,6 @@ public class XsdPropertiesPanel extends BorderPane {
             logger.debug("Executed ChangeCardinalityCommand: {},{} -> {},{}",
                     currentNode.getMinOccurs(), currentNode.getMaxOccurs(), newMinOccurs, newMaxOccurs);
         }
-    }
-
-    /**
-     * Handles changes to the documentation list.
-     * Called when Add/Edit/Delete operations are performed on cards.
-     */
-    private void handleDocumentationsChange() {
-        if (currentNode == null || currentNode.getModelObject() == null || updating) {
-            logger.debug("handleDocumentationsChange skipped: currentNode={}, updating={}", currentNode, updating);
-            return;
-        }
-
-        XsdNode node = (XsdNode) currentNode.getModelObject();
-        java.util.List<XsdDocumentation> newDocumentations = new java.util.ArrayList<>(currentDocumentations);
-
-        logger.info("handleDocumentationsChange: node={}, currentDocs.size={}",
-                    node.getName(), newDocumentations.size());
-        for (int i = 0; i < newDocumentations.size(); i++) {
-            XsdDocumentation doc = newDocumentations.get(i);
-            logger.info("  Doc[{}]: lang='{}', text='{}'", i, doc.getLang(),
-                        doc.getText() != null && doc.getText().length() > 50
-                            ? doc.getText().substring(0, 47) + "..." : doc.getText());
-        }
-
-        // Create and execute command
-        ChangeDocumentationsCommand command = new ChangeDocumentationsCommand(editorContext, node, newDocumentations);
-        editorContext.getCommandManager().executeCommand(command);
-        logger.info("Executed ChangeDocumentationsCommand with {} entries for node '{}'", newDocumentations.size(), node.getName());
-    }
-
-    /**
-     * Refreshes the documentation rows in the GridPane.
-     */
-    private void refreshDocumentationCards() {
-        documentationGridPane.getChildren().clear();
-
-        if (currentDocumentations.isEmpty()) {
-            Label placeholder = new Label("No documentation entries. Click 'Add' to create one.");
-            placeholder.getStyleClass().add("info-label-secondary");
-            documentationGridPane.add(placeholder, 0, 0, 4, 1);
-        } else {
-            int row = 0;
-            for (XsdDocumentation doc : currentDocumentations) {
-                addDocumentationRow(doc, row++);
-            }
-        }
-    }
-
-    /**
-     * Adds a documentation row to the GridPane.
-     *
-     * @param doc the documentation entry
-     * @param row the row index in the grid
-     */
-    private void addDocumentationRow(XsdDocumentation doc, int row) {
-        boolean editMode = editorContext != null && editorContext.isEditMode();
-
-        // Column 0: Language badge
-        String lang = doc.getLang();
-        Label langBadge = new Label(lang != null && !lang.isEmpty() ? lang : "(default)");
-        if (lang != null && !lang.isEmpty()) {
-            langBadge.setStyle("""
-                -fx-background-color: #0d6efd;
-                -fx-text-fill: white;
-                -fx-padding: 2 8 2 8;
-                -fx-background-radius: 10;
-                -fx-font-size: 11px;
-                -fx-font-weight: bold;
-                """);
-        } else {
-            langBadge.setStyle("""
-                -fx-background-color: #6c757d;
-                -fx-text-fill: white;
-                -fx-padding: 2 8 2 8;
-                -fx-background-radius: 10;
-                -fx-font-size: 11px;
-                -fx-font-weight: bold;
-                """);
-        }
-
-        // Column 1: Text content (full width, with ellipsis if needed)
-        String text = doc.getText() != null ? doc.getText() : "";
-        Label textLabel = new Label(text);
-        textLabel.setWrapText(false);
-        textLabel.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);
-        textLabel.setMaxWidth(Double.MAX_VALUE);
-        textLabel.getStyleClass().add("theme-text-primary");
-        textLabel.setStyle("-fx-padding: 2 0 2 8;");
-        textLabel.setTooltip(new Tooltip(text)); // Show full text on hover
-        GridPane.setHgrow(textLabel, Priority.ALWAYS);
-        GridPane.setFillWidth(textLabel, true);
-
-        // Column 2: Edit button
-        Button editBtn = new Button();
-        FontIcon editIcon = new FontIcon("bi-pencil");
-        editIcon.setIconSize(14);
-        editBtn.setGraphic(editIcon);
-        editBtn.setStyle("-fx-background-color: transparent; -fx-padding: 2;");
-        editBtn.setTooltip(new Tooltip("Edit"));
-        editBtn.setOnAction(e -> handleEditDocumentation(doc));
-        editBtn.setDisable(!editMode);
-
-        // Column 3: Delete button
-        Button deleteBtn = new Button();
-        FontIcon deleteIcon = new FontIcon("bi-trash");
-        deleteIcon.setIconSize(14);
-        deleteBtn.setGraphic(deleteIcon);
-        deleteBtn.setStyle("-fx-background-color: transparent; -fx-padding: 2;");
-        deleteBtn.setTooltip(new Tooltip("Delete"));
-        deleteBtn.setOnAction(e -> handleDeleteDocumentation(doc));
-        deleteBtn.setDisable(!editMode);
-
-        // Add row background for alternating colors
-        if (row % 2 != 0) {
-            langBadge.setStyle(langBadge.getStyle() + "-fx-background-insets: 0;");
-            textLabel.setStyle(textLabel.getStyle() + " -fx-background-color: #f8f9fa;");
-        }
-
-        // Add to grid
-        documentationGridPane.add(langBadge, 0, row);
-        documentationGridPane.add(textLabel, 1, row);
-        documentationGridPane.add(editBtn, 2, row);
-        documentationGridPane.add(deleteBtn, 3, row);
-
-        // Set vertical alignment
-        GridPane.setValignment(langBadge, javafx.geometry.VPos.CENTER);
-        GridPane.setValignment(textLabel, javafx.geometry.VPos.CENTER);
-        GridPane.setValignment(editBtn, javafx.geometry.VPos.CENTER);
-        GridPane.setValignment(deleteBtn, javafx.geometry.VPos.CENTER);
-    }
-
-    /**
-     * Handles adding a new documentation entry.
-     */
-    private void handleAddDocumentation() {
-        if (currentNode == null || currentNode.getModelObject() == null) {
-            return;
-        }
-
-        // Show input dialog for language and text
-        Dialog<XsdDocumentation> dialog = new Dialog<>();
-        dialog.setTitle("Add Documentation");
-        dialog.setHeaderText("Add new documentation entry");
-
-        // Set the button types
-        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
-
-        // Create the form
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-
-        // Checkbox for no language
-        CheckBox noLangCheckBox = new CheckBox("No language (default documentation)");
-        noLangCheckBox.setSelected(true); // Default to no language
-
-        TextField langField = new TextField();
-        langField.setPromptText("e.g., en, de");
-        langField.setDisable(true); // Initially disabled since checkbox is selected
-
-        // Bind checkbox to disable language field
-        noLangCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            langField.setDisable(newVal);
-            if (newVal) {
-                langField.clear();
-            }
-        });
-
-        TextArea textArea = new TextArea();
-        textArea.setPromptText("Documentation text");
-        textArea.setPrefRowCount(4);
-
-        grid.add(noLangCheckBox, 0, 0, 2, 1);
-        grid.add(new Label("Language (xml:lang):"), 0, 1);
-        grid.add(langField, 1, 1);
-        grid.add(new Label("Text:"), 0, 2);
-        grid.add(textArea, 1, 2);
-
-        dialog.getDialogPane().setContent(grid);
-
-        // Convert the result when the add button is clicked
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == addButtonType) {
-                String text = textArea.getText();
-                if (text != null && !text.trim().isEmpty()) {
-                    String lang = noLangCheckBox.isSelected() ? null : langField.getText();
-                    return new XsdDocumentation(
-                            text.trim(),
-                            (lang != null && !lang.trim().isEmpty()) ? lang.trim() : null
-                    );
-                }
-            }
-            return null;
-        });
-
-        dialog.showAndWait().ifPresent(newDoc -> {
-            currentDocumentations.add(newDoc);
-            refreshDocumentationCards();
-            handleDocumentationsChange();
-            logger.debug("Added new documentation entry with lang='{}'", newDoc.getLang());
-        });
-    }
-
-    /**
-     * Handles editing a documentation entry from a card.
-     *
-     * @param selected the documentation entry to edit
-     */
-    private void handleEditDocumentation(XsdDocumentation selected) {
-        if (selected == null) {
-            return;
-        }
-
-        // Show input dialog for language and text
-        Dialog<XsdDocumentation> dialog = new Dialog<>();
-        dialog.setTitle("Edit Documentation");
-        dialog.setHeaderText("Edit documentation entry");
-
-        // Set the button types
-        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
-
-        // Create the form
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-
-        // Checkbox for no language
-        CheckBox noLangCheckBox = new CheckBox("No language (default documentation)");
-        noLangCheckBox.setSelected(selected.getLang() == null || selected.getLang().isEmpty());
-
-        TextField langField = new TextField(selected.getLang() != null ? selected.getLang() : "");
-        langField.setPromptText("e.g., en, de");
-        langField.setDisable(noLangCheckBox.isSelected());
-
-        // Bind checkbox to disable language field
-        noLangCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            langField.setDisable(newVal);
-            if (newVal) {
-                langField.clear();
-            }
-        });
-
-        TextArea textArea = new TextArea(selected.getText());
-        textArea.setPromptText("Documentation text");
-        textArea.setPrefRowCount(4);
-
-        grid.add(noLangCheckBox, 0, 0, 2, 1);
-        grid.add(new Label("Language (xml:lang):"), 0, 1);
-        grid.add(langField, 1, 1);
-        grid.add(new Label("Text:"), 0, 2);
-        grid.add(textArea, 1, 2);
-
-        dialog.getDialogPane().setContent(grid);
-
-        // Convert the result when the save button is clicked
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == saveButtonType) {
-                String text = textArea.getText();
-                if (text != null && !text.trim().isEmpty()) {
-                    String lang = noLangCheckBox.isSelected() ? null : langField.getText();
-                    selected.setLang((lang != null && !lang.trim().isEmpty()) ? lang.trim() : null);
-                    selected.setText(text.trim());
-                    return selected;
-                }
-            }
-            return null;
-        });
-
-        dialog.showAndWait().ifPresent(editedDoc -> {
-            refreshDocumentationCards();
-            handleDocumentationsChange();
-            logger.debug("Edited documentation entry with lang='{}'", editedDoc.getLang());
-        });
-    }
-
-    /**
-     * Handles deleting a documentation entry from a card.
-     *
-     * @param selected the documentation entry to delete
-     */
-    private void handleDeleteDocumentation(XsdDocumentation selected) {
-        if (selected == null) {
-            return;
-        }
-
-        // Confirm deletion
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete Documentation");
-        alert.setHeaderText("Delete documentation entry?");
-
-        String langInfo = selected.getLang() != null ? " (" + selected.getLang() + ")" : " (default)";
-        alert.setContentText("Are you sure you want to delete this documentation entry" + langInfo + "?");
-
-        alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                currentDocumentations.remove(selected);
-                refreshDocumentationCards();
-                handleDocumentationsChange();
-                logger.debug("Deleted documentation entry");
-            }
-        });
     }
 
     /**
