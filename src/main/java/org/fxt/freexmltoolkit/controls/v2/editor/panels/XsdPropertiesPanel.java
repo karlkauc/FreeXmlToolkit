@@ -258,7 +258,7 @@ public class XsdPropertiesPanel extends BorderPane {
         ScrollPane scrollPane = wrapInScrollPane(content);
 
         Tab tab = new Tab("Attributes", scrollPane);
-        FontIcon icon = new FontIcon("bi-card-list");
+        FontIcon icon = new FontIcon("bi-tags");
         icon.setIconSize(16);
         icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
         tab.setGraphic(icon);
@@ -290,7 +290,7 @@ public class XsdPropertiesPanel extends BorderPane {
         ScrollPane scrollPane = wrapInScrollPane(content);
 
         Tab tab = new Tab("Facets", scrollPane);
-        FontIcon icon = new FontIcon("bi-funnel");
+        FontIcon icon = new FontIcon("bi-sliders");
         icon.setIconSize(16);
         icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
         tab.setGraphic(icon);
@@ -318,7 +318,7 @@ public class XsdPropertiesPanel extends BorderPane {
         ScrollPane scrollPane = wrapInScrollPane(content);
 
         Tab tab = new Tab("Docs", scrollPane);
-        FontIcon icon = new FontIcon("bi-file-text");
+        FontIcon icon = new FontIcon("bi-journal-text");
         icon.setIconSize(16);
         icon.setStyle("-fx-icon-color: " + DOCS_COLOR + ";");
         tab.setGraphic(icon);
