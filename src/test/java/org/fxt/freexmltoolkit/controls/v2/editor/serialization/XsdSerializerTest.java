@@ -2103,6 +2103,143 @@ class XsdSerializerTest {
         assertTrue(xml.contains("&quot;") || xml.contains("&apos;"));
     }
 
+    // ========== excludeIncludedNodes Tests ==========
+
+    @Test
+    @DisplayName("excludeIncludedNodes=true should skip inlined include content but keep xs:include directives")
+    void testExcludeIncludedNodesSkipsInlinedContent() {
+        XsdSchema schema = new XsdSchema();
+
+        // xs:include directive (from main schema) — should always be kept
+        XsdInclude includeDirective = new XsdInclude("common-types.xsd");
+        schema.addChild(includeDirective);
+
+        // Element from main schema — should be kept
+        XsdElement mainElement = new XsdElement("MainElement");
+        mainElement.setType("xs:string");
+        mainElement.setSourceInfo(IncludeSourceInfo.forMainSchema(null));
+        schema.addChild(mainElement);
+
+        // Element inlined from the included file — should be excluded
+        XsdElement includedElement = new XsdElement("IncludedElement");
+        includedElement.setType("xs:integer");
+        includedElement.setSourceInfo(IncludeSourceInfo.forIncludedSchema(null, "common-types.xsd", includeDirective));
+        schema.addChild(includedElement);
+
+        // ComplexType inlined from the included file — should be excluded
+        XsdComplexType includedType = new XsdComplexType("IncludedType");
+        includedType.setSourceInfo(IncludeSourceInfo.forIncludedSchema(null, "common-types.xsd", includeDirective));
+        XsdSequence seq = new XsdSequence();
+        XsdElement field = new XsdElement("field");
+        field.setType("xs:string");
+        seq.addChild(field);
+        includedType.addChild(seq);
+        schema.addChild(includedType);
+
+        serializer.setExcludeIncludedNodes(true);
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:include schemaLocation=\"common-types.xsd\"/>"),
+                "xs:include directive should be preserved");
+        assertTrue(xml.contains("<xs:element name=\"MainElement\""),
+                "Main schema element should be kept");
+        assertFalse(xml.contains("IncludedElement"),
+                "Inlined element from include should be excluded");
+        assertFalse(xml.contains("IncludedType"),
+                "Inlined type from include should be excluded");
+    }
+
+    @Test
+    @DisplayName("excludeIncludedNodes=false (default) should serialize all nodes including inlined content")
+    void testDefaultSerializesAllNodesIncludingInlined() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdInclude includeDirective = new XsdInclude("common-types.xsd");
+        schema.addChild(includeDirective);
+
+        XsdElement mainElement = new XsdElement("MainElement");
+        mainElement.setType("xs:string");
+        mainElement.setSourceInfo(IncludeSourceInfo.forMainSchema(null));
+        schema.addChild(mainElement);
+
+        XsdElement includedElement = new XsdElement("IncludedElement");
+        includedElement.setType("xs:integer");
+        includedElement.setSourceInfo(IncludeSourceInfo.forIncludedSchema(null, "common-types.xsd", includeDirective));
+        schema.addChild(includedElement);
+
+        // Default (excludeIncludedNodes=false)
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:include schemaLocation=\"common-types.xsd\"/>"),
+                "xs:include directive should be present");
+        assertTrue(xml.contains("MainElement"),
+                "Main schema element should be present");
+        assertTrue(xml.contains("IncludedElement"),
+                "Inlined element should also be present (backward compat)");
+    }
+
+    @Test
+    @DisplayName("excludeIncludedNodes=true should never exclude nodes with null sourceInfo")
+    void testNullSourceInfoNeverExcluded() {
+        XsdSchema schema = new XsdSchema();
+
+        // Element without sourceInfo — should always be kept
+        XsdElement noSourceElement = new XsdElement("NoSourceElement");
+        noSourceElement.setType("xs:string");
+        // sourceInfo is null by default
+        schema.addChild(noSourceElement);
+
+        // Element with main schema sourceInfo — should be kept
+        XsdElement mainElement = new XsdElement("MainElement");
+        mainElement.setType("xs:string");
+        mainElement.setSourceInfo(IncludeSourceInfo.forMainSchema(null));
+        schema.addChild(mainElement);
+
+        serializer.setExcludeIncludedNodes(true);
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("NoSourceElement"),
+                "Node with null sourceInfo should never be excluded");
+        assertTrue(xml.contains("MainElement"),
+                "Node with main schema sourceInfo should never be excluded");
+    }
+
+    @Test
+    @DisplayName("excludeIncludedNodes=true should keep xs:import directives but exclude inlined import content")
+    void testExcludeIncludedNodesKeepsImportDirectives() {
+        XsdSchema schema = new XsdSchema();
+
+        // xs:import directive — should always be kept
+        XsdImport importDirective = new XsdImport("http://www.w3.org/XML/1998/namespace", "xml.xsd");
+        schema.addChild(importDirective);
+
+        // Element from main schema
+        XsdElement mainElement = new XsdElement("MainElement");
+        mainElement.setType("xs:string");
+        schema.addChild(mainElement);
+
+        // Element with isFromInclude=true (simulating inlined imported content)
+        XsdElement importedElement = new XsdElement("ImportedElement");
+        importedElement.setType("xs:string");
+        XsdInclude dummyInclude = new XsdInclude("xml.xsd");
+        importedElement.setSourceInfo(IncludeSourceInfo.forIncludedSchema(null, "xml.xsd", dummyInclude));
+        schema.addChild(importedElement);
+
+        serializer.setExcludeIncludedNodes(true);
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:import"),
+                "xs:import directive should be preserved");
+        assertTrue(xml.contains("MainElement"),
+                "Main schema element should be kept");
+        assertFalse(xml.contains("ImportedElement"),
+                "Inlined element from import should be excluded");
+    }
+
     /**
      * Helper method to count occurrences of a substring.
      */

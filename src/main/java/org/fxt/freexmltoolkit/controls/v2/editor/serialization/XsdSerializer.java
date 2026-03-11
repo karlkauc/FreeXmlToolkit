@@ -71,6 +71,7 @@ public class XsdSerializer {
 
     private String indentString = DEFAULT_INDENT;
     private XsdSortOrder sortOrder = null; // null means use default from settings
+    private boolean excludeIncludedNodes = false;
 
     /**
      * Creates a backup of the specified file using BackupUtility.
@@ -84,6 +85,30 @@ public class XsdSerializer {
      */
     public Path createBackup(Path filePath) throws IOException {
         return BackupUtility.createBackup(filePath);
+    }
+
+    /**
+     * Sets whether nodes originating from xs:include/xs:import files should be
+     * excluded during serialization.  When {@code true}, the serializer skips
+     * children whose {@link XsdNode#isFromInclude()} returns {@code true},
+     * except for directive nodes ({@link XsdInclude}, {@link XsdImport})
+     * which are always kept.
+     *
+     * @param excludeIncludedNodes true to exclude inlined include/import content
+     */
+    public void setExcludeIncludedNodes(boolean excludeIncludedNodes) {
+        this.excludeIncludedNodes = excludeIncludedNodes;
+    }
+
+    /**
+     * Determines whether a node should be excluded from serialization
+     * because it was inlined from an included/imported schema.
+     */
+    private boolean shouldExcludeNode(XsdNode node) {
+        if (node instanceof XsdInclude || node instanceof XsdImport) {
+            return false; // Never exclude directive nodes themselves
+        }
+        return node.isFromInclude();
     }
 
     /**
@@ -165,6 +190,9 @@ public class XsdSerializer {
 
         // Serialize children (global elements, types, etc.)
         for (XsdNode child : sortedChildren) {
+            if (excludeIncludedNodes && shouldExcludeNode(child)) {
+                continue;
+            }
             serializeXsdNode(child, sb, 1);
         }
 

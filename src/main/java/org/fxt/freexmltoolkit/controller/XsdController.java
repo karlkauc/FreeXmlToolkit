@@ -393,6 +393,7 @@ public class XsdController implements FavoritesParentController {
             return;
         }
         XsdSerializer serializer = new XsdSerializer();
+        serializer.setExcludeIncludedNodes(true);
         String xml = serializer.serialize(cachedXsdSchema, XsdSortOrder.NAME_BEFORE_TYPE);
         sourceCodeEditor.getCodeArea().replaceText(xml);
     }

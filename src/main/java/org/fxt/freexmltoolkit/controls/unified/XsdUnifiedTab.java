@@ -315,8 +315,9 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
         try {
             syncingViews = true;
 
-            // Serialize the model back to XML
+            // Serialize the model back to XML (excluding inlined include/import content)
             XsdSerializer serializer = new XsdSerializer();
+            serializer.setExcludeIncludedNodes(true);
             String serialized = serializer.serialize(xsdSchema);
             if (serialized != null && !serialized.equals(textEditor.getText())) {
                 textEditor.setText(serialized);
@@ -379,9 +380,10 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
     public String getEditorContent() {
         // Return text from active view
         if (graphicTab.isSelected() && graphView != null && xsdSchema != null) {
-            // Sync from graphic view first
+            // Sync from graphic view first (excluding inlined include/import content)
             try {
                 XsdSerializer serializer = new XsdSerializer();
+                serializer.setExcludeIncludedNodes(true);
                 return serializer.serialize(xsdSchema);
             } catch (Exception e) {
                 logger.warn("Failed to serialize from graphic view: {}", e.getMessage());
