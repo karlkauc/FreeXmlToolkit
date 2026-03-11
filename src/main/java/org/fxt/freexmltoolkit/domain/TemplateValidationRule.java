@@ -82,18 +82,48 @@ public class TemplateValidationRule {
         }
     }
 
-    private boolean validateRequiredIf(Map<String, String> _parameters) {
-        // Implementation for required-if logic
+    private boolean validateRequiredIf(Map<String, String> parameters) {
+        if (validationExpression == null || targetParameter == null) {
+            return true;
+        }
+        // validationExpression format: "conditionParam=conditionValue"
+        String[] parts = validationExpression.split("=", 2);
+        if (parts.length != 2) {
+            return true;
+        }
+        String conditionParam = parts[0].trim();
+        String conditionValue = parts[1].trim();
+        String actualValue = parameters.get(conditionParam);
+        if (conditionValue.equals(actualValue)) {
+            // Condition met — targetParameter must be present and non-blank
+            String targetValue = parameters.get(targetParameter);
+            return targetValue != null && !targetValue.isBlank();
+        }
         return true;
     }
 
-    private boolean validateMutuallyExclusive(Map<String, String> _parameters) {
-        // Implementation for mutually exclusive parameters
-        return true;
+    private boolean validateMutuallyExclusive(Map<String, String> parameters) {
+        if (targetParameters == null || targetParameters.isEmpty()) {
+            return true;
+        }
+        long count = targetParameters.stream()
+                .map(parameters::get)
+                .filter(value -> value != null && !value.isBlank())
+                .count();
+        return count <= 1;
     }
 
-    private boolean validateDependency(Map<String, String> _parameters) {
-        // Implementation for parameter dependencies
+    private boolean validateDependency(Map<String, String> parameters) {
+        if (validationExpression == null || targetParameter == null) {
+            return true;
+        }
+        // validationExpression is the dependency parameter name
+        String dependencyValue = parameters.get(validationExpression);
+        if (dependencyValue != null && !dependencyValue.isBlank()) {
+            // Dependency is present — targetParameter must also be present and non-blank
+            String targetValue = parameters.get(targetParameter);
+            return targetValue != null && !targetValue.isBlank();
+        }
         return true;
     }
 

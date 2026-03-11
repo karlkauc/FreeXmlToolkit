@@ -142,8 +142,10 @@ public class SignatureController {
      *
      * @param _parentController the main controller instance (currently unused)
      */
-    public void setParentController(MainController _parentController) {
-        // Currently unused - kept for API compatibility with MainController
+    private MainController parentController;
+
+    public void setParentController(MainController parentController) {
+        this.parentController = parentController;
     }
 
     /**

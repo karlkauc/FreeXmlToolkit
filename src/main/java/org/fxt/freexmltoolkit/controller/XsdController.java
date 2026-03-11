@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -12,14 +14,21 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -28,6 +37,7 @@ import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
+import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.utilities.FindReplaceDialog;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
@@ -39,6 +49,8 @@ import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XsdDocumentationService;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 
 /**
@@ -101,6 +113,38 @@ public class XsdController implements FavoritesParentController {
     private TextField xsdForSampleDataPath;
     @FXML
     private VBox sampleDataValidationResultPanel;
+    @FXML
+    private CheckBox mandatoryOnlyCheckBox;
+    @FXML
+    private Spinner<Integer> maxOccurrencesSpinner;
+    @FXML
+    private Button generateSampleDataButton;
+    @FXML
+    private Button validateGeneratedXmlButton;
+    @FXML
+    private Button exportValidationErrorsButton;
+    @FXML
+    private org.kordamp.ikonli.javafx.FontIcon sampleDataValidationIcon;
+    @FXML
+    private Label sampleDataValidationTitle;
+    @FXML
+    private Label sampleDataValidationMessage;
+    @FXML
+    private TableView<XsdDocumentationService.ValidationError> validationErrorsTable;
+    @FXML
+    private TableColumn<XsdDocumentationService.ValidationError, Integer> errorLineColumn;
+    @FXML
+    private TableColumn<XsdDocumentationService.ValidationError, Integer> errorColumnColumn;
+    @FXML
+    private TableColumn<XsdDocumentationService.ValidationError, String> errorSeverityColumn;
+    @FXML
+    private TableColumn<XsdDocumentationService.ValidationError, String> errorMessageColumn;
+    @FXML
+    private org.fxmisc.richtext.CodeArea sampleDataTextArea;
+    @FXML
+    private ProgressIndicator progressSampleData;
+
+    private final List<XsdDocumentationService.ValidationError> currentValidationErrors = new ArrayList<>();
 
     @FXML
     private StackPane typeLibraryStackPane;
@@ -158,6 +202,8 @@ public class XsdController implements FavoritesParentController {
     @FXML
     public void initialize() {
         initializeSourceCodeEditor();
+        initializeValidationErrorsTable();
+        initializeSampleDataControls();
         setupDragAndDrop();
         setupTextToGraphicSync();
         
@@ -368,11 +414,35 @@ public class XsdController implements FavoritesParentController {
     }
 
     private void applyEditorSettings() {
-        // Implementation...
+        try {
+            String fontSizeStr = propertiesService.get("ui.xml.font.size");
+            int fontSize = 12;
+            if (fontSizeStr != null) {
+                try {
+                    fontSize = Integer.parseInt(fontSizeStr);
+                } catch (NumberFormatException e) {
+                    logger.warn("Invalid font size in settings, defaulting to 12.", e);
+                }
+            }
+            String style = String.format("-fx-font-size: %dpx;", fontSize);
+
+            if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+                sourceCodeEditor.getCodeArea().setStyle(style);
+                logger.debug("Applied font size {}px to sourceCodeEditor", fontSize);
+            }
+            if (sampleDataTextArea != null) {
+                sampleDataTextArea.setStyle(style);
+                logger.debug("Applied font size {}px to sampleDataTextArea", fontSize);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to apply editor settings.", e);
+        }
     }
 
+    private MainController parentController;
+
     public void setParentController(MainController parentController) {
-        // Parent controller reference stored for potential future use
+        this.parentController = parentController;
     }
 
     public File openXsdFileChooser() {
@@ -409,10 +479,6 @@ public class XsdController implements FavoritesParentController {
     public File getCurrentFile() {
         return currentXsdFile;
     }
-
-    // Required by FavoritesParentController
-    public void refreshXsdFavoritesMenu() {}
-    public void setupOverviewFavorites() {}
 
     @Override
     public void loadFileToNewTab(File file) {
@@ -480,7 +546,17 @@ public class XsdController implements FavoritesParentController {
     }
 
     public void selectSubTab(String subTabId) {
-        // Find and select sub-tab
+        if (tabPane == null || subTabId == null) {
+            return;
+        }
+        for (Tab tab : tabPane.getTabs()) {
+            if (subTabId.equals(tab.getId())) {
+                tabPane.getSelectionModel().select(tab);
+                logger.debug("Selected sub-tab: {}", subTabId);
+                return;
+            }
+        }
+        logger.warn("Sub-tab not found: {}", subTabId);
     }
 
     public boolean isXsdTabActive() {
@@ -597,8 +673,9 @@ public class XsdController implements FavoritesParentController {
 
     @FXML
     public void handleToolbarXPathQuery() {
-        // XPath query functionality - reserved for future implementation
-        logger.info("XPath query toolbar action triggered");
+        showAlert(Alert.AlertType.INFORMATION, "XPath Query",
+                "XPath query functionality is not yet available in the XSD editor.\n"
+                        + "You can use XPath queries in the XML editor tab.");
     }
 
     @FXML
@@ -683,17 +760,197 @@ public class XsdController implements FavoritesParentController {
 
     @FXML
     public void generateSampleDataAction() {
-        logger.info("Generate sample data action triggered");
+        String xsdPath = xsdForSampleDataPath.getText();
+        if (xsdPath == null || xsdPath.isBlank()) {
+            DialogHelper.showError("Generate Sample Data", "Missing XSD File", "Please load an XSD source file first.");
+            return;
+        }
+
+        File xsdFile = new File(xsdPath);
+        if (!xsdFile.exists()) {
+            DialogHelper.showError("Generate Sample Data", "XSD File Not Found", "The specified XSD file does not exist: " + xsdPath);
+            return;
+        }
+
+        boolean mandatoryOnly = mandatoryOnlyCheckBox.isSelected();
+        int maxOccurrences = maxOccurrencesSpinner.getValue();
+
+        progressSampleData.setVisible(true);
+        sampleDataTextArea.clear();
+
+        Task<String> generationTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                updateMessage("Generating sample XML...");
+                XsdDocumentationService docService = new XsdDocumentationService();
+                docService.setXsdFilePath(xsdFile.getAbsolutePath());
+                return docService.generateSampleXml(mandatoryOnly, maxOccurrences);
+            }
+        };
+
+        generationTask.setOnSucceeded(event -> {
+            progressSampleData.setVisible(false);
+            String resultXml = generationTask.getValue();
+
+            sampleDataTextArea.replaceText(resultXml);
+            sampleDataTextArea.setStyleSpans(0, XmlSyntaxHighlighter.computeHighlighting(resultXml));
+            applyEditorSettings();
+
+            if (validateGeneratedXmlButton != null) {
+                validateGeneratedXmlButton.setDisable(false);
+            }
+
+            // Validate the generated XML against the XSD schema
+            Task<XsdDocumentationService.ValidationResult> validationTask = new Task<>() {
+                @Override
+                protected XsdDocumentationService.ValidationResult call() throws Exception {
+                    XsdDocumentationService docService = new XsdDocumentationService();
+                    docService.setXsdFilePath(xsdFile.getAbsolutePath());
+                    return docService.validateXmlAgainstSchema(resultXml);
+                }
+            };
+
+            validationTask.setOnSucceeded(validationEvent -> {
+                XsdDocumentationService.ValidationResult result = validationTask.getValue();
+                if (result.isValid()) {
+                    statusText.setText("Sample XML generated and validated successfully.");
+                    String message = result.message().isEmpty()
+                            ? "The generated XML is valid according to the XSD schema."
+                            : "Valid with notes: " + result.message();
+                    showValidationResult(true, "Validation Successful", message, result.errors());
+                } else {
+                    statusText.setText("Sample XML generated but validation failed.");
+                    int errorCount = result.errors().size();
+                    String summaryMessage = errorCount > 0
+                            ? String.format("%d error(s) found. See details below.", errorCount)
+                            : result.message();
+                    showValidationResult(false, "Validation Failed", summaryMessage, result.errors());
+                }
+            });
+
+            validationTask.setOnFailed(validationEvent -> {
+                logger.error("Validation task failed", validationTask.getException());
+                statusText.setText("Sample XML generated but validation could not be performed.");
+            });
+
+            executorService.submit(validationTask);
+
+            // Save to file if a path is provided
+            String outputPath = outputXmlPath.getText();
+            if (outputPath != null && !outputPath.isBlank()) {
+                saveStringToFile(resultXml, new File(outputPath));
+            }
+        });
+
+        generationTask.setOnFailed(event -> {
+            progressSampleData.setVisible(false);
+            Throwable e = generationTask.getException();
+            logger.error("Failed to generate sample XML data.", e);
+            statusText.setText("Error generating sample XML.");
+            if (e instanceof Exception ex) {
+                DialogHelper.showException("Generate Sample Data", "Failed to Generate Sample XML", ex);
+            } else {
+                DialogHelper.showError("Generate Sample Data", "Error", e != null ? e.getMessage() : "Unknown error");
+            }
+        });
+
+        executeTask(generationTask);
     }
 
     @FXML
     public void validateGeneratedXmlAction() {
-        logger.info("Validate generated XML action triggered");
+        String xsdPath = xsdForSampleDataPath.getText();
+        if (xsdPath == null || xsdPath.isBlank()) {
+            showValidationResult(false, "No XSD File", "Please load an XSD source file first.");
+            return;
+        }
+
+        File xsdFile = new File(xsdPath);
+        if (!xsdFile.exists()) {
+            showValidationResult(false, "XSD File Not Found", "The specified XSD file does not exist: " + xsdPath);
+            return;
+        }
+
+        String xmlContent = sampleDataTextArea.getText();
+        if (xmlContent == null || xmlContent.isBlank()) {
+            showValidationResult(false, "No XML Content", "Please generate sample XML first before validating.");
+            return;
+        }
+
+        Task<XsdDocumentationService.ValidationResult> validationTask = new Task<>() {
+            @Override
+            protected XsdDocumentationService.ValidationResult call() throws Exception {
+                updateMessage("Validating XML against schema...");
+                XsdDocumentationService docService = new XsdDocumentationService();
+                docService.setXsdFilePath(xsdFile.getAbsolutePath());
+                return docService.validateXmlAgainstSchema(xmlContent);
+            }
+        };
+
+        validationTask.setOnSucceeded(event -> {
+            XsdDocumentationService.ValidationResult result = validationTask.getValue();
+            if (result.isValid()) {
+                String message = result.message().isEmpty()
+                        ? "The XML content is valid according to the XSD schema."
+                        : "Valid with notes: " + result.message();
+                showValidationResult(true, "Validation Successful", message, result.errors());
+                logger.info("XML validation successful");
+            } else {
+                int errorCount = result.errors().size();
+                String summaryMessage = errorCount > 0
+                        ? String.format("%d error(s) found. See details below.", errorCount)
+                        : result.message();
+                showValidationResult(false, "Validation Failed", summaryMessage, result.errors());
+                logger.warn("XML validation failed: {} errors", errorCount);
+            }
+        });
+
+        validationTask.setOnFailed(event -> {
+            Throwable e = validationTask.getException();
+            logger.error("Validation task failed", e);
+            showValidationResult(false, "Validation Error",
+                    "Could not perform validation: " + (e != null ? e.getMessage() : "Unknown error"));
+        });
+
+        executorService.submit(validationTask);
     }
 
     @FXML
     public void exportValidationErrors() {
-        logger.info("Export validation errors action triggered");
+        if (currentValidationErrors == null || currentValidationErrors.isEmpty()) {
+            showAlert(Alert.AlertType.INFORMATION, "No Errors", "There are no validation errors to export.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Validation Errors");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv"),
+                new FileChooser.ExtensionFilter("Text Files", "*.txt"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+        fileChooser.setInitialFileName("validation_errors.csv");
+
+        File file = fileChooser.showSaveDialog(tabPane.getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+
+        try {
+            String fileName = file.getName().toLowerCase();
+            if (fileName.endsWith(".csv")) {
+                exportErrorsToCsv(file);
+            } else {
+                exportErrorsToText(file);
+            }
+            showAlert(Alert.AlertType.INFORMATION, "Export Successful",
+                    "Validation errors have been exported to:\n" + file.getAbsolutePath());
+            logger.info("Exported {} validation errors to: {}", currentValidationErrors.size(), file.getAbsolutePath());
+        } catch (Exception e) {
+            logger.error("Failed to export validation errors", e);
+            showAlert(Alert.AlertType.ERROR, "Export Failed",
+                    "Could not export validation errors: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -702,6 +959,198 @@ public class XsdController implements FavoritesParentController {
             sampleDataValidationResultPanel.setVisible(false);
             sampleDataValidationResultPanel.setManaged(false);
         }
+        if (validationErrorsTable != null) {
+            validationErrorsTable.getItems().clear();
+        }
+        currentValidationErrors.clear();
+    }
+
+    private void showValidationResult(boolean isValid, String title, String message) {
+        showValidationResult(isValid, title, message, List.of());
+    }
+
+    private void showValidationResult(boolean isValid, String title, String message,
+                                      List<XsdDocumentationService.ValidationError> errors) {
+        Platform.runLater(() -> {
+            sampleDataValidationResultPanel.setVisible(true);
+            sampleDataValidationResultPanel.setManaged(true);
+
+            sampleDataValidationTitle.setText(title);
+            sampleDataValidationMessage.setText(message);
+
+            currentValidationErrors.clear();
+            currentValidationErrors.addAll(errors);
+
+            if (validationErrorsTable != null) {
+                validationErrorsTable.getItems().clear();
+                validationErrorsTable.getItems().addAll(errors);
+                boolean hasErrors = !errors.isEmpty();
+                validationErrorsTable.setVisible(hasErrors);
+                validationErrorsTable.setManaged(hasErrors);
+            }
+
+            if (exportValidationErrorsButton != null) {
+                exportValidationErrorsButton.setVisible(!errors.isEmpty());
+                exportValidationErrorsButton.setManaged(!errors.isEmpty());
+            }
+
+            if (isValid) {
+                sampleDataValidationResultPanel.setStyle(
+                        "-fx-padding: 10; -fx-background-radius: 6; "
+                                + "-fx-background-color: #d4edda; -fx-border-color: #c3e6cb; -fx-border-radius: 6;");
+                sampleDataValidationIcon.setIconLiteral("bi-check-circle-fill");
+                sampleDataValidationIcon.setIconColor(javafx.scene.paint.Color.web("#28a745"));
+                sampleDataValidationTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #155724;");
+                sampleDataValidationMessage.setStyle("-fx-font-size: 12px; -fx-text-fill: #155724;");
+            } else {
+                sampleDataValidationResultPanel.setStyle(
+                        "-fx-padding: 10; -fx-background-radius: 6; "
+                                + "-fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; -fx-border-radius: 6;");
+                sampleDataValidationIcon.setIconLiteral("bi-exclamation-triangle-fill");
+                sampleDataValidationIcon.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
+                sampleDataValidationTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #721c24;");
+                sampleDataValidationMessage.setStyle("-fx-font-size: 12px; -fx-text-fill: #721c24;");
+            }
+        });
+    }
+
+    private void initializeValidationErrorsTable() {
+        if (validationErrorsTable == null) {
+            return;
+        }
+
+        if (errorLineColumn != null) {
+            errorLineColumn.setCellValueFactory(cellData ->
+                    new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().lineNumber()).asObject());
+            errorLineColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
+        }
+
+        if (errorColumnColumn != null) {
+            errorColumnColumn.setCellValueFactory(cellData ->
+                    new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().columnNumber()).asObject());
+            errorColumnColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
+        }
+
+        if (errorSeverityColumn != null) {
+            errorSeverityColumn.setCellValueFactory(cellData ->
+                    new javafx.beans.property.SimpleStringProperty(cellData.getValue().severity()));
+            errorSeverityColumn.setCellFactory(column -> new javafx.scene.control.TableCell<>() {
+                @Override
+                protected void updateItem(String severity, boolean empty) {
+                    super.updateItem(severity, empty);
+                    if (empty || severity == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(severity);
+                        switch (severity) {
+                            case "Fatal Error" -> setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                            case "Error" -> setStyle("-fx-text-fill: #dc3545;");
+                            case "Warning" -> setStyle("-fx-text-fill: #ffc107;");
+                            default -> setStyle("");
+                        }
+                    }
+                }
+            });
+        }
+
+        if (errorMessageColumn != null) {
+            errorMessageColumn.setCellValueFactory(cellData ->
+                    new javafx.beans.property.SimpleStringProperty(cellData.getValue().message()));
+            errorMessageColumn.setCellFactory(column -> new javafx.scene.control.TableCell<>() {
+                @Override
+                protected void updateItem(String message, boolean empty) {
+                    super.updateItem(message, empty);
+                    if (empty || message == null) {
+                        setText(null);
+                        setTooltip(null);
+                    } else {
+                        setText(message);
+                        if (message.length() > 80) {
+                            setTooltip(new Tooltip(message));
+                        }
+                    }
+                }
+            });
+        }
+
+        validationErrorsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    }
+
+    private void initializeSampleDataControls() {
+        if (maxOccurrencesSpinner != null) {
+            maxOccurrencesSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 3));
+        }
+        if (generateSampleDataButton != null && xsdForSampleDataPath != null) {
+            generateSampleDataButton.disableProperty().bind(xsdForSampleDataPath.textProperty().isEmpty());
+        }
+    }
+
+    private void saveStringToFile(String content, File file) {
+        Task<Void> saveTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                updateMessage("Saving to " + file.getName() + "...");
+                Files.writeString(file.toPath(), content);
+                return null;
+            }
+        };
+
+        saveTask.setOnSucceeded(event ->
+                statusText.setText("Sample XML generated and saved successfully."));
+
+        saveTask.setOnFailed(event -> {
+            logger.error("Failed to save content to file: " + file.getAbsolutePath(), saveTask.getException());
+            Throwable ex = saveTask.getException();
+            if (ex instanceof Exception e) {
+                DialogHelper.showException("Save File", "Could Not Save File", e);
+            } else {
+                DialogHelper.showError("Save File", "Error", ex != null ? ex.getMessage() : "Unknown error");
+            }
+        });
+
+        executeTask(saveTask);
+    }
+
+    private void exportErrorsToCsv(File file) throws IOException {
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.FileWriter(file))) {
+            writer.println("Line,Column,Severity,Message");
+            for (XsdDocumentationService.ValidationError error : currentValidationErrors) {
+                writer.printf("%d,%d,%s,\"%s\"%n",
+                        error.lineNumber(),
+                        error.columnNumber(),
+                        escapeCsvField(error.severity()),
+                        escapeCsvField(error.message()));
+            }
+        }
+    }
+
+    private void exportErrorsToText(File file) throws IOException {
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.FileWriter(file))) {
+            writer.println("=== Validation Errors Report ===");
+            writer.println("Generated: " + java.time.LocalDateTime.now().format(
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            writer.println("Total Errors: " + currentValidationErrors.size());
+            writer.println();
+
+            int index = 1;
+            for (XsdDocumentationService.ValidationError error : currentValidationErrors) {
+                writer.printf("%d. [%s] Line %d, Column %d%n",
+                        index++,
+                        error.severity(),
+                        error.lineNumber(),
+                        error.columnNumber());
+                writer.println("   " + error.message());
+                writer.println();
+            }
+        }
+    }
+
+    private String escapeCsvField(String field) {
+        if (field == null) {
+            return "";
+        }
+        return field.replace("\"", "\"\"");
     }
 
     @FXML

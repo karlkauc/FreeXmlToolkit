@@ -300,8 +300,10 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
      *
      * @param parentController the main controller
      */
+    private MainController parentController;
+
     public void setParentController(MainController parentController) {
-        // Parent controller reference stored for potential future use
+        this.parentController = parentController;
     }
 
     // ==================== File Operations ====================

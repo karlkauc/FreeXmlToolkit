@@ -121,8 +121,10 @@ public class FopController implements FavoritesParentController {
      *
      * @param parentController the parent controller
      */
+    private MainController parentController;
+
     public void setParentController(MainController parentController) {
-        // Parent controller reference stored for potential future use
+        this.parentController = parentController;
     }
 
     /**

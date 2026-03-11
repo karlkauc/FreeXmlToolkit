@@ -97,8 +97,10 @@ public class XsltController {
     @FXML
     private TextArea performanceArea;
 
+    private MainController parentController;
+
     public void setParentController(MainController parentController) {
-        // Parent controller reference stored for potential future use
+        this.parentController = parentController;
     }
 
     @FXML

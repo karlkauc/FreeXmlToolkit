@@ -74,7 +74,9 @@ public class SchemaAnalysisTabController {
         }
     }
 
+    private XsdController parentController;
+
     public void setParentController(XsdController parentController) {
-        // Parent controller reference stored for potential future use
+        this.parentController = parentController;
     }
 }
