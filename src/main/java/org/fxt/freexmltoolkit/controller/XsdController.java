@@ -1173,6 +1173,11 @@ public class XsdController implements FavoritesParentController {
 
     private void saveXsdToFile(File file) {
         try {
+            // If on the graphical tab, serialize the model into the text area first
+            // so that any in-memory changes (documentation, properties, etc.) are included
+            if (tabPane.getSelectionModel().getSelectedItem() == xsdTab) {
+                syncGraphicToText();
+            }
             Files.writeString(file.toPath(), sourceCodeEditor.getCodeArea().getText());
         } catch (IOException e) {
             logger.error("Failed to save", e);
