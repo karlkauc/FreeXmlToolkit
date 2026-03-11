@@ -1130,7 +1130,7 @@ public class XmlServiceImpl implements XmlService {
                         if (isSchemaValid(localFile)) {
                             logger.info("Loading local XSD schema: {}", localFile.getAbsolutePath());
                             this.setCurrentXsdFile(localFile);
-                            this.remoteXsdLocation = possibleSchemaLocation.get();
+                            this.remoteXsdLocation = temp;
                             return true;
                         } else {
                             logger.error("Local schema file is not a valid XSD: {}", localFile.getAbsolutePath());
@@ -1170,7 +1170,7 @@ public class XmlServiceImpl implements XmlService {
                             }
                         }
 
-                        String fileNameNew = FilenameUtils.getName(possibleSchemaLocation.get());
+                        String fileNameNew = FilenameUtils.getName(temp);
                         String possibleFileName = CURRENT_XSD_CACHE_PATH + File.separator + fileNameNew;
                         logger.debug("Cache File: {}", possibleFileName);
 
@@ -1178,7 +1178,7 @@ public class XmlServiceImpl implements XmlService {
                         if (newFile.exists() && newFile.length() > 1) {
                             logger.debug("Load file from cache: {}", newFile.getAbsolutePath());
                             this.setCurrentXsdFile(newFile);
-                            this.remoteXsdLocation = possibleSchemaLocation.get();
+                            this.remoteXsdLocation = temp;
 
                             return true;
                         } else {
@@ -1187,7 +1187,7 @@ public class XmlServiceImpl implements XmlService {
 
                             try {
                                 long downloadStart = System.currentTimeMillis();
-                                String textContent = connectionService.getTextContentFromURL(new URI(possibleSchemaLocation.get()));
+                                String textContent = connectionService.getTextContentFromURL(new URI(temp));
                                 // NEU: Schema-Inhalt vor dem Speichern validieren
                                 if (isSchemaValid(textContent)) {
                                     byte[] contentBytes = textContent.getBytes(StandardCharsets.UTF_8);
@@ -1195,21 +1195,21 @@ public class XmlServiceImpl implements XmlService {
                                     logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());
 
                                     // Add to central cache index
-                                    addToCacheIndex(pathNew, possibleSchemaLocation.get(), contentBytes, downloadStart);
+                                    addToCacheIndex(pathNew, temp, contentBytes, downloadStart);
 
                                     this.setCurrentXsdFile(new File(pathNew.toUri()));
-                                    this.remoteXsdLocation = possibleSchemaLocation.get();
+                                    this.remoteXsdLocation = temp;
 
                                     // Download imported XSD files recursively
-                                    downloadImportedSchemas(textContent, possibleSchemaLocation.get(), CURRENT_XSD_CACHE_PATH);
+                                    downloadImportedSchemas(textContent, temp, CURRENT_XSD_CACHE_PATH);
 
                                     return true;
                                 } else {
-                                    logger.error("Downloaded schema from {} is not valid and will not be saved.", possibleSchemaLocation.get());
+                                    logger.error("Downloaded schema from {} is not valid and will not be saved.", temp);
                                     return false;
                                 }
                             } catch (Exception e) {
-                                logger.error("Failed to download or process schema from {}: {}", possibleSchemaLocation.get(), e.getMessage());
+                                logger.error("Failed to download or process schema from {}: {}", temp, e.getMessage());
                                 return false;
                             }
                         }
@@ -1245,11 +1245,11 @@ public class XmlServiceImpl implements XmlService {
                     // First check if it's already a complete URL
                     if (possibleFileName.startsWith("http://") || possibleFileName.startsWith("https://")) {
                         logger.debug("Found remote Schema URL: {}", possibleFileName);
-                        return Optional.of(possibleFileName);
+                        return Optional.of(possibleFileName.trim());
                     }
 
                     // Check for local file
-                    File localSchemaFile = new File(this.currentXmlFile.getParentFile(), possibleFileName);
+                    File localSchemaFile = new File(this.currentXmlFile.getParentFile(), possibleFileName.trim());
                     if (localSchemaFile.exists()) {
                         logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
                         return Optional.of(localSchemaFile.toURI().toString());
@@ -1258,7 +1258,7 @@ public class XmlServiceImpl implements XmlService {
                         // Only return if it looks like a URL, not just a filename
                         if (possibleFileName.startsWith("http://") || possibleFileName.startsWith("https://") || possibleFileName.contains(".")) {
                             logger.debug("Second part looks like a URL or path: {}", possibleFileName);
-                            return Optional.of(possibleFileName);
+                            return Optional.of(possibleFileName.trim());
                         } else {
                             logger.debug("Second part is just a filename without URL indicators: {}", possibleFileName);
                         }
@@ -1271,19 +1271,20 @@ public class XmlServiceImpl implements XmlService {
                     logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
 
                     // Check if it's already a complete URL
-                    if (possibleSchemaLocation.startsWith("http://") || possibleSchemaLocation.startsWith("https://")) {
-                        return Optional.of(possibleSchemaLocation);
+                    String trimmedSchemaLocation = possibleSchemaLocation.trim();
+                    if (trimmedSchemaLocation.startsWith("http://") || trimmedSchemaLocation.startsWith("https://")) {
+                        return Optional.of(trimmedSchemaLocation);
                     }
 
                     // Check for local file relative to XML file
-                    File localSchemaFile = new File(this.currentXmlFile.getParentFile(), possibleSchemaLocation);
+                    File localSchemaFile = new File(this.currentXmlFile.getParentFile(), trimmedSchemaLocation);
                     if (localSchemaFile.exists()) {
                         logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
                         return Optional.of(localSchemaFile.toURI().toString());
                     } else {
                         logger.debug("Local schema not found at: {}", localSchemaFile.getAbsolutePath());
                         // Return the raw value anyway, it might be a URL
-                        return Optional.of(possibleSchemaLocation);
+                        return Optional.of(trimmedSchemaLocation);
                     }
                 } else {
                     logger.debug("No possible Schema Location found!");
@@ -1292,9 +1293,10 @@ public class XmlServiceImpl implements XmlService {
                 logger.debug("Trying xmlns...");
                 possibleSchemaLocation = root.getAttribute("xmlns");
                 logger.debug("Schema Location: {}", possibleSchemaLocation);
-                if (!possibleSchemaLocation.isEmpty() && possibleSchemaLocation.toLowerCase().endsWith(".xsd")) {
-                    logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
-                    return Optional.of(possibleSchemaLocation);
+                String trimmedXmlns = possibleSchemaLocation.trim();
+                if (!trimmedXmlns.isEmpty() && trimmedXmlns.toLowerCase().endsWith(".xsd")) {
+                    logger.debug("Possible Schema Location: {}", trimmedXmlns);
+                    return Optional.of(trimmedXmlns);
                 } else {
                     logger.debug("Possible Schema Location empty or doesn't end with .xsd");
                 }
