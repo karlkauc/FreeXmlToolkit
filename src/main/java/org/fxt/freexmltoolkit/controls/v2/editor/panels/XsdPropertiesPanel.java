@@ -31,6 +31,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -260,7 +261,7 @@ public class XsdPropertiesPanel extends BorderPane {
         Tab tab = new Tab("Attributes", scrollPane);
         FontIcon icon = new FontIcon("bi-tags");
         icon.setIconSize(16);
-        icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
+        icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
         tab.setGraphic(icon);
 
         return tab;
@@ -292,7 +293,7 @@ public class XsdPropertiesPanel extends BorderPane {
         Tab tab = new Tab("Facets", scrollPane);
         FontIcon icon = new FontIcon("bi-sliders");
         icon.setIconSize(16);
-        icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
+        icon.setIconColor(Color.web(FACETS_COLOR));
         tab.setGraphic(icon);
 
         return tab;
@@ -320,7 +321,7 @@ public class XsdPropertiesPanel extends BorderPane {
         Tab tab = new Tab("Docs", scrollPane);
         FontIcon icon = new FontIcon("bi-journal-text");
         icon.setIconSize(16);
-        icon.setStyle("-fx-icon-color: " + DOCS_COLOR + ";");
+        icon.setIconColor(Color.web(DOCS_COLOR));
         tab.setGraphic(icon);
 
         return tab;
@@ -360,7 +361,7 @@ public class XsdPropertiesPanel extends BorderPane {
         // Add icon to title
         FontIcon icon = new FontIcon("bi-info-circle");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: #17a2b8;");
+        icon.setIconColor(Color.web("#17a2b8"));
         pane.setGraphic(icon);
 
         return pane;
@@ -392,7 +393,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         typeIcon = new FontIcon("bi-diagram-3");
         typeIcon.setIconSize(18);
-        typeIcon.setStyle("-fx-icon-color: #666666;");
+        typeIcon.setIconColor(Color.web("#666666"));
 
         typeBox.getChildren().addAll(typeComboBox, typeIcon);
         grid.add(typeBox, 1, row);
@@ -405,7 +406,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         FontIcon icon = new FontIcon("bi-gear");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
+        icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
         titledPane.setGraphic(icon);
 
         return titledPane;
@@ -441,7 +442,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         FontIcon icon = new FontIcon("bi-hash");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
+        icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
         titledPane.setGraphic(icon);
 
         return titledPane;
@@ -474,7 +475,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         FontIcon icon = new FontIcon("bi-lock");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
+        icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
         titledPane.setGraphic(icon);
 
         return titledPane;
@@ -512,7 +513,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         FontIcon icon = new FontIcon("bi-sliders");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: " + ATTRIBUTES_COLOR + ";");
+        icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
         titledPane.setGraphic(icon);
 
         return titledPane;
@@ -544,7 +545,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         FontIcon icon = new FontIcon("bi-funnel");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
+        icon.setIconColor(Color.web(FACETS_COLOR));
         pane.setGraphic(icon);
 
         return pane;
@@ -627,7 +628,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         FontIcon icon = new FontIcon("bi-braces");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
+        icon.setIconColor(Color.web(FACETS_COLOR));
         pane.setGraphic(icon);
 
         return pane;
@@ -683,7 +684,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         FontIcon icon = new FontIcon("bi-list-ul");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
+        icon.setIconColor(Color.web(FACETS_COLOR));
         pane.setGraphic(icon);
 
         return pane;
@@ -744,7 +745,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         FontIcon icon = new FontIcon("bi-check2-square");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: " + FACETS_COLOR + ";");
+        icon.setIconColor(Color.web(FACETS_COLOR));
         pane.setGraphic(icon);
 
         return pane;
@@ -822,7 +823,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         FontIcon icon = new FontIcon("bi-book");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: " + DOCS_COLOR + ";");
+        icon.setIconColor(Color.web(DOCS_COLOR));
         titledPane.setGraphic(icon);
 
         return titledPane;
@@ -854,7 +855,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
         FontIcon icon = new FontIcon("bi-info-square");
         icon.setIconSize(14);
-        icon.setStyle("-fx-icon-color: " + DOCS_COLOR + ";");
+        icon.setIconColor(Color.web(DOCS_COLOR));
         titledPane.setGraphic(icon);
 
         return titledPane;
