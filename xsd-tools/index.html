@@ -1291,6 +1291,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#preserving-includes-and-imports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preserving Includes and Imports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#when-to-use" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2329,6 +2340,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#preserving-includes-and-imports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preserving Includes and Imports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#when-to-use" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2399,7 +2421,7 @@
 
 <h1 id="xsd-tools">XSD Tools<a class="headerlink" href="#xsd-tools" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> December 2025 | <strong>Version:</strong> 1.1.0</p>
+<p><strong>Last Updated:</strong> March 2026 | <strong>Version:</strong> 1.6.3</p>
 </blockquote>
 <p>This part of the application provides tools for working with XML Schemas (XSD). These tools help you understand,
 document, and use XSD files effectively.</p>
@@ -2461,7 +2483,7 @@ document, and use XSD files effectively.</p>
 <ul>
 <li><strong>Visual Tree</strong>: See your XSD as an interactive, hierarchical tree</li>
 <li><strong>Easy Navigation</strong>: Click on elements to explore their structure</li>
-<li><strong>Edit Documentation</strong>: Add or edit documentation for schema elements</li>
+<li><strong>Edit Documentation</strong>: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)</li>
 <li><strong>Add Examples</strong>: Include example values for elements</li>
 <li><strong>Drag &amp; Drop</strong>: Reorganize elements by dragging them</li>
 <li><strong>Full Undo/Redo</strong>: Go back and forward through your changes</li>
@@ -2936,6 +2958,8 @@ document, and use XSD files effectively.</p>
 <li>Click <strong>Flatten</strong></li>
 <li>The tool merges all <code>&lt;xs:include&gt;</code> schemas into one file</li>
 </ol>
+<h3 id="preserving-includes-and-imports">Preserving Includes and Imports<a class="headerlink" href="#preserving-includes-and-imports" title="Permanent link">&para;</a></h3>
+<p>When saving schemas from the graphical editor, <code>xs:include</code> and <code>xs:import</code> declarations are preserved. The flattener only merges included content when you explicitly flatten — it does not alter your original schema structure.</p>
 <h3 id="when-to-use">When to Use<a class="headerlink" href="#when-to-use" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Distributing schemas to partners</li>
