@@ -28,7 +28,6 @@ TypeEditorTabManager
 - `controls/v2/editor/TypeEditorTabManager.java`
 - `controls/v2/editor/tabs/*.java`
 - `controls/v2/editor/views/*.java`
-- See also: `TYPE_EDITOR_STATUS.md`
 
 ---
 
@@ -57,16 +56,16 @@ public interface XsdCommand {
 
 **Key Methods:** `executeCommand(XsdCommand)`, `undo()`, `redo()`, `clear()`
 
-## All 24 Commands
+## All 31 Concrete Commands
 
 | Category | Commands |
 |----------|----------|
-| Structure | AddElementCommand, DeleteNodeCommand, MoveNodeCommand, DuplicateNodeCommand |
-| Properties | RenameNodeCommand, ChangeCardinalityCommand, ChangeTypeCommand, ChangeDocumentationCommand |
-| Facets | AddFacetCommand, DeleteFacetCommand, EditFacetCommand |
-| Constraints | AddPatternCommand, DeletePatternCommand, AddEnumerationCommand, DeleteEnumerationCommand |
-| Assertions | AddAssertionCommand, DeleteAssertionCommand |
-| Persistence | SaveCommand |
+| Structure (11) | AddElementCommand, AddContainerElementCommand, AddAttributeCommand, AddSequenceCommand, AddChoiceCommand, AddAllCommand, AddCompositorCommand, DeleteNodeCommand, MoveNodeCommand, DuplicateNodeCommand, PasteNodeCommand |
+| Properties (9) | RenameNodeCommand, ChangeCardinalityCommand, ChangeTypeCommand, ChangeFormCommand, ChangeUseCommand, ChangeSubstitutionGroupCommand, ChangeDocumentationCommand, ChangeDocumentationsCommand, ChangeAppinfoCommand |
+| Facets (3) | AddFacetCommand, DeleteFacetCommand, EditFacetCommand |
+| Constraints (5) | AddPatternCommand, DeletePatternCommand, AddEnumerationCommand, DeleteEnumerationCommand, ChangeConstraintsCommand |
+| Assertions (2) | AddAssertionCommand, DeleteAssertionCommand |
+| Persistence (1) | SaveCommand |
 
 ## Command Pattern Rules
 
@@ -127,7 +126,6 @@ public class XsdEditorContext {
 - Fixed facets: Yellow (#fff3cd), read-only
 - Inherited facets: Blue (#e7f3ff), italic
 - Two modes: `setRestriction(XsdRestriction)` (editable) / `setElement(XsdElement)` (read-only inherited)
-- See also: `FACETS_IMPLEMENTATION_SUMMARY.md`, `INHERITED_FACETS_FEATURE.md`
 
 ---
 
@@ -240,7 +238,7 @@ org.fxt.freexmltoolkit/
 │   ├── view/                           # Visual representation layer
 │   ├── editor/                         # Editor orchestration
 │   │   ├── XsdEditorContext.java       # Central context
-│   │   ├── commands/                   # 24 commands
+│   │   ├── commands/                   # 31 commands
 │   │   ├── panels/                     # Property panels + helpers
 │   │   ├── selection/                  # Selection model
 │   │   ├── menu/                       # Context menus

@@ -157,12 +157,10 @@ The style guide covers: color palette, typography, icons, components, CSS classe
 
 ## Documentation
 
-**Architecture:** `docs/XSD_EDITOR_V2_README.md`, `docs/XSD_EDITOR_V2_PLAN.md`, `docs/XSD_EDITOR_V2_ROADMAP.md`, `docs/ThreadPoolArchitecture.md`
+**Architecture:** `docs/ThreadPoolArchitecture.md`
 
-**Features:** `docs/context-sensitive-intellisense.md`, `docs/favorites-system.md`, `docs/type-definition-inclusion-feature.md`, `docs/xml-editor-features.md`
+**Features:** `docs/context-sensitive-intellisense.md`, `docs/favorites-system.md`, `docs/xml-editor-features.md`
 
-**Facets:** `FACETS_IMPLEMENTATION_SUMMARY.md`, `INHERITED_FACETS_FEATURE.md`, `XSD-1.1-DATATYPES-FACETS.md`
-
-**Build:** `BUILD_INSTRUCTIONS.md`, `README.md`
+**User Documentation:** `docs/index.md` (MkDocs site), `README.md`
 
 **UI/Styling:** `STYLE_GUIDE.jsonc`

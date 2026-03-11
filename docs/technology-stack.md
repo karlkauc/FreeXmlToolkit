@@ -7,7 +7,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ## Core Technologies
 
 ### Java Platform
-- **Java Vers[template-management.md](template-management.md)ion:** Java 25 with preview features enabled
+- **Java Version:** Java 25 with preview features enabled
 - **Build System:** Gradle 8.x with Kotlin DSL
 - **Application Framework:** JavaFX 24.0.1 (included in Liberica Full JDK)
 
@@ -28,7 +28,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ### JSON Processing
 - **Gson:** 2.13.2 - JSON parsing and serialization
 - **JSONPath:** 2.10.0 (Jayway) - JSONPath query language support
-- **JSON Schema Validator:** 1.5.3 (NetworkNT) - JSON Schema validation (Draft 4-2020-12)
+- **JSON Schema Validator:** 3.0.0 (NetworkNT) - JSON Schema validation (Draft 4-2020-12)
 
 ### PDF Generation
 - **Apache FOP:** 2.11 - XSL-FO to PDF transformation
@@ -74,7 +74,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ### XSD Editor V2 Architecture (MVVM Variant)
 The XSD Editor V2 uses a sophisticated MVVM variant:
 - **Model Layer:** Pure XsdNode tree with PropertyChangeSupport
-- **Command Pattern:** All editing operations for undo/redo (24 commands)
+- **Command Pattern:** All editing operations for undo/redo (31 commands)
 - **Observable Properties:** Reactive UI updates without tight coupling
 - **Incremental Rendering:** Only changed nodes re-render
 

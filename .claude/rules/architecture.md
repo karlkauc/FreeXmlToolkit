@@ -44,10 +44,13 @@ element.setName("NewName");
 commandManager.executeCommand(new RenameNodeCommand(element, "NewName"));
 ```
 
-**24 Available Commands:**
-- Structure: `AddElementCommand`, `DeleteNodeCommand`, `MoveNodeCommand`, `DuplicateNodeCommand`
-- Properties: `RenameNodeCommand`, `ChangeCardinalityCommand`, `ChangeTypeCommand`
-- Facets: `AddFacetCommand`, `DeleteFacetCommand`, `EditFacetCommand`
+**31 Concrete Commands:**
+- Structure (11): `AddElementCommand`, `AddContainerElementCommand`, `AddAttributeCommand`, `AddSequenceCommand`, `AddChoiceCommand`, `AddAllCommand`, `AddCompositorCommand`, `DeleteNodeCommand`, `MoveNodeCommand`, `DuplicateNodeCommand`, `PasteNodeCommand`
+- Properties (9): `RenameNodeCommand`, `ChangeCardinalityCommand`, `ChangeTypeCommand`, `ChangeFormCommand`, `ChangeUseCommand`, `ChangeSubstitutionGroupCommand`, `ChangeDocumentationCommand`, `ChangeDocumentationsCommand`, `ChangeAppinfoCommand`
+- Facets (3): `AddFacetCommand`, `DeleteFacetCommand`, `EditFacetCommand`
+- Constraints (5): `AddPatternCommand`, `DeletePatternCommand`, `AddEnumerationCommand`, `DeleteEnumerationCommand`, `ChangeConstraintsCommand`
+- Assertions (2): `AddAssertionCommand`, `DeleteAssertionCommand`
+- Persistence (1): `SaveCommand`
 
 ---
 
@@ -62,20 +65,35 @@ commandManager.executeCommand(new RenameNodeCommand(element, "NewName"));
 
 ---
 
-## Key Controllers
+## Key Controllers (25 total)
 
-| Controller | Tab | Responsibility |
-|------------|-----|----------------|
+| Controller | Tab / Context | Responsibility |
+|------------|---------------|----------------|
 | `MainController` | - | Navigation, lifecycle, memory monitoring |
 | `XmlUltimateController` | XML | Multi-tab XML editing, IntelliSense |
 | `XsdController` | XSD | Tab orchestration, graphical/text view, Type Library/Editor |
 | `DocumentationTabController` | XSD > Documentation | XSD documentation export (HTML, PDF, Word) |
 | `FlattenTabController` | XSD > Flatten | Schema flattening with options |
 | `SchemaAnalysisTabController` | XSD > Analysis | Schema statistics, identity constraints |
+| `XsdValidationController` | XSD Validation | Schema validation results |
 | `XsltController` | XSLT | Transformations |
+| `XsltDeveloperController` | XSLT Developer | Full XSLT/XQuery development environment |
 | `SchematronController` | Schematron | Business rule validation |
 | `FopController` | FOP | PDF generation |
 | `SignatureController` | Signature | Digital signatures |
+| `JsonController` | JSON | JSON editing and validation |
+| `SchemaGeneratorController` | Schema Generator | XSD generation from XML |
+| `TemplatesController` | Templates | Template management |
+| `UnifiedEditorController` | Unified Editor | Unified editing view |
+| `SettingsController` | Settings | Application settings |
+| `HelpController` | Help | Help and about information |
+| `WelcomeController` | Welcome | Welcome screen |
+| `FavoritesParentController` | - | Favorites coordination |
+| `SchemaGeneratorPopupController` | Popup | Schema generator popup dialog |
+| `TemplateManagerPopupController` | Popup | Template manager popup dialog |
+| `XmlSpreadsheetConverterDialogController` | Dialog | XML-to-spreadsheet conversion |
+| `XmlEditorSidebarController` | Control | XML editor sidebar panel |
+| `FavoritesPanelController` | Control | Favorites panel component |
 
 ---
 
@@ -93,13 +111,32 @@ public void setName(String name) {
 
 ---
 
-## Entry Points
+## Entry Points (24 FXML files)
 
 | File | Purpose |
 |------|---------|
 | `FxtGui.java` | Application main class |
 | `main.fxml` | Root layout |
-| `tab_*.fxml` | Individual tab layouts |
+| `welcome.fxml` | Welcome screen |
+| `settings.fxml` | Application settings |
+| `tab_xml_ultimate.fxml` | XML editor tab |
+| `tab_xsd.fxml` | XSD tools tab |
+| `tab_json.fxml` | JSON editor tab |
+| `tab_xslt.fxml` | XSLT viewer tab |
+| `tab_xslt_developer.fxml` | XSLT developer tab |
+| `tab_schematron.fxml` | Schematron tab |
+| `tab_fop.fxml` | FOP/PDF tab |
+| `tab_signature.fxml` | Digital signatures tab |
+| `tab_schema_generator.fxml` | Schema generator tab |
+| `tab_templates.fxml` | Templates tab |
+| `tab_help.fxml` | Help tab |
+| `tab_unified_editor.fxml` | Unified editor tab |
+| `tab_validation.fxml` | XSD validation tab |
 | `documentation_tab.fxml` | XSD documentation sub-tab |
 | `flatten_tab.fxml` | XSD flatten sub-tab |
 | `schema_analysis_tab.fxml` | XSD schema analysis sub-tab |
+| `popup_schema_generator.fxml` | Schema generator popup |
+| `popup_templates.fxml` | Template manager popup |
+| `dialogs/XmlSpreadsheetConverterDialog.fxml` | Spreadsheet converter dialog |
+| `controls/FavoritesPanel.fxml` | Favorites panel component |
+| `controls/XmlEditorSidebar.fxml` | XML editor sidebar component |

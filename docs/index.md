@@ -131,6 +131,13 @@ Sign and verify XML documents:
 
 Learn more: [Digital Signatures Guide](digital-signatures.md)
 
+### Appearance
+
+| Feature | What It Does |
+|---------|--------------|
+| **Dark Mode** | Switch between light and dark themes to suit your preference |
+| **Modern UI** | Clean, modern interface powered by the AtlantaFX theme |
+
 ### Schematron Validation
 
 Define custom business rules:

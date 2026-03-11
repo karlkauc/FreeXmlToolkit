@@ -1,6 +1,6 @@
 # XSD Tools
 
-> **Last Updated:** December 2025 | **Version:** 1.1.0
+> **Last Updated:** March 2026 | **Version:** 1.6.3
 
 This part of the application provides tools for working with XML Schemas (XSD). These tools help you understand,
 document, and use XSD files effectively.
@@ -36,7 +36,7 @@ The Graphic View lets you explore and edit your schemas visually.
 
 - **Visual Tree**: See your XSD as an interactive, hierarchical tree
 - **Easy Navigation**: Click on elements to explore their structure
-- **Edit Documentation**: Add or edit documentation for schema elements
+- **Edit Documentation**: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)
 - **Add Examples**: Include example values for elements
 - **Drag & Drop**: Reorganize elements by dragging them
 - **Full Undo/Redo**: Go back and forward through your changes
@@ -357,6 +357,10 @@ Combine multiple XSD files into a single file. Useful when your schema imports o
 2. Choose where to save the new file
 3. Click **Flatten**
 4. The tool merges all `<xs:include>` schemas into one file
+
+### Preserving Includes and Imports
+
+When saving schemas from the graphical editor, `xs:include` and `xs:import` declarations are preserved. The flattener only merges included content when you explicitly flatten — it does not alter your original schema structure.
 
 ### When to Use
 
