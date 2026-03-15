@@ -329,6 +329,9 @@
                 <BorderPane VBox.vgrow="ALWAYS">
                     <top>
                         <VBox BorderPane.alignment="CENTER" alignment="CENTER">
+                            <!-- Section: EDITORS -->
+                            <Label fx:id="sectionEditors" text="EDITORS" styleClass="sidebar-section-label"/>
+
                             <!-- ========== XML Group ========== -->
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="XML Editor" fx:id="xmlUltimate">
@@ -345,8 +348,8 @@
                                 </graphic>
                             </Button>
 
-                            <!-- Separator: XML / XSD -->
-                            <Separator orientation="HORIZONTAL" styleClass="menu-group-separator"/>
+                            <!-- Section: SCHEMA -->
+                            <Label fx:id="sectionSchema" text="SCHEMA" styleClass="sidebar-section-label"/>
 
                             <!-- ========== XSD Group ========== -->
                             <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" VBox.vgrow="ALWAYS"
@@ -370,8 +373,8 @@
                                 </graphic>
                             </Button>
 
-                            <!-- Separator: XSD / XSLT -->
-                            <Separator orientation="HORIZONTAL" styleClass="menu-group-separator"/>
+                            <!-- Section: TRANSFORMS -->
+                            <Label fx:id="sectionTransforms" text="TRANSFORMS" styleClass="sidebar-section-label"/>
 
                             <!-- ========== XSLT Group ========== -->
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
@@ -388,8 +391,8 @@
                                 </graphic>
                             </Button>
 
-                            <!-- Separator: XSLT / Unified Editor -->
-                            <Separator orientation="HORIZONTAL" styleClass="menu-group-separator"/>
+                            <!-- Section: ADVANCED -->
+                            <Label fx:id="sectionAdvanced" text="ADVANCED" styleClass="sidebar-section-label"/>
 
                             <!-- ========== Experimental: Unified Editor ========== -->
                             <Button fx:id="unifiedEditor" mnemonicParsing="false" onAction="#loadPage"
@@ -399,8 +402,8 @@
                                 </graphic>
                             </Button>
 
-                            <!-- Separator: Unified Editor / Other Tools -->
-                            <Separator orientation="HORIZONTAL" styleClass="menu-group-separator"/>
+                            <!-- Section: TOOLS -->
+                            <Label fx:id="sectionTools" text="TOOLS" styleClass="sidebar-section-label"/>
 
                             <!-- ========== Other Tools ========== -->
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"

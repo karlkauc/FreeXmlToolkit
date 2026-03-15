@@ -210,6 +210,12 @@ public class MainController implements Initializable {
     Label menuText1, menuText2;
 
     /**
+     * Section labels in the left sidebar for grouping navigation buttons.
+     */
+    @FXML
+    Label sectionEditors, sectionSchema, sectionTransforms, sectionAdvanced, sectionTools;
+
+    /**
      * Left menu VBox container for navigation buttons.
      */
     @FXML
@@ -1243,11 +1249,26 @@ public class MainController implements Initializable {
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
             setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
+            setSectionLabelsVisible(false);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
             setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
+            setSectionLabelsVisible(true);
         }
         showMenu = !showMenu;
+    }
+
+    /**
+     * Shows or hides the sidebar section labels.
+     * Labels are hidden when the sidebar is collapsed since they don't fit in the narrow width.
+     */
+    private void setSectionLabelsVisible(boolean visible) {
+        for (Label label : new Label[]{sectionEditors, sectionSchema, sectionTransforms, sectionAdvanced, sectionTools}) {
+            if (label != null) {
+                label.setVisible(visible);
+                label.setManaged(visible);
+            }
+        }
     }
 
     private void setMenuSize(int width, String text1, String text2, int logoHeight, int logoWidth) {
