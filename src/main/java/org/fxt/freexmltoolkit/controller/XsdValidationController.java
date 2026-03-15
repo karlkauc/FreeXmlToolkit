@@ -671,7 +671,7 @@ public class XsdValidationController implements FavoritesParentController {
             updateStatus(SingleFileValidationStatus.SUCCESS, "Validation successful. No errors found.");
 
             Label successLabel = new Label("The XML file is valid according to the provided schema.");
-            successLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: green; -fx-font-size: 14px;");
+            successLabel.getStyleClass().add("validation-result-success");
             FontIcon icon = new FontIcon("bi-check-circle-fill");
             icon.setIconColor(Color.GREEN);
             icon.setIconSize(18);
@@ -693,7 +693,7 @@ public class XsdValidationController implements FavoritesParentController {
 
         // Create header with filename
         Label fileLabel = new Label("File: " + currentFile.getName());
-        fileLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+        fileLabel.getStyleClass().add("validation-file-header");
         FontIcon fileIcon = new FontIcon("bi-file-earmark-code");
         fileIcon.setIconSize(16);
         fileLabel.setGraphic(fileIcon);
@@ -703,8 +703,7 @@ public class XsdValidationController implements FavoritesParentController {
         String timestamp = java.time.LocalDateTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         Label timestampLabel = new Label("Validated: " + timestamp);
-        timestampLabel.getStyleClass().add("theme-text-secondary");
-        timestampLabel.setStyle("-fx-font-size: 12px;");
+        timestampLabel.getStyleClass().addAll("theme-text-secondary", "label-small");
         FontIcon clockIcon = new FontIcon("bi-clock");
         clockIcon.setIconSize(14);
         clockIcon.setIconColor(Color.web("#6c757d"));
@@ -713,7 +712,7 @@ public class XsdValidationController implements FavoritesParentController {
 
         // Create header container
         VBox headerBox = new VBox(3);
-        headerBox.setStyle("-fx-padding: 0 0 10 0; -fx-border-color: -border-light; -fx-border-width: 0 0 1 0;");
+        headerBox.getStyleClass().add("validation-results-header");
         headerBox.getChildren().addAll(fileLabel, timestampLabel);
 
         errorListBox.getChildren().add(headerBox);
@@ -725,32 +724,38 @@ public class XsdValidationController implements FavoritesParentController {
      * @param status  Der Validierungsstatus (SUCCESS, ERROR, READY).
      * @param message Die anzuzeigende Nachricht.
      */
+    private static final String STATUS_CLASS_SUCCESS = "validation-status-success";
+    private static final String STATUS_CLASS_ERROR = "validation-status-error";
+    private static final String STATUS_CLASS_READY = "validation-status-ready";
+
     private void updateStatus(SingleFileValidationStatus status, String message) {
         if (statusPane == null || statusLabel == null || statusImage == null) {
             return;
         }
 
         statusLabel.setText(message);
-        String style = "-fx-background-radius: 5; -fx-padding: 10;";
+
+        // Remove previous status classes
+        statusPane.getStyleClass().removeAll(STATUS_CLASS_SUCCESS, STATUS_CLASS_ERROR, STATUS_CLASS_READY);
+
         String imagePath = null;
 
         switch (status) {
             case SUCCESS -> {
-                style += "-fx-background-color: #e0f8e0;"; // Light green
+                statusPane.getStyleClass().add(STATUS_CLASS_SUCCESS);
                 imagePath = "/img/icons8-ok-48.png";
             }
             case ERROR -> {
-                style += "-fx-background-color: #f8e0e0;"; // Light red
+                statusPane.getStyleClass().add(STATUS_CLASS_ERROR);
                 imagePath = "/img/icons8-stornieren-48.png";
             }
             case READY -> {
-                style += "-fx-background-color: -fx-background-color-subtle;"; // Default background
+                statusPane.getStyleClass().add(STATUS_CLASS_READY);
                 imagePath = null;
             }
             default -> throw new IllegalStateException("Unexpected value: " + status);
         }
 
-        statusPane.setStyle(style);
         if (imagePath != null) {
             statusImage.setImage(new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toString()));
         } else {
@@ -919,28 +924,27 @@ public class XsdValidationController implements FavoritesParentController {
         // Icon sizes: small = 14px, normal = 20px
         int iconSize = useSmallIcons ? 14 : 20;
 
-        // Button style: compact padding for small icons
-        String buttonStyle = useSmallIcons
-                ? "-fx-padding: 4px;"
-                : "";
+        // CSS class for compact padding
+        String compactClass = "toolbar-button-compact";
 
         // Apply to all toolbar buttons
-        applyButtonSettings(xmlLoadButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(xsdLoadButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(validateBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(excelExport, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(clearResults, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(helpBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(xmlLoadButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(xsdLoadButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(validateBtn, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(excelExport, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(clearResults, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(helpBtn, displayMode, iconSize, useSmallIcons, compactClass);
 
         logger.info("Small icons setting applied to XSD Validation toolbar (size: {}px)", iconSize);
     }
 
     /**
-     * Helper method to apply display mode, icon size, and style to a button.
+     * Helper method to apply display mode, icon size, and CSS class to a button.
      */
-    private void applyButtonSettings(ButtonBase button, ContentDisplay displayMode, int iconSize, String style) {
+    private void applyButtonSettings(ButtonBase button, ContentDisplay displayMode, int iconSize,
+                                     boolean useSmallIcons, String compactClass) {
         if (button == null) {
             return;
         }
@@ -948,8 +952,11 @@ public class XsdValidationController implements FavoritesParentController {
         // Set content display mode
         button.setContentDisplay(displayMode);
 
-        // Apply compact style
-        button.setStyle(style);
+        // Apply or remove compact CSS class
+        button.getStyleClass().remove(compactClass);
+        if (useSmallIcons) {
+            button.getStyleClass().add(compactClass);
+        }
 
         // Update icon size if the button has a FontIcon graphic
         if (button.getGraphic() instanceof FontIcon fontIcon) {
@@ -1211,6 +1218,7 @@ public class XsdValidationController implements FavoritesParentController {
                         icon.setIconColor(Color.web(status.getColor()));
                         icon.setIconSize(14);
                         setGraphic(icon);
+                        // Dynamic color from status enum - must use setStyle for per-cell color
                         setStyle("-fx-text-fill: " + status.getColor() + ";");
                     }
                 }
@@ -1225,13 +1233,14 @@ public class XsdValidationController implements FavoritesParentController {
                     super.updateItem(count, empty);
                     if (empty || count == null) {
                         setText(null);
-                        setStyle("");
+                        getStyleClass().removeAll("batch-error-count", "batch-success-count");
                     } else {
                         setText(String.valueOf(count));
+                        getStyleClass().removeAll("batch-error-count", "batch-success-count");
                         if (count > 0) {
-                            setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+                            getStyleClass().add("batch-error-count");
                         } else {
-                            setStyle("-fx-text-fill: #28a745;");
+                            getStyleClass().add("batch-success-count");
                         }
                     }
                 }
@@ -1534,7 +1543,7 @@ public class XsdValidationController implements FavoritesParentController {
 
         // Show file info header
         Label fileHeader = new Label("File: " + file.getFileName());
-        fileHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        fileHeader.getStyleClass().add("batch-file-header");
         batchErrorDetailsBox.getChildren().add(fileHeader);
 
         // Show status
@@ -1550,7 +1559,7 @@ public class XsdValidationController implements FavoritesParentController {
         // Show error message if present
         if (file.getErrorMessage() != null && !file.getErrorMessage().isEmpty()) {
             Label errorMsg = new Label("Error: " + file.getErrorMessage());
-            errorMsg.setStyle("-fx-text-fill: #dc3545;");
+            errorMsg.getStyleClass().add("status-error");
             errorMsg.setWrapText(true);
             batchErrorDetailsBox.getChildren().add(errorMsg);
         }
@@ -1560,18 +1569,17 @@ public class XsdValidationController implements FavoritesParentController {
         if (errors != null && !errors.isEmpty()) {
             batchErrorDetailsBox.getChildren().add(new Separator());
             Label errorsHeader = new Label("Validation Errors (" + errors.size() + "):");
-            errorsHeader.setStyle("-fx-font-weight: bold;");
+            errorsHeader.getStyleClass().add("batch-errors-header");
             batchErrorDetailsBox.getChildren().add(errorsHeader);
 
             for (int i = 0; i < errors.size(); i++) {
                 SAXParseException ex = errors.get(i);
                 VBox errorBox = new VBox(3);
-                errorBox.getStyleClass().add("warning-box");
-                errorBox.setStyle("-fx-padding: 5; -fx-background-radius: 3;");
+                errorBox.getStyleClass().addAll("warning-box", "batch-error-item");
 
                 Label errorLabel = new Label("#" + (i + 1) + ": " + ex.getLocalizedMessage());
                 errorLabel.setWrapText(true);
-                errorLabel.setStyle("-fx-font-size: 12px;");
+                errorLabel.getStyleClass().add("label-small");
 
                 Label locationLabel = new Label("Line: " + ex.getLineNumber() + ", Column: " + ex.getColumnNumber());
                 locationLabel.getStyleClass().add("desc-label");
@@ -1581,7 +1589,7 @@ public class XsdValidationController implements FavoritesParentController {
             }
         } else if (file.getStatus() == ValidationStatus.PASSED) {
             Label successLabel = new Label("No validation errors found.");
-            successLabel.setStyle("-fx-text-fill: #28a745;");
+            successLabel.getStyleClass().add("status-success");
             batchErrorDetailsBox.getChildren().add(successLabel);
         }
     }

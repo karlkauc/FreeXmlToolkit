@@ -114,15 +114,15 @@
             </VBox>
 
             <!-- Main Content (initially hidden) -->
-            <ScrollPane fx:id="contentPane" fitToWidth="true" style="-fx-background-color: transparent;"
+            <ScrollPane fx:id="contentPane" fitToWidth="true" styleClass="theme-bg-primary"
                         visible="false" managed="false">
-                <VBox spacing="20" style="-fx-padding: 20;">
+                <VBox spacing="20" styleClass="p-5">
 
                     <!-- Karte 1: Ein- & Ausgabedateien -->
                     <VBox styleClass="card">
                         <Label styleClass="card-title" text="Input &amp; Output Files"/>
                         <Separator/>
-                        <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                        <GridPane hgap="10" vgap="10" styleClass="card-grid-padded">
                             <!-- XML File -->
                             <Label text="XML Source File*:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                             <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
@@ -172,7 +172,7 @@
                     <VBox styleClass="card">
                         <Label styleClass="card-title" text="PDF Metadata (Optional)"/>
                         <Separator/>
-                        <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                        <GridPane hgap="10" vgap="10" styleClass="card-grid-padded">
                             <Label text="Author:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                             <TextField fx:id="author" promptText="e.g., Karl Kauc" GridPane.columnIndex="1"
                                        GridPane.rowIndex="0"/>
@@ -205,7 +205,7 @@
                     <VBox styleClass="card">
                         <Label styleClass="card-title" text="Options"/>
                         <Separator/>
-                        <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                        <GridPane hgap="10" vgap="10" styleClass="card-grid-padded">
                             <Label text="FOP Config File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                             <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                 <TextField editable="false" promptText="Optional FOP configuration file"
@@ -235,13 +235,13 @@
         <!-- RECHTE SEITE: Der PDF-Viewer + Favorites -->
         <SplitPane fx:id="rightSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
             <AnchorPane>
-                <VBox style="-fx-background-color: #525252;" alignment="TOP_CENTER" AnchorPane.bottomAnchor="0.0"
+                <VBox styleClass="pdf-preview-container" alignment="TOP_CENTER" AnchorPane.bottomAnchor="0.0"
                       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                <Label text="PDF Preview" style="-fx-font-size: 1.5em; -fx-text-fill: white; -fx-padding: 10;"/>
+                <Label text="PDF Preview" styleClass="pdf-preview-heading"/>
                 <Separator/>
                 <ScrollPane fx:id="pdfScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS">
                     <VBox fx:id="pdfViewContainer" alignment="CENTER" spacing="5"
-                          style="-fx-background-color: #525252;">
+                          styleClass="pdf-preview-container">
                         <padding>
                             <Insets top="10"/>
                         </padding>

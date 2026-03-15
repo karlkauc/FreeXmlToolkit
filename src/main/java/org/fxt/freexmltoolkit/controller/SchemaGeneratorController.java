@@ -1161,33 +1161,32 @@ public class SchemaGeneratorController implements FavoritesParentController {
         // Icon sizes: small = 14px, normal = 20px
         int iconSize = useSmallIcons ? 14 : 20;
 
-        // Button style: compact padding for small icons
-        String buttonStyle = useSmallIcons
-                ? "-fx-padding: 4px;"
-                : "";
+        // CSS class for compact padding
+        String compactClass = "toolbar-button-compact";
 
         // Apply to all toolbar buttons
-        applyButtonSettings(loadXmlBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(pasteXmlBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(clearXmlBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(batchProcessBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(generateSchemaBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(copyXsdBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(exportSchemaBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(helpBtn, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(loadXmlBtn, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(pasteXmlBtn, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(clearXmlBtn, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(batchProcessBtn, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(generateSchemaBtn, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(copyXsdBtn, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(exportSchemaBtn, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(addToFavoritesBtn, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(toggleFavoritesButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(helpBtn, displayMode, iconSize, useSmallIcons, compactClass);
 
         logger.info("Small icons setting applied to Schema Generator toolbar (size: {}px)", iconSize);
     }
 
     /**
-     * Helper method to apply display mode, icon size, and style to a button.
+     * Helper method to apply display mode, icon size, and CSS class to a button.
      */
     private void applyButtonSettings(javafx.scene.control.ButtonBase button,
                                      javafx.scene.control.ContentDisplay displayMode,
                                      int iconSize,
-                                     String style) {
+                                     boolean useSmallIcons,
+                                     String compactClass) {
         if (button == null) {
             return;
         }
@@ -1195,8 +1194,11 @@ public class SchemaGeneratorController implements FavoritesParentController {
         // Set content display mode
         button.setContentDisplay(displayMode);
 
-        // Apply compact style
-        button.setStyle(style);
+        // Apply or remove compact CSS class
+        button.getStyleClass().remove(compactClass);
+        if (useSmallIcons) {
+            button.getStyleClass().add(compactClass);
+        }
 
         // Update icon size if the button has a FontIcon graphic
         if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {

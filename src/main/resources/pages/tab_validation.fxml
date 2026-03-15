@@ -152,7 +152,7 @@
 
                     <!-- Main Content (initially hidden, controller shows when files loaded) -->
                     <ScrollPane fx:id="contentPane" fitToWidth="true" visible="false" managed="false">
-                        <VBox spacing="20" style="-fx-padding: 20;">
+                        <VBox spacing="20" styleClass="p-5">
 
                     <!-- Validation Setup Card -->
                     <VBox styleClass="card">
@@ -230,9 +230,9 @@
                         <Separator/>
 
                         <!-- Error List -->
-                        <Label text="Details:" styleClass="field-label-bold" style="-fx-padding: 5 0 5 0;"/>
-                        <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" style="-fx-border-color: #dee2e6; -fx-border-width: 1;">
-                            <VBox fx:id="errorListBox" style="-fx-padding: 5; -fx-background-color: white;"/>
+                        <Label text="Details:" styleClass="field-label-bold"/>
+                        <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="validation-results-scroll">
+                            <VBox fx:id="errorListBox" styleClass="validation-error-list"/>
                         </ScrollPane>
                     </VBox>
                 </VBox>
@@ -250,10 +250,10 @@
                 <FontIcon iconLiteral="bi-files" iconSize="16" iconColor="#28a745"/>
             </graphic>
 
-            <VBox spacing="10" style="-fx-padding: 15;">
+            <VBox spacing="10" styleClass="p-4">
                 <!-- XSD Mode Selection -->
                 <HBox spacing="15" alignment="CENTER_LEFT" styleClass="panel-light">
-                    <Label text="XSD Mode:" style="-fx-font-weight: bold;"/>
+                    <Label text="XSD Mode:" styleClass="label-bold"/>
                     <RadioButton fx:id="sameXsdRadio" text="Use same XSD for all files">
                         <toggleGroup>
                             <ToggleGroup fx:id="xsdModeGroup"/>
@@ -272,7 +272,7 @@
                 </HBox>
 
                 <!-- Batch File Toolbar -->
-                <ToolBar style="-fx-background-color: transparent; -fx-padding: 5 0;">
+                <ToolBar styleClass="batch-toolbar-transparent">
                     <Button fx:id="addBatchFilesBtn" text="Add Files" onAction="#addFilesToBatch">
                         <graphic>
                             <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="14" iconColor="#007bff"/>
@@ -334,7 +334,7 @@
                 </ToolBar>
 
                 <!-- Progress Section -->
-                <HBox fx:id="batchProgressPane" spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 5;" visible="false" managed="false">
+                <HBox fx:id="batchProgressPane" spacing="10" alignment="CENTER_LEFT" styleClass="p-1" visible="false" managed="false">
                     <ProgressBar fx:id="batchProgressBar" prefWidth="300"/>
                     <Label fx:id="batchStatusLabel" text="Ready"/>
                 </HBox>
@@ -364,7 +364,7 @@
                         </TableView>
 
                         <!-- Summary and Filter -->
-                        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 5;">
+                        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="p-1">
                             <Label fx:id="batchSummaryLabel" text="Total: 0 | Passed: 0 | Failed: 0" styleClass="panel-header-label"/>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label text="Filter:"/>
@@ -375,7 +375,7 @@
                     <!-- Bottom Section: Error Details (now resizable) -->
                     <TitledPane fx:id="batchErrorDetailsTitledPane" text="Error Details for Selected File" expanded="true" collapsible="true">
                         <ScrollPane fitToWidth="true" fitToHeight="true">
-                            <VBox fx:id="batchErrorDetailsBox" spacing="5" style="-fx-padding: 10; -fx-background-color: white;"/>
+                            <VBox fx:id="batchErrorDetailsBox" spacing="5" styleClass="batch-error-details"/>
                         </ScrollPane>
                     </TitledPane>
                 </SplitPane>

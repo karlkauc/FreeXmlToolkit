@@ -877,3 +877,174 @@
     -fx-border-color: -border-light;
     -fx-border-width: 1 0 0 0;
 }
+
+/* ============================================
+   FOP TAB STYLES
+   ============================================ */
+
+/* PDF preview container with dark background */
+.pdf-preview-container {
+    -fx-background-color: #525252;
+}
+
+/* PDF preview heading label */
+.pdf-preview-heading {
+    -fx-font-size: 1.5em;
+    -fx-text-fill: white;
+    -fx-padding: 10;
+}
+
+/* PDF page label (white text on dark bg) */
+.pdf-page-label {
+    -fx-text-fill: white;
+}
+
+/* PDF error label */
+.pdf-error-label {
+    -fx-text-fill: -color-danger;
+}
+
+/* ============================================
+   SIGNATURE TAB STYLES
+   ============================================ */
+
+/* Expert mode monospace text area */
+.expert-results-area {
+    -fx-font-family: 'Courier New', monospace;
+}
+
+/* Expert mode italic description label */
+.expert-description-italic {
+    -fx-padding: 10 0 0 0;
+    -fx-font-style: italic;
+}
+
+/* ============================================
+   VALIDATION TAB STYLES
+   ============================================ */
+
+/* Validation results header */
+.validation-results-header {
+    -fx-padding: 0 0 10 0;
+    -fx-border-color: -border-light;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* Validation success label in results */
+.validation-result-success {
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-success;
+    -fx-font-size: 14px;
+}
+
+/* Validation file header label */
+.validation-file-header {
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+/* Validation batch file header */
+.batch-file-header {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* Validation batch errors header */
+.batch-errors-header {
+    -fx-font-weight: bold;
+}
+
+/* Validation batch error item container */
+.batch-error-item {
+    -fx-padding: 5;
+    -fx-background-radius: 3;
+}
+
+/* Validation results scrollpane border */
+.validation-results-scroll {
+    -fx-border-color: -border-light;
+    -fx-border-width: 1;
+}
+
+/* Validation error list container */
+.validation-error-list {
+    -fx-padding: 5;
+    -fx-background-color: -bg-primary;
+}
+
+/* Batch validation toolbar */
+.batch-toolbar-transparent {
+    -fx-background-color: transparent;
+    -fx-padding: 5 0;
+}
+
+/* Batch error details container */
+.batch-error-details {
+    -fx-padding: 10;
+    -fx-background-color: -bg-primary;
+}
+
+/* ============================================
+   COMMON CARD GRID STYLES
+   ============================================ */
+
+/* Card grid with top padding (used after Separator in cards) */
+.card-grid-padded {
+    -fx-padding: 15 0 0 0;
+}
+
+/* Card content VBox with top padding */
+.card-content-padded {
+    -fx-padding: 15 0 0 0;
+}
+
+/* ============================================
+   SMALL ICON TOOLBAR STYLES
+   ============================================ */
+
+/* Compact button padding for small icon mode */
+.toolbar-button-compact {
+    -fx-padding: 4px;
+}
+
+/* ============================================
+   VALIDATION STATUS PANE STATES
+   ============================================ */
+
+/* Base validation status pane */
+.validation-status-pane {
+    -fx-background-radius: 5;
+    -fx-padding: 10;
+}
+
+/* Validation status: success */
+.validation-status-success {
+    -fx-background-radius: 5;
+    -fx-padding: 10;
+    -fx-background-color: #e0f8e0;
+}
+
+/* Validation status: error */
+.validation-status-error {
+    -fx-background-radius: 5;
+    -fx-padding: 10;
+    -fx-background-color: #f8e0e0;
+}
+
+/* Validation status: ready (default) */
+.validation-status-ready {
+    -fx-background-radius: 5;
+    -fx-padding: 10;
+    -fx-background-color: -bg-secondary;
+}
+
+/* Batch validation status cell - error count */
+.batch-error-count {
+    -fx-text-fill: -color-danger;
+    -fx-font-weight: bold;
+}
+
+/* Batch validation status cell - success count */
+.batch-success-count {
+    -fx-text-fill: -color-success;
+}

@@ -24,13 +24,13 @@
             </tooltip>
             <content>
                 <ScrollPane fitToWidth="true">
-                    <VBox spacing="20" style="-fx-padding: 20;">
+                    <VBox spacing="20" styleClass="p-5">
 
                         <!-- Karte 1: Distinguished Name (DN) Details -->
                         <VBox styleClass="card">
                             <Label styleClass="card-title" text="Distinguished Name (DN) Details"/>
                             <Separator/>
-                            <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                            <GridPane hgap="10" vgap="10" styleClass="card-grid-padded">
                                 <Label text="CommonName (CN):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                                 <TextField fx:id="commonName" promptText="e.g., Karl Kauc" GridPane.columnIndex="1"
                                            GridPane.rowIndex="0"/>
@@ -63,7 +63,7 @@
                         <VBox styleClass="card">
                             <Label styleClass="card-title" text="Keystore Security"/>
                             <Separator/>
-                            <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                            <GridPane hgap="10" vgap="10" styleClass="card-grid-padded">
                                 <Label text="Keystore Alias*:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                                 <TextField fx:id="createCertificateAlias" promptText="A unique name for your key"
                                            GridPane.columnIndex="1" GridPane.rowIndex="0"/>
@@ -106,13 +106,13 @@
             </tooltip>
             <content>
                 <ScrollPane fitToWidth="true">
-                    <VBox spacing="20" style="-fx-padding: 20;">
+                    <VBox spacing="20" styleClass="p-5">
 
                         <!-- Karte 1: Eingabedateien -->
                         <VBox styleClass="card">
                             <Label styleClass="card-title" text="Input Files"/>
                             <Separator/>
-                            <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                            <GridPane hgap="10" vgap="10" styleClass="card-grid-padded">
                                 <Button fx:id="signLoadXmlFileButton" text="XML File*" GridPane.columnIndex="0"
                                         GridPane.rowIndex="0">
                                     <graphic>
@@ -141,7 +141,7 @@
                         <VBox styleClass="card">
                             <Label styleClass="card-title" text="Keystore Credentials"/>
                             <Separator/>
-                            <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                            <GridPane hgap="10" vgap="10" styleClass="card-grid-padded">
                                 <Label text="Keystore Alias*:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                                 <TextField fx:id="signKeystoreAlias" promptText="The alias used during creation"
                                            GridPane.columnIndex="1" GridPane.rowIndex="0"/>
@@ -162,7 +162,7 @@
                         <VBox styleClass="card">
                             <Label styleClass="card-title" text="Output Settings"/>
                             <Separator/>
-                            <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                            <GridPane hgap="10" vgap="10" styleClass="card-grid-padded">
                                 <Label text="New Filename Postfix:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                                 <TextField fx:id="newFileName" text="_signed" GridPane.columnIndex="1"
                                            GridPane.rowIndex="0"/>
@@ -197,13 +197,13 @@
             </tooltip>
             <content>
                 <ScrollPane fitToWidth="true">
-                    <VBox spacing="20" style="-fx-padding: 20;">
+                    <VBox spacing="20" styleClass="p-5">
 
                         <!-- Karte 1: Eingabedatei -->
                         <VBox styleClass="card">
                             <Label styleClass="card-title" text="Input File"/>
                             <Separator/>
-                            <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                            <GridPane hgap="10" vgap="10" styleClass="card-grid-padded">
                                 <Button fx:id="validateLoadXmlFileButton" text="Signed XML File*"
                                         GridPane.columnIndex="0" GridPane.rowIndex="0">
                                     <graphic>
@@ -243,16 +243,16 @@
             </tooltip>
             <content>
                 <ScrollPane fitToWidth="true">
-                    <VBox spacing="20" style="-fx-padding: 20;">
+                    <VBox spacing="20" styleClass="p-5">
 
                         <!-- Expert Mode Header -->
                         <VBox styleClass="card">
                             <Label styleClass="card-title" text="XML Digital Signature Expert Mode"/>
                             <Separator/>
-                            <VBox style="-fx-padding: 15 0 0 0;">
+                            <VBox styleClass="card-grid-padded">
                                 <Label wrapText="true"
                                        text="This expert mode provides comprehensive XML-DSig capabilities including all available key algorithms, signature methods, and validation options according to W3C XML-DSig standards."/>
-                                <Label wrapText="true" style="-fx-padding: 10 0 0 0; -fx-font-style: italic;"
+                                <Label wrapText="true" styleClass="expert-description-italic"
                                        text="For detailed information about Expert Mode features and workflow, please refer to the Instructions tab above. The Expert Mode is designed for advanced users who need full control over XML Digital Signature parameters and require compliance with enterprise security standards."/>
                             </VBox>
                         </VBox>
@@ -261,7 +261,7 @@
                         <VBox styleClass="card">
                             <Label styleClass="card-title" text="Advanced Key Generation"/>
                             <Separator/>
-                            <VBox spacing="15" style="-fx-padding: 15 0 0 0;">
+                            <VBox spacing="15" styleClass="card-grid-padded">
 
                                 <!-- Key Algorithm Selection -->
                                 <GridPane hgap="10" vgap="10">
@@ -361,7 +361,7 @@
                         <VBox styleClass="card">
                             <Label styleClass="card-title" text="Advanced XML Signing"/>
                             <Separator/>
-                            <VBox spacing="15" style="-fx-padding: 15 0 0 0;">
+                            <VBox spacing="15" styleClass="card-grid-padded">
 
                                 <!-- File Selection -->
                                 <GridPane hgap="10" vgap="10">
@@ -450,7 +450,7 @@
                         <VBox styleClass="card">
                             <Label styleClass="card-title" text="Advanced Signature Validation"/>
                             <Separator/>
-                            <VBox spacing="15" style="-fx-padding: 15 0 0 0;">
+                            <VBox spacing="15" styleClass="card-grid-padded">
 
                                 <!-- File Selection -->
                                 <GridPane hgap="10" vgap="10">
@@ -497,7 +497,7 @@
                             <Label styleClass="card-title" text="Expert Mode Results"/>
                             <Separator/>
                             <TextArea fx:id="expertResultsArea" prefRowCount="8" editable="false" wrapText="true"
-                                      style="-fx-font-family: 'Courier New', monospace;"/>
+                                      styleClass="expert-results-area"/>
                         </VBox>
 
                     </VBox>
