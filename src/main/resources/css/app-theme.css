@@ -708,3 +708,118 @@
 .severity-warning {
     -fx-text-fill: -color-warning;
 }
+
+/* ============================================
+   QUERY CODE AREA STYLES
+   Used by XPath/XQuery editors to replace inline styles
+   ============================================ */
+
+.query-code-area {
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 13px;
+    -fx-background-color: -bg-primary;
+}
+
+.query-scroll-pane {
+    -fx-background-color: -bg-primary;
+}
+
+/* ============================================
+   VALIDATION RESULT TITLE/MESSAGE STYLES
+   ============================================ */
+
+.validation-success-title {
+    -fx-font-weight: bold;
+    -fx-text-fill: #155724;
+}
+
+.validation-success-message {
+    -fx-font-size: 12px;
+    -fx-text-fill: #155724;
+}
+
+.validation-error-title {
+    -fx-font-weight: bold;
+    -fx-text-fill: #721c24;
+}
+
+.validation-error-message {
+    -fx-font-size: 12px;
+    -fx-text-fill: #721c24;
+}
+
+/* ============================================
+   QUERY STATUS LABEL STYLES
+   ============================================ */
+
+.query-status-ready {
+    -fx-text-fill: -text-secondary;
+}
+
+.query-status-success {
+    -fx-text-fill: -color-success;
+}
+
+.query-status-error {
+    -fx-text-fill: -color-danger;
+}
+
+/* ============================================
+   LABEL UTILITY CLASSES
+   ============================================ */
+
+.label-bold {
+    -fx-font-weight: bold;
+}
+
+.label-small {
+    -fx-font-size: 11px;
+}
+
+/* ============================================
+   INLINE PANEL STYLES
+   Replacements for inline style attributes on panels
+   ============================================ */
+
+.info-bar {
+    -fx-padding: 10;
+    -fx-background-color: -bg-tertiary;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: -border-light;
+}
+
+.task-status-bar {
+    -fx-padding: 10;
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: -border-light;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* JSONPath result area */
+.jsonpath-result-area {
+    -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 12px;
+}
+
+/* JSONPath panel root */
+.jsonpath-panel-root {
+    -fx-padding: 10;
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: -border-light;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Column alignment utilities for TableColumns */
+.column-align-right {
+    -fx-alignment: CENTER-RIGHT;
+}
+
+/* Format indicator label (e.g., "JSON" in toolbar) */
+.format-indicator {
+    -fx-font-weight: bold;
+}
+
+.format-indicator-json {
+    -fx-font-weight: bold;
+    -fx-text-fill: #fd7e14;
+}

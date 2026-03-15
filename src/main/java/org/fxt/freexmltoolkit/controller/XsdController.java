@@ -996,21 +996,23 @@ public class XsdController implements FavoritesParentController {
             }
 
             if (isValid) {
-                sampleDataValidationResultPanel.setStyle(
-                        "-fx-padding: 10; -fx-background-radius: 6; "
-                                + "-fx-background-color: #d4edda; -fx-border-color: #c3e6cb; -fx-border-radius: 6;");
+                sampleDataValidationResultPanel.getStyleClass().removeAll("validation-error-panel");
+                sampleDataValidationResultPanel.getStyleClass().add("validation-success-panel");
                 sampleDataValidationIcon.setIconLiteral("bi-check-circle-fill");
                 sampleDataValidationIcon.setIconColor(javafx.scene.paint.Color.web("#28a745"));
-                sampleDataValidationTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #155724;");
-                sampleDataValidationMessage.setStyle("-fx-font-size: 12px; -fx-text-fill: #155724;");
+                sampleDataValidationTitle.getStyleClass().removeAll("validation-error-title");
+                sampleDataValidationTitle.getStyleClass().add("validation-success-title");
+                sampleDataValidationMessage.getStyleClass().removeAll("validation-error-message");
+                sampleDataValidationMessage.getStyleClass().add("validation-success-message");
             } else {
-                sampleDataValidationResultPanel.setStyle(
-                        "-fx-padding: 10; -fx-background-radius: 6; "
-                                + "-fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; -fx-border-radius: 6;");
+                sampleDataValidationResultPanel.getStyleClass().removeAll("validation-success-panel");
+                sampleDataValidationResultPanel.getStyleClass().add("validation-error-panel");
                 sampleDataValidationIcon.setIconLiteral("bi-exclamation-triangle-fill");
                 sampleDataValidationIcon.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
-                sampleDataValidationTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #721c24;");
-                sampleDataValidationMessage.setStyle("-fx-font-size: 12px; -fx-text-fill: #721c24;");
+                sampleDataValidationTitle.getStyleClass().removeAll("validation-success-title");
+                sampleDataValidationTitle.getStyleClass().add("validation-error-title");
+                sampleDataValidationMessage.getStyleClass().removeAll("validation-success-message");
+                sampleDataValidationMessage.getStyleClass().add("validation-error-message");
             }
         });
     }
@@ -1023,13 +1025,13 @@ public class XsdController implements FavoritesParentController {
         if (errorLineColumn != null) {
             errorLineColumn.setCellValueFactory(cellData ->
                     new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().lineNumber()).asObject());
-            errorLineColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
+            errorLineColumn.getStyleClass().add("column-align-right");
         }
 
         if (errorColumnColumn != null) {
             errorColumnColumn.setCellValueFactory(cellData ->
                     new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().columnNumber()).asObject());
-            errorColumnColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
+            errorColumnColumn.getStyleClass().add("column-align-right");
         }
 
         if (errorSeverityColumn != null) {
@@ -1039,16 +1041,16 @@ public class XsdController implements FavoritesParentController {
                 @Override
                 protected void updateItem(String severity, boolean empty) {
                     super.updateItem(severity, empty);
+                    getStyleClass().removeAll("severity-fatal", "severity-error", "severity-warning");
                     if (empty || severity == null) {
                         setText(null);
-                        setStyle("");
                     } else {
                         setText(severity);
                         switch (severity) {
-                            case "Fatal Error" -> setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
-                            case "Error" -> setStyle("-fx-text-fill: #dc3545;");
-                            case "Warning" -> setStyle("-fx-text-fill: #ffc107;");
-                            default -> setStyle("");
+                            case "Fatal Error" -> getStyleClass().add("severity-fatal");
+                            case "Error" -> getStyleClass().add("severity-error");
+                            case "Warning" -> getStyleClass().add("severity-warning");
+                            default -> { }
                         }
                     }
                 }

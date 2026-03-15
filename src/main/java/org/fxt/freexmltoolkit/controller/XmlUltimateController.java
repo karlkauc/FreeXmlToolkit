@@ -729,10 +729,10 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
 
         // Initialize XPath code area
         codeAreaXpath.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXpath));
-        codeAreaXpath.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 13px; -fx-background-color: white;");
+        codeAreaXpath.getStyleClass().add("query-code-area");
         codeAreaXpath.setPrefHeight(100);
         virtualizedScrollPaneXpath = new VirtualizedScrollPane<>(codeAreaXpath);
-        virtualizedScrollPaneXpath.setStyle("-fx-background-color: white;");
+        virtualizedScrollPaneXpath.getStyleClass().add("query-scroll-pane");
         stackPaneXPath.getChildren().clear();
         stackPaneXPath.getChildren().add(virtualizedScrollPaneXpath);
 
@@ -753,10 +753,10 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
 
         // Initialize XQuery code area
         codeAreaXQuery.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXQuery));
-        codeAreaXQuery.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 13px; -fx-background-color: white;");
+        codeAreaXQuery.getStyleClass().add("query-code-area");
         codeAreaXQuery.setPrefHeight(100);
         virtualizedScrollPaneXQuery = new VirtualizedScrollPane<>(codeAreaXQuery);
-        virtualizedScrollPaneXQuery.setStyle("-fx-background-color: white;");
+        virtualizedScrollPaneXQuery.getStyleClass().add("query-scroll-pane");
         stackPaneXQuery.getChildren().clear();
         stackPaneXQuery.getChildren().add(virtualizedScrollPaneXQuery);
 

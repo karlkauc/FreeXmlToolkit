@@ -635,13 +635,15 @@ public class JsonController {
             String result = jsonService.executeJsonPathAsString(content, query);
             jsonPathResultArea.setText(result);
             queryResultLabel.setText("Query executed successfully");
-            queryResultLabel.setStyle("-fx-text-fill: #28a745;");
+            queryResultLabel.getStyleClass().removeAll("query-status-ready", "query-status-error");
+            queryResultLabel.getStyleClass().add("query-status-success");
             logger.info("JSONPath query executed successfully");
         } catch (Exception e) {
             logger.error("JSONPath query error: {}", e.getMessage(), e);
             jsonPathResultArea.setText("Error: " + e.getMessage());
             queryResultLabel.setText("Query failed");
-            queryResultLabel.setStyle("-fx-text-fill: #dc3545;");
+            queryResultLabel.getStyleClass().removeAll("query-status-ready", "query-status-success");
+            queryResultLabel.getStyleClass().add("query-status-error");
         }
     }
 
@@ -653,7 +655,8 @@ public class JsonController {
         jsonPathField.clear();
         jsonPathResultArea.clear();
         queryResultLabel.setText("Ready");
-        queryResultLabel.setStyle("-fx-text-fill: #6c757d;");
+        queryResultLabel.getStyleClass().removeAll("query-status-success", "query-status-error");
+        queryResultLabel.getStyleClass().add("query-status-ready");
     }
 
     /**

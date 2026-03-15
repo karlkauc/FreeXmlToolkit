@@ -560,13 +560,15 @@ public class WelcomeController {
         if (dragDropArea != null) {
             dragDropArea.setOnDragOver(event -> {
                 if (event.getDragboard().hasFiles()) {
-                    dragDropArea.setStyle("-fx-border-color: #2563eb; -fx-border-width: 2; -fx-border-style: dashed; -fx-background-color: #eff6ff;");
+                    if (!dragDropArea.getStyleClass().contains("drag-drop-active")) {
+                        dragDropArea.getStyleClass().add("drag-drop-active");
+                    }
                 }
                 event.consume();
             });
 
             dragDropArea.setOnDragExited(event -> {
-                dragDropArea.setStyle("");
+                dragDropArea.getStyleClass().remove("drag-drop-active");
                 event.consume();
             });
         }

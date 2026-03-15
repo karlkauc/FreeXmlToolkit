@@ -201,20 +201,20 @@
                     <SplitPane fx:id="graphicTabSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
                         <items>
                             <!-- Main content area with visualization options -->
-                            <VBox style="-fx-background-color: #f8f9fa;">
+                            <VBox styleClass="theme-bg-secondary">
                                 <children>
                                     <!-- Visualization Selection Toolbar -->
 
                                     <!-- Content Area -->
                                     <StackPane VBox.vgrow="ALWAYS">
                                         <children>
-                                            <VBox fx:id="noFileLoadedPane" alignment="CENTER" spacing="20.0">
+                                            <VBox fx:id="noFileLoadedPane" alignment="CENTER" spacing="20.0" styleClass="empty-state">
                                                 <children>
                                                     <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
                                                               iconSize="64"/>
-                                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                                    <Label styleClass="empty-state-title"
                                                            text="No XSD file loaded"/>
-                                                    <Label style="-fx-text-fill: #6c757d;"
+                                                    <Label styleClass="empty-state-description"
                                                            text="Please load an XSD file to see the graphical representation."/>
                                                     <HBox alignment="CENTER" spacing="10">
                                                         <Button onAction="#createNewXsdFile" styleClass="button"
@@ -240,7 +240,7 @@
 
                                             <!-- V2 Editor Container (New/Beta) -->
                                             <StackPane fx:id="xsdStackPaneV2" visible="false" managed="false"
-                                                       style="-fx-background-color: white;">
+                                                       styleClass="theme-bg-primary">
                                                 <!-- V2 Editor content will be added dynamically -->
                                             </StackPane>
 
@@ -266,15 +266,15 @@
                 <FontIcon iconLiteral="bi-collection"/>
             </graphic>
             <content>
-                <StackPane fx:id="typeLibraryStackPane" style="-fx-background-color: #fafafa;">
+                <StackPane fx:id="typeLibraryStackPane" styleClass="theme-bg-secondary">
                     <!-- No File Loaded View -->
-                    <VBox fx:id="noFileLoadedPaneTypeLibrary" alignment="CENTER" spacing="20.0">
+                    <VBox fx:id="noFileLoadedPaneTypeLibrary" alignment="CENTER" spacing="20.0" styleClass="empty-state">
                         <children>
                             <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
                                       iconSize="64"/>
-                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                            <Label styleClass="empty-state-title"
                                    text="No XSD file loaded"/>
-                            <Label style="-fx-text-fill: #6c757d;"
+                            <Label styleClass="empty-state-description"
                                    text="Please load an XSD file to browse types."/>
                             <HBox alignment="CENTER" spacing="10">
                                 <Button onAction="#createNewXsdFile" styleClass="button"
@@ -306,15 +306,15 @@
                 <FontIcon iconLiteral="bi-pencil-square"/>
             </graphic>
             <content>
-                <StackPane fx:id="typeEditorStackPane" style="-fx-background-color: #fafafa;">
+                <StackPane fx:id="typeEditorStackPane" styleClass="theme-bg-secondary">
                     <!-- No File Loaded View -->
-                    <VBox fx:id="noFileLoadedPaneTypeEditor" alignment="CENTER" spacing="20.0">
+                    <VBox fx:id="noFileLoadedPaneTypeEditor" alignment="CENTER" spacing="20.0" styleClass="empty-state">
                         <children>
                             <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
                                       iconSize="64"/>
-                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                            <Label styleClass="empty-state-title"
                                    text="No XSD file loaded"/>
-                            <Label style="-fx-text-fill: #6c757d;"
+                            <Label styleClass="empty-state-description"
                                    text="Please load an XSD file to edit types."/>
                             <HBox alignment="CENTER" spacing="10">
                                 <Button onAction="#createNewXsdFile" styleClass="button"
@@ -348,14 +348,14 @@
             <BorderPane>
                 <top>
                     <HBox fx:id="textInfoPane" alignment="CENTER_LEFT" managed="false" spacing="15.0"
-                          style="-fx-padding: 10; -fx-background-color: #f1f3f5; -fx-border-width: 0 0 1 0; -fx-border-color: #dee2e6;"
+                          styleClass="info-bar"
                           visible="false">
                         <children>
                             <VBox spacing="5.0">
                                 <children>
                                     <HBox alignment="CENTER_LEFT" spacing="10.0">
                                         <children>
-                                            <Label style="-fx-font-weight: bold;" text="File Path:"/>
+                                            <Label styleClass="label-bold" text="File Path:"/>
                                             <Label fx:id="textInfoPathLabel"/>
                                         </children>
                                     </HBox>
@@ -371,15 +371,15 @@
                             <SplitPane fx:id="textContentSplitPane" orientation="VERTICAL" dividerPositions="1.0">
                                 <items>
                                     <!-- Source code editor area -->
-                                    <StackPane style="-fx-background-color: #f8f9fa;">
+                                    <StackPane styleClass="theme-bg-secondary">
                                         <children>
-                                            <VBox fx:id="noFileLoadedPaneText" alignment="CENTER" spacing="20.0">
+                                            <VBox fx:id="noFileLoadedPaneText" alignment="CENTER" spacing="20.0" styleClass="empty-state">
                                                 <children>
                                                     <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
                                                               iconSize="64"/>
-                                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                                    <Label styleClass="empty-state-title"
                                                            text="No XSD file loaded"/>
-                                                    <Label style="-fx-text-fill: #6c757d;"
+                                                    <Label styleClass="empty-state-description"
                                                            text="Please load an XSD file to see the source code."/>
                                                     <HBox alignment="CENTER" spacing="10">
                                                         <Button onAction="#createNewXsdFile" styleClass="button"
@@ -406,7 +406,7 @@
 
                                     <!-- XPath/XQuery Query Panel (initially hidden, added programmatically) -->
                                     <VBox fx:id="xpathQueryPanel" managed="false" visible="false"
-                                          style="-fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0;">
+                                          styleClass="query-panel-root">
                                     </VBox>
                                 </items>
                             </SplitPane>
@@ -428,12 +428,12 @@
             <graphic>
                 <FontIcon iconLiteral="bi-keyboard" iconSize="16"/>
             </graphic>
-            <VBox spacing="15" style="-fx-padding: 20px; -fx-background-color: white;">
+            <VBox spacing="15" styleClass="p-5, theme-bg-primary">
                 <VBox spacing="10">
                     <Label styleClass="h3" text="Sample Data Generator"/>
                     <Label wrapText="true"
                            text="This tab allows you to generate sample XML data that conforms to the loaded XSD schema. You can specify whether to include only mandatory elements and set a limit for repeating elements."/>
-                    <Separator style="-fx-padding: 5 0 5 0;"/>
+                    <Separator/>
 
                     <GridPane hgap="10" vgap="10">
                         <Label text="XSD Source File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
@@ -495,18 +495,17 @@
                 </VBox>
 
                 <!-- Validation Result Panel -->
-                <VBox fx:id="sampleDataValidationResultPanel" spacing="8" visible="false" managed="false"
-                      style="-fx-padding: 10; -fx-background-radius: 6; -fx-border-radius: 6;">
+                <VBox fx:id="sampleDataValidationResultPanel" spacing="8" visible="false" managed="false">
                     <!-- Header with summary -->
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <FontIcon fx:id="sampleDataValidationIcon" iconSize="18"/>
                         <VBox spacing="2" HBox.hgrow="ALWAYS">
-                            <Label fx:id="sampleDataValidationTitle" style="-fx-font-weight: bold;"/>
-                            <Label fx:id="sampleDataValidationMessage" wrapText="true" style="-fx-font-size: 12px;"/>
+                            <Label fx:id="sampleDataValidationTitle" styleClass="label-bold"/>
+                            <Label fx:id="sampleDataValidationMessage" wrapText="true" styleClass="label-small"/>
                         </VBox>
                         <HBox spacing="5" alignment="CENTER_RIGHT">
                             <Button fx:id="exportValidationErrorsButton" onAction="#exportValidationErrors"
-                                    text="Export" style="-fx-font-size: 11px;">
+                                    text="Export" styleClass="label-small">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-download" iconSize="12"/>
                                 </graphic>
@@ -524,7 +523,7 @@
                     </HBox>
                     <!-- Error Table -->
                     <TableView fx:id="validationErrorsTable" prefHeight="150" maxHeight="200"
-                               style="-fx-font-size: 11px;">
+                               styleClass="label-small">
                         <columns>
                             <TableColumn fx:id="errorLineColumn" text="Line" prefWidth="50" minWidth="40"/>
                             <TableColumn fx:id="errorColumnColumn" text="Col" prefWidth="40" minWidth="35"/>
@@ -553,12 +552,12 @@
 
     <!-- Task/Status Bar -->
     <VBox fx:id="taskStatusBar" managed="false" spacing="5.0"
-          style="-fx-padding: 10; -fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0;" visible="false">
+          styleClass="task-status-bar" visible="false">
         <children>
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <children>
                     <ProgressIndicator fx:id="taskProgressIndicator" maxHeight="24" maxWidth="24" visible="false"/>
-                    <Label style="-fx-font-weight: bold;" text="Background Task" />
+                    <Label styleClass="label-bold" text="Background Task" />
                     <Label fx:id="taskTimerLabel" style="-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 14px; -fx-text-fill: #4a7fd9; -fx-font-weight: bold;"/>
                     <Region HBox.hgrow="ALWAYS" />
                 </children>

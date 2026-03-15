@@ -233,9 +233,10 @@
 
                     <!-- Empty State Placeholder -->
                     <VBox fx:id="emptyFilesPlaceholder" alignment="CENTER" spacing="8"
-                          managed="false" visible="false" minHeight="150">
-                        <FontIcon iconLiteral="bi-folder2-open" iconSize="32" iconColor="#9ca3af"/>
-                        <Label text="No recent files" styleClass="placeholder-text"/>
+                          managed="false" visible="false" minHeight="150" styleClass="empty-state">
+                        <FontIcon iconLiteral="bi-folder2-open" iconSize="64" iconColor="#9ca3af"/>
+                        <Label text="No recent files" styleClass="empty-state-title"/>
+                        <Label text="Open a file or drag and drop one here to get started." styleClass="empty-state-description"/>
                     </VBox>
                 </VBox>
 
