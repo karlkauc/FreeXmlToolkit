@@ -31,7 +31,7 @@
     <!-- XSD Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations -->
-        <Button fx:id="toolbarNewFile" text="New" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarNewFile">
+        <Button fx:id="toolbarNewFile" text="New" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarNewFile">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -40,7 +40,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarLoadFile" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarLoadFile">
+        <Button fx:id="toolbarLoadFile" text="Open" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarLoadFile">
             <graphic>
                 <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -49,7 +49,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarSave" text="Save" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarSave">
+        <Button fx:id="toolbarSave" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarSave">
             <graphic>
                 <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -58,7 +58,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarSaveAs" text="Save As" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarSaveAs">
+        <Button fx:id="toolbarSaveAs" text="Save As" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarSaveAs">
             <graphic>
                 <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -69,7 +69,7 @@
 
         <Separator orientation="VERTICAL"/>
 
-        <Button fx:id="toolbarReload" text="Reload" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarReload">
+        <Button fx:id="toolbarReload" text="Reload" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarReload">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -78,7 +78,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarClose" text="Close" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarClose">
+        <Button fx:id="toolbarClose" text="Close" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarClose">
             <graphic>
                 <FontIcon iconLiteral="bi-x-circle" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
             </graphic>
@@ -87,7 +87,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarValidate" text="Validate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarValidate">
+        <Button fx:id="toolbarValidate" text="Validate" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarValidate">
             <graphic>
                 <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -99,7 +99,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Editing Operations -->
-        <Button fx:id="toolbarUndo" text="Undo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarUndo">
+        <Button fx:id="toolbarUndo" text="Undo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarUndo">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -108,7 +108,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarRedo" text="Redo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarRedo">
+        <Button fx:id="toolbarRedo" text="Redo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarRedo">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -117,7 +117,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarFind" text="Find" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarFind">
+        <Button fx:id="toolbarFind" text="Find" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarFind">
             <graphic>
                 <FontIcon iconLiteral="bi-search" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
@@ -126,7 +126,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarFormat" text="Format" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarFormat">
+        <Button fx:id="toolbarFormat" text="Format" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarFormat">
             <graphic>
                 <FontIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#20c997" styleClass="toolbar-icon-teal"/>
             </graphic>
@@ -138,7 +138,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Favorites & Recent -->
-        <Button fx:id="toolbarAddFavorite" text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarAddFavorite">
+        <Button fx:id="toolbarAddFavorite" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarAddFavorite">
             <graphic>
                 <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -147,7 +147,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarShowFavorites" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarShowFavorites">
+        <Button fx:id="toolbarShowFavorites" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarShowFavorites">
             <graphic>
                 <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -156,7 +156,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toolbarXPathQuery" text="XPath" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarXPathQuery">
+        <Button fx:id="toolbarXPathQuery" text="XPath" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarXPathQuery">
             <graphic>
                 <FontIcon iconLiteral="bi-braces" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
@@ -165,7 +165,7 @@
             </tooltip>
         </Button>
 
-        <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="TOP" styleClass="toolbar-button">
+        <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -177,7 +177,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button fx:id="toolbarHelp" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#handleToolbarHelp">
+        <Button fx:id="toolbarHelp" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>

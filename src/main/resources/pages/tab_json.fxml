@@ -12,7 +12,7 @@
     <!-- JSON Editor Toolbar -->
     <ToolBar fx:id="mainToolbar" styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="newFile" text="New" contentDisplay="TOP" styleClass="toolbar-button" onAction="#newFile">
+        <Button fx:id="newFile" text="New" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#newFile">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -21,7 +21,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="openFile" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openFile">
+        <Button fx:id="openFile" text="Open" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#openFile">
             <graphic>
                 <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -30,7 +30,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="saveFile" text="Save" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveFile">
+        <Button fx:id="saveFile" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveFile">
             <graphic>
                 <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -39,7 +39,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="saveAsFile" text="Save As" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveAsFile">
+        <Button fx:id="saveAsFile" text="Save As" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAsFile">
             <graphic>
                 <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -48,7 +48,7 @@
             </tooltip>
         </Button>
 
-        <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="TOP" styleClass="toolbar-button">
+        <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -60,7 +60,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Edit Operations Group -->
-        <Button fx:id="undoBtn" text="Undo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#undo">
+        <Button fx:id="undoBtn" text="Undo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#undo">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -69,7 +69,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="redoBtn" text="Redo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#redo">
+        <Button fx:id="redoBtn" text="Redo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#redo">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -81,7 +81,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Format Operations Group -->
-        <Button fx:id="formatJson" text="Format" contentDisplay="TOP" styleClass="toolbar-button" onAction="#formatJson">
+        <Button fx:id="formatJson" text="Format" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#formatJson">
             <graphic>
                 <FontIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-json"/>
             </graphic>
@@ -90,7 +90,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="minifyJson" text="Minify" contentDisplay="TOP" styleClass="toolbar-button" onAction="#minifyJson">
+        <Button fx:id="minifyJson" text="Minify" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#minifyJson">
             <graphic>
                 <FontIcon iconLiteral="bi-file-zip" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -102,7 +102,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Validation Group -->
-        <Button fx:id="validateBtn" text="Validate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#validateJson">
+        <Button fx:id="validateBtn" text="Validate" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#validateJson">
             <graphic>
                 <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -111,7 +111,7 @@
             </tooltip>
         </Button>
 
-        <MenuButton fx:id="schemaBtn" text="Schema" contentDisplay="TOP" styleClass="toolbar-button">
+        <MenuButton fx:id="schemaBtn" text="Schema" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#9c27b0" styleClass="toolbar-icon-purple"/>
             </graphic>
@@ -141,7 +141,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- JSONPath Query Group -->
-        <Button fx:id="jsonPathBtn" text="JSONPath" contentDisplay="TOP" styleClass="toolbar-button" onAction="#runJsonPath">
+        <Button fx:id="jsonPathBtn" text="JSONPath" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#runJsonPath">
             <graphic>
                 <FontIcon iconLiteral="bi-search" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
@@ -153,7 +153,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- View Toggle Group -->
-        <ToggleButton fx:id="treeViewToggle" text="Tree" contentDisplay="TOP" styleClass="toolbar-button" onAction="#toggleTreeView">
+        <ToggleButton fx:id="treeViewToggle" text="Tree" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#toggleTreeView">
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-2" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -162,7 +162,7 @@
             </tooltip>
         </ToggleButton>
 
-        <MenuButton fx:id="treeViewOptions" text="View" contentDisplay="TOP" styleClass="toolbar-button">
+        <MenuButton fx:id="treeViewOptions" text="View" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-eye" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -197,7 +197,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Help -->
-        <Button fx:id="helpButton" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpButton" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>

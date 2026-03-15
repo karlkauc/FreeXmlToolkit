@@ -31,7 +31,7 @@
     <!-- Templates Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="createTemplateBtn" text="New" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="createTemplateBtn" text="New" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -40,7 +40,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="refreshTemplatesBtn" text="Refresh" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="refreshTemplatesBtn" text="Refresh" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -54,7 +54,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button fx:id="helpBtn" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>

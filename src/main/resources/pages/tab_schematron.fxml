@@ -12,7 +12,7 @@
     <!-- Schematron Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="newSchematronFileButton" text="New" contentDisplay="TOP" styleClass="toolbar-button" onAction="#newSchematronFile">
+        <Button fx:id="newSchematronFileButton" text="New" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#newSchematronFile">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -21,7 +21,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="loadSchematronFileButton" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#loadSchematronFile">
+        <Button fx:id="loadSchematronFileButton" text="Open" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#loadSchematronFile">
             <graphic>
                 <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -30,7 +30,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="saveSchematronButton" text="Save" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveSchematron">
+        <Button fx:id="saveSchematronButton" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveSchematron">
             <graphic>
                 <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -39,7 +39,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="saveAsSchematronButton" text="Save As" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveAsSchematron">
+        <Button fx:id="saveAsSchematronButton" text="Save As" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAsSchematron">
             <graphic>
                 <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -51,7 +51,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Editing Group -->
-        <Button fx:id="newRuleButton" text="Add Rule" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="newRuleButton" text="Add Rule" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -63,7 +63,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Favorites Group -->
-        <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -72,7 +72,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -84,7 +84,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button fx:id="helpBtn" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>

@@ -31,7 +31,7 @@
     <!-- XSLT Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="reloadBtn" text="Reload" contentDisplay="TOP" styleClass="toolbar-button" onAction="#checkFiles">
+        <Button fx:id="reloadBtn" text="Reload" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#checkFiles">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -43,7 +43,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- View Operations Group -->
-        <Button fx:id="openInDefaultWebBrowser" text="Browser" contentDisplay="TOP" styleClass="toolbar-button" disable="true">
+        <Button fx:id="openInDefaultWebBrowser" text="Browser" contentDisplay="LEFT" styleClass="toolbar-button" disable="true">
             <graphic>
                 <FontIcon iconLiteral="bi-globe" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -52,7 +52,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="openInDefaultTextEditor" text="Editor" contentDisplay="TOP" styleClass="toolbar-button" disable="true">
+        <Button fx:id="openInDefaultTextEditor" text="Editor" contentDisplay="LEFT" styleClass="toolbar-button" disable="true">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -64,7 +64,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button fx:id="helpBtn" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>

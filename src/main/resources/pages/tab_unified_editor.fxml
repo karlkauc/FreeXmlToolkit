@@ -30,7 +30,7 @@
     <!-- Unified Editor Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- New File Menu -->
-        <MenuButton fx:id="newFileMenu" text="New" contentDisplay="TOP" styleClass="toolbar-button">
+        <MenuButton fx:id="newFileMenu" text="New" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -67,7 +67,7 @@
             </items>
         </MenuButton>
 
-        <Button fx:id="openFileButton" text="Open" contentDisplay="TOP" styleClass="toolbar-button" onAction="#openFile">
+        <Button fx:id="openFileButton" text="Open" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#openFile">
             <graphic>
                 <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -76,7 +76,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="saveButton" text="Save" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveCurrentTab">
+        <Button fx:id="saveButton" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveCurrentTab">
             <graphic>
                 <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -85,7 +85,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="saveAllButton" text="Save All" contentDisplay="TOP" styleClass="toolbar-button" onAction="#saveAllTabs">
+        <Button fx:id="saveAllButton" text="Save All" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAllTabs">
             <graphic>
                 <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -94,7 +94,7 @@
             </tooltip>
         </Button>
 
-        <MenuButton fx:id="recentFilesMenu" text="Recent" contentDisplay="TOP" styleClass="toolbar-button">
+        <MenuButton fx:id="recentFilesMenu" text="Recent" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -105,7 +105,7 @@
 
         <Separator orientation="VERTICAL"/>
 
-        <Button fx:id="closeTabButton" text="Close" contentDisplay="TOP" styleClass="toolbar-button" onAction="#closeCurrentTab">
+        <Button fx:id="closeTabButton" text="Close" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#closeCurrentTab">
             <graphic>
                 <FontIcon iconLiteral="bi-x-circle" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
             </graphic>
@@ -116,7 +116,7 @@
 
         <Separator orientation="VERTICAL"/>
 
-        <Button fx:id="validateButton" text="Validate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#validateCurrentTab">
+        <Button fx:id="validateButton" text="Validate" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#validateCurrentTab">
             <graphic>
                 <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -125,7 +125,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="formatButton" text="Format" contentDisplay="TOP" styleClass="toolbar-button" onAction="#formatCurrentTab">
+        <Button fx:id="formatButton" text="Format" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#formatCurrentTab">
             <graphic>
                 <FontIcon iconLiteral="bi-text-left" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -136,7 +136,7 @@
 
         <Separator orientation="VERTICAL"/>
 
-        <Button fx:id="undoButton" text="Undo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#undo">
+        <Button fx:id="undoButton" text="Undo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#undo">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -145,7 +145,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="redoButton" text="Redo" contentDisplay="TOP" styleClass="toolbar-button" onAction="#redo">
+        <Button fx:id="redoButton" text="Redo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#redo">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -157,7 +157,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- View Mode Switcher -->
-        <MenuButton fx:id="viewModeMenu" text="View" contentDisplay="TOP" styleClass="toolbar-button">
+        <MenuButton fx:id="viewModeMenu" text="View" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-layout-sidebar" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -186,7 +186,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- XML Tools Section -->
-        <MenuButton fx:id="convertMenu" text="Convert" contentDisplay="TOP" styleClass="toolbar-button">
+        <MenuButton fx:id="convertMenu" text="Convert" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-table" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -207,7 +207,7 @@
             </items>
         </MenuButton>
 
-        <Button fx:id="templatesButton" text="Templates" contentDisplay="TOP" styleClass="toolbar-button"
+        <Button fx:id="templatesButton" text="Templates" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#showTemplates">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-ruled" iconSize="20" iconColor="#ffc107"
@@ -218,7 +218,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="generatorButton" text="Generator" contentDisplay="TOP" styleClass="toolbar-button"
+        <Button fx:id="generatorButton" text="Generator" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#showGenerator">
             <graphic>
                 <FontIcon iconLiteral="bi-lightning" iconSize="20" iconColor="#6f42c1"
@@ -233,7 +233,7 @@
 
         <Separator orientation="VERTICAL"/>
 
-        <ToggleButton fx:id="linkedFilesToggle" text="Linked" contentDisplay="TOP" styleClass="toolbar-button" onAction="#toggleLinkedFilesPanel">
+        <ToggleButton fx:id="linkedFilesToggle" text="Linked" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#toggleLinkedFilesPanel">
             <graphic>
                 <FontIcon iconLiteral="bi-link-45deg" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
@@ -242,7 +242,7 @@
             </tooltip>
         </ToggleButton>
 
-        <ToggleButton fx:id="xpathPanelToggle" text="XPath" contentDisplay="TOP" styleClass="toolbar-button" onAction="#toggleXPathPanel">
+        <ToggleButton fx:id="xpathPanelToggle" text="XPath" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#toggleXPathPanel">
             <graphic>
                 <FontIcon iconLiteral="bi-search" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-orange"/>
             </graphic>
@@ -251,7 +251,7 @@
             </tooltip>
         </ToggleButton>
 
-        <ToggleButton fx:id="propertiesToggle" text="Properties" contentDisplay="TOP" styleClass="toolbar-button" onAction="#togglePropertiesPanel">
+        <ToggleButton fx:id="propertiesToggle" text="Properties" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#togglePropertiesPanel">
             <graphic>
                 <FontIcon iconLiteral="bi-sliders" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -260,7 +260,7 @@
             </tooltip>
         </ToggleButton>
 
-        <Button fx:id="favoritesButton" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showFavoritesPanel">
+        <Button fx:id="favoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showFavoritesPanel">
             <graphic>
                 <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -269,7 +269,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="addFavoriteButton" text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
+        <Button fx:id="addFavoriteButton" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
             <graphic>
                 <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -280,7 +280,7 @@
 
         <Separator orientation="VERTICAL"/>
 
-        <Button fx:id="helpButton" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpButton" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>

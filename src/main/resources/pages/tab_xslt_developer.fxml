@@ -31,7 +31,7 @@
     <!-- XSLT Developer Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="loadXmlBtn" text="Open XML" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="loadXmlBtn" text="Open XML" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -40,7 +40,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="loadXsltBtn" text="Open XSLT" contentDisplay="TOP" styleClass="toolbar-button" onAction="#loadXsltFile">
+        <Button fx:id="loadXsltBtn" text="Open XSLT" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#loadXsltFile">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -49,7 +49,7 @@
             </tooltip>
         </Button>
 
-        <MenuButton fx:id="recentFilesMenuBtn" text="Recent" contentDisplay="TOP" styleClass="toolbar-button">
+        <MenuButton fx:id="recentFilesMenuBtn" text="Recent" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon"/>
             </graphic>
@@ -61,7 +61,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Transform Action -->
-        <Button fx:id="transformBtn" text="Transform" contentDisplay="TOP" styleClass="toolbar-button" onAction="#executeTransformation">
+        <Button fx:id="transformBtn" text="Transform" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#executeTransformation">
             <graphic>
                 <FontIcon iconLiteral="bi-play-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -70,7 +70,7 @@
             </tooltip>
         </Button>
 
-        <ToggleButton fx:id="liveTransformToggle" text="Live" contentDisplay="TOP" styleClass="toolbar-button">
+        <ToggleButton fx:id="liveTransformToggle" text="Live" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-lightning" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -82,7 +82,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Favorites Group -->
-        <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -91,7 +91,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -103,7 +103,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button fx:id="helpBtn" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>

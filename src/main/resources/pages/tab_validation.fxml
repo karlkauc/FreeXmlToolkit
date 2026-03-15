@@ -33,7 +33,7 @@
     <!-- Validation Operations Toolbar -->
     <ToolBar styleClass="xsd-toolbar">
         <!-- File Operations Group -->
-        <Button fx:id="xmlLoadButton" text="Open XML" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="xmlLoadButton" text="Open XML" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -42,7 +42,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="xsdLoadButton" text="Open XSD" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="xsdLoadButton" text="Open XSD" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
@@ -54,7 +54,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Validation Action Group -->
-        <Button fx:id="validateBtn" text="Validate" contentDisplay="TOP" styleClass="toolbar-button" onAction="#processXmlFile">
+        <Button fx:id="validateBtn" text="Validate" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#processXmlFile">
             <graphic>
                 <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
@@ -63,7 +63,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="clearResults" text="Clear" contentDisplay="TOP" styleClass="toolbar-button" onAction="#clearResultAction">
+        <Button fx:id="clearResults" text="Clear" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#clearResultAction">
             <graphic>
                 <FontIcon iconLiteral="bi-eraser" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
@@ -75,7 +75,7 @@
         <Separator orientation="VERTICAL"/>
 
         <!-- Export Group -->
-        <Button fx:id="excelExport" text="Export" contentDisplay="TOP" styleClass="toolbar-button" onAction="#excelExport">
+        <Button fx:id="excelExport" text="Export" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#excelExport">
             <graphic>
                 <FontIcon iconLiteral="bi-file-earmark-excel" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
@@ -85,7 +85,7 @@
         </Button>
 
         <!-- Favorites Group -->
-        <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -94,7 +94,7 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="TOP" styleClass="toolbar-button">
+        <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
@@ -106,7 +106,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Help -->
-        <Button fx:id="helpBtn" text="Help" contentDisplay="TOP" styleClass="toolbar-button" onAction="#showHelp">
+        <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
                 <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>

@@ -230,18 +230,19 @@
     -fx-shape: null;
 }
 
-/* Toolbar Button with Text Below Icon */
+/* Toolbar Button with Text Beside Icon */
 .xsd-toolbar .toolbar-button {
     -fx-background-color: transparent;
     -fx-background-radius: 6;
-    -fx-padding: 8 10;
+    -fx-padding: 6 10;
     -fx-cursor: hand;
     -fx-border-color: transparent;
     -fx-border-width: 1;
     -fx-border-radius: 6;
-    -fx-font-size: 9px;
+    -fx-font-size: 11px;
     -fx-font-weight: normal;
     -fx-text-fill: #495057;
+    -fx-graphic-text-gap: 6;
 }
 
 .xsd-toolbar .toolbar-button:hover {
@@ -258,14 +259,15 @@
 .xsd-toolbar .menu-button.toolbar-button {
     -fx-background-color: transparent;
     -fx-background-radius: 6;
-    -fx-padding: 8 10;
+    -fx-padding: 6 10;
     -fx-cursor: hand;
     -fx-border-color: transparent;
     -fx-border-width: 1;
     -fx-border-radius: 6;
-    -fx-font-size: 9px;
+    -fx-font-size: 11px;
     -fx-font-weight: normal;
     -fx-text-fill: #495057;
+    -fx-graphic-text-gap: 6;
 }
 
 .xsd-toolbar .menu-button.toolbar-button:hover {
