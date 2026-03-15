@@ -44,6 +44,7 @@ import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.DragEvent;
@@ -216,6 +217,9 @@ public class MainController implements Initializable {
      */
     @FXML
     Label sectionEditors, sectionSchema, sectionTransforms, sectionAdvanced, sectionTools;
+
+    @FXML
+    Separator separatorSchema, separatorTransforms, separatorAdvanced, separatorTools;
 
     /**
      * Left menu VBox container for navigation buttons.
@@ -1276,6 +1280,12 @@ public class MainController implements Initializable {
             if (label != null) {
                 label.setVisible(visible);
                 label.setManaged(visible);
+            }
+        }
+        for (Separator sep : new Separator[]{separatorSchema, separatorTransforms, separatorAdvanced, separatorTools}) {
+            if (sep != null) {
+                sep.setVisible(visible);
+                sep.setManaged(visible);
             }
         }
     }

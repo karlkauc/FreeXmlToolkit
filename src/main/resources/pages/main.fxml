@@ -351,6 +351,7 @@
                                 </Button>
 
                                 <!-- Section: SCHEMA -->
+                                <Separator fx:id="separatorSchema" styleClass="sidebar-section-separator"/>
                                 <Label fx:id="sectionSchema" text="SCHEMA" styleClass="sidebar-section-label"/>
 
                                 <!-- ========== XSD Group ========== -->
@@ -376,6 +377,7 @@
                                 </Button>
 
                                 <!-- Section: TRANSFORMS -->
+                                <Separator fx:id="separatorTransforms" styleClass="sidebar-section-separator"/>
                                 <Label fx:id="sectionTransforms" text="TRANSFORMS" styleClass="sidebar-section-label"/>
 
                                 <!-- ========== XSLT Group ========== -->
@@ -394,6 +396,7 @@
                                 </Button>
 
                                 <!-- Section: ADVANCED -->
+                                <Separator fx:id="separatorAdvanced" styleClass="sidebar-section-separator"/>
                                 <Label fx:id="sectionAdvanced" text="ADVANCED" styleClass="sidebar-section-label"/>
 
                                 <!-- ========== Experimental: Unified Editor ========== -->
@@ -405,6 +408,7 @@
                                 </Button>
 
                                 <!-- Section: TOOLS -->
+                                <Separator fx:id="separatorTools" styleClass="sidebar-section-separator"/>
                                 <Label fx:id="sectionTools" text="TOOLS" styleClass="sidebar-section-label"/>
 
                                 <!-- ========== Other Tools ========== -->
