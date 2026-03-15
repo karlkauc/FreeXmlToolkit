@@ -56,7 +56,7 @@
 
 /* Tab label styling */
 .tab-pane .tab .tab-label {
-    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
 }

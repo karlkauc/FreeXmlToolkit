@@ -2230,7 +2230,74 @@
 }
 
 /* --- app-theme.css utility class overrides for dark mode --- */
+.root {
+    -color-warning-bg: #3a3000;
+    -color-warning-text: #ffc107;
+    -color-warning-border: #ffc107;
+}
+
 .warning-box {
-  -fx-background-color: #3a3000;
-  -fx-text-fill: #ffc107;
+  -fx-background-color: -color-warning-bg;
+  -fx-text-fill: -color-warning-text;
+}
+
+/* Scrollbar slim styling - dark */
+.scroll-bar .thumb {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-background-insets: 3;
+    -fx-background-radius: 10px;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.35);
+}
+
+.scroll-bar .thumb:pressed {
+    -fx-background-color: rgba(255, 255, 255, 0.5);
+}
+
+.scroll-bar:vertical .track,
+.scroll-bar:horizontal .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .increment-button,
+.scroll-bar:vertical .decrement-button,
+.scroll-bar:horizontal .increment-button,
+.scroll-bar:horizontal .decrement-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .increment-arrow,
+.scroll-bar:vertical .decrement-arrow,
+.scroll-bar:horizontal .increment-arrow,
+.scroll-bar:horizontal .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+/* Sidebar section label - dark */
+.sidebar-section-label {
+    -fx-text-fill: #6a6a6a;
+}
+
+/* Card hover - dark */
+.card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 3);
+}
+
+.statistics-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 8, 0, 0, 3);
+}
+
+.action-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 3);
+}
+
+/* Sidebar active state - dark */
+.menu_button.active {
+    -fx-border-color: #3794ff;
+    -fx-border-width: 0 0 0 4;
+    -fx-effect: dropshadow(gaussian, rgba(55, 148, 255, 0.2), 4, 0, 0, 0);
 }

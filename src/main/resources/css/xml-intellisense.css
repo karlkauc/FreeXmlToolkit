@@ -118,7 +118,7 @@
 }
 
 .doc-tooltip .content {
-    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-font-family: 'Roboto', "Segoe UI", sans-serif;
 }
 
 .doc-tooltip .code {
@@ -344,7 +344,7 @@
 
 /* Completion item styles by type - WCAG AA compliant border colors */
 .completion-item {
-    -fx-font-family: "Segoe UI", system;
+    -fx-font-family: 'Roboto', "Segoe UI", system;
     -fx-font-size: 12px;
 }
 

@@ -3,7 +3,7 @@
 /* Main Panel */
 .favorites-panel {
     -fx-background-color: #ffffff;
-    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
 }
 
 /* Header with gradient from XMLSpy config */

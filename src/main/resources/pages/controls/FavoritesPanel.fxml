@@ -20,7 +20,7 @@
             <FontIcon iconLiteral="bi-star-fill" iconSize="18" iconColor="#ffc107"/>
             <Label text="Favorites Manager"
                    style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0; 
-                          -fx-font-family: 'Segoe UI', Arial, sans-serif;"/>
+                          -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;"/>
             <Region HBox.hgrow="ALWAYS"/>
 
             <!-- Action Buttons -->

@@ -66,6 +66,11 @@
     -text-muted: #adb5bd;
     -text-white: #ffffff;
 
+    /* Warning/Status Colors */
+    -color-warning-bg: #fff3cd;
+    -color-warning-text: #856404;
+    -color-warning-border: #ffc107;
+
     /* ============================================
        SPACING SYSTEM
        ============================================ */
@@ -92,7 +97,7 @@
        ============================================ */
 
     /* Font Families */
-    -font-family-base: 'Segoe UI', Arial, sans-serif;
+    -font-family-base: 'Roboto', 'Segoe UI', Arial, sans-serif;
     -font-family-monospace: 'Courier New', Courier, monospace;
     -font-family-code: 'Consolas', 'Monaco', 'Courier New', monospace;
 
@@ -196,7 +201,7 @@
 
 /* Labels */
 .label {
-    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 12px;
     -fx-text-fill: -text-primary;
 }
@@ -219,7 +224,7 @@
 
 /* Buttons */
 .button {
-    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 12px;
     -fx-cursor: hand;
     -fx-background-radius: 4px;
@@ -237,7 +242,7 @@
 /* Text Fields */
 .text-field,
 .text-area {
-    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 12px;
     -fx-background-radius: 4px;
     -fx-border-radius: 4px;
@@ -245,7 +250,7 @@
 
 /* Tooltips */
 .tooltip {
-    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 11px;
     -fx-background-color: -color-gray-800;
     -fx-text-fill: -text-white;
@@ -497,9 +502,9 @@
 
 /* Warning box for schema references */
 .warning-box {
-    -fx-background-color: #fff3cd;
+    -fx-background-color: -color-warning-bg;
     -fx-padding: 8;
-    -fx-text-fill: #856404;
+    -fx-text-fill: -color-warning-text;
     -fx-background-radius: 4;
 }
 
@@ -535,46 +540,46 @@
 /* Pill toggle button (language tab) */
 .doc-tab-pill {
     -fx-background-color: transparent;
-    -fx-text-fill: #0d6efd;
+    -fx-text-fill: -color-primary;
     -fx-background-radius: 12;
     -fx-padding: 2 10 2 10;
     -fx-font-size: 11px;
-    -fx-border-color: #0d6efd;
+    -fx-border-color: -color-primary;
     -fx-border-radius: 12;
     -fx-border-width: 1;
     -fx-cursor: hand;
 }
 
 .doc-tab-pill:selected {
-    -fx-background-color: #0d6efd;
+    -fx-background-color: -color-primary;
     -fx-text-fill: white;
 }
 
 .doc-tab-pill:hover {
-    -fx-background-color: #e7f1ff;
+    -fx-background-color: derive(-color-primary, 85%);
 }
 
 .doc-tab-pill:selected:hover {
-    -fx-background-color: #0b5ed7;
+    -fx-background-color: derive(-color-primary, -10%);
 }
 
 /* Gray variant for (default) / no-language entries */
 .doc-tab-pill-default {
-    -fx-text-fill: #6c757d;
-    -fx-border-color: #6c757d;
+    -fx-text-fill: -color-gray-600;
+    -fx-border-color: -color-gray-600;
 }
 
 .doc-tab-pill-default:selected {
-    -fx-background-color: #6c757d;
+    -fx-background-color: -color-gray-600;
     -fx-text-fill: white;
 }
 
 .doc-tab-pill-default:hover {
-    -fx-background-color: #f0f0f0;
+    -fx-background-color: -color-gray-200;
 }
 
 .doc-tab-pill-default:selected:hover {
-    -fx-background-color: #5a6268;
+    -fx-background-color: derive(-color-gray-600, -10%);
 }
 
 /* Empty state placeholder */
@@ -585,4 +590,121 @@
     -fx-background-color: -color-gray-100;
     -fx-background-radius: 6;
     -fx-padding: 20;
+}
+
+/* ============================================
+   HOVER EFFECTS (Cards & Buttons)
+   ============================================ */
+
+.card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 10, 0, 0, 3);
+}
+
+.welcome-file-card:hover {
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: -border-medium;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 8, 0, 0, 2);
+}
+
+.action-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 10, 0, 0, 3);
+}
+
+/* ============================================
+   EMPTY STATE COMPONENT
+   ============================================ */
+
+.empty-state .ikonli-font-icon {
+    -fx-icon-size: 64;
+    -fx-icon-color: -text-muted;
+}
+
+.empty-state-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -text-secondary;
+}
+
+.empty-state-description {
+    -fx-font-size: 13px;
+    -fx-text-fill: -text-muted;
+    -fx-text-alignment: center;
+    -fx-wrap-text: true;
+}
+
+.empty-state-action {
+    -fx-padding: 8 20;
+    -fx-font-size: 13px;
+}
+
+/* ============================================
+   DRAG & DROP ACTIVE STATE
+   ============================================ */
+
+.drag-drop-active {
+    -fx-border-color: -color-primary;
+    -fx-border-width: 2;
+    -fx-border-style: dashed;
+    -fx-background-color: derive(-color-primary, 90%);
+}
+
+/* ============================================
+   STATUS UTILITY CLASSES
+   ============================================ */
+
+.status-pending {
+    -fx-text-fill: -color-warning;
+}
+
+.status-success {
+    -fx-text-fill: -color-success;
+}
+
+.status-error {
+    -fx-text-fill: -color-danger;
+}
+
+/* ============================================
+   SIDEBAR SECTION LABELS
+   ============================================ */
+
+.sidebar-section-label {
+    -fx-font-size: 9px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-muted;
+    -fx-padding: 12 0 4 15;
+    -fx-text-transform: uppercase;
+}
+
+/* ============================================
+   VALIDATION RESULT PANELS
+   ============================================ */
+
+.validation-success-panel {
+    -fx-background-color: derive(-color-success, 85%);
+    -fx-border-color: -color-success;
+    -fx-border-width: 0 0 0 4;
+    -fx-padding: 12;
+    -fx-background-radius: 4;
+}
+
+.validation-error-panel {
+    -fx-background-color: derive(-color-danger, 85%);
+    -fx-border-color: -color-danger;
+    -fx-border-width: 0 0 0 4;
+    -fx-padding: 12;
+    -fx-background-radius: 4;
+}
+
+.severity-fatal {
+    -fx-text-fill: -color-danger;
+    -fx-font-weight: bold;
+}
+
+.severity-error {
+    -fx-text-fill: -color-danger;
+}
+
+.severity-warning {
+    -fx-text-fill: -color-warning;
 }

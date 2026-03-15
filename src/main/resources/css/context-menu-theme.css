@@ -17,7 +17,7 @@
    ============================================ */
 
 .context-menu {
-    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 12px;
     -fx-background-color: -bg-primary;
     -fx-border-color: -border-medium;
@@ -271,7 +271,7 @@
     -fx-border-color: -border-light;
     -fx-border-width: 0 0 1 0;
     -fx-padding: 4px -spacing-md;
-    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 12px;
 }
 
@@ -421,7 +421,7 @@
 /* Matches the style from XmlGraphicEditor and XsdContextMenuFactory */
 .xml-context-menu,
 .xsd-context-menu {
-    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
 }
 
 .xml-context-menu .menu-item,

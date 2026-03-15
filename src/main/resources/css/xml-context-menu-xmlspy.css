@@ -18,14 +18,14 @@
     -fx-border-radius: 3px;
     -fx-background-radius: 3px;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.15), 2, 0, 1, 1);
-    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-family: 'Roboto', "Segoe UI", Arial, sans-serif;
 }
 
 /* Menu Items - General Styling */
 .context-menu .menu-item {
     -fx-padding: 6px 12px;
     -fx-font-size: 11px;
-    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-family: 'Roboto', "Segoe UI", Arial, sans-serif;
     -fx-text-fill: #333333;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
