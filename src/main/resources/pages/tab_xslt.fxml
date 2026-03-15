@@ -78,7 +78,7 @@
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.25">
 
         <!-- File Explorer Panel -->
-        <BorderPane styleClass="panel-light" style="-fx-border-width: 0 1 0 0; -fx-border-radius: 0; -fx-background-radius: 0;">
+        <BorderPane styleClass="panel-light,xslt-file-panel">
             <top>
                 <VBox styleClass="panel-header">
                     <Label text="File Selection" styleClass="panel-header-label"/>
@@ -86,11 +86,11 @@
             </top>
 
             <center>
-                <VBox alignment="TOP_CENTER" style="-fx-padding: 10px;" spacing="5">
+                <VBox alignment="TOP_CENTER" styleClass="p-3" spacing="5">
                     <Label text="XML Source File:" styleClass="field-label-bold"/>
                     <FileExplorer fx:id="xmlFileExplorer" displayText="Select XML File" VBox.vgrow="ALWAYS"/>
 
-                    <Separator style="-fx-padding: 5 0;"/>
+                    <Separator/>
 
                     <Label text="XSLT Stylesheet:" styleClass="field-label-bold"/>
                     <FileExplorer fx:id="xsltFileExplorer" displayText="Select XSLT File" VBox.vgrow="ALWAYS"/>
@@ -98,7 +98,7 @@
             </center>
 
             <bottom>
-                <VBox style="-fx-padding: 10px; -fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0;" spacing="8">
+                <VBox styleClass="xslt-progress-panel" spacing="8">
                     <ProgressBar fx:id="progressBar" prefHeight="6"/>
                 </VBox>
             </bottom>
@@ -113,7 +113,7 @@
                 <graphic>
                     <FontIcon iconLiteral="bi-file-text" iconSize="16"/>
                 </graphic>
-                <StackPane fx:id="textView" style="-fx-background-color: white;"/>
+                <StackPane fx:id="textView" styleClass="theme-bg-primary"/>
             </Tab>
 
             <Tab fx:id="tabWeb" closable="false" text="HTML Preview" styleClass="primary-tab">
@@ -133,8 +133,8 @@
                 <graphic>
                     <FontIcon iconLiteral="bi-speedometer2" iconSize="16"/>
                 </graphic>
-                <VBox style="-fx-padding: 15;" spacing="10">
-                    <Label text="Transformation Statistics" styleClass="panel-header-label" style="-fx-font-size: 13px;"/>
+                <VBox styleClass="p-4" spacing="10">
+                    <Label text="Transformation Statistics" styleClass="panel-header-label,label-medium"/>
                     <TextArea fx:id="performanceArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS"/>
                 </VBox>
             </Tab>

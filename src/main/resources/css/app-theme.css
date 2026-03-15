@@ -823,3 +823,57 @@
     -fx-font-weight: bold;
     -fx-text-fill: #fd7e14;
 }
+
+/* ============================================
+   LABEL SIZE UTILITIES
+   ============================================ */
+
+.label-medium {
+    -fx-font-size: 13px;
+}
+
+.label-large {
+    -fx-font-size: 14px;
+}
+
+/* ============================================
+   SIDEBAR COMPACT STYLES
+   For sidebar panels that need smaller text
+   ============================================ */
+
+.sidebar-btn-xs {
+    -fx-font-size: 10px;
+}
+
+.sidebar-text-xs {
+    -fx-font-size: 10px;
+}
+
+/* ============================================
+   STEP CARD
+   Bordered card for step-by-step workflows
+   ============================================ */
+
+.step-card {
+    -fx-border-color: -color-gray-200;
+    -fx-border-radius: 5;
+    -fx-padding: 10;
+}
+
+/* ============================================
+   XSLT TAB PANEL STYLES
+   ============================================ */
+
+.xslt-file-panel {
+    -fx-border-width: 0 1 0 0;
+    -fx-border-color: -border-light;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+}
+
+.xslt-progress-panel {
+    -fx-padding: 10;
+    -fx-background-color: -bg-primary;
+    -fx-border-color: -border-light;
+    -fx-border-width: 1 0 0 0;
+}

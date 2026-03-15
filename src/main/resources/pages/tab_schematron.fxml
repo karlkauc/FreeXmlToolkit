@@ -210,32 +210,32 @@
 
                         <!-- Quick Help -->
                         <TitledPane fx:id="helpPane" text="Quick Help" expanded="true" collapsible="true">
-                            <VBox spacing="8" style="-fx-padding: 5;">
+                            <VBox spacing="8" styleClass="p-1">
                                 <Label text="Schematron Basics:"
-                                       style="-fx-font-weight: bold; -fx-font-size: 12px;"/>
+                                       styleClass="label-bold,label-small"/>
                                 <VBox spacing="5">
                                     <Label text="• &lt;pattern&gt; - Groups related rules together"
-                                           style="-fx-font-size: 11px;" wrapText="true"/>
+                                           styleClass="label-small" wrapText="true"/>
                                     <Label text="• &lt;rule&gt; - Defines context and conditions"
-                                           style="-fx-font-size: 11px;" wrapText="true"/>
+                                           styleClass="label-small" wrapText="true"/>
                                     <Label text="• &lt;assert&gt; - Tests a condition (must be true)"
-                                           style="-fx-font-size: 11px;" wrapText="true"/>
+                                           styleClass="label-small" wrapText="true"/>
                                     <Label text="• &lt;report&gt; - Reports a finding (when condition is true)"
-                                           style="-fx-font-size: 11px;" wrapText="true"/>
+                                           styleClass="label-small" wrapText="true"/>
                                 </VBox>
 
                                 <Separator/>
 
                                 <Label text="Common XPath Expressions:"
-                                       style="-fx-font-weight: bold; -fx-font-size: 12px;"/>
+                                       styleClass="label-bold,label-small"/>
                                 <VBox spacing="5">
-                                    <Label text="• . - Current node" style="-fx-font-size: 11px;"/>
+                                    <Label text="• . - Current node" styleClass="label-small"/>
                                     <Label text="• @attribute - Attribute of current node"
-                                           style="-fx-font-size: 11px;"/>
-                                    <Label text="• child::element - Child element" style="-fx-font-size: 11px;"/>
-                                    <Label text="• count(element) - Count elements" style="-fx-font-size: 11px;"/>
+                                           styleClass="label-small"/>
+                                    <Label text="• child::element - Child element" styleClass="label-small"/>
+                                    <Label text="• count(element) - Count elements" styleClass="label-small"/>
                                     <Label text="• string-length(.) &gt; 0 - Text present"
-                                           style="-fx-font-size: 11px;"/>
+                                           styleClass="label-small"/>
                                 </VBox>
                             </VBox>
                         </TitledPane>
@@ -243,14 +243,14 @@
                         <!-- Schematron Structure -->
                         <TitledPane fx:id="structurePane" text="Document Structure" expanded="true" collapsible="true">
                             <VBox spacing="5">
-                                <Label text="Structure of current schema:" style="-fx-font-size: 11px;"/>
+                                <Label text="Structure of current schema:" styleClass="label-small"/>
                                 <ListView prefHeight="100">
                                     <placeholder>
                                         <VBox alignment="CENTER" spacing="5">
                                             <FontIcon iconLiteral="bi-file-earmark-code" iconColor="#ced4da"
-                                                      iconSize="24"/>
+                                                      iconSize="64"/>
                                             <Label text="No schema loaded yet"
-                                                   style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+                                                   styleClass="theme-text-secondary,label-small"/>
                                         </VBox>
                                     </placeholder>
                                 </ListView>
@@ -265,34 +265,34 @@
                         <!-- XPath Helper -->
                         <TitledPane fx:id="xpathHelperPane" text="XPath Tester" expanded="false" collapsible="true"
                                     VBox.vgrow="ALWAYS">
-                            <VBox spacing="8" style="-fx-padding: 5;">
+                            <VBox spacing="8" styleClass="p-1">
                                 <Label text="Test XPath Expression:"
-                                       style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
+                                       styleClass="label-bold,label-small"/>
                                 <TextField promptText="Enter an XPath expression..."
-                                           style="-fx-font-size: 11px;"/>
-                                <Button text="Test" style="-fx-font-size: 10px;">
+                                           styleClass="label-small"/>
+                                <Button text="Test" styleClass="sidebar-btn-xs">
                                     <graphic>
                                         <FontIcon iconLiteral="bi-play" iconSize="10"/>
                                     </graphic>
                                 </Button>
 
-                                <Label text="Result:" style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
-                                <TextArea prefRowCount="3" editable="false" style="-fx-font-size: 10px;"
+                                <Label text="Result:" styleClass="label-bold,label-small"/>
+                                <TextArea prefRowCount="3" editable="false" styleClass="sidebar-text-xs"
                                           promptText="XPath result will be displayed here..."/>
 
                                 <Separator/>
 
-                                <Label text="XPath Functions:" style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
-                                <ListView prefHeight="80" style="-fx-font-size: 10px;">
+                                <Label text="XPath Functions:" styleClass="label-bold,label-small"/>
+                                <ListView prefHeight="80" styleClass="sidebar-text-xs">
                                     <placeholder>
                                         <VBox alignment="CENTER" spacing="5">
-                                            <Label text="count() - Count elements" style="-fx-font-size: 10px;"/>
-                                            <Label text="string-length() - Text length" style="-fx-font-size: 10px;"/>
-                                            <Label text="contains() - Text contains" style="-fx-font-size: 10px;"/>
+                                            <Label text="count() - Count elements" styleClass="sidebar-text-xs"/>
+                                            <Label text="string-length() - Text length" styleClass="sidebar-text-xs"/>
+                                            <Label text="contains() - Text contains" styleClass="sidebar-text-xs"/>
                                             <Label text="starts-with() - Text starts with"
-                                                   style="-fx-font-size: 10px;"/>
+                                                   styleClass="sidebar-text-xs"/>
                                             <Label text="normalize-space() - Normalize whitespace"
-                                                   style="-fx-font-size: 10px;"/>
+                                                   styleClass="sidebar-text-xs"/>
                                         </VBox>
                                     </placeholder>
                                 </ListView>
@@ -322,15 +322,15 @@
             <graphic>
                 <FontIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="16"/>
             </graphic>
-            <VBox spacing="15" style="-fx-padding: 20;">
+            <VBox spacing="15" styleClass="p-5">
 
                     <!-- Header -->
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <FontIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="32"/>
                         <VBox spacing="5">
-                            <Label text="Schematron Testing" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                            <Label text="Schematron Testing" styleClass="revolutionary-title"/>
                             <Label text="Test your Schematron rules with XML documents"
-                                   style="-fx-text-fill: #6c757d;"/>
+                                   styleClass="theme-text-secondary"/>
                         </VBox>
                     </HBox>
 
@@ -340,11 +340,11 @@
                 <HBox spacing="15">
 
                     <!-- Step 1: Load Schema -->
-                    <VBox spacing="8" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 10;"
+                    <VBox spacing="8" styleClass="step-card"
                           HBox.hgrow="ALWAYS">
-                        <Label text="1. Schema Selection" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <Label text="1. Schema Selection" styleClass="label-bold,label-medium"/>
                         <Label text="Choose a Schematron schema for validation"
-                               style="-fx-text-fill: #6c757d; -fx-font-size: 11px;" wrapText="true"/>
+                               styleClass="theme-text-secondary,label-small" wrapText="true"/>
                         <HBox spacing="10">
                             <Button fx:id="loadSchemaFromFileButton" text="Load Schema from File"
                                     onAction="#loadSchemaFromFile">
@@ -362,18 +362,18 @@
                         <!-- Display loaded schema file -->
                         <HBox alignment="CENTER_LEFT" spacing="5">
                             <FontIcon iconLiteral="bi-file-earmark-check" iconColor="#28a745" iconSize="14"/>
-                            <Label text="Loaded Schema:" style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
-                            <Label fx:id="loadedSchemaLabel" text="None" 
-                                   style="-fx-text-fill: #495057; -fx-font-size: 11px; -fx-font-style: italic;"/>
+                            <Label text="Loaded Schema:" styleClass="label-bold,label-small"/>
+                            <Label fx:id="loadedSchemaLabel" text="None"
+                                   styleClass="info-label-secondary,label-small"/>
                         </HBox>
                     </VBox>
 
                     <!-- Step 2: Add Test Files -->
-                    <VBox spacing="8" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 10;"
+                    <VBox spacing="8" styleClass="step-card"
                           HBox.hgrow="ALWAYS">
-                        <Label text="2. Test Files" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <Label text="2. Test Files" styleClass="label-bold,label-medium"/>
                         <Label text="Add XML files to validate against the schema"
-                               style="-fx-text-fill: #6c757d; -fx-font-size: 11px;" wrapText="true"/>
+                               styleClass="theme-text-secondary,label-small" wrapText="true"/>
                         <HBox spacing="10">
                             <Button fx:id="addXmlFileButton" text="Add XML File" onAction="#addXmlFile">
                                 <graphic>
@@ -397,13 +397,13 @@
 
                     <!-- Test Files Section -->
                     <VBox spacing="10">
-                        <Label text="Test Files:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                        <Label text="Test Files:" styleClass="label-bold,label-large"/>
 
-                        <TableView fx:id="testFilesTable" prefHeight="200" style="-fx-font-size: 12px;">
+                        <TableView fx:id="testFilesTable" prefHeight="200">
                             <placeholder>
-                                <VBox alignment="CENTER" spacing="10">
-                                    <FontIcon iconLiteral="bi-inbox" iconColor="#ced4da" iconSize="32"/>
-                                    <Label text="No test files added" style="-fx-text-fill: #6c757d;"/>
+                                <VBox alignment="CENTER" spacing="10" styleClass="empty-state">
+                                    <FontIcon iconLiteral="bi-inbox" iconColor="#ced4da" iconSize="64"/>
+                                    <Label text="No test files added" styleClass="theme-text-secondary"/>
                                     <Button fx:id="addFirstXmlFileButton" text="Add First XML File"
                                             onAction="#addXmlFile">
                                         <graphic>
@@ -441,7 +441,7 @@
                             <Separator orientation="VERTICAL"/>
 
                             <!-- Test Execution Buttons -->
-                            <Button fx:id="runAllTestsButton" text="Run All Tests (F5)" style="-fx-font-weight: bold;"
+                            <Button fx:id="runAllTestsButton" text="Run All Tests (F5)" styleClass="label-bold"
                                     onAction="#runAllTests">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-play-fill" iconColor="#28a745" iconSize="14"/>
@@ -461,7 +461,7 @@
                     <!-- Test Results Section -->
                     <VBox spacing="10">
                         <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="Test Results:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                            <Label text="Test Results:" styleClass="label-bold,label-large"/>
                             <Button fx:id="exportResultsButton" text="Export Results" onAction="#exportResults">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-download" iconSize="14"/>
@@ -475,12 +475,12 @@
                         <TabPane fx:id="resultsTabPane" prefHeight="300">
                             <Tab fx:id="overviewResultsTab" text="Overview" closable="false">
                                 <ScrollPane fitToWidth="true" fitToHeight="true">
-                                    <VBox fx:id="overviewContent" spacing="10" style="-fx-padding: 10;">
+                                    <VBox fx:id="overviewContent" spacing="10" styleClass="p-3">
                                         <!-- Summary will be displayed here -->
-                                        <VBox fx:id="overviewPlaceholder" alignment="CENTER" spacing="15">
-                                            <FontIcon iconLiteral="bi-graph-up" iconColor="#6c757d" iconSize="48"/>
+                                        <VBox fx:id="overviewPlaceholder" alignment="CENTER" spacing="15" styleClass="empty-state">
+                                            <FontIcon iconLiteral="bi-graph-up" iconColor="#6c757d" iconSize="64"/>
                                             <Label text="Run tests to see an overview of results"
-                                                   style="-fx-text-fill: #6c757d; -fx-font-size: 14px;"/>
+                                                   styleClass="empty-state-description"/>
                                         </VBox>
                                     </VBox>
                                 </ScrollPane>
@@ -488,12 +488,12 @@
 
                             <Tab fx:id="detailsResultsTab" text="Details" closable="false">
                                 <ScrollPane fitToWidth="true" fitToHeight="true">
-                                    <VBox fx:id="detailsContent" spacing="10" style="-fx-padding: 10;">
+                                    <VBox fx:id="detailsContent" spacing="10" styleClass="p-3">
                                         <!-- Detailed results will be displayed here -->
-                                        <VBox fx:id="detailsPlaceholder" alignment="CENTER" spacing="15">
-                                            <FontIcon iconLiteral="bi-list-ul" iconColor="#6c757d" iconSize="48"/>
+                                        <VBox fx:id="detailsPlaceholder" alignment="CENTER" spacing="15" styleClass="empty-state">
+                                            <FontIcon iconLiteral="bi-list-ul" iconColor="#6c757d" iconSize="64"/>
                                             <Label text="Detailed validation results will be displayed here"
-                                                   style="-fx-text-fill: #6c757d; -fx-font-size: 14px;"/>
+                                                   styleClass="empty-state-description"/>
                                         </VBox>
                                     </VBox>
                                 </ScrollPane>
@@ -501,13 +501,13 @@
 
                             <Tab fx:id="errorsResultsTab" text="Errors" closable="false">
                                 <ScrollPane fitToWidth="true" fitToHeight="true">
-                                    <VBox fx:id="errorsContent" spacing="10" style="-fx-padding: 10;">
+                                    <VBox fx:id="errorsContent" spacing="10" styleClass="p-3">
                                         <!-- Errors will be displayed here -->
-                                        <VBox fx:id="errorsPlaceholder" alignment="CENTER" spacing="15">
+                                        <VBox fx:id="errorsPlaceholder" alignment="CENTER" spacing="15" styleClass="empty-state">
                                             <FontIcon iconLiteral="bi-exclamation-triangle" iconColor="#6c757d"
-                                                      iconSize="48"/>
+                                                      iconSize="64"/>
                                             <Label text="Validation errors and rule violations will be listed here"
-                                                   style="-fx-text-fill: #6c757d; -fx-font-size: 14px;"/>
+                                                   styleClass="empty-state-description"/>
                                         </VBox>
                                     </VBox>
                                 </ScrollPane>

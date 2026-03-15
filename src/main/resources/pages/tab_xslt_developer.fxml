@@ -250,8 +250,8 @@
                                         <TableColumn fx:id="fileStatusColumn" text="Status" prefWidth="100" minWidth="80"/>
                                     </columns>
                                     <placeholder>
-                                        <VBox spacing="10" alignment="CENTER">
-                                            <FontIcon iconLiteral="bi-files" iconSize="48" iconColor="#adb5bd"/>
+                                        <VBox spacing="10" alignment="CENTER" styleClass="empty-state">
+                                            <FontIcon iconLiteral="bi-files" iconSize="64" iconColor="#adb5bd"/>
                                             <Label text="No XML files added" styleClass="placeholder-title"/>
                                             <Label text="Use 'Add Files' or 'Add Directory' to select files for batch processing"
                                                    styleClass="placeholder-description" wrapText="true" textAlignment="CENTER"/>
