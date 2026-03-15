@@ -29,6 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -55,6 +56,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -781,6 +783,13 @@ public class MainController implements Initializable {
             setParentController(loader.getController());
             contentPane.getChildren().clear();
             contentPane.getChildren().add(newLoadedPane);
+
+            // Fade-in animation for tab content
+            newLoadedPane.setOpacity(0);
+            FadeTransition ft = new FadeTransition(Duration.millis(200), newLoadedPane);
+            ft.setFromValue(0);
+            ft.setToValue(1);
+            ft.play();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }

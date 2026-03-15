@@ -177,6 +177,11 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
     @FXML
     private ProgressBar progressBar;
 
+    // Status CSS classes
+    private static final String STATUS_PENDING = "status-pending";
+    private static final String STATUS_SUCCESS = "status-success";
+    private static final String STATUS_ERROR = "status-error";
+
     // Internal state
     private String currentXmlContent;
     private File currentXmlFile;
@@ -418,7 +423,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
     @FXML
     public void generatePreview() {
         statusLabel.setText("Generating preview...");
-        statusLabel.setStyle("-fx-text-fill: orange;");
+        setStatusClass(STATUS_PENDING);
         progressBar.setVisible(true);
         previewButton.setDisable(true);
 
@@ -455,7 +460,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
                 updateStatistics(data);
 
                 statusLabel.setText("Preview generated successfully");
-                statusLabel.setStyle("-fx-text-fill: green;");
+                setStatusClass(STATUS_SUCCESS);
                 progressBar.setVisible(false);
                 previewButton.setDisable(false);
 
@@ -467,7 +472,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
             Throwable exception = previewTask.getException();
             Platform.runLater(() -> {
                 statusLabel.setText("Preview generation failed");
-                statusLabel.setStyle("-fx-text-fill: red;");
+                setStatusClass(STATUS_ERROR);
                 progressBar.setVisible(false);
                 previewButton.setDisable(false);
 
@@ -593,6 +598,11 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
         return (Stage) formatCombo.getScene().getWindow();
     }
 
+    private void setStatusClass(String statusClass) {
+        statusLabel.getStyleClass().removeAll(STATUS_PENDING, STATUS_SUCCESS, STATUS_ERROR);
+        statusLabel.getStyleClass().add(statusClass);
+    }
+
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -645,7 +655,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
         }
 
         statusLabel.setText("Converting...");
-        statusLabel.setStyle("-fx-text-fill: orange;");
+        setStatusClass(STATUS_PENDING);
         progressBar.setVisible(true);
 
         Task<Void> conversionTask = new Task<>() {
@@ -686,7 +696,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
         conversionTask.setOnSucceeded(e -> {
             Platform.runLater(() -> {
                 statusLabel.setText("Conversion completed successfully");
-                statusLabel.setStyle("-fx-text-fill: green;");
+                setStatusClass(STATUS_SUCCESS);
                 progressBar.setVisible(false);
 
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -701,7 +711,7 @@ public class XmlSpreadsheetConverterDialogController implements Initializable {
             Throwable exception = conversionTask.getException();
             Platform.runLater(() -> {
                 statusLabel.setText("Conversion failed");
-                statusLabel.setStyle("-fx-text-fill: red;");
+                setStatusClass(STATUS_ERROR);
                 progressBar.setVisible(false);
 
                 showError("Conversion Error", "Failed to convert file: " + exception.getMessage());
