@@ -327,9 +327,9 @@
                     <Label fx:id="menuText2" text="Enterprise Edition"/>
                 </VBox>
                 <BorderPane VBox.vgrow="ALWAYS">
-                    <top>
+                    <center>
                         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
-                                    styleClass="sidebar-scroll-pane" BorderPane.alignment="CENTER">
+                                    styleClass="sidebar-scroll-pane">
                             <VBox alignment="CENTER">
                                 <!-- Section: EDITORS -->
                                 <Label fx:id="sectionEditors" text="EDITORS" styleClass="sidebar-section-label"/>
@@ -430,7 +430,7 @@
                                 </Button>
                             </VBox>
                         </ScrollPane>
-                    </top>
+                    </center>
                     <bottom>
                         <VBox alignment="CENTER">
                             <Button fx:id="help" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
