@@ -328,105 +328,108 @@
                 </VBox>
                 <BorderPane VBox.vgrow="ALWAYS">
                     <top>
-                        <VBox BorderPane.alignment="CENTER" alignment="CENTER">
-                            <!-- Section: EDITORS -->
-                            <Label fx:id="sectionEditors" text="EDITORS" styleClass="sidebar-section-label"/>
+                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                                    styleClass="sidebar-scroll-pane" BorderPane.alignment="CENTER">
+                            <VBox alignment="CENTER">
+                                <!-- Section: EDITORS -->
+                                <Label fx:id="sectionEditors" text="EDITORS" styleClass="sidebar-section-label"/>
 
-                            <!-- ========== XML Group ========== -->
-                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                    text="XML Editor" fx:id="xmlUltimate">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
-                                </graphic>
-                            </Button>
+                                <!-- ========== XML Group ========== -->
+                                <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
+                                        text="XML Editor" fx:id="xmlUltimate">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                                    </graphic>
+                                </Button>
 
-                            <!-- ========== JSON Editor ========== -->
-                            <Button fx:id="json" mnemonicParsing="false" onAction="#loadPage"
-                                    styleClass="menu_button" text="JSON Editor" VBox.vgrow="ALWAYS">
-                                <graphic>
-                                    <FontIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
-                                </graphic>
-                            </Button>
+                                <!-- ========== JSON Editor ========== -->
+                                <Button fx:id="json" mnemonicParsing="false" onAction="#loadPage"
+                                        styleClass="menu_button" text="JSON Editor" VBox.vgrow="ALWAYS">
+                                    <graphic>
+                                        <FontIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
+                                    </graphic>
+                                </Button>
 
-                            <!-- Section: SCHEMA -->
-                            <Label fx:id="sectionSchema" text="SCHEMA" styleClass="sidebar-section-label"/>
+                                <!-- Section: SCHEMA -->
+                                <Label fx:id="sectionSchema" text="SCHEMA" styleClass="sidebar-section-label"/>
 
-                            <!-- ========== XSD Group ========== -->
-                            <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" VBox.vgrow="ALWAYS"
-                                    fx:id="xsd">
-                                <graphic>
-                                    <FontIcon iconColor="#007bff" iconLiteral="bi-diagram-3" iconSize="16"/>
-                                </graphic>
-                            </Button>
+                                <!-- ========== XSD Group ========== -->
+                                <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" VBox.vgrow="ALWAYS"
+                                        fx:id="xsd">
+                                    <graphic>
+                                        <FontIcon iconColor="#007bff" iconLiteral="bi-diagram-3" iconSize="16"/>
+                                    </graphic>
+                                </Button>
 
-                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                    text="XSD Validation" VBox.vgrow="ALWAYS" fx:id="xsdValidation">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
-                                </graphic>
-                            </Button>
+                                <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
+                                        text="XSD Validation" VBox.vgrow="ALWAYS" fx:id="xsdValidation">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
+                                    </graphic>
+                                </Button>
 
-                            <Button fx:id="schemaGenerator" mnemonicParsing="false" onAction="#loadPage"
-                                    styleClass="menu_button" text="Schema Generator" VBox.vgrow="ALWAYS">
-                                <graphic>
-                                    <FontIcon iconColor="#9c27b0" iconLiteral="bi-diagram-3" iconSize="16"/>
-                                </graphic>
-                            </Button>
+                                <Button fx:id="schemaGenerator" mnemonicParsing="false" onAction="#loadPage"
+                                        styleClass="menu_button" text="Schema Generator" VBox.vgrow="ALWAYS">
+                                    <graphic>
+                                        <FontIcon iconColor="#9c27b0" iconLiteral="bi-diagram-3" iconSize="16"/>
+                                    </graphic>
+                                </Button>
 
-                            <!-- Section: TRANSFORMS -->
-                            <Label fx:id="sectionTransforms" text="TRANSFORMS" styleClass="sidebar-section-label"/>
+                                <!-- Section: TRANSFORMS -->
+                                <Label fx:id="sectionTransforms" text="TRANSFORMS" styleClass="sidebar-section-label"/>
 
-                            <!-- ========== XSLT Group ========== -->
-                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                    text="XSLT Viewer" VBox.vgrow="ALWAYS" fx:id="xslt">
-                                <graphic>
-                                    <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
-                                </graphic>
-                            </Button>
+                                <!-- ========== XSLT Group ========== -->
+                                <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
+                                        text="XSLT Viewer" VBox.vgrow="ALWAYS" fx:id="xslt">
+                                    <graphic>
+                                        <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
+                                    </graphic>
+                                </Button>
 
-                            <Button fx:id="xsltDeveloper" mnemonicParsing="false" onAction="#loadPage"
-                                    styleClass="menu_button" text="XSLT Developer" VBox.vgrow="ALWAYS">
-                                <graphic>
-                                    <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
-                                </graphic>
-                            </Button>
+                                <Button fx:id="xsltDeveloper" mnemonicParsing="false" onAction="#loadPage"
+                                        styleClass="menu_button" text="XSLT Developer" VBox.vgrow="ALWAYS">
+                                    <graphic>
+                                        <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
+                                    </graphic>
+                                </Button>
 
-                            <!-- Section: ADVANCED -->
-                            <Label fx:id="sectionAdvanced" text="ADVANCED" styleClass="sidebar-section-label"/>
+                                <!-- Section: ADVANCED -->
+                                <Label fx:id="sectionAdvanced" text="ADVANCED" styleClass="sidebar-section-label"/>
 
-                            <!-- ========== Experimental: Unified Editor ========== -->
-                            <Button fx:id="unifiedEditor" mnemonicParsing="false" onAction="#loadPage"
-                                    styleClass="menu_button" text="Unified Editor" VBox.vgrow="ALWAYS">
-                                <graphic>
-                                    <FontIcon iconColor="#6f42c1" iconLiteral="bi-stack" iconSize="16"/>
-                                </graphic>
-                            </Button>
+                                <!-- ========== Experimental: Unified Editor ========== -->
+                                <Button fx:id="unifiedEditor" mnemonicParsing="false" onAction="#loadPage"
+                                        styleClass="menu_button" text="Unified Editor" VBox.vgrow="ALWAYS">
+                                    <graphic>
+                                        <FontIcon iconColor="#6f42c1" iconLiteral="bi-stack" iconSize="16"/>
+                                    </graphic>
+                                </Button>
 
-                            <!-- Section: TOOLS -->
-                            <Label fx:id="sectionTools" text="TOOLS" styleClass="sidebar-section-label"/>
+                                <!-- Section: TOOLS -->
+                                <Label fx:id="sectionTools" text="TOOLS" styleClass="sidebar-section-label"/>
 
-                            <!-- ========== Other Tools ========== -->
-                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                    text="Schematron Editor" VBox.vgrow="ALWAYS" fx:id="schematron">
-                                <graphic>
-                                    <FontIcon iconColor="#ffc107" iconLiteral="bi-shield-check" iconSize="16"/>
-                                </graphic>
-                            </Button>
+                                <!-- ========== Other Tools ========== -->
+                                <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
+                                        text="Schematron Editor" VBox.vgrow="ALWAYS" fx:id="schematron">
+                                    <graphic>
+                                        <FontIcon iconColor="#ffc107" iconLiteral="bi-shield-check" iconSize="16"/>
+                                    </graphic>
+                                </Button>
 
-                            <Button fx:id="fop" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                    text="FOP" VBox.vgrow="ALWAYS">
-                                <graphic>
-                                    <FontIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
-                                </graphic>
-                            </Button>
+                                <Button fx:id="fop" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
+                                        text="FOP" VBox.vgrow="ALWAYS">
+                                    <graphic>
+                                        <FontIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
+                                    </graphic>
+                                </Button>
 
-                            <Button fx:id="signature" mnemonicParsing="false" onAction="#loadPage"
-                                    styleClass="menu_button" text="Signature" VBox.vgrow="ALWAYS">
-                                <graphic>
-                                    <FontIcon iconColor="#28a745" iconLiteral="bi-key" iconSize="16"/>
-                                </graphic>
-                            </Button>
-                        </VBox>
+                                <Button fx:id="signature" mnemonicParsing="false" onAction="#loadPage"
+                                        styleClass="menu_button" text="Signature" VBox.vgrow="ALWAYS">
+                                    <graphic>
+                                        <FontIcon iconColor="#28a745" iconLiteral="bi-key" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                            </VBox>
+                        </ScrollPane>
                     </top>
                     <bottom>
                         <VBox alignment="CENTER">
