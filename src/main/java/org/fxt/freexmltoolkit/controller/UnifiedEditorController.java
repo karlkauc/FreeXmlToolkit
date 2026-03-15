@@ -1457,30 +1457,28 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
         int iconSize = useSmallIcons ? 14 : 20;
 
-        String buttonStyle = useSmallIcons
-                ? "-fx-padding: 4px;"
-                : "";
+        String compactClass = "toolbar-button-compact";
 
-        applyButtonSettings(newFileMenu, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(openFileButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(saveButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(saveAllButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(recentFilesMenu, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(closeTabButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(validateButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(formatButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(undoButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(redoButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(viewModeMenu, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(linkedFilesToggle, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(xpathPanelToggle, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(propertiesToggle, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(favoritesButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(addFavoriteButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(helpButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(convertMenu, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(templatesButton, displayMode, iconSize, buttonStyle);
-        applyButtonSettings(generatorButton, displayMode, iconSize, buttonStyle);
+        applyButtonSettings(newFileMenu, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(openFileButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(saveButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(saveAllButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(recentFilesMenu, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(closeTabButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(validateButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(formatButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(undoButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(redoButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(viewModeMenu, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(linkedFilesToggle, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(xpathPanelToggle, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(propertiesToggle, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(favoritesButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(addFavoriteButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(helpButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(convertMenu, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(templatesButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(generatorButton, displayMode, iconSize, useSmallIcons, compactClass);
 
         logger.info("Small icons setting applied to Unified Editor toolbar (size: {}px)", iconSize);
     }
@@ -1488,12 +1486,19 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     private void applyButtonSettings(javafx.scene.control.ButtonBase button,
                                      javafx.scene.control.ContentDisplay displayMode,
                                      int iconSize,
-                                     String style) {
+                                     boolean useSmallIcons,
+                                     String compactClass) {
         if (button == null) {
             return;
         }
         button.setContentDisplay(displayMode);
-        button.setStyle(style);
+        if (useSmallIcons) {
+            if (!button.getStyleClass().contains(compactClass)) {
+                button.getStyleClass().add(compactClass);
+            }
+        } else {
+            button.getStyleClass().remove(compactClass);
+        }
         if (button.getGraphic() instanceof FontIcon fontIcon) {
             fontIcon.setIconSize(iconSize);
         }
@@ -1646,12 +1651,13 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                 FontIcon icon = new FontIcon(item.getFileType().getIcon());
                 icon.setIconSize(16);
 
+                getStyleClass().removeAll("linked-file-resolved", "linked-file-unresolved");
                 if (item.isResolved()) {
                     icon.setIconColor(javafx.scene.paint.Color.web(item.getFileType().getColor()));
-                    setStyle("-fx-text-fill: -text-primary;");
+                    getStyleClass().add("linked-file-resolved");
                 } else {
                     icon.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
-                    setStyle("-fx-text-fill: #dc3545; -fx-font-style: italic;");
+                    getStyleClass().add("linked-file-unresolved");
                 }
 
                 setGraphic(icon);

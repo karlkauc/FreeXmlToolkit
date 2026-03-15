@@ -303,7 +303,7 @@
                 <Insets top="8" right="8" bottom="8" left="8"/>
             </padding>
 
-            <Label text="Linked Files" style="-fx-font-weight: bold; -fx-font-size: 14px;">
+            <Label text="Linked Files" styleClass="linked-files-header">
                 <graphic>
                     <FontIcon iconLiteral="bi-link-45deg" iconSize="16" iconColor="#6f42c1"/>
                 </graphic>
@@ -311,7 +311,7 @@
 
             <ListView fx:id="linkedFilesList" VBox.vgrow="ALWAYS">
                 <placeholder>
-                    <Label text="No linked files detected" style="-fx-text-fill: #6c757d;"/>
+                    <Label text="No linked files detected" styleClass="theme-text-secondary"/>
                 </placeholder>
             </ListView>
 
@@ -331,8 +331,8 @@
     </SplitPane>
 
     <!-- Status Bar -->
-    <HBox fx:id="statusBar" spacing="16" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0; -fx-padding: 4 12;">
-        <Label fx:id="statusLabel" text="Ready" style="-fx-text-fill: #6c757d;">
+    <HBox fx:id="statusBar" spacing="16" styleClass="unified-status-bar">
+        <Label fx:id="statusLabel" text="Ready" styleClass="theme-text-secondary">
             <graphic>
                 <FontIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
             </graphic>
@@ -340,15 +340,15 @@
 
         <Region HBox.hgrow="ALWAYS"/>
 
-        <Label fx:id="fileTypeLabel" text="" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+        <Label fx:id="fileTypeLabel" text="" styleClass="status-bar-label"/>
 
         <Separator orientation="VERTICAL"/>
 
-        <Label fx:id="cursorPositionLabel" text="Ln 1, Col 1" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+        <Label fx:id="cursorPositionLabel" text="Ln 1, Col 1" styleClass="status-bar-label"/>
 
         <Separator orientation="VERTICAL"/>
 
-        <Label fx:id="linkedFilesCountLabel" text="" style="-fx-text-fill: #6f42c1; -fx-font-size: 11px;">
+        <Label fx:id="linkedFilesCountLabel" text="" styleClass="status-bar-label-linked">
             <graphic>
                 <FontIcon iconLiteral="bi-link-45deg" iconSize="12" iconColor="#6f42c1"/>
             </graphic>

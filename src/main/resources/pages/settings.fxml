@@ -28,13 +28,13 @@
             AnchorPane.topAnchor="0"
             styleClass="settings-root">
 
-    <VBox spacing="20.0" style="-fx-padding: 20;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+    <VBox spacing="20.0" styleClass="p-5" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
         <!-- Page Header -->
         <VBox styleClass="settings-page-header">
             <Label text="Application Settings" styleClass="settings-page-title"/>
             <Label text="Configure application behavior and preferences"
-                   styleClass="settings-section-hint" style="-fx-padding: 5 0 0 0;"/>
+                   styleClass="settings-section-hint, pt-1"/>
         </VBox>
 
         <!-- Settings TabPane -->
@@ -409,7 +409,7 @@
                                     </RadioButton>
                                     <RadioButton fx:id="backupSeparateDirectory" text="Separate backup directory:"
                                                  toggleGroup="$backupLocation"/>
-                                    <HBox spacing="8" alignment="CENTER_LEFT" style="-fx-padding: 0 0 0 24">
+                                    <HBox spacing="8" alignment="CENTER_LEFT" styleClass="pl-6">
                                         <TextField fx:id="backupDirectoryPath" prefWidth="350"
                                                    promptText="~/.freeXmlToolkit/backups" HBox.hgrow="ALWAYS"
                                                    styleClass="settings-text-field"/>
@@ -446,13 +446,13 @@
                                         </toggleGroup>
                                     </RadioButton>
                                     <Label text="Sort by XSD construct type first (attributeGroup, complexType, etc.), then by name"
-                                           styleClass="settings-section-hint" style="-fx-padding: 0 0 0 20"/>
+                                           styleClass="settings-section-hint, pl-5"/>
                                     <RadioButton fx:id="sortNameBeforeType" text="Name before Type" toggleGroup="$xsdSortOrder"/>
                                     <Label text="Sort elements purely by name (alphabetically)"
-                                           styleClass="settings-section-hint" style="-fx-padding: 0 0 0 20"/>
+                                           styleClass="settings-section-hint, pl-5"/>
                                 </VBox>
                                 <Label text="Note: xs:import and xs:include are always serialized first, followed by global elements"
-                                       styleClass="settings-section-hint" style="-fx-padding: 8 0 0 0"/>
+                                       styleClass="settings-section-hint, pt-2"/>
                             </VBox>
                         </VBox>
                     </ScrollPane>

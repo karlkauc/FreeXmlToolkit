@@ -81,9 +81,9 @@
                         <TableColumn fx:id="parameterTypeColumn" text="Type" prefWidth="80"/>
                     </columns>
                     <placeholder>
-                        <VBox alignment="CENTER" spacing="10">
-                            <FontIcon iconLiteral="bi-table" iconColor="#6c757d" iconSize="32"/>
-                            <Label text="No parameters defined" styleClass="placeholder-text"/>
+                        <VBox alignment="CENTER" spacing="10" styleClass="empty-state">
+                            <FontIcon iconLiteral="bi-table" iconColor="#6c757d" iconSize="64"/>
+                            <Label text="No parameters defined" styleClass="empty-state-description"/>
                         </VBox>
                     </placeholder>
                 </TableView>

@@ -1048,3 +1048,50 @@
 .batch-success-count {
     -fx-text-fill: -color-success;
 }
+
+/* ============================================
+   PADDING DIRECTIONAL UTILITIES
+   ============================================ */
+
+/* Top padding only */
+.pt-1 { -fx-padding: 4 0 0 0; }
+.pt-2 { -fx-padding: 8 0 0 0; }
+
+/* Left padding for indented content */
+.pl-4 { -fx-padding: 0 0 0 16; }
+.pl-5 { -fx-padding: 0 0 0 20; }
+.pl-6 { -fx-padding: 0 0 0 24; }
+
+/* ============================================
+   STATUS BAR STYLES
+   ============================================ */
+
+/* Status bar container */
+.unified-status-bar {
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: -border-light;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 4 12;
+}
+
+/* Status bar label (secondary text, small font) */
+.status-bar-label {
+    -fx-text-fill: -text-secondary;
+    -fx-font-size: 11px;
+}
+
+/* Status bar linked files label (purple) */
+.status-bar-label-linked {
+    -fx-text-fill: -color-purple;
+    -fx-font-size: 11px;
+}
+
+/* ============================================
+   LINKED FILES PANEL STYLES
+   ============================================ */
+
+/* Linked files panel header label */
+.linked-files-header {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
