@@ -1316,16 +1316,21 @@ public class MainController implements Initializable {
             bottomButtonRow.getChildren().clear();
             bottomButtonRow.setVisible(false);
             bottomButtonRow.setManaged(false);
-            // Insert buttons after the separator (index 1 onward)
+            // Insert buttons after the separator (index 1 onward), before the hidden HBox
+            int insertIndex = bottomButtonBar.getChildren().indexOf(bottomButtonRow);
             for (int i = 0; i < buttons.size(); i++) {
-                bottomButtonBar.getChildren().add(1 + i, buttons.get(i));
+                bottomButtonBar.getChildren().add(insertIndex + i, buttons.get(i));
             }
         } else {
             // Move buttons back into the HBox row (horizontal layout)
             var buttons = new java.util.ArrayList<javafx.scene.Node>();
-            // Collect buttons from VBox (skip index 0 which is the separator)
-            while (bottomButtonBar.getChildren().size() > 1) {
-                buttons.add(bottomButtonBar.getChildren().remove(1));
+            var it = bottomButtonBar.getChildren().iterator();
+            while (it.hasNext()) {
+                var child = it.next();
+                if (child instanceof Button) {
+                    buttons.add(child);
+                    it.remove();
+                }
             }
             bottomButtonRow.getChildren().setAll(buttons);
             bottomButtonRow.setVisible(true);
