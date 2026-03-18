@@ -391,7 +391,7 @@
                                 <Button fx:id="xsltDeveloper" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="XSLT Developer" VBox.vgrow="ALWAYS">
                                     <graphic>
-                                        <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
+                                        <FontIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
