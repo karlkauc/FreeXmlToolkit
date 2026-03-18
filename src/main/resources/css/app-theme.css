@@ -722,15 +722,16 @@
 
 .sidebar-section-separator {
     -fx-padding: 8 15 0 15;
-    -fx-opacity: 0.45;
+    -fx-opacity: 0.6;
 }
 
 .sidebar-section-label {
     -fx-font-size: 11px;
     -fx-font-weight: 700;
-    -fx-text-fill: #5a3e1a;
+    -fx-text-fill: #3d2200;
     -fx-padding: 8 0 4 15;
     -fx-text-transform: uppercase;
+    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.5), 0, 0, 0, 1);
 }
 
 /* ============================================
