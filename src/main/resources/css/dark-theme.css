@@ -2279,11 +2279,11 @@
 
 /* Sidebar section separator & label - dark */
 .sidebar-section-separator {
-    -fx-opacity: 0.25;
+    -fx-opacity: 0.4;
 }
 
 .sidebar-section-label {
-    -fx-text-fill: #8a8a8a;
+    -fx-text-fill: #d4b896;
 }
 
 /* Card hover - dark */
