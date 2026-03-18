@@ -53,6 +53,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -220,6 +221,12 @@ public class MainController implements Initializable {
 
     @FXML
     Separator separatorSchema, separatorTransforms, separatorAdvanced, separatorTools;
+
+    /**
+     * Bottom button bar (Help, Settings, Exit) in the sidebar.
+     */
+    @FXML
+    HBox bottomButtonBar;
 
     /**
      * Left menu VBox container for navigation buttons.
@@ -1261,12 +1268,14 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
+            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
             setSectionLabelsVisible(false);
+            setBottomBarCollapsed(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
+            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
             setSectionLabelsVisible(true);
+            setBottomBarCollapsed(false);
         }
         showMenu = !showMenu;
     }
@@ -1287,6 +1296,21 @@ public class MainController implements Initializable {
                 sep.setVisible(visible);
                 sep.setManaged(visible);
             }
+        }
+    }
+
+    /**
+     * Collapses or expands the bottom button bar (Help, Settings, Exit).
+     * When collapsed, buttons stack vertically as icon-only; when expanded, they are horizontal.
+     */
+    private void setBottomBarCollapsed(boolean collapsed) {
+        if (bottomButtonBar == null) return;
+        if (collapsed) {
+            bottomButtonBar.setVisible(false);
+            bottomButtonBar.setManaged(false);
+        } else {
+            bottomButtonBar.setVisible(true);
+            bottomButtonBar.setManaged(true);
         }
     }
 
