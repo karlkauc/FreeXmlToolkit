@@ -436,28 +436,28 @@
                         </ScrollPane>
                     </center>
                     <bottom>
-                        <HBox fx:id="bottomButtonBar" alignment="CENTER" spacing="4" styleClass="sidebar-bottom-bar">
-                            <Button fx:id="help" mnemonicParsing="false" onAction="#loadPage"
-                                    styleClass="sidebar-bottom-button" contentDisplay="GRAPHIC_ONLY">
-                                <graphic>
-                                    <FontIcon iconColor="#17a2b8" iconLiteral="bi-question-square" iconSize="18"/>
-                                </graphic>
-                                <tooltip><Tooltip text="Help"/></tooltip>
-                            </Button>
-                            <Button fx:id="settings" mnemonicParsing="false" onAction="#loadPage"
-                                    styleClass="sidebar-bottom-button" contentDisplay="GRAPHIC_ONLY">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-gear-fill" iconSize="18"/>
-                                </graphic>
-                                <tooltip><Tooltip text="Settings"/></tooltip>
-                            </Button>
-                            <Button fx:id="exit" styleClass="sidebar-bottom-button" contentDisplay="GRAPHIC_ONLY">
-                                <graphic>
-                                    <FontIcon iconColor="#495057" iconLiteral="bi-door-closed" iconSize="18"/>
-                                </graphic>
-                                <tooltip><Tooltip text="Exit"/></tooltip>
-                            </Button>
-                        </HBox>
+                        <VBox fx:id="bottomButtonBar" alignment="CENTER" styleClass="sidebar-bottom-bar">
+                            <Separator styleClass="sidebar-section-separator"/>
+                            <HBox fx:id="bottomButtonRow" alignment="CENTER" spacing="0">
+                                <Button fx:id="help" mnemonicParsing="false" onAction="#loadPage"
+                                        styleClass="menu_button" text="Help" HBox.hgrow="ALWAYS">
+                                    <graphic>
+                                        <FontIcon iconColor="#17a2b8" iconLiteral="bi-question-square" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="settings" mnemonicParsing="false" onAction="#loadPage"
+                                        styleClass="menu_button" text="Settings" HBox.hgrow="ALWAYS">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-gear-fill" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="exit" styleClass="menu_button" text="Exit" HBox.hgrow="ALWAYS">
+                                    <graphic>
+                                        <FontIcon iconColor="#495057" iconLiteral="bi-door-closed" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                            </HBox>
+                        </VBox>
                     </bottom>
                 </BorderPane>
             </VBox>

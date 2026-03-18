@@ -2287,23 +2287,6 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 0, 0, 0, 1);
 }
 
-/* Sidebar bottom bar - dark */
-.sidebar-bottom-bar {
-    -fx-border-color: rgba(255,255,255,0.12);
-}
-
-.sidebar-bottom-button:hover {
-    -fx-background-color: rgba(255,255,255,0.12);
-}
-
-.sidebar-bottom-button:pressed {
-    -fx-background-color: rgba(255,255,255,0.2);
-}
-
-.sidebar-bottom-button.active {
-    -fx-background-color: rgba(255,255,255,0.15);
-}
-
 /* Card hover - dark */
 .card:hover {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 3);

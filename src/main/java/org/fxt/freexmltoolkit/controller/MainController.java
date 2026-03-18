@@ -223,10 +223,16 @@ public class MainController implements Initializable {
     Separator separatorSchema, separatorTransforms, separatorAdvanced, separatorTools;
 
     /**
-     * Bottom button bar (Help, Settings, Exit) in the sidebar.
+     * Bottom button bar container (Help, Settings, Exit) in the sidebar.
      */
     @FXML
-    HBox bottomButtonBar;
+    VBox bottomButtonBar;
+
+    /**
+     * Row inside bottomButtonBar holding the Help, Settings, Exit buttons.
+     */
+    @FXML
+    HBox bottomButtonRow;
 
     /**
      * Left menu VBox container for navigation buttons.
@@ -1268,14 +1274,14 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
+            setButtonSize("menu_button_collapsed", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
             setSectionLabelsVisible(false);
-            setBottomBarCollapsed(true);
+            setBottomBarLayout(true);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
+            setButtonSize("menu_button", xmlUltimate, json, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, schemaGenerator, xsltDeveloper, unifiedEditor);
             setSectionLabelsVisible(true);
-            setBottomBarCollapsed(false);
+            setBottomBarLayout(false);
         }
         showMenu = !showMenu;
     }
@@ -1300,17 +1306,30 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Collapses or expands the bottom button bar (Help, Settings, Exit).
-     * When collapsed, buttons stack vertically as icon-only; when expanded, they are horizontal.
+     * Switches the bottom button bar layout between collapsed (vertical VBox) and expanded (horizontal HBox).
      */
-    private void setBottomBarCollapsed(boolean collapsed) {
-        if (bottomButtonBar == null) return;
+    private void setBottomBarLayout(boolean collapsed) {
+        if (bottomButtonRow == null || bottomButtonBar == null) return;
         if (collapsed) {
-            bottomButtonBar.setVisible(false);
-            bottomButtonBar.setManaged(false);
+            // Move buttons from HBox row into the parent VBox (vertical stacking)
+            var buttons = new java.util.ArrayList<>(bottomButtonRow.getChildren());
+            bottomButtonRow.getChildren().clear();
+            bottomButtonRow.setVisible(false);
+            bottomButtonRow.setManaged(false);
+            // Insert buttons after the separator (index 1 onward)
+            for (int i = 0; i < buttons.size(); i++) {
+                bottomButtonBar.getChildren().add(1 + i, buttons.get(i));
+            }
         } else {
-            bottomButtonBar.setVisible(true);
-            bottomButtonBar.setManaged(true);
+            // Move buttons back into the HBox row (horizontal layout)
+            var buttons = new java.util.ArrayList<javafx.scene.Node>();
+            // Collect buttons from VBox (skip index 0 which is the separator)
+            while (bottomButtonBar.getChildren().size() > 1) {
+                buttons.add(bottomButtonBar.getChildren().remove(1));
+            }
+            bottomButtonRow.getChildren().setAll(buttons);
+            bottomButtonRow.setVisible(true);
+            bottomButtonRow.setManaged(true);
         }
     }
 
