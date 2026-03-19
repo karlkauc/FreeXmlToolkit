@@ -94,7 +94,8 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         initModality(Modality.APPLICATION_MODAL);
 
         DialogPane dialogPane = getDialogPane();
-        dialogPane.setPrefWidth(550);
+        dialogPane.setMinWidth(650);
+        dialogPane.setPrefWidth(700);
         dialogPane.setPrefHeight(500);
 
         // Load CSS
