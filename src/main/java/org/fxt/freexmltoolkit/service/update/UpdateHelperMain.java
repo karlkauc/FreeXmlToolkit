@@ -113,11 +113,12 @@ public class UpdateHelperMain {
      */
     private static boolean isJavaProcessRunningWithApp(String processName, UpdateHelperLogger logger) {
         String appBaseName = processName.replace(".exe", "").replace(".EXE", "").toLowerCase();
+        long myPid = ProcessHandle.current().pid();
         boolean found = ProcessHandle.allProcesses()
-                .map(ProcessHandle::info)
-                .filter(info -> {
-                    String cmd = info.command().orElse("").toLowerCase();
-                    String cmdLine = info.commandLine().orElse("").toLowerCase();
+                .filter(ph -> ph.pid() != myPid)
+                .filter(ph -> {
+                    String cmd = ph.info().command().orElse("").toLowerCase();
+                    String cmdLine = ph.info().commandLine().orElse("").toLowerCase();
                     // Check for java.exe or javaw.exe with our app name in the command line
                     boolean isJava = cmd.contains("java");
                     boolean hasAppName = cmdLine.contains(appBaseName);

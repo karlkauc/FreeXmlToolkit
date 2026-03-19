@@ -470,19 +470,21 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             Path appDir = getApplicationDirectory();
             Path launcher = getApplicationLauncher();
             String helperExecutableName = getUpdateHelperExecutableName();
-            Path helperLauncher = getUpdateHelperLauncher();
 
             writeDebugLog(debugLog, "Application directory: " + appDir);
             writeDebugLog(debugLog, "Application directory exists: " + Files.exists(appDir));
             writeDebugLog(debugLog, "Launcher: " + launcher);
             writeDebugLog(debugLog, "Launcher exists: " + Files.exists(launcher));
-            writeDebugLog(debugLog, "Helper launcher: " + helperLauncher);
-            if (!Files.exists(helperLauncher)) {
-                Path extractedHelper = findHelperInUpdate(extractedDir, helperExecutableName);
-                if (extractedHelper != null) {
-                    helperLauncher = extractedHelper;
-                    writeDebugLog(debugLog, "Helper launcher found in update payload: " + extractedHelper);
-                }
+
+            // Prefer extracted UpdateHelper to avoid file locks on the installed copy
+            Path helperLauncher = null;
+            Path extractedHelper = findHelperInUpdate(extractedDir, helperExecutableName);
+            if (extractedHelper != null) {
+                helperLauncher = extractedHelper;
+                writeDebugLog(debugLog, "Using UpdateHelper from update payload (avoids file locks): " + extractedHelper);
+            } else {
+                helperLauncher = getUpdateHelperLauncher();
+                writeDebugLog(debugLog, "Fallback: using UpdateHelper from installation directory: " + helperLauncher);
             }
             writeDebugLog(debugLog, "Helper launcher exists: " + Files.exists(helperLauncher));
             writeDebugLog(debugLog, "Helper launcher resolved path: " + helperLauncher);
