@@ -20,17 +20,22 @@ import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAllCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddChoiceCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSequenceCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeCardinalityCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeUseCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DuplicateNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.MoveNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.PasteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.RenameNodeCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
@@ -118,14 +123,13 @@ public class XsdContextMenuFactory {
     private ContextMenu createEmptyCanvasMenu() {
         ContextMenu menu = new ContextMenu();
 
-        menu.getItems().addAll(
+        menu.getItems().add(
                 createMenuItem("Add Root Element", () -> {
                     org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = editorContext.getSchema();
                     if (schema != null) {
                         handleAddRootElement(schema);
                     }
-                }),
-                createMenuItem("Add Global Type", () -> logger.info("Add global type"))
+                })
         );
         return menu;
     }
@@ -245,10 +249,10 @@ public class XsdContextMenuFactory {
 
         menu.getItems().addAll(
                 createMenuItem("Change Type", "bi-arrow-left-right", "#007bff",
-                        () -> logger.info("Change type of attribute {}", node.getLabel())),
+                        () -> handleChangeType(node)),
                 createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
                 createMenuItem("Toggle Required/Optional", "bi-toggle-on", "#6c757d",
-                        () -> logger.info("Toggle required/optional for {}", node.getLabel())),
+                        () -> handleToggleUse(node)),
                 new SeparatorMenuItem(),
                 createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node)),
                 new SeparatorMenuItem(),
@@ -266,13 +270,14 @@ public class XsdContextMenuFactory {
 
         // Add submenu
         Menu addMenu = new Menu("Add");
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
         addMenu.getItems().addAll(
-                createMenuItem("Element", () -> logger.info("Add element to complex type {}", node.getLabel())),
-                createMenuItem("Attribute", () -> logger.info("Add attribute to complex type {}", node.getLabel())),
+                createMenuItem("Element", "bi-plus", "#28a745", () -> handleAddElement(node)),
+                createMenuItem("Attribute", "bi-at", "#ffc107", () -> handleAddAttribute(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Sequence", () -> logger.info("Add sequence to complex type {}", node.getLabel())),
-                createMenuItem("Choice", () -> logger.info("Add choice to complex type {}", node.getLabel())),
-                createMenuItem("All", () -> logger.info("Add all to complex type {}", node.getLabel()))
+                createMenuItem("Sequence", "bi-list-ol", "#6c757d", () -> handleAddCompositorToComplexType(node, "sequence")),
+                createMenuItem("Choice", "bi-card-list", "#6c757d", () -> handleAddCompositorToComplexType(node, "choice")),
+                createMenuItem("All", "bi-grid-3x3", "#6c757d", () -> handleAddCompositorToComplexType(node, "all"))
         );
 
         menu.getItems().addAll(
@@ -281,7 +286,6 @@ public class XsdContextMenuFactory {
                 addMenu,
                 new SeparatorMenuItem(),
                 createMenuItem("Rename", () -> handleRename(node)),
-                createMenuItem("Convert to Simple Type", () -> logger.info("Convert to simple type {}", node.getLabel())),
                 new SeparatorMenuItem(),
                 createMenuItem("Delete", () -> handleDelete(node)),
                 new SeparatorMenuItem(),
@@ -300,11 +304,7 @@ public class XsdContextMenuFactory {
         menu.getItems().addAll(
                 createMenuItemAlwaysEnabled("Edit Type in Editor", () -> handleEditSimpleType(node)),
                 new SeparatorMenuItem(),
-                createMenuItem("Edit Restrictions", () -> logger.info("Edit restrictions for {}", node.getLabel())),
-                createMenuItem("Edit Facets", () -> logger.info("Edit facets for {}", node.getLabel())),
-                new SeparatorMenuItem(),
                 createMenuItem("Rename", () -> handleRename(node)),
-                createMenuItem("Convert to Complex Type", () -> logger.info("Convert to complex type {}", node.getLabel())),
                 new SeparatorMenuItem(),
                 createMenuItem("Delete", () -> handleDelete(node)),
                 new SeparatorMenuItem(),
@@ -335,27 +335,27 @@ public class XsdContextMenuFactory {
         if (node.getType() != NodeWrapperType.SEQUENCE) {
             changeTypeMenu.getItems().add(
                     createMenuItem("Sequence", "bi-list-ol", "#6c757d",
-                            () -> logger.info("Change compositor to sequence"))
+                            () -> handleChangeCompositorType(node, "sequence"))
             );
         }
 
         if (node.getType() != NodeWrapperType.CHOICE) {
             changeTypeMenu.getItems().add(
                     createMenuItem("Choice", "bi-card-list", "#6c757d",
-                            () -> logger.info("Change compositor to choice"))
+                            () -> handleChangeCompositorType(node, "choice"))
             );
         }
 
         if (node.getType() != NodeWrapperType.ALL) {
             changeTypeMenu.getItems().add(
                     createMenuItem("All", "bi-grid-3x3", "#6c757d",
-                            () -> logger.info("Change compositor to all"))
+                            () -> handleChangeCompositorType(node, "all"))
             );
         }
 
         // Edit Cardinality
-        MenuItem editCardinalityItem = createMenuItem("Edit Cardinality", "bi-arrow-left-right", "#17a2b8",
-                () -> logger.info("Edit cardinality of compositor"));
+        MenuItem editCardinalityItem = createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1",
+                () -> handleChangeCardinality(node));
 
         // Delete
         MenuItem deleteItem = createMenuItem("Delete", "bi-trash", "#dc3545",
@@ -383,13 +383,10 @@ public class XsdContextMenuFactory {
         menu.getItems().addAll(
                 createMenuItem("Add Root Element", () -> {
                     Object modelObject = node.getModelObject();
-                    if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode parentNode) {
+                    if (modelObject instanceof XsdNode parentNode) {
                         handleAddRootElement(parentNode);
                     }
                 }),
-                createMenuItem("Add Global Type", () -> logger.info("Add global type to schema")),
-                new SeparatorMenuItem(),
-                createMenuItem("Edit Namespace", () -> logger.info("Edit schema namespace")),
                 new SeparatorMenuItem(),
                 createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
@@ -422,7 +419,7 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Edit Value", () -> logger.info("Edit enumeration value {}", node.getLabel())),
+                createMenuItem("Edit Value", () -> handleEditEnumerationValue(node)),
                 createMenuItem("Delete", () -> handleDelete(node)),
                 new SeparatorMenuItem(),
                 createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
@@ -438,8 +435,6 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Properties", () -> logger.info("Show properties for {}", node.getLabel())),
-                new SeparatorMenuItem(),
                 createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
 
@@ -540,7 +535,7 @@ public class XsdContextMenuFactory {
     private void handleDelete(VisualNode node) {
         // Extract XsdNode from VisualNode for the command
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+        if (modelObject instanceof XsdNode xsdNode) {
             DeleteNodeCommand command = new DeleteNodeCommand(xsdNode);
             editorContext.getCommandManager().executeCommand(command);
             logger.info("Executed delete command for node: {}", node.getLabel());
@@ -566,7 +561,7 @@ public class XsdContextMenuFactory {
             if (!newName.trim().isEmpty() && !newName.equals(node.getLabel())) {
                 // Extract XsdNode from VisualNode for the command
                 Object modelObject = node.getModelObject();
-                if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+                if (modelObject instanceof XsdNode xsdNode) {
                     RenameNodeCommand command = new RenameNodeCommand(xsdNode, newName);
                     editorContext.getCommandManager().executeCommand(command);
                     logger.info("Executed rename command: '{}' -> '{}'", node.getLabel(), newName);
@@ -586,7 +581,7 @@ public class XsdContextMenuFactory {
     private void handleDuplicate(VisualNode node) {
         // Extract XsdNode from VisualNode for the command
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+        if (modelObject instanceof XsdNode xsdNode) {
             DuplicateNodeCommand command = new DuplicateNodeCommand(xsdNode);
             editorContext.getCommandManager().executeCommand(command);
             logger.info("Executed duplicate command for node: {}", node.getLabel());
@@ -612,7 +607,7 @@ public class XsdContextMenuFactory {
             if (!newType.trim().isEmpty()) {
                 // Extract XsdNode from VisualNode for the command
                 Object modelObject = node.getModelObject();
-                if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+                if (modelObject instanceof XsdNode xsdNode) {
                     ChangeTypeCommand command = new ChangeTypeCommand(editorContext, xsdNode, newType);
                     editorContext.getCommandManager().executeCommand(command);
                     logger.info("Executed change type command for node: {}", node.getLabel());
@@ -659,7 +654,7 @@ public class XsdContextMenuFactory {
 
                         // Extract XsdNode from VisualNode for the command
                         Object modelObject = node.getModelObject();
-                        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+                        if (modelObject instanceof XsdNode xsdNode) {
                             ChangeCardinalityCommand command = new ChangeCardinalityCommand(xsdNode, minOccurs, maxOccurs);
                             editorContext.getCommandManager().executeCommand(command);
                             logger.info("Executed change cardinality command for node: {}", node.getLabel());
@@ -695,7 +690,7 @@ public class XsdContextMenuFactory {
             if (!elementName.trim().isEmpty()) {
                 // Extract XsdNode from VisualNode for the command
                 Object modelObject = node.getModelObject();
-                if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode parentNode) {
+                if (modelObject instanceof XsdNode parentNode) {
                     // Create element without type (type will be xs:string by default in AddElementCommand)
                     // But we create with null type instead
                     AddElementCommand command = new AddElementCommand(parentNode, elementName.trim(), null);
@@ -726,7 +721,7 @@ public class XsdContextMenuFactory {
             if (!attributeName.trim().isEmpty()) {
                 // Extract XsdNode from VisualNode for the command
                 Object modelObject = node.getModelObject();
-                if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode parentNode) {
+                if (modelObject instanceof XsdNode parentNode) {
                     AddAttributeCommand command = new AddAttributeCommand(parentNode, attributeName.trim());
                     editorContext.getCommandManager().executeCommand(command);
                     logger.info("Added attribute '{}' to '{}'", attributeName, node.getLabel());
@@ -739,12 +734,110 @@ public class XsdContextMenuFactory {
     }
 
     /**
+     * Handles toggling the use attribute of an XSD attribute between "required" and "optional".
+     *
+     * @param node the attribute node
+     */
+    private void handleToggleUse(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof XsdAttribute attribute) {
+            String currentUse = attribute.getUse();
+            String newUse = "required".equals(currentUse) ? "optional" : "required";
+            ChangeUseCommand command = new ChangeUseCommand(editorContext, attribute, newUse);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.info("Toggled attribute '{}' use to '{}'", node.getLabel(), newUse);
+        }
+    }
+
+    /**
+     * Handles adding a compositor (sequence/choice/all) to a ComplexType node.
+     * Navigates to the parent Element and uses AddCompositorCommand.
+     *
+     * @param node           the ComplexType visual node
+     * @param compositorType the type of compositor ("sequence", "choice", or "all")
+     */
+    private void handleAddCompositorToComplexType(VisualNode node, String compositorType) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof XsdComplexType complexType) {
+            XsdNode parent = complexType.getParent();
+            if (parent instanceof XsdElement element) {
+                XsdCommand command = switch (compositorType) {
+                    case "sequence" -> AddCompositorCommand.sequence(element);
+                    case "choice" -> AddCompositorCommand.choice(element);
+                    case "all" -> AddCompositorCommand.all(element);
+                    default -> null;
+                };
+                if (command != null) {
+                    editorContext.getCommandManager().executeCommand(command);
+                    logger.info("Added {} to ComplexType '{}'", compositorType, node.getLabel());
+                }
+            } else {
+                logger.warn("Cannot add compositor: ComplexType '{}' has no parent Element", node.getLabel());
+            }
+        }
+    }
+
+    /**
+     * Handles changing a compositor node's type (e.g., sequence to choice).
+     * Navigates up to the parent Element and uses AddCompositorCommand which replaces existing compositors.
+     *
+     * @param node       the compositor visual node
+     * @param targetType the target compositor type ("sequence", "choice", or "all")
+     */
+    private void handleChangeCompositorType(VisualNode node, String targetType) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof XsdNode compositorNode) {
+            XsdNode complexType = compositorNode.getParent();
+            if (complexType != null) {
+                XsdNode element = complexType.getParent();
+                if (element instanceof XsdElement xsdElement) {
+                    XsdCommand command = switch (targetType) {
+                        case "sequence" -> AddCompositorCommand.sequence(xsdElement);
+                        case "choice" -> AddCompositorCommand.choice(xsdElement);
+                        case "all" -> AddCompositorCommand.all(xsdElement);
+                        default -> null;
+                    };
+                    if (command != null) {
+                        editorContext.getCommandManager().executeCommand(command);
+                        logger.info("Changed compositor to {} in '{}'", targetType, xsdElement.getName());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles editing an enumeration value.
+     * Uses RenameNodeCommand since the enumeration value is stored as the node name.
+     *
+     * @param node the enumeration visual node
+     */
+    private void handleEditEnumerationValue(VisualNode node) {
+        TextInputDialog dialog = new TextInputDialog(node.getLabel());
+        dialog.setTitle("Edit Enumeration Value");
+        dialog.setHeaderText("Edit value of enumeration");
+        dialog.setContentText("New value:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(newValue -> {
+            if (!newValue.trim().isEmpty() && !newValue.equals(node.getLabel())) {
+                Object modelObject = node.getModelObject();
+                if (modelObject instanceof XsdNode xsdNode) {
+                    RenameNodeCommand command = new RenameNodeCommand(xsdNode, newValue.trim());
+                    editorContext.getCommandManager().executeCommand(command);
+                    logger.info("Changed enumeration value from '{}' to '{}'", node.getLabel(), newValue.trim());
+                }
+            }
+        });
+    }
+
+    /**
      * Handles add root element operation for the schema.
      * Creates a new element directly under the schema.
      *
      * @param parentNode the parent node (schema)
      */
-    private void handleAddRootElement(org.fxt.freexmltoolkit.controls.v2.model.XsdNode parentNode) {
+    private void handleAddRootElement(XsdNode parentNode) {
         TextInputDialog dialog = new TextInputDialog("newElement");
         dialog.setTitle("Add Root Element");
         dialog.setHeaderText("Add element to schema");
@@ -768,7 +861,7 @@ public class XsdContextMenuFactory {
      */
     private void handleAddSequence(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+        if (modelObject instanceof XsdElement element) {
             AddSequenceCommand command = new AddSequenceCommand(element);
             editorContext.getCommandManager().executeCommand(command);
             logger.info("Added sequence to element '{}'", element.getName());
@@ -786,7 +879,7 @@ public class XsdContextMenuFactory {
      */
     private void handleAddChoice(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+        if (modelObject instanceof XsdElement element) {
             AddChoiceCommand command = new AddChoiceCommand(element);
             editorContext.getCommandManager().executeCommand(command);
             logger.info("Added choice to element '{}'", element.getName());
@@ -804,7 +897,7 @@ public class XsdContextMenuFactory {
      */
     private void handleAddAll(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+        if (modelObject instanceof XsdElement element) {
             AddAllCommand command = new AddAllCommand(element);
             editorContext.getCommandManager().executeCommand(command);
             logger.info("Added all to element '{}'", element.getName());
@@ -830,8 +923,8 @@ public class XsdContextMenuFactory {
         boolean canMoveUp = false;
         boolean canMoveDown = false;
 
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
-            org.fxt.freexmltoolkit.controls.v2.model.XsdNode parent = xsdNode.getParent();
+        if (modelObject instanceof XsdNode xsdNode) {
+            XsdNode parent = xsdNode.getParent();
             if (parent != null) {
                 int index = parent.getChildren().indexOf(xsdNode);
                 canMoveUp = index > 0;
@@ -862,8 +955,8 @@ public class XsdContextMenuFactory {
      */
     private void handleMoveUp(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
-            org.fxt.freexmltoolkit.controls.v2.model.XsdNode parent = xsdNode.getParent();
+        if (modelObject instanceof XsdNode xsdNode) {
+            XsdNode parent = xsdNode.getParent();
             if (parent != null) {
                 int index = parent.getChildren().indexOf(xsdNode);
                 if (index > 0) {
@@ -888,8 +981,8 @@ public class XsdContextMenuFactory {
      */
     private void handleMoveDown(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
-            org.fxt.freexmltoolkit.controls.v2.model.XsdNode parent = xsdNode.getParent();
+        if (modelObject instanceof XsdNode xsdNode) {
+            XsdNode parent = xsdNode.getParent();
             if (parent != null) {
                 int index = parent.getChildren().indexOf(xsdNode);
                 if (index >= 0 && index < parent.getChildren().size() - 1) {
@@ -915,7 +1008,7 @@ public class XsdContextMenuFactory {
      */
     private void handleCopy(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+        if (modelObject instanceof XsdNode xsdNode) {
             // Copy to internal clipboard for paste within editor
             editorContext.getClipboard().copy(xsdNode);
 
@@ -935,7 +1028,7 @@ public class XsdContextMenuFactory {
      *
      * @param xsdNode the node to serialize and copy
      */
-    private void copyXsdDefinitionToSystemClipboard(org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+    private void copyXsdDefinitionToSystemClipboard(XsdNode xsdNode) {
         try {
             org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer serializer =
                     new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer();
@@ -961,7 +1054,7 @@ public class XsdContextMenuFactory {
      */
     private void handleCut(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+        if (modelObject instanceof XsdNode xsdNode) {
             editorContext.getClipboard().cut(xsdNode);
             logger.info("Cut node '{}' to clipboard", node.getLabel());
         } else {
@@ -1003,7 +1096,7 @@ public class XsdContextMenuFactory {
         }
 
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode targetParent) {
+        if (modelObject instanceof XsdNode targetParent) {
             PasteNodeCommand command = new PasteNodeCommand(clipboard, targetParent);
             editorContext.getCommandManager().executeCommand(command);
             logger.info("Pasted node to '{}'", node.getLabel());
@@ -1026,7 +1119,7 @@ public class XsdContextMenuFactory {
         }
 
         Object modelObject = node.getModelObject();
-        if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode)) {
+        if (!(modelObject instanceof XsdNode xsdNode)) {
             logger.warn("Cannot copy XPath: model object is not an XsdNode: {}",
                     modelObject != null ? modelObject.getClass() : "null");
             return;
@@ -1092,7 +1185,7 @@ public class XsdContextMenuFactory {
      */
     private boolean hasComplexTypeReference(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+        if (modelObject instanceof XsdElement element) {
             String typeName = element.getType();
             if (typeName != null && !typeName.isEmpty() && !typeName.startsWith("xs:")) {
                 // Element references a custom type - check if it's a ComplexType
@@ -1111,7 +1204,7 @@ public class XsdContextMenuFactory {
      */
     private boolean hasSimpleTypeReference(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+        if (modelObject instanceof XsdElement element) {
             String typeName = element.getType();
             if (typeName != null && !typeName.isEmpty() && !typeName.startsWith("xs:")) {
                 // Element references a custom type - check if it's a SimpleType
@@ -1151,7 +1244,7 @@ public class XsdContextMenuFactory {
      */
     private boolean canAddCompositor(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
+        if (!(modelObject instanceof XsdElement element)) {
             return false;
         }
 
@@ -1198,7 +1291,7 @@ public class XsdContextMenuFactory {
         }
 
         // Element nodes - check if they can have child elements
-        if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
+        if (!(modelObject instanceof XsdElement element)) {
             return false;
         }
 
@@ -1248,7 +1341,7 @@ public class XsdContextMenuFactory {
      */
     private boolean canAddAttribute(VisualNode node) {
         Object modelObject = node.getModelObject();
-        if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
+        if (!(modelObject instanceof XsdElement element)) {
             return false;
         }
 
@@ -1297,7 +1390,7 @@ public class XsdContextMenuFactory {
         Object modelObject = node.getModelObject();
         logger.debug("Model object type: {}", modelObject != null ? modelObject.getClass().getSimpleName() : "null");
 
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+        if (modelObject instanceof XsdElement element) {
             String typeName = element.getType();
             logger.info("Element '{}' has type attribute: '{}'", node.getLabel(), typeName);
 
@@ -1334,7 +1427,7 @@ public class XsdContextMenuFactory {
         Object modelObject = node.getModelObject();
         logger.debug("Model object type: {}", modelObject != null ? modelObject.getClass().getSimpleName() : "null");
 
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+        if (modelObject instanceof XsdElement element) {
             String typeName = element.getType();
             logger.info("Element '{}' has type attribute: '{}'", node.getLabel(), typeName);
 
@@ -1421,7 +1514,7 @@ public class XsdContextMenuFactory {
                 localTypeName, editorContext.getSchema().getChildren().size());
 
         // Search for ComplexType in schema's children
-        for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : editorContext.getSchema().getChildren()) {
+        for (XsdNode child : editorContext.getSchema().getChildren()) {
             if (child instanceof XsdComplexType complexType) {
                 String complexTypeName = complexType.getName();
                 logger.trace("Checking ComplexType: '{}' against '{}'", complexTypeName, localTypeName);
@@ -1467,7 +1560,7 @@ public class XsdContextMenuFactory {
                 localTypeName, editorContext.getSchema().getChildren().size());
 
         // Search for SimpleType in schema's children
-        for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : editorContext.getSchema().getChildren()) {
+        for (XsdNode child : editorContext.getSchema().getChildren()) {
             if (child instanceof XsdSimpleType simpleType) {
                 String simpleTypeName = simpleType.getName();
                 logger.trace("Checking SimpleType: '{}' against '{}'", simpleTypeName, localTypeName);
