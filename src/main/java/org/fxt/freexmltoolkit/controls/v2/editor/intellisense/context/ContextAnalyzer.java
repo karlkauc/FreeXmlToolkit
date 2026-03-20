@@ -57,7 +57,7 @@ public class ContextAnalyzer {
         }
 
         // Build element stack and XPath context
-        XPathContext xpathContext = buildXPathContext(textBeforeCaret);
+        XPathContext xpathContext = buildXPathContext(text, safeCaretPos);
         builder.xpathContext(xpathContext);
 
         // Determine context type and related information
@@ -141,8 +141,12 @@ public class ContextAnalyzer {
 
     /**
      * Builds the XPath context by parsing the element hierarchy.
+     *
+     * @param fullText      the complete XML text
+     * @param caretPosition the cursor position
      */
-    private static XPathContext buildXPathContext(String textBeforeCaret) {
+    private static XPathContext buildXPathContext(String fullText, int caretPosition) {
+        String textBeforeCaret = fullText.substring(0, caretPosition);
         Stack<String> elementStack = new Stack<>();
 
         int pos = 0;
@@ -154,6 +158,20 @@ public class ContextAnalyzer {
 
             int nextClose = textBeforeCaret.indexOf('>', nextOpen);
             if (nextClose == -1) {
+                // Incomplete tag — cursor is inside a tag. Look ahead in the
+                // full text to get the complete tag name.
+                int fullClose = fullText.indexOf('>', nextOpen);
+                if (fullClose != -1) {
+                    String tag = fullText.substring(nextOpen + 1, fullClose);
+                    if (!tag.startsWith("!--") && !tag.startsWith("![CDATA[") && !tag.startsWith("?")) {
+                        if (!tag.startsWith("/") && !tag.endsWith("/")) {
+                            String elementName = extractElementName(tag);
+                            if (elementName != null && !elementName.isEmpty()) {
+                                elementStack.push(elementName);
+                            }
+                        }
+                    }
+                }
                 break;
             }
 
