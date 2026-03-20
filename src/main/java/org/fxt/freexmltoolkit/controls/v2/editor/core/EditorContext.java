@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.core;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.IntelliSenseEngine;
@@ -31,6 +32,9 @@ public class EditorContext {
 
     // IntelliSense (will be set after construction)
     private IntelliSenseEngine intelliSenseEngine;
+
+    // Navigation callback (set by XmlEditor when MainController is available)
+    private Consumer<NavigationRequest> goToDefinitionHandler;
 
     /**
      * Creates a new editor context.
@@ -93,6 +97,25 @@ public class EditorContext {
      */
     public void setIntelliSenseEngine(IntelliSenseEngine intelliSenseEngine) {
         this.intelliSenseEngine = intelliSenseEngine;
+    }
+
+    /**
+     * Gets the go-to-definition handler.
+     *
+     * @return the handler, or null if not set
+     */
+    public Consumer<NavigationRequest> getGoToDefinitionHandler() {
+        return goToDefinitionHandler;
+    }
+
+    /**
+     * Sets the go-to-definition handler.
+     * Called by XmlEditor when MainController is available.
+     *
+     * @param handler the navigation handler
+     */
+    public void setGoToDefinitionHandler(Consumer<NavigationRequest> handler) {
+        this.goToDefinitionHandler = handler;
     }
 
     // ==================== Editor State ====================

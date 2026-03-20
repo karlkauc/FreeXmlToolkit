@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlContextMenuManager;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextAnalyzer;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
@@ -367,7 +368,7 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
             if (xsdData != null) {
                 XsdExtendedElement elementInfo = xsdData.getExtendedXsdElementMap().get(xpath);
                 if (elementInfo != null) {
-                    showElementInfoDialog(elementInfo);
+                    navigateToDefinition(elementInfo);
                 } else {
                     logger.debug("No definition found for: {}", xpath);
                 }
@@ -378,7 +379,26 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
     }
 
     /**
-     * Shows element information dialog.
+     * Navigates to the element definition in the XSD editor, or falls back to an info dialog.
+     */
+    private void navigateToDefinition(XsdExtendedElement elementInfo) {
+        var handler = editorContext.getGoToDefinitionHandler();
+        String xsdFilePath = editorContext.getSchemaProvider().getXsdFilePath();
+
+        if (handler != null && xsdFilePath != null) {
+            java.io.File xsdFile = new java.io.File(xsdFilePath);
+            if (xsdFile.exists()) {
+                handler.accept(new NavigationRequest(xsdFile, elementInfo.getElementName()));
+                return;
+            }
+        }
+
+        // Fallback: show info dialog
+        showElementInfoDialog(elementInfo);
+    }
+
+    /**
+     * Shows element information dialog (fallback when navigation is not available).
      */
     private void showElementInfoDialog(XsdExtendedElement elementInfo) {
         StringBuilder info = new StringBuilder();

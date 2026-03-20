@@ -163,6 +163,13 @@ public class XmlEditor extends Tab {
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
 
+        // Set up go-to-definition navigation callback
+        if (xmlCodeEditorV2 != null) {
+            xmlCodeEditorV2.getEditorContext().setGoToDefinitionHandler(request ->
+                    mainController.switchToXsdViewAndNavigate(request.xsdFile(), request.elementName())
+            );
+        }
+
         // Also set the MainController reference in the sidebar controller if it's already initialized
         if (sidebarController != null) {
             sidebarController.setMainController(mainController);

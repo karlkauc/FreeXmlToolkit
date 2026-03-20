@@ -546,6 +546,35 @@ public class XsdController implements FavoritesParentController {
         tabPane.getSelectionModel().select(textTab);
     }
 
+    /**
+     * Navigates to the definition of the given element in the XSD source code.
+     * Searches for {@code name="elementName"} and selects the match.
+     *
+     * @param elementName the element name to find
+     */
+    public void navigateToElementDefinition(String elementName) {
+        if (elementName == null || elementName.isEmpty() || sourceCodeEditor == null) {
+            return;
+        }
+
+        String text = sourceCodeEditor.getCodeArea().getText();
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        String searchPattern = "name=\"" + elementName + "\"";
+        int index = text.indexOf(searchPattern);
+        if (index >= 0) {
+            int end = index + searchPattern.length();
+            sourceCodeEditor.getCodeArea().moveTo(index);
+            sourceCodeEditor.getCodeArea().selectRange(index, end);
+            sourceCodeEditor.getCodeArea().requestFollowCaret();
+            logger.debug("Navigated to element definition: {}", elementName);
+        } else {
+            logger.debug("Element definition not found in XSD text: {}", elementName);
+        }
+    }
+
     public void selectSubTab(String subTabId) {
         if (tabPane == null || subTabId == null) {
             return;

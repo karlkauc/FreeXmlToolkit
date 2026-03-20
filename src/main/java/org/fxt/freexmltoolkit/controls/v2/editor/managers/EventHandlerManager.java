@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.IntelliSenseEngine;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextAnalyzer;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
@@ -285,7 +286,7 @@ public class EventHandlerManager {
                 XsdExtendedElement elementInfo = xsdData.getExtendedXsdElementMap().get(xpath);
 
                 if (elementInfo != null) {
-                    showElementInfo(elementInfo);
+                    navigateToDefinition(elementInfo);
                 } else {
                     logger.debug("No XSD definition found for XPath: {}", xpath);
                 }
@@ -357,7 +358,26 @@ public class EventHandlerManager {
     }
 
     /**
-     * Shows element information dialog.
+     * Navigates to the element definition in the XSD editor, or falls back to an info dialog.
+     */
+    private void navigateToDefinition(XsdExtendedElement elementInfo) {
+        var handler = editorContext.getGoToDefinitionHandler();
+        String xsdFilePath = editorContext.getSchemaProvider().getXsdFilePath();
+
+        if (handler != null && xsdFilePath != null) {
+            java.io.File xsdFile = new java.io.File(xsdFilePath);
+            if (xsdFile.exists()) {
+                handler.accept(new NavigationRequest(xsdFile, elementInfo.getElementName()));
+                return;
+            }
+        }
+
+        // Fallback: show info dialog
+        showElementInfo(elementInfo);
+    }
+
+    /**
+     * Shows element information dialog (fallback when navigation is not available).
      */
     private void showElementInfo(XsdExtendedElement elementInfo) {
         StringBuilder info = new StringBuilder();
@@ -377,7 +397,6 @@ public class EventHandlerManager {
 
         logger.debug("Element Info displayed for: {}", elementInfo.getElementName());
 
-        // Show in proper dialog
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Element Information");
         alert.setHeaderText("Element: " + elementInfo.getElementName());

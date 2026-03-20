@@ -864,6 +864,34 @@ public class MainController implements Initializable {
     }
 
     /**
+     * Switches to the XSD editor view, loads the specified file, and navigates
+     * to the definition of the given element name.
+     *
+     * @param fileToLoad  the XSD file to load
+     * @param elementName the element name to navigate to
+     */
+    public void switchToXsdViewAndNavigate(File fileToLoad, String elementName) {
+        if (xsd == null) {
+            logger.error("XSD-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
+            return;
+        }
+        removeActiveFromAllMenuButtons();
+        xsd.getStyleClass().add("active");
+
+        loadPageFromPath("/pages/tab_xsd.fxml");
+
+        if (this.xsdController != null && fileToLoad != null && fileToLoad.exists()) {
+            Platform.runLater(() -> {
+                xsdController.openXsdFile(fileToLoad);
+                xsdController.selectTextTab();
+                Platform.runLater(() -> xsdController.navigateToElementDefinition(elementName));
+            });
+        } else {
+            logger.warn("XsdController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
+        }
+    }
+
+    /**
      * Switches to the Schematron editor view and loads the specified file.
      *
      * @param fileToLoad the Schematron file to load
