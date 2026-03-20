@@ -962,6 +962,14 @@ public class SchemaResolver {
                 return null;
             }
 
+            // Skip DTD resources - not needed for XSD validation
+            // W3C DTDs (XMLSchema.dtd, datatypes.dtd) are referenced by some schemas
+            // but Xerces handles DTD processing internally
+            if (systemId.endsWith(".dtd")) {
+                logger.debug("Skipping DTD resource resolution: {}", systemId);
+                return null;
+            }
+
             // Check for circular imports
             Set<String> visited = visitedUris.get();
             String normalizedSystemId = normalizeSystemId(systemId, baseURI);
