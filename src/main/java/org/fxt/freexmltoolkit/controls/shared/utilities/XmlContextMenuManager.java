@@ -254,41 +254,6 @@ public class XmlContextMenuManager {
     }
 
     /**
-     * Updates the context menu state based on current editor state.
-     * This can be used to enable/disable menu items based on context.
-     *
-     * @param hasSelection Whether text is currently selected
-     * @param isXmlContent Whether the current content is XML
-     * @param canUndo      Whether undo is available
-     * @param canRedo      Whether redo is available
-     */
-    public void updateContextMenuState(boolean hasSelection, boolean isXmlContent, boolean canUndo, boolean canRedo) {
-        if (contextMenu == null) {
-            return;
-        }
-
-        // Update menu item states based on context
-        contextMenu.getItems().forEach(item -> {
-            if (item instanceof MenuItem menuItem) {
-                String text = menuItem.getText();
-
-                // Enable/disable based on selection
-                if (text.startsWith("Cut") || text.startsWith("Copy")) {
-                    menuItem.setDisable(!hasSelection && !text.equals("Copy XPath"));
-                }
-
-                // Enable/disable XML-specific actions based on content type
-                if (text.startsWith("Format XML") || text.startsWith("Validate XML") ||
-                        text.startsWith("Copy XPath") || text.startsWith("Go to Definition")) {
-                    menuItem.setDisable(!isXmlContent);
-                }
-            }
-        });
-
-        logger.debug("Context menu state updated: hasSelection={}, isXml={}", hasSelection, isXmlContent);
-    }
-
-    /**
      * Shows the context menu at the specified coordinates.
      *
      * @param screenX Screen X coordinate
