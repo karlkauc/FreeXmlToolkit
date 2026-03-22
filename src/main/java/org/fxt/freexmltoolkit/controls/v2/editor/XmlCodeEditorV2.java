@@ -127,6 +127,9 @@ public class XmlCodeEditorV2 extends VBox {
         // Set up code area styling
         codeArea.setStyle("-fx-font-size: 11pt; -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;");
 
+        // Add style class to scrollPane so CSS can target its scrollbars
+        scrollPane.getStyleClass().add("xml-editor-scroll-pane");
+
         // Setup combined paragraph graphics (fold indicators + line numbers)
         codeArea.setParagraphGraphicFactory(createCombinedParagraphGraphicFactory());
 
@@ -178,6 +181,8 @@ public class XmlCodeEditorV2 extends VBox {
             var cssResource = getClass().getResource(cssPath);
             if (cssResource != null) {
                 codeArea.getStylesheets().add(cssResource.toExternalForm());
+                // Also load on scrollPane so scrollbar styles are applied
+                scrollPane.getStylesheets().add(cssResource.toExternalForm());
             }
 
             // Load XML highlighting CSS

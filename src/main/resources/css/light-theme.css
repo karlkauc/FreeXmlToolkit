@@ -410,6 +410,73 @@
     -fx-padding: 0;
 }
 
+/* XML Editor ScrollPane - ensure scrollbars are visible */
+.xml-editor-scroll-pane > .scroll-bar:vertical {
+    -fx-pref-width: 14;
+    -fx-background-color: #f0f0f0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .track {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 0 1;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .thumb {
+    -fx-background-color: #c1c1c1;
+    -fx-background-insets: 2;
+    -fx-background-radius: 6;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #a0a0a0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: #888888;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal {
+    -fx-pref-height: 14;
+    -fx-background-color: #f0f0f0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .track {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1 0 0 0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .thumb {
+    -fx-background-color: #c1c1c1;
+    -fx-background-insets: 2;
+    -fx-background-radius: 6;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #a0a0a0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .thumb:pressed {
+    -fx-background-color: #888888;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .increment-button,
+.xml-editor-scroll-pane > .scroll-bar:vertical .decrement-button,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .increment-button,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .decrement-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .increment-arrow,
+.xml-editor-scroll-pane > .scroll-bar:vertical .decrement-arrow,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .increment-arrow,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
 .split-pane:horizontal > .split-pane-divider {
   -fx-border-color: transparent;
   -fx-background-color: #e1e4e8;

@@ -421,6 +421,73 @@
   -fx-background-color: #2d2d30;
 }
 
+/* XML Editor ScrollPane - ensure scrollbars are visible (Dark Mode) */
+.xml-editor-scroll-pane > .scroll-bar:vertical {
+    -fx-pref-width: 14;
+    -fx-background-color: #252526;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .track {
+    -fx-background-color: #252526;
+    -fx-border-color: #3c3c3c;
+    -fx-border-width: 0 0 0 1;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .thumb {
+    -fx-background-color: #5a5a5a;
+    -fx-background-insets: 2;
+    -fx-background-radius: 6;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #7a7a7a;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: #9a9a9a;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal {
+    -fx-pref-height: 14;
+    -fx-background-color: #252526;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .track {
+    -fx-background-color: #252526;
+    -fx-border-color: #3c3c3c;
+    -fx-border-width: 1 0 0 0;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .thumb {
+    -fx-background-color: #5a5a5a;
+    -fx-background-insets: 2;
+    -fx-background-radius: 6;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #7a7a7a;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:horizontal .thumb:pressed {
+    -fx-background-color: #9a9a9a;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .increment-button,
+.xml-editor-scroll-pane > .scroll-bar:vertical .decrement-button,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .increment-button,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .decrement-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.xml-editor-scroll-pane > .scroll-bar:vertical .increment-arrow,
+.xml-editor-scroll-pane > .scroll-bar:vertical .decrement-arrow,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .increment-arrow,
+.xml-editor-scroll-pane > .scroll-bar:horizontal .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
 .split-pane {
   -fx-background-color: #1e1e1e;
 }
