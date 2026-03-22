@@ -547,6 +547,19 @@ public class XsdController implements FavoritesParentController {
     }
 
     /**
+     * Navigates to the given element in the graphical XSD view.
+     * Switches to the graphic tab, selects the node, and scrolls it into view.
+     *
+     * @param elementName the element name to navigate to
+     */
+    public void navigateToElementInGraphView(String elementName) {
+        tabPane.getSelectionModel().select(xsdTab);
+        if (currentGraphViewV2 != null) {
+            currentGraphViewV2.navigateToElement(elementName);
+        }
+    }
+
+    /**
      * Navigates to the definition of the given element in the XSD source code.
      * Searches for {@code name="elementName"} and selects the match.
      *

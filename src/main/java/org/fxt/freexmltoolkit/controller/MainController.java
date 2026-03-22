@@ -883,8 +883,7 @@ public class MainController implements Initializable {
         if (this.xsdController != null && fileToLoad != null && fileToLoad.exists()) {
             Platform.runLater(() -> {
                 xsdController.openXsdFile(fileToLoad);
-                xsdController.selectTextTab();
-                Platform.runLater(() -> xsdController.navigateToElementDefinition(elementName));
+                Platform.runLater(() -> xsdController.navigateToElementInGraphView(elementName));
             });
         } else {
             logger.warn("XsdController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);

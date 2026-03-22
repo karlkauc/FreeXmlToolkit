@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.scene.CacheHint;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -1745,6 +1746,81 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
         // Redraw to show changes
         redraw();
+    }
+
+    /**
+     * Navigates to a specific element by name in the graphical view.
+     * Expands parent nodes, selects the element, and scrolls it into view.
+     *
+     * @param elementName the element name to navigate to
+     */
+    public void navigateToElement(String elementName) {
+        if (elementName == null || elementName.isEmpty() || rootNode == null) {
+            return;
+        }
+
+        VisualNode target = findNodeByName(rootNode, elementName);
+        if (target == null) {
+            logger.debug("Element not found in graphical view: {}", elementName);
+            return;
+        }
+
+        // Expand all ancestors so the target is visible
+        VisualNode ancestor = target.getParent();
+        while (ancestor != null) {
+            ancestor.setExpanded(true);
+            ancestor = ancestor.getParent();
+        }
+
+        // Redraw to compute correct coordinates after expanding
+        redraw();
+
+        // Select the node (triggers highlight redraw)
+        getSelectionModel().select(target);
+
+        // Scroll to make the node visible
+        Platform.runLater(() -> scrollToNode(target));
+
+        logger.debug("Navigated to element: {}", elementName);
+    }
+
+    /**
+     * Finds a VisualNode by element name (recursive tree traversal).
+     */
+    private VisualNode findNodeByName(VisualNode node, String name) {
+        if (node == null) {
+            return null;
+        }
+        if (name.equals(node.getLabel())) {
+            return node;
+        }
+        for (VisualNode child : node.getChildren()) {
+            VisualNode found = findNodeByName(child, name);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Scrolls the viewport to make the given node visible.
+     */
+    private void scrollToNode(VisualNode node) {
+        double contentWidth = canvas.getWidth();
+        double contentHeight = canvas.getHeight();
+        double vpWidth = scrollPane.getViewportBounds().getWidth();
+        double vpHeight = scrollPane.getViewportBounds().getHeight();
+
+        double maxHScroll = Math.max(1, contentWidth - vpWidth);
+        double maxVScroll = Math.max(1, contentHeight - vpHeight);
+
+        // Center the node in the viewport
+        double targetX = node.getX() + node.getWidth() / 2 - vpWidth / 2;
+        double targetY = node.getY() + node.getHeight() / 2 - vpHeight / 2;
+
+        scrollPane.setHvalue(Math.max(0, Math.min(1, targetX / maxHScroll)));
+        scrollPane.setVvalue(Math.max(0, Math.min(1, targetY / maxVScroll)));
     }
 
     /**
