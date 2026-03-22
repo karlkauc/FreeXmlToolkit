@@ -65,6 +65,7 @@ public class XsdController implements FavoritesParentController {
     private org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager currentTypeEditorManager;
     private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema cachedXsdSchema;
     private String cachedXsdContent;
+    private String pendingNavigationElement;
     @FXML
     private TabPane tabPane;
     @FXML
@@ -346,6 +347,13 @@ public class XsdController implements FavoritesParentController {
         noFileLoadedPane.setVisible(false);
         noFileLoadedPane.setManaged(false);
         wireTypeEditorCallbacks();
+
+        // Execute pending Go to Definition navigation
+        if (pendingNavigationElement != null) {
+            String elementName = pendingNavigationElement;
+            pendingNavigationElement = null;
+            Platform.runLater(() -> currentGraphViewV2.navigateToElement(elementName));
+        }
     }
 
     private void wireTypeEditorCallbacks() {
@@ -549,14 +557,16 @@ public class XsdController implements FavoritesParentController {
     /**
      * Navigates to the given element in the graphical XSD view.
      * Switches to the graphic tab, selects the node, and scrolls it into view.
+     * If the graph view is not yet ready (async schema parsing), stores the
+     * navigation target and executes it once the graph view is created.
      *
      * @param elementName the element name to navigate to
      */
     public void navigateToElementInGraphView(String elementName) {
         tabPane.getSelectionModel().select(xsdTab);
-        if (currentGraphViewV2 != null) {
-            currentGraphViewV2.navigateToElement(elementName);
-        }
+        // Store as pending — openXsdFile triggers async schema rebuild which
+        // creates a new graph view. Navigation executes in createGraphicalViewFromCachedSchema().
+        pendingNavigationElement = elementName;
     }
 
     /**
