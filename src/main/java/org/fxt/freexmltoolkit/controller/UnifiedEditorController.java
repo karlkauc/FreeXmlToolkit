@@ -304,6 +304,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
+        if (tabManager != null) {
+            tabManager.setMainController(parentController);
+        }
     }
 
     // ==================== File Operations ====================

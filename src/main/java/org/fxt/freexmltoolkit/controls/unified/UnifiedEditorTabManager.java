@@ -35,6 +35,7 @@ public class UnifiedEditorTabManager {
 
     private final TabPane tabPane;
     private final Map<String, AbstractUnifiedEditorTab> openTabs;
+    private org.fxt.freexmltoolkit.controller.MainController mainController;
 
     /**
      * Creates a new UnifiedEditorTabManager.
@@ -44,6 +45,21 @@ public class UnifiedEditorTabManager {
     public UnifiedEditorTabManager(TabPane tabPane) {
         this.tabPane = tabPane;
         this.openTabs = new HashMap<>();
+    }
+
+    /**
+     * Sets the MainController for cross-tab navigation (e.g., Go to Definition).
+     *
+     * @param mainController the main controller
+     */
+    public void setMainController(org.fxt.freexmltoolkit.controller.MainController mainController) {
+        this.mainController = mainController;
+        // Update existing tabs
+        for (AbstractUnifiedEditorTab tab : openTabs.values()) {
+            if (tab instanceof XmlUnifiedTab xmlTab) {
+                xmlTab.setMainController(mainController);
+            }
+        }
     }
 
     /**
@@ -113,6 +129,11 @@ public class UnifiedEditorTabManager {
             case SCHEMATRON -> new SchematronUnifiedTab(file);
             case JSON -> new JsonUnifiedTab(file);
         };
+
+        // Wire MainController for cross-tab navigation
+        if (mainController != null && tab instanceof XmlUnifiedTab xmlTab) {
+            xmlTab.setMainController(mainController);
+        }
 
         long duration = System.currentTimeMillis() - startTime;
         logger.debug("Created {} tab in {}ms", fileType, duration);

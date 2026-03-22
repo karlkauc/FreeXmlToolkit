@@ -1002,6 +1002,7 @@ public class MainController implements Initializable {
             case UnifiedEditorController unifiedEditorController1 -> {
                 logger.debug("set Unified Editor Controller");
                 this.unifiedEditorController = unifiedEditorController1;
+                unifiedEditorController1.setParentController(this);
             }
             case JsonController jsonController1 -> {
                 logger.debug("set JSON Editor Controller");

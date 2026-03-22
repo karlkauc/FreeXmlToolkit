@@ -704,6 +704,20 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
         this.onXsdLoadedCallback = callback;
     }
 
+    /**
+     * Sets the MainController for cross-tab navigation (e.g., Go to Definition).
+     *
+     * @param mainController the main controller
+     */
+    public void setMainController(org.fxt.freexmltoolkit.controller.MainController mainController) {
+        if (mainController != null && textEditor != null) {
+            textEditor.getEditorContext().setGoToDefinitionHandler(request ->
+                    mainController.switchToXsdViewAndNavigate(request.xsdFile(), request.elementName())
+            );
+            logger.debug("Go to Definition handler set for XmlUnifiedTab");
+        }
+    }
+
     // ==================== Accessors ====================
 
     /**
