@@ -363,15 +363,12 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
 
         if (editorContext.hasSchema()) {
             String xpath = context.getXPath();
-            var xsdData = editorContext.getSchemaProvider().getXsdDocumentationData();
+            XsdExtendedElement elementInfo = editorContext.getSchemaProvider().findBestMatchingElement(xpath);
 
-            if (xsdData != null) {
-                XsdExtendedElement elementInfo = xsdData.getExtendedXsdElementMap().get(xpath);
-                if (elementInfo != null) {
-                    navigateToDefinition(elementInfo);
-                } else {
-                    logger.debug("No definition found for: {}", xpath);
-                }
+            if (elementInfo != null) {
+                navigateToDefinition(elementInfo);
+            } else {
+                logger.debug("No definition found for: {}", xpath);
             }
         } else {
             logger.debug("No schema loaded - go to definition unavailable");

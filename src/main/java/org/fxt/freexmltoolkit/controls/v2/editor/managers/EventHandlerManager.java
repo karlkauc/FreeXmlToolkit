@@ -280,16 +280,12 @@ public class EventHandlerManager {
         // Get element information from XSD
         if (editorContext.hasSchema()) {
             String xpath = context.getXPath();
-            var xsdData = editorContext.getSchemaProvider().getXsdDocumentationData();
+            XsdExtendedElement elementInfo = editorContext.getSchemaProvider().findBestMatchingElement(xpath);
 
-            if (xsdData != null) {
-                XsdExtendedElement elementInfo = xsdData.getExtendedXsdElementMap().get(xpath);
-
-                if (elementInfo != null) {
-                    navigateToDefinition(elementInfo);
-                } else {
-                    logger.debug("No XSD definition found for XPath: {}", xpath);
-                }
+            if (elementInfo != null) {
+                navigateToDefinition(elementInfo);
+            } else {
+                logger.debug("No XSD definition found for XPath: {}", xpath);
             }
         } else {
             logger.debug("No schema loaded, go-to-definition not available");
@@ -341,15 +337,12 @@ public class EventHandlerManager {
         // Add XSD type information if available
         if (editorContext.hasSchema()) {
             String xpath = context.getXPath();
-            var xsdData = editorContext.getSchemaProvider().getXsdDocumentationData();
+            XsdExtendedElement elementInfo = editorContext.getSchemaProvider().findBestMatchingElement(xpath);
 
-            if (xsdData != null) {
-                XsdExtendedElement elementInfo = xsdData.getExtendedXsdElementMap().get(xpath);
-                if (elementInfo != null && elementInfo.getElementType() != null) {
-                    tooltip.append("\nType: ").append(elementInfo.getElementType());
-                    if (elementInfo.isMandatory()) {
-                        tooltip.append(" (required)");
-                    }
+            if (elementInfo != null && elementInfo.getElementType() != null) {
+                tooltip.append("\nType: ").append(elementInfo.getElementType());
+                if (elementInfo.isMandatory()) {
+                    tooltip.append(" (required)");
                 }
             }
         }
