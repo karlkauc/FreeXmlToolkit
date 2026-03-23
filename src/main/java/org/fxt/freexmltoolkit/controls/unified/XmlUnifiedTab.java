@@ -718,6 +718,21 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
         }
     }
 
+    /**
+     * Sets a custom Go to Definition handler.
+     * This decouples the navigation behavior from MainController,
+     * allowing the Unified Editor to handle navigation internally.
+     *
+     * @param handler the handler to invoke on Go to Definition
+     */
+    public void setGoToDefinitionHandler(
+            java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest> handler) {
+        if (handler != null && textEditor != null) {
+            textEditor.getEditorContext().setGoToDefinitionHandler(handler);
+            logger.debug("Custom Go to Definition handler set for XmlUnifiedTab");
+        }
+    }
+
     // ==================== Accessors ====================
 
     /**

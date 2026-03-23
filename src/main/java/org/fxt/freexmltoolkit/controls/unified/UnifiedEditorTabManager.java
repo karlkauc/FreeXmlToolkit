@@ -57,7 +57,9 @@ public class UnifiedEditorTabManager {
         // Update existing tabs
         for (AbstractUnifiedEditorTab tab : openTabs.values()) {
             if (tab instanceof XmlUnifiedTab xmlTab) {
-                xmlTab.setMainController(mainController);
+                xmlTab.setGoToDefinitionHandler(request ->
+                        openXsdFileAndNavigate(request.xsdFile(), request.elementName())
+                );
             }
         }
     }
@@ -157,9 +159,11 @@ public class UnifiedEditorTabManager {
             case JSON -> new JsonUnifiedTab(file);
         };
 
-        // Wire MainController for cross-tab navigation
-        if (mainController != null && tab instanceof XmlUnifiedTab xmlTab) {
-            xmlTab.setMainController(mainController);
+        // Wire Go to Definition for in-editor navigation
+        if (tab instanceof XmlUnifiedTab xmlTab) {
+            xmlTab.setGoToDefinitionHandler(request ->
+                    openXsdFileAndNavigate(request.xsdFile(), request.elementName())
+            );
         }
 
         long duration = System.currentTimeMillis() - startTime;
