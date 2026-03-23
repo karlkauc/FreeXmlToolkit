@@ -1035,11 +1035,19 @@ public class XsdPropertiesPanel extends BorderPane {
         enumerationsListView.getItems().clear();
         assertionsListView.getItems().clear();
 
-        if (!(modelObject instanceof XsdElement xsdElement)) {
-            logger.debug("Model object is not an XsdElement, cannot update facets column");
-            return;
+        if (modelObject instanceof XsdElement xsdElement) {
+            updateFacetsColumnForElement(xsdElement);
+        } else if (modelObject instanceof XsdAttribute xsdAttribute) {
+            updateFacetsColumnForAttribute(xsdAttribute);
+        } else {
+            logger.debug("Model object is not an XsdElement or XsdAttribute, cannot update facets column");
         }
+    }
 
+    /**
+     * Updates the facets column for an XsdElement (supports both inline and referenced type facets).
+     */
+    private void updateFacetsColumnForElement(XsdElement xsdElement) {
         // Update facets based on element's datatype
         updateFacets(xsdElement);
 
@@ -1100,6 +1108,181 @@ public class XsdPropertiesPanel extends BorderPane {
                 effectiveAssertions.size(), xsdElement.getName(), assertionsFromReferencedType);
 
         logger.debug("Updated facets column for element: {}", xsdElement.getName());
+    }
+
+    /**
+     * Updates the facets column for an XsdAttribute by resolving its referenced type.
+     * All facets, enumerations, patterns, and assertions are displayed as read-only
+     * since attributes always reference a type (they don't have inline constraints).
+     */
+    private void updateFacetsColumnForAttribute(XsdAttribute xsdAttribute) {
+        String typeRef = xsdAttribute.getType();
+
+        // All buttons disabled for attributes (always read-only)
+        addPatternBtn.setDisable(true);
+        removePatternBtn.setDisable(true);
+        addEnumerationBtn.setDisable(true);
+        removeEnumerationBtn.setDisable(true);
+        addAssertionBtn.setDisable(true);
+        removeAssertionBtn.setDisable(true);
+
+        if (typeRef == null || typeRef.isEmpty() || typeRef.startsWith("xs:") || typeRef.startsWith("xsd:")) {
+            // Built-in type or no type — show applicable facets grid for the built-in type but no values
+            if (typeRef != null && !typeRef.isEmpty()) {
+                updateFacetsForAttribute(xsdAttribute, typeRef);
+            }
+            patternsListView.setPlaceholder(new Label("No patterns defined for this attribute"));
+            enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
+            assertionsListView.setPlaceholder(new Label("No assertions defined"));
+            logger.debug("Attribute '{}' has built-in type '{}', no referenced type to resolve",
+                    xsdAttribute.getName(), typeRef);
+            return;
+        }
+
+        // Remove namespace prefix if present
+        String typeName = typeRef;
+        if (typeName.contains(":")) {
+            typeName = typeName.substring(typeName.indexOf(":") + 1);
+        }
+
+        // Find the schema root
+        XsdNode current = xsdAttribute;
+        while (current != null && !(current instanceof XsdSchema)) {
+            current = current.getParent();
+        }
+
+        if (!(current instanceof XsdSchema schema)) {
+            logger.debug("Cannot find schema root for attribute '{}'", xsdAttribute.getName());
+            return;
+        }
+
+        // Resolve the referenced SimpleType's restriction
+        XsdRestriction restriction = null;
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof XsdSimpleType st && typeName.equals(st.getName())) {
+                for (XsdNode typeChild : st.getChildren()) {
+                    if (typeChild instanceof XsdRestriction r) {
+                        restriction = r;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        // Update facets grid with resolved type info
+        if (restriction != null && restriction.getBase() != null) {
+            updateFacetsForAttribute(xsdAttribute, restriction.getBase());
+            // Show resolved facet values as read-only
+            for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+                XsdFacetType ft = facet.getFacetType();
+                if (ft != XsdFacetType.ENUMERATION && ft != XsdFacetType.PATTERN && ft != XsdFacetType.ASSERTION) {
+                    TextField field = facetFields.get(ft);
+                    if (field != null) {
+                        field.setPromptText(facet.getValue());
+                    }
+                }
+            }
+        }
+
+        // Load enumerations from referenced type
+        java.util.List<String> enumerations = findEnumerationsInType(schema, typeName);
+        if (!enumerations.isEmpty()) {
+            enumerationsFromReferencedType = true;
+            enumerationsListView.getItems().addAll(enumerations);
+            enumerationsListView.setPlaceholder(new Label("Enumerations from type '" + typeName + "' (read-only)"));
+        } else {
+            enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
+        }
+
+        // Load patterns from referenced type
+        java.util.List<String> patterns = findPatternsInType(schema, typeName);
+        if (!patterns.isEmpty()) {
+            patternsFromReferencedType = true;
+            patternsListView.getItems().addAll(patterns);
+            patternsListView.setPlaceholder(new Label("Patterns from type '" + typeName + "' (read-only)"));
+        } else {
+            patternsListView.setPlaceholder(new Label("No patterns defined for this attribute"));
+        }
+
+        // Load assertions from referenced type
+        java.util.List<String> assertions = findAssertionsInType(schema, typeName);
+        if (!assertions.isEmpty()) {
+            assertionsFromReferencedType = true;
+            assertionsListView.getItems().addAll(assertions);
+            assertionsListView.setPlaceholder(new Label("Assertions from type '" + typeName + "' (read-only)"));
+        } else {
+            assertionsListView.setPlaceholder(new Label("No assertions defined"));
+        }
+
+        logger.debug("Updated facets column for attribute '{}' (type '{}': {} enumerations, {} patterns, {} assertions)",
+                xsdAttribute.getName(), typeName, enumerations.size(), patterns.size(), assertions.size());
+    }
+
+    /**
+     * Updates the facets grid for an attribute with read-only facet fields.
+     * Shows applicable facets for the given datatype but all disabled.
+     */
+    private void updateFacetsForAttribute(XsdAttribute attribute, String datatype) {
+        facetsFromReferencedType = true; // All attribute facets are read-only
+
+        java.util.Set<XsdFacetType> applicableFacets = XsdDatatypeFacets.getApplicableFacets(datatype);
+
+        java.util.List<XsdFacetType> implementedFacets = java.util.List.of(
+                XsdFacetType.LENGTH, XsdFacetType.MIN_LENGTH, XsdFacetType.MAX_LENGTH,
+                XsdFacetType.TOTAL_DIGITS, XsdFacetType.FRACTION_DIGITS,
+                XsdFacetType.MIN_INCLUSIVE, XsdFacetType.MAX_INCLUSIVE,
+                XsdFacetType.MIN_EXCLUSIVE, XsdFacetType.MAX_EXCLUSIVE,
+                XsdFacetType.WHITE_SPACE, XsdFacetType.EXPLICIT_TIMEZONE
+        );
+
+        int row = 0;
+        for (XsdFacetType facetType : implementedFacets) {
+            if (!applicableFacets.contains(facetType)) {
+                continue;
+            }
+
+            boolean isFixed = XsdDatatypeFacets.isFacetFixed(datatype, facetType);
+
+            TextField textField = new TextField();
+            String defaultValue = XsdDatatypeFacets.getDefaultFacetPlaceholder(datatype, facetType);
+            textField.setPromptText(defaultValue != null ? defaultValue : facetType.getXmlName());
+            HBox.setHgrow(textField, Priority.ALWAYS);
+            textField.setDisable(true);
+            textField.setStyle("-fx-opacity: 0.7;");
+
+            Label label;
+            if (isFixed) {
+                String fixedValue = XsdDatatypeFacets.getFixedFacetValue(datatype, facetType);
+                textField.setPromptText(fixedValue);
+                textField.setStyle("-fx-opacity: 0.6;");
+                label = new Label(facetType.getXmlName() + ":");
+                label.setMinWidth(100);
+                label.getStyleClass().add("theme-text-muted");
+            } else {
+                FontIcon lockIcon = new FontIcon("bi-lock-fill");
+                lockIcon.setIconSize(12);
+                lockIcon.getStyleClass().add("lock-icon-muted");
+                label = new Label(facetType.getXmlName() + ":", lockIcon);
+                label.setMinWidth(100);
+                label.getStyleClass().add("theme-text-secondary");
+            }
+
+            facetLabels.put(facetType, label);
+            facetFields.put(facetType, textField);
+            facetsGridPane.add(label, 0, row);
+            facetsGridPane.add(textField, 1, row);
+            row++;
+        }
+
+        if (row == 0) {
+            Label noFacetsLabel = new Label("No applicable facets for datatype: " + datatype);
+            noFacetsLabel.getStyleClass().add("theme-text-muted");
+            facetsGridPane.add(noFacetsLabel, 0, 0, 2, 1);
+        }
+
+        logger.debug("Created {} read-only facet controls for attribute '{}' (datatype '{}')",
+                row, attribute.getName(), datatype);
     }
 
     /**
@@ -1265,10 +1448,8 @@ public class XsdPropertiesPanel extends BorderPane {
             logger.debug("Executed ChangeTypeCommand: {} -> {}", currentType, newType);
 
             // Update facets after type change to reflect applicable facets for the new type
-            if (modelObject instanceof XsdElement xsdElement) {
-                updateFacetsColumn(xsdElement);
-                logger.debug("Updated facets after type change");
-            }
+            updateFacetsColumn(modelObject);
+            logger.debug("Updated facets after type change");
 
             // Update type icon
             updateTypeIcon(newType);
