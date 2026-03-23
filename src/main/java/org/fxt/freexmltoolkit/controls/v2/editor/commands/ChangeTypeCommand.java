@@ -108,7 +108,7 @@ public class ChangeTypeCommand implements XsdCommand {
         }
 
         return this.node.getId().equals(otherChange.node.getId()) &&
-                this.newType.equals(otherChange.oldType);
+                java.util.Objects.equals(this.newType, otherChange.oldType);
     }
 
     /**
