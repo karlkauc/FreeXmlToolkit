@@ -2380,7 +2380,7 @@ public class XsdPropertiesPanel extends BorderPane {
             boolean isFixed = XsdDatatypeFacets.isFacetFixed(datatype, facetType);
             if (isFixed) {
                 String fixedValue = XsdDatatypeFacets.getFixedFacetValue(datatype, facetType);
-                textField.setText(fixedValue);
+                textField.setPromptText(fixedValue);
                 textField.setDisable(true);
                 textField.setStyle("-fx-opacity: 0.6;");
                 label.getStyleClass().add("theme-text-muted");
