@@ -2389,7 +2389,12 @@ public class XsdPropertiesPanel extends BorderPane {
                 // Load current facet value from model
                 String currentValue = effectiveFacets.get(facetType);
                 if (currentValue != null) {
-                    textField.setText(currentValue);
+                    if (facetsFromReferencedType) {
+                        // Inherited values shown as placeholder, not real text
+                        textField.setPromptText(currentValue);
+                    } else {
+                        textField.setText(currentValue);
+                    }
                 }
 
                 // Check if facet is from referenced type (read-only)
