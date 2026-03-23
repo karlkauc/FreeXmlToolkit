@@ -296,4 +296,86 @@ class XsdDatatypeFacetsTest {
         assertEquals("0", XsdDatatypeFacets.getFixedFacetValue("nonNegativeInteger", XsdFacetType.MIN_INCLUSIVE));
         assertFalse(XsdDatatypeFacets.isFacetFixed("nonNegativeInteger", XsdFacetType.MAX_INCLUSIVE));
     }
+
+    // === Default facet placeholder tests ===
+
+    @Test
+    void getDefaultFacetPlaceholder_stringWhiteSpaceIsPreserve() {
+        assertEquals("preserve", XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:string", XsdFacetType.WHITE_SPACE));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_normalizedStringWhiteSpaceIsReplace() {
+        assertEquals("replace", XsdDatatypeFacets.getDefaultFacetPlaceholder("normalizedString", XsdFacetType.WHITE_SPACE));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_integerWhiteSpaceIsCollapse() {
+        assertEquals("collapse", XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:integer", XsdFacetType.WHITE_SPACE));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_integerFractionDigitsIsZero() {
+        assertEquals("0", XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:integer", XsdFacetType.FRACTION_DIGITS));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_byteMinInclusiveIsMinus128() {
+        assertEquals("-128", XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:byte", XsdFacetType.MIN_INCLUSIVE));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_byteMaxInclusiveIs127() {
+        assertEquals("127", XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:byte", XsdFacetType.MAX_INCLUSIVE));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_unsignedByteMinInclusiveIsZero() {
+        assertEquals("0", XsdDatatypeFacets.getDefaultFacetPlaceholder("unsignedByte", XsdFacetType.MIN_INCLUSIVE));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_unsignedByteMaxInclusiveIs255() {
+        assertEquals("255", XsdDatatypeFacets.getDefaultFacetPlaceholder("unsignedByte", XsdFacetType.MAX_INCLUSIVE));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_dateTimeExplicitTimezoneIsOptional() {
+        assertEquals("optional", XsdDatatypeFacets.getDefaultFacetPlaceholder("dateTime", XsdFacetType.EXPLICIT_TIMEZONE));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_dateTimeStampExplicitTimezoneIsRequired() {
+        assertEquals("required", XsdDatatypeFacets.getDefaultFacetPlaceholder("dateTimeStamp", XsdFacetType.EXPLICIT_TIMEZONE));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_stringMinLengthIsZero() {
+        assertEquals("0", XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:string", XsdFacetType.MIN_LENGTH));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_decimalMinInclusiveIsNull() {
+        assertNull(XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:decimal", XsdFacetType.MIN_INCLUSIVE));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_stringLengthIsNull() {
+        assertNull(XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:string", XsdFacetType.LENGTH));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_stringMaxLengthIsNull() {
+        assertNull(XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:string", XsdFacetType.MAX_LENGTH));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_integerTotalDigitsIsNull() {
+        assertNull(XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:integer", XsdFacetType.TOTAL_DIGITS));
+    }
+
+    @Test
+    void getDefaultFacetPlaceholder_inapplicableFacetReturnsNull() {
+        assertNull(XsdDatatypeFacets.getDefaultFacetPlaceholder("xs:integer", XsdFacetType.LENGTH));
+    }
 }

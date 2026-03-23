@@ -201,6 +201,53 @@ public class XsdDatatypeFacets {
     }
 
     /**
+     * Gets the XSD spec default value for a facet on a given datatype,
+     * suitable for use as placeholder text in input fields.
+     * <p>
+     * Returns the implicit value when no facet restriction is set:
+     * <ul>
+     *   <li>Fixed facets: returns the fixed value (e.g., fractionDigits=0 for integers)</li>
+     *   <li>whiteSpace: "preserve" for string, "replace" for normalizedString, "collapse" for others</li>
+     *   <li>explicitTimezone: "optional" for date/time types, "required" for dateTimeStamp</li>
+     *   <li>minLength: "0" for types that support it</li>
+     *   <li>Unbounded facets (length, maxLength, totalDigits, etc.): null</li>
+     * </ul>
+     *
+     * @param datatype  the XSD datatype (e.g., "xs:string", "byte")
+     * @param facetType the facet type
+     * @return the default value string, or null if no meaningful default exists
+     */
+    public static String getDefaultFacetPlaceholder(String datatype, XsdFacetType facetType) {
+        if (datatype == null || facetType == null) {
+            return null;
+        }
+
+        // If the facet is not applicable to this datatype, no default
+        if (!getApplicableFacets(datatype).contains(facetType)) {
+            return null;
+        }
+
+        // Fixed facets already have spec-mandated values
+        String fixedValue = getFixedFacetValue(datatype, facetType);
+        if (fixedValue != null) {
+            return fixedValue;
+        }
+
+        String typeName = removeNamespacePrefix(datatype);
+
+        return switch (facetType) {
+            case WHITE_SPACE -> switch (typeName) {
+                case "string" -> "preserve";
+                case "normalizedString" -> "replace";
+                default -> "collapse";
+            };
+            case EXPLICIT_TIMEZONE -> "optional";
+            case MIN_LENGTH -> "0";
+            default -> null;
+        };
+    }
+
+    /**
      * Removes the namespace prefix from a datatype name.
      *
      * @param datatype the datatype (e.g., "xs:string")
