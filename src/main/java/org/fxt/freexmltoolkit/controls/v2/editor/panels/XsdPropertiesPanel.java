@@ -2372,7 +2372,8 @@ public class XsdPropertiesPanel extends BorderPane {
 
             // Create text field
             TextField textField = new TextField();
-            textField.setPromptText("Enter " + facetType.getXmlName() + " value");
+            String defaultValue = XsdDatatypeFacets.getDefaultFacetPlaceholder(datatype, facetType);
+            textField.setPromptText(defaultValue != null ? defaultValue : facetType.getXmlName());
             HBox.setHgrow(textField, Priority.ALWAYS);
 
             // Check if facet is fixed
