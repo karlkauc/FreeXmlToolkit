@@ -12,6 +12,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.cache.CompletionCache;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextAnalyzer;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.IntelliSenseState;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.CompletionProvider;
@@ -105,6 +106,7 @@ public class IntelliSenseEngine {
         // Character triggers
         triggerSystem.addCharTrigger('<', this::showCompletions);
         triggerSystem.addCharTrigger(' ', this::showCompletionsIfInAttributeContext);
+        triggerSystem.addCharTrigger('/', this::handleAutoCloseTag);
 
         // Key triggers
         triggerSystem.addKeyTrigger(KeyCode.SPACE, true, this::showCompletions); // Ctrl+Space
@@ -199,6 +201,52 @@ public class IntelliSenseEngine {
         if (lastOpen > lastClose) {
             showCompletions();
         }
+    }
+
+    /**
+     * Handles auto-closing of XML tags.
+     * When the user types '/' after '&lt;', automatically completes the closing tag
+     * with the innermost unclosed element name.
+     * <p>Example: typing '/' in {@code <a>text</} produces {@code <a>text</a>}</p>
+     */
+    private void handleAutoCloseTag() {
+        String text = editorContext.getText();
+        int caretPos = editorContext.getCaretPosition();
+
+        // Check if text before caret ends with "</"
+        if (caretPos < 2) {
+            return;
+        }
+        String textBeforeCaret = text.substring(0, caretPos);
+        if (!textBeforeCaret.endsWith("</")) {
+            return;
+        }
+
+        // Hide any IntelliSense popup that might be showing (e.g., from '<' trigger)
+        hideCompletions();
+
+        // Find the innermost unclosed element using existing context analysis
+        XmlContext context = analyzeContext(text, caretPos);
+
+        // Don't auto-close inside attribute values
+        if (context.getType() == org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextType.ATTRIBUTE_VALUE) {
+            return;
+        }
+
+        XPathContext xpathContext = context.getXPathContext();
+        if (xpathContext == null || xpathContext.getCurrentElement() == null) {
+            return;
+        }
+
+        String elementName = xpathContext.getCurrentElement();
+        logger.debug("Auto-closing tag: </{}>", elementName);
+
+        // Insert the element name and closing '>'
+        CodeArea codeArea = editorContext.getCodeArea();
+        codeArea.insertText(caretPos, elementName + ">");
+
+        // Position cursor after the '>'
+        codeArea.moveTo(caretPos + elementName.length() + 1);
     }
 
     /**
