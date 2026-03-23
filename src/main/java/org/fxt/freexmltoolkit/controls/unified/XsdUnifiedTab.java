@@ -83,6 +83,7 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
     private String lastSavedContent;
     private LinkedFileDetector linkDetector;
     private boolean syncingViews = false;
+    private String pendingNavigationElement;
 
     /**
      * Creates a new XSD Unified Editor tab.
@@ -292,6 +293,14 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
             }
 
             setGraphicViewContent(graphView);
+
+            // Handle deferred navigation
+            if (pendingNavigationElement != null) {
+                String elementName = pendingNavigationElement;
+                pendingNavigationElement = null;
+                Platform.runLater(() -> graphView.navigateToElement(elementName));
+            }
+
             logger.debug("XSD graphic view built successfully");
 
             // Notify listeners that the editor context changed (graph view rebuild creates new context)
@@ -462,6 +471,49 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
             parseAndBuildGraphView(lastSavedContent);
             setDirty(false);
         }
+    }
+
+    /**
+     * Navigates to a specific element in the XSD graphic view.
+     * If the graphic view is not yet built, stores the element name for deferred navigation
+     * (consumed when parseAndBuildGraphView succeeds).
+     *
+     * @param elementName the element to navigate to
+     */
+    public void navigateToElement(String elementName) {
+        if (elementName == null || elementName.isEmpty()) {
+            return;
+        }
+
+        // Store pending navigation — parseAndBuildGraphView will consume it
+        // if the graphic tab switch triggers a rebuild
+        pendingNavigationElement = elementName;
+
+        // Switch to graphic tab to show the navigation result
+        if (currentViewMode == ViewMode.TABS) {
+            viewTabPane.getSelectionModel().select(graphicTab);
+        }
+
+        // If graphView already exists and no rebuild was triggered
+        // (parseAndBuildGraphView would have consumed pendingNavigationElement),
+        // navigate immediately
+        if (pendingNavigationElement != null && graphView != null) {
+            String name = pendingNavigationElement;
+            pendingNavigationElement = null;
+            Platform.runLater(() -> graphView.navigateToElement(name));
+        } else if (pendingNavigationElement != null && graphView == null) {
+            // Graphic tab already selected or in split mode — no rebuild triggered.
+            // Force a rebuild so parseAndBuildGraphView consumes the pending element.
+            syncToGraphicView();
+        }
+    }
+
+    /**
+     * Returns the pending navigation element name, or null if none.
+     * Package-private for testing.
+     */
+    String getPendingNavigationElement() {
+        return pendingNavigationElement;
     }
 
     @Override
