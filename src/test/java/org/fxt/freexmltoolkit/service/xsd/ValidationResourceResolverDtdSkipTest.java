@@ -1,11 +1,11 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests that ValidationResourceResolver skips DTD resources.

@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link ContextAnalyzer}, focusing on XPath extraction at various cursor positions.

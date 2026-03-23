@@ -273,6 +273,7 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
             VBox.setVgrow(canvasView, Priority.ALWAYS);
             setGraphicViewContent(container);
         } catch (Exception e) {
+            graphicViewContext = null;
             setGraphicViewContent(new Label("Invalid XML: " + e.getMessage()));
         }
     }

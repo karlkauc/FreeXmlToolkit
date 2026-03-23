@@ -127,6 +127,18 @@ public class StreamingXmlParser {
                         
                         XmlElement element = new XmlElement(localName, prefix, namespaceUri);
                         
+                        // Handle namespace declarations (StAX separates these from attributes)
+                        int nsCount = reader.getNamespaceCount();
+                        for (int i = 0; i < nsCount; i++) {
+                            String nsPrefix = reader.getNamespacePrefix(i);
+                            String nsUri = reader.getNamespaceURI(i);
+                            if (nsPrefix != null && !nsPrefix.isEmpty()) {
+                                element.setAttribute("xmlns:" + nsPrefix, nsUri);
+                            } else {
+                                element.setAttribute("xmlns", nsUri);
+                            }
+                        }
+
                         // Handle attributes
                         int attrCount = reader.getAttributeCount();
                         for (int i = 0; i < attrCount; i++) {
