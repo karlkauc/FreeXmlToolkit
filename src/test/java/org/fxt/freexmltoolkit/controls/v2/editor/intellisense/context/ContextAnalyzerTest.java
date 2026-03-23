@@ -110,4 +110,70 @@ class ContextAnalyzerTest {
 
         assertEquals("/root/second", context.getXPath());
     }
+
+    @Test
+    void closingTag_simpleElement() {
+        // <a>text</ → should identify "a" as the element to close
+        String xml = "<a>text</";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertNotNull(context.getXPathContext());
+        assertEquals("a", context.getXPathContext().getCurrentElement());
+    }
+
+    @Test
+    void closingTag_nestedElements() {
+        // <a><b>text</ → should identify "b" (innermost unclosed)
+        String xml = "<a><b>text</";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertEquals("b", context.getXPathContext().getCurrentElement());
+    }
+
+    @Test
+    void closingTag_afterClosedSibling() {
+        // <a><b>text</b></ → "b" is closed, should identify "a"
+        String xml = "<a><b>text</b></";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertEquals("a", context.getXPathContext().getCurrentElement());
+    }
+
+    @Test
+    void closingTag_afterSelfClosing() {
+        // <a><br/>text</ → <br/> is self-closing, should identify "a"
+        String xml = "<a><br/>text</";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertEquals("a", context.getXPathContext().getCurrentElement());
+    }
+
+    @Test
+    void closingTag_withNamespacePrefix() {
+        // <ns:element>text</ → should identify "ns:element"
+        String xml = "<ns:element>text</";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertEquals("ns:element", context.getXPathContext().getCurrentElement());
+    }
+
+    @Test
+    void closingTag_atRootLevel() {
+        // </ with no opening tags → no element to close
+        String xml = "</";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertNotNull(context.getXPathContext());
+        assertNull(context.getXPathContext().getCurrentElement());
+    }
+
+    @Test
+    void closingTag_deeplyNested() {
+        // <a><b><c>text</ → should identify "c"
+        String xml = "<a><b><c>text</";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertEquals("c", context.getXPathContext().getCurrentElement());
+    }
+
+    @Test
+    void closingTag_withAttributes() {
+        // <div class="main"><span id="x">text</ → should identify "span"
+        String xml = "<div class=\"main\"><span id=\"x\">text</";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertEquals("span", context.getXPathContext().getCurrentElement());
+    }
 }
