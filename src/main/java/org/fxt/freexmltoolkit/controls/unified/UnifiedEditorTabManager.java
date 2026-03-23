@@ -98,6 +98,33 @@ public class UnifiedEditorTabManager {
     }
 
     /**
+     * Opens an XSD file and navigates to a specific element in its graphic view.
+     * If the file is already open, switches to the existing tab and navigates.
+     * Used by Go to Definition from XML tabs within the Unified Editor.
+     *
+     * @param xsdFile     the XSD file to open
+     * @param elementName the element name to navigate to in the graphic view
+     * @return the XSD tab, or null if opening failed
+     */
+    public XsdUnifiedTab openXsdFileAndNavigate(File xsdFile, String elementName) {
+        if (xsdFile == null || !xsdFile.exists()) {
+            logger.warn("Cannot navigate: XSD file is null or does not exist");
+            return null;
+        }
+
+        // Open the file (or switch to existing tab)
+        AbstractUnifiedEditorTab tab = openFile(xsdFile);
+
+        if (tab instanceof XsdUnifiedTab xsdTab) {
+            xsdTab.navigateToElement(elementName);
+            return xsdTab;
+        }
+
+        logger.warn("Opened file is not an XSD tab: {}", xsdFile.getName());
+        return null;
+    }
+
+    /**
      * Creates a new unsaved tab of the specified type.
      *
      * @param fileType the type of file to create
