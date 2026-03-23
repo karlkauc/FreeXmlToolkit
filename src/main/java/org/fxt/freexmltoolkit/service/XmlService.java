@@ -132,18 +132,41 @@ public interface XmlService {
     List<String> getXQueryResult(String xQuery);
 
     /**
-     * Checks if the XML content is essentially a single line (has 3 or fewer lines).
-     * Single-line XML files can cause performance issues with folding and syntax highlighting.
+     * Maximum safe line length before performance issues arise (100KB).
+     * Lines longer than this threshold can cause O(n^2) regex behavior in folding/highlighting.
+     */
+    int MAX_SAFE_LINE_LENGTH = 100 * 1024;
+
+    /**
+     * Checks if the XML content has any line exceeding the safe length threshold.
+     * Files with extremely long lines cause performance issues with folding and syntax highlighting
+     * due to regex patterns that exhibit O(n^2) behavior on long lines.
+     * Handles LF, CRLF, and CR line endings.
      *
      * @param content the XML content to check
-     * @return true if the content has 3 or fewer lines
+     * @return true if any line exceeds {@link #MAX_SAFE_LINE_LENGTH}
      */
-    static boolean isSingleLineXml(String content) {
+    static boolean hasProblematicLineLength(String content) {
         if (content == null || content.isEmpty()) {
             return false;
         }
-        long lineCount = content.chars().filter(ch -> ch == '\n').count() + 1;
-        return lineCount <= 3;
+        int currentLineLength = 0;
+        for (int i = 0; i < content.length(); i++) {
+            char c = content.charAt(i);
+            if (c == '\n' || c == '\r') {
+                if (currentLineLength > MAX_SAFE_LINE_LENGTH) {
+                    return true;
+                }
+                currentLineLength = 0;
+                // Skip \n after \r for \r\n
+                if (c == '\r' && i + 1 < content.length() && content.charAt(i + 1) == '\n') {
+                    i++;
+                }
+            } else {
+                currentLineLength++;
+            }
+        }
+        return currentLineLength > MAX_SAFE_LINE_LENGTH;
     }
 
     static String prettyFormat(File input, int indent) {

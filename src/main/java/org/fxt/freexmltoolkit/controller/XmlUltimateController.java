@@ -639,7 +639,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
 
         // Check if single-line XML and offer formatting to prevent performance issues
         boolean disableFolding = false;
-        if (XmlService.isSingleLineXml(content)) {
+        if (XmlService.hasProblematicLineLength(content)) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Unformatted XML Detected");
             alert.setHeaderText("This XML file appears to be on a single line.");

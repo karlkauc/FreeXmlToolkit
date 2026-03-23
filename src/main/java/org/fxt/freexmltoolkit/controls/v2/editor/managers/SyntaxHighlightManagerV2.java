@@ -34,6 +34,7 @@ public class SyntaxHighlightManagerV2 {
     private static final long LARGE_FILE_THRESHOLD = 500 * 1024;        // 500KB
     private static final long VERY_LARGE_FILE_THRESHOLD = 2 * 1024 * 1024; // 2MB
     private static final long LARGE_FILE_DEBOUNCE_MS = 800;
+    private static final int MAX_HIGHLIGHTABLE_LINE_LENGTH = 200 * 1024; // 200KB
 
     private final CodeArea codeArea;
     private final ScheduledExecutorService scheduler;
@@ -45,6 +46,14 @@ public class SyntaxHighlightManagerV2 {
     // Debouncing: pending scheduled task (cancelled on new input)
     private Future<?> pendingHighlight;
     private boolean highlightingDisabled = false;
+
+    /**
+     * Returns whether syntax highlighting is currently disabled.
+     * Package-private for testing.
+     */
+    boolean isHighlightingDisabled() {
+        return highlightingDisabled;
+    }
 
     /**
      * Creates a new SyntaxHighlightManagerV2 with default debouncing (300ms).
@@ -91,6 +100,16 @@ public class SyntaxHighlightManagerV2 {
             if (!highlightingDisabled) {
                 highlightingDisabled = true;
                 logger.info("Syntax highlighting disabled for very large content ({}KB)", text.length() / 1024);
+            }
+            return;
+        }
+
+        // Long line guard: disable highlighting for extremely long lines
+        if (hasExtremelyLongLine(text)) {
+            if (!highlightingDisabled) {
+                highlightingDisabled = true;
+                logger.info("Syntax highlighting disabled - line exceeds {}KB",
+                        MAX_HIGHLIGHTABLE_LINE_LENGTH / 1024);
             }
             return;
         }
@@ -191,5 +210,27 @@ public class SyntaxHighlightManagerV2 {
     public void shutdown() {
         scheduler.shutdown();
         logger.debug("SyntaxHighlightManagerV2 shut down");
+    }
+
+    /**
+     * Checks if any line in the text exceeds the highlightable line length threshold.
+     * Uses a simple char-by-char loop for O(n) performance without Stream allocation.
+     *
+     * @param text the text to check
+     * @return true if any line exceeds {@link #MAX_HIGHLIGHTABLE_LINE_LENGTH}
+     */
+    private static boolean hasExtremelyLongLine(String text) {
+        int lineLength = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                if (lineLength > MAX_HIGHLIGHTABLE_LINE_LENGTH) {
+                    return true;
+                }
+                lineLength = 0;
+            } else {
+                lineLength++;
+            }
+        }
+        return lineLength > MAX_HIGHLIGHTABLE_LINE_LENGTH;
     }
 }

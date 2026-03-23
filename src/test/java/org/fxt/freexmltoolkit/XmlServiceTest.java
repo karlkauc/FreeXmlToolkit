@@ -198,64 +198,78 @@ public class XmlServiceTest {
                 "Text should be trimmed in formatted output");
     }
 
-    // ==================== Single-Line XML Detection Tests ====================
+    // ==================== Problematic Line Length Detection Tests ====================
 
     @Test
-    @DisplayName("Should detect single-line XML (no newlines)")
-    void testIsSingleLineXml_singleLine() {
-        String singleLine = "<root><child>text</child></root>";
-        assertTrue(XmlService.isSingleLineXml(singleLine),
-                "XML with no newlines should be detected as single-line");
+    @DisplayName("Should return false for null input")
+    void testHasProblematicLineLength_null() {
+        assertFalse(XmlService.hasProblematicLineLength(null));
     }
 
     @Test
-    @DisplayName("Should detect XML with 2 lines as single-line")
-    void testIsSingleLineXml_twoLines() {
-        String twoLines = "<root>\n<child>text</child></root>";
-        assertTrue(XmlService.isSingleLineXml(twoLines),
-                "XML with 2 lines should be detected as single-line");
+    @DisplayName("Should return false for empty input")
+    void testHasProblematicLineLength_empty() {
+        assertFalse(XmlService.hasProblematicLineLength(""));
     }
 
     @Test
-    @DisplayName("Should detect XML with 3 lines as single-line")
-    void testIsSingleLineXml_threeLines() {
-        String threeLines = "<root>\n<child>text</child>\n</root>";
-        assertTrue(XmlService.isSingleLineXml(threeLines),
-                "XML with 3 lines should be detected as single-line");
-    }
-
-    @Test
-    @DisplayName("Should NOT detect multi-line XML as single-line")
-    void testIsSingleLineXml_multiLine() {
-        String multiLine = "<root>\n  <child1>text1</child1>\n  <child2>text2</child2>\n</root>";
-        assertFalse(XmlService.isSingleLineXml(multiLine),
-                "XML with 4+ lines should NOT be detected as single-line");
-    }
-
-    @Test
-    @DisplayName("Should handle null input gracefully")
-    void testIsSingleLineXml_null() {
-        assertFalse(XmlService.isSingleLineXml(null),
-                "Null input should return false");
-    }
-
-    @Test
-    @DisplayName("Should handle empty input gracefully")
-    void testIsSingleLineXml_empty() {
-        assertFalse(XmlService.isSingleLineXml(""),
-                "Empty input should return false");
-    }
-
-    @Test
-    @DisplayName("Should detect properly formatted XML as NOT single-line")
-    void testIsSingleLineXml_formattedXml() {
-        String formatted = """
+    @DisplayName("Should return false for normal multi-line XML")
+    void testHasProblematicLineLength_normalXml() {
+        String xml = """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <root>
                     <child>text</child>
                 </root>
                 """;
-        assertFalse(XmlService.isSingleLineXml(formatted),
-                "Properly formatted XML should NOT be detected as single-line");
+        assertFalse(XmlService.hasProblematicLineLength(xml));
+    }
+
+    @Test
+    @DisplayName("Should return false for short single-line XML")
+    void testHasProblematicLineLength_shortSingleLine() {
+        String xml = "<root><child>text</child></root>";
+        assertFalse(XmlService.hasProblematicLineLength(xml));
+    }
+
+    @Test
+    @DisplayName("Should return true for single line exceeding 100KB")
+    void testHasProblematicLineLength_longSingleLine() {
+        String xml = "<root>" + "x".repeat(100 * 1024 + 1) + "</root>";
+        assertTrue(XmlService.hasProblematicLineLength(xml));
+    }
+
+    @Test
+    @DisplayName("Should return false for line exactly at 100KB threshold")
+    void testHasProblematicLineLength_exactlyAtThreshold() {
+        String xml = "x".repeat(100 * 1024);
+        assertFalse(XmlService.hasProblematicLineLength(xml));
+    }
+
+    @Test
+    @DisplayName("Should return true for line just over 100KB threshold")
+    void testHasProblematicLineLength_justOverThreshold() {
+        String xml = "x".repeat(100 * 1024 + 1);
+        assertTrue(XmlService.hasProblematicLineLength(xml));
+    }
+
+    @Test
+    @DisplayName("Should return true when one of two lines exceeds threshold")
+    void testHasProblematicLineLength_twoLinesOneLong() {
+        String xml = "x".repeat(100 * 1024 + 1) + "\n</root>";
+        assertTrue(XmlService.hasProblematicLineLength(xml));
+    }
+
+    @Test
+    @DisplayName("Should handle CRLF line endings correctly")
+    void testHasProblematicLineLength_crlfShortLines() {
+        String xml = "<root>\r\n<child>text</child>\r\n</root>";
+        assertFalse(XmlService.hasProblematicLineLength(xml));
+    }
+
+    @Test
+    @DisplayName("Should handle CR-only line endings correctly")
+    void testHasProblematicLineLength_crOnlyShortLines() {
+        String xml = "<root>\r<child>text</child>\r</root>";
+        assertFalse(XmlService.hasProblematicLineLength(xml));
     }
 }

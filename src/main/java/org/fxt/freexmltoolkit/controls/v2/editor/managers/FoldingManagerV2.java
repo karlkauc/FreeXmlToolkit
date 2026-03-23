@@ -48,6 +48,9 @@ public class FoldingManagerV2 {
 
     private final CodeArea codeArea;
 
+    // Maximum line length before folding is skipped (prevents O(n^2) regex behavior)
+    private static final int MAX_SAFE_LINE_LENGTH_FOR_FOLDING = 100 * 1024; // 100KB
+
     // Maps line numbers to folding regions (TreeMap for sorted iteration)
     private final Map<Integer, FoldingRegion> foldingRegions = new TreeMap<>();
 
@@ -89,6 +92,14 @@ public class FoldingManagerV2 {
      */
     public void updateFoldingRegions(String text) {
         if (text == null || text.isEmpty()) {
+            foldingRegions.clear();
+            return;
+        }
+
+        // Guard: skip folding if any line is extremely long (prevents O(n^2) regex)
+        if (hasExtremelyLongLine(text)) {
+            logger.info("Skipping folding - text contains line exceeding {}KB",
+                    MAX_SAFE_LINE_LENGTH_FOR_FOLDING / 1024);
             foldingRegions.clear();
             return;
         }
@@ -620,6 +631,28 @@ public class FoldingManagerV2 {
             }
         }
         return spaces / 4; // 4 spaces per indent level
+    }
+
+    /**
+     * Checks if any line in the text exceeds the safe length threshold.
+     * Uses a simple char-by-char loop for O(n) performance without Stream allocation.
+     *
+     * @param text the text to check
+     * @return true if any line exceeds {@link #MAX_SAFE_LINE_LENGTH_FOR_FOLDING}
+     */
+    private static boolean hasExtremelyLongLine(String text) {
+        int lineLength = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                if (lineLength > MAX_SAFE_LINE_LENGTH_FOR_FOLDING) {
+                    return true;
+                }
+                lineLength = 0;
+            } else {
+                lineLength++;
+            }
+        }
+        return lineLength > MAX_SAFE_LINE_LENGTH_FOR_FOLDING;
     }
 
     /**
