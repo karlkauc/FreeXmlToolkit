@@ -1819,19 +1819,10 @@ public class MainController implements Initializable {
      */
     private void loadWelcomePage() {
         try {
-            logger.info("Loading Editor on startup");
-            loadPageFromPath("/pages/tab_unified_editor.fxml");
-            activeTabId = "unifiedEditor";
-            if (unifiedEditor != null) {
-                unifiedEditor.getStyleClass().add("active");
-            }
+            logger.info("Loading welcome page on startup");
+            loadPageFromPath("/pages/welcome.fxml");
         } catch (Exception e) {
-            logger.error("Failed to load Editor on startup, falling back to welcome", e);
-            try {
-                loadPageFromPath("/pages/welcome.fxml");
-            } catch (Exception ex) {
-                logger.error("Failed to load welcome page", ex);
-            }
+            logger.error("Failed to load welcome page on startup", e);
         }
     }
 

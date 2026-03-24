@@ -162,10 +162,13 @@ Learn more: [Schematron Guide](schematron-support.md)
 
 ### Your First Steps
 
-1. **Open an XML file**: Use File → Open or drag a file into the window
-2. **Load a schema** (optional): Click the folder icon in the XSD Schema section
+1. **Open a file**: Click "Editor" in the sidebar, then use Open (Ctrl+O) or drag files into the window
+2. **Edit multiple files**: The Unified Editor supports XML, XSD, XSLT, Schematron, and JSON files in tabs
 3. **Start editing**: Type `<` to see auto-completion suggestions
-4. **Validate**: Click "Validate" to check your document for errors
+4. **Validate**: Click "Validate" (F5) to check your document for errors
+5. **Use specialized tools**: Click the dedicated pages in the sidebar (XSD Editor, XSLT Developer, etc.) for advanced workflows
+
+Learn more: [Unified Editor Guide](unified-editor.md)
 
 ### Sample Files
 

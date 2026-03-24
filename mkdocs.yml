@@ -80,6 +80,7 @@ copyright: Copyright &copy; 2024-2026 Karl Kauc
 
 nav:
   - Home: index.md
+  - Unified Editor: unified-editor.md
   - XML Editing:
     - XML Editor: xml-editor.md
     - Editor Features: xml-editor-features.md
