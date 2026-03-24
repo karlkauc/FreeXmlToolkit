@@ -12,13 +12,13 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/pdf-generator/">
+        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/unified-editor/">
       
       
-        <link rel="prev" href="../xslt-developer/">
+        <link rel="prev" href="..">
       
       
-        <link rel="next" href="../schematron-support/">
+        <link rel="next" href="../xml-editor/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>PDF Generator (FOP) - FreeXmlToolkit Documentation</title>
+        <title>Unified Editor - FreeXmlToolkit Documentation</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#pdf-generator-fop" class="md-skip">
+        <a href="#unified-editor" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              PDF Generator (FOP)
+              Unified Editor
             
           </span>
         </div>
@@ -245,9 +245,11 @@
   
   
   
+    
   
-    <li class="md-tabs__item">
-      <a href="../unified-editor/" class="md-tabs__link">
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
         
   
   
@@ -324,12 +326,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../xslt-viewer/" class="md-tabs__link">
           
   
@@ -477,10 +477,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../unified-editor/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unified Editor
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -496,6 +523,203 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-file-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported File Types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#toolbar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Toolbar
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Toolbar">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#always-visible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Always Visible
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shown-for-xml-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shown for XML Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shown-for-json-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shown for JSON Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shown-for-schematron-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shown for Schematron Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#panel-toggles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Panel Toggles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xsd-sub-tabs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XSD Sub-Tabs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xslt-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XSLT Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyboard-shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keyboard Shortcuts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drag-and-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Drag and Drop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationship-to-other-editor-pages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Relationship to Other Editor Pages
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -939,31 +1163,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -981,7 +1202,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1052,37 +1273,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    PDF Generator (FOP)
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../pdf-generator/" class="md-nav__link">
         
   
   
@@ -1098,242 +1292,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overview
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Overview">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How It Works
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#toolbar" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Toolbar
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-by-step-guide" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step-by-Step Guide
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Step-by-Step Guide">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#step-1-select-your-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 1: Select Your Files
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#step-2-set-pdf-metadata-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 2: Set PDF Metadata (Optional)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#step-3-configure-options-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Configure Options (Optional)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#step-4-generate-the-pdf" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 4: Generate the PDF
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#step-5-preview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 5: Preview
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#favorites-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Favorites Integration
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Features
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#xsl-fo-basics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        XSL-FO Basics
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="XSL-FO Basics">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#simple-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Simple Example
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#common-fo-elements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Common FO Elements
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tips" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tips
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#keyboard-shortcuts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Keyboard Shortcuts
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#navigation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Navigation
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1708,10 +1666,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
+  <a href="#key-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How It Works
+        Key Features
       
     </span>
   </a>
@@ -1720,6 +1678,28 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-file-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported File Types
+      
+    </span>
+  </a>
   
 </li>
       
@@ -1732,25 +1712,14 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-by-step-guide" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step-by-Step Guide
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Step-by-Step Guide">
+    <nav class="md-nav" aria-label="Toolbar">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#step-1-select-your-files" class="md-nav__link">
+  <a href="#always-visible" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 1: Select Your Files
+        Always Visible
       
     </span>
   </a>
@@ -1758,10 +1727,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-set-pdf-metadata-optional" class="md-nav__link">
+  <a href="#shown-for-xml-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: Set PDF Metadata (Optional)
+        Shown for XML Files
       
     </span>
   </a>
@@ -1769,10 +1738,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-configure-options-optional" class="md-nav__link">
+  <a href="#shown-for-json-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 3: Configure Options (Optional)
+        Shown for JSON Files
       
     </span>
   </a>
@@ -1780,21 +1749,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-4-generate-the-pdf" class="md-nav__link">
+  <a href="#shown-for-schematron-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 4: Generate the PDF
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#step-5-preview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 5: Preview
+        Shown for Schematron Files
       
     </span>
   </a>
@@ -1807,10 +1765,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#favorites-integration" class="md-nav__link">
+  <a href="#panel-toggles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Favorites Integration
+        Panel Toggles
       
     </span>
   </a>
@@ -1818,10 +1776,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
+  <a href="#xsd-sub-tabs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Features
+        XSD Sub-Tabs
       
     </span>
   </a>
@@ -1829,49 +1787,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#xsl-fo-basics" class="md-nav__link">
+  <a href="#xslt-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        XSL-FO Basics
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="XSL-FO Basics">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#simple-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Simple Example
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#common-fo-elements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Common FO Elements
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tips" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tips
+        XSLT Features
       
     </span>
   </a>
@@ -1890,10 +1809,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
+  <a href="#drag-and-drop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Troubleshooting
+        Drag and Drop
       
     </span>
   </a>
@@ -1901,10 +1820,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#navigation" class="md-nav__link">
+  <a href="#relationship-to-other-editor-pages" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Navigation
+        Relationship to Other Editor Pages
       
     </span>
   </a>
@@ -1931,258 +1850,129 @@
   
 
 
-<h1 id="pdf-generator-fop">PDF Generator (FOP)<a class="headerlink" href="#pdf-generator-fop" title="Permanent link">&para;</a></h1>
+<h1 id="unified-editor">Unified Editor<a class="headerlink" href="#unified-editor" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> December 2025 | <strong>Version:</strong> 1.1.0</p>
+<p><strong>New in v1.7</strong> - A multi-file editor that combines XML, XSD, XSLT, Schematron, and JSON editing in one view.</p>
 </blockquote>
-<p>Create professional PDF documents from your XML files using Apache FOP (Formatting Objects Processor).</p>
-<hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>The PDF Generator combines your XML data with an XSL-FO stylesheet to create formatted PDF documents.</p>
-<p><img alt="PDF Generator Overview" src="../img/fop-pdf.png" />
-<em>The PDF Generator interface with file selection and preview</em></p>
-<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>XML Data + XSL-FO Stylesheet = PDF Document
-</code></pre></div>
+<p>The Unified Editor lets you work with multiple related files simultaneously in a single tabbed interface. Instead of switching between different editor pages, you can open XML files alongside their XSD schemas, XSLT stylesheets, and Schematron rules - all in one place.</p>
+<h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Multi-tab editing</strong> - Open multiple files of different types in one view</li>
+<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml, .xsd, .xsl, .sch, .json)</li>
+<li><strong>Linked file detection</strong> - Automatically discovers related files (imported schemas, included stylesheets)</li>
+<li><strong>Unified toolbar</strong> - Common operations (Save, Validate, Format) work across all file types</li>
+<li><strong>Context-sensitive tools</strong> - Toolbar buttons change based on the active file type</li>
+<li><strong>Integrated XPath/XQuery</strong> - Query panel works with any XML-based file</li>
+<li><strong>Search &amp; Replace</strong> - Unified search across all editor types</li>
+<li><strong>Favorites</strong> - Quick access to frequently used files</li>
+</ul>
+<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>XML File</strong> - Your data (the content you want in the PDF)</li>
-<li><strong>XSL-FO Stylesheet</strong> - A template defining layout and formatting</li>
-<li><strong>PDF Output</strong> - The generated document</li>
+<li>Click <strong>"Editor"</strong> in the sidebar (or it opens automatically on startup)</li>
+<li>Click <strong>New</strong> to create a new file, or <strong>Open</strong> to load existing files</li>
+<li>Files open as tabs - switch between them by clicking the tab headers</li>
 </ol>
-<hr />
+<h2 id="supported-file-types">Supported File Types<a class="headerlink" href="#supported-file-types" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Extensions</th>
+<th>Features</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>XML</strong></td>
+<td>.xml</td>
+<td>Text + graphic view, XSD/Schematron linking, IntelliSense, continuous validation</td>
+</tr>
+<tr>
+<td><strong>XSD</strong></td>
+<td>.xsd</td>
+<td>Text + graphic view, Type Library, Type Editor, Schema Analysis, Documentation, Sample Data, Flatten</td>
+</tr>
+<tr>
+<td><strong>XSLT</strong></td>
+<td>.xsl, .xslt</td>
+<td>XSLT editor + XML input + output preview, live transform, parameters, performance metrics</td>
+</tr>
+<tr>
+<td><strong>Schematron</strong></td>
+<td>.sch</td>
+<td>Code editor + Visual Builder + Tester + Documentation Generator</td>
+</tr>
+<tr>
+<td><strong>JSON</strong></td>
+<td>.json, .jsonc, .json5</td>
+<td>Text + tree view, JSONPath queries, JSON Schema validation</td>
+</tr>
+</tbody>
+</table>
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Button</th>
-<th>Shortcut</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Open XML</strong></td>
-<td>Ctrl+1</td>
-<td>Load XML source file</td>
-</tr>
-<tr>
-<td><strong>Open XSL</strong></td>
-<td>Ctrl+2</td>
-<td>Load XSL-FO stylesheet</td>
-</tr>
-<tr>
-<td><strong>PDF Out</strong></td>
-<td>Ctrl+3</td>
-<td>Select output PDF location</td>
-</tr>
-<tr>
-<td><strong>Generate</strong></td>
-<td>F5</td>
-<td>Create the PDF</td>
-</tr>
-<tr>
-<td><strong>Add Favorite</strong></td>
-<td>Ctrl+D</td>
-<td>Add current file to favorites</td>
-</tr>
-<tr>
-<td><strong>Favorites</strong></td>
-<td>Ctrl+Shift+D</td>
-<td>Toggle favorites panel</td>
-</tr>
-<tr>
-<td><strong>Help</strong></td>
-<td>F1</td>
-<td>Show help</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="step-by-step-guide">Step-by-Step Guide<a class="headerlink" href="#step-by-step-guide" title="Permanent link">&para;</a></h2>
-<h3 id="step-1-select-your-files">Step 1: Select Your Files<a class="headerlink" href="#step-1-select-your-files" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Click <strong>Open XML</strong> to select your XML data file</li>
-<li>Click <strong>Open XSL</strong> to select your XSL-FO stylesheet</li>
-<li>Click <strong>PDF Out</strong> to choose where to save the PDF</li>
-</ol>
-<p>You can also drag and drop files directly into the application.</p>
-<h3 id="step-2-set-pdf-metadata-optional">Step 2: Set PDF Metadata (Optional)<a class="headerlink" href="#step-2-set-pdf-metadata-optional" title="Permanent link">&para;</a></h3>
-<p>Add metadata to your PDF document:</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Author</strong></td>
-<td>Your name or organization</td>
-</tr>
-<tr>
-<td><strong>Title</strong></td>
-<td>Document title</td>
-</tr>
-<tr>
-<td><strong>Keywords</strong></td>
-<td>Search terms for the document</td>
-</tr>
-<tr>
-<td><strong>Producer</strong></td>
-<td>Application that created the PDF</td>
-</tr>
-<tr>
-<td><strong>Creation Date</strong></td>
-<td>Automatically set</td>
-</tr>
-</tbody>
-</table>
-<h3 id="step-3-configure-options-optional">Step 3: Configure Options (Optional)<a class="headerlink" href="#step-3-configure-options-optional" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Option</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>FOP Config File</strong></td>
-<td>Custom FOP configuration for fonts, renderers, etc.</td>
-</tr>
-</tbody>
-</table>
-<h3 id="step-4-generate-the-pdf">Step 4: Generate the PDF<a class="headerlink" href="#step-4-generate-the-pdf" title="Permanent link">&para;</a></h3>
-<p>Click <strong>Generate</strong> or press <strong>F5</strong> to create the PDF.</p>
-<h3 id="step-5-preview">Step 5: Preview<a class="headerlink" href="#step-5-preview" title="Permanent link">&para;</a></h3>
-<p>The generated PDF appears in the built-in viewer on the right side. You can:
-- Scroll through pages
-- Review the layout
-- Check formatting</p>
-<hr />
-<h2 id="favorites-integration">Favorites Integration<a class="headerlink" href="#favorites-integration" title="Permanent link">&para;</a></h2>
-<p>Save frequently used XML and XSL-FO files for quick access:</p>
+<p>The toolbar provides common operations and context-sensitive buttons:</p>
+<h3 id="always-visible">Always Visible<a class="headerlink" href="#always-visible" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Add Favorite</strong> (Ctrl+D) - Save current file to favorites</li>
-<li><strong>Favorites</strong> (Ctrl+Shift+D) - Show/hide the favorites panel</li>
+<li><strong>New</strong> - Create XML, XSD, XSLT, Schematron, or JSON files</li>
+<li><strong>Open</strong> (Ctrl+O) - Open one or more files</li>
+<li><strong>Save</strong> (Ctrl+S) / <strong>Save All</strong> (Ctrl+Shift+S)</li>
+<li><strong>Recent</strong> (Ctrl+Shift+R) - Recently opened files</li>
+<li><strong>Close</strong> (Ctrl+W) - Close current tab</li>
+<li><strong>Validate</strong> (F5) - Validate current document</li>
+<li><strong>Format</strong> (Ctrl+Shift+F) - Pretty-print current document</li>
+<li><strong>Undo</strong> (Ctrl+Z) / <strong>Redo</strong> (Ctrl+Y)</li>
+<li><strong>View</strong> - Switch between Tabs, Side-by-Side, or Top-Bottom split views</li>
+<li><strong>Convert</strong> - XML to/from Excel/CSV (Ctrl+E)</li>
+<li><strong>Templates</strong> (Ctrl+T) - XML template system</li>
+<li><strong>Generator</strong> (Ctrl+G) - Generate XSD from XML</li>
+<li><strong>Tools</strong> - Open FOP (PDF Generation) or Digital Signatures as tool tabs</li>
 </ul>
-<p>The favorites panel appears on the right side and provides quick access to your saved files.</p>
-<hr />
-<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Feature</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Drag &amp; Drop</strong></td>
-<td>Drop files directly into the application</td>
-</tr>
-<tr>
-<td><strong>Built-in Viewer</strong></td>
-<td>Preview PDFs without leaving the app</td>
-</tr>
-<tr>
-<td><strong>PDF Metadata</strong></td>
-<td>Add author, title, and keywords</td>
-</tr>
-<tr>
-<td><strong>Progress Indicator</strong></td>
-<td>Shows generation progress</td>
-</tr>
-<tr>
-<td><strong>FOP Configuration</strong></td>
-<td>Custom fonts and rendering options</td>
-</tr>
-<tr>
-<td><strong>Favorites</strong></td>
-<td>Quick access to frequently used files</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="xsl-fo-basics">XSL-FO Basics<a class="headerlink" href="#xsl-fo-basics" title="Permanent link">&para;</a></h2>
-<p>XSL-FO (Extensible Stylesheet Language Formatting Objects) defines how your XML content should be formatted in the PDF.</p>
-<h3 id="simple-example">Simple Example<a class="headerlink" href="#simple-example" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">&lt;xsl:stylesheet</span><span class="w"> </span><span class="na">version=</span><span class="s">&quot;1.0&quot;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="na">xmlns:xsl=</span><span class="s">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="na">xmlns:fo=</span><span class="s">&quot;http://www.w3.org/1999/XSL/Format&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">&lt;xsl:template</span><span class="w"> </span><span class="na">match=</span><span class="s">&quot;/&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">&lt;fo:root&gt;</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nt">&lt;fo:layout-master-set&gt;</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">        </span><span class="nt">&lt;fo:simple-page-master</span><span class="w"> </span><span class="na">master-name=</span><span class="s">&quot;A4&quot;</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">            </span><span class="na">page-height=</span><span class="s">&quot;29.7cm&quot;</span><span class="w"> </span><span class="na">page-width=</span><span class="s">&quot;21cm&quot;</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">            </span><span class="na">margin=</span><span class="s">&quot;2cm&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">          </span><span class="nt">&lt;fo:region-body/&gt;</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="nt">&lt;/fo:simple-page-master&gt;</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">      </span><span class="nt">&lt;/fo:layout-master-set&gt;</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="nt">&lt;fo:page-sequence</span><span class="w"> </span><span class="na">master-reference=</span><span class="s">&quot;A4&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">        </span><span class="nt">&lt;fo:flow</span><span class="w"> </span><span class="na">flow-name=</span><span class="s">&quot;xsl-region-body&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">          </span><span class="nt">&lt;fo:block</span><span class="w"> </span><span class="na">font-size=</span><span class="s">&quot;24pt&quot;</span><span class="w"> </span><span class="na">font-weight=</span><span class="s">&quot;bold&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">            </span><span class="nt">&lt;xsl:value-of</span><span class="w"> </span><span class="na">select=</span><span class="s">&quot;/document/title&quot;</span><span class="nt">/&gt;</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">          </span><span class="nt">&lt;/fo:block&gt;</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">          </span><span class="nt">&lt;fo:block</span><span class="w"> </span><span class="na">font-size=</span><span class="s">&quot;12pt&quot;</span><span class="nt">&gt;</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">            </span><span class="nt">&lt;xsl:value-of</span><span class="w"> </span><span class="na">select=</span><span class="s">&quot;/document/content&quot;</span><span class="nt">/&gt;</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">          </span><span class="nt">&lt;/fo:block&gt;</span>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">        </span><span class="nt">&lt;/fo:flow&gt;</span>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">      </span><span class="nt">&lt;/fo:page-sequence&gt;</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">    </span><span class="nt">&lt;/fo:root&gt;</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">  </span><span class="nt">&lt;/xsl:template&gt;</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="nt">&lt;/xsl:stylesheet&gt;</span>
-</code></pre></div>
-<h3 id="common-fo-elements">Common FO Elements<a class="headerlink" href="#common-fo-elements" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Element</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>fo:block</code></td>
-<td>Paragraph or block of text</td>
-</tr>
-<tr>
-<td><code>fo:inline</code></td>
-<td>Inline text formatting</td>
-</tr>
-<tr>
-<td><code>fo:table</code></td>
-<td>Tables with rows and cells</td>
-</tr>
-<tr>
-<td><code>fo:external-graphic</code></td>
-<td>Images</td>
-</tr>
-<tr>
-<td><code>fo:page-number</code></td>
-<td>Current page number</td>
-</tr>
-<tr>
-<td><code>fo:leader</code></td>
-<td>Dots, lines, or space (for TOC)</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
+<h3 id="shown-for-xml-files">Shown for XML Files<a class="headerlink" href="#shown-for-xml-files" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Validate first</strong> - Ensure your XML and XSL-FO files are valid before generating</li>
-<li><strong>Check error messages</strong> - If generation fails, read the error details</li>
-<li><strong>Use the preview</strong> - Review the PDF in the built-in viewer</li>
-<li><strong>Save to favorites</strong> - Quick access to frequently used files</li>
-<li><strong>FOP configuration</strong> - Use a custom config file for special fonts</li>
+<li><strong>Console</strong> - Toggle log output panel</li>
+<li><strong>XSLT</strong> - Toggle embedded XSLT development panel</li>
+<li><strong>Template</strong> - Toggle template development panel</li>
 </ul>
-<hr />
+<h3 id="shown-for-json-files">Shown for JSON Files<a class="headerlink" href="#shown-for-json-files" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Minify</strong> - Remove all whitespace from JSON</li>
+<li><strong>Schema</strong> - Load/clear JSON Schema, validate against schema</li>
+</ul>
+<h3 id="shown-for-schematron-files">Shown for Schematron Files<a class="headerlink" href="#shown-for-schematron-files" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Insert</strong> - Quick-insert Pattern, Rule, Assert, or Report elements</li>
+</ul>
+<h2 id="panel-toggles">Panel Toggles<a class="headerlink" href="#panel-toggles" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Linked</strong> (Ctrl+L) - Show/hide linked files panel</li>
+<li><strong>XPath</strong> (Ctrl+Shift+X) - Show/hide XPath/XQuery query panel</li>
+<li><strong>Properties</strong> (Ctrl+Shift+P) - Show/hide properties and validation sidebar</li>
+<li><strong>Favorites</strong> (Ctrl+Shift+B) - Show/hide favorites panel</li>
+</ul>
+<h2 id="xsd-sub-tabs">XSD Sub-Tabs<a class="headerlink" href="#xsd-sub-tabs" title="Permanent link">&para;</a></h2>
+<p>When editing an XSD file, the editor provides additional sub-tabs:</p>
+<ul>
+<li><strong>Text</strong> - Source code editing with syntax highlighting</li>
+<li><strong>Graphic</strong> - Visual XMLSpy-style schema diagram</li>
+<li><strong>Type Library</strong> - Browse all types with filtering, search, and usage counts</li>
+<li><strong>Type Editor</strong> - Edit ComplexTypes graphically, SimpleTypes with form editor</li>
+<li><strong>Analysis</strong> - Schema statistics, identity constraints, quality checks</li>
+<li><strong>Documentation</strong> - Generate HTML/Word/PDF documentation</li>
+<li><strong>Sample Data</strong> - Generate sample XML from the schema</li>
+<li><strong>Flatten</strong> - Merge included/imported schemas into a single file</li>
+</ul>
+<h2 id="xslt-features">XSLT Features<a class="headerlink" href="#xslt-features" title="Permanent link">&para;</a></h2>
+<p>When editing an XSLT file:</p>
+<ul>
+<li><strong>Transform</strong> - Run XSLT transformation with XML input</li>
+<li><strong>Live Transform</strong> - Auto-execute on changes</li>
+<li><strong>Parameters</strong> - Define XSLT parameters (name/value pairs)</li>
+<li><strong>Output Format</strong> - Choose XML, HTML, or Text output</li>
+<li><strong>Performance</strong> tab - Execution time, throughput, star rating</li>
+<li><strong>Debug</strong> tab - Messages, warnings, template execution trace</li>
+<li><strong>Open in Browser</strong> - View HTML output in default browser</li>
+</ul>
 <h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2193,82 +1983,75 @@
 </thead>
 <tbody>
 <tr>
-<td>Ctrl+1</td>
-<td>Open XML file</td>
+<td>Ctrl+O</td>
+<td>Open file</td>
 </tr>
 <tr>
-<td>Ctrl+2</td>
-<td>Open XSL-FO file</td>
+<td>Ctrl+S</td>
+<td>Save</td>
 </tr>
 <tr>
-<td>Ctrl+3</td>
-<td>Select output PDF</td>
+<td>Ctrl+Shift+S</td>
+<td>Save all</td>
+</tr>
+<tr>
+<td>Ctrl+W</td>
+<td>Close tab</td>
+</tr>
+<tr>
+<td>Ctrl+Z / Ctrl+Y</td>
+<td>Undo / Redo</td>
+</tr>
+<tr>
+<td>Ctrl+F</td>
+<td>Find</td>
+</tr>
+<tr>
+<td>Ctrl+H</td>
+<td>Find and Replace</td>
 </tr>
 <tr>
 <td>F5</td>
-<td>Generate PDF</td>
+<td>Validate</td>
+</tr>
+<tr>
+<td>Ctrl+Shift+F</td>
+<td>Format</td>
 </tr>
 <tr>
 <td>Ctrl+D</td>
 <td>Add to favorites</td>
 </tr>
 <tr>
-<td>Ctrl+Shift+D</td>
-<td>Toggle favorites</td>
+<td>Ctrl+L</td>
+<td>Toggle linked files</td>
 </tr>
 <tr>
-<td>F1</td>
-<td>Help</td>
+<td>Ctrl+Shift+X</td>
+<td>Toggle XPath panel</td>
+</tr>
+<tr>
+<td>Ctrl+Shift+P</td>
+<td>Toggle properties</td>
+</tr>
+<tr>
+<td>Ctrl+E</td>
+<td>XML to Spreadsheet</td>
+</tr>
+<tr>
+<td>Ctrl+T</td>
+<td>Templates</td>
+</tr>
+<tr>
+<td>Ctrl+G</td>
+<td>Generate XSD</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Problem</th>
-<th>Solution</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>No output</td>
-<td>Check that all three files are selected</td>
-</tr>
-<tr>
-<td>Font issues</td>
-<td>Use a custom FOP config with embedded fonts</td>
-</tr>
-<tr>
-<td>Image not showing</td>
-<td>Check image path is correct and accessible</td>
-</tr>
-<tr>
-<td>Generation fails</td>
-<td>Check the error message for details</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Previous</th>
-<th>Home</th>
-<th>Next</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="../xslt-developer/">XSLT Developer</a></td>
-<td><a href="../">Home</a></td>
-<td><a href="../digital-signatures/">Digital Signatures</a></td>
-</tr>
-</tbody>
-</table>
-<p><strong>All Pages:</strong> <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="./">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../licenses/">Licenses</a></p>
+<h2 id="drag-and-drop">Drag and Drop<a class="headerlink" href="#drag-and-drop" title="Permanent link">&para;</a></h2>
+<p>Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.</p>
+<h2 id="relationship-to-other-editor-pages">Relationship to Other Editor Pages<a class="headerlink" href="#relationship-to-other-editor-pages" title="Permanent link">&para;</a></h2>
+<p>The Unified Editor provides a consolidated editing experience. The dedicated editor pages (XML Editor, XSD Editor, etc.) remain available in the sidebar for their full feature sets, including advanced workflows like XSD documentation generation, Schematron batch testing, and XSLT batch processing.</p>
 
 
 
@@ -2306,7 +2089,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../xslt-developer/" class="md-footer__link md-footer__link--prev" aria-label="Previous: XSLT Developer">
+          <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Home">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2316,20 +2099,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                XSLT Developer
+                Home
               </div>
             </div>
           </a>
         
         
           
-          <a href="../schematron-support/" class="md-footer__link md-footer__link--next" aria-label="Next: Schematron">
+          <a href="../xml-editor/" class="md-footer__link md-footer__link--next" aria-label="Next: XML Editor">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Schematron
+                XML Editor
               </div>
             </div>
             <div class="md-footer__button md-icon">
