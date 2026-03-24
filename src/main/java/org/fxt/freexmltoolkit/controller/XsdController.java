@@ -57,7 +57,7 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
  * Main Controller for the XSD Editor.
  * Orchestrates multiple sub-controllers for different tabs.
  */
-public class XsdController implements FavoritesParentController {
+public class XsdController implements FavoritesParentController, XsdToolHost {
 
     private static final Logger logger = LogManager.getLogger(XsdController.class);
 

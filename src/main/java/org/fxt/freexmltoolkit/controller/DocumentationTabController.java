@@ -136,7 +136,7 @@ public class DocumentationTabController {
     private CheckComboBox<String> languageCheckComboBox;
     private Set<String> discoveredLanguages = new LinkedHashSet<>();
 
-    private XsdController parentController;
+    private XsdToolHost parentController;
     private File lastGeneratedDocFolder;
     private Task<Void> currentDocumentationTask;
     private Timeline documentationTimer;
@@ -812,7 +812,16 @@ public class DocumentationTabController {
         }
     }
 
-    public void setParentController(XsdController parentController) {
+    public void setParentController(XsdToolHost parentController) {
         this.parentController = parentController;
+    }
+
+    /**
+     * Sets the XSD file path programmatically (used by Unified Editor).
+     */
+    public void setXsdFilePath(String path) {
+        if (xsdFilePath != null && path != null) {
+            xsdFilePath.setText(path);
+        }
     }
 }

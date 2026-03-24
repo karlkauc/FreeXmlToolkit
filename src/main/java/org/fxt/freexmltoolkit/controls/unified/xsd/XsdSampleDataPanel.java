@@ -1,29 +1,39 @@
 package org.fxt.freexmltoolkit.controls.unified.xsd;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
+import javafx.application.Platform;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Panel for generating sample XML data from an XSD schema.
+ * Feature parity with the standalone XSD Editor's Sample Data tab.
  */
 public class XsdSampleDataPanel extends VBox {
 
@@ -31,25 +41,29 @@ public class XsdSampleDataPanel extends VBox {
 
     private final CheckBox mandatoryOnlyCheck;
     private final Spinner<Integer> maxOccurrencesSpinner;
+    private final TextField outputPathField;
     private final CodeArea outputArea;
     private final Label statusLabel;
+    private final ProgressIndicator progressIndicator;
+    private final Button generateButton;
+    private final Button validateButton;
+    private final Button exportErrorsButton;
+    private final TableView<ValidationErrorRow> validationTable;
 
     private File sourceXsdFile;
-    private final XmlService xmlService;
     private XsdDocumentationService xsdDocService;
+    private List<XsdDocumentationService.ValidationError> currentErrors;
 
     public XsdSampleDataPanel() {
         setSpacing(12);
         setPadding(new Insets(12));
-
-        this.xmlService = new XmlServiceImpl();
 
         // Title
         Label titleLabel = new Label("Sample Data Generation");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
 
         // Options
-        Label optionsLabel = new Label("Options");
+        Label optionsLabel = new Label("Settings");
         optionsLabel.setStyle("-fx-font-weight: bold;");
 
         mandatoryOnlyCheck = new CheckBox("Mandatory elements only");
@@ -57,90 +71,155 @@ public class XsdSampleDataPanel extends VBox {
 
         HBox maxOccRow = new HBox(8);
         maxOccRow.setAlignment(Pos.CENTER_LEFT);
-        Label maxOccLabel = new Label("Max occurrences for repeating elements:");
         maxOccurrencesSpinner = new Spinner<>();
         maxOccurrencesSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 2));
         maxOccurrencesSpinner.setPrefWidth(80);
-        maxOccRow.getChildren().addAll(maxOccLabel, maxOccurrencesSpinner);
+        maxOccRow.getChildren().addAll(new Label("Max occurrences for repeating elements:"), maxOccurrencesSpinner);
 
-        // Buttons
-        Button generateBtn = new Button("Generate Sample XML");
-        generateBtn.setStyle("-fx-font-size: 14px;");
+        // Output path
+        HBox outputPathRow = new HBox(8);
+        outputPathRow.setAlignment(Pos.CENTER_LEFT);
+        outputPathField = new TextField();
+        outputPathField.setPromptText("Output XML file path (optional)...");
+        HBox.setHgrow(outputPathField, Priority.ALWAYS);
+        Button browseBtn = new Button("Browse");
+        browseBtn.setOnAction(e -> browseOutputPath());
+        outputPathRow.getChildren().addAll(new Label("Output File:"), outputPathField, browseBtn);
+
+        // Action buttons
+        generateButton = new Button("Generate Sample XML");
+        generateButton.setStyle("-fx-font-size: 14px;");
         FontIcon genIcon = new FontIcon("bi-play-fill");
         genIcon.setIconSize(16);
-        generateBtn.setGraphic(genIcon);
-        generateBtn.setOnAction(e -> generateSampleData());
+        generateButton.setGraphic(genIcon);
+        generateButton.setOnAction(e -> generateSampleData());
 
-        Button validateBtn = new Button("Validate Generated XML");
-        validateBtn.setOnAction(e -> validateGeneratedXml());
+        validateButton = new Button("Validate Generated XML");
+        validateButton.setDisable(true);
+        validateButton.setOnAction(e -> validateGeneratedXml());
+
+        exportErrorsButton = new Button("Export Errors");
+        exportErrorsButton.setVisible(false);
+        exportErrorsButton.setManaged(false);
+        exportErrorsButton.setOnAction(e -> exportValidationErrors());
+
+        progressIndicator = new ProgressIndicator();
+        progressIndicator.setVisible(false);
+        progressIndicator.setPrefSize(24, 24);
 
         statusLabel = new Label("Ready");
         statusLabel.setStyle("-fx-text-fill: #6c757d;");
 
-        HBox actionRow = new HBox(8, generateBtn, validateBtn, statusLabel);
+        HBox actionRow = new HBox(8, generateButton, validateButton, exportErrorsButton, progressIndicator, statusLabel);
         actionRow.setAlignment(Pos.CENTER_LEFT);
 
         // Output area
         outputArea = new CodeArea();
         outputArea.setEditable(false);
         VirtualizedScrollPane<CodeArea> scrollPane = new VirtualizedScrollPane<>(outputArea);
+
+        // Validation results table
+        validationTable = createValidationTable();
+        validationTable.setVisible(false);
+        validationTable.setManaged(false);
+        validationTable.setPrefHeight(150);
+
+        VBox resultBox = new VBox(4, scrollPane, validationTable);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        VBox.setVgrow(resultBox, Priority.ALWAYS);
 
         getChildren().addAll(titleLabel, optionsLabel, mandatoryOnlyCheck,
-                maxOccRow, actionRow, scrollPane);
+                maxOccRow, outputPathRow, actionRow, resultBox);
     }
 
-    /**
-     * Sets the source XSD file for sample generation.
-     */
+    @SuppressWarnings("unchecked")
+    private TableView<ValidationErrorRow> createValidationTable() {
+        TableView<ValidationErrorRow> table = new TableView<>();
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        table.setPlaceholder(new Label("No validation errors"));
+
+        TableColumn<ValidationErrorRow, Number> lineCol = new TableColumn<>("Line");
+        lineCol.setCellValueFactory(cd -> cd.getValue().lineProperty());
+        lineCol.setPrefWidth(60);
+
+        TableColumn<ValidationErrorRow, Number> colCol = new TableColumn<>("Column");
+        colCol.setCellValueFactory(cd -> cd.getValue().columnProperty());
+        colCol.setPrefWidth(70);
+
+        TableColumn<ValidationErrorRow, String> severityCol = new TableColumn<>("Severity");
+        severityCol.setCellValueFactory(cd -> cd.getValue().severityProperty());
+        severityCol.setPrefWidth(80);
+
+        TableColumn<ValidationErrorRow, String> messageCol = new TableColumn<>("Message");
+        messageCol.setCellValueFactory(cd -> cd.getValue().messageProperty());
+
+        table.getColumns().addAll(lineCol, colCol, severityCol, messageCol);
+        return table;
+    }
+
     public void setSourceFile(File file) {
         this.sourceXsdFile = file;
+        generateButton.setDisable(file == null);
     }
 
-    /**
-     * Generates sample XML data from the XSD schema.
-     */
     public void generateSampleData() {
         if (sourceXsdFile == null || !sourceXsdFile.exists()) {
             statusLabel.setText("No XSD file loaded");
             return;
         }
 
+        progressIndicator.setVisible(true);
         statusLabel.setText("Generating...");
+        generateButton.setDisable(true);
 
-        try {
-            if (xsdDocService == null) {
-                xsdDocService = new XsdDocumentationService();
-            }
-            xsdDocService.setXsdFilePath(sourceXsdFile.getAbsolutePath());
-            String sampleXml = xsdDocService.generateSampleXml(
-                    mandatoryOnlyCheck.isSelected(),
-                    maxOccurrencesSpinner.getValue()
-            );
-
-            if (sampleXml != null && !sampleXml.isEmpty()) {
-                // Pretty-print the output
-                try {
-                    sampleXml = XmlService.prettyFormat(sampleXml, 4);
-                } catch (Exception ignored) {
-                    // Use raw output if formatting fails
+        Thread worker = new Thread(() -> {
+            try {
+                if (xsdDocService == null) {
+                    xsdDocService = new XsdDocumentationService();
                 }
-                outputArea.replaceText(sampleXml);
-                statusLabel.setText("Generated successfully");
-            } else {
-                outputArea.replaceText("<!-- No sample data generated -->");
-                statusLabel.setText("No data generated");
+                xsdDocService.setXsdFilePath(sourceXsdFile.getAbsolutePath());
+                String sampleXml = xsdDocService.generateSampleXml(
+                        mandatoryOnlyCheck.isSelected(),
+                        maxOccurrencesSpinner.getValue());
+
+                if (sampleXml != null) {
+                    try {
+                        sampleXml = XmlService.prettyFormat(sampleXml, 4);
+                    } catch (Exception ignored) {}
+                }
+
+                // Save to file if output path specified
+                String outputPath = outputPathField.getText();
+                if (outputPath != null && !outputPath.trim().isEmpty() && sampleXml != null) {
+                    java.nio.file.Files.writeString(new File(outputPath).toPath(), sampleXml, StandardCharsets.UTF_8);
+                }
+
+                String result = sampleXml;
+                Platform.runLater(() -> {
+                    outputArea.replaceText(result != null ? result : "<!-- No sample data generated -->");
+                    statusLabel.setText("Generated successfully");
+                    progressIndicator.setVisible(false);
+                    generateButton.setDisable(false);
+                    validateButton.setDisable(false);
+                    validationTable.setVisible(false);
+                    validationTable.setManaged(false);
+                    exportErrorsButton.setVisible(false);
+                    exportErrorsButton.setManaged(false);
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    outputArea.replaceText("<!-- Error: " + e.getMessage() + " -->");
+                    statusLabel.setText("Error: " + e.getMessage());
+                    progressIndicator.setVisible(false);
+                    generateButton.setDisable(false);
+                });
+                logger.error("Failed to generate sample data: {}", e.getMessage());
             }
-        } catch (Exception e) {
-            outputArea.replaceText("<!-- Error: " + e.getMessage() + " -->");
-            statusLabel.setText("Error: " + e.getMessage());
-            logger.error("Failed to generate sample data: {}", e.getMessage());
-        }
+        }, "SampleData-Worker");
+        worker.setDaemon(true);
+        worker.start();
     }
 
-    /**
-     * Validates the generated XML against the XSD schema.
-     */
     public void validateGeneratedXml() {
         String xml = outputArea.getText();
         if (xml == null || xml.trim().isEmpty()) {
@@ -148,22 +227,118 @@ public class XsdSampleDataPanel extends VBox {
             return;
         }
 
-        try {
-            var errors = xmlService.validateText(xml);
-            if (errors == null || errors.isEmpty()) {
-                statusLabel.setText("Validation: XML is valid");
-            } else {
-                statusLabel.setText("Validation: " + errors.size() + " error(s)");
+        progressIndicator.setVisible(true);
+        statusLabel.setText("Validating...");
+
+        Thread worker = new Thread(() -> {
+            try {
+                if (xsdDocService == null) {
+                    xsdDocService = new XsdDocumentationService();
+                }
+                xsdDocService.setXsdFilePath(sourceXsdFile.getAbsolutePath());
+                var result = xsdDocService.validateXmlAgainstSchema(xml);
+
+                Platform.runLater(() -> {
+                    progressIndicator.setVisible(false);
+                    validationTable.getItems().clear();
+
+                    if (result.isValid()) {
+                        statusLabel.setText("Validation: XML is valid");
+                        validationTable.setVisible(false);
+                        validationTable.setManaged(false);
+                        exportErrorsButton.setVisible(false);
+                        exportErrorsButton.setManaged(false);
+                    } else {
+                        currentErrors = result.errors();
+                        statusLabel.setText("Validation: " + result.errors().size() + " error(s)");
+
+                        for (var error : result.errors()) {
+                            validationTable.getItems().add(new ValidationErrorRow(
+                                    error.lineNumber(), error.columnNumber(), error.severity(), error.message()));
+                        }
+                        validationTable.setVisible(true);
+                        validationTable.setManaged(true);
+                        exportErrorsButton.setVisible(true);
+                        exportErrorsButton.setManaged(true);
+                    }
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    statusLabel.setText("Validation error: " + e.getMessage());
+                    progressIndicator.setVisible(false);
+                });
             }
-        } catch (Exception e) {
-            statusLabel.setText("Validation error: " + e.getMessage());
+        }, "SampleData-Validate-Worker");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    private void exportValidationErrors() {
+        if (currentErrors == null || currentErrors.isEmpty()) {
+            return;
+        }
+
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Export Validation Errors");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        fc.setInitialFileName("validation_errors.csv");
+        File file = fc.showSaveDialog(getScene().getWindow());
+
+        if (file != null) {
+            try {
+                StringBuilder sb = new StringBuilder("Line,Column,Severity,Message\n");
+                for (var error : currentErrors) {
+                    sb.append(error.lineNumber()).append(",")
+                            .append(error.columnNumber()).append(",")
+                            .append(csvEscape(error.severity())).append(",")
+                            .append(csvEscape(error.message())).append("\n");
+                }
+                java.nio.file.Files.writeString(file.toPath(), sb.toString(), StandardCharsets.UTF_8);
+                statusLabel.setText("Exported to: " + file.getName());
+            } catch (Exception e) {
+                statusLabel.setText("Export failed: " + e.getMessage());
+            }
         }
     }
 
-    /**
-     * Gets the generated XML content.
-     */
-    public String getGeneratedXml() {
-        return outputArea.getText();
+    private void browseOutputPath() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Save Generated XML");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Files", "*.xml"));
+        if (sourceXsdFile != null) {
+            fc.setInitialDirectory(sourceXsdFile.getParentFile());
+            fc.setInitialFileName(sourceXsdFile.getName().replaceFirst("\\.xsd$", "_sample.xml"));
+        }
+        File file = fc.showSaveDialog(getScene().getWindow());
+        if (file != null) {
+            outputPathField.setText(file.getAbsolutePath());
+        }
+    }
+
+    private String csvEscape(String text) {
+        if (text == null) return "";
+        if (text.contains(",") || text.contains("\"") || text.contains("\n")) {
+            return "\"" + text.replace("\"", "\"\"") + "\"";
+        }
+        return text;
+    }
+
+    public static class ValidationErrorRow {
+        private final SimpleIntegerProperty line;
+        private final SimpleIntegerProperty column;
+        private final SimpleStringProperty severity;
+        private final SimpleStringProperty message;
+
+        public ValidationErrorRow(int line, int column, String severity, String message) {
+            this.line = new SimpleIntegerProperty(line);
+            this.column = new SimpleIntegerProperty(column);
+            this.severity = new SimpleStringProperty(severity);
+            this.message = new SimpleStringProperty(message);
+        }
+
+        public SimpleIntegerProperty lineProperty() { return line; }
+        public SimpleIntegerProperty columnProperty() { return column; }
+        public SimpleStringProperty severityProperty() { return severity; }
+        public SimpleStringProperty messageProperty() { return message; }
     }
 }

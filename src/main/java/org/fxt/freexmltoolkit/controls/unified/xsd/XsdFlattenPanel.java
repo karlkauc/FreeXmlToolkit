@@ -10,6 +10,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -35,6 +37,8 @@ public class XsdFlattenPanel extends VBox {
 
     private final CheckBox flattenIncludesCheck;
     private final CheckBox flattenImportsCheck;
+    private final RadioButton sortTypeBeforeName;
+    private final RadioButton sortNameBeforeType;
     private final CodeArea outputArea;
     private final Label statusLabel;
     private final ProgressIndicator progressIndicator;
@@ -58,6 +62,17 @@ public class XsdFlattenPanel extends VBox {
 
         flattenImportsCheck = new CheckBox("Flatten xs:import");
         flattenImportsCheck.setSelected(false);
+
+        // Sort Order
+        Label sortLabel = new Label("Sort Order");
+        sortLabel.setStyle("-fx-font-weight: bold;");
+        ToggleGroup sortGroup = new ToggleGroup();
+        sortTypeBeforeName = new RadioButton("Type before Name");
+        sortTypeBeforeName.setToggleGroup(sortGroup);
+        sortTypeBeforeName.setSelected(true);
+        sortNameBeforeType = new RadioButton("Name before Type");
+        sortNameBeforeType.setToggleGroup(sortGroup);
+        HBox sortRow = new HBox(12, sortTypeBeforeName, sortNameBeforeType);
 
         // Action
         Button flattenBtn = new Button("Flatten Schema");
@@ -87,7 +102,7 @@ public class XsdFlattenPanel extends VBox {
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
         getChildren().addAll(titleLabel, optionsLabel, flattenIncludesCheck,
-                flattenImportsCheck, actionRow, scrollPane);
+                flattenImportsCheck, sortLabel, sortRow, actionRow, scrollPane);
     }
 
     /**
@@ -126,6 +141,14 @@ public class XsdFlattenPanel extends VBox {
                 XsdSchema schema = parsingService.toXsdModel(parsed);
 
                 XsdSerializer serializer = new XsdSerializer();
+                // Apply sort order from radio buttons
+                if (sortTypeBeforeName.isSelected()) {
+                    serializer.setSortOrder(
+                            org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder.TYPE_BEFORE_NAME);
+                } else {
+                    serializer.setSortOrder(
+                            org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder.NAME_BEFORE_TYPE);
+                }
                 String flattened = serializer.serialize(schema);
 
                 // Pretty-print

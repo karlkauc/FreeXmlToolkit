@@ -62,7 +62,7 @@ public class FlattenTabController {
     @FXML
     public ToggleGroup flattenSortOrderGroup;
 
-    private XsdController parentController;
+    private XsdToolHost parentController;
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
 
     @FXML
@@ -192,7 +192,7 @@ public class FlattenTabController {
         return originalPath.substring(0, originalPath.length() - 4) + "_flattened.xsd";
     }
 
-    public void setParentController(XsdController parentController) {
+    public void setParentController(XsdToolHost parentController) {
         this.parentController = parentController;
     }
     
