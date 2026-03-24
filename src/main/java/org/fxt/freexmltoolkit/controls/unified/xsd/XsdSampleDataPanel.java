@@ -25,8 +25,8 @@ import javafx.stage.FileChooser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxmisc.flowless.VirtualizedScrollPane;
-import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -42,7 +42,7 @@ public class XsdSampleDataPanel extends VBox {
     private final CheckBox mandatoryOnlyCheck;
     private final Spinner<Integer> maxOccurrencesSpinner;
     private final TextField outputPathField;
-    private final CodeArea outputArea;
+    private final XmlCodeEditorV2 outputEditor;
     private final Label statusLabel;
     private final ProgressIndicator progressIndicator;
     private final Button generateButton;
@@ -113,10 +113,8 @@ public class XsdSampleDataPanel extends VBox {
         HBox actionRow = new HBox(8, generateButton, validateButton, exportErrorsButton, progressIndicator, statusLabel);
         actionRow.setAlignment(Pos.CENTER_LEFT);
 
-        // Output area
-        outputArea = new CodeArea();
-        outputArea.setEditable(false);
-        VirtualizedScrollPane<CodeArea> scrollPane = new VirtualizedScrollPane<>(outputArea);
+        // Output editor with full XML syntax highlighting and line numbers
+        outputEditor = XmlCodeEditorV2Factory.createWithoutSchema();
 
         // Validation results table
         validationTable = createValidationTable();
@@ -124,8 +122,8 @@ public class XsdSampleDataPanel extends VBox {
         validationTable.setManaged(false);
         validationTable.setPrefHeight(150);
 
-        VBox resultBox = new VBox(4, scrollPane, validationTable);
-        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        VBox resultBox = new VBox(4, outputEditor, validationTable);
+        VBox.setVgrow(outputEditor, Priority.ALWAYS);
         VBox.setVgrow(resultBox, Priority.ALWAYS);
 
         getChildren().addAll(titleLabel, optionsLabel, mandatoryOnlyCheck,
@@ -196,7 +194,7 @@ public class XsdSampleDataPanel extends VBox {
 
                 String result = sampleXml;
                 Platform.runLater(() -> {
-                    outputArea.replaceText(result != null ? result : "<!-- No sample data generated -->");
+                    outputEditor.setText(result != null ? result : "<!-- No sample data generated -->");
                     statusLabel.setText("Generated successfully");
                     progressIndicator.setVisible(false);
                     generateButton.setDisable(false);
@@ -208,7 +206,7 @@ public class XsdSampleDataPanel extends VBox {
                 });
             } catch (Exception e) {
                 Platform.runLater(() -> {
-                    outputArea.replaceText("<!-- Error: " + e.getMessage() + " -->");
+                    outputEditor.setText("<!-- Error: " + e.getMessage() + " -->");
                     statusLabel.setText("Error: " + e.getMessage());
                     progressIndicator.setVisible(false);
                     generateButton.setDisable(false);
@@ -221,7 +219,7 @@ public class XsdSampleDataPanel extends VBox {
     }
 
     public void validateGeneratedXml() {
-        String xml = outputArea.getText();
+        String xml = outputEditor.getText();
         if (xml == null || xml.trim().isEmpty()) {
             statusLabel.setText("No XML to validate");
             return;
