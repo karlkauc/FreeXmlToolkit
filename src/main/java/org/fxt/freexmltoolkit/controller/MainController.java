@@ -181,11 +181,7 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button help, settings, exit, unifiedEditor;
-
-    // @Deprecated - removed from navigation, kept for backward compatibility
-    @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, xsltDeveloper, schemaGenerator, json;
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, unifiedEditor, json;
 
     /**
      * Menu item for exiting the application.
@@ -221,11 +217,10 @@ public class MainController implements Initializable {
      * Section labels in the left sidebar for grouping navigation buttons.
      */
     @FXML
-    Label sectionEditors;
+    Label sectionEditors, sectionSchema, sectionTransforms, sectionTools;
 
-    // Removed from navigation - sections no longer exist in FXML
-    Label sectionSchema, sectionTransforms, sectionAdvanced, sectionTools;
-    Separator separatorSchema, separatorTransforms, separatorAdvanced, separatorTools;
+    @FXML
+    Separator separatorSchema, separatorTransforms, separatorTools;
 
     /**
      * Bottom button bar container (Help, Settings, Exit) in the sidebar.
@@ -713,7 +708,8 @@ public class MainController implements Initializable {
      */
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
-            unifiedEditor, help, settings
+            xmlUltimate, xsd, xsdValidation, schematron, xslt, fop,
+            signature, help, settings, schemaGenerator, xsltDeveloper, unifiedEditor, json
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -1323,13 +1319,13 @@ public class MainController implements Initializable {
      * Labels are hidden when the sidebar is collapsed since they don't fit in the narrow width.
      */
     private void setSectionLabelsVisible(boolean visible) {
-        for (Label label : new Label[]{sectionEditors, sectionSchema, sectionTransforms, sectionAdvanced, sectionTools}) {
+        for (Label label : new Label[]{sectionEditors, sectionSchema, sectionTransforms, sectionTools}) {
             if (label != null) {
                 label.setVisible(visible);
                 label.setManaged(visible);
             }
         }
-        for (Separator sep : new Separator[]{separatorSchema, separatorTransforms, separatorAdvanced, separatorTools}) {
+        for (Separator sep : new Separator[]{separatorSchema, separatorTransforms, separatorTools}) {
             if (sep != null) {
                 sep.setVisible(visible);
                 sep.setManaged(visible);
