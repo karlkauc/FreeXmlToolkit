@@ -57,12 +57,27 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
     private final TabPane viewTabPane;
     private final Tab textTab;
     private final Tab graphicTab;
+    private Tab typeLibraryTab;
+    private Tab typeEditorTab;
+    private Tab analysisTab;
+    private Tab documentationTab;
+    private Tab sampleDataTab;
+    private Tab flattenTab;
     private final XmlCodeEditorV2 textEditor;
     private XsdGraphView graphView;
     private XsdEditorContext editorContext;
     private final javafx.scene.layout.StackPane mainContainer = new javafx.scene.layout.StackPane();
     private final javafx.scene.control.SplitPane splitPane = new javafx.scene.control.SplitPane();
     private ViewMode currentViewMode = ViewMode.TABS;
+
+    // XSD sub-tab panels (lazy-initialized)
+    private org.fxt.freexmltoolkit.controls.unified.xsd.XsdTypeLibraryPanel typeLibraryPanel;
+    private org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager typeEditorManager;
+    private TabPane typeEditorTabPane;
+    private org.fxt.freexmltoolkit.controls.unified.xsd.XsdSchemaAnalysisPanel analysisPanel;
+    private org.fxt.freexmltoolkit.controls.unified.xsd.XsdDocumentationPanel documentationPanel;
+    private org.fxt.freexmltoolkit.controls.unified.xsd.XsdSampleDataPanel sampleDataPanel;
+    private org.fxt.freexmltoolkit.controls.unified.xsd.XsdFlattenPanel flattenPanel;
 
     /**
      * Callback invoked whenever the underlying XsdEditorContext (and thus selection model)
@@ -104,6 +119,12 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
         this.viewTabPane = new TabPane();
         this.textTab = new Tab("Text");
         this.graphicTab = new Tab("Graphic");
+        this.typeLibraryTab = new Tab("Type Library");
+        this.typeEditorTab = new Tab("Type Editor");
+        this.analysisTab = new Tab("Analysis");
+        this.documentationTab = new Tab("Documentation");
+        this.sampleDataTab = new Tab("Sample Data");
+        this.flattenTab = new Tab("Flatten");
 
         initializeContent();
 
@@ -154,20 +175,87 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
         textTab.setContent(textEditor);
         graphicTab.setContent(new Label("Loading graphic view..."));
 
-        viewTabPane.getTabs().addAll(textTab, graphicTab);
+        // Sub-tabs with icons
+        FontIcon typeLibIcon = new FontIcon("bi-collection");
+        typeLibIcon.setIconSize(16);
+        typeLibraryTab.setGraphic(typeLibIcon);
+        typeLibraryTab.setContent(new Label("Load an XSD file to browse types"));
+
+        FontIcon typeEdIcon = new FontIcon("bi-pencil-square");
+        typeEdIcon.setIconSize(16);
+        typeEditorTab.setGraphic(typeEdIcon);
+        typeEditorTab.setContent(new Label("Load an XSD file to edit types"));
+
+        FontIcon analysisIcon = new FontIcon("bi-bar-chart");
+        analysisIcon.setIconSize(16);
+        analysisTab.setGraphic(analysisIcon);
+        analysisTab.setContent(new Label("Load an XSD file to analyze"));
+
+        FontIcon docIcon = new FontIcon("bi-file-text");
+        docIcon.setIconSize(16);
+        documentationTab.setGraphic(docIcon);
+        documentationTab.setContent(new Label("Load an XSD file for documentation"));
+
+        FontIcon sampleIcon = new FontIcon("bi-file-earmark-code");
+        sampleIcon.setIconSize(16);
+        sampleDataTab.setGraphic(sampleIcon);
+        sampleDataTab.setContent(new Label("Load an XSD file for sample generation"));
+
+        FontIcon flattenIcon = new FontIcon("bi-layers");
+        flattenIcon.setIconSize(16);
+        flattenTab.setGraphic(flattenIcon);
+        flattenTab.setContent(new Label("Load an XSD file to flatten"));
+
+        viewTabPane.getTabs().addAll(textTab, graphicTab, typeLibraryTab, typeEditorTab,
+                analysisTab, documentationTab, sampleDataTab, flattenTab);
 
         // Tab switch listener to sync content
         textTab.setOnSelectionChanged(e -> {
             if (textTab.isSelected() && !syncingViews && currentViewMode == ViewMode.TABS) {
-                // Switching to text view - sync from graphic view if it has unsaved changes
                 syncFromGraphicView();
             }
         });
 
         graphicTab.setOnSelectionChanged(e -> {
             if (graphicTab.isSelected() && !syncingViews && currentViewMode == ViewMode.TABS) {
-                // Switching to graphic view - rebuild from text
                 syncToGraphicView();
+            }
+        });
+
+        // Lazy initialization for sub-tabs
+        typeLibraryTab.setOnSelectionChanged(e -> {
+            if (typeLibraryTab.isSelected() && xsdSchema != null) {
+                ensureTypeLibraryInitialized();
+            }
+        });
+
+        typeEditorTab.setOnSelectionChanged(e -> {
+            if (typeEditorTab.isSelected() && xsdSchema != null) {
+                ensureTypeEditorInitialized();
+            }
+        });
+
+        analysisTab.setOnSelectionChanged(e -> {
+            if (analysisTab.isSelected() && xsdSchema != null) {
+                ensureAnalysisInitialized();
+            }
+        });
+
+        documentationTab.setOnSelectionChanged(e -> {
+            if (documentationTab.isSelected()) {
+                ensureDocumentationInitialized();
+            }
+        });
+
+        sampleDataTab.setOnSelectionChanged(e -> {
+            if (sampleDataTab.isSelected()) {
+                ensureSampleDataInitialized();
+            }
+        });
+
+        flattenTab.setOnSelectionChanged(e -> {
+            if (flattenTab.isSelected()) {
+                ensureFlattenInitialized();
             }
         });
 
@@ -255,6 +343,104 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
     /**
      * Parses XSD content and builds the graphic view.
      */
+    // ==================== Sub-Tab Lazy Initialization ====================
+
+    private void ensureTypeLibraryInitialized() {
+        if (typeLibraryPanel == null && xsdSchema != null) {
+            typeLibraryPanel = new org.fxt.freexmltoolkit.controls.unified.xsd.XsdTypeLibraryPanel();
+            typeLibraryPanel.setSchema(xsdSchema);
+            typeLibraryTab.setContent(typeLibraryPanel);
+        }
+    }
+
+    private void ensureTypeEditorInitialized() {
+        if (typeEditorManager == null && xsdSchema != null) {
+            typeEditorTabPane = new TabPane();
+            typeEditorManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(
+                    typeEditorTabPane, xsdSchema);
+            typeEditorTab.setContent(typeEditorTabPane);
+
+            // Wire type library to type editor if both exist
+            if (typeLibraryPanel != null && typeLibraryPanel.getTypeLibraryView() != null) {
+                typeLibraryPanel.getTypeLibraryView().setTypeEditorTabManager(typeEditorManager);
+            }
+        }
+    }
+
+    private void ensureAnalysisInitialized() {
+        if (analysisPanel == null) {
+            analysisPanel = new org.fxt.freexmltoolkit.controls.unified.xsd.XsdSchemaAnalysisPanel();
+            analysisTab.setContent(analysisPanel);
+        }
+        if (xsdSchema != null) {
+            analysisPanel.setSchema(xsdSchema);
+            analysisPanel.ensureInitialized();
+        }
+    }
+
+    private void ensureDocumentationInitialized() {
+        if (documentationPanel == null) {
+            documentationPanel = new org.fxt.freexmltoolkit.controls.unified.xsd.XsdDocumentationPanel();
+            documentationTab.setContent(documentationPanel);
+        }
+        if (sourceFile != null) {
+            documentationPanel.setSourceFile(sourceFile);
+        }
+    }
+
+    private void ensureSampleDataInitialized() {
+        if (sampleDataPanel == null) {
+            sampleDataPanel = new org.fxt.freexmltoolkit.controls.unified.xsd.XsdSampleDataPanel();
+            sampleDataTab.setContent(sampleDataPanel);
+        }
+        if (sourceFile != null) {
+            sampleDataPanel.setSourceFile(sourceFile);
+        }
+    }
+
+    private void ensureFlattenInitialized() {
+        if (flattenPanel == null) {
+            flattenPanel = new org.fxt.freexmltoolkit.controls.unified.xsd.XsdFlattenPanel();
+            flattenTab.setContent(flattenPanel);
+        }
+        if (sourceFile != null) {
+            flattenPanel.setSourceFile(sourceFile);
+        }
+    }
+
+    /**
+     * Updates all sub-tab panels when the schema changes.
+     */
+    private void updateSubTabsForSchema() {
+        if (typeLibraryPanel != null) {
+            typeLibraryPanel.setSchema(xsdSchema);
+        }
+        if (typeEditorManager != null && xsdSchema != null) {
+            // Recreate the type editor with the new schema
+            typeEditorTabPane = new TabPane();
+            typeEditorManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(
+                    typeEditorTabPane, xsdSchema);
+            typeEditorTab.setContent(typeEditorTabPane);
+        }
+        if (analysisPanel != null) {
+            analysisPanel.setSchema(xsdSchema);
+            if (analysisTab.isSelected()) {
+                analysisPanel.ensureInitialized();
+            }
+        }
+        if (sampleDataPanel != null && sourceFile != null) {
+            sampleDataPanel.setSourceFile(sourceFile);
+        }
+        if (flattenPanel != null && sourceFile != null) {
+            flattenPanel.setSourceFile(sourceFile);
+        }
+        if (documentationPanel != null && sourceFile != null) {
+            documentationPanel.setSourceFile(sourceFile);
+        }
+    }
+
+    // ==================== Graph View ====================
+
     private void parseAndBuildGraphView(String content) {
         if (content == null || content.trim().isEmpty()) {
             setGraphicViewContent(new Label("No XSD content to display"));
@@ -302,6 +488,9 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
             }
 
             logger.debug("XSD graphic view built successfully");
+
+            // Update sub-tab panels with new schema
+            updateSubTabsForSchema();
 
             // Notify listeners that the editor context changed (graph view rebuild creates new context)
             if (onEditorContextChangedCallback != null) {

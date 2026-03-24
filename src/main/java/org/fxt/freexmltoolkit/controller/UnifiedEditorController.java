@@ -114,6 +114,18 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     private Button templatesButton;
     @FXML
     private Button generatorButton;
+    @FXML
+    private Button minifyButton;
+    @FXML
+    private MenuButton jsonSchemaMenu;
+    @FXML
+    private MenuButton schematronInsertMenu;
+    @FXML
+    private ToggleButton consolePanelToggle;
+    @FXML
+    private ToggleButton xsltDevPanelToggle;
+    @FXML
+    private ToggleButton templateDevPanelToggle;
 
     // FXML Components - Main Content
     @FXML private SplitPane mainSplitPane;
@@ -145,6 +157,11 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
 
     // Multi-functional side pane (replaces separate favorites panel)
     private MultiFunctionalSidePane multiFunctionalPane;
+
+    // Bottom panels for XML editing
+    private org.fxt.freexmltoolkit.controls.unified.panels.XmlConsolePanel consolePanel;
+    private org.fxt.freexmltoolkit.controls.unified.panels.XmlEmbeddedXsltPanel xsltDevPanel;
+    private org.fxt.freexmltoolkit.controls.unified.panels.XmlTemplateDevelopmentPanel templateDevPanel;
 
     // Linked files panel management
     private boolean linkedFilesPanelInSplitPane = true;
@@ -195,6 +212,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         }
 
         updateStatus("Ready");
+
+        // Hide context-sensitive buttons initially
+        updateContextSensitiveToolbar(null);
 
         // Apply small icons setting
         applySmallIconsSetting();
@@ -1048,6 +1068,9 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                 }
             }
 
+            // Update context-sensitive toolbar buttons
+            updateContextSensitiveToolbar(unifiedTab);
+
             // Focus the editor
             Platform.runLater(unifiedTab::requestEditorFocus);
         } else {
@@ -1055,6 +1078,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
             cursorPositionLabel.setText("");
             linkedFiles.clear();
             linkedFilesCountLabel.setText("");
+            updateContextSensitiveToolbar(null);
 
             // Clear XPath panel content provider
             if (xpathPanel != null) {
@@ -1393,6 +1417,371 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         });
     }
 
+    // ==================== Tool Tabs ====================
+
+    /**
+     * Opens the FOP (PDF Generation) tool tab.
+     */
+    @FXML
+    public void openFopToolTab() {
+        // Prevent duplicate tool tabs
+        for (Tab tab : editorTabPane.getTabs()) {
+            if (tab instanceof org.fxt.freexmltoolkit.controls.unified.tools.FopToolTab) {
+                editorTabPane.getSelectionModel().select(tab);
+                return;
+            }
+        }
+        var fopTab = new org.fxt.freexmltoolkit.controls.unified.tools.FopToolTab();
+        editorTabPane.getTabs().add(fopTab);
+        editorTabPane.getSelectionModel().select(fopTab);
+        updateStatus("Opened PDF Generation (FOP)");
+    }
+
+    /**
+     * Opens the Digital Signatures tool tab.
+     */
+    @FXML
+    public void openSignatureToolTab() {
+        // Prevent duplicate tool tabs
+        for (Tab tab : editorTabPane.getTabs()) {
+            if (tab instanceof org.fxt.freexmltoolkit.controls.unified.tools.SignatureToolTab) {
+                editorTabPane.getSelectionModel().select(tab);
+                return;
+            }
+        }
+        var sigTab = new org.fxt.freexmltoolkit.controls.unified.tools.SignatureToolTab();
+        editorTabPane.getTabs().add(sigTab);
+        editorTabPane.getSelectionModel().select(sigTab);
+        updateStatus("Opened Digital Signatures");
+    }
+
+    // ==================== Context-Sensitive Toolbar ====================
+
+    /**
+     * Updates context-sensitive toolbar buttons based on active tab type.
+     * JSON-specific buttons (Minify, Schema) only visible for JSON tabs.
+     * Schematron-specific buttons (Insert Rule/Pattern) only visible for Schematron tabs.
+     * XML-specific buttons (Console, XSLT Dev, Template Dev) only visible for XML tabs.
+     */
+    private void updateContextSensitiveToolbar(AbstractUnifiedEditorTab tab) {
+        boolean isJson = tab instanceof JsonUnifiedTab;
+        boolean isSchematron = tab instanceof SchematronUnifiedTab;
+        boolean isXml = tab instanceof XmlUnifiedTab;
+
+        if (minifyButton != null) {
+            minifyButton.setVisible(isJson);
+            minifyButton.setManaged(isJson);
+        }
+        if (jsonSchemaMenu != null) {
+            jsonSchemaMenu.setVisible(isJson);
+            jsonSchemaMenu.setManaged(isJson);
+        }
+        if (schematronInsertMenu != null) {
+            schematronInsertMenu.setVisible(isSchematron);
+            schematronInsertMenu.setManaged(isSchematron);
+        }
+        if (consolePanelToggle != null) {
+            consolePanelToggle.setVisible(isXml);
+            consolePanelToggle.setManaged(isXml);
+        }
+        if (xsltDevPanelToggle != null) {
+            xsltDevPanelToggle.setVisible(isXml);
+            xsltDevPanelToggle.setManaged(isXml);
+        }
+        if (templateDevPanelToggle != null) {
+            templateDevPanelToggle.setVisible(isXml);
+            templateDevPanelToggle.setManaged(isXml);
+        }
+
+        // Connect XSLT dev panel to current XML tab's content
+        if (isXml && xsltDevPanel != null) {
+            xsltDevPanel.setXmlContentProvider(((XmlUnifiedTab) tab)::getEditorContent);
+        }
+        // Connect template panel to current XML tab's insert
+        if (isXml && templateDevPanel != null) {
+            templateDevPanel.setOnInsertRequested(text -> ((XmlUnifiedTab) tab).insertAtCursor(text));
+        }
+    }
+
+    // ==================== Bottom Panel Toggles ====================
+
+    /**
+     * Toggles the console panel visibility.
+     */
+    @FXML
+    public void toggleConsolePanel() {
+        if (consolePanel == null) {
+            consolePanel = new org.fxt.freexmltoolkit.controls.unified.panels.XmlConsolePanel();
+            consolePanel.setOnCloseRequested(() -> {
+                setBottomPanelVisible(consolePanel, false);
+                if (consolePanelToggle != null) consolePanelToggle.setSelected(false);
+            });
+        }
+        boolean show = consolePanelToggle != null && consolePanelToggle.isSelected();
+        setBottomPanelVisible(consolePanel, show);
+    }
+
+    /**
+     * Toggles the embedded XSLT development panel visibility.
+     */
+    @FXML
+    public void toggleXsltDevPanel() {
+        if (xsltDevPanel == null) {
+            xsltDevPanel = new org.fxt.freexmltoolkit.controls.unified.panels.XmlEmbeddedXsltPanel();
+            xsltDevPanel.setOnCloseRequested(() -> {
+                setBottomPanelVisible(xsltDevPanel, false);
+                if (xsltDevPanelToggle != null) xsltDevPanelToggle.setSelected(false);
+            });
+            // Connect to current tab if XML
+            AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+            if (currentTab instanceof XmlUnifiedTab xmlTab) {
+                xsltDevPanel.setXmlContentProvider(xmlTab::getEditorContent);
+            }
+        }
+        boolean show = xsltDevPanelToggle != null && xsltDevPanelToggle.isSelected();
+        setBottomPanelVisible(xsltDevPanel, show);
+    }
+
+    /**
+     * Toggles the template development panel visibility.
+     */
+    @FXML
+    public void toggleTemplateDevPanel() {
+        if (templateDevPanel == null) {
+            templateDevPanel = new org.fxt.freexmltoolkit.controls.unified.panels.XmlTemplateDevelopmentPanel();
+            templateDevPanel.setOnCloseRequested(() -> {
+                setBottomPanelVisible(templateDevPanel, false);
+                if (templateDevPanelToggle != null) templateDevPanelToggle.setSelected(false);
+            });
+            // Connect insert callback to current XML tab
+            AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+            if (currentTab instanceof XmlUnifiedTab xmlTab) {
+                templateDevPanel.setOnInsertRequested(xmlTab::insertAtCursor);
+            }
+        }
+        boolean show = templateDevPanelToggle != null && templateDevPanelToggle.isSelected();
+        setBottomPanelVisible(templateDevPanel, show);
+    }
+
+    /**
+     * Shows or hides a bottom panel in the editor/xpath split pane.
+     */
+    private void setBottomPanelVisible(javafx.scene.Node panel, boolean visible) {
+        if (editorXPathSplitPane == null || panel == null) {
+            return;
+        }
+
+        if (visible) {
+            if (!editorXPathSplitPane.getItems().contains(panel)) {
+                editorXPathSplitPane.getItems().add(panel);
+            }
+            panel.setVisible(true);
+            if (panel instanceof javafx.scene.layout.Region r) {
+                r.setManaged(true);
+            }
+            // Adjust divider to show panel
+            int count = editorXPathSplitPane.getItems().size();
+            if (count == 2) {
+                editorXPathSplitPane.setDividerPositions(0.65);
+            } else if (count >= 3) {
+                // Multiple bottom panels - evenly distribute
+                double[] positions = new double[count - 1];
+                for (int i = 0; i < positions.length; i++) {
+                    positions[i] = (double)(i + 1) / count;
+                }
+                editorXPathSplitPane.setDividerPositions(positions);
+            }
+        } else {
+            editorXPathSplitPane.getItems().remove(panel);
+            panel.setVisible(false);
+            if (panel instanceof javafx.scene.layout.Region r) {
+                r.setManaged(false);
+            }
+            // If no more panels, restore full editor
+            if (editorXPathSplitPane.getItems().size() == 1) {
+                editorXPathSplitPane.setDividerPositions(1.0);
+            }
+        }
+    }
+
+    /**
+     * Gets the console panel (lazy-initialized).
+     */
+    public org.fxt.freexmltoolkit.controls.unified.panels.XmlConsolePanel getConsolePanel() {
+        return consolePanel;
+    }
+
+    // ==================== JSON Tools ====================
+
+    /**
+     * Minifies the current JSON content.
+     */
+    @FXML
+    public void minifyJson() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab instanceof JsonUnifiedTab jsonTab) {
+            jsonTab.minify();
+            updateStatus("JSON minified");
+        }
+    }
+
+    /**
+     * Loads a JSON Schema file for validation.
+     */
+    @FXML
+    public void loadJsonSchema() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (!(currentTab instanceof JsonUnifiedTab jsonTab)) {
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Load JSON Schema");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("JSON Schema Files", "*.json", "*.schema.json"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+
+        File file = fileChooser.showOpenDialog(editorTabPane.getScene().getWindow());
+        if (file != null && file.exists()) {
+            jsonTab.setSchemaFile(file);
+            updateStatus("JSON Schema loaded: " + file.getName());
+        }
+    }
+
+    /**
+     * Clears the loaded JSON Schema.
+     */
+    @FXML
+    public void clearJsonSchema() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab instanceof JsonUnifiedTab jsonTab) {
+            jsonTab.setSchemaFile(null);
+            updateStatus("JSON Schema cleared");
+        }
+    }
+
+    /**
+     * Validates the current JSON against the loaded schema.
+     */
+    @FXML
+    public void validateJsonAgainstSchema() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (!(currentTab instanceof JsonUnifiedTab jsonTab)) {
+            return;
+        }
+
+        File schemaFile = jsonTab.getSchemaFile();
+        if (schemaFile == null) {
+            showAlert(Alert.AlertType.WARNING, "JSON Schema Validation",
+                    "No JSON Schema loaded. Use 'Load Schema...' first.");
+            return;
+        }
+
+        try {
+            String schemaJson = java.nio.file.Files.readString(schemaFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+            List<String> errors = jsonTab.validateAgainstSchema(schemaJson);
+            if (errors.isEmpty()) {
+                showAlert(Alert.AlertType.INFORMATION, "JSON Schema Validation", "JSON is valid against the schema.");
+                updateStatus("JSON Schema validation: valid");
+            } else {
+                String errorMsg = String.join("\n", errors);
+                showAlert(Alert.AlertType.WARNING, "JSON Schema Validation",
+                        "Validation errors:\n" + errorMsg);
+                updateStatus("JSON Schema validation: " + errors.size() + " error(s)");
+            }
+        } catch (IOException e) {
+            showAlert(Alert.AlertType.ERROR, "JSON Schema Validation",
+                    "Failed to read schema file: " + e.getMessage());
+        }
+    }
+
+    // ==================== Schematron Tools ====================
+
+    /**
+     * Inserts a Schematron pattern template at the cursor.
+     */
+    @FXML
+    public void insertSchematronPattern() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab instanceof SchematronUnifiedTab schTab) {
+            String template = """
+
+                    <sch:pattern id="new-pattern">
+                        <sch:title>Pattern Title</sch:title>
+
+                        <sch:rule context="/*">
+                            <sch:assert test="condition">
+                                Error message.
+                            </sch:assert>
+                        </sch:rule>
+                    </sch:pattern>
+                    """;
+            org.fxmisc.richtext.CodeArea codeArea = schTab.getCodeArea();
+            codeArea.insertText(codeArea.getCaretPosition(), template);
+            updateStatus("Inserted Schematron pattern");
+        }
+    }
+
+    /**
+     * Inserts a Schematron rule template at the cursor.
+     */
+    @FXML
+    public void insertSchematronRule() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab instanceof SchematronUnifiedTab schTab) {
+            String template = """
+
+                    <sch:rule context="/*">
+                        <sch:assert test="condition">
+                            Error message.
+                        </sch:assert>
+                    </sch:rule>
+                    """;
+            org.fxmisc.richtext.CodeArea codeArea = schTab.getCodeArea();
+            codeArea.insertText(codeArea.getCaretPosition(), template);
+            updateStatus("Inserted Schematron rule");
+        }
+    }
+
+    /**
+     * Inserts a Schematron assert template at the cursor.
+     */
+    @FXML
+    public void insertSchematronAssert() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab instanceof SchematronUnifiedTab schTab) {
+            String template = """
+
+                    <sch:assert test="condition">
+                        Error message when condition is false.
+                    </sch:assert>
+                    """;
+            org.fxmisc.richtext.CodeArea codeArea = schTab.getCodeArea();
+            codeArea.insertText(codeArea.getCaretPosition(), template);
+            updateStatus("Inserted Schematron assert");
+        }
+    }
+
+    /**
+     * Inserts a Schematron report template at the cursor.
+     */
+    @FXML
+    public void insertSchematronReport() {
+        AbstractUnifiedEditorTab currentTab = tabManager.getCurrentTab();
+        if (currentTab instanceof SchematronUnifiedTab schTab) {
+            String template = """
+
+                    <sch:report test="condition">
+                        Warning message when condition is true.
+                    </sch:report>
+                    """;
+            org.fxmisc.richtext.CodeArea codeArea = schTab.getCodeArea();
+            codeArea.insertText(codeArea.getCaretPosition(), template);
+            updateStatus("Inserted Schematron report");
+        }
+    }
+
     // ==================== Help ====================
 
     /**
@@ -1482,6 +1871,12 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         applyButtonSettings(convertMenu, displayMode, iconSize, useSmallIcons, compactClass);
         applyButtonSettings(templatesButton, displayMode, iconSize, useSmallIcons, compactClass);
         applyButtonSettings(generatorButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(minifyButton, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(jsonSchemaMenu, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(schematronInsertMenu, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(consolePanelToggle, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(xsltDevPanelToggle, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(templateDevPanelToggle, displayMode, iconSize, useSmallIcons, compactClass);
 
         logger.info("Small icons setting applied to Unified Editor toolbar (size: {}px)", iconSize);
     }

@@ -181,7 +181,11 @@ public class MainController implements Initializable {
      * Navigation buttons for switching between different editor tabs.
      */
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, unifiedEditor, json; // templates removed
+    Button help, settings, exit, unifiedEditor;
+
+    // @Deprecated - removed from navigation, kept for backward compatibility
+    @FXML
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, xsltDeveloper, schemaGenerator, json;
 
     /**
      * Menu item for exiting the application.
@@ -217,9 +221,10 @@ public class MainController implements Initializable {
      * Section labels in the left sidebar for grouping navigation buttons.
      */
     @FXML
-    Label sectionEditors, sectionSchema, sectionTransforms, sectionAdvanced, sectionTools;
+    Label sectionEditors;
 
-    @FXML
+    // Removed from navigation - sections no longer exist in FXML
+    Label sectionSchema, sectionTransforms, sectionAdvanced, sectionTools;
     Separator separatorSchema, separatorTransforms, separatorAdvanced, separatorTools;
 
     /**
@@ -708,8 +713,7 @@ public class MainController implements Initializable {
      */
     private void removeActiveFromAllMenuButtons() {
         Button[] allMenuButtons = {
-            xmlUltimate, xsd, xsdValidation, schematron, xslt, fop,
-            signature, help, settings, schemaGenerator, xsltDeveloper, unifiedEditor, json
+            unifiedEditor, help, settings
         };
         for (Button btn : allMenuButtons) {
             if (btn != null) {
@@ -1819,10 +1823,19 @@ public class MainController implements Initializable {
      */
     private void loadWelcomePage() {
         try {
-            logger.info("Loading welcome page on startup");
-            loadPageFromPath("/pages/welcome.fxml");
+            logger.info("Loading Editor on startup");
+            loadPageFromPath("/pages/tab_unified_editor.fxml");
+            activeTabId = "unifiedEditor";
+            if (unifiedEditor != null) {
+                unifiedEditor.getStyleClass().add("active");
+            }
         } catch (Exception e) {
-            logger.error("Failed to load welcome page on startup", e);
+            logger.error("Failed to load Editor on startup, falling back to welcome", e);
+            try {
+                loadPageFromPath("/pages/welcome.fxml");
+            } catch (Exception ex) {
+                logger.error("Failed to load welcome page", ex);
+            }
         }
     }
 

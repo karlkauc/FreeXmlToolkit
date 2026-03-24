@@ -318,6 +318,25 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
         }
     }
 
+    /**
+     * Minifies the JSON content by removing all unnecessary whitespace.
+     */
+    public void minify() {
+        String content = getEditorContent();
+        if (content == null || content.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            String compacted = jsonService.compactJson(content);
+            if (compacted != null && !compacted.equals(content)) {
+                textEditor.setText(compacted);
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to minify JSON: {}", e.getMessage());
+        }
+    }
+
     @Override
     public List<LinkedFileInfo> detectLinkedFiles() {
         // JSON files typically don't have linked files like XML does

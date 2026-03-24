@@ -229,6 +229,143 @@
             </tooltip>
         </Button>
 
+        <!-- JSON-specific tools (shown only when JSON tab is active) -->
+        <Separator orientation="VERTICAL"/>
+
+        <Button fx:id="minifyButton" text="Minify" contentDisplay="LEFT" styleClass="toolbar-button"
+                onAction="#minifyJson" visible="false" managed="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrows-collapse" iconSize="20" iconColor="#fd7e14"
+                          styleClass="toolbar-icon-orange"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Minify JSON (remove whitespace)"/>
+            </tooltip>
+        </Button>
+
+        <MenuButton fx:id="jsonSchemaMenu" text="Schema" contentDisplay="LEFT" styleClass="toolbar-button"
+                    visible="false" managed="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-earmark-check" iconSize="20" iconColor="#28a745"
+                          styleClass="toolbar-icon-success"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="JSON Schema Validation"/>
+            </tooltip>
+            <items>
+                <MenuItem text="Load Schema..." onAction="#loadJsonSchema">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="Clear Schema" onAction="#clearJsonSchema">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
+                    </graphic>
+                </MenuItem>
+                <SeparatorMenuItem/>
+                <MenuItem text="Validate Against Schema" onAction="#validateJsonAgainstSchema">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
+                    </graphic>
+                </MenuItem>
+            </items>
+        </MenuButton>
+
+        <!-- XML-specific tools (shown only when XML tab is active) -->
+        <ToggleButton fx:id="consolePanelToggle" text="Console" contentDisplay="LEFT" styleClass="toolbar-button"
+                      onAction="#toggleConsolePanel" visible="false" managed="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-terminal" iconSize="20" iconColor="#6c757d"
+                          styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle Console Panel"/>
+            </tooltip>
+        </ToggleButton>
+
+        <ToggleButton fx:id="xsltDevPanelToggle" text="XSLT" contentDisplay="LEFT" styleClass="toolbar-button"
+                      onAction="#toggleXsltDevPanel" visible="false" managed="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-repeat" iconSize="20" iconColor="#fd7e14"
+                          styleClass="toolbar-icon-orange"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle Embedded XSLT Development Panel"/>
+            </tooltip>
+        </ToggleButton>
+
+        <ToggleButton fx:id="templateDevPanelToggle" text="Template" contentDisplay="LEFT" styleClass="toolbar-button"
+                      onAction="#toggleTemplateDevPanel" visible="false" managed="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-earmark-ruled" iconSize="20" iconColor="#ffc107"
+                          styleClass="toolbar-icon-warning"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle Template Development Panel"/>
+            </tooltip>
+        </ToggleButton>
+
+        <!-- Schematron-specific tools (shown only when Schematron tab is active) -->
+        <MenuButton fx:id="schematronInsertMenu" text="Insert" contentDisplay="LEFT" styleClass="toolbar-button"
+                    visible="false" managed="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#6f42c1"
+                          styleClass="toolbar-icon-purple"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Insert Schematron Element"/>
+            </tooltip>
+            <items>
+                <MenuItem text="New Pattern" onAction="#insertSchematronPattern">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-grid-3x3-gap" iconSize="16" iconColor="#6f42c1"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="New Rule" onAction="#insertSchematronRule">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-list-check" iconSize="16" iconColor="#6f42c1"/>
+                    </graphic>
+                </MenuItem>
+                <SeparatorMenuItem/>
+                <MenuItem text="Assert" onAction="#insertSchematronAssert">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-exclamation-triangle" iconSize="16" iconColor="#dc3545"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="Report" onAction="#insertSchematronReport">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-info-circle" iconSize="16" iconColor="#17a2b8"/>
+                    </graphic>
+                </MenuItem>
+            </items>
+        </MenuButton>
+
+        <!-- Tools Menu -->
+        <Separator orientation="VERTICAL"/>
+
+        <MenuButton text="Tools" contentDisplay="LEFT" styleClass="toolbar-button">
+            <graphic>
+                <FontIcon iconLiteral="bi-tools" iconSize="20" iconColor="#6c757d"
+                          styleClass="toolbar-icon-secondary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Open Tool Tabs"/>
+            </tooltip>
+            <items>
+                <MenuItem text="PDF Generation (FOP)" onAction="#openFopToolTab">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-file-earmark-pdf" iconSize="16" iconColor="#dc3545"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem text="Digital Signatures" onAction="#openSignatureToolTab">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-shield-lock" iconSize="16" iconColor="#28a745"/>
+                    </graphic>
+                </MenuItem>
+            </items>
+        </MenuButton>
+
         <Region HBox.hgrow="ALWAYS"/>
 
         <Separator orientation="VERTICAL"/>

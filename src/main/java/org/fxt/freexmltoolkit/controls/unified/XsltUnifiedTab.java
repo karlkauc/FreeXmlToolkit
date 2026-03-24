@@ -75,9 +75,17 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
     // Background execution
     private final ExecutorService executorService;
 
+    // XSLT feature panels
+    private org.fxt.freexmltoolkit.controls.unified.xslt.XsltParametersPanel parametersPanel;
+    private org.fxt.freexmltoolkit.controls.unified.xslt.XsltPerformancePanel performancePanel;
+    private org.fxt.freexmltoolkit.controls.unified.xslt.XsltDebugPanel debugPanel;
+    private javafx.scene.control.ComboBox<String> outputFormatCombo;
+
     // State
     private String lastSavedContent;
     private LinkedFileDetector linkDetector;
+    private java.util.concurrent.ScheduledExecutorService fileWatcher;
+    private long lastModifiedTime = 0;
 
     /**
      * Creates a new XSLT Unified Editor tab.
@@ -120,6 +128,13 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
         this.liveTransformToggle = new ToggleButton("Live Transform");
         this.runTransformButton = new Button("Run");
         this.statusLabel = new Label("Ready");
+        this.outputFormatCombo = new javafx.scene.control.ComboBox<>();
+        outputFormatCombo.getItems().addAll("XML", "HTML", "Text");
+        outputFormatCombo.setValue("XML");
+        outputFormatCombo.setStyle("-fx-font-size: 11px;");
+
+        // Create feature panels
+        this.parametersPanel = new org.fxt.freexmltoolkit.controls.unified.xslt.XsltParametersPanel();
 
         // Create main split pane
         this.mainSplitPane = new SplitPane();
@@ -172,10 +187,10 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
         xsltSection.getChildren().addAll(xsltLabel, xsltEditor);
         VBox.setVgrow(xsltEditor, Priority.ALWAYS);
 
-        // XML input section
+        // XML input section with parameters panel
         VBox xmlSection = new VBox(5);
         ToolBar xmlToolbar = createXmlInputToolbar();
-        xmlSection.getChildren().addAll(xmlToolbar, xmlInputEditor);
+        xmlSection.getChildren().addAll(xmlToolbar, parametersPanel, xmlInputEditor);
         VBox.setVgrow(xmlInputEditor, Priority.ALWAYS);
 
         inputSplitPane.getItems().addAll(xsltSection, xmlSection);
@@ -195,7 +210,25 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
         htmlTab.setGraphic(htmlIcon);
         htmlTab.setContent(htmlPreview);
 
-        outputTabPane.getTabs().addAll(textTab, htmlTab);
+        // Performance tab
+        performancePanel = new org.fxt.freexmltoolkit.controls.unified.xslt.XsltPerformancePanel();
+        Tab performanceTab = new Tab("Performance");
+        performanceTab.setClosable(false);
+        FontIcon perfIcon = new FontIcon("bi-speedometer2");
+        perfIcon.setIconSize(14);
+        performanceTab.setGraphic(perfIcon);
+        performanceTab.setContent(performancePanel);
+
+        // Debug tab
+        debugPanel = new org.fxt.freexmltoolkit.controls.unified.xslt.XsltDebugPanel();
+        Tab debugTab = new Tab("Debug");
+        debugTab.setClosable(false);
+        FontIcon debugIcon = new FontIcon("bi-bug");
+        debugIcon.setIconSize(14);
+        debugTab.setGraphic(debugIcon);
+        debugTab.setContent(debugPanel);
+
+        outputTabPane.getTabs().addAll(textTab, htmlTab, performanceTab, debugTab);
         outputTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         VBox outputSection = new VBox(5);
@@ -259,6 +292,18 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
         clearButton.setTooltip(new Tooltip("Clear output"));
         clearButton.setOnAction(e -> clearOutput());
 
+        // Output format
+        Label formatLabel = new Label("Output:");
+        formatLabel.setStyle("-fx-font-size: 11px;");
+
+        // Open in Browser button
+        Button openInBrowserButton = new Button();
+        FontIcon browserIcon = new FontIcon("bi-globe2");
+        browserIcon.setIconSize(14);
+        openInBrowserButton.setGraphic(browserIcon);
+        openInBrowserButton.setTooltip(new Tooltip("Open HTML output in browser"));
+        openInBrowserButton.setOnAction(e -> openInBrowser());
+
         // Status label
         statusLabel.setStyle("-fx-text-fill: #6c757d;");
 
@@ -266,6 +311,10 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
                 liveTransformToggle,
                 runTransformButton,
                 new Separator(),
+                formatLabel,
+                outputFormatCombo,
+                new Separator(),
+                openInBrowserButton,
                 clearButton,
                 new Separator(),
                 statusLabel
@@ -346,16 +395,24 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
 
         executorService.submit(() -> {
             try {
-                long startTime = System.currentTimeMillis();
+                // Get output format from combo
+                XsltTransformationEngine.OutputFormat format = switch (outputFormatCombo.getValue()) {
+                    case "HTML" -> XsltTransformationEngine.OutputFormat.HTML;
+                    case "Text" -> XsltTransformationEngine.OutputFormat.TEXT;
+                    default -> XsltTransformationEngine.OutputFormat.XML;
+                };
+
+                // Get parameters
+                java.util.Map<String, Object> params = parametersPanel.getParametersAsMap();
 
                 var transformResult = xsltEngine.transform(
                         xmlContent,
                         xsltContent,
-                        java.util.Collections.emptyMap(),
-                        XsltTransformationEngine.OutputFormat.XML
+                        params,
+                        format
                 );
 
-                long duration = System.currentTimeMillis() - startTime;
+                long duration = transformResult.getExecutionTime();
 
                 Platform.runLater(() -> {
                     if (transformResult.isSuccess()) {
@@ -371,6 +428,11 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
                         }
 
                         setStatus("Transformed in " + duration + "ms", false);
+
+                        // Update performance panel
+                        if (performancePanel != null) {
+                            performancePanel.updateFromResult(transformResult);
+                        }
                     } else {
                         String errorMsg = transformResult.getErrorMessage();
                         textOutputArea.replaceText("Error: " + errorMsg);
@@ -419,6 +481,72 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;");
+    }
+
+    /**
+     * Opens the transformation output in the default browser.
+     */
+    private void openInBrowser() {
+        String output = textOutputArea.getText();
+        if (output == null || output.trim().isEmpty()) {
+            setStatus("No output to open", true);
+            return;
+        }
+
+        try {
+            java.io.File tempFile = java.io.File.createTempFile("xslt_output_", ".html");
+            tempFile.deleteOnExit();
+            java.nio.file.Files.writeString(tempFile.toPath(), output, StandardCharsets.UTF_8);
+
+            java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+            desktop.browse(tempFile.toURI());
+            setStatus("Opened in browser", false);
+        } catch (Exception e) {
+            logger.warn("Failed to open in browser: {}", e.getMessage());
+            setStatus("Failed to open browser", true);
+        }
+    }
+
+    /**
+     * Starts file watching for auto-compile when source file changes.
+     */
+    public void startFileWatcher() {
+        if (sourceFile == null || fileWatcher != null) {
+            return;
+        }
+
+        lastModifiedTime = sourceFile.lastModified();
+        fileWatcher = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "XSLT-FileWatcher");
+            t.setDaemon(true);
+            return t;
+        });
+
+        fileWatcher.scheduleAtFixedRate(() -> {
+            if (sourceFile != null && sourceFile.exists()) {
+                long currentMod = sourceFile.lastModified();
+                if (currentMod > lastModifiedTime) {
+                    lastModifiedTime = currentMod;
+                    Platform.runLater(() -> {
+                        reload();
+                        runTransformAsync();
+                        setStatus("File changed - auto-reloaded", false);
+                    });
+                }
+            }
+        }, 3, 3, java.util.concurrent.TimeUnit.SECONDS);
+
+        logger.debug("File watcher started for: {}", sourceFile.getName());
+    }
+
+    /**
+     * Stops the file watcher.
+     */
+    public void stopFileWatcher() {
+        if (fileWatcher != null) {
+            fileWatcher.shutdownNow();
+            fileWatcher = null;
+        }
     }
 
     /**
@@ -612,6 +740,7 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
     public void dispose() {
         try {
             executorService.shutdownNow();
+            stopFileWatcher();
         } catch (Exception e) {
             logger.warn("Error disposing XSLT tab: {}", e.getMessage());
         }
