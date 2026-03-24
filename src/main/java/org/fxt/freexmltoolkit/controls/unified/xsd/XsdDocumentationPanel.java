@@ -53,12 +53,17 @@ public class XsdDocumentationPanel extends StackPane implements XsdToolHost {
     private void initialize() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/documentation_tab.fxml"));
-            Node content = loader.load();
+            // The FXML root is a Tab, not a Node - load it as Tab and extract its content
+            javafx.scene.control.Tab tab = loader.load();
             documentationController = loader.getController();
             documentationController.setParentController(this);
 
-            getChildren().clear();
-            getChildren().add(content);
+            // Extract the Tab's content (a Node) and embed it in this StackPane
+            Node content = tab.getContent();
+            if (content != null) {
+                getChildren().clear();
+                getChildren().add(content);
+            }
             initialized = true;
 
             logger.debug("Documentation panel initialized with FXML controller");
