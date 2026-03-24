@@ -128,7 +128,7 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
     @Override
     protected void initializeContent() {
         // Setup view tabs
-        viewTabPane.setSide(Side.LEFT);
+        viewTabPane.setSide(Side.BOTTOM);
         viewTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         // XML (Text) tab

@@ -147,7 +147,7 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
     @Override
     protected void initializeContent() {
         // Setup inner tab pane
-        innerTabPane.setSide(Side.TOP);
+        innerTabPane.setSide(Side.BOTTOM);
         innerTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         // Code tab with sidebar
