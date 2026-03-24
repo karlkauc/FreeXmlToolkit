@@ -45,7 +45,7 @@ public class FopToolTab extends AbstractToolTab {
     private File xslFile;
 
     public FopToolTab() {
-        super("tool:fop", "PDF Generation (FOP)", "bi-file-earmark-pdf", "#dc3545");
+        super("tool:fop", "PDF Generation (FOP)", "bi-file-earmark-richtext", "#dc3545");
 
         // Main layout
         VBox mainBox = new VBox(16);
@@ -116,7 +116,7 @@ public class FopToolTab extends AbstractToolTab {
         // Generate button
         Button generateBtn = new Button("Generate PDF");
         generateBtn.setStyle("-fx-font-size: 16px; -fx-padding: 8 24;");
-        FontIcon genIcon = new FontIcon("bi-file-earmark-pdf");
+        FontIcon genIcon = new FontIcon("bi-file-earmark-richtext");
         genIcon.setIconSize(20);
         generateBtn.setGraphic(genIcon);
         generateBtn.setOnAction(e -> generatePdf());

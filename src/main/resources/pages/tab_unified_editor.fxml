@@ -355,7 +355,7 @@
             <items>
                 <MenuItem text="PDF Generation (FOP)" onAction="#openFopToolTab">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-pdf" iconSize="16" iconColor="#dc3545"/>
+                        <FontIcon iconLiteral="bi-file-earmark-richtext" iconSize="16" iconColor="#dc3545"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="Digital Signatures" onAction="#openSignatureToolTab">
