@@ -510,6 +510,13 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
             return;
         }
 
+        // Only serialize back if graphic view has actual changes.
+        // This prevents whitespace drift from parse -> serialize round-trips.
+        boolean graphicDirty = editorContext != null && editorContext.isDirty();
+        if (!graphicDirty) {
+            return;
+        }
+
         try {
             syncingViews = true;
 
@@ -522,9 +529,7 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
             }
 
             // Reset editor context dirty flag since we synced
-            if (editorContext != null) {
-                editorContext.setDirty(false);
-            }
+            editorContext.setDirty(false);
         } catch (Exception e) {
             logger.warn("Failed to sync from graphic view: {}", e.getMessage());
         } finally {

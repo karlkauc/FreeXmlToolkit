@@ -313,6 +313,16 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
             return;
         }
 
+        // Only serialize back if the graphic view has actual changes.
+        // Without this check, the round-trip parse -> serialize introduces
+        // extra whitespace because the parser preserves whitespace text nodes
+        // and the serializer adds its own indentation on top.
+        boolean graphicDirty = graphicViewContext.getCommandManager() != null
+                && graphicViewContext.getCommandManager().isDirty();
+        if (!graphicDirty) {
+            return;
+        }
+
         try {
             syncingViews = true;
 
@@ -323,9 +333,7 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
             }
 
             // Reset dirty flag since we synced
-            if (graphicViewContext.getCommandManager() != null) {
-                graphicViewContext.getCommandManager().markAsSaved();
-            }
+            graphicViewContext.getCommandManager().markAsSaved();
 
         } catch (Exception e) {
             logger.warn("Failed to sync from graphic view: {}", e.getMessage());
