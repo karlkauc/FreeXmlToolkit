@@ -263,7 +263,7 @@ public class XsltOutputPane extends VBox {
         HBox sizeRow = createStatRow("Output Size:", outputSizeLabel, "bi-file-earmark-text");
 
         // Memory usage
-        HBox memoryRow = createStatRow("Memory Used:", memoryUsageLabel, "bi-memory");
+        HBox memoryRow = createStatRow("Memory Used:", memoryUsageLabel, "bi-cpu");
 
         content.getChildren().addAll(timeRow, sizeRow, memoryRow);
 
