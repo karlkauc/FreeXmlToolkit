@@ -4,7 +4,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -79,6 +78,11 @@ public class RepeatingElementsTable {
      */
     public static final double CELL_PADDING = 6;
 
+    /**
+     * The minimum width of a table in pixels.
+     */
+    private static final double MIN_TABLE_WIDTH = 200;
+
     // ==================== Column Order Cache ====================
     // Caches the original column order per element name to maintain stability after sorting
     private static final Map<String, List<String>> columnOrderCache = new HashMap<>();
@@ -145,7 +149,6 @@ public class RepeatingElementsTable {
     private final List<XmlElement> elements;
     private final List<TableColumn> columns = new ArrayList<>();
     private final List<TableRow> rows = new ArrayList<>();
-    private final NestedGridNode parentNode;
     private final int depth;
     private final Runnable onLayoutChangedCallback;
 
@@ -310,16 +313,6 @@ public class RepeatingElementsTable {
         private final Map<String, XmlElement> complexChildren = new LinkedHashMap<>();
 
         /**
-         * Map of column names to expanded child grid nodes.
-         */
-        private final Map<String, NestedGridNode> expandedChildGrids = new LinkedHashMap<>();
-
-        /**
-         * Set of column names that are currently expanded to show nested content.
-         */
-        private final Set<String> expandedColumns = new HashSet<>();
-
-        /**
          * Whether this row is expanded to show additional details.
          */
         private boolean expanded = false;
@@ -361,15 +354,6 @@ public class RepeatingElementsTable {
         }
 
         /**
-         * Returns the map of column names to expanded child grid nodes.
-         *
-         * @return the expanded child grids map
-         */
-        public Map<String, NestedGridNode> getExpandedChildGrids() {
-            return expandedChildGrids;
-        }
-
-        /**
          * Returns the value for a specific column.
          *
          * @param columnName the name of the column
@@ -400,41 +384,6 @@ public class RepeatingElementsTable {
         }
 
         /**
-         * Checks if the specified column is currently expanded.
-         *
-         * @param columnName the column name to check
-         * @return true if the column is expanded to show nested content
-         */
-        public boolean isColumnExpanded(String columnName) {
-            return expandedColumns.contains(columnName);
-        }
-
-        /**
-         * Toggles the expansion state of a column.
-         * If expanded, collapses it and removes the child grid.
-         * If collapsed, marks it as expanded.
-         *
-         * @param columnName the column name to toggle
-         */
-        public void toggleColumnExpanded(String columnName) {
-            if (expandedColumns.contains(columnName)) {
-                expandedColumns.remove(columnName);
-                expandedChildGrids.remove(columnName);
-            } else {
-                expandedColumns.add(columnName);
-            }
-        }
-
-        /**
-         * Returns the set of column names that are currently expanded.
-         *
-         * @return the set of expanded column names
-         */
-        public Set<String> getExpandedColumns() {
-            return expandedColumns;
-        }
-
-        /**
          * Checks if this row is expanded to show additional details.
          *
          * @return true if the row is expanded
@@ -452,30 +401,6 @@ public class RepeatingElementsTable {
             this.expanded = expanded;
         }
 
-        /**
-         * Gets or creates a child grid for the specified column.
-         *
-         * <p>If a child grid does not exist for the column, one is created using
-         * {@link NestedGridNode#buildChildrenOnly} to show only the children
-         * (not the element itself, since the column header already shows the element name).</p>
-         *
-         * @param columnName              the column name
-         * @param depth                   the current nesting depth
-         * @param onLayoutChangedCallback callback to invoke when layout changes
-         * @return the child grid for the column, or null if no complex child exists
-         */
-        public NestedGridNode getOrCreateChildGrid(String columnName, int depth, Runnable onLayoutChangedCallback) {
-            if (!expandedChildGrids.containsKey(columnName)) {
-                XmlElement childElement = complexChildren.get(columnName);
-                if (childElement != null) {
-                    // Use buildChildrenOnly to show only the children (not the element itself,
-                    // since the column header already shows the element name)
-                    NestedGridNode childGrid = NestedGridNode.buildChildrenOnly(childElement, depth + 1, onLayoutChangedCallback);
-                    expandedChildGrids.put(columnName, childGrid);
-                }
-            }
-            return expandedChildGrids.get(columnName);
-        }
     }
 
     // ==================== Constructor ====================
@@ -489,15 +414,13 @@ public class RepeatingElementsTable {
      *
      * @param elementName             the common name of all elements in this table
      * @param elements                the list of XML elements to display in the table
-     * @param parentNode              the parent NestedGridNode containing this table
      * @param depth                   the nesting depth of this table
      * @param onLayoutChangedCallback callback to invoke when the layout changes
      */
     public RepeatingElementsTable(String elementName, List<XmlElement> elements,
-                                   NestedGridNode parentNode, int depth, Runnable onLayoutChangedCallback) {
+                                   int depth, Runnable onLayoutChangedCallback) {
         this.elementName = elementName;
         this.elements = new ArrayList<>(elements);
-        this.parentNode = parentNode;
         this.depth = depth;
         this.onLayoutChangedCallback = onLayoutChangedCallback;
 
@@ -859,90 +782,13 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Recalculates column widths considering expanded child grids inside cells.
+     * Recalculates column widths based on text content.
      *
-     * <p>This method should be called after a cell is expanded to ensure the column
-     * is wide enough to accommodate the nested content. It iterates through all columns
-     * and rows, checking both text content width and expanded child grid width.</p>
-     *
-     * <p>Columns with expanded cells are allowed a larger maximum width (500px) compared
-     * to regular columns ({@link #MAX_COLUMN_WIDTH}).</p>
+     * <p>Iterates through all columns and rows, checking text content width
+     * and applying the standard constraints.</p>
      */
-    public void recalculateColumnWidthsWithExpandedCells() {
-        for (TableColumn col : columns) {
-            String colName = col.getName();
-            double maxWidth = col.getDisplayName().length() * 8 + CELL_PADDING * 2;
-
-            // Check text content width
-            for (TableRow row : rows) {
-                String value = row.getValue(colName);
-                double valueWidth = value.length() * 7 + CELL_PADDING * 2;
-                maxWidth = Math.max(maxWidth, valueWidth);
-
-                // Check expanded child grid width
-                if (row.isColumnExpanded(colName)) {
-                    NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-                    if (childGrid != null) {
-                        // Calculate the width the child grid needs
-                        // Give it a generous initial width to calculate its natural size
-                        double childNaturalWidth = calculateChildGridNaturalWidth(childGrid);
-                        // Add padding for the cell
-                        double neededWidth = childNaturalWidth + 8;
-                        maxWidth = Math.max(maxWidth, neededWidth);
-                    }
-                }
-            }
-
-            // Apply constraints, but allow wider columns for expanded content
-            // Use a larger max width for columns with expanded cells
-            double maxAllowedWidth = hasExpandedCells(colName) ? 500 : MAX_COLUMN_WIDTH;
-            col.setWidth(Math.min(maxAllowedWidth, Math.max(MIN_COLUMN_WIDTH, maxWidth)));
-        }
-    }
-
-    /**
-     * Calculates the natural width a child grid needs to display properly.
-     * This recursively ensures all nested tables also recalculate their column widths.
-     */
-    private double calculateChildGridNaturalWidth(NestedGridNode childGrid) {
-        // First, recursively recalculate column widths for any tables in the child grid
-        recalculateNestedTableWidths(childGrid);
-
-        // Give it a large available width to calculate its natural size
-        double tempWidth = 1000;
-        childGrid.calculateWidth(tempWidth);
-        return childGrid.getWidth();
-    }
-
-    /**
-     * Recursively recalculates column widths for all tables in a nested grid.
-     */
-    private void recalculateNestedTableWidths(NestedGridNode node) {
-        if (node == null) {
-            return;
-        }
-
-        // Recalculate widths for all child tables
-        for (RepeatingElementsTable table : node.getRepeatingTables()) {
-            table.recalculateColumnWidthsWithExpandedCells();
-        }
-
-        // Recursively process child nodes
-        for (NestedGridNode child : node.getChildren()) {
-            recalculateNestedTableWidths(child);
-        }
-    }
-
-    /**
-     * Checks if a column has any expanded cells.
-     */
-    private boolean hasExpandedCells(String columnName) {
-        for (TableRow row : rows) {
-            if (row.isColumnExpanded(columnName)) {
-                return true;
-            }
-        }
-        return false;
+    public void recalculateColumnWidths() {
+        calculateColumnWidths();
     }
 
     // ==================== Layout Calculation ====================
@@ -975,22 +821,13 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Calculate the height of a single row, accounting for expanded child grids in cells.
-     * The row height is the maximum of all cell heights.
+     * Returns the height of a single data row.
+     *
+     * @param row the table row (unused, kept for API compatibility)
+     * @return the fixed row height
      */
     private double calculateRowHeight(TableRow row) {
-        double maxCellHeight = ROW_HEIGHT;
-
-        for (String colName : row.getExpandedColumns()) {
-            NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-            if (childGrid != null) {
-                // Cell height = text row + child grid + small padding
-                double cellHeight = ROW_HEIGHT + childGrid.getHeight() + 4;
-                maxCellHeight = Math.max(maxCellHeight, cellHeight);
-            }
-        }
-
-        return maxCellHeight;
+        return ROW_HEIGHT;
     }
 
     /**
@@ -1043,60 +880,10 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Checks if a point is within an expanded child grid area (inside a cell).
-     *
-     * <p>This method is used for hit testing to determine if mouse events
-     * should be delegated to a nested child grid. It checks if the point
-     * is within the expanded cell area (below the text row) of any row.</p>
-     *
-     * @param px the X coordinate to test
-     * @param py the Y coordinate to test
-     * @return the child grid at the specified point, or null if not in a child grid
-     */
-    public NestedGridNode getChildGridAt(double px, double py) {
-        if (!expanded) {
-            return null;
-        }
-
-        double currentY = y + HEADER_HEIGHT + ROW_HEIGHT;
-
-        for (TableRow row : rows) {
-            double rowHeight = calculateRowHeight(row);
-            double rowEndY = currentY + rowHeight;
-
-            // Check if py is within this row
-            if (py >= currentY && py < rowEndY) {
-                // Check if py is in the expanded cell area (below the text row)
-                if (py >= currentY + ROW_HEIGHT) {
-                    // Find which column the X coordinate is in
-                    double colX = x + GRID_PADDING;
-                    for (TableColumn col : columns) {
-                        String colName = col.getName();
-                        double colEndX = colX + col.getWidth();
-
-                        if (px >= colX && px < colEndX && row.isColumnExpanded(colName)) {
-                            NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-                            if (childGrid != null) {
-                                return childGrid;
-                            }
-                        }
-                        colX = colEndX;
-                    }
-                }
-                return null;  // In the row but not in a child grid
-            }
-
-            currentY = rowEndY;
-        }
-
-        return null;
-    }
-
-    /**
      * Calculates the width of this table based on column widths.
      *
      * <p>The table width is the sum of all column widths plus padding on both sides.
-     * The minimum width is enforced from {@link NestedGridNode#MIN_GRID_WIDTH}.</p>
+     * The minimum width is enforced from {@link #MIN_TABLE_WIDTH}.</p>
      *
      * @param availableWidth the available width (currently unused, for future expansion)
      * @return the calculated width in pixels
@@ -1107,7 +894,7 @@ public class RepeatingElementsTable {
             totalColWidth += col.getWidth();
         }
 
-        this.width = Math.max(NestedGridNode.MIN_GRID_WIDTH, totalColWidth + GRID_PADDING * 2);
+        this.width = Math.max(MIN_TABLE_WIDTH, totalColWidth + GRID_PADDING * 2);
         return this.width;
     }
 
@@ -1306,15 +1093,6 @@ public class RepeatingElementsTable {
      */
     public List<TableRow> getRows() {
         return rows;
-    }
-
-    /**
-     * Returns the parent NestedGridNode containing this table.
-     *
-     * @return the parent node
-     */
-    public NestedGridNode getParentNode() {
-        return parentNode;
     }
 
     /**
@@ -1611,16 +1389,14 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Toggles expansion of a complex cell and creates or removes the child grid.
+     * Toggles expansion of a complex cell.
      *
-     * <p>When a cell containing complex content is expanded, a child grid is created
-     * to display the nested XML structure. When collapsed, the child grid is removed.</p>
-     *
-     * <p>After toggling, column widths are recalculated to accommodate the expanded content.</p>
+     * <p>Currently a no-op in the flat row view since expanded child grids are not supported.
+     * Complex cells show a summary text instead.</p>
      *
      * @param rowIndex   the zero-based index of the row
      * @param columnName the name of the column containing the complex cell
-     * @return true if the cell was successfully expanded or collapsed, false if the cell
+     * @return true if the cell was successfully toggled, false if the cell
      *         does not contain complex content or the row index is invalid
      */
     public boolean toggleCellExpansion(int rowIndex, String columnName) {
@@ -1632,20 +1408,6 @@ public class RepeatingElementsTable {
         if (!row.hasComplexChild(columnName)) {
             return false;
         }
-
-        row.toggleColumnExpanded(columnName);
-
-        // If now expanded, create the child grid
-        if (row.isColumnExpanded(columnName)) {
-            NestedGridNode childGrid = row.getOrCreateChildGrid(columnName, depth, onLayoutChangedCallback);
-            if (childGrid != null) {
-                // Position will be set during layout
-                childGrid.setExpanded(true);
-            }
-        }
-
-        // Recalculate column widths to accommodate expanded content
-        recalculateColumnWidthsWithExpandedCells();
 
         pcs.firePropertyChange("cellExpansion", null, columnName);
         return true;
@@ -1854,13 +1616,12 @@ public class RepeatingElementsTable {
      * and should be displayed as individual nested grids instead.</p>
      *
      * @param children                the list of child nodes to analyze
-     * @param parentNode              the parent grid node that will contain the tables
      * @param depth                   the current nesting depth
      * @param onLayoutChangedCallback callback to invoke when layout changes
      * @return a map of element names to tables, containing only elements that appear 2 or more times
      */
     public static Map<String, RepeatingElementsTable> groupRepeatingElements(
-            List<XmlNode> children, NestedGridNode parentNode, int depth, Runnable onLayoutChangedCallback) {
+            List<XmlNode> children, int depth, Runnable onLayoutChangedCallback) {
 
         // Count elements by name
         Map<String, List<XmlElement>> elementsByName = new LinkedHashMap<>();
@@ -1879,7 +1640,7 @@ public class RepeatingElementsTable {
         for (Map.Entry<String, List<XmlElement>> entry : elementsByName.entrySet()) {
             if (entry.getValue().size() >= 2) {
                 tables.put(entry.getKey(),
-                    new RepeatingElementsTable(entry.getKey(), entry.getValue(), parentNode, depth, onLayoutChangedCallback));
+                    new RepeatingElementsTable(entry.getKey(), entry.getValue(), depth, onLayoutChangedCallback));
             }
         }
 

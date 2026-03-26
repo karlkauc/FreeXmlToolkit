@@ -1,5 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
@@ -7,10 +14,6 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Core data class for the flat, row-based XML editor layout.
@@ -426,10 +429,38 @@ public class FlatRow {
             rows.add(attrRow);
         }
 
+        // Detect repeating element groups (2+ siblings with the same tag name)
+        Map<String, List<XmlElement>> elementsByName = new LinkedHashMap<>();
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlElement ce) {
+                elementsByName.computeIfAbsent(ce.getName(), k -> new ArrayList<>()).add(ce);
+            }
+        }
+        Set<String> repeatingNames = new HashSet<>();
+        for (var entry : elementsByName.entrySet()) {
+            if (entry.getValue().size() >= 2) {
+                repeatingNames.add(entry.getKey());
+            }
+        }
+
         // Child nodes - recurse into elements, emit TEXT/COMMENT/CDATA/PI rows
+        Set<String> processedRepeating = new HashSet<>();
         for (XmlNode child : element.getChildren()) {
             if (child instanceof XmlElement childElement) {
-                flattenElement(childElement, depth + 1, elementRow, rows, false);
+                if (repeatingNames.contains(childElement.getName())) {
+                    if (!processedRepeating.contains(childElement.getName())) {
+                        processedRepeating.add(childElement.getName());
+                        List<XmlElement> group = elementsByName.get(childElement.getName());
+                        // Create a single row representing the repeating group
+                        FlatRow tableRow = new FlatRow(RowType.ELEMENT, depth + 1, childElement,
+                                elementRow, childElement.getName(), null, group.size());
+                        tableRow.setExpanded(expandByDefault);
+                        rows.add(tableRow);
+                    }
+                    // Skip individual elements that are part of a repeating group
+                } else {
+                    flattenElement(childElement, depth + 1, elementRow, rows, false);
+                }
             } else if (child instanceof XmlComment comment) {
                 rows.add(new FlatRow(RowType.COMMENT, depth + 1, comment, elementRow,
                         null, comment.getText(), 0));

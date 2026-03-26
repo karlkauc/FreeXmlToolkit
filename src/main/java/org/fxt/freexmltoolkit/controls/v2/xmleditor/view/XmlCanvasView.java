@@ -85,6 +85,9 @@ public class XmlCanvasView extends Pane {
     /** Cached list of currently visible rows (after expand/collapse filtering). */
     private List<FlatRow> visibleRows = new ArrayList<>();
 
+    /** Cumulative Y offset for each visible row index, accounting for expanded tables above. */
+    private double[] rowYPositions = new double[0];
+
     // ==================== Layout Constants ====================
 
     private static final double ROW_HEIGHT = 24;
@@ -371,6 +374,7 @@ public class XmlCanvasView extends Pane {
         }
 
         allRows = FlatRow.flatten(doc);
+        attachRepeatingTables();
 
         // Restore expand state
         if (!expandState.isEmpty()) {
@@ -387,6 +391,49 @@ public class XmlCanvasView extends Pane {
             recalculateVisibility();
         }
 
+        recalculateVisibleRows();
+        updateScrollBars();
+        render();
+    }
+
+    /**
+     * Attaches RepeatingElementsTable instances to FlatRows that represent
+     * repeating element groups (2+ siblings with the same tag name).
+     */
+    private void attachRepeatingTables() {
+        for (FlatRow row : allRows) {
+            if (row.getType() != FlatRow.RowType.ELEMENT) {
+                continue;
+            }
+            if (row.getParentRow() == null) {
+                continue;
+            }
+
+            XmlNode parentModel = row.getParentRow().getModelNode();
+            if (!(parentModel instanceof XmlElement parentElement)) {
+                continue;
+            }
+
+            // Check if this element name appears multiple times under parent
+            List<XmlElement> sameNameSiblings = new ArrayList<>();
+            for (XmlNode sibling : parentElement.getChildren()) {
+                if (sibling instanceof XmlElement se && se.getName().equals(row.getLabel())) {
+                    sameNameSiblings.add(se);
+                }
+            }
+
+            if (sameNameSiblings.size() >= 2) {
+                RepeatingElementsTable table = new RepeatingElementsTable(
+                        row.getLabel(), sameNameSiblings, row.getDepth(), this::markLayoutDirty);
+                row.setRepeatingTable(table);
+            }
+        }
+    }
+
+    /**
+     * Marks the layout as needing recalculation. Used as a callback for table layout changes.
+     */
+    private void markLayoutDirty() {
         recalculateVisibleRows();
         updateScrollBars();
         render();
@@ -422,7 +469,7 @@ public class XmlCanvasView extends Pane {
 
     /**
      * Filters allRows by visibility, caches result in visibleRows,
-     * and recalculates nameColumnWidth and total dimensions.
+     * and recalculates nameColumnWidth, Y positions, and total dimensions.
      */
     private void recalculateVisibleRows() {
         visibleRows = new ArrayList<>();
@@ -442,10 +489,31 @@ public class XmlCanvasView extends Pane {
         }
         nameColumnWidth = maxNameWidth;
 
-        // Calculate total dimensions
-        totalHeight = visibleRows.size() * ROW_HEIGHT;
-        totalWidth = Math.max(nameColumnWidth + MIN_VALUE_COL_WIDTH + LEFT_MARGIN,
-                canvas.getWidth());
+        // Calculate Y positions and total dimensions accounting for expanded tables
+        rowYPositions = new double[visibleRows.size()];
+        double currentY = 0;
+        double maxWidth = nameColumnWidth + MIN_VALUE_COL_WIDTH + LEFT_MARGIN;
+
+        for (int i = 0; i < visibleRows.size(); i++) {
+            rowYPositions[i] = currentY;
+            currentY += ROW_HEIGHT;
+
+            // If this row has an expanded repeating table, add table height
+            FlatRow row = visibleRows.get(i);
+            if (row.hasRepeatingTable() && row.isExpanded()) {
+                RepeatingElementsTable table = row.getRepeatingTable();
+                table.calculateWidth(canvas.getWidth());
+                table.calculateHeight();
+                currentY += table.getHeight();
+
+                // Track table width for horizontal scroll
+                double tableRight = getRowLabelX(row) + table.getWidth();
+                maxWidth = Math.max(maxWidth, tableRight);
+            }
+        }
+
+        totalHeight = currentY;
+        totalWidth = Math.max(maxWidth, canvas.getWidth());
     }
 
     /**
@@ -477,10 +545,11 @@ public class XmlCanvasView extends Pane {
             return;
         }
 
-        // Calculate visible row range
-        int firstVisible = Math.max(0, (int) (scrollOffsetY / ROW_HEIGHT));
-        int lastVisible = Math.min(visibleRows.size() - 1,
-                (int) ((scrollOffsetY + h) / ROW_HEIGHT));
+        // Calculate visible row range using Y positions
+        int firstVisible = findRowIndexAtY(scrollOffsetY);
+        int lastVisible = findRowIndexAtY(scrollOffsetY + h);
+        if (firstVisible < 0) firstVisible = 0;
+        if (lastVisible < 0 || lastVisible >= visibleRows.size()) lastVisible = visibleRows.size() - 1;
 
         // Save and translate for scroll offset
         gc.save();
@@ -492,6 +561,16 @@ public class XmlCanvasView extends Pane {
         // Draw each visible row
         for (int i = firstVisible; i <= lastVisible; i++) {
             drawRow(visibleRows.get(i), i);
+        }
+
+        // Draw inline tables for expanded repeating element rows
+        for (int i = firstVisible; i <= lastVisible; i++) {
+            FlatRow row = visibleRows.get(i);
+            if (row.hasRepeatingTable() && row.isExpanded()) {
+                double rowY = rowYPositions[i] - scrollOffsetY;
+                double tableY = rowY + ROW_HEIGHT; // Table starts below the header row
+                renderInlineTable(row, tableY);
+            }
         }
 
         // Draw expand bars on top
@@ -507,7 +586,7 @@ public class XmlCanvasView extends Pane {
      * Draws a single flat row.
      */
     private void drawRow(FlatRow row, int visibleIndex) {
-        double y = visibleIndex * ROW_HEIGHT - scrollOffsetY;
+        double y = rowYPositions[visibleIndex] - scrollOffsetY;
         double w = Math.max(totalWidth, canvas.getWidth() + scrollOffsetX);
 
         // -- Background --
@@ -580,13 +659,27 @@ public class XmlCanvasView extends Pane {
 
         // -- Child count for expandable elements --
         if (row.isExpandable()) {
-            String countText = "(" + row.getChildCount() + ")";
-            gc.setFont(SMALL_FONT);
-            gc.setFill(CHILD_COUNT_COLOR);
-            gc.setTextAlign(TextAlignment.LEFT);
-            // Place child count after the label
             double labelWidth = (row.getLabel() != null ? row.getLabel().length() * 7.2 : 0);
-            gc.fillText(countText, labelX + labelWidth + 6, iconCenterY);
+            double countX = labelX + labelWidth + 6;
+
+            // Grid icon for repeating table rows
+            if (row.hasRepeatingTable()) {
+                // Draw small grid/table icon
+                gc.setStroke(TABLE_HEADER_TEXT);
+                gc.setLineWidth(1);
+                double gx = countX;
+                double gy = iconCenterY - 4;
+                gc.strokeRect(gx, gy, 8, 8);
+                gc.strokeLine(gx + 4, gy, gx + 4, gy + 8);
+                gc.strokeLine(gx, gy + 4, gx + 8, gy + 4);
+                countX += 12;
+            }
+
+            String countText = "(" + row.getChildCount() + (row.hasRepeatingTable() ? "x" : "") + ")";
+            gc.setFont(SMALL_FONT);
+            gc.setFill(row.hasRepeatingTable() ? TABLE_HEADER_TEXT : CHILD_COUNT_COLOR);
+            gc.setTextAlign(TextAlignment.LEFT);
+            gc.fillText(countText, countX, iconCenterY);
             gc.setTextAlign(TextAlignment.LEFT);
         }
     }
@@ -665,7 +758,7 @@ public class XmlCanvasView extends Pane {
             }
 
             double barX = LEFT_MARGIN + row.getDepth() * INDENT + INDENT / 2 - EXPAND_BAR_WIDTH / 2;
-            double rowY = i * ROW_HEIGHT - scrollOffsetY;
+            double rowY = rowYPositions[i] - scrollOffsetY;
 
             boolean isHovered = (row == hoveredExpandBar);
             Color barColor = isHovered ? EXPAND_BAR_HOVER : EXPAND_BAR_COLOR;
@@ -689,7 +782,7 @@ public class XmlCanvasView extends Pane {
                 }
 
                 double barTop = rowY + ROW_HEIGHT / 2;
-                double barBottom = lastDescendantIndex * ROW_HEIGHT - scrollOffsetY + ROW_HEIGHT / 2;
+                double barBottom = rowYPositions[lastDescendantIndex] - scrollOffsetY + ROW_HEIGHT / 2;
 
                 // Draw the vertical bar
                 gc.setStroke(barColor);
@@ -764,7 +857,7 @@ public class XmlCanvasView extends Pane {
                 continue; // No tree line for root-level rows
             }
 
-            double rowY = i * ROW_HEIGHT - scrollOffsetY + ROW_HEIGHT / 2;
+            double rowY = rowYPositions[i] - scrollOffsetY + ROW_HEIGHT / 2;
 
             // Horizontal line from parent's vertical bar center to this row's icon position
             double parentBarCenterX = LEFT_MARGIN + parent.getDepth() * INDENT + INDENT / 2;
@@ -794,6 +887,394 @@ public class XmlCanvasView extends Pane {
         gc.setTextAlign(TextAlignment.RIGHT);
         gc.setTextBaseline(VPos.BOTTOM);
         gc.fillText(info, canvas.getWidth() - 5, canvas.getHeight() - 3);
+    }
+
+    // ==================== Row Index Lookup ====================
+
+    /**
+     * Finds the visible row index at an absolute Y coordinate (in document space).
+     * Uses binary search on rowYPositions for efficiency.
+     *
+     * @param absoluteY the Y coordinate in document space (includes scroll offset)
+     * @return the visible row index, or -1 if outside bounds
+     */
+    private int findRowIndexAtY(double absoluteY) {
+        if (visibleRows.isEmpty() || rowYPositions.length == 0) {
+            return -1;
+        }
+
+        // Binary search for the row containing this Y
+        int lo = 0;
+        int hi = visibleRows.size() - 1;
+
+        while (lo <= hi) {
+            int mid = (lo + hi) / 2;
+            double rowTop = rowYPositions[mid];
+            double rowBottom = rowTop + getRowTotalHeight(mid);
+
+            if (absoluteY < rowTop) {
+                hi = mid - 1;
+            } else if (absoluteY >= rowBottom) {
+                lo = mid + 1;
+            } else {
+                return mid;
+            }
+        }
+
+        // Clamp to valid range
+        return Math.min(lo, visibleRows.size() - 1);
+    }
+
+    /**
+     * Finds the visible row index at a screen Y coordinate (relative to canvas).
+     *
+     * @param screenY the Y coordinate relative to the canvas
+     * @return the visible row index, or -1 if outside bounds
+     */
+    private int findRowIndexAtScreenY(double screenY) {
+        return findRowIndexAtY(screenY + scrollOffsetY);
+    }
+
+    /**
+     * Gets the total height of a visible row, including any expanded inline table.
+     *
+     * @param visibleIndex the index in visibleRows
+     * @return total height in pixels
+     */
+    private double getRowTotalHeight(int visibleIndex) {
+        double height = ROW_HEIGHT;
+        if (visibleIndex >= 0 && visibleIndex < visibleRows.size()) {
+            FlatRow row = visibleRows.get(visibleIndex);
+            if (row.hasRepeatingTable() && row.isExpanded()) {
+                height += row.getRepeatingTable().getHeight();
+            }
+        }
+        return height;
+    }
+
+    // ==================== Table Rendering ====================
+
+    /**
+     * Renders an inline repeating elements table below its header row.
+     *
+     * @param tableRow the FlatRow that owns the table
+     * @param tableY   the Y coordinate where the table starts (screen coordinates)
+     */
+    private void renderInlineTable(FlatRow tableRow, double tableY) {
+        RepeatingElementsTable table = tableRow.getRepeatingTable();
+        if (table == null) {
+            return;
+        }
+
+        double tableX = getRowLabelX(tableRow) - ICON_AREA_WIDTH;
+        double tableWidth = table.getWidth();
+        double tableHeight = table.getHeight();
+
+        // Store position for hit testing
+        table.setX(tableX);
+        table.setY(tableY + scrollOffsetY); // Store in absolute coords for hit testing
+
+        // -- Table header (element name + count) --
+        gc.setFill(TABLE_HEADER_BG);
+        gc.fillRect(tableX, tableY, tableWidth, RepeatingElementsTable.HEADER_HEIGHT);
+        gc.setStroke(TABLE_BORDER);
+        gc.setLineWidth(1);
+        gc.strokeRect(tableX, tableY, tableWidth, RepeatingElementsTable.HEADER_HEIGHT);
+
+        gc.setFont(ROW_FONT_BOLD);
+        gc.setFill(TABLE_HEADER_TEXT);
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.CENTER);
+        String headerText = table.getElementName() + " (" + table.getElementCount() + "x)";
+        gc.fillText(headerText, tableX + RepeatingElementsTable.CELL_PADDING,
+                tableY + RepeatingElementsTable.HEADER_HEIGHT / 2);
+
+        if (!table.isExpanded()) {
+            return;
+        }
+
+        // -- Column headers --
+        double colHeaderY = tableY + RepeatingElementsTable.HEADER_HEIGHT;
+        gc.setFill(Color.rgb(243, 244, 246)); // Light gray background
+        gc.fillRect(tableX, colHeaderY, tableWidth, RepeatingElementsTable.ROW_HEIGHT);
+        gc.setStroke(TABLE_BORDER);
+        gc.strokeRect(tableX, colHeaderY, tableWidth, RepeatingElementsTable.ROW_HEIGHT);
+
+        double colX = tableX + RepeatingElementsTable.GRID_PADDING;
+        gc.setFont(SMALL_FONT);
+        gc.setTextBaseline(VPos.CENTER);
+        double colCenterY = colHeaderY + RepeatingElementsTable.ROW_HEIGHT / 2;
+
+        for (int c = 0; c < table.getColumns().size(); c++) {
+            RepeatingElementsTable.TableColumn col = table.getColumns().get(c);
+            double colWidth = col.getWidth();
+
+            // Column separator
+            if (c > 0) {
+                gc.setStroke(ROW_SEPARATOR);
+                gc.setLineWidth(0.5);
+                gc.strokeLine(colX, colHeaderY, colX, colHeaderY + RepeatingElementsTable.ROW_HEIGHT);
+            }
+
+            // Column name
+            gc.setFill(TEXT_SECONDARY);
+            gc.setFont(ROW_FONT_BOLD);
+            gc.setTextAlign(TextAlignment.LEFT);
+            String displayName = col.getDisplayName();
+
+            // Sort indicator
+            if (table.isSortedBy(col.getName())) {
+                displayName += table.isSortAscending() ? " \u25B2" : " \u25BC";
+            }
+
+            gc.fillText(truncateText(displayName, colWidth - RepeatingElementsTable.CELL_PADDING * 2),
+                    colX + RepeatingElementsTable.CELL_PADDING, colCenterY);
+
+            colX += colWidth;
+        }
+
+        // -- Data rows --
+        double dataY = colHeaderY + RepeatingElementsTable.ROW_HEIGHT;
+        for (int r = 0; r < table.getRows().size(); r++) {
+            RepeatingElementsTable.TableRow row = table.getRows().get(r);
+            double rowTop = dataY + r * RepeatingElementsTable.ROW_HEIGHT;
+            double rowHeight = RepeatingElementsTable.ROW_HEIGHT;
+
+            // Row background
+            Color rowBg;
+            if (r == table.getSelectedRowIndex()) {
+                rowBg = TABLE_ROW_SELECTED;
+            } else if (r == hoveredTableRowIndex && table == hoveredTable) {
+                rowBg = TABLE_ROW_HOVER;
+            } else {
+                rowBg = (r % 2 == 0) ? TABLE_ROW_EVEN : TABLE_ROW_ODD;
+            }
+            gc.setFill(rowBg);
+            gc.fillRect(tableX, rowTop, tableWidth, rowHeight);
+
+            // Row border
+            gc.setStroke(TABLE_BORDER);
+            gc.setLineWidth(0.5);
+            gc.strokeLine(tableX, rowTop + rowHeight, tableX + tableWidth, rowTop + rowHeight);
+
+            // Row number
+            gc.setFont(SMALL_FONT);
+            gc.setFill(TEXT_SECONDARY);
+            gc.setTextAlign(TextAlignment.LEFT);
+            gc.setTextBaseline(VPos.CENTER);
+
+            // Cell values
+            double cellX = tableX + RepeatingElementsTable.GRID_PADDING;
+            double cellCenterY = rowTop + rowHeight / 2;
+
+            for (int c = 0; c < table.getColumns().size(); c++) {
+                RepeatingElementsTable.TableColumn col = table.getColumns().get(c);
+                double colWidth = col.getWidth();
+
+                // Column separator
+                if (c > 0) {
+                    gc.setStroke(ROW_SEPARATOR);
+                    gc.setLineWidth(0.5);
+                    gc.strokeLine(cellX, rowTop, cellX, rowTop + rowHeight);
+                }
+
+                // Cell value
+                String value = row.getValue(col.getName());
+                gc.setFont(ROW_FONT);
+                gc.setTextAlign(TextAlignment.LEFT);
+
+                if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
+                    gc.setFill(TEXT_ATTRIBUTE_VALUE);
+                } else if (row.hasComplexChild(col.getName())) {
+                    gc.setFill(TEXT_SECONDARY);
+                } else {
+                    gc.setFill(TEXT_CONTENT);
+                }
+
+                gc.fillText(truncateText(value, colWidth - RepeatingElementsTable.CELL_PADDING * 2),
+                        cellX + RepeatingElementsTable.CELL_PADDING, cellCenterY);
+
+                cellX += colWidth;
+            }
+        }
+
+        // -- Table outer border --
+        gc.setStroke(TABLE_BORDER);
+        gc.setLineWidth(1);
+        gc.strokeRect(tableX, tableY, tableWidth, tableHeight);
+
+        // Left and right borders for the full table height
+        gc.strokeLine(tableX, tableY, tableX, tableY + tableHeight);
+        gc.strokeLine(tableX + tableWidth, tableY, tableX + tableWidth, tableY + tableHeight);
+    }
+
+    // ==================== Table Interaction ====================
+
+    /**
+     * Handles a mouse click inside an inline repeating table.
+     */
+    private void handleTableClick(MouseEvent event, RepeatingElementsTable table,
+                                   double mx, double my, double tableScreenTop, FlatRow tableOwner) {
+        // Check header click (toggle expand)
+        if (my < tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT) {
+            table.toggleExpanded();
+            recalculateVisibleRows();
+            updateScrollBars();
+            render();
+            return;
+        }
+
+        if (!table.isExpanded()) {
+            return;
+        }
+
+        // Check column header click (sort)
+        double colHeaderY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT;
+        if (my >= colHeaderY && my < colHeaderY + RepeatingElementsTable.ROW_HEIGHT) {
+            int colIdx = table.getColumnIndexAt(mx);
+            if (colIdx >= 0) {
+                RepeatingElementsTable.TableColumn col = table.getColumn(colIdx);
+                if (col != null && table.isColumnSortable(col.getName())) {
+                    handleTableSort(table, col.getName(), tableOwner);
+                }
+            }
+            return;
+        }
+
+        // Data row click
+        int rowIdx = getTableRowIndexAtScreenY(table, my, tableScreenTop);
+        if (rowIdx >= 0 && rowIdx < table.getRows().size()) {
+            table.setSelectedRowIndex(rowIdx);
+            selectedTable = table;
+
+            // Double-click to edit cell
+            if (event.getClickCount() == 2) {
+                int colIdx = table.getColumnIndexAt(mx);
+                if (colIdx >= 0) {
+                    RepeatingElementsTable.TableColumn col = table.getColumn(colIdx);
+                    if (col != null) {
+                        startEditingTableCell(table, rowIdx, col.getName(), mx, my, tableScreenTop);
+                    }
+                }
+            }
+
+            render();
+        }
+    }
+
+    /**
+     * Handles sorting of a table column.
+     * Toggles sort direction if clicking the same column again.
+     */
+    private void handleTableSort(RepeatingElementsTable table, String columnName, FlatRow tableOwner) {
+        // Toggle direction if already sorted by this column
+        boolean ascending;
+        if (table.isSortedBy(columnName)) {
+            ascending = !table.isSortAscending();
+        } else {
+            ascending = true;
+        }
+
+        var sortCmd = new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SortElementsCommand(
+                table, columnName, ascending);
+        context.executeCommand(sortCmd);
+
+        // Update sort state
+        table.setSortState(columnName, ascending);
+
+        rebuildTree();
+        notifyDocumentModified();
+    }
+
+    /**
+     * Updates table hover state.
+     */
+    private void updateTableHover(RepeatingElementsTable table, double mx, double my, double tableScreenTop) {
+        if (hoveredTable != table) {
+            if (hoveredTable != null) {
+                hoveredTable.setHoveredRowIndex(-1);
+                hoveredTable.setHoveredColumnIndex(-1);
+                hoveredTable.setHovered(false);
+            }
+            hoveredTable = table;
+            table.setHovered(true);
+        }
+
+        int rowIdx = getTableRowIndexAtScreenY(table, my, tableScreenTop);
+        int colIdx = table.getColumnIndexAt(mx);
+
+        if (rowIdx != hoveredTableRowIndex || colIdx != hoveredTableColumnIndex) {
+            hoveredTableRowIndex = rowIdx;
+            hoveredTableColumnIndex = colIdx;
+            table.setHoveredRowIndex(rowIdx);
+            table.setHoveredColumnIndex(colIdx);
+            render();
+        }
+    }
+
+    /**
+     * Gets the table data row index at a screen Y coordinate.
+     */
+    private int getTableRowIndexAtScreenY(RepeatingElementsTable table, double screenY, double tableScreenTop) {
+        double dataStartY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT;
+        if (screenY < dataStartY) {
+            return -1;
+        }
+        int rowIndex = (int) ((screenY - dataStartY) / RepeatingElementsTable.ROW_HEIGHT);
+        if (rowIndex >= 0 && rowIndex < table.getRows().size()) {
+            return rowIndex;
+        }
+        return -1;
+    }
+
+    /**
+     * Starts editing a table cell.
+     */
+    private void startEditingTableCell(RepeatingElementsTable table, int rowIndex, String columnName,
+                                        double mx, double my, double tableScreenTop) {
+        cancelEditing();
+
+        RepeatingElementsTable.TableRow row = table.getRows().get(rowIndex);
+        RepeatingElementsTable.TableColumn col = table.getColumn(columnName);
+        if (col == null) {
+            return;
+        }
+
+        // Don't edit complex children
+        if (row.hasComplexChild(columnName)) {
+            return;
+        }
+
+        editingTable = table;
+        editingTableRowIndex = rowIndex;
+        editingTableColumnName = columnName;
+
+        String currentValue = row.getValue(columnName);
+
+        // Calculate cell position
+        double cellX = table.getColumnX(columnName) - scrollOffsetX;
+        double dataStartY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT;
+        double cellY = dataStartY + rowIndex * RepeatingElementsTable.ROW_HEIGHT;
+        double cellWidth = col.getWidth();
+
+        // Build XPath for schema lookup
+        XmlElement rowElement = row.getElement();
+        String elementXPath = getRowXPath(findFlatRowForModelNode(rowElement));
+        String attributeName = (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) ? columnName : null;
+
+        createEditField(currentValue, cellX, cellY, cellWidth, elementXPath, attributeName);
+    }
+
+    /**
+     * Finds the FlatRow for a given model node. Used for XPath building.
+     */
+    private FlatRow findFlatRowForModelNode(XmlNode node) {
+        for (FlatRow row : allRows) {
+            if (row.getModelNode() == node) {
+                return row;
+            }
+        }
+        return null;
     }
 
     // ==================== Color Helpers ====================
@@ -916,7 +1397,23 @@ public class XmlCanvasView extends Pane {
         }
 
         // Calculate which row was clicked
-        int rowIndex = (int) ((my + scrollOffsetY) / ROW_HEIGHT);
+        int rowIndex = findRowIndexAtScreenY(my);
+
+        // Check if click is inside an inline table
+        if (rowIndex >= 0 && rowIndex < visibleRows.size()) {
+            FlatRow tableOwner = visibleRows.get(rowIndex);
+            if (tableOwner.hasRepeatingTable() && tableOwner.isExpanded()) {
+                double rowScreenY = rowYPositions[rowIndex] - scrollOffsetY;
+                double tableTop = rowScreenY + ROW_HEIGHT;
+                RepeatingElementsTable table = tableOwner.getRepeatingTable();
+                double tableBottom = tableTop + table.getHeight();
+                if (my >= tableTop && my < tableBottom) {
+                    handleTableClick(event, table, mx, my, tableTop, tableOwner);
+                    return;
+                }
+            }
+        }
+
         if (rowIndex < 0 || rowIndex >= visibleRows.size()) {
             selectRow(null);
             return;
@@ -974,7 +1471,7 @@ public class XmlCanvasView extends Pane {
     }
 
     private void handleContextMenu(MouseEvent event, double mx, double my) {
-        int rowIndex = (int) ((my + scrollOffsetY) / ROW_HEIGHT);
+        int rowIndex = findRowIndexAtScreenY(my);
         if (rowIndex < 0 || rowIndex >= visibleRows.size()) {
             return;
         }
@@ -1000,9 +1497,37 @@ public class XmlCanvasView extends Pane {
         boolean needsRedraw = false;
 
         // Calculate hovered row
-        int rowIndex = (int) ((my + scrollOffsetY) / ROW_HEIGHT);
-        FlatRow newHoveredRow = null;
+        int rowIndex = findRowIndexAtScreenY(my);
+
+        // Check table hover state
+        boolean tableHovered = false;
         if (rowIndex >= 0 && rowIndex < visibleRows.size()) {
+            FlatRow tableOwner = visibleRows.get(rowIndex);
+            if (tableOwner.hasRepeatingTable() && tableOwner.isExpanded()) {
+                double rowScreenY = rowYPositions[rowIndex] - scrollOffsetY;
+                double tableTop = rowScreenY + ROW_HEIGHT;
+                RepeatingElementsTable table = tableOwner.getRepeatingTable();
+                double tableBottom = tableTop + table.getHeight();
+                if (my >= tableTop && my < tableBottom) {
+                    tableHovered = true;
+                    updateTableHover(table, mx, my, tableTop);
+                }
+            }
+        }
+
+        // Clear table hover if not over a table
+        if (!tableHovered && hoveredTable != null) {
+            hoveredTable.setHoveredRowIndex(-1);
+            hoveredTable.setHoveredColumnIndex(-1);
+            hoveredTable.setHovered(false);
+            hoveredTable = null;
+            hoveredTableRowIndex = -1;
+            hoveredTableColumnIndex = -1;
+            needsRedraw = true;
+        }
+
+        FlatRow newHoveredRow = null;
+        if (!tableHovered && rowIndex >= 0 && rowIndex < visibleRows.size()) {
             newHoveredRow = visibleRows.get(rowIndex);
         }
 
@@ -1041,10 +1566,11 @@ public class XmlCanvasView extends Pane {
      * Finds which expand bar (if any) is at the given canvas coordinates.
      */
     private FlatRow findExpandBarAt(double mx, double my) {
-        int rowIndex = (int) ((my + scrollOffsetY) / ROW_HEIGHT);
-        if (rowIndex < 0 || rowIndex >= visibleRows.size()) {
+        if (visibleRows.isEmpty() || rowYPositions.length == 0) {
             return null;
         }
+
+        double absoluteY = my + scrollOffsetY;
 
         // Check all expandable rows, not just the hovered one,
         // because expand bars span multiple rows
@@ -1061,20 +1587,25 @@ public class XmlCanvasView extends Pane {
                 continue;
             }
 
-            double rowY = i * ROW_HEIGHT;
+            double rowY = rowYPositions[i];
 
             if (!row.isExpanded()) {
                 // Collapsed: just check the element's own row
-                if (my + scrollOffsetY >= rowY && my + scrollOffsetY < rowY + ROW_HEIGHT) {
+                if (absoluteY >= rowY && absoluteY < rowY + ROW_HEIGHT) {
                     return row;
                 }
             } else {
                 // Expanded: check the full bar range
                 int lastDescIdx = findLastVisibleDescendantIndex(row, i);
                 double barTop = rowY;
-                double barBottom = lastDescIdx * ROW_HEIGHT + ROW_HEIGHT;
+                double barBottom = rowYPositions[lastDescIdx] + ROW_HEIGHT;
+                // Also account for table height on the last descendant
+                FlatRow lastDesc = visibleRows.get(lastDescIdx);
+                if (lastDesc.hasRepeatingTable() && lastDesc.isExpanded()) {
+                    barBottom += lastDesc.getRepeatingTable().getHeight();
+                }
 
-                if (my + scrollOffsetY >= barTop && my + scrollOffsetY < barBottom) {
+                if (absoluteY >= barTop && absoluteY < barBottom) {
                     return row;
                 }
             }
@@ -1236,11 +1767,11 @@ public class XmlCanvasView extends Pane {
         }
 
         int idx = visibleRows.indexOf(row);
-        if (idx < 0) {
+        if (idx < 0 || idx >= rowYPositions.length) {
             return;
         }
 
-        double rowTop = idx * ROW_HEIGHT;
+        double rowTop = rowYPositions[idx];
         double rowBottom = rowTop + ROW_HEIGHT;
         double viewTop = scrollOffsetY;
         double viewBottom = viewTop + canvas.getHeight();
@@ -1286,7 +1817,7 @@ public class XmlCanvasView extends Pane {
         }
 
         double x = nameColumnWidth - scrollOffsetX;
-        double y = idx * ROW_HEIGHT - scrollOffsetY + 2;
+        double y = rowYPositions[idx] - scrollOffsetY + 2;
         double width = Math.max(canvas.getWidth() - nameColumnWidth, MIN_VALUE_COL_WIDTH);
 
         // Get XPath for schema lookup
@@ -1320,7 +1851,7 @@ public class XmlCanvasView extends Pane {
         }
 
         double labelX = getRowLabelX(row) - scrollOffsetX;
-        double y = idx * ROW_HEIGHT - scrollOffsetY + 2;
+        double y = rowYPositions[idx] - scrollOffsetY + 2;
         double width = nameColumnWidth - labelX - NAME_VALUE_GAP;
 
         createEditField(currentValue, labelX, y, width);

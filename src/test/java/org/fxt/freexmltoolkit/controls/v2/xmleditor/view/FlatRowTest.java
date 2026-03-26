@@ -386,6 +386,74 @@ class FlatRowTest {
         assertTrue(rows.stream().allMatch(FlatRow::isVisible));
     }
 
+    // ==================== Repeating Elements Detection Tests ====================
+
+    /**
+     * Tests that repeating sibling elements (2+ with the same tag name)
+     * are collapsed into a single FlatRow with the group size as childCount.
+     */
+    @Test
+    @DisplayName("Flatten detects repeating elements and creates single row per group")
+    void testFlattenRepeatingElements() {
+        XmlDocument document = new XmlDocument();
+        XmlElement root = new XmlElement("Root");
+        root.addChild(createElementWithText("Item", "A"));
+        root.addChild(createElementWithText("Item", "B"));
+        root.addChild(createElementWithText("Item", "C"));
+        root.addChild(createElementWithText("Other", "X"));
+        document.addChild(root);
+
+        List<FlatRow> rows = FlatRow.flatten(document);
+
+        // Root(0), Item group row(1), Other(1) = 3 rows
+        // The three <Item> elements are collapsed into a single row
+        assertEquals(3, rows.size());
+
+        FlatRow rootRow = rows.get(0);
+        assertEquals("Root", rootRow.getLabel());
+
+        // Find the Item group row
+        FlatRow itemRow = rows.get(1);
+        assertEquals(FlatRow.RowType.ELEMENT, itemRow.getType());
+        assertEquals("Item", itemRow.getLabel());
+        assertEquals(3, itemRow.getChildCount(), "Repeating group should have count = 3");
+        assertEquals(1, itemRow.getDepth());
+
+        // Other should still be a normal row
+        FlatRow otherRow = rows.get(2);
+        assertEquals("Other", otherRow.getLabel());
+        assertEquals("X", otherRow.getValue());
+    }
+
+    /**
+     * Tests that single elements (appearing only once) are NOT treated as repeating.
+     */
+    @Test
+    @DisplayName("Flatten does not collapse single elements")
+    void testFlattenSingleElementsNotGrouped() {
+        XmlDocument document = new XmlDocument();
+        XmlElement root = new XmlElement("Root");
+        root.addChild(createElementWithText("A", "1"));
+        root.addChild(createElementWithText("B", "2"));
+        root.addChild(createElementWithText("C", "3"));
+        document.addChild(root);
+
+        List<FlatRow> rows = FlatRow.flatten(document);
+
+        // Root(0), A(1), B(1), C(1) = 4 rows (no grouping because each name appears only once)
+        assertEquals(4, rows.size());
+        assertEquals("A", rows.get(1).getLabel());
+        assertEquals("1", rows.get(1).getValue());
+        assertEquals("B", rows.get(2).getLabel());
+        assertEquals("C", rows.get(3).getLabel());
+    }
+
+    private XmlElement createElementWithText(String name, String text) {
+        XmlElement element = new XmlElement(name);
+        element.addChild(new XmlText(text));
+        return element;
+    }
+
     // ==================== RowType Enum Tests ====================
 
     /**

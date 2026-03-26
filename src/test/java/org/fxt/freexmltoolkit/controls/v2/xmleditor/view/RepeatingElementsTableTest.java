@@ -61,7 +61,7 @@ class RepeatingElementsTableTest {
         List<XmlElement> elements = List.of(asset1, asset2);
 
         // Create the table
-        RepeatingElementsTable table = new RepeatingElementsTable("Asset", elements, null, 0, () -> {});
+        RepeatingElementsTable table = new RepeatingElementsTable("Asset", elements, 0, () -> {});
 
         // Get column names in order
         List<String> columnNames = table.getColumns().stream()
@@ -101,7 +101,7 @@ class RepeatingElementsTableTest {
 
         List<XmlElement> elements = List.of(item1, item2);
 
-        RepeatingElementsTable table = new RepeatingElementsTable("Item", elements, null, 0, () -> {});
+        RepeatingElementsTable table = new RepeatingElementsTable("Item", elements, 0, () -> {});
 
         List<String> columnNames = table.getColumns().stream()
                 .map(RepeatingElementsTable.TableColumn::getName)
@@ -135,7 +135,7 @@ class RepeatingElementsTableTest {
 
         List<XmlElement> elements = List.of(elem1, elem2);
 
-        RepeatingElementsTable table = new RepeatingElementsTable("Test", elements, null, 0, () -> {});
+        RepeatingElementsTable table = new RepeatingElementsTable("Test", elements, 0, () -> {});
 
         List<String> columnNames = table.getColumns().stream()
                 .map(RepeatingElementsTable.TableColumn::getName)
@@ -168,7 +168,7 @@ class RepeatingElementsTableTest {
 
         List<XmlElement> elements = List.of(elem1, elem2);
 
-        RepeatingElementsTable table = new RepeatingElementsTable("Test", elements, null, 0, () -> {});
+        RepeatingElementsTable table = new RepeatingElementsTable("Test", elements, 0, () -> {});
 
         List<String> columnNames = table.getColumns().stream()
                 .map(RepeatingElementsTable.TableColumn::getName)
@@ -198,7 +198,7 @@ class RepeatingElementsTableTest {
 
         List<XmlElement> elements = List.of(elem1, elem2);
 
-        RepeatingElementsTable table = new RepeatingElementsTable("Item", elements, null, 0, () -> {});
+        RepeatingElementsTable table = new RepeatingElementsTable("Item", elements, 0, () -> {});
 
         List<String> columnNames = table.getColumns().stream()
                 .map(RepeatingElementsTable.TableColumn::getName)
@@ -234,7 +234,7 @@ class RepeatingElementsTableTest {
         elem1.addChild(createElementWithText("C", "3"));
 
         RepeatingElementsTable table1 = new RepeatingElementsTable("CachedItem",
-                List.of(elem1, elem1), null, 0, () -> {});
+                List.of(elem1, elem1), 0, () -> {});
 
         List<String> firstOrder = table1.getColumns().stream()
                 .map(RepeatingElementsTable.TableColumn::getName)
@@ -248,7 +248,7 @@ class RepeatingElementsTableTest {
         elem2.addChild(createElementWithText("C", "3"));
 
         RepeatingElementsTable table2 = new RepeatingElementsTable("CachedItem",
-                List.of(elem2, elem2), null, 0, () -> {});
+                List.of(elem2, elem2), 0, () -> {});
 
         List<String> secondOrder = table2.getColumns().stream()
                 .map(RepeatingElementsTable.TableColumn::getName)
@@ -293,7 +293,7 @@ class RepeatingElementsTableTest {
 
         List<XmlElement> elements = List.of(elem1, elem2, elem3);
 
-        RepeatingElementsTable table = new RepeatingElementsTable("Progressive", elements, null, 0, () -> {});
+        RepeatingElementsTable table = new RepeatingElementsTable("Progressive", elements, 0, () -> {});
 
         List<String> columnNames = table.getColumns().stream()
                 .map(RepeatingElementsTable.TableColumn::getName)
@@ -316,7 +316,7 @@ class RepeatingElementsTableTest {
 
         List<XmlElement> elements = List.of(elem1, elem2);
 
-        RepeatingElementsTable table = new RepeatingElementsTable("Empty", elements, null, 0, () -> {});
+        RepeatingElementsTable table = new RepeatingElementsTable("Empty", elements, 0, () -> {});
 
         List<String> columnNames = table.getColumns().stream()
                 .map(RepeatingElementsTable.TableColumn::getName)
@@ -358,7 +358,7 @@ class RepeatingElementsTableTest {
 
         List<XmlElement> elements = List.of(asset1, asset2);
 
-        RepeatingElementsTable table = new RepeatingElementsTable("Asset", elements, null, 0, () -> {});
+        RepeatingElementsTable table = new RepeatingElementsTable("Asset", elements, 0, () -> {});
 
         List<String> columnNames = table.getColumns().stream()
                 .map(RepeatingElementsTable.TableColumn::getName)
