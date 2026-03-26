@@ -62,10 +62,14 @@ public class RepeatingElementsTable {
     public static final double MIN_COLUMN_WIDTH = 80;
 
     /**
-     * The maximum width of a table column in pixels.
-     * Columns will not be wider than this value unless they contain expanded cells.
+     * The maximum width of a table column in pixels for non-expanded content.
      */
     public static final double MAX_COLUMN_WIDTH = 250;
+
+    /**
+     * The maximum width of a table column in pixels when it has expanded cells.
+     */
+    public static final double MAX_COLUMN_WIDTH_EXPANDED = 500;
 
     /**
      * The padding around the grid content in pixels.
@@ -833,14 +837,29 @@ public class RepeatingElementsTable {
     private void calculateColumnWidths() {
         for (TableColumn col : columns) {
             double maxWidth = col.getDisplayName().length() * 8 + CELL_PADDING * 2;
+            boolean hasExpandedCells = false;
 
             for (TableRow row : rows) {
                 String value = row.getValue(col.getName());
                 double valueWidth = value.length() * 7 + CELL_PADDING * 2;
                 maxWidth = Math.max(maxWidth, valueWidth);
+
+                // Account for expanded cell content
+                if (row.isColumnExpanded(col.getName())) {
+                    hasExpandedCells = true;
+                    List<FlatRow> cellRows = row.getExpandedCellRows(col.getName());
+                    for (FlatRow subRow : cellRows) {
+                        double subIndent = subRow.getDepth() * 12;
+                        double labelWidth = (subRow.getLabel() != null ? subRow.getLabel().length() * 7 : 0);
+                        double valueW = (subRow.getValue() != null ? subRow.getValue().length() * 7 : 0);
+                        double subRowWidth = CELL_PADDING + subIndent + 18 + labelWidth + 20 + valueW + CELL_PADDING;
+                        maxWidth = Math.max(maxWidth, subRowWidth);
+                    }
+                }
             }
 
-            col.setWidth(Math.min(MAX_COLUMN_WIDTH, Math.max(MIN_COLUMN_WIDTH, maxWidth)));
+            double maxAllowed = hasExpandedCells ? MAX_COLUMN_WIDTH_EXPANDED : MAX_COLUMN_WIDTH;
+            col.setWidth(Math.min(maxAllowed, Math.max(MIN_COLUMN_WIDTH, maxWidth)));
         }
     }
 

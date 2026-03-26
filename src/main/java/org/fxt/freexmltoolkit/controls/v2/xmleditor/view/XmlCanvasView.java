@@ -1123,12 +1123,24 @@ public class XmlCanvasView extends Pane {
                 if (row.isColumnExpanded(colName)) {
                     List<FlatRow> cellRows = row.getExpandedCellRows(colName);
                     double subRowY = rowTop + RepeatingElementsTable.ROW_HEIGHT;
+
+                    // Calculate label column width: max label width + indent + icon
+                    double maxLabelWidth = 0;
+                    for (FlatRow sr : cellRows) {
+                        double lw = sr.getDepth() * 12 + ICON_AREA_WIDTH
+                                + (sr.getLabel() != null ? sr.getLabel().length() * 7.2 : 0);
+                        maxLabelWidth = Math.max(maxLabelWidth, lw);
+                    }
+                    double labelColWidth = Math.min(maxLabelWidth + 20, colWidth * 0.5);
+                    double valueStartX = cellX + RepeatingElementsTable.CELL_PADDING + labelColWidth;
+
                     for (FlatRow subRow : cellRows) {
                         double subIndent = subRow.getDepth() * 12;
                         double subIconX = cellX + RepeatingElementsTable.CELL_PADDING + subIndent;
+                        double subCenterY = subRowY + RepeatingElementsTable.ROW_HEIGHT / 2;
 
                         // Draw row icon
-                        drawRowIcon(subRow.getType(), subIconX, subRowY + RepeatingElementsTable.ROW_HEIGHT / 2);
+                        drawRowIcon(subRow.getType(), subIconX, subCenterY);
 
                         // Draw label
                         gc.setFont(ROW_FONT);
@@ -1137,16 +1149,17 @@ public class XmlCanvasView extends Pane {
                         gc.setTextBaseline(VPos.CENTER);
                         String subLabel = subRow.getLabel();
                         if (subLabel != null) {
-                            gc.fillText(truncateText(subLabel, colWidth / 2 - RepeatingElementsTable.CELL_PADDING - subIndent - ICON_AREA_WIDTH),
-                                    subIconX + ICON_AREA_WIDTH, subRowY + RepeatingElementsTable.ROW_HEIGHT / 2);
+                            double availLabel = labelColWidth - subIndent - ICON_AREA_WIDTH;
+                            gc.fillText(truncateText(subLabel, availLabel),
+                                    subIconX + ICON_AREA_WIDTH, subCenterY);
                         }
 
                         // Draw value
                         if (subRow.getValue() != null) {
                             gc.setFill(getRowValueColor(subRow.getType()));
-                            double valueX = cellX + colWidth / 2;
-                            gc.fillText(truncateText(subRow.getValue(), colWidth / 2 - RepeatingElementsTable.CELL_PADDING),
-                                    valueX, subRowY + RepeatingElementsTable.ROW_HEIGHT / 2);
+                            double availValue = colWidth - labelColWidth - RepeatingElementsTable.CELL_PADDING * 2;
+                            gc.fillText(truncateText(subRow.getValue(), availValue),
+                                    valueStartX, subCenterY);
                         }
 
                         subRowY += RepeatingElementsTable.ROW_HEIGHT;
@@ -1217,6 +1230,7 @@ public class XmlCanvasView extends Pane {
                         double cellLeft = table.getColumnX(col.getName());
                         if (mx >= cellLeft && mx <= cellLeft + 16) {
                             row.toggleColumnExpanded(col.getName());
+                            table.recalculateColumnWidths();
                             recalculateVisibleRows();
                             updateScrollBars();
                             render();
