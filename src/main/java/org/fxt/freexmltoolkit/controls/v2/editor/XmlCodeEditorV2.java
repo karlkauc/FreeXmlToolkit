@@ -3,10 +3,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor;
 import java.util.Objects;
 
 import javafx.application.Platform;
-import javafx.scene.Node;
-import javafx.scene.control.ScrollBar;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
@@ -140,34 +137,7 @@ public class XmlCodeEditorV2 extends VBox {
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         getChildren().addAll(scrollPane, statusLineManager.getStatusLine());
 
-        // Enforce minimum thumb size on vertical scrollbar so it stays visible for large files
-        enforceMinimumScrollbarThumbSize();
-
         logger.debug("UI initialized");
-    }
-
-    /**
-     * Ensures the vertical scrollbar thumb never shrinks below a minimum size.
-     * VirtualizedScrollPane calculates thumb size programmatically based on
-     * content ratio, which can make it invisible for very large files (~7500+ lines).
-     * This method finds the thumb node after layout and enforces a minimum height.
-     */
-    private void enforceMinimumScrollbarThumbSize() {
-        final double MIN_THUMB_HEIGHT = 30;
-
-        // Scrollbar nodes are only available after first layout pass
-        Platform.runLater(() -> {
-            for (Node child : scrollPane.getChildrenUnmodifiable()) {
-                if (child instanceof ScrollBar scrollBar
-                        && scrollBar.getOrientation() == javafx.geometry.Orientation.VERTICAL) {
-                    Node thumb = scrollBar.lookup(".thumb");
-                    if (thumb instanceof Region thumbRegion) {
-                        thumbRegion.setMinHeight(MIN_THUMB_HEIGHT);
-                    }
-                    break;
-                }
-            }
-        });
     }
 
     /**
