@@ -201,8 +201,10 @@ public class XmlEditor extends Tab {
         tabPane.setCache(true);
         tabPane.setCacheHint(CacheHint.SPEED);
 
-        xml.setGraphic(new FontIcon("bi-code-slash:20"));
-        graphic.setGraphic(new FontIcon("bi-columns-gap:20"));
+        xml.setGraphic(new FontIcon("bi-code-slash:16"));
+        xml.getStyleClass().add("primary-tab");
+        graphic.setGraphic(new FontIcon("bi-columns-gap:16"));
+        graphic.getStyleClass().add("output-tab");
 
         xml.setOnSelectionChanged(e -> {
             if (!xml.isSelected()) {

@@ -170,7 +170,7 @@
 
 .tab-pane > .tab-header-area {
     -fx-background-color: #f8f9fa;
-    -fx-padding: 4 4 0 4;
+    -fx-padding: 2 2 0 2;
 }
 
 .tab-pane > .tab-header-area > .headers-region {

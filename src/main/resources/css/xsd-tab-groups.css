@@ -57,20 +57,29 @@
 /* Tab label styling */
 .tab-pane .tab .tab-label {
     -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
     -fx-font-weight: bold;
 }
 
 /* Selected tab enhancements */
 .tab-pane .tab:selected {
     -fx-border-color: transparent transparent #4a90e2 transparent;
-    -fx-border-width: 0 0 3 0;
+    -fx-border-width: 0 0 2 0;
 }
 
-/* Smooth transitions */
+/* Compact tab styling */
 .tab-pane .tab {
-    -fx-background-radius: 4 4 0 0;
-    -fx-padding: 8 16;
+    -fx-background-radius: 3 3 0 0;
+    -fx-padding: 2 10;
+}
+
+/* Compact tab header area */
+.tab-pane > .tab-header-area {
+    -fx-padding: 2 2 0 2;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: #f0f0f0;
 }
 
 /*

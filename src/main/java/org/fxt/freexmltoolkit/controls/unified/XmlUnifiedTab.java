@@ -133,13 +133,15 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
 
         // XML (Text) tab
         FontIcon xmlIcon = new FontIcon("bi-code-slash");
-        xmlIcon.setIconSize(16);
+        xmlIcon.setIconSize(14);
         xmlTab.setGraphic(xmlIcon);
+        xmlTab.getStyleClass().add("primary-tab");
 
         // Graphic tab
         FontIcon graphicIcon = new FontIcon("bi-columns-gap");
-        graphicIcon.setIconSize(16);
+        graphicIcon.setIconSize(14);
         graphicTab.setGraphic(graphicIcon);
+        graphicTab.getStyleClass().add("output-tab");
         
         // Initial setup for TABS mode
         xmlTab.setContent(textEditor);

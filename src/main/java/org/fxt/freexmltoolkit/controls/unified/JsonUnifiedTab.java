@@ -127,14 +127,16 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
 
         // JSON (Text) tab
         FontIcon jsonIcon = new FontIcon("bi-code-slash");
-        jsonIcon.setIconSize(16);
+        jsonIcon.setIconSize(14);
         jsonTab.setGraphic(jsonIcon);
+        jsonTab.getStyleClass().add("primary-tab");
         jsonTab.setContent(textEditor);
 
         // Tree tab with actual tree view
         FontIcon treeIcon = new FontIcon("bi-diagram-3");
-        treeIcon.setIconSize(16);
+        treeIcon.setIconSize(14);
         treeTab.setGraphic(treeIcon);
+        treeTab.getStyleClass().add("output-tab");
         treeTab.setContent(treeView);
 
         viewTabPane.getTabs().addAll(jsonTab, treeTab);

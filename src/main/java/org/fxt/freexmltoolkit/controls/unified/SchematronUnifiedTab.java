@@ -152,14 +152,16 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
 
         // Code tab with sidebar
         FontIcon codeIcon = new FontIcon("bi-code-slash");
-        codeIcon.setIconSize(16);
+        codeIcon.setIconSize(14);
         codeTab.setGraphic(codeIcon);
+        codeTab.getStyleClass().add("primary-tab");
         codeTab.setContent(createCodeTabContent());
 
         // Visual Builder tab
         FontIcon visualIcon = new FontIcon("bi-grid-3x3-gap");
-        visualIcon.setIconSize(16);
+        visualIcon.setIconSize(14);
         visualBuilderTab.setGraphic(visualIcon);
+        visualBuilderTab.getStyleClass().add("primary-tab");
         visualBuilder = new SchematronVisualBuilder();
         ScrollPane visualScrollPane = new ScrollPane(visualBuilder);
         visualScrollPane.setFitToWidth(true);
@@ -167,15 +169,17 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
 
         // Test tab
         FontIcon testIcon = new FontIcon("bi-check-circle");
-        testIcon.setIconSize(16);
+        testIcon.setIconSize(14);
         testTab.setGraphic(testIcon);
+        testTab.getStyleClass().add("output-tab");
         tester = new SchematronTester();
         testTab.setContent(tester);
 
         // Documentation tab
         FontIcon docsIcon = new FontIcon("bi-file-text");
-        docsIcon.setIconSize(16);
+        docsIcon.setIconSize(14);
         documentationTab.setGraphic(docsIcon);
+        documentationTab.getStyleClass().add("utility-tab");
         documentationGenerator = new SchematronDocumentationGenerator();
         documentationTab.setContent(documentationGenerator);
 
