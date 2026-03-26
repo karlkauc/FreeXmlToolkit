@@ -370,13 +370,13 @@ class FlatRowTest {
         assertEquals(3, rows.size());
         assertTrue(rows.stream().allMatch(FlatRow::isVisible));
 
-        // Collapse Root -> only Root should be visible
+        // Collapse Root -> Root and its direct attributes stay visible, child elements hidden
         FlatRow rootRow = rows.get(0);
         FlatRow.toggleExpand(rootRow, rows);
 
         assertFalse(rootRow.isExpanded());
         assertTrue(rootRow.isVisible());
-        assertFalse(rows.get(1).isVisible(), "@id should be hidden");
+        assertTrue(rows.get(1).isVisible(), "@id should stay visible (attribute of collapsed element)");
         assertFalse(rows.get(2).isVisible(), "Child should be hidden");
 
         // Expand Root again -> all visible again
