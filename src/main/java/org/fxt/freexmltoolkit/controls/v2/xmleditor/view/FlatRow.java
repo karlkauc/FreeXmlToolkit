@@ -392,10 +392,9 @@ public class FlatRow {
      */
     private static void flattenElement(XmlElement element, int depth, FlatRow parentRow,
                                        List<FlatRow> rows, boolean expandByDefault) {
-        // Determine the child count for this element row.
-        // Child count = number of attributes + number of meaningful child nodes
-        // (element children + non-whitespace text/comment/cdata/pi children)
-        int childCount = element.getAttributes().size();
+        // Count only non-attribute child nodes (elements, text, comments, etc.)
+        // Attributes are always shown inline and don't need expand/collapse.
+        int childCount = 0;
         for (XmlNode child : element.getChildren()) {
             if (child instanceof XmlElement) {
                 childCount++;
@@ -523,10 +522,15 @@ public class FlatRow {
         }
 
         if (elementRow.isExpanded()) {
-            // Collapse: hide ALL descendants
+            // Collapse: hide all descendants EXCEPT direct attribute rows
+            // (attributes are always shown alongside their parent element)
             elementRow.setExpanded(false);
             for (FlatRow row : allRows) {
                 if (isDescendantOf(row, elementRow)) {
+                    if (row.getType() == RowType.ATTRIBUTE && row.getParentRow() == elementRow) {
+                        // Direct attributes stay visible
+                        continue;
+                    }
                     row.setVisible(false);
                 }
             }
