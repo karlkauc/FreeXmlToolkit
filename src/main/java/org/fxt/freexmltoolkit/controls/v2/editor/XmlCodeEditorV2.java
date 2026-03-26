@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor;
 import java.util.Objects;
 
 import javafx.application.Platform;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -79,7 +80,8 @@ public class XmlCodeEditorV2 extends VBox {
 
         // Create core components
         this.codeArea = new CodeArea();
-        this.scrollPane = new VirtualizedScrollPane<>(codeArea);
+        this.scrollPane = new VirtualizedScrollPane<>(codeArea,
+                ScrollPane.ScrollBarPolicy.AS_NEEDED, ScrollPane.ScrollBarPolicy.ALWAYS);
         this.eventBus = new EditorEventBus();
         this.editorContext = new EditorContext(codeArea, eventBus, schemaProvider);
 
