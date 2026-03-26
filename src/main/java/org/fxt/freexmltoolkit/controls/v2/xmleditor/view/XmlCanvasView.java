@@ -1,6 +1,8 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
 import java.beans.PropertyChangeEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import javafx.animation.KeyFrame;
@@ -10,6 +12,7 @@ import javafx.animation.Timeline;
 import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
 import javafx.scene.CacheHint;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -43,15 +46,16 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFactory;
 
 /**
- * Nested Grid XML View - each element gets its own mini-grid.
+ * Flat row-based XML View (XMLSpy-style).
  *
- * <p>Features:</p>
+ * <p>Renders XML as a flat list of rows with:</p>
  * <ul>
- *   <li>True nested grids - each element has its own grid with columns</li>
- *   <li>Child elements appear as nested grids inside parent</li>
- *   <li>Virtual scrolling - only visible grids are rendered</li>
- *   <li>Expand/collapse individual grids</li>
- *   <li>Inline editing via double-click</li>
+ *   <li>One row per element, attribute, text node, comment, etc.</li>
+ *   <li>Tree connection lines showing parent-child relationships</li>
+ *   <li>Vertical expand/collapse bars for expanded elements</li>
+ *   <li>Two-column layout (name | value)</li>
+ *   <li>Zebra-striped backgrounds</li>
+ *   <li>Icons per row type</li>
  * </ul>
  *
  * @author Claude Code
@@ -73,20 +77,32 @@ public class XmlCanvasView extends Pane {
     private final ScrollBar vScrollBar;
     private final ScrollBar hScrollBar;
 
-    // ==================== Grid Data ====================
+    // ==================== Flat Row Data ====================
 
-    private NestedGridNode rootNode;
+    /** Complete flat list of all rows (visible and hidden). */
+    private List<FlatRow> allRows = new ArrayList<>();
+
+    /** Cached list of currently visible rows (after expand/collapse filtering). */
+    private List<FlatRow> visibleRows = new ArrayList<>();
+
+    /** Cumulative Y offset for each visible row index, accounting for expanded tables above. */
+    private double[] rowYPositions = new double[0];
 
     // ==================== Layout Constants ====================
 
-    private static final double HEADER_HEIGHT = 28;
     private static final double ROW_HEIGHT = 24;
-    private static final double CHILDREN_HEADER_HEIGHT = 0;  // No children header - saves screen space
     private static final double INDENT = 20;
-    private static final double CHILD_SPACING = 8;
-    private static final double GRID_PADDING = 8;
-    private static final double ATTR_NAME_WIDTH = 120;
+    private static final double ICON_WIDTH = 18;
+    private static final double ICON_AREA_WIDTH = 24;
+    private static final double EXPAND_BAR_WIDTH = 12;
     private static final double SCROLLBAR_WIDTH = 14;
+    private static final double LEFT_MARGIN = 8;
+    private static final double NAME_VALUE_GAP = 16;
+    private static final double MIN_NAME_COL_WIDTH = 120;
+    private static final double MIN_VALUE_COL_WIDTH = 100;
+
+    /** Calculated name column width (adapts to content). */
+    private double nameColumnWidth = MIN_NAME_COL_WIDTH;
 
     // ==================== Scroll State ====================
 
@@ -95,35 +111,29 @@ public class XmlCanvasView extends Pane {
     private double totalHeight = 0;
     private double totalWidth = 0;
 
-    // ==================== State ====================
+    // ==================== Selection / Hover State ====================
 
-    private NestedGridNode selectedNode = null;
-    private NestedGridNode hoveredNode = null;
-    private int hoveredAttributeIndex = -1;
-    private boolean hoveredTextContent = false;
-
-    // Table state
-    private RepeatingElementsTable selectedTable = null;
-    private RepeatingElementsTable hoveredTable = null;
-    private int hoveredTableRowIndex = -1;
-    private int hoveredTableColumnIndex = -1;
-
-    // ==================== Layout State ====================
-
-    private boolean layoutDirty = true;
+    private FlatRow selectedRow = null;
+    private FlatRow hoveredRow = null;
+    private FlatRow hoveredExpandBar = null;
 
     // ==================== Inline Editing ====================
 
     private TextField editField = null;
-    private NestedGridNode editingNode = null;
-    private int editingAttributeIndex = -1;
-    private boolean editingTextContent = false;
+    private FlatRow editingRow = null;
+    private boolean editingValue = false;
     private boolean editingElementName = false;
 
-    // Table cell editing state
+    // Table cell editing state (kept for repeating table integration)
     private RepeatingElementsTable editingTable = null;
     private int editingTableRowIndex = -1;
     private String editingTableColumnName = null;
+
+    // Table selection/hover state (kept for repeating table integration)
+    private RepeatingElementsTable selectedTable = null;
+    private RepeatingElementsTable hoveredTable = null;
+    private int hoveredTableRowIndex = -1;
+    private int hoveredTableColumnIndex = -1;
 
     // Type-aware widget editing
     private TypeAwareWidgetFactory.EditWidget activeEditWidget = null;
@@ -132,43 +142,13 @@ public class XmlCanvasView extends Pane {
     // Guard to prevent double commits
     private boolean isCommitting = false;
 
-    // ==================== Editing State Check Helpers ====================
-
-    /**
-     * Checks if a specific attribute of a node is currently being edited.
-     */
-    private boolean isEditingAttribute(NestedGridNode node, int attrIndex) {
-        return editingNode == node && editingAttributeIndex == attrIndex && !editingTextContent && !editingElementName;
-    }
-
-    /**
-     * Checks if the text content of a node is currently being edited.
-     */
-    private boolean isEditingTextContent(NestedGridNode node) {
-        return editingNode == node && editingTextContent;
-    }
-
-    /**
-     * Checks if the element name of a node is currently being edited.
-     */
-    private boolean isEditingElementName(NestedGridNode node) {
-        return editingNode == node && editingElementName;
-    }
-
-    /**
-     * Checks if the leaf text (inline text in header) of a node is currently being edited.
-     */
-    private boolean isEditingLeafText(NestedGridNode node) {
-        return editingNode == node && editingTextContent && node.isLeafWithText();
-    }
-
     // ==================== Context Menu ====================
 
     private final XmlGridContextMenu contextMenu;
 
     // ==================== Highlight State ====================
 
-    private NestedGridNode highlightedNode = null;
+    private FlatRow highlightedRow = null;
     private static final Color HIGHLIGHT_COLOR = Color.rgb(254, 240, 138);  // Yellow highlight
 
     // ==================== Status Bar & Toast ====================
@@ -179,43 +159,40 @@ public class XmlCanvasView extends Pane {
 
     private java.util.function.Consumer<String> onDocumentModified;
 
-    // ==================== Colors ====================
+    // ==================== Colors (XMLSpy-style) ====================
 
-    // Grid frame
-    private static final Color GRID_BORDER = Color.rgb(209, 213, 219);
-    private static final Color GRID_HEADER_BG = Color.rgb(243, 244, 246);
-    // Depth-based colors (alternating)
-    private static final Color[] DEPTH_COLORS = {
-        Color.rgb(255, 255, 255),      // Depth 0: White
-        Color.rgb(249, 250, 251),      // Depth 1: Very light gray
-        Color.rgb(243, 244, 246),      // Depth 2: Light gray
-        Color.rgb(237, 238, 240),      // Depth 3: Gray
-    };
+    // Row backgrounds
+    private static final Color ROW_BG_EVEN = Color.WHITE;
+    private static final Color ROW_BG_ODD = Color.rgb(249, 250, 251);
 
     // Selection/Hover
-    private static final Color SELECTED_BORDER = Color.rgb(59, 130, 246);
     private static final Color SELECTED_BG = Color.rgb(239, 246, 255);
+    private static final Color SELECTED_BORDER = Color.rgb(59, 130, 246);
     private static final Color HOVERED_BG = Color.rgb(243, 244, 246);
-    private static final Color HOVERED_ROW = Color.rgb(229, 231, 235);
 
     // Text colors
-    private static final Color TEXT_ELEMENT = Color.rgb(37, 99, 235);
-    private static final Color TEXT_ATTRIBUTE_NAME = Color.rgb(146, 64, 14);
-    private static final Color TEXT_ATTRIBUTE_VALUE = Color.rgb(21, 128, 61);
-    private static final Color TEXT_CONTENT = Color.rgb(31, 41, 55);
-    private static final Color TEXT_SECONDARY = Color.rgb(107, 114, 128);
-    private static final Color TEXT_COMMENT = Color.rgb(13, 148, 136);
-    private static final Color TEXT_CDATA = Color.rgb(107, 114, 128);
-    private static final Color TEXT_PI = Color.rgb(124, 58, 237);
+    private static final Color TEXT_ELEMENT = Color.rgb(37, 99, 235);        // Blue
+    private static final Color TEXT_ATTRIBUTE_NAME = Color.rgb(146, 64, 14); // Brown/red
+    private static final Color TEXT_ATTRIBUTE_VALUE = Color.rgb(21, 128, 61); // Green
+    private static final Color TEXT_CONTENT = Color.rgb(31, 41, 55);         // Dark gray
+    private static final Color TEXT_SECONDARY = Color.rgb(107, 114, 128);    // Gray
+    private static final Color TEXT_COMMENT = Color.rgb(13, 148, 136);       // Teal
+    private static final Color TEXT_CDATA = Color.rgb(107, 114, 128);        // Gray
+    private static final Color TEXT_PI = Color.rgb(124, 58, 237);            // Violet
+
+    // Tree lines & expand bars
+    private static final Color TREE_LINE_COLOR = Color.rgb(209, 213, 219);
+    private static final Color EXPAND_BAR_COLOR = Color.rgb(209, 213, 219);
+    private static final Color EXPAND_BAR_HOVER = Color.rgb(156, 163, 175);
+    private static final Color EXPAND_BAR_ARROW = Color.rgb(107, 114, 128);
 
     // Row separator
     private static final Color ROW_SEPARATOR = Color.rgb(229, 231, 235);
 
-    // Children header
-    private static final Color CHILDREN_HEADER_BG = Color.rgb(249, 250, 251);
-    private static final Color CHILDREN_HEADER_TEXT = Color.rgb(107, 114, 128);
+    // Child count
+    private static final Color CHILD_COUNT_COLOR = Color.rgb(156, 163, 175);
 
-    // Table colors
+    // Table colors (kept for repeating table integration)
     private static final Color TABLE_HEADER_BG = Color.rgb(236, 253, 245);
     private static final Color TABLE_HEADER_TEXT = Color.rgb(5, 150, 105);
     private static final Color TABLE_BORDER = Color.rgb(167, 243, 208);
@@ -226,10 +203,10 @@ public class XmlCanvasView extends Pane {
 
     // ==================== Fonts ====================
 
-    private static final Font HEADER_FONT = Font.font("Segoe UI", FontWeight.SEMI_BOLD, 12);
-    private static final Font ROW_FONT = Font.font("Segoe UI", FontWeight.NORMAL, 12);
-    private static final Font ROW_FONT_BOLD = Font.font("Segoe UI", FontWeight.SEMI_BOLD, 12);
-    private static final Font SMALL_FONT = Font.font("Segoe UI", FontWeight.NORMAL, 10);
+    private static final Font ROW_FONT = Font.font("Monospaced", FontWeight.NORMAL, 12);
+    private static final Font ROW_FONT_BOLD = Font.font("Monospaced", FontWeight.SEMI_BOLD, 12);
+    private static final Font SMALL_FONT = Font.font("Monospaced", FontWeight.NORMAL, 10);
+    private static final Font ICON_FONT = Font.font("Monospaced", FontWeight.BOLD, 11);
 
     // ==================== Constructor ====================
 
@@ -289,15 +266,8 @@ public class XmlCanvasView extends Pane {
         // Create context menu
         contextMenu = new XmlGridContextMenu(context, this::refresh);
 
-        // Initial render
+        // Initial rebuild
         rebuildTree();
-    }
-
-    private void onLayoutChanged() {
-        layoutDirty = true;
-        ensureLayout();
-        updateScrollBars();
-        render();
     }
 
     // ==================== Layout ====================
@@ -333,94 +303,14 @@ public class XmlCanvasView extends Pane {
         hScrollBar.setLayoutY(h - SCROLLBAR_WIDTH);
         hScrollBar.setPrefWidth(w - SCROLLBAR_WIDTH);
 
-        // Recalculate layout and update scroll bars
-        ensureLayout();
+        // Update scroll bars
         updateScrollBars();
-
         render();
     }
 
     private void onResize() {
-        layoutDirty = true;
-        ensureLayout();
         updateScrollBars();
         render();
-    }
-
-    private void ensureLayout() {
-        if (!layoutDirty || rootNode == null) {
-            return;
-        }
-
-        // Calculate available width
-        double availableWidth = canvas.getWidth() - GRID_PADDING * 2;
-
-        // Bottom-up size calculation
-        calculateSizes(rootNode, availableWidth);
-
-        // Top-down position calculation
-        positionNodes(rootNode, GRID_PADDING, GRID_PADDING);
-
-        // Store total size
-        totalHeight = rootNode.getHeight() + GRID_PADDING * 2;
-        totalWidth = rootNode.getWidth() + GRID_PADDING * 2;
-
-        layoutDirty = false;
-    }
-
-    private void calculateSizes(NestedGridNode node, double availableWidth) {
-        // Calculate children first (bottom-up)
-        if (node.isExpanded()) {
-            for (NestedGridNode child : node.getChildren()) {
-                calculateSizes(child, availableWidth - INDENT);
-            }
-        }
-
-        // Calculate this node's height
-        node.calculateHeight();
-
-        // Calculate width
-        node.calculateWidth(availableWidth);
-    }
-
-    private static final double COMPACT_CHILD_SPACING = 4;  // Reduced spacing for compact leaf nodes
-
-    private void positionNodes(NestedGridNode node, double x, double y) {
-        node.setX(x);
-        node.setY(y);
-
-        if (node.isExpanded() && node.hasChildren()) {
-            double childY = node.getChildrenStartY();
-
-            // Position repeating element tables first
-            for (RepeatingElementsTable table : node.getRepeatingTables()) {
-                table.setX(x + INDENT);
-                table.setY(childY);
-                childY += table.getHeight() + CHILD_SPACING;
-            }
-
-            // Position individual children
-            for (NestedGridNode child : node.getChildren()) {
-                positionNodes(child, x + INDENT, childY);
-                // Use reduced spacing for compact leaf nodes
-                boolean isCompactLeaf = child.isLeafWithText() && child.getAttributeCells().isEmpty();
-                childY += child.getHeight() + (isCompactLeaf ? COMPACT_CHILD_SPACING : CHILD_SPACING);
-            }
-        }
-    }
-
-    /**
-     * Calculates sizes recursively for a standalone subtree (used for expanded table cells).
-     */
-    private void calculateSizesRecursively(NestedGridNode node, double availableWidth) {
-        calculateSizes(node, availableWidth);
-    }
-
-    /**
-     * Positions nodes recursively for a standalone subtree (used for expanded table cells).
-     */
-    private void positionNodesRecursively(NestedGridNode node, double x, double y) {
-        positionNodes(node, x, y);
     }
 
     private void updateScrollBars() {
@@ -456,17 +346,985 @@ public class XmlCanvasView extends Pane {
         }
     }
 
+    // ==================== Tree Building ====================
+
+    /**
+     * Rebuilds the flat row list from the document.
+     * Preserves expand/collapse state across rebuilds by matching rows by label+type+depth.
+     */
+    private void rebuildTree() {
+        // Collect expand state before rebuilding
+        java.util.Map<String, Boolean> expandState = new java.util.HashMap<>();
+        for (FlatRow row : allRows) {
+            if (row.isExpandable()) {
+                String key = row.getType() + ":" + row.getDepth() + ":" + row.getLabel();
+                expandState.put(key, row.isExpanded());
+            }
+        }
+
+        XmlDocument doc = context.getDocument();
+        if (doc == null) {
+            allRows = new ArrayList<>();
+            visibleRows = new ArrayList<>();
+            totalHeight = 0;
+            totalWidth = 0;
+            updateScrollBars();
+            render();
+            return;
+        }
+
+        allRows = FlatRow.flatten(doc);
+        attachRepeatingTables();
+
+        // Restore expand state
+        if (!expandState.isEmpty()) {
+            for (FlatRow row : allRows) {
+                if (row.isExpandable()) {
+                    String key = row.getType() + ":" + row.getDepth() + ":" + row.getLabel();
+                    Boolean wasExpanded = expandState.get(key);
+                    if (wasExpanded != null) {
+                        row.setExpanded(wasExpanded);
+                    }
+                }
+            }
+            // Re-apply visibility based on restored expand state
+            recalculateVisibility();
+        }
+
+        recalculateVisibleRows();
+        updateScrollBars();
+        render();
+    }
+
+    /**
+     * Attaches RepeatingElementsTable instances to FlatRows that represent
+     * repeating element groups (2+ siblings with the same tag name).
+     */
+    private void attachRepeatingTables() {
+        for (FlatRow row : allRows) {
+            if (row.getType() != FlatRow.RowType.ELEMENT) {
+                continue;
+            }
+            if (row.getParentRow() == null) {
+                continue;
+            }
+
+            XmlNode parentModel = row.getParentRow().getModelNode();
+            if (!(parentModel instanceof XmlElement parentElement)) {
+                continue;
+            }
+
+            // Check if this element name appears multiple times under parent
+            List<XmlElement> sameNameSiblings = new ArrayList<>();
+            for (XmlNode sibling : parentElement.getChildren()) {
+                if (sibling instanceof XmlElement se && se.getName().equals(row.getLabel())) {
+                    sameNameSiblings.add(se);
+                }
+            }
+
+            if (sameNameSiblings.size() >= 2) {
+                RepeatingElementsTable table = new RepeatingElementsTable(
+                        row.getLabel(), sameNameSiblings, row.getDepth(), this::markLayoutDirty);
+                row.setRepeatingTable(table);
+            }
+        }
+    }
+
+    /**
+     * Marks the layout as needing recalculation. Used as a callback for table layout changes.
+     */
+    private void markLayoutDirty() {
+        recalculateVisibleRows();
+        updateScrollBars();
+        render();
+    }
+
+    /**
+     * Recalculates which rows are visible based on the expand/collapse state.
+     * A row is visible if all its ancestors are expanded.
+     */
+    private void recalculateVisibility() {
+        for (FlatRow row : allRows) {
+            if (row.getParentRow() == null) {
+                row.setVisible(true);
+            } else {
+                row.setVisible(isAncestorChainExpanded(row));
+            }
+        }
+    }
+
+    /**
+     * Checks whether all ancestors of a row are expanded (meaning the row should be visible).
+     */
+    private boolean isAncestorChainExpanded(FlatRow row) {
+        FlatRow parent = row.getParentRow();
+        while (parent != null) {
+            if (!parent.isExpanded()) {
+                return false;
+            }
+            parent = parent.getParentRow();
+        }
+        return true;
+    }
+
+    /**
+     * Filters allRows by visibility, caches result in visibleRows,
+     * and recalculates nameColumnWidth, Y positions, and total dimensions.
+     */
+    private void recalculateVisibleRows() {
+        visibleRows = new ArrayList<>();
+        for (FlatRow row : allRows) {
+            if (row.isVisible()) {
+                visibleRows.add(row);
+            }
+        }
+
+        // Calculate name column width based on content
+        double maxNameWidth = MIN_NAME_COL_WIDTH;
+        for (FlatRow row : visibleRows) {
+            if (row.getLabel() != null) {
+                double labelWidth = getRowLabelX(row) + row.getLabel().length() * 7.2 + NAME_VALUE_GAP;
+                maxNameWidth = Math.max(maxNameWidth, labelWidth);
+            }
+        }
+        nameColumnWidth = maxNameWidth;
+
+        // Calculate Y positions and total dimensions accounting for expanded tables
+        rowYPositions = new double[visibleRows.size()];
+        double currentY = 0;
+        double maxWidth = nameColumnWidth + MIN_VALUE_COL_WIDTH + LEFT_MARGIN;
+
+        for (int i = 0; i < visibleRows.size(); i++) {
+            rowYPositions[i] = currentY;
+            currentY += ROW_HEIGHT;
+
+            // If this row has an expanded repeating table, add table height
+            FlatRow row = visibleRows.get(i);
+            if (row.hasRepeatingTable() && row.isExpanded()) {
+                RepeatingElementsTable table = row.getRepeatingTable();
+                table.calculateWidth(canvas.getWidth());
+                table.calculateHeight();
+                currentY += table.getHeight();
+
+                // Track table width for horizontal scroll
+                double tableRight = getRowLabelX(row) + table.getWidth();
+                maxWidth = Math.max(maxWidth, tableRight);
+            }
+        }
+
+        totalHeight = currentY;
+        totalWidth = Math.max(maxWidth, canvas.getWidth());
+    }
+
+    /**
+     * Calculates the X position where the label text starts for a given row.
+     */
+    private double getRowLabelX(FlatRow row) {
+        return LEFT_MARGIN + (row.getDepth() + 1) * INDENT + ICON_AREA_WIDTH;
+    }
+
+    // ==================== Rendering ====================
+
+    /**
+     * Main render method. Clears the canvas and draws visible rows.
+     */
+    public void render() {
+        double w = canvas.getWidth();
+        double h = canvas.getHeight();
+
+        if (w <= 0 || h <= 0) {
+            return;
+        }
+
+        // Clear canvas
+        gc.setFill(Color.WHITE);
+        gc.fillRect(0, 0, w, h);
+
+        if (visibleRows.isEmpty()) {
+            drawEmptyState();
+            return;
+        }
+
+        // Calculate visible row range using Y positions
+        int firstVisible = findRowIndexAtY(scrollOffsetY);
+        int lastVisible = findRowIndexAtY(scrollOffsetY + h);
+        if (firstVisible < 0) firstVisible = 0;
+        if (lastVisible < 0 || lastVisible >= visibleRows.size()) lastVisible = visibleRows.size() - 1;
+
+        // Save and translate for scroll offset
+        gc.save();
+        gc.translate(-scrollOffsetX, 0);
+
+        // Draw tree lines first (behind everything)
+        drawTreeLines(firstVisible, lastVisible);
+
+        // Draw each visible row
+        for (int i = firstVisible; i <= lastVisible; i++) {
+            drawRow(visibleRows.get(i), i);
+        }
+
+        // Draw inline tables for expanded repeating element rows
+        for (int i = firstVisible; i <= lastVisible; i++) {
+            FlatRow row = visibleRows.get(i);
+            if (row.hasRepeatingTable() && row.isExpanded()) {
+                double rowY = rowYPositions[i] - scrollOffsetY;
+                double tableY = rowY + ROW_HEIGHT; // Table starts below the header row
+                renderInlineTable(row, tableY);
+            }
+        }
+
+        // Draw expand bars on top
+        drawExpandBars(firstVisible, lastVisible);
+
+        gc.restore();
+
+        // Draw info overlay (not scrolled)
+        drawInfo();
+    }
+
+    /**
+     * Draws a single flat row.
+     */
+    private void drawRow(FlatRow row, int visibleIndex) {
+        double y = rowYPositions[visibleIndex] - scrollOffsetY;
+        double w = Math.max(totalWidth, canvas.getWidth() + scrollOffsetX);
+
+        // -- Background --
+        Color bgColor;
+        if (row == highlightedRow) {
+            bgColor = HIGHLIGHT_COLOR;
+        } else if (row.isSelected()) {
+            bgColor = SELECTED_BG;
+        } else if (row.isHovered()) {
+            bgColor = HOVERED_BG;
+        } else {
+            bgColor = (visibleIndex % 2 == 0) ? ROW_BG_EVEN : ROW_BG_ODD;
+        }
+        gc.setFill(bgColor);
+        gc.fillRect(0, y, w, ROW_HEIGHT);
+
+        // -- Selection border --
+        if (row.isSelected()) {
+            gc.setStroke(SELECTED_BORDER);
+            gc.setLineWidth(2);
+            gc.strokeRect(1, y + 1, w - 2, ROW_HEIGHT - 2);
+        }
+
+        // -- Row separator line (bottom) --
+        gc.setStroke(ROW_SEPARATOR);
+        gc.setLineWidth(0.5);
+        gc.strokeLine(LEFT_MARGIN, y + ROW_HEIGHT, w, y + ROW_HEIGHT);
+
+        // -- Icon --
+        double iconX = LEFT_MARGIN + (row.getDepth() + 1) * INDENT;
+        double iconCenterY = y + ROW_HEIGHT / 2;
+        drawRowIcon(row.getType(), iconX, iconCenterY);
+
+        // -- Label text --
+        double labelX = iconX + ICON_AREA_WIDTH;
+        gc.setTextBaseline(VPos.CENTER);
+        gc.setTextAlign(TextAlignment.LEFT);
+
+        boolean isEditingThisRowName = (editingRow == row && editingElementName);
+        boolean isEditingThisRowValue = (editingRow == row && editingValue);
+
+        if (row.getLabel() != null && !isEditingThisRowName) {
+            gc.setFont(ROW_FONT_BOLD);
+            gc.setFill(getRowLabelColor(row.getType()));
+
+            String label = row.getLabel();
+            if (row.getType() == FlatRow.RowType.ATTRIBUTE) {
+                label = "@" + label;
+            }
+            gc.fillText(label, labelX, iconCenterY);
+        }
+
+        // -- Value text --
+        double valueX = nameColumnWidth;
+        if (row.getValue() != null && !isEditingThisRowValue) {
+            gc.setFont(ROW_FONT);
+            gc.setFill(getRowValueColor(row.getType()));
+
+            // For elements with leaf values, show = "value" style
+            if (row.getType() == FlatRow.RowType.ELEMENT && row.isLeafWithValue()) {
+                gc.setFill(TEXT_SECONDARY);
+                gc.fillText("=", valueX - 12, iconCenterY);
+                gc.setFill(TEXT_CONTENT);
+                String displayValue = "\"" + row.getValue() + "\"";
+                gc.fillText(displayValue, valueX, iconCenterY);
+            } else {
+                gc.fillText(row.getValue(), valueX, iconCenterY);
+            }
+        }
+
+        // -- Child count for expandable elements --
+        if (row.isExpandable()) {
+            double labelWidth = (row.getLabel() != null ? row.getLabel().length() * 7.2 : 0);
+            double countX = labelX + labelWidth + 6;
+
+            // Grid icon for repeating table rows
+            if (row.hasRepeatingTable()) {
+                // Draw small grid/table icon
+                gc.setStroke(TABLE_HEADER_TEXT);
+                gc.setLineWidth(1);
+                double gx = countX;
+                double gy = iconCenterY - 4;
+                gc.strokeRect(gx, gy, 8, 8);
+                gc.strokeLine(gx + 4, gy, gx + 4, gy + 8);
+                gc.strokeLine(gx, gy + 4, gx + 8, gy + 4);
+                countX += 12;
+            }
+
+            String countText = "(" + row.getChildCount() + (row.hasRepeatingTable() ? "x" : "") + ")";
+            gc.setFont(SMALL_FONT);
+            gc.setFill(row.hasRepeatingTable() ? TABLE_HEADER_TEXT : CHILD_COUNT_COLOR);
+            gc.setTextAlign(TextAlignment.LEFT);
+            gc.fillText(countText, countX, iconCenterY);
+            gc.setTextAlign(TextAlignment.LEFT);
+        }
+    }
+
+    /**
+     * Draws the type-specific icon for a row.
+     */
+    private void drawRowIcon(FlatRow.RowType type, double x, double cy) {
+        gc.setLineWidth(1.5);
+        double size = 4;
+        double cx = x + ICON_AREA_WIDTH / 2;
+
+        switch (type) {
+            case ELEMENT -> {
+                // <> angle brackets in blue
+                gc.setStroke(TEXT_ELEMENT);
+                gc.strokeLine(cx - size, cy, cx - size / 2, cy - size);
+                gc.strokeLine(cx - size, cy, cx - size / 2, cy + size);
+                gc.strokeLine(cx + size, cy, cx + size / 2, cy - size);
+                gc.strokeLine(cx + size, cy, cx + size / 2, cy + size);
+            }
+            case ATTRIBUTE -> {
+                // = equals sign in red/brown
+                gc.setFont(ICON_FONT);
+                gc.setFill(TEXT_ATTRIBUTE_NAME);
+                gc.setTextAlign(TextAlignment.CENTER);
+                gc.setTextBaseline(VPos.CENTER);
+                gc.fillText("=", cx, cy);
+            }
+            case TEXT -> {
+                // T in green
+                gc.setStroke(TEXT_CONTENT);
+                gc.setLineWidth(2);
+                gc.strokeLine(cx - size, cy - size, cx + size, cy - size);
+                gc.strokeLine(cx, cy - size, cx, cy + size);
+                gc.setLineWidth(1.5);
+            }
+            case COMMENT -> {
+                // Rounded rect (speech bubble) in teal
+                gc.setStroke(TEXT_COMMENT);
+                gc.strokeRoundRect(cx - size, cy - size * 0.6, size * 2, size * 1.2, 3, 3);
+            }
+            case CDATA -> {
+                // [[ ]] square brackets
+                gc.setStroke(TEXT_CDATA);
+                gc.strokeLine(cx - size, cy - size, cx - size + 2, cy - size);
+                gc.strokeLine(cx - size, cy - size, cx - size, cy + size);
+                gc.strokeLine(cx - size, cy + size, cx - size + 2, cy + size);
+                gc.strokeLine(cx + size, cy - size, cx + size - 2, cy - size);
+                gc.strokeLine(cx + size, cy - size, cx + size, cy + size);
+                gc.strokeLine(cx + size, cy + size, cx + size - 2, cy + size);
+            }
+            case PROCESSING_INSTRUCTION -> {
+                // Circle in violet
+                gc.setStroke(TEXT_PI);
+                gc.strokeOval(cx - size / 2, cy - size / 2, size, size);
+            }
+            case DOCUMENT -> {
+                // Document icon
+                gc.setStroke(TEXT_SECONDARY);
+                gc.strokeRect(cx - size * 0.7, cy - size, size * 1.4, size * 2);
+                gc.strokeLine(cx - size * 0.3, cy - size * 0.4, cx + size * 0.3, cy - size * 0.4);
+                gc.strokeLine(cx - size * 0.3, cy, cx + size * 0.3, cy);
+            }
+        }
+    }
+
+    /**
+     * Draws vertical expand/collapse bars for expanded elements.
+     */
+    private void drawExpandBars(int firstVisible, int lastVisible) {
+        // Start from index 0, not firstVisible, so that expand bars from off-screen
+        // parents whose descendants are visible still get drawn
+        for (int i = 0; i <= lastVisible; i++) {
+            FlatRow row = visibleRows.get(i);
+            if (!row.isExpandable()) {
+                continue;
+            }
+
+            double barX = LEFT_MARGIN + row.getDepth() * INDENT + INDENT / 2 - EXPAND_BAR_WIDTH / 2;
+            double rowY = rowYPositions[i] - scrollOffsetY;
+
+            boolean isHovered = (row == hoveredExpandBar);
+            Color barColor = isHovered ? EXPAND_BAR_HOVER : EXPAND_BAR_COLOR;
+
+            if (!row.isExpanded()) {
+                // Collapsed: draw right-pointing arrow
+                gc.setFill(isHovered ? EXPAND_BAR_HOVER : EXPAND_BAR_ARROW);
+                double arrowX = barX + EXPAND_BAR_WIDTH / 2;
+                double arrowY = rowY + ROW_HEIGHT / 2;
+                double arrowSize = 4;
+                gc.fillPolygon(
+                        new double[]{arrowX - arrowSize / 2, arrowX + arrowSize / 2, arrowX - arrowSize / 2},
+                        new double[]{arrowY - arrowSize, arrowY, arrowY + arrowSize},
+                        3
+                );
+            } else {
+                // Expanded: draw vertical bar from element row down to last visible descendant
+                int lastDescendantIndex = findLastVisibleDescendantIndex(row, i);
+                if (lastDescendantIndex <= i) {
+                    continue; // No visible descendants
+                }
+
+                double barTop = rowY + ROW_HEIGHT / 2;
+                double barBottom = rowYPositions[lastDescendantIndex] - scrollOffsetY + ROW_HEIGHT / 2;
+
+                // Draw the vertical bar
+                gc.setStroke(barColor);
+                gc.setLineWidth(2);
+                gc.strokeLine(barX + EXPAND_BAR_WIDTH / 2, barTop, barX + EXPAND_BAR_WIDTH / 2, barBottom);
+
+                // Down arrow at top
+                double arrowSize = 3;
+                gc.setFill(isHovered ? EXPAND_BAR_HOVER : EXPAND_BAR_ARROW);
+                gc.fillPolygon(
+                        new double[]{barX + EXPAND_BAR_WIDTH / 2 - arrowSize,
+                                barX + EXPAND_BAR_WIDTH / 2,
+                                barX + EXPAND_BAR_WIDTH / 2 + arrowSize},
+                        new double[]{barTop - 1, barTop + arrowSize * 1.5, barTop - 1},
+                        3
+                );
+
+                // Up arrow at bottom
+                gc.fillPolygon(
+                        new double[]{barX + EXPAND_BAR_WIDTH / 2 - arrowSize,
+                                barX + EXPAND_BAR_WIDTH / 2,
+                                barX + EXPAND_BAR_WIDTH / 2 + arrowSize},
+                        new double[]{barBottom + 1, barBottom - arrowSize * 1.5, barBottom + 1},
+                        3
+                );
+            }
+        }
+    }
+
+    /**
+     * Finds the index (in visibleRows) of the last visible descendant of the given row.
+     */
+    private int findLastVisibleDescendantIndex(FlatRow parentRow, int parentIndex) {
+        int lastIndex = parentIndex;
+        for (int i = parentIndex + 1; i < visibleRows.size(); i++) {
+            FlatRow candidate = visibleRows.get(i);
+            if (isDescendantOf(candidate, parentRow)) {
+                lastIndex = i;
+            } else {
+                break; // All descendants are contiguous in the flat list
+            }
+        }
+        return lastIndex;
+    }
+
+    /**
+     * Checks if candidate is a descendant of ancestor.
+     */
+    private boolean isDescendantOf(FlatRow candidate, FlatRow ancestor) {
+        return FlatRow.isDescendantOf(candidate, ancestor);
+    }
+
+    /**
+     * Draws tree connection lines from parent expand bars to child row icons.
+     */
+    private void drawTreeLines(int firstVisible, int lastVisible) {
+        gc.setStroke(TREE_LINE_COLOR);
+        gc.setLineWidth(1);
+
+        for (int i = firstVisible; i <= lastVisible; i++) {
+            FlatRow row = visibleRows.get(i);
+            FlatRow parent = row.getParentRow();
+
+            if (parent == null) {
+                continue; // No tree line for root-level rows
+            }
+
+            double rowY = rowYPositions[i] - scrollOffsetY + ROW_HEIGHT / 2;
+
+            // Horizontal line from parent's vertical bar center to this row's icon position
+            double parentBarCenterX = LEFT_MARGIN + parent.getDepth() * INDENT + INDENT / 2;
+            double iconLeftX = LEFT_MARGIN + (row.getDepth() + 1) * INDENT;
+
+            gc.strokeLine(parentBarCenterX, rowY, iconLeftX, rowY);
+        }
+    }
+
+    private void drawEmptyState() {
+        gc.setFill(TEXT_SECONDARY);
+        gc.setFont(Font.font("Monospaced", FontWeight.NORMAL, 14));
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.CENTER);
+        gc.fillText("No XML document loaded", canvas.getWidth() / 2, canvas.getHeight() / 2);
+    }
+
+    private void drawInfo() {
+        if (visibleRows.isEmpty()) {
+            return;
+        }
+
+        String info = String.format("%d rows (%.0f x %.0f px)", visibleRows.size(), totalWidth, totalHeight);
+
+        gc.setFill(TEXT_SECONDARY);
+        gc.setFont(SMALL_FONT);
+        gc.setTextAlign(TextAlignment.RIGHT);
+        gc.setTextBaseline(VPos.BOTTOM);
+        gc.fillText(info, canvas.getWidth() - 5, canvas.getHeight() - 3);
+    }
+
+    // ==================== Row Index Lookup ====================
+
+    /**
+     * Finds the visible row index at an absolute Y coordinate (in document space).
+     * Uses binary search on rowYPositions for efficiency.
+     *
+     * @param absoluteY the Y coordinate in document space (includes scroll offset)
+     * @return the visible row index, or -1 if outside bounds
+     */
+    private int findRowIndexAtY(double absoluteY) {
+        if (visibleRows.isEmpty() || rowYPositions.length == 0) {
+            return -1;
+        }
+
+        // Binary search for the row containing this Y
+        int lo = 0;
+        int hi = visibleRows.size() - 1;
+
+        while (lo <= hi) {
+            int mid = (lo + hi) / 2;
+            double rowTop = rowYPositions[mid];
+            double rowBottom = rowTop + getRowTotalHeight(mid);
+
+            if (absoluteY < rowTop) {
+                hi = mid - 1;
+            } else if (absoluteY >= rowBottom) {
+                lo = mid + 1;
+            } else {
+                return mid;
+            }
+        }
+
+        // Clamp to valid range
+        return Math.min(lo, visibleRows.size() - 1);
+    }
+
+    /**
+     * Finds the visible row index at a screen Y coordinate (relative to canvas).
+     *
+     * @param screenY the Y coordinate relative to the canvas
+     * @return the visible row index, or -1 if outside bounds
+     */
+    private int findRowIndexAtScreenY(double screenY) {
+        return findRowIndexAtY(screenY + scrollOffsetY);
+    }
+
+    /**
+     * Gets the total height of a visible row, including any expanded inline table.
+     *
+     * @param visibleIndex the index in visibleRows
+     * @return total height in pixels
+     */
+    private double getRowTotalHeight(int visibleIndex) {
+        double height = ROW_HEIGHT;
+        if (visibleIndex >= 0 && visibleIndex < visibleRows.size()) {
+            FlatRow row = visibleRows.get(visibleIndex);
+            if (row.hasRepeatingTable() && row.isExpanded()) {
+                height += row.getRepeatingTable().getHeight();
+            }
+        }
+        return height;
+    }
+
+    // ==================== Table Rendering ====================
+
+    /**
+     * Renders an inline repeating elements table below its header row.
+     *
+     * @param tableRow the FlatRow that owns the table
+     * @param tableY   the Y coordinate where the table starts (screen coordinates)
+     */
+    private void renderInlineTable(FlatRow tableRow, double tableY) {
+        RepeatingElementsTable table = tableRow.getRepeatingTable();
+        if (table == null) {
+            return;
+        }
+
+        double tableX = getRowLabelX(tableRow) - ICON_AREA_WIDTH;
+        double tableWidth = table.getWidth();
+        double tableHeight = table.getHeight();
+
+        // Store position for hit testing
+        table.setX(tableX);
+        table.setY(tableY + scrollOffsetY); // Store in absolute coords for hit testing
+
+        // -- Table header (element name + count) --
+        gc.setFill(TABLE_HEADER_BG);
+        gc.fillRect(tableX, tableY, tableWidth, RepeatingElementsTable.HEADER_HEIGHT);
+        gc.setStroke(TABLE_BORDER);
+        gc.setLineWidth(1);
+        gc.strokeRect(tableX, tableY, tableWidth, RepeatingElementsTable.HEADER_HEIGHT);
+
+        gc.setFont(ROW_FONT_BOLD);
+        gc.setFill(TABLE_HEADER_TEXT);
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.CENTER);
+        String headerText = table.getElementName() + " (" + table.getElementCount() + "x)";
+        gc.fillText(headerText, tableX + RepeatingElementsTable.CELL_PADDING,
+                tableY + RepeatingElementsTable.HEADER_HEIGHT / 2);
+
+        if (!table.isExpanded()) {
+            return;
+        }
+
+        // -- Column headers --
+        double colHeaderY = tableY + RepeatingElementsTable.HEADER_HEIGHT;
+        gc.setFill(Color.rgb(243, 244, 246)); // Light gray background
+        gc.fillRect(tableX, colHeaderY, tableWidth, RepeatingElementsTable.ROW_HEIGHT);
+        gc.setStroke(TABLE_BORDER);
+        gc.strokeRect(tableX, colHeaderY, tableWidth, RepeatingElementsTable.ROW_HEIGHT);
+
+        double colX = tableX + RepeatingElementsTable.GRID_PADDING;
+        gc.setFont(SMALL_FONT);
+        gc.setTextBaseline(VPos.CENTER);
+        double colCenterY = colHeaderY + RepeatingElementsTable.ROW_HEIGHT / 2;
+
+        for (int c = 0; c < table.getColumns().size(); c++) {
+            RepeatingElementsTable.TableColumn col = table.getColumns().get(c);
+            double colWidth = col.getWidth();
+
+            // Column separator
+            if (c > 0) {
+                gc.setStroke(ROW_SEPARATOR);
+                gc.setLineWidth(0.5);
+                gc.strokeLine(colX, colHeaderY, colX, colHeaderY + RepeatingElementsTable.ROW_HEIGHT);
+            }
+
+            // Column name
+            gc.setFill(TEXT_SECONDARY);
+            gc.setFont(ROW_FONT_BOLD);
+            gc.setTextAlign(TextAlignment.LEFT);
+            String displayName = col.getDisplayName();
+
+            // Sort indicator
+            if (table.isSortedBy(col.getName())) {
+                displayName += table.isSortAscending() ? " \u25B2" : " \u25BC";
+            }
+
+            gc.fillText(truncateText(displayName, colWidth - RepeatingElementsTable.CELL_PADDING * 2),
+                    colX + RepeatingElementsTable.CELL_PADDING, colCenterY);
+
+            colX += colWidth;
+        }
+
+        // -- Data rows --
+        double dataY = colHeaderY + RepeatingElementsTable.ROW_HEIGHT;
+        for (int r = 0; r < table.getRows().size(); r++) {
+            RepeatingElementsTable.TableRow row = table.getRows().get(r);
+            double rowTop = dataY + r * RepeatingElementsTable.ROW_HEIGHT;
+            double rowHeight = RepeatingElementsTable.ROW_HEIGHT;
+
+            // Row background
+            Color rowBg;
+            if (r == table.getSelectedRowIndex()) {
+                rowBg = TABLE_ROW_SELECTED;
+            } else if (r == hoveredTableRowIndex && table == hoveredTable) {
+                rowBg = TABLE_ROW_HOVER;
+            } else {
+                rowBg = (r % 2 == 0) ? TABLE_ROW_EVEN : TABLE_ROW_ODD;
+            }
+            gc.setFill(rowBg);
+            gc.fillRect(tableX, rowTop, tableWidth, rowHeight);
+
+            // Row border
+            gc.setStroke(TABLE_BORDER);
+            gc.setLineWidth(0.5);
+            gc.strokeLine(tableX, rowTop + rowHeight, tableX + tableWidth, rowTop + rowHeight);
+
+            // Row number
+            gc.setFont(SMALL_FONT);
+            gc.setFill(TEXT_SECONDARY);
+            gc.setTextAlign(TextAlignment.LEFT);
+            gc.setTextBaseline(VPos.CENTER);
+
+            // Cell values
+            double cellX = tableX + RepeatingElementsTable.GRID_PADDING;
+            double cellCenterY = rowTop + rowHeight / 2;
+
+            for (int c = 0; c < table.getColumns().size(); c++) {
+                RepeatingElementsTable.TableColumn col = table.getColumns().get(c);
+                double colWidth = col.getWidth();
+
+                // Column separator
+                if (c > 0) {
+                    gc.setStroke(ROW_SEPARATOR);
+                    gc.setLineWidth(0.5);
+                    gc.strokeLine(cellX, rowTop, cellX, rowTop + rowHeight);
+                }
+
+                // Cell value
+                String value = row.getValue(col.getName());
+                gc.setFont(ROW_FONT);
+                gc.setTextAlign(TextAlignment.LEFT);
+
+                if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
+                    gc.setFill(TEXT_ATTRIBUTE_VALUE);
+                } else if (row.hasComplexChild(col.getName())) {
+                    gc.setFill(TEXT_SECONDARY);
+                } else {
+                    gc.setFill(TEXT_CONTENT);
+                }
+
+                gc.fillText(truncateText(value, colWidth - RepeatingElementsTable.CELL_PADDING * 2),
+                        cellX + RepeatingElementsTable.CELL_PADDING, cellCenterY);
+
+                cellX += colWidth;
+            }
+        }
+
+        // -- Table outer border --
+        gc.setStroke(TABLE_BORDER);
+        gc.setLineWidth(1);
+        gc.strokeRect(tableX, tableY, tableWidth, tableHeight);
+
+        // Left and right borders for the full table height
+        gc.strokeLine(tableX, tableY, tableX, tableY + tableHeight);
+        gc.strokeLine(tableX + tableWidth, tableY, tableX + tableWidth, tableY + tableHeight);
+    }
+
+    // ==================== Table Interaction ====================
+
+    /**
+     * Handles a mouse click inside an inline repeating table.
+     */
+    private void handleTableClick(MouseEvent event, RepeatingElementsTable table,
+                                   double mx, double my, double tableScreenTop, FlatRow tableOwner) {
+        // Check header click (toggle expand)
+        if (my < tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT) {
+            table.toggleExpanded();
+            recalculateVisibleRows();
+            updateScrollBars();
+            render();
+            return;
+        }
+
+        if (!table.isExpanded()) {
+            return;
+        }
+
+        // Check column header click (sort)
+        double colHeaderY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT;
+        if (my >= colHeaderY && my < colHeaderY + RepeatingElementsTable.ROW_HEIGHT) {
+            int colIdx = table.getColumnIndexAt(mx);
+            if (colIdx >= 0) {
+                RepeatingElementsTable.TableColumn col = table.getColumn(colIdx);
+                if (col != null && table.isColumnSortable(col.getName())) {
+                    handleTableSort(table, col.getName(), tableOwner);
+                }
+            }
+            return;
+        }
+
+        // Data row click
+        int rowIdx = getTableRowIndexAtScreenY(table, my, tableScreenTop);
+        if (rowIdx >= 0 && rowIdx < table.getRows().size()) {
+            table.setSelectedRowIndex(rowIdx);
+            selectedTable = table;
+
+            // Double-click to edit cell
+            if (event.getClickCount() == 2) {
+                int colIdx = table.getColumnIndexAt(mx);
+                if (colIdx >= 0) {
+                    RepeatingElementsTable.TableColumn col = table.getColumn(colIdx);
+                    if (col != null) {
+                        startEditingTableCell(table, rowIdx, col.getName(), mx, my, tableScreenTop);
+                    }
+                }
+            }
+
+            render();
+        }
+    }
+
+    /**
+     * Handles sorting of a table column.
+     * Toggles sort direction if clicking the same column again.
+     */
+    private void handleTableSort(RepeatingElementsTable table, String columnName, FlatRow tableOwner) {
+        // Toggle direction if already sorted by this column
+        boolean ascending;
+        if (table.isSortedBy(columnName)) {
+            ascending = !table.isSortAscending();
+        } else {
+            ascending = true;
+        }
+
+        var sortCmd = new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SortElementsCommand(
+                table, columnName, ascending);
+        context.executeCommand(sortCmd);
+
+        // Update sort state
+        table.setSortState(columnName, ascending);
+
+        rebuildTree();
+        notifyDocumentModified();
+    }
+
+    /**
+     * Updates table hover state.
+     */
+    private void updateTableHover(RepeatingElementsTable table, double mx, double my, double tableScreenTop) {
+        if (hoveredTable != table) {
+            if (hoveredTable != null) {
+                hoveredTable.setHoveredRowIndex(-1);
+                hoveredTable.setHoveredColumnIndex(-1);
+                hoveredTable.setHovered(false);
+            }
+            hoveredTable = table;
+            table.setHovered(true);
+        }
+
+        int rowIdx = getTableRowIndexAtScreenY(table, my, tableScreenTop);
+        int colIdx = table.getColumnIndexAt(mx);
+
+        if (rowIdx != hoveredTableRowIndex || colIdx != hoveredTableColumnIndex) {
+            hoveredTableRowIndex = rowIdx;
+            hoveredTableColumnIndex = colIdx;
+            table.setHoveredRowIndex(rowIdx);
+            table.setHoveredColumnIndex(colIdx);
+            render();
+        }
+    }
+
+    /**
+     * Gets the table data row index at a screen Y coordinate.
+     */
+    private int getTableRowIndexAtScreenY(RepeatingElementsTable table, double screenY, double tableScreenTop) {
+        double dataStartY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT;
+        if (screenY < dataStartY) {
+            return -1;
+        }
+        int rowIndex = (int) ((screenY - dataStartY) / RepeatingElementsTable.ROW_HEIGHT);
+        if (rowIndex >= 0 && rowIndex < table.getRows().size()) {
+            return rowIndex;
+        }
+        return -1;
+    }
+
+    /**
+     * Starts editing a table cell.
+     */
+    private void startEditingTableCell(RepeatingElementsTable table, int rowIndex, String columnName,
+                                        double mx, double my, double tableScreenTop) {
+        cancelEditing();
+
+        RepeatingElementsTable.TableRow row = table.getRows().get(rowIndex);
+        RepeatingElementsTable.TableColumn col = table.getColumn(columnName);
+        if (col == null) {
+            return;
+        }
+
+        // Don't edit complex children
+        if (row.hasComplexChild(columnName)) {
+            return;
+        }
+
+        editingTable = table;
+        editingTableRowIndex = rowIndex;
+        editingTableColumnName = columnName;
+
+        String currentValue = row.getValue(columnName);
+
+        // Calculate cell position
+        double cellX = table.getColumnX(columnName) - scrollOffsetX;
+        double dataStartY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT;
+        double cellY = dataStartY + rowIndex * RepeatingElementsTable.ROW_HEIGHT;
+        double cellWidth = col.getWidth();
+
+        // Build XPath for schema lookup
+        XmlElement rowElement = row.getElement();
+        String elementXPath = getRowXPath(findFlatRowForModelNode(rowElement));
+        String attributeName = (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) ? columnName : null;
+
+        createEditField(currentValue, cellX, cellY, cellWidth, elementXPath, attributeName);
+    }
+
+    /**
+     * Finds the FlatRow for a given model node. Used for XPath building.
+     */
+    private FlatRow findFlatRowForModelNode(XmlNode node) {
+        for (FlatRow row : allRows) {
+            if (row.getModelNode() == node) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    // ==================== Color Helpers ====================
+
+    private Color getRowLabelColor(FlatRow.RowType type) {
+        return switch (type) {
+            case ELEMENT -> TEXT_ELEMENT;
+            case ATTRIBUTE -> TEXT_ATTRIBUTE_NAME;
+            case TEXT -> TEXT_CONTENT;
+            case COMMENT -> TEXT_COMMENT;
+            case CDATA -> TEXT_CDATA;
+            case PROCESSING_INSTRUCTION -> TEXT_PI;
+            case DOCUMENT -> TEXT_SECONDARY;
+        };
+    }
+
+    private Color getRowValueColor(FlatRow.RowType type) {
+        return switch (type) {
+            case ATTRIBUTE -> TEXT_ATTRIBUTE_VALUE;
+            case ELEMENT -> TEXT_CONTENT;
+            case COMMENT -> TEXT_COMMENT;
+            case CDATA -> TEXT_CDATA;
+            case PROCESSING_INSTRUCTION -> TEXT_PI;
+            default -> TEXT_CONTENT;
+        };
+    }
+
+    private String truncateText(String text, double maxWidth) {
+        if (text == null) {
+            return "";
+        }
+        int maxChars = (int) (maxWidth / 7);
+        if (text.length() <= maxChars) {
+            return text;
+        }
+        return text.substring(0, Math.max(0, maxChars - 3)) + "...";
+    }
+
     // ==================== Event Handlers ====================
 
     private void setupEventHandlers() {
         canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, this::handleMouseClick);
         canvas.addEventHandler(MouseEvent.MOUSE_MOVED, this::handleMouseMove);
         canvas.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
-            if (hoveredNode != null) {
-                hoveredNode.setHovered(false);
-                hoveredNode = null;
-                hoveredAttributeIndex = -1;
-                hoveredTextContent = false;
+            boolean needsRedraw = false;
+            if (hoveredRow != null) {
+                hoveredRow.setHovered(false);
+                hoveredRow = null;
+                needsRedraw = true;
+            }
+            if (hoveredExpandBar != null) {
+                hoveredExpandBar = null;
+                needsRedraw = true;
+            }
+            if (needsRedraw) {
                 render();
             }
         });
@@ -509,7 +1367,7 @@ public class XmlCanvasView extends Pane {
         canvas.setFocusTraversable(true);
         canvas.addEventHandler(KeyEvent.KEY_PRESSED, this::handleKeyPress);
 
-        // Request focus when clicked (but not if editing - edit field should keep focus)
+        // Request focus when clicked (but not if editing)
         canvas.setOnMousePressed(e -> {
             if (!canvas.isFocused() && editField == null && activeWidgetNode == null) {
                 canvas.requestFocus();
@@ -517,8 +1375,248 @@ public class XmlCanvasView extends Pane {
         });
     }
 
+    // ==================== Mouse Handling ====================
+
+    private void handleMouseClick(MouseEvent event) {
+        double mx = event.getX() + scrollOffsetX;
+        double my = event.getY();
+
+        if (visibleRows.isEmpty()) {
+            return;
+        }
+
+        // Handle right-click for context menu
+        if (event.getButton() == MouseButton.SECONDARY) {
+            handleContextMenu(event, mx, my);
+            return;
+        }
+
+        // Calculate which row was clicked
+        int rowIndex = findRowIndexAtScreenY(my);
+
+        // Check if click is inside an inline table
+        if (rowIndex >= 0 && rowIndex < visibleRows.size()) {
+            FlatRow tableOwner = visibleRows.get(rowIndex);
+            if (tableOwner.hasRepeatingTable() && tableOwner.isExpanded()) {
+                double rowScreenY = rowYPositions[rowIndex] - scrollOffsetY;
+                double tableTop = rowScreenY + ROW_HEIGHT;
+                RepeatingElementsTable table = tableOwner.getRepeatingTable();
+                double tableBottom = tableTop + table.getHeight();
+                if (my >= tableTop && my < tableBottom) {
+                    handleTableClick(event, table, mx, my, tableTop, tableOwner);
+                    return;
+                }
+            }
+        }
+
+        if (rowIndex < 0 || rowIndex >= visibleRows.size()) {
+            selectRow(null);
+            return;
+        }
+
+        FlatRow clickedRow = visibleRows.get(rowIndex);
+
+        // Check if clicking on expand bar area
+        FlatRow expandBarRow = findExpandBarAt(mx, my);
+        if (expandBarRow != null) {
+            FlatRow.toggleExpand(expandBarRow, allRows);
+            recalculateVisibleRows();
+            updateScrollBars();
+            selectRow(expandBarRow);
+            render();
+            return;
+        }
+
+        // Double-click handling
+        if (event.getClickCount() == 2) {
+            double valueColStart = nameColumnWidth;
+
+            if (mx >= valueColStart) {
+                // Double-click in value column: edit value
+                startEditingValue(clickedRow);
+                return;
+            } else {
+                // Double-click in name column
+                if (clickedRow.getType() == FlatRow.RowType.ELEMENT) {
+                    if (clickedRow.isLeafWithValue()) {
+                        // Leaf element with value: edit the value
+                        startEditingValue(clickedRow);
+                    } else {
+                        // Non-leaf element: edit element name
+                        startEditingElementName(clickedRow);
+                    }
+                    return;
+                }
+            }
+        }
+
+        // Single click: select row
+        // If clicking on an expandable element's icon/label area, toggle expand
+        if (clickedRow.isExpandable() && event.getClickCount() == 1) {
+            double iconX = LEFT_MARGIN + (clickedRow.getDepth() + 1) * INDENT;
+            if (mx >= iconX && mx < iconX + ICON_AREA_WIDTH) {
+                // Click on icon area: toggle expand
+                FlatRow.toggleExpand(clickedRow, allRows);
+                recalculateVisibleRows();
+                updateScrollBars();
+            }
+        }
+
+        selectRow(clickedRow);
+    }
+
+    private void handleContextMenu(MouseEvent event, double mx, double my) {
+        int rowIndex = findRowIndexAtScreenY(my);
+        if (rowIndex < 0 || rowIndex >= visibleRows.size()) {
+            return;
+        }
+
+        FlatRow clickedRow = visibleRows.get(rowIndex);
+        selectRow(clickedRow);
+
+        // Update selection model
+        context.getSelectionModel().setSelectedNode(clickedRow.getModelNode());
+
+        // Show context menu
+        contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), clickedRow.getModelNode());
+    }
+
+    private void handleMouseMove(MouseEvent event) {
+        double mx = event.getX() + scrollOffsetX;
+        double my = event.getY();
+
+        if (visibleRows.isEmpty()) {
+            return;
+        }
+
+        boolean needsRedraw = false;
+
+        // Calculate hovered row
+        int rowIndex = findRowIndexAtScreenY(my);
+
+        // Check table hover state
+        boolean tableHovered = false;
+        if (rowIndex >= 0 && rowIndex < visibleRows.size()) {
+            FlatRow tableOwner = visibleRows.get(rowIndex);
+            if (tableOwner.hasRepeatingTable() && tableOwner.isExpanded()) {
+                double rowScreenY = rowYPositions[rowIndex] - scrollOffsetY;
+                double tableTop = rowScreenY + ROW_HEIGHT;
+                RepeatingElementsTable table = tableOwner.getRepeatingTable();
+                double tableBottom = tableTop + table.getHeight();
+                if (my >= tableTop && my < tableBottom) {
+                    tableHovered = true;
+                    updateTableHover(table, mx, my, tableTop);
+                }
+            }
+        }
+
+        // Clear table hover if not over a table
+        if (!tableHovered && hoveredTable != null) {
+            hoveredTable.setHoveredRowIndex(-1);
+            hoveredTable.setHoveredColumnIndex(-1);
+            hoveredTable.setHovered(false);
+            hoveredTable = null;
+            hoveredTableRowIndex = -1;
+            hoveredTableColumnIndex = -1;
+            needsRedraw = true;
+        }
+
+        FlatRow newHoveredRow = null;
+        if (!tableHovered && rowIndex >= 0 && rowIndex < visibleRows.size()) {
+            newHoveredRow = visibleRows.get(rowIndex);
+        }
+
+        // Update hovered row
+        if (newHoveredRow != hoveredRow) {
+            if (hoveredRow != null) {
+                hoveredRow.setHovered(false);
+            }
+            if (newHoveredRow != null) {
+                newHoveredRow.setHovered(true);
+            }
+            hoveredRow = newHoveredRow;
+            needsRedraw = true;
+        }
+
+        // Update hovered expand bar
+        FlatRow newHoveredExpandBar = findExpandBarAt(mx, my);
+        if (newHoveredExpandBar != hoveredExpandBar) {
+            hoveredExpandBar = newHoveredExpandBar;
+            needsRedraw = true;
+        }
+
+        // Update cursor
+        if (hoveredExpandBar != null) {
+            canvas.setCursor(Cursor.HAND);
+        } else {
+            canvas.setCursor(Cursor.DEFAULT);
+        }
+
+        if (needsRedraw) {
+            render();
+        }
+    }
+
+    /**
+     * Finds which expand bar (if any) is at the given canvas coordinates.
+     */
+    private FlatRow findExpandBarAt(double mx, double my) {
+        if (visibleRows.isEmpty() || rowYPositions.length == 0) {
+            return null;
+        }
+
+        double absoluteY = my + scrollOffsetY;
+
+        // Find the row index at the click Y position to limit search range.
+        // An expand bar can only cover the click if it starts at or before the clicked row.
+        int clickedRowIdx = findRowIndexAtY(absoluteY);
+        int searchLimit = Math.min(clickedRowIdx + 1, visibleRows.size());
+
+        // Search only rows up to the clicked row — bars starting after cannot cover the click
+        for (int i = 0; i < searchLimit; i++) {
+            FlatRow row = visibleRows.get(i);
+            if (!row.isExpandable()) {
+                continue;
+            }
+
+            double barX = LEFT_MARGIN + row.getDepth() * INDENT + INDENT / 2 - EXPAND_BAR_WIDTH / 2;
+            double barRight = barX + EXPAND_BAR_WIDTH;
+
+            if (mx < barX || mx > barRight) {
+                continue;
+            }
+
+            double rowY = rowYPositions[i];
+
+            if (!row.isExpanded()) {
+                // Collapsed: just check the element's own row
+                if (absoluteY >= rowY && absoluteY < rowY + ROW_HEIGHT) {
+                    return row;
+                }
+            } else {
+                // Expanded: check the full bar range
+                int lastDescIdx = findLastVisibleDescendantIndex(row, i);
+                double barTop = rowY;
+                double barBottom = rowYPositions[lastDescIdx] + ROW_HEIGHT;
+                // Also account for table height on the last descendant
+                FlatRow lastDesc = visibleRows.get(lastDescIdx);
+                if (lastDesc.hasRepeatingTable() && lastDesc.isExpanded()) {
+                    barBottom += lastDesc.getRepeatingTable().getHeight();
+                }
+
+                if (absoluteY >= barTop && absoluteY < barBottom) {
+                    return row;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // ==================== Keyboard Handling ====================
+
     private void handleKeyPress(KeyEvent event) {
-        // If editing, don't handle navigation keys (let edit field handle them)
+        // If editing, don't handle navigation keys
         if (editField != null || activeWidgetNode != null) {
             return;
         }
@@ -535,1739 +1633,227 @@ public class XmlCanvasView extends Pane {
     }
 
     /**
-     * Handle keyboard navigation between elements.
+     * Handles keyboard navigation between rows.
      */
     private void handleKeyNavigation(KeyEvent event) {
-        if (rootNode == null) {
+        if (visibleRows.isEmpty()) {
             return;
         }
 
         switch (event.getCode()) {
             case UP -> {
-                selectPreviousSibling();
+                selectPreviousRow();
                 event.consume();
             }
             case DOWN -> {
-                selectNextSibling();
+                selectNextRow();
                 event.consume();
             }
             case LEFT -> {
-                if (selectedNode != null && selectedNode.isExpanded() && selectedNode.hasChildren()) {
+                if (selectedRow != null && selectedRow.isExpandable() && selectedRow.isExpanded()) {
                     // Collapse if expanded
-                    selectedNode.setExpanded(false);
-                    layoutDirty = true;
-                    ensureLayout();
+                    FlatRow.toggleExpand(selectedRow, allRows);
+                    recalculateVisibleRows();
                     updateScrollBars();
                     render();
-                } else {
-                    // Select parent
-                    selectParent();
+                } else if (selectedRow != null && selectedRow.getParentRow() != null) {
+                    // Jump to parent
+                    selectRow(selectedRow.getParentRow());
+                    ensureRowVisible(selectedRow);
                 }
                 event.consume();
             }
             case RIGHT -> {
-                if (selectedNode != null && !selectedNode.isExpanded() && selectedNode.hasChildren()) {
+                if (selectedRow != null && selectedRow.isExpandable() && !selectedRow.isExpanded()) {
                     // Expand if collapsed
-                    selectedNode.setExpanded(true);
-                    if (selectedNode.hasMoreChildren()) {
-                        selectedNode.loadMoreChildren();
-                    }
-                    layoutDirty = true;
-                    ensureLayout();
+                    FlatRow.toggleExpand(selectedRow, allRows);
+                    recalculateVisibleRows();
                     updateScrollBars();
                     render();
-                } else if (selectedNode != null && selectedNode.isExpanded() && selectedNode.hasChildren()) {
-                    // Select first child
-                    selectFirstChild();
                 }
                 event.consume();
             }
             case ENTER -> {
-                if (selectedNode != null) {
-                    // If has children, toggle expand
-                    if (selectedNode.hasChildren()) {
-                        selectedNode.toggleExpanded();
-                        if (selectedNode.isExpanded() && selectedNode.hasMoreChildren()) {
-                            selectedNode.loadMoreChildren();
-                        }
-                        layoutDirty = true;
-                        ensureLayout();
+                if (selectedRow != null) {
+                    if (selectedRow.isExpandable()) {
+                        FlatRow.toggleExpand(selectedRow, allRows);
+                        recalculateVisibleRows();
                         updateScrollBars();
                         render();
                     } else {
                         // Start editing
-                        startEditingElementName(selectedNode);
+                        startEditingElementName(selectedRow);
                     }
                 }
                 event.consume();
             }
             case HOME -> {
-                selectFirstNode();
+                if (!visibleRows.isEmpty()) {
+                    selectRow(visibleRows.get(0));
+                    ensureRowVisible(selectedRow);
+                }
                 event.consume();
             }
             case END -> {
-                selectLastVisibleNode();
+                if (!visibleRows.isEmpty()) {
+                    selectRow(visibleRows.get(visibleRows.size() - 1));
+                    ensureRowVisible(selectedRow);
+                }
                 event.consume();
             }
             default -> { /* Not a navigation key */ }
         }
     }
 
-    /**
-     * Select the previous sibling or parent's previous sibling.
-     */
-    private void selectPreviousSibling() {
-        if (selectedNode == null) {
-            selectFirstNode();
+    private void selectPreviousRow() {
+        if (selectedRow == null) {
+            if (!visibleRows.isEmpty()) {
+                selectRow(visibleRows.get(0));
+                ensureRowVisible(selectedRow);
+            }
             return;
         }
 
-        NestedGridNode parent = selectedNode.getParent();
-        if (parent == null) {
-            return;
-        }
-
-        java.util.List<NestedGridNode> siblings = parent.getChildren();
-        int index = siblings.indexOf(selectedNode);
-
-        if (index > 0) {
-            // Select previous sibling (or last expanded child of previous)
-            NestedGridNode prev = siblings.get(index - 1);
-            while (prev.isExpanded() && prev.hasChildren()) {
-                prev = prev.getChildren().get(prev.getChildren().size() - 1);
-            }
-            selectNode(prev);
-            ensureNodeVisible(prev);
-        } else {
-            // No previous sibling, select parent
-            if (parent != rootNode) {
-                selectNode(parent);
-                ensureNodeVisible(parent);
-            }
+        int idx = visibleRows.indexOf(selectedRow);
+        if (idx > 0) {
+            selectRow(visibleRows.get(idx - 1));
+            ensureRowVisible(selectedRow);
         }
     }
 
-    /**
-     * Select the next sibling or first child.
-     */
-    private void selectNextSibling() {
-        if (selectedNode == null) {
-            selectFirstNode();
-            return;
-        }
-
-        // If expanded and has children, select first child
-        if (selectedNode.isExpanded() && selectedNode.hasChildren()) {
-            NestedGridNode firstChild = selectedNode.getChildren().get(0);
-            selectNode(firstChild);
-            ensureNodeVisible(firstChild);
-            return;
-        }
-
-        // Find next sibling or parent's next sibling
-        NestedGridNode current = selectedNode;
-        while (current != null && current != rootNode) {
-            NestedGridNode parent = current.getParent();
-            if (parent == null) {
-                break;
-            }
-
-            java.util.List<NestedGridNode> siblings = parent.getChildren();
-            int index = siblings.indexOf(current);
-
-            if (index < siblings.size() - 1) {
-                NestedGridNode next = siblings.get(index + 1);
-                selectNode(next);
-                ensureNodeVisible(next);
-                return;
-            }
-
-            // Move up to parent to check its next sibling
-            current = parent;
-        }
-    }
-
-    /**
-     * Select the parent node.
-     */
-    private void selectParent() {
-        if (selectedNode == null) {
-            return;
-        }
-
-        NestedGridNode parent = selectedNode.getParent();
-        if (parent != null && parent != rootNode) {
-            selectNode(parent);
-            ensureNodeVisible(parent);
-        }
-    }
-
-    /**
-     * Select the first child of the current node.
-     */
-    private void selectFirstChild() {
-        if (selectedNode == null || !selectedNode.isExpanded() || !selectedNode.hasChildren()) {
-            return;
-        }
-
-        NestedGridNode firstChild = selectedNode.getChildren().get(0);
-        selectNode(firstChild);
-        ensureNodeVisible(firstChild);
-    }
-
-    /**
-     * Select the first visible node.
-     */
-    private void selectFirstNode() {
-        if (rootNode == null) {
-            return;
-        }
-
-        if (rootNode.getChildren().isEmpty()) {
-            selectNode(rootNode);
-        } else {
-            selectNode(rootNode.getChildren().get(0));
-        }
-        ensureNodeVisible(selectedNode);
-    }
-
-    /**
-     * Select the last visible node.
-     */
-    private void selectLastVisibleNode() {
-        if (rootNode == null) {
-            return;
-        }
-
-        NestedGridNode last = findLastVisibleNode(rootNode);
-        if (last != null) {
-            selectNode(last);
-            ensureNodeVisible(last);
-        }
-    }
-
-    private NestedGridNode findLastVisibleNode(NestedGridNode node) {
-        if (node.isExpanded() && node.hasChildren()) {
-            return findLastVisibleNode(node.getChildren().get(node.getChildren().size() - 1));
-        }
-        return node;
-    }
-
-    private void handleMouseClick(MouseEvent event) {
-        double mx = event.getX() + scrollOffsetX;
-        double my = event.getY() + scrollOffsetY;
-
-        if (rootNode == null) {
-            return;
-        }
-
-        // Handle right-click for context menu
-        if (event.getButton() == MouseButton.SECONDARY) {
-            handleContextMenu(event, mx, my);
-            return;
-        }
-
-        // First check if clicking on a table
-        RepeatingElementsTable hitTable = findTableAt(rootNode, mx, my);
-        if (hitTable != null) {
-            handleTableClick(hitTable, mx, my, event.getClickCount());
-            return;
-        }
-
-        // Find clicked node
-        NestedGridNode hitNode = findNodeAt(rootNode, mx, my);
-
-        if (hitNode == null) {
-            selectNode(null);
-            selectTable(null);
-            return;
-        }
-
-        // Clear table selection
-        selectTable(null);
-
-        // Double-click for editing - check attribute/text FIRST before header
-        if (event.getClickCount() == 2) {
-            int attrIndex = hitNode.getAttributeIndexAt(mx, my);
-            boolean textHit = hitNode.isTextContentHit(mx, my);
-
-            if (attrIndex >= 0) {
-                startEditingAttribute(hitNode, attrIndex);
-                return;
-            } else if (textHit) {
-                startEditingTextContent(hitNode);
-                return;
-            } else if (hitNode.isHeaderHit(mx, my)) {
-                // For leaf elements with inline text: edit text content instead of element name
-                if (hitNode.isLeafWithText() && hitNode.hasTextContent()) {
-                    startEditingTextContent(hitNode);
-                } else {
-                    // Double-click on header = edit element name
-                    startEditingElementName(hitNode);
-                }
-                return;
-            }
-        }
-
-        // Check for header click (expand/collapse) - single click only
-        if (hitNode.isHeaderHit(mx, my)) {
-            // Single click = expand/collapse
-            if (hitNode.hasChildren()) {
-                hitNode.toggleExpanded();
-                if (hitNode.isExpanded() && hitNode.hasMoreChildren()) {
-                    hitNode.loadMoreChildren();
-                }
-                layoutDirty = true;
-                ensureLayout();
-                updateScrollBars();
-                render();
-            }
-            selectNode(hitNode);
-            return;
-        }
-
-        // Single click for selection
-        selectNode(hitNode);
-    }
-
-    private void handleContextMenu(MouseEvent event, double mx, double my) {
-        // Check for table FIRST (tables have priority over regular nodes in grid view)
-        RepeatingElementsTable hitTable = findTableAt(rootNode, mx, my);
-        if (hitTable != null && hitTable.isExpanded()) {
-            int rowIndex = hitTable.getRowIndexAt(my);
-            int colIndex = hitTable.getColumnIndexAt(mx);
-
-            // Check if we're on a column header (for sorting context menu)
-            if (hitTable.isColumnHeaderHit(mx, my) && colIndex >= 0) {
-                selectTable(hitTable);
-                selectNode(null);
-
-                String columnName = null;
-                if (colIndex < hitTable.getColumns().size()) {
-                    columnName = hitTable.getColumn(colIndex).getName();
-                }
-
-                // Use first element as selection context for column header
-                if (!hitTable.getRows().isEmpty()) {
-                    XmlElement firstElement = hitTable.getRows().get(0).getElement();
-                    context.getSelectionModel().setSelectedNode(firstElement);
-                    contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), firstElement,
-                            hitTable, -1, columnName);
-                }
-                return;
-            }
-
-            // Check if we're in the data area (not header)
-            if (rowIndex >= 0 && rowIndex < hitTable.getRows().size() && colIndex >= 0) {
-                XmlElement element = hitTable.getRows().get(rowIndex).getElement();
-                context.getSelectionModel().setSelectedNode(element);
-                selectTable(hitTable);
-                selectNode(null);
-
-                // Pass table cell context to context menu
-                String columnName = null;
-                if (colIndex < hitTable.getColumns().size()) {
-                    columnName = hitTable.getColumn(colIndex).getName();
-                }
-
-                contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), element,
-                        hitTable, rowIndex, columnName);
-                return;
-            }
-        }
-
-        // If no table cell was hit, check for regular node
-        NestedGridNode hitNode = findNodeAt(rootNode, mx, my);
-        if (hitNode != null) {
-            selectNode(hitNode);
-            selectTable(null);
-
-            // Update selection in context
-            context.getSelectionModel().setSelectedNode(hitNode.getModelNode());
-
-            // Show context menu without table context
-            contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), hitNode.getModelNode());
-        }
-    }
-
-    private void handleTableClick(RepeatingElementsTable table, double mx, double my, int clickCount) {
-        // Check for header click (expand/collapse)
-        if (table.isHeaderHit(mx, my)) {
-            table.toggleExpanded();
-            layoutDirty = true;
-            ensureLayout();
-            updateScrollBars();
-            render();
-            selectTable(table);
-            return;
-        }
-
-        // Check if click is on an expanded child grid (or any of its children)
-        NestedGridNode clickedNode = findNodeInExpandedChildGrids(table, mx, my);
-        if (clickedNode != null) {
-            // Handle click on nested grid - same as regular node click
-            handleNestedGridClick(clickedNode, mx, my, clickCount);
-            return;
-        }
-
-        // Row/cell click
-        int rowIndex = table.getRowIndexAtY(my);
-        int colIndex = table.getColumnIndexAt(mx);
-
-        if (rowIndex >= 0 && colIndex >= 0) {
-            RepeatingElementsTable.TableColumn col = table.getColumn(colIndex);
-            RepeatingElementsTable.TableRow row = table.getRows().get(rowIndex);
-
-            // Check if clicked on a complex cell
-            if (col != null && row.hasComplexChild(col.getName())) {
-                if (clickCount == 2) {
-                    // Double-click on complex cell: expand if not already, then enable editing of nested content
-                    if (!row.isColumnExpanded(col.getName())) {
-                        table.toggleCellExpansion(rowIndex, col.getName());
-                        table.calculateHeight();
-                        layoutDirty = true;
-                        ensureLayout();
-                        updateScrollBars();
-                    }
-                    // After expansion, try to start editing the first editable content in the nested grid
-                    NestedGridNode childGrid = row.getExpandedChildGrids().get(col.getName());
-                    if (childGrid != null) {
-                        // Find and select the first editable element in the nested grid
-                        startEditingFirstEditableInGrid(childGrid);
-                    }
-                    render();
-                } else {
-                    // Single-click: toggle cell expansion
-                    table.toggleCellExpansion(rowIndex, col.getName());
-                    table.calculateHeight();
-                    layoutDirty = true;
-                    ensureLayout();
-                    updateScrollBars();
-                    render();
-                }
-                return;
-            }
-
-            // Double-click for inline editing of simple cells
-            if (clickCount == 2 && col != null && !row.hasComplexChild(col.getName())) {
-                startEditingTableCell(table, rowIndex, col.getName());
-                return;
-            }
-
-            // Normal row selection
-            table.setSelectedRowIndex(rowIndex);
-            selectTable(table);
-            selectNode(null);
-            render();
-        } else if (rowIndex >= 0) {
-            // Click in row but not on a specific column
-            table.setSelectedRowIndex(rowIndex);
-            selectTable(table);
-            selectNode(null);
-            render();
-        }
-    }
-
-    /**
-     * Find the deepest nested node at the given point within expanded child grids.
-     * Searches recursively through all expanded rows and columns.
-     */
-    private NestedGridNode findNodeInExpandedChildGrids(RepeatingElementsTable table, double mx, double my) {
-        for (RepeatingElementsTable.TableRow row : table.getRows()) {
-            for (String colName : row.getExpandedColumns()) {
-                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-                if (childGrid != null) {
-                    // Check if point is within this child grid or any of its descendants
-                    NestedGridNode hit = findNodeAtPoint(childGrid, mx, my);
-                    if (hit != null) {
-                        return hit;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Recursively find the deepest node at a given point.
-     */
-    private NestedGridNode findNodeAtPoint(NestedGridNode node, double mx, double my) {
-        if (!isPointInNode(node, mx, my)) {
-            return null;
-        }
-
-        // Check tables in this node first
-        for (RepeatingElementsTable table : node.getRepeatingTables()) {
-            if (table.containsPoint(mx, my)) {
-                // Check for nested child grids in this table
-                NestedGridNode nested = findNodeInExpandedChildGrids(table, mx, my);
-                if (nested != null) {
-                    return nested;
-                }
-            }
-        }
-
-        // Check children recursively (find deepest match)
-        if (node.isExpanded()) {
-            for (NestedGridNode child : node.getChildren()) {
-                NestedGridNode hit = findNodeAtPoint(child, mx, my);
-                if (hit != null) {
-                    return hit;
-                }
-            }
-        }
-
-        // This node is the best match
-        return node;
-    }
-
-    private boolean isPointInNode(NestedGridNode node, double mx, double my) {
-        double x = node.getX();
-        double y = node.getY();
-        double w = node.getWidth();
-        double h = node.getHeight();
-        return mx >= x && mx <= x + w && my >= y && my <= y + h;
-    }
-
-    /**
-     * Handle click on a nested grid node - same behavior as main grid nodes.
-     * Supports both single-click (selection/expand) and double-click (editing).
-     */
-    private void handleNestedGridClick(NestedGridNode node, double mx, double my, int clickCount) {
-        double localX = mx - node.getX();
-        double localY = my - node.getY();
-
-        // Check if click is on header (expand/collapse area)
-        boolean headerClick = localY <= NestedGridNode.HEADER_HEIGHT;
-        boolean expandButtonClick = headerClick && localX <= 20;  // First 20px for expand/collapse button
-
-        // Double-click handling for editing - check attribute/text FIRST before header
-        if (clickCount == 2) {
-            int attrIndex = node.getAttributeIndexAt(mx, my);
-            boolean textHit = node.isTextContentHit(mx, my);
-
-            if (attrIndex >= 0) {
-                startEditingAttribute(node, attrIndex);
-                return;
-            } else if (textHit) {
-                startEditingTextContent(node);
-                return;
-            } else if (node.isHeaderHit(mx, my)) {
-                // For leaf elements with inline text: edit text content instead of element name
-                if (node.isLeafWithText() && node.hasTextContent()) {
-                    startEditingTextContent(node);
-                } else {
-                    // Double-click on header = edit element name
-                    startEditingElementName(node);
-                }
-                return;
-            }
-        }
-
-        if (expandButtonClick && node.hasExpandableContent()) {
-            // Toggle expand/collapse
-            node.setExpanded(!node.isExpanded());
-            if (node.isExpanded() && node.hasMoreChildren()) {
-                node.loadMoreChildren();
-            }
-            layoutDirty = true;
-            ensureLayout();
-            updateScrollBars();
-            render();
-        } else if (headerClick && clickCount == 1 && node.hasExpandableContent()) {
-            // Single click on header = expand/collapse
-            node.setExpanded(!node.isExpanded());
-            if (node.isExpanded() && node.hasMoreChildren()) {
-                node.loadMoreChildren();
-            }
-            layoutDirty = true;
-            ensureLayout();
-            updateScrollBars();
-            selectNode(node);
-            selectTable(null);
-            render();
-        } else {
-            // Single click - select the node
-            selectNode(node);
-            selectTable(null);
-            render();
-        }
-    }
-
-    private void handleMouseMove(MouseEvent event) {
-        double mx = event.getX() + scrollOffsetX;
-        double my = event.getY() + scrollOffsetY;
-
-        if (rootNode == null) {
-            return;
-        }
-
-        boolean needsRedraw = false;
-
-        // Check for table hover first
-        RepeatingElementsTable hitTable = findTableAt(rootNode, mx, my);
-        if (hitTable != null) {
-            // Clear node hover
-            if (hoveredNode != null) {
-                hoveredNode.setHovered(false);
-                hoveredNode = null;
-                needsRedraw = true;
-            }
-
-            // Update table hover
-            if (hitTable != hoveredTable) {
-                if (hoveredTable != null) {
-                    hoveredTable.setHovered(false);
-                }
-                hitTable.setHovered(true);
-                hoveredTable = hitTable;
-                needsRedraw = true;
-            }
-
-            // Track hovered row/column
-            int newRowIndex = hitTable.getRowIndexAt(my);
-            int newColIndex = hitTable.getColumnIndexAt(mx);
-
-            if (newRowIndex != hoveredTableRowIndex || newColIndex != hoveredTableColumnIndex) {
-                hoveredTableRowIndex = newRowIndex;
-                hoveredTableColumnIndex = newColIndex;
-                hitTable.setHoveredRowIndex(newRowIndex);
-                hitTable.setHoveredColumnIndex(newColIndex);
-                needsRedraw = true;
-            }
-
-            // Cursor - HAND for header and complex cells
-            if (hitTable.isHeaderHit(mx, my)) {
-                canvas.setCursor(javafx.scene.Cursor.HAND);
-            } else if (newRowIndex >= 0 && newColIndex >= 0) {
-                // Check if hovering over a complex cell
-                RepeatingElementsTable.TableColumn col = hitTable.getColumn(newColIndex);
-                RepeatingElementsTable.TableRow row = hitTable.getRows().get(newRowIndex);
-                if (col != null && row.hasComplexChild(col.getName())) {
-                    canvas.setCursor(javafx.scene.Cursor.HAND);
-                } else {
-                    canvas.setCursor(javafx.scene.Cursor.DEFAULT);
-                }
-            } else {
-                canvas.setCursor(javafx.scene.Cursor.DEFAULT);
-            }
-
-            if (needsRedraw) {
-                render();
+    private void selectNextRow() {
+        if (selectedRow == null) {
+            if (!visibleRows.isEmpty()) {
+                selectRow(visibleRows.get(0));
+                ensureRowVisible(selectedRow);
             }
             return;
         }
 
-        // Clear table hover
-        if (hoveredTable != null) {
-            hoveredTable.setHovered(false);
-            hoveredTable = null;
-            hoveredTableRowIndex = -1;
-            hoveredTableColumnIndex = -1;
-            needsRedraw = true;
+        int idx = visibleRows.indexOf(selectedRow);
+        if (idx < visibleRows.size() - 1) {
+            selectRow(visibleRows.get(idx + 1));
+            ensureRowVisible(selectedRow);
         }
-
-        // Find hovered node
-        NestedGridNode hitNode = findNodeAt(rootNode, mx, my);
-
-        if (hitNode != hoveredNode) {
-            if (hoveredNode != null) {
-                hoveredNode.setHovered(false);
-            }
-            if (hitNode != null) {
-                hitNode.setHovered(true);
-            }
-            hoveredNode = hitNode;
-            needsRedraw = true;
-        }
-
-        // Track hovered attribute/text
-        if (hitNode != null) {
-            int newAttrIndex = hitNode.getAttributeIndexAt(mx, my);
-            boolean newTextHover = hitNode.isTextContentHit(mx, my);
-
-            if (newAttrIndex != hoveredAttributeIndex || newTextHover != hoveredTextContent) {
-                hoveredAttributeIndex = newAttrIndex;
-                hoveredTextContent = newTextHover;
-                needsRedraw = true;
-            }
-
-            // Check if header is hovered
-            boolean headerHovered = hitNode.isHeaderHit(mx, my);
-            if (headerHovered != hitNode.isHeaderHovered()) {
-                hitNode.setHeaderHovered(headerHovered);
-                needsRedraw = true;
-            }
-
-            // Update cursor
-            if (headerHovered && hitNode.hasChildren()) {
-                canvas.setCursor(javafx.scene.Cursor.HAND);
-            } else {
-                canvas.setCursor(javafx.scene.Cursor.DEFAULT);
-            }
-        } else {
-            hoveredAttributeIndex = -1;
-            hoveredTextContent = false;
-            canvas.setCursor(javafx.scene.Cursor.DEFAULT);
-        }
-
-        if (needsRedraw) {
-            render();
-        }
-    }
-
-    private NestedGridNode findNodeAt(NestedGridNode node, double mx, double my) {
-        if (!node.containsPoint(mx, my)) {
-            return null;
-        }
-
-        // Check children first (they are rendered on top)
-        if (node.isExpanded()) {
-            for (NestedGridNode child : node.getChildren()) {
-                NestedGridNode found = findNodeAt(child, mx, my);
-                if (found != null) {
-                    return found;
-                }
-            }
-        }
-
-        return node;
-    }
-
-    private RepeatingElementsTable findTableAt(NestedGridNode node, double mx, double my) {
-        if (!node.containsPoint(mx, my)) {
-            return null;
-        }
-
-        // Check tables in this node
-        if (node.isExpanded()) {
-            for (RepeatingElementsTable table : node.getRepeatingTables()) {
-                if (table.containsPoint(mx, my)) {
-                    return table;
-                }
-            }
-
-            // Check tables in children
-            for (NestedGridNode child : node.getChildren()) {
-                RepeatingElementsTable found = findTableAt(child, mx, my);
-                if (found != null) {
-                    return found;
-                }
-            }
-        }
-
-        return null;
     }
 
     // ==================== Selection ====================
 
-    private void selectNode(NestedGridNode node) {
-        if (selectedNode != null) {
-            selectedNode.setSelected(false);
+    private void selectRow(FlatRow row) {
+        if (selectedRow != null) {
+            selectedRow.setSelected(false);
         }
 
-        selectedNode = node;
+        selectedRow = row;
 
-        if (selectedNode != null) {
-            selectedNode.setSelected(true);
+        if (selectedRow != null) {
+            selectedRow.setSelected(true);
             // Update selection model
-            context.getSelectionModel().setSelectedNode(node.getModelNode());
+            context.getSelectionModel().setSelectedNode(row.getModelNode());
         }
 
         render();
     }
 
-    private void selectTable(RepeatingElementsTable table) {
-        if (selectedTable != null) {
-            selectedTable.setSelected(false);
-        }
+    // ==================== Scroll-to-Selection ====================
 
-        selectedTable = table;
-
-        if (selectedTable != null) {
-            selectedTable.setSelected(true);
-        }
-
-        render();
-    }
-
-    // ==================== Tree Building ====================
-
-    private void rebuildTree() {
-        // Collect expand state before rebuilding
-        NestedGridNode.TreeState expandState = null;
-        if (rootNode != null) {
-            expandState = rootNode.collectExpandState();
-            rootNode.dispose();
-        }
-
-        XmlDocument doc = context.getDocument();
-        if (doc == null) {
-            rootNode = null;
-            totalHeight = 0;
-            totalWidth = 0;
-            updateScrollBars();
-            render();
+    /**
+     * Ensures the given row is visible in the viewport.
+     */
+    private void ensureRowVisible(FlatRow row) {
+        if (row == null) {
             return;
         }
 
-        rootNode = NestedGridNode.buildTree(doc, this::onLayoutChanged);
-
-        // Restore expand state after rebuild
-        if (expandState != null) {
-            rootNode.restoreExpandState(expandState);
-            logger.debug("Restored expand state for {} nodes, {} tables, {} cells",
-                expandState.nodeExpanded.size(), expandState.tableExpanded.size(), expandState.cellExpanded.size());
-        }
-
-        layoutDirty = true;
-        ensureLayout();
-        updateScrollBars();
-        render();
-    }
-
-    // ==================== Rendering ====================
-
-    public void render() {
-        double w = canvas.getWidth();
-        double h = canvas.getHeight();
-
-        if (w <= 0 || h <= 0) {
+        int idx = visibleRows.indexOf(row);
+        if (idx < 0 || idx >= rowYPositions.length) {
             return;
         }
 
-        // Clear canvas
-        gc.setFill(Color.WHITE);
-        gc.fillRect(0, 0, w, h);
+        double rowTop = rowYPositions[idx];
+        double rowBottom = rowTop + ROW_HEIGHT;
+        double viewTop = scrollOffsetY;
+        double viewBottom = viewTop + canvas.getHeight();
 
-        if (rootNode == null) {
-            drawEmptyState();
-            return;
-        }
-
-        // Viewport boundaries
-        double viewportTop = scrollOffsetY;
-        double viewportBottom = scrollOffsetY + h;
-
-        // Render visible grids
-        gc.save();
-        gc.translate(-scrollOffsetX, -scrollOffsetY);
-        renderVisible(rootNode, viewportTop, viewportBottom);
-        gc.restore();
-
-        // Draw info
-        drawInfo();
-    }
-
-    private void renderVisible(NestedGridNode node, double viewportTop, double viewportBottom) {
-        if (!node.isVisible(viewportTop, viewportBottom)) {
-            return; // Skip invisible grids
-        }
-
-        renderGrid(node);
-
-        if (node.isExpanded()) {
-            // Render repeating element tables
-            for (RepeatingElementsTable table : node.getRepeatingTables()) {
-                if (table.isVisible(viewportTop, viewportBottom)) {
-                    renderTable(table);
-                }
-            }
-
-            // Render individual children
-            for (NestedGridNode child : node.getChildren()) {
-                renderVisible(child, viewportTop, viewportBottom);
-            }
+        if (rowTop < viewTop) {
+            animateScrollTo(rowTop - 20);
+        } else if (rowBottom > viewBottom) {
+            animateScrollTo(rowBottom - canvas.getHeight() + 20);
         }
     }
 
     /**
-     * Renders a grid node and all its children recursively.
-     * Used for rendering expanded child grids in table cells.
-     * This doesn't do viewport culling - it renders everything.
+     * Smoothly animate scroll to target Y position.
      */
-    private void renderGridRecursively(NestedGridNode node) {
-        // First render this node
-        renderGrid(node);
-
-        // If expanded, render children
-        if (node.isExpanded()) {
-            // Render any repeating tables
-            for (RepeatingElementsTable table : node.getRepeatingTables()) {
-                renderTable(table);
-            }
-
-            // Render child nodes
-            for (NestedGridNode child : node.getChildren()) {
-                renderGridRecursively(child);
-            }
-        }
-    }
-
-    private void renderGrid(NestedGridNode node) {
-        // If skipOwnHeader is true, don't render this node's header/content
-        // Just let the children be rendered by renderGridRecursively
-        if (node.isSkipOwnHeader()) {
-            return;
-        }
-
-        double x = node.getX();
-        double y = node.getY();
-        double w = node.getWidth();
-        double h = node.getHeight();
-
-        // Compact rendering for leaf elements with only text (no attributes)
-        boolean isCompactLeaf = node.isLeafWithText() && node.getAttributeCells().isEmpty();
-
-        // Background based on depth
-        Color bgColor = DEPTH_COLORS[node.getDepth() % DEPTH_COLORS.length];
-        if (node == highlightedNode) {
-            bgColor = HIGHLIGHT_COLOR;  // Yellow highlight for undo/redo feedback
-        } else if (node.isSelected()) {
-            bgColor = SELECTED_BG;
-        } else if (node.isHovered()) {
-            bgColor = HOVERED_BG;
-        }
-
-        gc.setFill(bgColor);
-        gc.fillRoundRect(x, y, w, h, 6, 6);
-
-        // Border
-        gc.setStroke(node.isSelected() ? SELECTED_BORDER : GRID_BORDER);
-        gc.setLineWidth(node.isSelected() ? 2 : 1);
-        gc.strokeRoundRect(x, y, w, h, 6, 6);
-
-        // Header
-        drawGridHeader(node, x, y, w, isCompactLeaf);
-
-        // For compact leaf nodes, we're done - no more content below header
-        if (isCompactLeaf) {
-            return;
-        }
-
-        // Attribute rows
-        double rowY = y + HEADER_HEIGHT;
-        for (int i = 0; i < node.getAttributeCells().size(); i++) {
-            drawAttributeRow(node, i, x, rowY, w);
-            rowY += ROW_HEIGHT;
-        }
-
-        // Text content - only show as separate row if NOT a leaf with text
-        // (leaf text is shown directly in header)
-        if (node.hasTextContent() && !node.isLeafWithText()) {
-            drawTextContentRow(node, x, rowY, w);
-        }
-
-        // Children header - REMOVED: No longer displayed to save screen space
-        // if (node.hasChildren()) {
-        //     drawChildrenHeader(node, x, rowY, w);
-        // }
-    }
-
-    private void drawGridHeader(NestedGridNode node, double x, double y, double w, boolean isCompactLeaf) {
-        // Header background - for compact leaf, fill entire rounded rect
-        gc.setFill(GRID_HEADER_BG);
-        if (isCompactLeaf) {
-            // No bottom line for compact leaves - the header IS the entire node
-            gc.fillRoundRect(x + 1, y + 1, w - 2, HEADER_HEIGHT - 2, 5, 5);
-        } else {
-            gc.fillRoundRect(x + 1, y + 1, w - 2, HEADER_HEIGHT - 1, 5, 5);
-            // Header bottom line (only for non-compact nodes)
-            gc.setStroke(GRID_BORDER);
-            gc.setLineWidth(1);
-            gc.strokeLine(x, y + HEADER_HEIGHT, x + w, y + HEADER_HEIGHT);
-        }
-
-        // Expand/collapse indicator (not for compact leaves)
-        double iconX = x + GRID_PADDING;
-        double iconY = y + HEADER_HEIGHT / 2;
-
-        if (node.hasChildren() && !isCompactLeaf) {
-            gc.setStroke(TEXT_SECONDARY);
-            gc.setLineWidth(1.5);
-
-            double size = 4;
-            if (node.isExpanded()) {
-                // Down arrow (expanded)
-                gc.strokeLine(iconX, iconY - size / 2, iconX + size, iconY + size / 2);
-                gc.strokeLine(iconX + size, iconY + size / 2, iconX + size * 2, iconY - size / 2);
-            } else {
-                // Right arrow (collapsed)
-                gc.strokeLine(iconX, iconY - size, iconX + size, iconY);
-                gc.strokeLine(iconX + size, iconY, iconX, iconY + size);
-            }
-            iconX += size * 2 + 8;
-        }
-
-        // Element icon
-        drawElementIcon(node.getNodeType(), iconX, y + (HEADER_HEIGHT - 14) / 2);
-        iconX += 18;
-
-        // Element name
-        gc.setFont(HEADER_FONT);
-        gc.setFill(getElementColor(node.getNodeType()));
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-
-        // For leaf elements with text, show: elementName = "text content"
-        if (node.isLeafWithText()) {
-            String displayName = node.getElementName();
-            gc.fillText(displayName, iconX, y + HEADER_HEIGHT / 2);
-
-            // Calculate position after element name
-            double nameWidth = displayName.length() * 7 + 4;
-            double textX = iconX + nameWidth;
-
-            // Draw equals sign and text value - skip if being edited (edit field replaces it)
-            if (!isEditingLeafText(node)) {
-                gc.setFill(TEXT_SECONDARY);
-                gc.fillText("=", textX, y + HEADER_HEIGHT / 2);
-                textX += 12;
-
-                // Draw text value - node width is calculated to fit content
-                gc.setFill(TEXT_CONTENT);
-                gc.setFont(ROW_FONT);
-                String textValue = "\"" + node.getTextContent() + "\"";
-                gc.fillText(textValue, textX, y + HEADER_HEIGHT / 2);
-            }
-        } else {
-            // Element name - skip if being edited (edit field replaces it)
-            if (!isEditingElementName(node)) {
-                gc.fillText(node.getElementName(), iconX, y + HEADER_HEIGHT / 2);
-            }
-
-            // Children count (on right side)
-            if (node.hasChildren()) {
-                int totalChildren = node.getChildren().size();
-                // Also count elements in repeating tables
-                for (RepeatingElementsTable table : node.getRepeatingTables()) {
-                    totalChildren += table.getElementCount();
-                }
-                String childCount = "(" + totalChildren + ")";
-                if (node.hasMoreChildren()) {
-                    childCount += " ...";
-                }
-                gc.setFont(SMALL_FONT);
-                gc.setFill(TEXT_SECONDARY);
-                gc.setTextAlign(TextAlignment.RIGHT);
-                gc.fillText(childCount, x + w - GRID_PADDING, y + HEADER_HEIGHT / 2);
-            }
-        }
-    }
-
-    private void drawAttributeRow(NestedGridNode node, int index, double x, double y, double w) {
-        NestedGridNode.AttributeCell cell = node.getAttributeCells().get(index);
-
-        // Row hover highlight
-        if (node.isHovered() && hoveredAttributeIndex == index) {
-            gc.setFill(HOVERED_ROW);
-            gc.fillRect(x + 1, y, w - 2, ROW_HEIGHT);
-        }
-
-        // Row separator
-        gc.setStroke(ROW_SEPARATOR);
-        gc.setLineWidth(0.5);
-        gc.strokeLine(x + GRID_PADDING, y + ROW_HEIGHT, x + w - GRID_PADDING, y + ROW_HEIGHT);
-
-        // Use calculated column widths for proper alignment
-        double nameColWidth = node.getCalculatedNameColumnWidth();
-
-        // Attribute name (@name)
-        gc.setFont(ROW_FONT);
-        gc.setFill(TEXT_ATTRIBUTE_NAME);
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText("@" + cell.getName(), x + GRID_PADDING, y + ROW_HEIGHT / 2);
-
-        // Attribute value - skip drawing if this cell is being edited (edit field replaces it)
-        if (!isEditingAttribute(node, index)) {
-            gc.setFill(TEXT_ATTRIBUTE_VALUE);
-            gc.fillText(cell.getValue(), x + nameColWidth, y + ROW_HEIGHT / 2);
-        }
-    }
-
-    private void drawTextContentRow(NestedGridNode node, double x, double y, double w) {
-        // Row hover highlight
-        if (node.isHovered() && hoveredTextContent) {
-            gc.setFill(HOVERED_ROW);
-            gc.fillRect(x + 1, y, w - 2, ROW_HEIGHT);
-        }
-
-        // Row separator
-        gc.setStroke(ROW_SEPARATOR);
-        gc.setLineWidth(0.5);
-        gc.strokeLine(x + GRID_PADDING, y + ROW_HEIGHT, x + w - GRID_PADDING, y + ROW_HEIGHT);
-
-        // Use calculated column widths for proper alignment
-        double nameColWidth = node.getCalculatedNameColumnWidth();
-
-        // Text label
-        gc.setFont(ROW_FONT);
-        gc.setFill(TEXT_SECONDARY);
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText("#text", x + GRID_PADDING, y + ROW_HEIGHT / 2);
-
-        // Text content - skip drawing if being edited (edit field replaces it)
-        if (!isEditingTextContent(node)) {
-            gc.setFill(TEXT_CONTENT);
-            gc.fillText(node.getTextContent(), x + nameColWidth, y + ROW_HEIGHT / 2);
-        }
-    }
-
-    private void drawElementIcon(NestedGridNode.NodeType type, double x, double y) {
-        gc.setLineWidth(1.5);
-        gc.setStroke(getElementColor(type));
-        gc.setFill(getElementColor(type));
-
-        double cx = x + 7;
-        double cy = y + 7;
-        double size = 4;
-
-        switch (type) {
-            case ELEMENT:
-                // < > brackets
-                gc.strokeLine(cx - size, cy, cx - size / 2, cy - size);
-                gc.strokeLine(cx - size, cy, cx - size / 2, cy + size);
-                gc.strokeLine(cx + size, cy, cx + size / 2, cy - size);
-                gc.strokeLine(cx + size, cy, cx + size / 2, cy + size);
-                break;
-
-            case TEXT:
-                // T icon
-                gc.setLineWidth(2);
-                gc.strokeLine(cx - size, cy - size, cx + size, cy - size);
-                gc.strokeLine(cx, cy - size, cx, cy + size);
-                gc.setLineWidth(1.5);
-                break;
-
-            case COMMENT:
-                // Speech bubble
-                gc.strokeRoundRect(cx - size, cy - size * 0.6, size * 2, size * 1.2, 3, 3);
-                break;
-
-            case CDATA:
-                // Square brackets
-                gc.strokeLine(cx - size, cy - size, cx - size + 2, cy - size);
-                gc.strokeLine(cx - size, cy - size, cx - size, cy + size);
-                gc.strokeLine(cx - size, cy + size, cx - size + 2, cy + size);
-                gc.strokeLine(cx + size, cy - size, cx + size - 2, cy - size);
-                gc.strokeLine(cx + size, cy - size, cx + size, cy + size);
-                gc.strokeLine(cx + size, cy + size, cx + size - 2, cy + size);
-                break;
-
-            case PROCESSING_INSTRUCTION:
-                // Gear/circle
-                gc.strokeOval(cx - size / 2, cy - size / 2, size, size);
-                break;
-
-            case DOCUMENT:
-                // Document icon
-                gc.strokeRect(cx - size * 0.7, cy - size, size * 1.4, size * 2);
-                gc.strokeLine(cx - size * 0.3, cy - size * 0.4, cx + size * 0.3, cy - size * 0.4);
-                gc.strokeLine(cx - size * 0.3, cy, cx + size * 0.3, cy);
-                break;
-
-            default:
-                gc.strokeOval(cx - size / 2, cy - size / 2, size, size);
-        }
-    }
-
-    private void drawEmptyState() {
-        gc.setFill(TEXT_SECONDARY);
-        gc.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText("No XML document loaded", canvas.getWidth() / 2, canvas.getHeight() / 2);
-    }
-
-    private void drawInfo() {
-        if (rootNode == null) {
-            return;
-        }
-
-        String info = String.format("%.0f x %.0f px", totalWidth, totalHeight);
-
-        gc.setFill(TEXT_SECONDARY);
-        gc.setFont(SMALL_FONT);
-        gc.setTextAlign(TextAlignment.RIGHT);
-        gc.setTextBaseline(VPos.BOTTOM);
-        gc.fillText(info, canvas.getWidth() - 5, canvas.getHeight() - 3);
-    }
-
-    // ==================== Table Rendering ====================
-
-    private void renderTable(RepeatingElementsTable table) {
-        double x = table.getX();
-        double y = table.getY();
-        double w = table.getWidth();
-        double h = table.getHeight();
-
-        // Background
-        Color bgColor = (table == selectedTable) ? SELECTED_BG : Color.WHITE;
-        gc.setFill(bgColor);
-        gc.fillRoundRect(x, y, w, h, 6, 6);
-
-        // Border
-        gc.setStroke((table == selectedTable) ? SELECTED_BORDER : TABLE_BORDER);
-        gc.setLineWidth((table == selectedTable) ? 2 : 1);
-        gc.strokeRoundRect(x, y, w, h, 6, 6);
-
-        // Table header with element name and count
-        drawTableHeader(table, x, y, w);
-
-        if (!table.isExpanded()) {
-            return;
-        }
-
-        // Column headers
-        double rowY = y + HEADER_HEIGHT;
-        drawTableColumnHeaders(table, x, rowY, w);
-        rowY += ROW_HEIGHT;
-
-        // Data rows - each row may have variable height due to expanded cells
-        for (int i = 0; i < table.getRows().size(); i++) {
-            RepeatingElementsTable.TableRow row = table.getRows().get(i);
-            double rowHeight = calculateRowHeight(table, row);
-
-            // Draw the row with variable height
-            drawTableDataRowWithExpandedCells(table, row, i, x, rowY, w, rowHeight);
-
-            rowY += rowHeight;
-        }
-    }
-
-    /**
-     * Calculate the height of a row, accounting for expanded child grids in cells.
-     */
-    private double calculateRowHeight(RepeatingElementsTable table, RepeatingElementsTable.TableRow row) {
-        double maxCellHeight = ROW_HEIGHT;
-
-        for (String colName : row.getExpandedColumns()) {
-            NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-            if (childGrid != null) {
-                double colW = table.getColumnWidth(colName);
-                double childW = colW - 4;
-
-                // Calculate size with column width constraint
-                calculateSizesRecursively(childGrid, childW);
-
-                // Cell height = text row + child grid + padding
-                double cellHeight = ROW_HEIGHT + childGrid.getHeight() + 4;
-                maxCellHeight = Math.max(maxCellHeight, cellHeight);
-            }
-        }
-
-        return maxCellHeight;
-    }
-
-    /**
-     * Draw a table data row with expanded child grids rendered inside their cells.
-     */
-    private void drawTableDataRowWithExpandedCells(RepeatingElementsTable table,
-                                                    RepeatingElementsTable.TableRow row,
-                                                    int rowIndex, double x, double y,
-                                                    double w, double rowHeight) {
-        // Row background
-        Color rowBg;
-        if (table == selectedTable && table.getSelectedRowIndex() == rowIndex) {
-            rowBg = TABLE_ROW_SELECTED;
-        } else if (table == hoveredTable && hoveredTableRowIndex == rowIndex) {
-            rowBg = TABLE_ROW_HOVER;
-        } else {
-            rowBg = (rowIndex % 2 == 0) ? TABLE_ROW_EVEN : TABLE_ROW_ODD;
-        }
-
-        gc.setFill(rowBg);
-        gc.fillRect(x + 1, y, w - 2, rowHeight);
-
-        // Bottom border
-        gc.setStroke(ROW_SEPARATOR);
-        gc.setLineWidth(0.5);
-        gc.strokeLine(x + GRID_PADDING, y + rowHeight, x + w - GRID_PADDING, y + rowHeight);
-
-        // Draw each cell
-        double colX = x + GRID_PADDING;
-        for (RepeatingElementsTable.TableColumn col : table.getColumns()) {
-            String colName = col.getName();
-            String value = row.getValue(colName);
-            boolean isComplex = row.hasComplexChild(colName);
-            boolean isExpanded = row.isColumnExpanded(colName);
-
-            // Draw cell content
-            drawTableCell(col, colX, y, value, isComplex, isExpanded);
-
-            // Draw expanded child grid inside the cell (below the text)
-            if (isExpanded) {
-                NestedGridNode childGrid = row.getExpandedChildGrids().get(colName);
-                if (childGrid != null) {
-                    double childX = colX + 2;
-                    double childY = y + ROW_HEIGHT;  // Below the text
-
-                    // Size already calculated in calculateRowHeight
-                    positionNodesRecursively(childGrid, childX, childY);
-                    renderGridRecursively(childGrid);
-                }
-            }
-
-            // Column separator (full height of the row)
-            colX += col.getWidth();
-            gc.setStroke(ROW_SEPARATOR);
-            gc.setLineWidth(0.5);
-            gc.strokeLine(colX, y, colX, y + rowHeight);
-        }
-    }
-
-    /**
-     * Draw a single table cell's text content.
-     */
-    private void drawTableCell(RepeatingElementsTable.TableColumn col, double colX, double y,
-                               String value, boolean isComplex, boolean isExpanded) {
-        double textStartX = colX;
-
-        // Draw expand/collapse indicator for complex cells
-        if (isComplex) {
-            double iconX = colX + 2;
-            double iconY = y + ROW_HEIGHT / 2;
-            double iconSize = 3;
-
-            gc.setStroke(Color.rgb(59, 130, 246));  // Blue
-            gc.setLineWidth(1.5);
-
-            if (isExpanded) {
-                // Down arrow (expanded)
-                gc.strokeLine(iconX, iconY - iconSize, iconX + iconSize, iconY);
-                gc.strokeLine(iconX + iconSize, iconY, iconX + iconSize * 2, iconY - iconSize);
-            } else {
-                // Right arrow (collapsed)
-                gc.strokeLine(iconX, iconY - iconSize, iconX + iconSize, iconY);
-                gc.strokeLine(iconX, iconY + iconSize, iconX + iconSize, iconY);
-            }
-
-            textStartX = colX + iconSize * 2 + 6;
-        }
-
-        // Set text style
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-
-        if (isComplex) {
-            gc.setFill(Color.rgb(59, 130, 246)); // Blue
-            gc.setFont(Font.font("System", FontWeight.NORMAL, 12));
-        } else if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
-            gc.setFill(TEXT_ATTRIBUTE_VALUE);
-            gc.setFont(ROW_FONT);
-        } else {
-            gc.setFill(TEXT_CONTENT);
-            gc.setFont(ROW_FONT);
-        }
-
-        // Truncate and draw text
-        double availableWidth = col.getWidth() - (textStartX - colX) - GRID_PADDING;
-        gc.fillText(truncateText(value, availableWidth), textStartX, y + ROW_HEIGHT / 2);
-    }
-
-    private void drawTableHeader(RepeatingElementsTable table, double x, double y, double w) {
-        // Header background (green tint for tables)
-        gc.setFill(TABLE_HEADER_BG);
-        gc.fillRoundRect(x + 1, y + 1, w - 2, HEADER_HEIGHT - 1, 5, 5);
-
-        // Header bottom line
-        gc.setStroke(TABLE_BORDER);
-        gc.setLineWidth(1);
-        gc.strokeLine(x, y + HEADER_HEIGHT, x + w, y + HEADER_HEIGHT);
-
-        // Expand/collapse indicator
-        double iconX = x + GRID_PADDING;
-        double iconY = y + HEADER_HEIGHT / 2;
-
-        gc.setStroke(TABLE_HEADER_TEXT);
-        gc.setLineWidth(1.5);
-
-        double size = 4;
-        if (table.isExpanded()) {
-            // Down arrow (expanded)
-            gc.strokeLine(iconX, iconY - size / 2, iconX + size, iconY + size / 2);
-            gc.strokeLine(iconX + size, iconY + size / 2, iconX + size * 2, iconY - size / 2);
-        } else {
-            // Right arrow (collapsed)
-            gc.strokeLine(iconX, iconY - size, iconX + size, iconY);
-            gc.strokeLine(iconX + size, iconY, iconX, iconY + size);
-        }
-        iconX += size * 2 + 8;
-
-        // Table icon (grid symbol)
-        drawTableIcon(iconX, y + (HEADER_HEIGHT - 14) / 2);
-        iconX += 18;
-
-        // Element name with count
-        gc.setFont(HEADER_FONT);
-        gc.setFill(TABLE_HEADER_TEXT);
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText(table.getElementName() + " (" + table.getElementCount() + "×)", iconX, y + HEADER_HEIGHT / 2);
-    }
-
-    private void drawTableIcon(double x, double y) {
-        gc.setStroke(TABLE_HEADER_TEXT);
-        gc.setLineWidth(1);
-
-        // 3x3 grid
-        double size = 12;
-        double cellSize = size / 3;
-
-        gc.strokeRect(x, y, size, size);
-        gc.strokeLine(x + cellSize, y, x + cellSize, y + size);
-        gc.strokeLine(x + cellSize * 2, y, x + cellSize * 2, y + size);
-        gc.strokeLine(x, y + cellSize, x + size, y + cellSize);
-        gc.strokeLine(x, y + cellSize * 2, x + size, y + cellSize * 2);
-    }
-
-    private void drawTableColumnHeaders(RepeatingElementsTable table, double x, double y, double w) {
-        // Background
-        gc.setFill(Color.rgb(249, 250, 251));
-        gc.fillRect(x + 1, y, w - 2, ROW_HEIGHT);
-
-        // Bottom border
-        gc.setStroke(TABLE_BORDER);
-        gc.setLineWidth(1);
-        gc.strokeLine(x, y + ROW_HEIGHT, x + w, y + ROW_HEIGHT);
-
-        // Column headers
-        gc.setFont(ROW_FONT_BOLD);
-        gc.setFill(TEXT_SECONDARY);
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-
-        double colX = x + GRID_PADDING;
-        String sortedColumn = table.getSortedColumnName();
-
-        for (RepeatingElementsTable.TableColumn col : table.getColumns()) {
-            boolean isSorted = col.getName().equals(sortedColumn);
-            double sortIconWidth = isSorted ? 14 : 0;  // Space for sort arrow
-
-            // Draw column name (leave space for sort icon if sorted)
-            gc.setFill(isSorted ? TEXT_CONTENT : TEXT_SECONDARY);
-            gc.fillText(truncateText(col.getDisplayName(), col.getWidth() - GRID_PADDING * 2 - sortIconWidth),
-                        colX, y + ROW_HEIGHT / 2);
-
-            // Draw sort indicator arrow if this column is sorted
-            if (isSorted) {
-                drawSortArrow(colX + col.getWidth() - GRID_PADDING - 10, y + ROW_HEIGHT / 2, table.isSortAscending());
-            }
-
-            // Column separator
-            colX += col.getWidth();
-            gc.setStroke(ROW_SEPARATOR);
-            gc.setLineWidth(0.5);
-            gc.strokeLine(colX, y, colX, y + ROW_HEIGHT);
-        }
-    }
-
-    /**
-     * Draws a sort direction arrow (triangle).
-     *
-     * @param x         center X position
-     * @param y         center Y position
-     * @param ascending true for up arrow (ascending), false for down arrow (descending)
-     */
-    private void drawSortArrow(double x, double y, boolean ascending) {
-        gc.setFill(Color.rgb(59, 130, 246));  // Blue color for sort indicator
-
-        double arrowSize = 5;
-        double[] xPoints;
-        double[] yPoints;
-
-        if (ascending) {
-            // Up arrow (triangle pointing up)
-            xPoints = new double[]{x, x - arrowSize, x + arrowSize};
-            yPoints = new double[]{y - arrowSize, y + arrowSize, y + arrowSize};
-        } else {
-            // Down arrow (triangle pointing down)
-            xPoints = new double[]{x, x - arrowSize, x + arrowSize};
-            yPoints = new double[]{y + arrowSize, y - arrowSize, y - arrowSize};
-        }
-
-        gc.fillPolygon(xPoints, yPoints, 3);
-    }
-
-    // ==================== Helper Methods ====================
-
-    private Color getElementColor(NestedGridNode.NodeType type) {
-        switch (type) {
-            case ELEMENT: return TEXT_ELEMENT;
-            case TEXT: return TEXT_CONTENT;
-            case COMMENT: return TEXT_COMMENT;
-            case CDATA: return TEXT_CDATA;
-            case PROCESSING_INSTRUCTION: return TEXT_PI;
-            default: return TEXT_SECONDARY;
-        }
-    }
-
-    private String truncateText(String text, double maxWidth) {
-        if (text == null) {
-            return "";
-        }
-
-        int maxChars = (int) (maxWidth / 7);
-        if (text.length() <= maxChars) {
-            return text;
-        }
-        return text.substring(0, Math.max(0, maxChars - 3)) + "...";
-    }
-
-    /**
-     * Builds the XPath for a node by traversing up to root.
-     *
-     * @param node the grid node
-     * @return the XPath string (e.g., "/Root/Child/Element")
-     */
-    private String getElementXPath(NestedGridNode node) {
-        if (node == null) {
-            return "";
-        }
-
-        StringBuilder path = new StringBuilder();
-        NestedGridNode current = node;
-
-        while (current != null) {
-            String name = current.getElementName();
-            if (name != null && !name.isEmpty()) {
-                if (path.length() > 0) {
-                    path.insert(0, "/");
-                }
-                path.insert(0, name);
-            }
-            current = current.getParent();
-        }
-
-        return "/" + path;
+    private void animateScrollTo(double targetY) {
+        targetY = Math.max(0, Math.min(targetY, totalHeight - canvas.getHeight()));
+
+        Timeline timeline = new Timeline(
+            new KeyFrame(Duration.ZERO, new KeyValue(vScrollBar.valueProperty(), scrollOffsetY)),
+            new KeyFrame(Duration.millis(200), new KeyValue(vScrollBar.valueProperty(), targetY))
+        );
+        timeline.play();
     }
 
     // ==================== Inline Editing ====================
 
-    private void startEditingAttribute(NestedGridNode node, int attrIndex) {
+    private void startEditingValue(FlatRow row) {
         cancelEditing();
 
-        if (attrIndex < 0 || attrIndex >= node.getAttributeCells().size()) {
+        if (row == null) {
             return;
         }
 
-        editingNode = node;
-        editingAttributeIndex = attrIndex;
-        editingTextContent = false;
+        editingRow = row;
+        editingValue = true;
         editingElementName = false;
 
-        NestedGridNode.AttributeCell cell = node.getAttributeCells().get(attrIndex);
-        String currentValue = cell.getValue();
+        String currentValue = row.getValue() != null ? row.getValue() : "";
 
-        double x = node.getX() + ATTR_NAME_WIDTH - scrollOffsetX;
-        double y = node.getY() + HEADER_HEIGHT + attrIndex * ROW_HEIGHT + 2 - scrollOffsetY;
-        double width = node.getWidth() - ATTR_NAME_WIDTH - GRID_PADDING;
+        int idx = visibleRows.indexOf(row);
+        if (idx < 0) {
+            return;
+        }
+
+        double x = nameColumnWidth - scrollOffsetX;
+        double y = rowYPositions[idx] - scrollOffsetY + 2;
+        double width = Math.max(canvas.getWidth() - nameColumnWidth, MIN_VALUE_COL_WIDTH);
 
         // Get XPath for schema lookup
-        String elementXPath = getElementXPath(node);
-        String attributeName = cell.getName();
+        String elementXPath = getRowXPath(row);
+        String attributeName = (row.getType() == FlatRow.RowType.ATTRIBUTE) ? row.getLabel() : null;
 
         createEditField(currentValue, x, y, width, elementXPath, attributeName);
     }
 
-    private void startEditingTextContent(NestedGridNode node) {
+    private void startEditingElementName(FlatRow row) {
         cancelEditing();
 
-        if (!node.hasTextContent()) {
+        if (row == null || row.getType() != FlatRow.RowType.ELEMENT) {
             return;
         }
 
-        editingNode = node;
-        editingAttributeIndex = -1;
-        editingTextContent = true;
-        editingElementName = false;
-
-        String currentValue = node.getTextContent();
-
-        double x, y, width;
-
-        // For leaf elements with inline text, position in header after "elementName = "
-        if (node.isLeafWithText()) {
-            // Calculate position after element name and "=" sign
-            String elementName = node.getElementName();
-            double textOffset = GRID_PADDING + 20 + gc.getFont().getSize() * elementName.length() * 0.6 + 30; // Approximate width
-            x = node.getX() + textOffset - scrollOffsetX;
-            y = node.getY() + 2 - scrollOffsetY;
-            width = node.getWidth() - textOffset - GRID_PADDING;
-        } else {
-            // Standard text row below attributes
-            x = node.getX() + ATTR_NAME_WIDTH - scrollOffsetX;
-            y = node.getY() + HEADER_HEIGHT + node.getAttributeCells().size() * ROW_HEIGHT + 2 - scrollOffsetY;
-            width = node.getWidth() - ATTR_NAME_WIDTH - GRID_PADDING;
-        }
-
-        // Get XPath for schema lookup
-        String elementXPath = getElementXPath(node);
-
-        createEditField(currentValue, x, y, width, elementXPath, null);
-    }
-
-    private void startEditingElementName(NestedGridNode node) {
-        cancelEditing();
-
-        // Only elements can have their name edited
-        XmlNode modelNode = node.getModelNode();
+        XmlNode modelNode = row.getModelNode();
         if (!(modelNode instanceof XmlElement)) {
             return;
         }
 
-        editingNode = node;
-        editingAttributeIndex = -1;
-        editingTextContent = false;
+        editingRow = row;
+        editingValue = false;
         editingElementName = true;
 
-        String currentValue = node.getElementName();
+        String currentValue = row.getLabel();
 
-        // Position the edit field in the header
-        double x = node.getX() + GRID_PADDING + 40 - scrollOffsetX;  // After expand icon
-        double y = node.getY() + 2 - scrollOffsetY;
-        double width = node.getWidth() - 60;
-
-        createEditField(currentValue, x, y, width);
-    }
-
-    /**
-     * Starts editing the first editable content in a nested grid.
-     * This is used when double-clicking on a complex cell in a table to enable
-     * immediate editing of the nested content, just like regular nested nodes.
-     *
-     * <p>Priority for editing:</p>
-     * <ol>
-     *   <li>If the node is a leaf with text content, edit the text</li>
-     *   <li>If the node has attributes, edit the first attribute</li>
-     *   <li>If the node has text content, edit the text</li>
-     *   <li>If the node has children, recursively find the first editable child</li>
-     * </ol>
-     *
-     * @param grid the nested grid node to start editing in
-     */
-    private void startEditingFirstEditableInGrid(NestedGridNode grid) {
-        if (grid == null) {
+        int idx = visibleRows.indexOf(row);
+        if (idx < 0) {
             return;
         }
 
-        // Ensure the grid is expanded
-        if (!grid.isExpanded() && grid.hasExpandableContent()) {
-            grid.setExpanded(true);
-            layoutDirty = true;
-            ensureLayout();
-        }
+        double labelX = getRowLabelX(row) - scrollOffsetX;
+        double y = rowYPositions[idx] - scrollOffsetY + 2;
+        double width = nameColumnWidth - labelX - NAME_VALUE_GAP;
 
-        // Select this node first
-        selectNode(grid);
-        selectTable(null);
-
-        // Try to find the first editable content
-        NestedGridNode editableNode = findFirstEditableNode(grid);
-        if (editableNode != null) {
-            // Select the editable node
-            selectNode(editableNode);
-
-            // Start editing based on what's available
-            if (editableNode.isLeafWithText() && editableNode.hasTextContent()) {
-                startEditingTextContent(editableNode);
-            } else if (!editableNode.getAttributeCells().isEmpty()) {
-                startEditingAttribute(editableNode, 0);
-            } else if (editableNode.hasTextContent()) {
-                startEditingTextContent(editableNode);
-            }
-        }
-    }
-
-    /**
-     * Recursively finds the first node with editable content in a grid hierarchy.
-     *
-     * @param node the starting node
-     * @return the first editable node, or null if none found
-     */
-    private NestedGridNode findFirstEditableNode(NestedGridNode node) {
-        if (node == null) {
-            return null;
-        }
-
-        // Check if this node itself is editable
-        if (node.isLeafWithText() && node.hasTextContent()) {
-            return node;
-        }
-        if (!node.getAttributeCells().isEmpty()) {
-            return node;
-        }
-        if (node.hasTextContent()) {
-            return node;
-        }
-
-        // Check children if expanded
-        if (node.isExpanded()) {
-            for (NestedGridNode child : node.getChildren()) {
-                NestedGridNode editable = findFirstEditableNode(child);
-                if (editable != null) {
-                    return editable;
-                }
-            }
-
-            // Check tables for editable cells
-            for (RepeatingElementsTable table : node.getRepeatingTables()) {
-                if (table.isExpanded() && !table.getRows().isEmpty()) {
-                    // Check first row for simple (non-complex) cells
-                    RepeatingElementsTable.TableRow firstRow = table.getRows().get(0);
-                    for (RepeatingElementsTable.TableColumn col : table.getColumns()) {
-                        if (!firstRow.hasComplexChild(col.getName())) {
-                            // Found a simple editable cell - but we need a NestedGridNode
-                            // For now, just return null and let the user click on the specific cell
-                            return null;
-                        }
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private void startEditingTableCell(RepeatingElementsTable table, int rowIndex, String columnName) {
-        cancelEditing();
-
-        if (rowIndex < 0 || rowIndex >= table.getRows().size()) {
-            return;
-        }
-
-        RepeatingElementsTable.TableRow row = table.getRows().get(rowIndex);
-        RepeatingElementsTable.TableColumn col = null;
-        for (RepeatingElementsTable.TableColumn c : table.getColumns()) {
-            if (c.getName().equals(columnName)) {
-                col = c;
-                break;
-            }
-        }
-        if (col == null) {
-            return;
-        }
-
-        // Don't edit complex cells (they have children)
-        if (row.hasComplexChild(columnName)) {
-            return;
-        }
-
-        editingTable = table;
-        editingTableRowIndex = rowIndex;
-        editingTableColumnName = columnName;
-        editingNode = null;  // Clear node editing state
-
-        String currentValue = row.getValue(columnName);
-
-        // Calculate cell position
-        double cellX = table.getColumnX(columnName) - scrollOffsetX;
-        double cellY = table.getRowY(rowIndex) + 2 - scrollOffsetY;
-        double cellWidth = table.getColumnWidth(columnName) - 4;
-
-        createEditField(currentValue, cellX, cellY, cellWidth);
+        createEditField(currentValue, labelX, y, width);
     }
 
     private void createEditField(String currentValue, double x, double y, double width) {
@@ -2276,17 +1862,10 @@ public class XmlCanvasView extends Pane {
 
     /**
      * Creates a type-aware edit field using schema information if available.
-     *
-     * @param currentValue the current value
-     * @param x x position
-     * @param y y position
-     * @param width field width
-     * @param elementXPath the XPath of the element (for schema lookup)
-     * @param attributeName the attribute name (null for text content)
      */
     private void createEditField(String currentValue, double x, double y, double width,
                                   String elementXPath, String attributeName) {
-        // Calculate minimum width based on content to ensure full visibility
+        // Calculate minimum width based on content
         double contentBasedWidth = (currentValue != null ? currentValue.length() : 0) * 8 + 30;
         double effectiveWidth = Math.max(width, Math.max(contentBasedWidth, 120));
 
@@ -2296,34 +1875,24 @@ public class XmlCanvasView extends Pane {
 
             TypeAwareWidgetFactory.EditWidget widget;
             if (attributeName != null) {
-                // Attribute editing
                 widget = factory.createAttributeWidget(elementXPath, attributeName, currentValue,
-                        newValue -> {
-                            // Commit editing when value changes (e.g., dropdown selection)
-                            javafx.application.Platform.runLater(this::commitEditing);
-                        });
+                        newValue -> javafx.application.Platform.runLater(this::commitEditing));
             } else {
-                // Element text content editing
                 widget = factory.createElementWidget(elementXPath, currentValue,
-                        newValue -> {
-                            // Commit editing when value changes (e.g., dropdown selection)
-                            javafx.application.Platform.runLater(this::commitEditing);
-                        });
+                        newValue -> javafx.application.Platform.runLater(this::commitEditing));
             }
 
             if (widget != null) {
                 activeEditWidget = widget;
                 activeWidgetNode = widget.getNode();
 
-                // Determine minimum width based on widget type
                 double widgetMinWidth = effectiveWidth;
                 if (activeWidgetNode instanceof javafx.scene.control.DatePicker) {
-                    widgetMinWidth = Math.max(widgetMinWidth, 160);  // DatePicker needs more space
+                    widgetMinWidth = Math.max(widgetMinWidth, 160);
                 } else if (activeWidgetNode instanceof javafx.scene.control.ComboBox) {
-                    widgetMinWidth = Math.max(widgetMinWidth, 150);  // ComboBox needs more space
+                    widgetMinWidth = Math.max(widgetMinWidth, 150);
                 }
 
-                // Position and size the widget
                 if (activeWidgetNode instanceof javafx.scene.layout.Region region) {
                     region.setLayoutX(x);
                     region.setLayoutY(y);
@@ -2335,7 +1904,6 @@ public class XmlCanvasView extends Pane {
                     activeWidgetNode.setLayoutY(y);
                 }
 
-                // Handle Enter and Escape keys
                 activeWidgetNode.setOnKeyPressed(e -> {
                     if (e.getCode() == KeyCode.ESCAPE) {
                         cancelEditing();
@@ -2344,10 +1912,8 @@ public class XmlCanvasView extends Pane {
                     }
                 });
 
-                // Handle focus loss for widgets (like DatePicker)
                 activeWidgetNode.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
                     if (!isFocused && activeWidgetNode != null && !isCommitting) {
-                        // Small delay to allow for popup interactions
                         javafx.application.Platform.runLater(() -> {
                             if (activeWidgetNode != null && !activeWidgetNode.isFocused()) {
                                 commitEditing();
@@ -2365,7 +1931,7 @@ public class XmlCanvasView extends Pane {
             }
         }
 
-        // Fallback to standard TextField with content-based width
+        // Fallback to standard TextField
         editField = new TextField(currentValue);
         editField.setLayoutX(x);
         editField.setLayoutY(y);
@@ -2387,7 +1953,7 @@ public class XmlCanvasView extends Pane {
             });
         }
 
-        editField.setOnAction(e -> commitEditing());  // ENTER key commits
+        editField.setOnAction(e -> commitEditing());
         editField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 cancelEditing();
@@ -2398,10 +1964,8 @@ public class XmlCanvasView extends Pane {
             }
         });
 
-        // Handle focus loss with delay to avoid premature commits
         editField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (!isFocused && editField != null && !isCommitting) {
-                // Small delay to allow for focus transitions
                 javafx.application.Platform.runLater(() -> {
                     if (editField != null && !editField.isFocused()) {
                         commitEditing();
@@ -2416,7 +1980,6 @@ public class XmlCanvasView extends Pane {
     }
 
     private void commitEditing() {
-        // Guard against double commits (can happen with DatePicker and other widgets)
         if (isCommitting) {
             return;
         }
@@ -2434,7 +1997,7 @@ public class XmlCanvasView extends Pane {
                 return;
             }
 
-            // Handle table cell editing
+            // Handle table cell editing (for repeating tables integration)
             if (editingTable != null && editingTableRowIndex >= 0 && editingTableColumnName != null) {
                 commitTableCellEditing(newValue);
                 cancelEditing();
@@ -2443,31 +2006,36 @@ public class XmlCanvasView extends Pane {
                 return;
             }
 
-            // Handle node editing
-            if (editingNode == null) {
+            // Handle row editing
+            if (editingRow == null) {
                 cancelEditing();
                 return;
             }
 
-            XmlNode modelNode = editingNode.getModelNode();
+            XmlNode modelNode = editingRow.getModelNode();
 
             if (editingElementName) {
                 // Editing element name
                 if (modelNode instanceof XmlElement && !newValue.trim().isEmpty()) {
                     context.executeCommand(new RenameNodeCommand((XmlElement) modelNode, newValue.trim()));
                 }
-            } else if (editingAttributeIndex >= 0) {
-                // Editing attribute
-                NestedGridNode.AttributeCell cell = editingNode.getAttributeCells().get(editingAttributeIndex);
-                if (modelNode instanceof XmlElement) {
-                    context.executeCommand(new SetAttributeCommand((XmlElement) modelNode, cell.getName(), newValue));
-                }
-            } else if (editingTextContent) {
-                // Editing text content
-                if (modelNode instanceof XmlElement) {
-                    context.executeCommand(new SetElementTextCommand((XmlElement) modelNode, newValue));
-                } else if (modelNode instanceof XmlText) {
-                    context.executeCommand(new SetTextCommand((XmlText) modelNode, newValue));
+            } else if (editingValue) {
+                // Editing value
+                if (editingRow.getType() == FlatRow.RowType.ATTRIBUTE) {
+                    // Attribute value
+                    if (modelNode instanceof XmlElement element) {
+                        context.executeCommand(new SetAttributeCommand(element, editingRow.getLabel(), newValue));
+                    }
+                } else if (editingRow.getType() == FlatRow.RowType.ELEMENT) {
+                    // Element text content
+                    if (modelNode instanceof XmlElement element) {
+                        context.executeCommand(new SetElementTextCommand(element, newValue));
+                    }
+                } else if (editingRow.getType() == FlatRow.RowType.TEXT) {
+                    // Text node
+                    if (modelNode instanceof XmlText text) {
+                        context.executeCommand(new SetTextCommand(text, newValue));
+                    }
                 }
             }
 
@@ -2479,11 +2047,13 @@ public class XmlCanvasView extends Pane {
         }
     }
 
+    /**
+     * Commits table cell editing (for repeating elements tables).
+     */
     private void commitTableCellEditing(String newValue) {
         RepeatingElementsTable.TableRow row = editingTable.getRows().get(editingTableRowIndex);
         XmlElement rowElement = row.getElement();
 
-        // Find the column type to determine how to save
         RepeatingElementsTable.TableColumn col = null;
         for (RepeatingElementsTable.TableColumn c : editingTable.getColumns()) {
             if (c.getName().equals(editingTableColumnName)) {
@@ -2497,10 +2067,8 @@ public class XmlCanvasView extends Pane {
         }
 
         if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
-            // Edit attribute value
             context.executeCommand(new SetAttributeCommand(rowElement, editingTableColumnName, newValue));
         } else if (col.getType() == RepeatingElementsTable.ColumnType.CHILD_ELEMENT) {
-            // Edit child element text content
             for (XmlNode child : rowElement.getChildren()) {
                 if (child instanceof XmlElement childElement) {
                     if (childElement.getName().equals(editingTableColumnName)) {
@@ -2510,7 +2078,6 @@ public class XmlCanvasView extends Pane {
                 }
             }
         } else if (col.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT) {
-            // Edit direct text content
             context.executeCommand(new SetElementTextCommand(rowElement, newValue));
         }
     }
@@ -2520,20 +2087,49 @@ public class XmlCanvasView extends Pane {
             canvasContainer.getChildren().remove(editField);
             editField = null;
         }
-        // Clear type-aware widget
         if (activeWidgetNode != null) {
             canvasContainer.getChildren().remove(activeWidgetNode);
             activeWidgetNode = null;
             activeEditWidget = null;
         }
-        editingNode = null;
-        editingAttributeIndex = -1;
-        editingTextContent = false;
+        editingRow = null;
+        editingValue = false;
         editingElementName = false;
-        // Clear table editing state
         editingTable = null;
         editingTableRowIndex = -1;
         editingTableColumnName = null;
+    }
+
+    // ==================== XPath Building ====================
+
+    /**
+     * Builds an XPath for a FlatRow by walking up the parent chain.
+     */
+    private String getRowXPath(FlatRow row) {
+        if (row == null) {
+            return "";
+        }
+
+        // For attribute rows, build XPath from the parent element
+        FlatRow targetRow = row;
+        if (row.getType() == FlatRow.RowType.ATTRIBUTE) {
+            targetRow = row.getParentRow();
+        }
+
+        StringBuilder path = new StringBuilder();
+        FlatRow current = targetRow;
+
+        while (current != null) {
+            if (current.getType() == FlatRow.RowType.ELEMENT && current.getLabel() != null) {
+                if (path.length() > 0) {
+                    path.insert(0, "/");
+                }
+                path.insert(0, current.getLabel());
+            }
+            current = current.getParentRow();
+        }
+
+        return "/" + path;
     }
 
     // ==================== Event Handlers ====================
@@ -2545,7 +2141,6 @@ public class XmlCanvasView extends Pane {
 
     /**
      * Handles mixed content detection event.
-     * Shows a warning dialog when the loaded document contains mixed content elements.
      */
     @SuppressWarnings("unchecked")
     private void onMixedContentDetected(PropertyChangeEvent evt) {
@@ -2554,11 +2149,12 @@ public class XmlCanvasView extends Pane {
             return;
         }
 
-        // Run on JavaFX thread
         javafx.application.Platform.runLater(() -> {
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.WARNING);
             alert.setTitle("Mixed Content Detected");
-            alert.setHeaderText("This XML contains " + mixedElements.size() + " element(s) with mixed content");
+            alert.setHeaderText("This XML contains " + mixedElements.size()
+                    + " element(s) with mixed content");
 
             StringBuilder details = new StringBuilder();
             details.append("Elements with both text and child elements were found:\n\n");
@@ -2570,82 +2166,46 @@ public class XmlCanvasView extends Pane {
                 }
                 details.append("- <").append(elem.getName()).append(">\n");
             }
-            details.append("\nThis may cause display issues. Consider removing either the text content or child elements to ensure valid XML structure.");
+            details.append("\nThis may cause display issues. Consider removing either the text content "
+                    + "or child elements to ensure valid XML structure.");
 
             alert.setContentText(details.toString());
             alert.showAndWait();
         });
     }
 
-    // ==================== Scroll-to-Selection ====================
-
-    /**
-     * Ensures the given node is visible in the viewport.
-     * Smoothly scrolls if the node is outside the visible area.
-     */
-    private void ensureNodeVisible(NestedGridNode node) {
-        if (node == null) {
-            return;
-        }
-
-        double nodeTop = node.getY();
-        double nodeBottom = nodeTop + node.getHeight();
-        double viewTop = scrollOffsetY;
-        double viewBottom = viewTop + canvas.getHeight();
-
-        if (nodeTop < viewTop) {
-            // Node is above viewport - scroll up
-            animateScrollTo(nodeTop - 20);  // 20px buffer
-        } else if (nodeBottom > viewBottom) {
-            // Node is below viewport - scroll down
-            animateScrollTo(nodeBottom - canvas.getHeight() + 20);
-        }
-    }
-
-    /**
-     * Smoothly animate scroll to target Y position.
-     */
-    private void animateScrollTo(double targetY) {
-        targetY = Math.max(0, Math.min(targetY, totalHeight - canvas.getHeight()));
-
-        Timeline timeline = new Timeline(
-            new KeyFrame(Duration.ZERO, new KeyValue(vScrollBar.valueProperty(), scrollOffsetY)),
-            new KeyFrame(Duration.millis(200), new KeyValue(vScrollBar.valueProperty(), targetY))
-        );
-        timeline.play();
-    }
-
     // ==================== Highlight ====================
 
     /**
-     * Flash highlight a node (used after undo/redo to show what changed).
+     * Flash highlight a row (used after undo/redo to show what changed).
      */
-    public void flashHighlight(NestedGridNode node) {
-        if (node == null) {
+    public void flashHighlight(FlatRow row) {
+        if (row == null) {
             return;
         }
 
-        highlightedNode = node;
+        highlightedRow = row;
         render();
 
-        // Clear highlight after 1.5 seconds
         PauseTransition pause = new PauseTransition(Duration.millis(1500));
         pause.setOnFinished(e -> {
-            highlightedNode = null;
+            highlightedRow = null;
             render();
         });
         pause.play();
     }
 
     /**
-     * Flash highlight a node by its model node.
+     * Flash highlight a row by its model node.
      */
     public void flashHighlightByModel(XmlNode modelNode) {
-        if (rootNode != null && modelNode != null) {
-            NestedGridNode found = rootNode.findByModel(modelNode);
-            if (found != null) {
-                ensureNodeVisible(found);
-                flashHighlight(found);
+        if (modelNode != null) {
+            for (FlatRow row : allRows) {
+                if (row.getModelNode() == modelNode) {
+                    ensureRowVisible(row);
+                    flashHighlight(row);
+                    return;
+                }
             }
         }
     }
@@ -2659,7 +2219,6 @@ public class XmlCanvasView extends Pane {
         if (toastContainer != null) {
             ToastNotification.show(toastContainer, message, type);
         } else {
-            // Fallback: show in canvas container
             ToastNotification.show(canvasContainer, message, type);
         }
     }
@@ -2675,9 +2234,6 @@ public class XmlCanvasView extends Pane {
 
     /**
      * Sets a callback that is called when the document is modified.
-     * The callback receives the serialized XML string.
-     *
-     * @param callback the callback to invoke on document changes
      */
     public void setOnDocumentModified(java.util.function.Consumer<String> callback) {
         this.onDocumentModified = callback;
@@ -2701,40 +2257,57 @@ public class XmlCanvasView extends Pane {
     }
 
     public void expandAll() {
-        if (rootNode != null) {
-            rootNode.expandAll();
-            layoutDirty = true;
-            ensureLayout();
-            updateScrollBars();
-            render();
+        for (FlatRow row : allRows) {
+            if (row.isExpandable()) {
+                row.setExpanded(true);
+                // Show all descendant rows
+            }
         }
+        // Make all rows visible
+        for (FlatRow row : allRows) {
+            row.setVisible(true);
+        }
+        recalculateVisibleRows();
+        updateScrollBars();
+        render();
     }
 
     public void collapseAll() {
-        if (rootNode != null) {
-            rootNode.collapseAll();
-            layoutDirty = true;
-            ensureLayout();
-            updateScrollBars();
-            render();
+        for (FlatRow row : allRows) {
+            if (row.isExpandable()) {
+                row.setExpanded(false);
+            }
         }
+        // Recalculate visibility (only root-level rows remain visible)
+        recalculateVisibility();
+        recalculateVisibleRows();
+        updateScrollBars();
+        render();
     }
 
     public XmlNode getSelectedNode() {
-        return selectedNode != null ? selectedNode.getModelNode() : null;
+        return selectedRow != null ? selectedRow.getModelNode() : null;
     }
 
     public void setSelectedNode(XmlNode node) {
-        if (rootNode != null && node != null) {
-            NestedGridNode found = rootNode.findByModel(node);
-            if (found != null) {
-                selectNode(found);
+        if (node != null) {
+            for (FlatRow row : allRows) {
+                if (row.getModelNode() == node) {
+                    // Ensure ancestors are expanded
+                    FlatRow parent = row.getParentRow();
+                    while (parent != null) {
+                        if (parent.isExpandable() && !parent.isExpanded()) {
+                            parent.setExpanded(true);
+                        }
+                        parent = parent.getParentRow();
+                    }
+                    recalculateVisibility();
+                    recalculateVisibleRows();
+                    updateScrollBars();
 
-                // Scroll to selected node if not visible
-                if (!found.isVisible(scrollOffsetY, scrollOffsetY + canvas.getHeight())) {
-                    scrollOffsetY = Math.max(0, found.getY() - canvas.getHeight() / 2);
-                    vScrollBar.setValue(scrollOffsetY);
-                    render();
+                    selectRow(row);
+                    ensureRowVisible(row);
+                    return;
                 }
             }
         }
