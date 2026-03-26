@@ -2,82 +2,110 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/SECURITY/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/ThreadPoolArchitecture/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/context-sensitive-intellisense/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/digital-signatures/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/favorites-system/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/json-editor/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/licenses/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/pdf-generator/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/schema-support/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/schematron-support/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/technology-stack/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/template-management/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/unified-editor/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/xml-editor-features/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/xml-editor/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/xsd-tools/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/xsd-validation/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/xslt-developer/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/xslt-viewer/</loc>
-         <lastmod>2026-03-24</lastmod>
+         <lastmod>2026-03-26</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/superpowers/plans/2026-03-23-facet-default-placeholders/</loc>
+         <lastmod>2026-03-26</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/superpowers/plans/2026-03-23-single-line-xml-loading/</loc>
+         <lastmod>2026-03-26</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/superpowers/plans/2026-03-23-unified-editor-go-to-definition/</loc>
+         <lastmod>2026-03-26</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/superpowers/plans/2026-03-23-xml-auto-close-tags/</loc>
+         <lastmod>2026-03-26</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/superpowers/plans/2026-03-26-xmlspy-grid-view/</loc>
+         <lastmod>2026-03-26</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/superpowers/specs/2026-03-23-single-line-xml-loading-design/</loc>
+         <lastmod>2026-03-26</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/superpowers/specs/2026-03-26-xmlspy-grid-view-design/</loc>
+         <lastmod>2026-03-26</lastmod>
     </url>
 </urlset>
