@@ -238,6 +238,10 @@ public class XmlCodeEditorV2 extends VBox {
     public void setText(String text) {
         codeArea.replaceText(text);
 
+        // Move cursor to the beginning and scroll to top
+        codeArea.moveTo(0);
+        codeArea.requestFollowCaret();
+
         // Auto-detect editor mode based on content
         if (text != null && !text.isEmpty()) {
             EditorMode detectedMode = ModeDetector.detectMode(text, editorContext.hasSchema());

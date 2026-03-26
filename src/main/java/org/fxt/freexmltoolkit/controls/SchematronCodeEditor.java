@@ -769,6 +769,8 @@ public class SchematronCodeEditor extends StackPane {
             codeArea.clear();
             codeArea.insertText(0, text);
         }
+        codeArea.moveTo(0);
+        codeArea.requestFollowCaret();
     }
 
     /**
@@ -778,6 +780,8 @@ public class SchematronCodeEditor extends StackPane {
         // For very large files, we set the text directly but optimize highlighting
         codeArea.clear();
         codeArea.insertText(0, text);
+        codeArea.moveTo(0);
+        codeArea.requestFollowCaret();
 
         // Schedule highlighting for later
         if (syntaxHighlightingEnabled) {

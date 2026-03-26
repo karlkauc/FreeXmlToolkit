@@ -449,6 +449,8 @@ public class JsonCodeEditor extends VBox {
      */
     public void setText(String text) {
         codeArea.replaceText(text != null ? text : "");
+        codeArea.moveTo(0);
+        codeArea.requestFollowCaret();
         if (text != null && !text.isEmpty()) {
             Platform.runLater(() -> {
                 applySyntaxHighlighting(text);
