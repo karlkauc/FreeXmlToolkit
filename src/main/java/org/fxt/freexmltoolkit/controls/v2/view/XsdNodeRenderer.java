@@ -117,6 +117,10 @@ public class XsdNodeRenderer {
      * For compositors, only 1 line (child count).
      */
     public double calculateBodyHeight(VisualNode node) {
+        // Comments have no type/occurs body
+        if (node.getType() == NodeWrapperType.COMMENT) {
+            return MIN_BODY_HEIGHT;
+        }
         if (node.getDetail() == null || node.getDetail().isEmpty()) {
             return MIN_BODY_HEIGHT;
         }
@@ -869,7 +873,8 @@ public class XsdNodeRenderer {
         ENUMERATION,
         SEQUENCE,      // xs:sequence compositor
         CHOICE,        // xs:choice compositor
-        ALL            // xs:all compositor
+        ALL,           // xs:all compositor
+        COMMENT        // XML comment (<!-- ... -->)
     }
 
     /**
@@ -982,6 +987,7 @@ public class XsdNodeRenderer {
                 case SEQUENCE -> Color.rgb(23, 162, 184);           // #17a2b8 - Cyan
                 case CHOICE -> Color.rgb(253, 126, 20);             // #fd7e14 - Orange
                 case ALL -> Color.rgb(111, 66, 193);                // #6f42c1 - Purple
+                case COMMENT -> Color.rgb(108, 117, 125, 0.5);      // Semi-transparent gray
                 default -> Color.LIGHTGRAY;
             };
 
@@ -1005,6 +1011,10 @@ public class XsdNodeRenderer {
             // Special case for SCHEMA - show "ROOT"
             if (type == NodeWrapperType.SCHEMA) {
                 return "ROOT";
+            }
+            // Comments have no cardinality
+            if (type == NodeWrapperType.COMMENT) {
+                return "";
             }
 
             // Format minOccurs..maxOccurs
@@ -1060,6 +1070,8 @@ public class XsdNodeRenderer {
                     return "bi-folder";  // Folder for grouping
                 case ENUMERATION:
                     return "bi-list-check";  // Checklist
+                case COMMENT:
+                    return "bi-chat-left-quote";  // Comment icon
                 default:
                     return "bi-question-circle";  // Unknown type
             }

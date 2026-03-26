@@ -609,6 +609,12 @@ public class XsdNodeFactory {
         NodeList children = elementNode.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
+            if (child.getNodeType() == Node.COMMENT_NODE) {
+                XsdComment comment = new XsdComment(child.getNodeValue());
+                tagNodeWithSourceInfo(comment);
+                element.addChild(comment);
+                continue;
+            }
             if (child.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
@@ -653,6 +659,12 @@ public class XsdNodeFactory {
         NodeList children = sequenceElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
+            if (child.getNodeType() == Node.COMMENT_NODE) {
+                XsdComment comment = new XsdComment(child.getNodeValue());
+                tagNodeWithSourceInfo(comment);
+                sequence.addChild(comment);
+                continue;
+            }
             if (child.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
@@ -693,6 +705,12 @@ public class XsdNodeFactory {
         NodeList children = choiceElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
+            if (child.getNodeType() == Node.COMMENT_NODE) {
+                XsdComment comment = new XsdComment(child.getNodeValue());
+                tagNodeWithSourceInfo(comment);
+                choice.addChild(comment);
+                continue;
+            }
             if (child.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
@@ -733,6 +751,12 @@ public class XsdNodeFactory {
         NodeList children = allElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
+            if (child.getNodeType() == Node.COMMENT_NODE) {
+                XsdComment comment = new XsdComment(child.getNodeValue());
+                tagNodeWithSourceInfo(comment);
+                all.addChild(comment);
+                continue;
+            }
             if (child.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
@@ -838,6 +862,12 @@ public class XsdNodeFactory {
         NodeList children = complexTypeElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
+            if (child.getNodeType() == Node.COMMENT_NODE) {
+                XsdComment comment = new XsdComment(child.getNodeValue());
+                tagNodeWithSourceInfo(comment);
+                complexType.addChild(comment);
+                continue;
+            }
             if (child.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
@@ -1151,6 +1181,12 @@ public class XsdNodeFactory {
         NodeList children = groupElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
+            if (child.getNodeType() == Node.COMMENT_NODE) {
+                XsdComment comment = new XsdComment(child.getNodeValue());
+                tagNodeWithSourceInfo(comment);
+                group.addChild(comment);
+                continue;
+            }
             if (child.getNodeType() == Node.ELEMENT_NODE) {
                 Element childElement = (Element) child;
 

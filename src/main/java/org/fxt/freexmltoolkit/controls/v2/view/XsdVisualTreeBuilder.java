@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComment;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
@@ -334,6 +335,14 @@ public class XsdVisualTreeBuilder {
             for (XsdElement element : globalElements) {
                 VisualNode elementNode = createElementNode(element, rootNode, visitedTypes, visitedElements);
                 rootNode.addChild(elementNode);
+            }
+
+            // Add schema-level comments
+            for (XsdNode child : schema.getChildren()) {
+                if (child instanceof XsdComment comment) {
+                    VisualNode commentNode = createCommentNode(comment, rootNode);
+                    rootNode.addChild(commentNode);
+                }
             }
 
             logger.debug("Visual tree built with {} global elements", rootNode.getChildren().size());
@@ -761,6 +770,9 @@ public class XsdVisualTreeBuilder {
                 // Process complexContent (base type + content model from extension/restriction)
                 logger.debug("Processing complexContent with {} children", complexContent.getChildren().size());
                 processComplexContent(complexContent, parentNode, visitedTypes, localVisitedElements);
+            } else if (child instanceof XsdComment comment) {
+                VisualNode commentNode = createCommentNode(comment, parentNode);
+                parentNode.addChild(commentNode);
             }
         }
     }
@@ -814,6 +826,9 @@ public class XsdVisualTreeBuilder {
                         child instanceof XsdChoice ? "choice" : "all";
                 VisualNode nestedNode = createCompositorNode(child, node, nestedType, visitedTypes, visitedElements);
                 node.addChild(nestedNode);
+            } else if (child instanceof XsdComment comment) {
+                VisualNode commentNode = createCommentNode(comment, node);
+                node.addChild(commentNode);
             }
         }
 
@@ -832,6 +847,20 @@ public class XsdVisualTreeBuilder {
         // Add to nodeMap for later lookup
         nodeMap.put(attribute.getId(), node);
 
+        return node;
+    }
+
+    /**
+     * Creates a visual node for an XML comment.
+     */
+    private VisualNode createCommentNode(XsdComment comment, VisualNode parent) {
+        String content = comment.getContent();
+        String label = "// " + (content != null
+                ? content.trim().substring(0, Math.min(40, content.trim().length()))
+                : "");
+        VisualNode node = new VisualNode(label, "", NodeWrapperType.COMMENT,
+                comment, parent, 1, 1, onModelChangeCallback);
+        nodeMap.put(comment.getId(), node);
         return node;
     }
 

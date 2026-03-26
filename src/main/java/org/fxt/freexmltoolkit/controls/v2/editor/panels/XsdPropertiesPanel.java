@@ -47,10 +47,12 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteEnumerationComma
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteFacetCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeletePatternCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCommentCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditFacetCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.RenameNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAssert;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComment;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDatatypeFacets;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
@@ -893,6 +895,17 @@ public class XsdPropertiesPanel extends BorderPane {
     public void updateProperties(VisualNode node) {
         this.currentNode = node;
         updating = true;
+
+        // Special handling for comment nodes
+        if (node.getModelObject() instanceof XsdComment) {
+            showCommentProperties(node);
+            return;
+        }
+
+        // Restore normal tab pane if it was replaced by comment view
+        if (getCenter() != mainTabPane) {
+            setCenter(mainTabPane);
+        }
 
         try {
             // Enable panel for editing only in edit mode, but always allow viewing
@@ -2692,5 +2705,62 @@ public class XsdPropertiesPanel extends BorderPane {
                     : "-");
             }
         });
+    }
+
+    /**
+     * Shows a simplified properties view for comment nodes.
+     * Replaces the standard tab pane with a TextArea for editing the comment content.
+     */
+    private void showCommentProperties(VisualNode node) {
+        try {
+            setDisable(false);
+
+            XsdComment comment = (XsdComment) node.getModelObject();
+            boolean isEditMode = editorContext.isEditMode();
+
+            VBox commentPanel = new VBox(10);
+            commentPanel.setPadding(new Insets(15));
+
+            // Title
+            HBox titleBox = new HBox(8);
+            titleBox.setAlignment(Pos.CENTER_LEFT);
+            FontIcon commentIcon = new FontIcon("bi-chat-left-quote");
+            commentIcon.setIconSize(18);
+            commentIcon.setIconColor(Color.web("#6c757d"));
+            Label titleLabel = new Label("Comment");
+            titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            titleBox.getChildren().addAll(commentIcon, titleLabel);
+
+            // TextArea for comment content
+            javafx.scene.control.TextArea contentArea = new javafx.scene.control.TextArea(
+                    comment.getContent() != null ? comment.getContent() : "");
+            contentArea.setWrapText(true);
+            contentArea.setPrefRowCount(8);
+            contentArea.setEditable(isEditMode);
+            contentArea.setPromptText("Enter comment text...");
+            VBox.setVgrow(contentArea, Priority.ALWAYS);
+
+            // Apply button
+            Button applyBtn = new Button("Apply");
+            FontIcon applyIcon = new FontIcon("bi-check-circle");
+            applyIcon.setIconSize(16);
+            applyIcon.setIconColor(Color.web("#28a745"));
+            applyBtn.setGraphic(applyIcon);
+            applyBtn.getStyleClass().add("btn-success");
+            applyBtn.setDisable(!isEditMode);
+            applyBtn.setOnAction(e -> {
+                String newContent = contentArea.getText();
+                if (!java.util.Objects.equals(newContent, comment.getContent())) {
+                    EditCommentCommand cmd = new EditCommentCommand(comment, newContent);
+                    editorContext.getCommandManager().executeCommand(cmd);
+                }
+            });
+
+            commentPanel.getChildren().addAll(titleBox, contentArea, applyBtn);
+
+            setCenter(commentPanel);
+        } finally {
+            updating = false;
+        }
     }
 }

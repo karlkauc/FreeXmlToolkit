@@ -20,8 +20,10 @@ import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAllCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddChoiceCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCommentCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCommentCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSequenceCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeCardinalityCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand;
@@ -33,6 +35,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.PasteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.RenameNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComment;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
@@ -108,6 +111,7 @@ public class XsdContextMenuFactory {
             case SCHEMA -> createSchemaMenu(node);
             case GROUP -> createGroupMenu(node);
             case ENUMERATION -> createEnumerationMenu(node);
+            case COMMENT -> createCommentMenu(node);
             default -> createDefaultMenu(node);
         };
 
@@ -154,7 +158,9 @@ public class XsdContextMenuFactory {
                 createMenuItemConditional("Choice", "bi-card-list", "#6c757d",
                         () -> handleAddChoice(node), () -> canAddCompositor(node)),
                 createMenuItemConditional("All", "bi-grid-3x3", "#6c757d",
-                        () -> handleAddAll(node), () -> canAddCompositor(node))
+                        () -> handleAddAll(node), () -> canAddCompositor(node)),
+                new SeparatorMenuItem(),
+                createMenuItem("Comment", "bi-chat-left-quote", "#6c757d", () -> handleAddComment(node))
         );
 
         // Check if element has a ComplexType or SimpleType reference - if so, add "Edit Type in Editor" option
@@ -277,7 +283,9 @@ public class XsdContextMenuFactory {
                 new SeparatorMenuItem(),
                 createMenuItem("Sequence", "bi-list-ol", "#6c757d", () -> handleAddCompositorToComplexType(node, "sequence")),
                 createMenuItem("Choice", "bi-card-list", "#6c757d", () -> handleAddCompositorToComplexType(node, "choice")),
-                createMenuItem("All", "bi-grid-3x3", "#6c757d", () -> handleAddCompositorToComplexType(node, "all"))
+                createMenuItem("All", "bi-grid-3x3", "#6c757d", () -> handleAddCompositorToComplexType(node, "all")),
+                new SeparatorMenuItem(),
+                createMenuItem("Comment", "bi-chat-left-quote", "#6c757d", () -> handleAddComment(node))
         );
 
         menu.getItems().addAll(
@@ -323,9 +331,11 @@ public class XsdContextMenuFactory {
         // Add Element submenu with icon
         Menu addMenu = new Menu("Add");
         addMenu.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
-        addMenu.getItems().add(
+        addMenu.getItems().addAll(
                 createMenuItemConditional("Element", "bi-plus", "#28a745",
-                        () -> handleAddElement(node), () -> canAddElement(node))
+                        () -> handleAddElement(node), () -> canAddElement(node)),
+                new SeparatorMenuItem(),
+                createMenuItem("Comment", "bi-chat-left-quote", "#6c757d", () -> handleAddComment(node))
         );
 
         // Change Type submenu with icon
@@ -387,6 +397,7 @@ public class XsdContextMenuFactory {
                         handleAddRootElement(parentNode);
                     }
                 }),
+                createMenuItem("Add Comment", "bi-chat-left-quote", "#6c757d", () -> handleAddComment(node)),
                 new SeparatorMenuItem(),
                 createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
         );
@@ -423,6 +434,20 @@ public class XsdContextMenuFactory {
                 createMenuItem("Delete", () -> handleDelete(node)),
                 new SeparatorMenuItem(),
                 createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", "#ffc107", () -> handleCopyXPath(node))
+        );
+
+        return menu;
+    }
+
+    /**
+     * Creates a context menu for comment nodes.
+     */
+    private ContextMenu createCommentMenu(VisualNode node) {
+        ContextMenu menu = new ContextMenu();
+
+        menu.getItems().addAll(
+                createMenuItem("Edit Comment", "bi-pencil", "#fd7e14", () -> handleEditComment(node)),
+                createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
         );
 
         return menu;
@@ -542,6 +567,43 @@ public class XsdContextMenuFactory {
         } else {
             logger.warn("Cannot delete node - model object is not an XsdNode: {}",
                     modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles adding a new comment to a node.
+     */
+    private void handleAddComment(VisualNode node) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add Comment");
+        dialog.setHeaderText("Enter comment text:");
+        dialog.setContentText("Comment:");
+
+        dialog.showAndWait().ifPresent(content -> {
+            Object modelObject = node.getModelObject();
+            if (modelObject instanceof XsdNode parentNode) {
+                AddCommentCommand cmd = new AddCommentCommand(parentNode, content);
+                editorContext.getCommandManager().executeCommand(cmd);
+                logger.info("Added comment to node: {}", node.getLabel());
+            }
+        });
+    }
+
+    /**
+     * Handles editing an existing comment.
+     */
+    private void handleEditComment(VisualNode node) {
+        if (node.getModelObject() instanceof XsdComment comment) {
+            TextInputDialog dialog = new TextInputDialog(comment.getContent());
+            dialog.setTitle("Edit Comment");
+            dialog.setHeaderText("Edit comment text:");
+            dialog.setContentText("Comment:");
+
+            dialog.showAndWait().ifPresent(content -> {
+                EditCommentCommand cmd = new EditCommentCommand(comment, content);
+                editorContext.getCommandManager().executeCommand(cmd);
+                logger.info("Edited comment");
+            });
         }
     }
 
