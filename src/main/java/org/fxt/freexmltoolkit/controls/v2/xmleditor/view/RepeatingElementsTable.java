@@ -4,6 +4,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -399,6 +400,68 @@ public class RepeatingElementsTable {
          */
         public void setExpanded(boolean expanded) {
             this.expanded = expanded;
+        }
+
+        // ==================== Cell Expansion State ====================
+
+        /**
+         * Tracks which columns have their complex cells expanded inline.
+         */
+        private final Set<String> expandedColumns = new HashSet<>();
+
+        /**
+         * Cache of flattened child rows for expanded complex cells.
+         */
+        private final Map<String, List<FlatRow>> expandedCellRows = new LinkedHashMap<>();
+
+        /**
+         * Checks if a column's complex cell is expanded for this row.
+         *
+         * @param columnName the column name to check
+         * @return true if the column is expanded
+         */
+        public boolean isColumnExpanded(String columnName) {
+            return expandedColumns.contains(columnName);
+        }
+
+        /**
+         * Toggles the expansion state of a complex cell in this row.
+         * Lazily creates FlatRows for the complex child on first expansion.
+         *
+         * @param columnName the column name to toggle
+         */
+        public void toggleColumnExpanded(String columnName) {
+            if (expandedColumns.contains(columnName)) {
+                expandedColumns.remove(columnName);
+                expandedCellRows.remove(columnName);
+            } else {
+                expandedColumns.add(columnName);
+                if (!expandedCellRows.containsKey(columnName)) {
+                    XmlElement child = complexChildren.get(columnName);
+                    if (child != null) {
+                        expandedCellRows.put(columnName, FlatRow.flattenElement(child));
+                    }
+                }
+            }
+        }
+
+        /**
+         * Returns the flattened child rows for an expanded complex cell.
+         *
+         * @param columnName the column name
+         * @return the list of FlatRows, or empty list if not expanded
+         */
+        public List<FlatRow> getExpandedCellRows(String columnName) {
+            return expandedCellRows.getOrDefault(columnName, List.of());
+        }
+
+        /**
+         * Returns the set of currently expanded column names.
+         *
+         * @return the set of expanded column names
+         */
+        public Set<String> getExpandedColumns() {
+            return expandedColumns;
         }
 
     }
@@ -821,13 +884,23 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Returns the height of a single data row.
+     * Returns the height of a single data row, accounting for expanded complex cells.
      *
-     * @param row the table row (unused, kept for API compatibility)
-     * @return the fixed row height
+     * <p>When a row has expanded complex cells, the row height is determined by the
+     * tallest expanded cell (summary line + child rows). If no cells are expanded,
+     * the standard fixed row height is returned.</p>
+     *
+     * @param row the table row to measure
+     * @return the row height in pixels
      */
-    private double calculateRowHeight(TableRow row) {
-        return ROW_HEIGHT;
+    public double calculateRowHeight(TableRow row) {
+        double maxCellHeight = ROW_HEIGHT;
+        for (String colName : row.getExpandedColumns()) {
+            List<FlatRow> cellRows = row.getExpandedCellRows(colName);
+            double cellHeight = ROW_HEIGHT + cellRows.size() * ROW_HEIGHT; // header + child rows
+            maxCellHeight = Math.max(maxCellHeight, cellHeight);
+        }
+        return maxCellHeight;
     }
 
     /**
@@ -956,10 +1029,7 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Gets the row index at a given Y coordinate using fixed row height calculation.
-     *
-     * <p>Note: This method uses a simplified calculation assuming fixed row heights.
-     * For accurate results with expanded cells, use {@link #getRowIndexAtY(double)}.</p>
+     * Gets the row index at a given Y coordinate, accounting for variable row heights.
      *
      * @param py the Y coordinate to test
      * @return the zero-based row index, or -1 if in header area or outside
@@ -974,9 +1044,13 @@ public class RepeatingElementsTable {
             return -1;
         }
 
-        int rowIndex = (int) ((py - dataStartY) / ROW_HEIGHT);
-        if (rowIndex >= 0 && rowIndex < rows.size()) {
-            return rowIndex;
+        double currentY = dataStartY;
+        for (int i = 0; i < rows.size(); i++) {
+            double rowHeight = calculateRowHeight(rows.get(i));
+            if (py >= currentY && py < currentY + rowHeight) {
+                return i;
+            }
+            currentY += rowHeight;
         }
         return -1;
     }
@@ -1391,8 +1465,8 @@ public class RepeatingElementsTable {
     /**
      * Toggles expansion of a complex cell.
      *
-     * <p>Currently a no-op in the flat row view since expanded child grids are not supported.
-     * Complex cells show a summary text instead.</p>
+     * <p>When a complex cell is expanded, its child elements are displayed as
+     * sub-rows within the cell, increasing the row height accordingly.</p>
      *
      * @param rowIndex   the zero-based index of the row
      * @param columnName the name of the column containing the complex cell
@@ -1409,7 +1483,14 @@ public class RepeatingElementsTable {
             return false;
         }
 
+        row.toggleColumnExpanded(columnName);
         pcs.firePropertyChange("cellExpansion", null, columnName);
+
+        // Notify layout change so the view can recalculate
+        if (onLayoutChangedCallback != null) {
+            onLayoutChangedCallback.run();
+        }
+
         return true;
     }
 

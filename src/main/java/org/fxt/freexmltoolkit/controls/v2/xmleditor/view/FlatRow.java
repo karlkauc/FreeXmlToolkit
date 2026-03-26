@@ -350,6 +350,46 @@ public class FlatRow {
     // ==================== Static Flattening Algorithm ====================
 
     /**
+     * Flattens a single XmlElement into a list of FlatRows.
+     * Used for expanding complex table cells to show their child structure inline.
+     *
+     * <p>The returned list contains attribute rows for the element itself (at depth 0),
+     * followed by recursively flattened child elements and other child nodes.</p>
+     *
+     * @param element the element to flatten
+     * @return ordered list of FlatRows representing the element's children
+     */
+    public static List<FlatRow> flattenElement(XmlElement element) {
+        List<FlatRow> rows = new ArrayList<>();
+        // Add attributes of the element itself
+        int attrIdx = 0;
+        for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
+            FlatRow attrRow = new FlatRow(RowType.ATTRIBUTE, 0, element, null,
+                    attr.getKey(), attr.getValue(), 0);
+            attrRow.setAttributeIndex(attrIdx++);
+            rows.add(attrRow);
+        }
+        // Flatten children of this element
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlElement childEl) {
+                flattenElement(childEl, 0, null, rows, true);
+            } else if (child instanceof XmlText text) {
+                if (text.getText() != null && !text.getText().isBlank()) {
+                    rows.add(new FlatRow(RowType.TEXT, 0, text, null,
+                            "#text", text.getText().strip(), 0));
+                }
+            } else if (child instanceof XmlComment comment) {
+                rows.add(new FlatRow(RowType.COMMENT, 0, comment, null,
+                        null, comment.getText(), 0));
+            } else if (child instanceof XmlCData cdata) {
+                rows.add(new FlatRow(RowType.CDATA, 0, cdata, null,
+                        null, cdata.getText(), 0));
+            }
+        }
+        return rows;
+    }
+
+    /**
      * Recursively walks the XML document tree and produces a flat list of FlatRows.
      *
      * <p>Processing order per element:</p>

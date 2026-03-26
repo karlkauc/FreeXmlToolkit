@@ -1028,12 +1028,13 @@ public class XmlCanvasView extends Pane {
             colX += colWidth;
         }
 
-        // -- Data rows --
+        // -- Data rows (cumulative positioning for variable row heights) --
         double dataY = colHeaderY + RepeatingElementsTable.ROW_HEIGHT;
+        double currentRowY = dataY;
         for (int r = 0; r < table.getRows().size(); r++) {
             RepeatingElementsTable.TableRow row = table.getRows().get(r);
-            double rowTop = dataY + r * RepeatingElementsTable.ROW_HEIGHT;
-            double rowHeight = RepeatingElementsTable.ROW_HEIGHT;
+            double rowTop = currentRowY;
+            double rowHeight = table.calculateRowHeight(row);
 
             // Row background
             Color rowBg;
@@ -1058,39 +1059,90 @@ public class XmlCanvasView extends Pane {
             gc.setTextAlign(TextAlignment.LEFT);
             gc.setTextBaseline(VPos.CENTER);
 
-            // Cell values
+            // Cell values (summary line is always at the top of the cell)
             double cellX = tableX + RepeatingElementsTable.GRID_PADDING;
-            double cellCenterY = rowTop + rowHeight / 2;
+            double cellCenterY = rowTop + RepeatingElementsTable.ROW_HEIGHT / 2;
 
             for (int c = 0; c < table.getColumns().size(); c++) {
                 RepeatingElementsTable.TableColumn col = table.getColumns().get(c);
                 double colWidth = col.getWidth();
 
-                // Column separator
+                // Column separator (full cell height)
                 if (c > 0) {
                     gc.setStroke(ROW_SEPARATOR);
                     gc.setLineWidth(0.5);
                     gc.strokeLine(cellX, rowTop, cellX, rowTop + rowHeight);
                 }
 
-                // Cell value
-                String value = row.getValue(col.getName());
+                String colName = col.getName();
+                boolean isComplex = row.hasComplexChild(colName);
+
+                // Draw expand arrow for complex cells
+                if (isComplex) {
+                    gc.setFont(SMALL_FONT);
+                    gc.setFill(TEXT_SECONDARY);
+                    gc.setTextAlign(TextAlignment.LEFT);
+                    gc.setTextBaseline(VPos.CENTER);
+                    String arrow = row.isColumnExpanded(colName) ? "\u25BC" : "\u25B6";
+                    gc.fillText(arrow, cellX + 2, cellCenterY);
+                }
+
+                // Cell value (with offset for expand arrow on complex cells)
+                String value = row.getValue(colName);
                 gc.setFont(ROW_FONT);
                 gc.setTextAlign(TextAlignment.LEFT);
 
+                double textOffsetX = isComplex ? 14 : 0;
+
                 if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
                     gc.setFill(TEXT_ATTRIBUTE_VALUE);
-                } else if (row.hasComplexChild(col.getName())) {
+                } else if (isComplex) {
                     gc.setFill(TEXT_SECONDARY);
                 } else {
                     gc.setFill(TEXT_CONTENT);
                 }
 
-                gc.fillText(truncateText(value, colWidth - RepeatingElementsTable.CELL_PADDING * 2),
-                        cellX + RepeatingElementsTable.CELL_PADDING, cellCenterY);
+                gc.fillText(truncateText(value, colWidth - RepeatingElementsTable.CELL_PADDING * 2 - textOffsetX),
+                        cellX + RepeatingElementsTable.CELL_PADDING + textOffsetX, cellCenterY);
+
+                // Draw expanded cell content (sub-rows below the summary line)
+                if (row.isColumnExpanded(colName)) {
+                    List<FlatRow> cellRows = row.getExpandedCellRows(colName);
+                    double subRowY = rowTop + RepeatingElementsTable.ROW_HEIGHT;
+                    for (FlatRow subRow : cellRows) {
+                        double subIndent = subRow.getDepth() * 12;
+                        double subIconX = cellX + RepeatingElementsTable.CELL_PADDING + subIndent;
+
+                        // Draw row icon
+                        drawRowIcon(subRow.getType(), subIconX, subRowY + RepeatingElementsTable.ROW_HEIGHT / 2);
+
+                        // Draw label
+                        gc.setFont(ROW_FONT);
+                        gc.setFill(getRowLabelColor(subRow.getType()));
+                        gc.setTextAlign(TextAlignment.LEFT);
+                        gc.setTextBaseline(VPos.CENTER);
+                        String subLabel = subRow.getLabel();
+                        if (subLabel != null) {
+                            gc.fillText(truncateText(subLabel, colWidth / 2 - RepeatingElementsTable.CELL_PADDING - subIndent - ICON_AREA_WIDTH),
+                                    subIconX + ICON_AREA_WIDTH, subRowY + RepeatingElementsTable.ROW_HEIGHT / 2);
+                        }
+
+                        // Draw value
+                        if (subRow.getValue() != null) {
+                            gc.setFill(getRowValueColor(subRow.getType()));
+                            double valueX = cellX + colWidth / 2;
+                            gc.fillText(truncateText(subRow.getValue(), colWidth / 2 - RepeatingElementsTable.CELL_PADDING),
+                                    valueX, subRowY + RepeatingElementsTable.ROW_HEIGHT / 2);
+                        }
+
+                        subRowY += RepeatingElementsTable.ROW_HEIGHT;
+                    }
+                }
 
                 cellX += colWidth;
             }
+
+            currentRowY += rowHeight;
         }
 
         // -- Table outer border --
@@ -1139,6 +1191,27 @@ public class XmlCanvasView extends Pane {
         // Data row click
         int rowIdx = getTableRowIndexAtScreenY(table, my, tableScreenTop);
         if (rowIdx >= 0 && rowIdx < table.getRows().size()) {
+            RepeatingElementsTable.TableRow row = table.getRows().get(rowIdx);
+
+            // Check if click is on a complex cell's expand arrow
+            if (event.getClickCount() == 1) {
+                int colIdx = table.getColumnIndexAt(mx);
+                if (colIdx >= 0) {
+                    RepeatingElementsTable.TableColumn col = table.getColumn(colIdx);
+                    if (col != null && row.hasComplexChild(col.getName())) {
+                        // Check if click is on the expand arrow area (first ~16px of cell)
+                        double cellLeft = table.getColumnX(col.getName());
+                        if (mx >= cellLeft && mx <= cellLeft + 16) {
+                            row.toggleColumnExpanded(col.getName());
+                            recalculateVisibleRows();
+                            updateScrollBars();
+                            render();
+                            return;
+                        }
+                    }
+                }
+            }
+
             table.setSelectedRowIndex(rowIdx);
             selectedTable = table;
 
@@ -1209,15 +1282,21 @@ public class XmlCanvasView extends Pane {
 
     /**
      * Gets the table data row index at a screen Y coordinate.
+     * Uses cumulative row heights to account for expanded complex cells.
      */
     private int getTableRowIndexAtScreenY(RepeatingElementsTable table, double screenY, double tableScreenTop) {
         double dataStartY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT;
         if (screenY < dataStartY) {
             return -1;
         }
-        int rowIndex = (int) ((screenY - dataStartY) / RepeatingElementsTable.ROW_HEIGHT);
-        if (rowIndex >= 0 && rowIndex < table.getRows().size()) {
-            return rowIndex;
+
+        double currentY = dataStartY;
+        for (int i = 0; i < table.getRows().size(); i++) {
+            double rowHeight = table.calculateRowHeight(table.getRows().get(i));
+            if (screenY >= currentY && screenY < currentY + rowHeight) {
+                return i;
+            }
+            currentY += rowHeight;
         }
         return -1;
     }
@@ -1246,10 +1325,13 @@ public class XmlCanvasView extends Pane {
 
         String currentValue = row.getValue(columnName);
 
-        // Calculate cell position
+        // Calculate cell position (using cumulative row heights)
         double cellX = table.getColumnX(columnName) - scrollOffsetX;
         double dataStartY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT;
-        double cellY = dataStartY + rowIndex * RepeatingElementsTable.ROW_HEIGHT;
+        double cellY = dataStartY;
+        for (int i = 0; i < rowIndex; i++) {
+            cellY += table.calculateRowHeight(table.getRows().get(i));
+        }
         double cellWidth = col.getWidth();
 
         // Build XPath for schema lookup
