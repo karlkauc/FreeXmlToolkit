@@ -1119,51 +1119,10 @@ public class XmlCanvasView extends Pane {
                 gc.fillText(truncateText(value, colWidth - RepeatingElementsTable.CELL_PADDING * 2 - textOffsetX),
                         cellX + RepeatingElementsTable.CELL_PADDING + textOffsetX, cellCenterY);
 
-                // Draw expanded cell content (sub-rows below the summary line)
+                // Draw expanded cell content as a full tree (sub-rows below the summary line)
                 if (row.isColumnExpanded(colName)) {
                     List<FlatRow> cellRows = row.getExpandedCellRows(colName);
-                    double subRowY = rowTop + RepeatingElementsTable.ROW_HEIGHT;
-
-                    // Calculate label column width: max label width + indent + icon
-                    double maxLabelWidth = 0;
-                    for (FlatRow sr : cellRows) {
-                        double lw = sr.getDepth() * 12 + ICON_AREA_WIDTH
-                                + (sr.getLabel() != null ? sr.getLabel().length() * 7.2 : 0);
-                        maxLabelWidth = Math.max(maxLabelWidth, lw);
-                    }
-                    double labelColWidth = Math.min(maxLabelWidth + 20, colWidth * 0.5);
-                    double valueStartX = cellX + RepeatingElementsTable.CELL_PADDING + labelColWidth;
-
-                    for (FlatRow subRow : cellRows) {
-                        double subIndent = subRow.getDepth() * 12;
-                        double subIconX = cellX + RepeatingElementsTable.CELL_PADDING + subIndent;
-                        double subCenterY = subRowY + RepeatingElementsTable.ROW_HEIGHT / 2;
-
-                        // Draw row icon
-                        drawRowIcon(subRow.getType(), subIconX, subCenterY);
-
-                        // Draw label
-                        gc.setFont(ROW_FONT);
-                        gc.setFill(getRowLabelColor(subRow.getType()));
-                        gc.setTextAlign(TextAlignment.LEFT);
-                        gc.setTextBaseline(VPos.CENTER);
-                        String subLabel = subRow.getLabel();
-                        if (subLabel != null) {
-                            double availLabel = labelColWidth - subIndent - ICON_AREA_WIDTH;
-                            gc.fillText(truncateText(subLabel, availLabel),
-                                    subIconX + ICON_AREA_WIDTH, subCenterY);
-                        }
-
-                        // Draw value
-                        if (subRow.getValue() != null) {
-                            gc.setFill(getRowValueColor(subRow.getType()));
-                            double availValue = colWidth - labelColWidth - RepeatingElementsTable.CELL_PADDING * 2;
-                            gc.fillText(truncateText(subRow.getValue(), availValue),
-                                    valueStartX, subCenterY);
-                        }
-
-                        subRowY += RepeatingElementsTable.ROW_HEIGHT;
-                    }
+                    renderCellTree(cellRows, cellX, rowTop + RepeatingElementsTable.ROW_HEIGHT, colWidth);
                 }
 
                 cellX += colWidth;
@@ -1180,6 +1139,156 @@ public class XmlCanvasView extends Pane {
         // Left and right borders for the full table height
         gc.strokeLine(tableX, tableY, tableX, tableY + tableHeight);
         gc.strokeLine(tableX + tableWidth, tableY, tableX + tableWidth, tableY + tableHeight);
+    }
+
+    // ==================== Cell Tree Rendering ====================
+
+    /**
+     * Renders a full tree view within an expanded cell's content area.
+     * Supports recursive expand/collapse, expand indicators, tree lines,
+     * icons, labels, values, and child counts -- the same behavior as
+     * the main tree view but rendered within cell bounds.
+     *
+     * @param cellRows  the flattened rows for this cell
+     * @param cellX     the X coordinate of the cell's left edge
+     * @param cellY     the Y coordinate where cell content starts (below summary line)
+     * @param cellWidth the width of the cell
+     */
+    private void renderCellTree(List<FlatRow> cellRows, double cellX, double cellY, double cellWidth) {
+        // Filter to visible rows only
+        List<FlatRow> visibleCellRows = cellRows.stream()
+                .filter(FlatRow::isVisible)
+                .toList();
+
+        if (visibleCellRows.isEmpty()) {
+            return;
+        }
+
+        double cellPadding = RepeatingElementsTable.CELL_PADDING;
+
+        // Calculate name column width for this cell's content
+        double cellNameColWidth = 0;
+        for (FlatRow row : visibleCellRows) {
+            double indent = row.getDepth() * INDENT + ICON_AREA_WIDTH;
+            double labelW = (row.getLabel() != null ? row.getLabel().length() * 7.2 : 0);
+            double expandW = row.isExpandable() ? EXPAND_BAR_WIDTH : 0;
+            cellNameColWidth = Math.max(cellNameColWidth, indent + expandW + labelW + 20);
+        }
+        cellNameColWidth = Math.min(cellNameColWidth, cellWidth * 0.5);
+
+        // Draw tree connection lines within cell
+        drawCellTreeLines(visibleCellRows, cellX + cellPadding, cellY);
+
+        // Draw each visible sub-row
+        for (int i = 0; i < visibleCellRows.size(); i++) {
+            FlatRow row = visibleCellRows.get(i);
+            double rowY = cellY + i * RepeatingElementsTable.ROW_HEIGHT;
+            double rowCenterY = rowY + RepeatingElementsTable.ROW_HEIGHT / 2;
+
+            double contentX = cellX + cellPadding + row.getDepth() * INDENT;
+
+            // Draw expand indicator for expandable elements
+            if (row.isExpandable()) {
+                drawCellExpandIndicator(row, contentX, rowY);
+            }
+
+            // Draw icon
+            double iconX = contentX + (row.isExpandable() ? EXPAND_BAR_WIDTH : 0);
+            drawRowIcon(row.getType(), iconX, rowCenterY);
+
+            // Draw label
+            double labelX = iconX + ICON_AREA_WIDTH;
+            gc.setFont(ROW_FONT);
+            gc.setFill(getRowLabelColor(row.getType()));
+            gc.setTextAlign(TextAlignment.LEFT);
+            gc.setTextBaseline(VPos.CENTER);
+            if (row.getLabel() != null) {
+                double availLabel = cellNameColWidth - row.getDepth() * INDENT
+                        - ICON_AREA_WIDTH - (row.isExpandable() ? EXPAND_BAR_WIDTH : 0);
+                gc.fillText(truncateText(row.getLabel(), availLabel), labelX, rowCenterY);
+            }
+
+            // Draw child count for expandable elements
+            if (row.isExpandable()) {
+                gc.setFont(SMALL_FONT);
+                gc.setFill(TEXT_SECONDARY);
+                double afterLabel = labelX + (row.getLabel() != null ? row.getLabel().length() * 7.2 : 0) + 4;
+                gc.fillText("(" + row.getChildCount() + ")", afterLabel, rowCenterY);
+            }
+
+            // Draw value
+            double valueX = cellX + cellPadding + cellNameColWidth;
+            if (row.getValue() != null) {
+                gc.setFont(ROW_FONT);
+                gc.setFill(getRowValueColor(row.getType()));
+                double availValue = cellWidth - cellPadding * 2 - cellNameColWidth;
+                gc.fillText(truncateText(row.getValue(), availValue), valueX, rowCenterY);
+            }
+
+            // Row separator
+            gc.setStroke(ROW_SEPARATOR);
+            gc.setLineWidth(0.3);
+            gc.strokeLine(cellX + cellPadding, rowY + RepeatingElementsTable.ROW_HEIGHT,
+                    cellX + cellWidth - cellPadding, rowY + RepeatingElementsTable.ROW_HEIGHT);
+        }
+    }
+
+    /**
+     * Draws an expand/collapse indicator (triangle) for an expandable sub-row within a cell.
+     *
+     * @param row the expandable row
+     * @param x   the X coordinate where the expand indicator starts
+     * @param y   the Y coordinate of the row's top edge
+     */
+    private void drawCellExpandIndicator(FlatRow row, double x, double y) {
+        double arrowX = x + EXPAND_BAR_WIDTH / 2;
+        double arrowY = y + RepeatingElementsTable.ROW_HEIGHT / 2;
+        double arrowSize = 3;
+        gc.setFill(EXPAND_BAR_ARROW);
+
+        if (row.isExpanded()) {
+            // Down-pointing triangle (expanded)
+            gc.fillPolygon(
+                    new double[]{arrowX - arrowSize, arrowX, arrowX + arrowSize},
+                    new double[]{arrowY - arrowSize / 2, arrowY + arrowSize, arrowY - arrowSize / 2},
+                    3);
+        } else {
+            // Right-pointing triangle (collapsed)
+            gc.fillPolygon(
+                    new double[]{arrowX - arrowSize / 2, arrowX + arrowSize, arrowX - arrowSize / 2},
+                    new double[]{arrowY - arrowSize, arrowY, arrowY + arrowSize},
+                    3);
+        }
+    }
+
+    /**
+     * Draws tree connection lines for visible sub-rows within a cell.
+     * Connects child rows to their parent with horizontal branch lines.
+     *
+     * @param visibleCellRows the visible sub-rows in the cell
+     * @param baseX           the X offset for tree line calculations
+     * @param baseY           the Y coordinate where the first sub-row starts
+     */
+    private void drawCellTreeLines(List<FlatRow> visibleCellRows, double baseX, double baseY) {
+        gc.setStroke(TREE_LINE_COLOR);
+        gc.setLineWidth(0.5);
+
+        for (int i = 0; i < visibleCellRows.size(); i++) {
+            FlatRow row = visibleCellRows.get(i);
+            FlatRow parent = row.getParentRow();
+            if (parent == null || parent.getDepth() < 0) {
+                continue; // Skip rows whose parent is the virtual root
+            }
+
+            double rowY = baseY + i * RepeatingElementsTable.ROW_HEIGHT
+                    + RepeatingElementsTable.ROW_HEIGHT / 2;
+            double parentBarX = baseX + parent.getDepth() * INDENT + EXPAND_BAR_WIDTH / 2;
+            double iconX = baseX + row.getDepth() * INDENT
+                    + (row.isExpandable() ? EXPAND_BAR_WIDTH : 0);
+
+            // Horizontal branch from parent bar to child icon
+            gc.strokeLine(parentBarX, rowY, iconX, rowY);
+        }
     }
 
     // ==================== Table Interaction ====================
@@ -1235,6 +1344,49 @@ public class XmlCanvasView extends Pane {
                             updateScrollBars();
                             render();
                             return;
+                        }
+                    }
+                }
+            }
+
+            // Check if click is within an expanded cell's sub-row expand indicator
+            if (event.getClickCount() == 1) {
+                int colIdx = table.getColumnIndexAt(mx);
+                if (colIdx >= 0) {
+                    RepeatingElementsTable.TableColumn col = table.getColumn(colIdx);
+                    if (col != null && row.isColumnExpanded(col.getName())) {
+                        List<FlatRow> cellRows = row.getExpandedCellRows(col.getName());
+                        List<FlatRow> visibleCellRows = cellRows.stream()
+                                .filter(FlatRow::isVisible).toList();
+
+                        // Calculate Y of this row's top edge
+                        double dataStartY = tableScreenTop + RepeatingElementsTable.HEADER_HEIGHT
+                                + RepeatingElementsTable.ROW_HEIGHT;
+                        double rowTopY = dataStartY;
+                        for (int i = 0; i < rowIdx; i++) {
+                            rowTopY += table.calculateRowHeight(table.getRows().get(i));
+                        }
+                        double subRowStartY = rowTopY + RepeatingElementsTable.ROW_HEIGHT; // after summary
+                        double cellLeft = table.getColumnX(col.getName());
+                        double cellPad = RepeatingElementsTable.CELL_PADDING;
+
+                        // Determine which sub-row was clicked
+                        int subRowIdx = (int) ((my - subRowStartY) / RepeatingElementsTable.ROW_HEIGHT);
+                        if (subRowIdx >= 0 && subRowIdx < visibleCellRows.size()) {
+                            FlatRow subRow = visibleCellRows.get(subRowIdx);
+
+                            // Check if click is on this sub-row's expand indicator
+                            if (subRow.isExpandable()) {
+                                double subContentX = cellLeft + cellPad + subRow.getDepth() * INDENT;
+                                if (mx >= subContentX && mx <= subContentX + EXPAND_BAR_WIDTH) {
+                                    FlatRow.toggleExpand(subRow, cellRows);
+                                    table.recalculateColumnWidths();
+                                    recalculateVisibleRows();
+                                    updateScrollBars();
+                                    render();
+                                    return;
+                                }
+                            }
                         }
                     }
                 }

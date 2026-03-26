@@ -361,28 +361,36 @@ public class FlatRow {
      */
     public static List<FlatRow> flattenElement(XmlElement element) {
         List<FlatRow> rows = new ArrayList<>();
-        // Add attributes of the element itself
+        // Create a virtual root row (depth=-1) as parent anchor for tree structure.
+        // This row is NOT added to the list; it only serves as the parentRow reference
+        // so that isDescendantOf() and toggleExpand() can walk the parent chain correctly.
+        FlatRow rootRow = new FlatRow(RowType.ELEMENT, -1, element, null,
+                element.getName(), null, 0);
+
+        // Add attributes of the element itself at depth 0
         int attrIdx = 0;
         for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
-            FlatRow attrRow = new FlatRow(RowType.ATTRIBUTE, 0, element, null,
+            FlatRow attrRow = new FlatRow(RowType.ATTRIBUTE, 0, element, rootRow,
                     attr.getKey(), attr.getValue(), 0);
             attrRow.setAttributeIndex(attrIdx++);
             rows.add(attrRow);
         }
-        // Flatten children of this element
+        // Flatten children using the private method which sets proper parentRow,
+        // depth, childCount, and handles repeating element detection.
+        // Children start COLLAPSED (expandByDefault=false) so the user can expand on demand.
         for (XmlNode child : element.getChildren()) {
             if (child instanceof XmlElement childEl) {
-                flattenElement(childEl, 0, null, rows, true);
+                flattenElement(childEl, 0, rootRow, rows, false);
             } else if (child instanceof XmlText text) {
                 if (text.getText() != null && !text.getText().isBlank()) {
-                    rows.add(new FlatRow(RowType.TEXT, 0, text, null,
+                    rows.add(new FlatRow(RowType.TEXT, 0, text, rootRow,
                             "#text", text.getText().strip(), 0));
                 }
             } else if (child instanceof XmlComment comment) {
-                rows.add(new FlatRow(RowType.COMMENT, 0, comment, null,
+                rows.add(new FlatRow(RowType.COMMENT, 0, comment, rootRow,
                         null, comment.getText(), 0));
             } else if (child instanceof XmlCData cdata) {
-                rows.add(new FlatRow(RowType.CDATA, 0, cdata, null,
+                rows.add(new FlatRow(RowType.CDATA, 0, cdata, rootRow,
                         null, cdata.getText(), 0));
             }
         }

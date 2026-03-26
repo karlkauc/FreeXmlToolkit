@@ -913,7 +913,9 @@ public class RepeatingElementsTable {
         double maxCellHeight = ROW_HEIGHT;
         for (String colName : row.getExpandedColumns()) {
             List<FlatRow> cellRows = row.getExpandedCellRows(colName);
-            double cellHeight = ROW_HEIGHT + cellRows.size() * ROW_HEIGHT; // header + child rows
+            // Count only visible rows (collapsed sub-rows should not take space)
+            long visibleCount = cellRows.stream().filter(FlatRow::isVisible).count();
+            double cellHeight = ROW_HEIGHT + visibleCount * ROW_HEIGHT; // summary + visible child rows
             maxCellHeight = Math.max(maxCellHeight, cellHeight);
         }
         return maxCellHeight;
