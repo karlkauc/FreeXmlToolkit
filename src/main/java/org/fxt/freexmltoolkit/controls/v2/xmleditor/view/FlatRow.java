@@ -1,6 +1,16 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Core data class for the flat, row-based XML editor layout.
@@ -332,6 +342,213 @@ public class FlatRow {
      */
     public boolean hasRepeatingTable() {
         return repeatingTable != null;
+    }
+
+    // ==================== Static Flattening Algorithm ====================
+
+    /**
+     * Recursively walks the XML document tree and produces a flat list of FlatRows.
+     *
+     * <p>Processing order per element:</p>
+     * <ol>
+     *   <li>The element row itself</li>
+     *   <li>Attribute rows (one per attribute, in insertion order)</li>
+     *   <li>Child rows (recursively)</li>
+     * </ol>
+     *
+     * <p>Document-level processing instructions and comments are included at depth 0.
+     * Whitespace-only text nodes are skipped. For mixed content elements (both child
+     * elements and text nodes), non-whitespace text nodes appear as separate TEXT rows.</p>
+     *
+     * @param document the XML document to flatten
+     * @return ordered list of FlatRows representing the entire document
+     */
+    public static List<FlatRow> flatten(XmlDocument document) {
+        List<FlatRow> rows = new ArrayList<>();
+        for (XmlNode child : document.getChildren()) {
+            if (child instanceof XmlElement element) {
+                flattenElement(element, 0, null, rows, true);
+            } else if (child instanceof XmlComment comment) {
+                rows.add(new FlatRow(RowType.COMMENT, 0, comment, null, null, comment.getText(), 0));
+            } else if (child instanceof XmlProcessingInstruction pi) {
+                rows.add(new FlatRow(RowType.PROCESSING_INSTRUCTION, 0, pi, null, pi.getTarget(), pi.getData(), 0));
+            }
+            // Whitespace-only text nodes at document level are skipped
+        }
+        return rows;
+    }
+
+    /**
+     * Processes one element: creates its FlatRow, adds attribute rows, recurses into children.
+     *
+     * @param element         the element to process
+     * @param depth           nesting depth of this element
+     * @param parentRow       parent FlatRow (null for root elements)
+     * @param rows            accumulator list
+     * @param expandByDefault whether this element should start expanded
+     */
+    private static void flattenElement(XmlElement element, int depth, FlatRow parentRow,
+                                       List<FlatRow> rows, boolean expandByDefault) {
+        // Determine the child count for this element row.
+        // Child count = number of attributes + number of meaningful child nodes
+        // (element children + non-whitespace text/comment/cdata/pi children)
+        int childCount = element.getAttributes().size();
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlElement) {
+                childCount++;
+            } else if (child instanceof XmlComment) {
+                childCount++;
+            } else if (child instanceof XmlProcessingInstruction) {
+                childCount++;
+            } else if (child instanceof XmlCData) {
+                childCount++;
+            } else if (child instanceof XmlText text) {
+                if (!text.isWhitespace()) {
+                    childCount++;
+                }
+            }
+        }
+
+        // Compute the text value for leaf elements (no child elements)
+        String textValue = extractTextContent(element);
+
+        FlatRow elementRow = new FlatRow(RowType.ELEMENT, depth, element, parentRow,
+                element.getName(), textValue, childCount);
+        elementRow.setExpanded(expandByDefault);
+        rows.add(elementRow);
+
+        // Attribute rows at depth+1
+        int attrIndex = 0;
+        for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
+            FlatRow attrRow = new FlatRow(RowType.ATTRIBUTE, depth + 1, element, elementRow,
+                    attr.getKey(), attr.getValue(), 0);
+            attrRow.setAttributeIndex(attrIndex++);
+            rows.add(attrRow);
+        }
+
+        // Child nodes - recurse into elements, emit TEXT/COMMENT/CDATA/PI rows
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlElement childElement) {
+                flattenElement(childElement, depth + 1, elementRow, rows, false);
+            } else if (child instanceof XmlComment comment) {
+                rows.add(new FlatRow(RowType.COMMENT, depth + 1, comment, elementRow,
+                        null, comment.getText(), 0));
+            } else if (child instanceof XmlProcessingInstruction pi) {
+                rows.add(new FlatRow(RowType.PROCESSING_INSTRUCTION, depth + 1, pi, elementRow,
+                        pi.getTarget(), pi.getData(), 0));
+            } else if (child instanceof XmlCData cdata) {
+                rows.add(new FlatRow(RowType.CDATA, depth + 1, cdata, elementRow,
+                        null, cdata.getText(), 0));
+            } else if (child instanceof XmlText text) {
+                // Mixed content: emit a TEXT row only for non-whitespace text
+                // when the element also has child elements
+                if (!text.isWhitespace() && element.hasElementChildren()) {
+                    rows.add(new FlatRow(RowType.TEXT, depth + 1, text, elementRow,
+                            null, text.getText().strip(), 0));
+                }
+                // Pure-leaf text: already captured via extractTextContent(), no separate row
+            }
+        }
+    }
+
+    /**
+     * Returns the text content of a leaf element (concatenates all text/CDATA nodes, strips
+     * surrounding whitespace). Returns {@code null} if the element has child elements (not a leaf).
+     *
+     * @param element the element to inspect
+     * @return trimmed text content, or null if this is not a leaf element
+     */
+    private static String extractTextContent(XmlElement element) {
+        if (element.hasElementChildren()) {
+            return null; // Not a leaf
+        }
+        StringBuilder sb = new StringBuilder();
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlText text) {
+                sb.append(text.getText());
+            } else if (child instanceof XmlCData cdata) {
+                sb.append(cdata.getText());
+            }
+        }
+        String content = sb.toString().strip();
+        return content.isEmpty() ? null : content;
+    }
+
+    /**
+     * Toggles the expand/collapse state of an element row.
+     *
+     * <ul>
+     *   <li>Collapsing: all descendant rows are hidden (recursive).</li>
+     *   <li>Expanding: direct children are shown; for child element rows that are themselves
+     *       expanded, their children are recursively shown too.</li>
+     * </ul>
+     *
+     * @param elementRow the element row to toggle
+     * @param allRows    the complete flat row list
+     */
+    public static void toggleExpand(FlatRow elementRow, List<FlatRow> allRows) {
+        if (elementRow.getType() != RowType.ELEMENT) {
+            return; // Only elements are expandable
+        }
+
+        if (elementRow.isExpanded()) {
+            // Collapse: hide ALL descendants
+            elementRow.setExpanded(false);
+            for (FlatRow row : allRows) {
+                if (isDescendantOf(row, elementRow)) {
+                    row.setVisible(false);
+                }
+            }
+        } else {
+            // Expand: show direct children; recursively show if child is also expanded
+            elementRow.setExpanded(true);
+            for (FlatRow row : allRows) {
+                if (row.getParentRow() == elementRow) {
+                    row.setVisible(true);
+                    // If this child element is itself expanded, show its subtree too
+                    if (row.getType() == RowType.ELEMENT && row.isExpanded()) {
+                        showExpandedSubtree(row, allRows);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Recursively makes visible the children of an already-expanded element row.
+     * Called during expand to restore previously-visible subtree state.
+     *
+     * @param elementRow the expanded element whose children should be shown
+     * @param allRows    the complete flat row list
+     */
+    private static void showExpandedSubtree(FlatRow elementRow, List<FlatRow> allRows) {
+        for (FlatRow row : allRows) {
+            if (row.getParentRow() == elementRow) {
+                row.setVisible(true);
+                if (row.getType() == RowType.ELEMENT && row.isExpanded()) {
+                    showExpandedSubtree(row, allRows);
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks whether {@code candidate} is a descendant of {@code ancestor} by walking
+     * the {@code parentRow} chain.
+     *
+     * @param candidate the row to test
+     * @param ancestor  the potential ancestor row
+     * @return true if candidate is a (direct or indirect) descendant of ancestor
+     */
+    private static boolean isDescendantOf(FlatRow candidate, FlatRow ancestor) {
+        FlatRow current = candidate.getParentRow();
+        while (current != null) {
+            if (current == ancestor) {
+                return true;
+            }
+            current = current.getParentRow();
+        }
+        return false;
     }
 
     // ==================== Object Methods ====================

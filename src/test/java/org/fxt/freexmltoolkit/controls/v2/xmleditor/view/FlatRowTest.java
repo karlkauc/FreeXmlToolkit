@@ -3,8 +3,12 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
+import java.util.List;
+
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -241,6 +245,145 @@ class FlatRowTest {
 
         row.setHovered(false);
         assertFalse(row.isHovered());
+    }
+
+    // ==================== Flatten Algorithm Tests ====================
+
+    /**
+     * Tests that flatten() produces element row at depth 0, followed by attribute rows at depth 1.
+     */
+    @Test
+    @DisplayName("Flatten simple element with attributes")
+    void testFlattenElementWithAttributes() {
+        XmlDocument document = new XmlDocument();
+        XmlElement company = new XmlElement("Company");
+        company.setAttribute("xmlns", "http://example.com");
+        company.setAttribute("version", "2.0");
+        document.addChild(company);
+
+        List<FlatRow> rows = FlatRow.flatten(document);
+
+        // Should have: Company(ELEMENT) + 2 attribute rows = 3 rows
+        assertEquals(3, rows.size());
+
+        FlatRow companyRow = rows.get(0);
+        assertEquals(FlatRow.RowType.ELEMENT, companyRow.getType());
+        assertEquals(0, companyRow.getDepth());
+        assertEquals("Company", companyRow.getLabel());
+        assertTrue(companyRow.isExpanded());
+
+        FlatRow attr1 = rows.get(1);
+        assertEquals(FlatRow.RowType.ATTRIBUTE, attr1.getType());
+        assertEquals(1, attr1.getDepth());
+
+        FlatRow attr2 = rows.get(2);
+        assertEquals(FlatRow.RowType.ATTRIBUTE, attr2.getType());
+        assertEquals(1, attr2.getDepth());
+    }
+
+    /**
+     * Tests that flatten() assigns correct depths for nested elements.
+     * Root &gt; Child &gt; Grandchild("text") must produce depths 0, 1, 2.
+     */
+    @Test
+    @DisplayName("Flatten nested elements produces correct depth")
+    void testFlattenNestedElements() {
+        XmlDocument document = new XmlDocument();
+        XmlElement root = new XmlElement("Root");
+        XmlElement child = new XmlElement("Child");
+        XmlElement grandchild = new XmlElement("Grandchild");
+        grandchild.addChild(new XmlText("text"));
+        child.addChild(grandchild);
+        root.addChild(child);
+        document.addChild(root);
+
+        List<FlatRow> rows = FlatRow.flatten(document);
+
+        // Root(0), Child(1), Grandchild(2) = 3 rows; no attributes
+        assertEquals(3, rows.size());
+
+        assertEquals(0, rows.get(0).getDepth());
+        assertEquals("Root", rows.get(0).getLabel());
+
+        assertEquals(1, rows.get(1).getDepth());
+        assertEquals("Child", rows.get(1).getLabel());
+
+        FlatRow grandchildRow = rows.get(2);
+        assertEquals(2, grandchildRow.getDepth());
+        assertEquals("Grandchild", grandchildRow.getLabel());
+        // Leaf element: value should be the text content
+        assertEquals("text", grandchildRow.getValue());
+    }
+
+    /**
+     * Tests that attribute rows appear before child element rows.
+     */
+    @Test
+    @DisplayName("Flatten produces attributes before child elements")
+    void testFlattenOrderAttributesFirst() {
+        XmlDocument document = new XmlDocument();
+        XmlElement root = new XmlElement("Root");
+        root.setAttribute("id", "42");
+        XmlElement child = new XmlElement("Child");
+        root.addChild(child);
+        document.addChild(root);
+
+        List<FlatRow> rows = FlatRow.flatten(document);
+
+        // Root(0), @id(1), Child(1) = 3 rows
+        assertEquals(3, rows.size());
+
+        // Find attribute row and child element row indices
+        int attrIndex = -1;
+        int childElemIndex = -1;
+        for (int i = 0; i < rows.size(); i++) {
+            FlatRow row = rows.get(i);
+            if (row.getType() == FlatRow.RowType.ATTRIBUTE && "id".equals(row.getLabel())) {
+                attrIndex = i;
+            } else if (row.getType() == FlatRow.RowType.ELEMENT && "Child".equals(row.getLabel())) {
+                childElemIndex = i;
+            }
+        }
+
+        assertTrue(attrIndex >= 0, "Attribute row not found");
+        assertTrue(childElemIndex >= 0, "Child element row not found");
+        assertTrue(attrIndex < childElemIndex, "Attribute row must come before child element row");
+    }
+
+    /**
+     * Tests that toggling visibility hides and shows descendants correctly.
+     */
+    @Test
+    @DisplayName("Toggling visibility hides descendants")
+    void testToggleVisibility() {
+        XmlDocument document = new XmlDocument();
+        XmlElement root = new XmlElement("Root");
+        root.setAttribute("id", "1");
+        XmlElement child = new XmlElement("Child");
+        child.addChild(new XmlText("hello"));
+        root.addChild(child);
+        document.addChild(root);
+
+        List<FlatRow> rows = FlatRow.flatten(document);
+
+        // All rows visible initially: Root(expanded), @id, Child
+        assertEquals(3, rows.size());
+        assertTrue(rows.stream().allMatch(FlatRow::isVisible));
+
+        // Collapse Root -> only Root should be visible
+        FlatRow rootRow = rows.get(0);
+        FlatRow.toggleExpand(rootRow, rows);
+
+        assertFalse(rootRow.isExpanded());
+        assertTrue(rootRow.isVisible());
+        assertFalse(rows.get(1).isVisible(), "@id should be hidden");
+        assertFalse(rows.get(2).isVisible(), "Child should be hidden");
+
+        // Expand Root again -> all visible again
+        FlatRow.toggleExpand(rootRow, rows);
+
+        assertTrue(rootRow.isExpanded());
+        assertTrue(rows.stream().allMatch(FlatRow::isVisible));
     }
 
     // ==================== RowType Enum Tests ====================
