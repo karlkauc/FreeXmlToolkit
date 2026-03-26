@@ -1395,6 +1395,15 @@ public class XmlCanvasView extends Pane {
             table.setSelectedRowIndex(rowIdx);
             selectedTable = table;
 
+            // Clear normal row selection (visual only, to avoid dual highlight)
+            if (selectedRow != null) {
+                selectedRow.setSelected(false);
+                selectedRow = null;
+            }
+
+            // Notify SelectionModel so sidebar properties pane updates
+            context.getSelectionModel().setSelectedNode(row.getElement());
+
             // Double-click to edit cell
             if (event.getClickCount() == 2) {
                 int colIdx = table.getColumnIndexAt(mx);
@@ -2001,7 +2010,21 @@ public class XmlCanvasView extends Pane {
 
     // ==================== Selection ====================
 
+    /**
+     * Clears the table selection state.
+     * Deselects the currently selected table row and resets the selectedTable reference.
+     */
+    private void clearTableSelection() {
+        if (selectedTable != null) {
+            selectedTable.setSelectedRowIndex(-1);
+            selectedTable = null;
+        }
+    }
+
     private void selectRow(FlatRow row) {
+        // Clear any table selection to ensure mutual exclusivity
+        clearTableSelection();
+
         if (selectedRow != null) {
             selectedRow.setSelected(false);
         }
@@ -2548,6 +2571,12 @@ public class XmlCanvasView extends Pane {
     }
 
     public XmlNode getSelectedNode() {
+        if (selectedTable != null) {
+            XmlElement tableElement = selectedTable.getSelectedElement();
+            if (tableElement != null) {
+                return tableElement;
+            }
+        }
         return selectedRow != null ? selectedRow.getModelNode() : null;
     }
 
