@@ -344,7 +344,7 @@
         <!-- Tools Menu -->
         <Separator orientation="VERTICAL"/>
 
-        <MenuButton text="Tools" contentDisplay="LEFT" styleClass="toolbar-button">
+        <MenuButton fx:id="toolsMenu" text="Tools" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-tools" iconSize="20" iconColor="#6c757d"
                           styleClass="toolbar-icon-secondary"/>

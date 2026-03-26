@@ -121,6 +121,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
     @FXML
     private MenuButton schematronInsertMenu;
     @FXML
+    private MenuButton toolsMenu;
+    @FXML
     private ToggleButton consolePanelToggle;
     @FXML
     private ToggleButton xsltDevPanelToggle;
@@ -1877,6 +1879,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         applyButtonSettings(consolePanelToggle, displayMode, iconSize, useSmallIcons, compactClass);
         applyButtonSettings(xsltDevPanelToggle, displayMode, iconSize, useSmallIcons, compactClass);
         applyButtonSettings(templateDevPanelToggle, displayMode, iconSize, useSmallIcons, compactClass);
+        applyButtonSettings(toolsMenu, displayMode, iconSize, useSmallIcons, compactClass);
 
         logger.info("Small icons setting applied to Unified Editor toolbar (size: {}px)", iconSize);
     }
