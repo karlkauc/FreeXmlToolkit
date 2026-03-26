@@ -571,7 +571,7 @@ public class FlatRow {
      * @param ancestor  the potential ancestor row
      * @return true if candidate is a (direct or indirect) descendant of ancestor
      */
-    private static boolean isDescendantOf(FlatRow candidate, FlatRow ancestor) {
+    static boolean isDescendantOf(FlatRow candidate, FlatRow ancestor) {
         FlatRow current = candidate.getParentRow();
         while (current != null) {
             if (current == ancestor) {

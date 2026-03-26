@@ -203,10 +203,10 @@ public class XmlCanvasView extends Pane {
 
     // ==================== Fonts ====================
 
-    private static final Font ROW_FONT = Font.font("Segoe UI", FontWeight.NORMAL, 12);
-    private static final Font ROW_FONT_BOLD = Font.font("Segoe UI", FontWeight.SEMI_BOLD, 12);
-    private static final Font SMALL_FONT = Font.font("Segoe UI", FontWeight.NORMAL, 10);
-    private static final Font ICON_FONT = Font.font("Segoe UI", FontWeight.BOLD, 11);
+    private static final Font ROW_FONT = Font.font("Monospaced", FontWeight.NORMAL, 12);
+    private static final Font ROW_FONT_BOLD = Font.font("Monospaced", FontWeight.SEMI_BOLD, 12);
+    private static final Font SMALL_FONT = Font.font("Monospaced", FontWeight.NORMAL, 10);
+    private static final Font ICON_FONT = Font.font("Monospaced", FontWeight.BOLD, 11);
 
     // ==================== Constructor ====================
 
@@ -751,7 +751,9 @@ public class XmlCanvasView extends Pane {
      * Draws vertical expand/collapse bars for expanded elements.
      */
     private void drawExpandBars(int firstVisible, int lastVisible) {
-        for (int i = firstVisible; i <= lastVisible; i++) {
+        // Start from index 0, not firstVisible, so that expand bars from off-screen
+        // parents whose descendants are visible still get drawn
+        for (int i = 0; i <= lastVisible; i++) {
             FlatRow row = visibleRows.get(i);
             if (!row.isExpandable()) {
                 continue;
@@ -832,14 +834,7 @@ public class XmlCanvasView extends Pane {
      * Checks if candidate is a descendant of ancestor.
      */
     private boolean isDescendantOf(FlatRow candidate, FlatRow ancestor) {
-        FlatRow current = candidate.getParentRow();
-        while (current != null) {
-            if (current == ancestor) {
-                return true;
-            }
-            current = current.getParentRow();
-        }
-        return false;
+        return FlatRow.isDescendantOf(candidate, ancestor);
     }
 
     /**
@@ -869,7 +864,7 @@ public class XmlCanvasView extends Pane {
 
     private void drawEmptyState() {
         gc.setFill(TEXT_SECONDARY);
-        gc.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 14));
+        gc.setFont(Font.font("Monospaced", FontWeight.NORMAL, 14));
         gc.setTextAlign(TextAlignment.CENTER);
         gc.setTextBaseline(VPos.CENTER);
         gc.fillText("No XML document loaded", canvas.getWidth() / 2, canvas.getHeight() / 2);
@@ -1572,9 +1567,13 @@ public class XmlCanvasView extends Pane {
 
         double absoluteY = my + scrollOffsetY;
 
-        // Check all expandable rows, not just the hovered one,
-        // because expand bars span multiple rows
-        for (int i = 0; i < visibleRows.size(); i++) {
+        // Find the row index at the click Y position to limit search range.
+        // An expand bar can only cover the click if it starts at or before the clicked row.
+        int clickedRowIdx = findRowIndexAtY(absoluteY);
+        int searchLimit = Math.min(clickedRowIdx + 1, visibleRows.size());
+
+        // Search only rows up to the clicked row — bars starting after cannot cover the click
+        for (int i = 0; i < searchLimit; i++) {
             FlatRow row = visibleRows.get(i);
             if (!row.isExpandable()) {
                 continue;
