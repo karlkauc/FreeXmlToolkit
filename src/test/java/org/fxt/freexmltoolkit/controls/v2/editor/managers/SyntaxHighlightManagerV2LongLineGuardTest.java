@@ -2,14 +2,14 @@ package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import javafx.stage.Stage;
+
 import org.fxmisc.richtext.CodeArea;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
-
-import javafx.stage.Stage;
 
 @ExtendWith(ApplicationExtension.class)
 class SyntaxHighlightManagerV2LongLineGuardTest {
