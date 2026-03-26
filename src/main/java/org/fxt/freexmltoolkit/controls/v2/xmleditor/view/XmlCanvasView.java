@@ -1077,14 +1077,28 @@ public class XmlCanvasView extends Pane {
                 String colName = col.getName();
                 boolean isComplex = row.hasComplexChild(colName);
 
-                // Draw expand arrow for complex cells
+                // Draw expand arrow for complex cells (Canvas-drawn polygon)
                 if (isComplex) {
-                    gc.setFont(SMALL_FONT);
+                    double arrowX = cellX + 8;
+                    double arrowY = cellCenterY;
+                    double arrowSize = 3;
                     gc.setFill(TEXT_SECONDARY);
-                    gc.setTextAlign(TextAlignment.LEFT);
-                    gc.setTextBaseline(VPos.CENTER);
-                    String arrow = row.isColumnExpanded(colName) ? "\u25BC" : "\u25B6";
-                    gc.fillText(arrow, cellX + 2, cellCenterY);
+
+                    if (row.isColumnExpanded(colName)) {
+                        // Down-pointing triangle (expanded)
+                        gc.fillPolygon(
+                                new double[]{arrowX - arrowSize, arrowX, arrowX + arrowSize},
+                                new double[]{arrowY - arrowSize / 2, arrowY + arrowSize, arrowY - arrowSize / 2},
+                                3
+                        );
+                    } else {
+                        // Right-pointing triangle (collapsed)
+                        gc.fillPolygon(
+                                new double[]{arrowX - arrowSize / 2, arrowX + arrowSize, arrowX - arrowSize / 2},
+                                new double[]{arrowY - arrowSize, arrowY, arrowY + arrowSize},
+                                3
+                        );
+                    }
                 }
 
                 // Cell value (with offset for expand arrow on complex cells)
