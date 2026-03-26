@@ -837,7 +837,6 @@ public class RepeatingElementsTable {
     private void calculateColumnWidths() {
         for (TableColumn col : columns) {
             double maxWidth = col.getDisplayName().length() * 8 + CELL_PADDING * 2;
-            boolean hasExpandedCells = false;
 
             for (TableRow row : rows) {
                 String value = row.getValue(col.getName());
@@ -846,7 +845,6 @@ public class RepeatingElementsTable {
 
                 // Account for expanded cell content
                 if (row.isColumnExpanded(col.getName())) {
-                    hasExpandedCells = true;
                     List<FlatRow> cellRows = row.getExpandedCellRows(col.getName());
                     for (FlatRow subRow : cellRows) {
                         double subIndent = subRow.getDepth() * 12;
@@ -858,8 +856,7 @@ public class RepeatingElementsTable {
                 }
             }
 
-            double maxAllowed = hasExpandedCells ? MAX_COLUMN_WIDTH_EXPANDED : MAX_COLUMN_WIDTH;
-            col.setWidth(Math.min(maxAllowed, Math.max(MIN_COLUMN_WIDTH, maxWidth)));
+            col.setWidth(Math.max(MIN_COLUMN_WIDTH, maxWidth));
         }
     }
 
