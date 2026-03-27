@@ -2160,11 +2160,9 @@ public class XmlCanvasView extends Pane {
 
             TypeAwareWidgetFactory.EditWidget widget;
             if (attributeName != null) {
-                widget = factory.createAttributeWidget(elementXPath, attributeName, currentValue,
-                        newValue -> javafx.application.Platform.runLater(this::commitEditing));
+                widget = factory.createAttributeWidget(elementXPath, attributeName, currentValue, null);
             } else {
-                widget = factory.createElementWidget(elementXPath, currentValue,
-                        newValue -> javafx.application.Platform.runLater(this::commitEditing));
+                widget = factory.createElementWidget(elementXPath, currentValue, null);
             }
 
             if (widget != null) {
