@@ -106,9 +106,11 @@ public class XmlEditor extends Tab {
     // Cache for XSD documentation data to avoid reparsing
     private XsdDocumentationData xsdDocumentationData;
 
-    // Debounce for live validation (avoids validation on every keystroke)
+    // Debounce for live validation and tree updates (avoids processing on every keystroke)
     private PauseTransition validationDebounce;
     private PauseTransition schematronDebounce;
+    private PauseTransition treeUpdateDebounce;
+    private static final long TREE_UPDATE_DEBOUNCE_MS = 800;
     private static final long VALIDATION_DEBOUNCE_MS = 500;
     private static final long LARGE_FILE_DEBOUNCE_MS = 1500;
     private static final long LARGE_FILE_THRESHOLD = 1024 * 1024;       // 1MB
@@ -268,16 +270,33 @@ public class XmlEditor extends Tab {
         validationDebounce.setOnFinished(e -> validateXml());
         schematronDebounce = new PauseTransition(Duration.millis(VALIDATION_DEBOUNCE_MS));
         schematronDebounce.setOnFinished(e -> validateSchematron());
+        treeUpdateDebounce = new PauseTransition(Duration.millis(TREE_UPDATE_DEBOUNCE_MS));
+        treeUpdateDebounce.setOnFinished(e -> {
+            if (sidebarController != null) {
+                String text = codeArea.getText();
+                if (text != null && !text.isEmpty()) {
+                    sidebarController.updateDocumentTree(text);
+                }
+            }
+        });
 
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            // Debounced tree update on every text change
+            if (sidebarController != null) {
+                long textLength = newText != null ? newText.length() : 0;
+                if (textLength <= VERY_LARGE_FILE_THRESHOLD) {
+                    long debounceMs = textLength > LARGE_FILE_THRESHOLD ? LARGE_FILE_DEBOUNCE_MS : TREE_UPDATE_DEBOUNCE_MS;
+                    treeUpdateDebounce.setDuration(Duration.millis(debounceMs));
+                    treeUpdateDebounce.playFromStart();
+                }
+            }
+
             if (sidebarController != null && sidebarController.isContinuousValidationSelected()) {
                 long textLength = newText != null ? newText.length() : 0;
                 if (textLength > VERY_LARGE_FILE_THRESHOLD) {
-                    // Very large files: skip live validation entirely
                     logger.debug("Skipping live validation for very large file ({}KB)", textLength / 1024);
                     return;
                 }
-                // Large files: use longer debounce
                 long debounceMs = textLength > LARGE_FILE_THRESHOLD ? LARGE_FILE_DEBOUNCE_MS : VALIDATION_DEBOUNCE_MS;
                 validationDebounce.setDuration(Duration.millis(debounceMs));
                 validationDebounce.playFromStart();
@@ -2285,6 +2304,8 @@ public class XmlEditor extends Tab {
         // Update the document tree in the sidebar
         if (sidebarController != null) {
             sidebarController.updateDocumentTree(text);
+        } else {
+            logger.warn("sidebarController is null when setting editor text - tree will not be updated");
         }
     }
 

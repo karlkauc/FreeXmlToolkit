@@ -1716,19 +1716,16 @@ public class XmlEditorSidebarController {
      * @param xmlContent the XML content to parse and display
      */
     public void updateDocumentTree(String xmlContent) {
-        if (documentTreeView == null || xmlContent == null || xmlContent.trim().isEmpty()) {
+        if (documentTreeView == null) {
+            logger.warn("documentTreeView is null - FXML injection may have failed");
+            return;
+        }
+        if (xmlContent == null || xmlContent.trim().isEmpty()) {
             return;
         }
 
         try {
-            javax.xml.parsers.DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
-            factory.setNamespaceAware(true);
-            // Security: Disable external entities
-            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-
-            javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
+            javax.xml.parsers.DocumentBuilder builder = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilder(true);
             org.w3c.dom.Document doc = builder.parse(new java.io.ByteArrayInputStream(xmlContent.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
 
             TreeItem<String> root = buildTreeItemFromNode(doc.getDocumentElement());
@@ -1737,9 +1734,8 @@ public class XmlEditorSidebarController {
 
             logger.debug("Document tree updated with {} nodes", countTreeNodes(root));
         } catch (Exception e) {
-            logger.debug("Could not parse XML for tree view: {}", e.getMessage());
-            // Clear tree on parse error
-            documentTreeView.setRoot(null);
+            logger.warn("Could not parse XML for tree view: {}", e.getMessage());
+            // Don't clear the tree on parse error - keep the last valid state
         }
     }
 

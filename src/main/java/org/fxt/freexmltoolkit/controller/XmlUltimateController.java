@@ -73,8 +73,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.DragEvent;
@@ -220,9 +218,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
     @FXML
     private Button emptyStateOpenButton;
 
-    // Sidebar Components
-    @FXML
-    private TreeView<String> documentTreeView;
+    // Sidebar Components (Note: document tree is managed by XmlEditorSidebarController)
     @FXML
     private ComboBox<String> schemaCombo;
     @FXML
@@ -706,8 +702,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         currentXmlFile = file;
         currentXmlContent = content;
 
-        // Update document tree and validate
-        updateDocumentTree(content);
+        // Validate (document tree is updated by the XmlEditor sidebar)
         validateCurrentXml();
 
         // Add file to recent files
@@ -1218,8 +1213,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                     currentXmlFile = file;
                     currentXmlContent = Files.readString(file.toPath());
 
-                    // Update document tree and validate
-                    updateDocumentTree(currentXmlContent);
+                    // Validate (document tree is updated by the XmlEditor sidebar)
                     validateCurrentXml();
                 }
 
@@ -1263,9 +1257,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                 // File was opened in new tab - update current references
                 currentXmlFile = file;
                 currentXmlContent = Files.readString(file.toPath());
-
-                // Update document tree
-                updateDocumentTree(currentXmlContent);
+                // Document tree is updated by the XmlEditor sidebar
             }
 
             // Update recent files list (whether new or existing)
@@ -2057,140 +2049,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         }
     }
 
-    private void updateDocumentTree(String xml) {
-        if (documentTreeView != null) {
-            try {
-                // Use SecureXmlFactory to prevent XXE attacks
-                DocumentBuilder builder = SecureXmlFactory.createSecureDocumentBuilder(true);
-                Document doc = builder.parse(new InputSource(new StringReader(xml)));
-
-                TreeItem<String> root = buildTreeItemFromNode(doc.getDocumentElement());
-                root.setExpanded(true);
-                documentTreeView.setRoot(root);
-            } catch (Exception e) {
-                logger.error("Failed to update document tree", e);
-            }
-        }
-    }
-
-    private TreeItem<String> buildTreeItemFromNode(org.w3c.dom.Node node) {
-        String displayText = buildNodeDisplayText(node);
-        TreeItem<String> item = new TreeItem<>(displayText);
-
-        // Set icon based on node type
-        var icon = new org.kordamp.ikonli.javafx.FontIcon(getIconForNodeType(node));
-        icon.setIconSize(14);
-        icon.setIconColor(javafx.scene.paint.Color.web(getColorForNodeType(node)));
-        item.setGraphic(icon);
-
-        // Process child nodes
-        org.w3c.dom.NodeList children = node.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            org.w3c.dom.Node child = children.item(i);
-            short nodeType = child.getNodeType();
-
-            if (nodeType == org.w3c.dom.Node.ELEMENT_NODE) {
-                // Recursively add element children
-                TreeItem<String> childItem = buildTreeItemFromNode(child);
-                item.getChildren().add(childItem);
-            } else if (nodeType == org.w3c.dom.Node.TEXT_NODE) {
-                String text = child.getTextContent().trim();
-                if (!text.isEmpty()) {
-                    // Add text content as a child node
-                    TreeItem<String> textItem = new TreeItem<>(truncateText(text, 50));
-                    var textIcon = new org.kordamp.ikonli.javafx.FontIcon("bi-fonts");
-                    textIcon.setIconSize(14);
-                    textIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
-                    textItem.setGraphic(textIcon);
-                    item.getChildren().add(textItem);
-                }
-            } else if (nodeType == org.w3c.dom.Node.COMMENT_NODE) {
-                String comment = child.getTextContent().trim();
-                TreeItem<String> commentItem = new TreeItem<>("<!-- " + truncateText(comment, 40) + " -->");
-                var commentIcon = new org.kordamp.ikonli.javafx.FontIcon("bi-chat-left-text");
-                commentIcon.setIconSize(14);
-                commentIcon.setIconColor(javafx.scene.paint.Color.web("#28a745"));
-                commentItem.setGraphic(commentIcon);
-                item.getChildren().add(commentItem);
-            } else if (nodeType == org.w3c.dom.Node.CDATA_SECTION_NODE) {
-                String cdata = child.getTextContent().trim();
-                TreeItem<String> cdataItem = new TreeItem<>("<![CDATA[" + truncateText(cdata, 30) + "]]>");
-                var cdataIcon = new org.kordamp.ikonli.javafx.FontIcon("bi-braces");
-                cdataIcon.setIconSize(14);
-                cdataIcon.setIconColor(javafx.scene.paint.Color.web("#fd7e14"));
-                cdataItem.setGraphic(cdataIcon);
-                item.getChildren().add(cdataItem);
-            }
-        }
-
-        return item;
-    }
-
-    private String buildNodeDisplayText(org.w3c.dom.Node node) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(node.getNodeName());
-
-        // Add attributes to display
-        if (node.hasAttributes()) {
-            org.w3c.dom.NamedNodeMap attrs = node.getAttributes();
-            for (int i = 0; i < attrs.getLength() && i < 3; i++) {
-                org.w3c.dom.Node attr = attrs.item(i);
-                if (i == 0) {
-                    sb.append(" ");
-                } else {
-                    sb.append(", ");
-                }
-                sb.append(attr.getNodeName()).append("=\"").append(truncateText(attr.getNodeValue(), 20)).append("\"");
-            }
-            if (attrs.getLength() > 3) {
-                sb.append(", ...");
-            }
-        }
-
-        return sb.toString();
-    }
-
-    private String getIconForNodeType(org.w3c.dom.Node node) {
-        if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-            if (node.hasChildNodes()) {
-                // Check if it has element children
-                org.w3c.dom.NodeList children = node.getChildNodes();
-                for (int i = 0; i < children.getLength(); i++) {
-                    if (children.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                        return "bi-folder2"; // Container element
-                    }
-                }
-            }
-            return "bi-tag"; // Leaf element
-        }
-        return "bi-file-text";
-    }
-
-    private String getColorForNodeType(org.w3c.dom.Node node) {
-        if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-            if (node.hasChildNodes()) {
-                org.w3c.dom.NodeList children = node.getChildNodes();
-                for (int i = 0; i < children.getLength(); i++) {
-                    if (children.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                        return "#007bff"; // Blue for container
-                    }
-                }
-            }
-            return "#17a2b8"; // Cyan for leaf element
-        }
-        return "#6c757d"; // Gray for other
-    }
-
-    private String truncateText(String text, int maxLength) {
-        if (text == null) {
-            return "";
-        }
-        text = text.replace("\n", " ").replace("\r", " ").replaceAll("\\s+", " ");
-        if (text.length() > maxLength) {
-            return text.substring(0, maxLength) + "...";
-        }
-        return text;
-    }
+    // Document tree is managed by XmlEditorSidebarController (per-tab)
 
     private String formatXml(String xml, boolean indent) throws Exception {
         // Use the improved XmlService.prettyFormat method that handles whitespace properly
@@ -3112,8 +2971,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                 currentXmlFile = file;
                 currentXmlContent = Files.readString(file.toPath());
 
-                // Update document tree and validate
-                updateDocumentTree(currentXmlContent);
+                // Validate (document tree is updated by the XmlEditor sidebar)
                 validateCurrentXml();
 
                 logToConsole("Loaded from favorites: " + file.getAbsolutePath());
