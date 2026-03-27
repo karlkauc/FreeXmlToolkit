@@ -107,7 +107,7 @@ public class StreamingXmlParser {
 
     private XmlDocument parseFromStream(XMLStreamReader reader) throws XMLStreamException {
         XmlDocument doc = new XmlDocument();
-        Stack<XmlElement> elementStack = new Stack<>();
+        Stack<ParserState> stateStack = new Stack<>();
         
         try {
             while (reader.hasNext()) {
@@ -127,7 +127,7 @@ public class StreamingXmlParser {
                         
                         XmlElement element = new XmlElement(localName, prefix, namespaceUri);
                         
-                        // Handle namespace declarations (StAX separates these from attributes)
+                        // Handle namespace declarations
                         int nsCount = reader.getNamespaceCount();
                         for (int i = 0; i < nsCount; i++) {
                             String nsPrefix = reader.getNamespacePrefix(i);
@@ -148,52 +148,79 @@ public class StreamingXmlParser {
                             element.setAttribute(fullAttrName, reader.getAttributeValue(i));
                         }
                         
-                        if (elementStack.isEmpty()) {
+                        if (stateStack.isEmpty()) {
                             doc.setRootElement(element);
                         } else {
-                            elementStack.peek().addChild(element);
+                            ParserState parentState = stateStack.peek();
+                            parentState.hasElementChildren = true;
+                            // Discard any pending whitespace as it's just formatting before this child element
+                            parentState.pendingWhitespace.setLength(0);
+                            parentState.element.addChild(element);
                         }
-                        elementStack.push(element);
+                        stateStack.push(new ParserState(element));
                         break;
                         
                     case XMLStreamConstants.END_ELEMENT:
-                        if (!elementStack.isEmpty()) {
-                            elementStack.pop();
+                        if (!stateStack.isEmpty()) {
+                            ParserState currentState = stateStack.pop();
+                            // If no element children were found, commit any pending whitespace
+                            // because it might be the only content of the element.
+                            if (!currentState.hasElementChildren && currentState.pendingWhitespace.length() > 0) {
+                                currentState.element.addChild(new XmlText(currentState.pendingWhitespace.toString()));
+                            }
+                            // Discard pending whitespace if we had element children
                         }
                         break;
                         
                     case XMLStreamConstants.CHARACTERS:
                     case XMLStreamConstants.CDATA:
                         String text = reader.getText();
-                        if (text != null && !elementStack.isEmpty()) {
-                            // Trim if it's just whitespace between elements, 
-                            // but keep it if it's actual content.
-                            // Note: Simple heuristic, could be improved.
+                        if (text != null && !stateStack.isEmpty()) {
+                            ParserState currentState = stateStack.peek();
+                            
                             if (eventType == XMLStreamConstants.CDATA) {
-                                elementStack.peek().addChild(new XmlCData(text));
+                                // CDATA is always significant, commit any pending whitespace first
+                                if (currentState.pendingWhitespace.length() > 0) {
+                                    currentState.element.addChild(new XmlText(currentState.pendingWhitespace.toString()));
+                                    currentState.pendingWhitespace.setLength(0);
+                                }
+                                currentState.element.addChild(new XmlCData(text));
+                            } else if (text.trim().isEmpty()) {
+                                // Just whitespace - buffer it until we know if it's ignorable
+                                currentState.pendingWhitespace.append(text);
                             } else {
-                                // For normal text, we usually keep it as is in the model
-                                // and let the view decide how to display it.
-                                elementStack.peek().addChild(new XmlText(text));
+                                // Actual content - commit any pending whitespace first as it's now significant
+                                if (currentState.pendingWhitespace.length() > 0) {
+                                    currentState.element.addChild(new XmlText(currentState.pendingWhitespace.toString()));
+                                    currentState.pendingWhitespace.setLength(0);
+                                }
+                                currentState.element.addChild(new XmlText(text));
                             }
                         }
                         break;
                         
                     case XMLStreamConstants.COMMENT:
                         XmlComment comment = new XmlComment(reader.getText());
-                        if (elementStack.isEmpty()) {
+                        if (stateStack.isEmpty()) {
                             doc.addChild(comment);
                         } else {
-                            elementStack.peek().addChild(comment);
+                            ParserState currentState = stateStack.peek();
+                            currentState.hasElementChildren = true;
+                            // Comments also count as siblings that make surrounding whitespace ignorable
+                            currentState.pendingWhitespace.setLength(0);
+                            currentState.element.addChild(comment);
                         }
                         break;
                         
                     case XMLStreamConstants.PROCESSING_INSTRUCTION:
                         XmlProcessingInstruction pi = new XmlProcessingInstruction(reader.getPITarget(), reader.getPIData());
-                        if (elementStack.isEmpty()) {
+                        if (stateStack.isEmpty()) {
                             doc.addChild(pi);
                         } else {
-                            elementStack.peek().addChild(pi);
+                            ParserState currentState = stateStack.peek();
+                            currentState.hasElementChildren = true;
+                            currentState.pendingWhitespace.setLength(0);
+                            currentState.element.addChild(pi);
                         }
                         break;
                     default:
@@ -205,5 +232,18 @@ public class StreamingXmlParser {
         }
         
         return doc;
+    }
+
+    /**
+     * Internal state for the streaming parser to handle whitespace correctly.
+     */
+    private static class ParserState {
+        final XmlElement element;
+        boolean hasElementChildren = false;
+        final StringBuilder pendingWhitespace = new StringBuilder();
+
+        ParserState(XmlElement element) {
+            this.element = element;
+        }
     }
 }
