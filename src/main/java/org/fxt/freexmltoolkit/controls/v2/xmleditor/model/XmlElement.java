@@ -528,8 +528,13 @@ public class XmlElement extends XmlNode {
 
     @Override
     public String serialize(int indent) {
+        return serialize(indent, 2);
+    }
+
+    @Override
+    public String serialize(int indent, int indentSize) {
         StringBuilder sb = new StringBuilder();
-        String indentStr = " ".repeat(indent * 2);
+        String indentStr = " ".repeat(indent * indentSize);
 
         // Opening tag
         sb.append(indentStr).append("<").append(getQualifiedName());
@@ -554,10 +559,10 @@ public class XmlElement extends XmlNode {
 
             for (XmlNode child : children) {
                 if (child instanceof XmlElement || child instanceof XmlComment || child instanceof XmlProcessingInstruction) {
-                    sb.append(child.serialize(indent + 1));
+                    sb.append(child.serialize(indent + 1, indentSize));
                     sb.append("\n");
                 } else {
-                    sb.append(child.serialize(0));
+                    sb.append(child.serialize(0, indentSize));
                 }
             }
 

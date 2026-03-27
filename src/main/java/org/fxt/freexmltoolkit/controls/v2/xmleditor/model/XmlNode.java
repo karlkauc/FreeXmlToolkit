@@ -232,6 +232,20 @@ public abstract class XmlNode {
     public abstract String serialize(int indent);
 
     /**
+     * Serializes this node to XML text with configurable indentation size.
+     *
+     * <p>Subclasses that use indentation should override this method.
+     * The default implementation delegates to {@link #serialize(int)}.</p>
+     *
+     * @param indent     the current indentation level (0 = no indent)
+     * @param indentSize the number of spaces per indentation level
+     * @return the XML representation of this node
+     */
+    public String serialize(int indent, int indentSize) {
+        return serialize(indent);
+    }
+
+    /**
      * Accepts a visitor for tree traversal.
      * Implements the Visitor pattern for extensible operations.
      *

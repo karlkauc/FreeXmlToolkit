@@ -80,7 +80,12 @@ public class XmlComment extends XmlNode {
 
     @Override
     public String serialize(int indent) {
-        String indentStr = " ".repeat(indent * 2);
+        return serialize(indent, 2);
+    }
+
+    @Override
+    public String serialize(int indent, int indentSize) {
+        String indentStr = " ".repeat(indent * indentSize);
         return indentStr + "<!-- " + text + " -->";
     }
 

@@ -111,7 +111,12 @@ public class XmlProcessingInstruction extends XmlNode {
 
     @Override
     public String serialize(int indent) {
-        String indentStr = " ".repeat(indent * 2);
+        return serialize(indent, 2);
+    }
+
+    @Override
+    public String serialize(int indent, int indentSize) {
+        String indentStr = " ".repeat(indent * indentSize);
         StringBuilder sb = new StringBuilder();
         sb.append(indentStr).append("<?").append(target);
         if (data != null && !data.isEmpty()) {

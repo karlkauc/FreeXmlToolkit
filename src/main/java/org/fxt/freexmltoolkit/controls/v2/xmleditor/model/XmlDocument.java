@@ -304,6 +304,11 @@ public class XmlDocument extends XmlNode {
 
     @Override
     public String serialize(int indent) {
+        return serialize(indent, 2);
+    }
+
+    @Override
+    public String serialize(int indent, int indentSize) {
         StringBuilder sb = new StringBuilder();
 
         // XML declaration
@@ -318,7 +323,7 @@ public class XmlDocument extends XmlNode {
 
         // Serialize all children
         for (XmlNode child : children) {
-            sb.append(child.serialize(0));
+            sb.append(child.serialize(0, indentSize));
             if (child.getNodeType() != XmlNodeType.TEXT) {
                 sb.append("\n");
             }
