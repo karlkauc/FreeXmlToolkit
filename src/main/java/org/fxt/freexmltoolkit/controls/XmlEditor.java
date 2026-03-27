@@ -118,6 +118,9 @@ public class XmlEditor extends Tab {
     // This is updated when xsdDocumentationData is loaded asynchronously
     private XmlEditorContext currentGraphicViewContext;
 
+    // Pending XML from graphical edits — applied when switching back to text view
+    private volatile String pendingGraphicEditXml;
+
     // Store original XML content for XPath queries (not modified by query results)
     private String originalXmlForXPath;
 
@@ -207,7 +210,14 @@ public class XmlEditor extends Tab {
         graphic.getStyleClass().add("output-tab");
 
         xml.setOnSelectionChanged(e -> {
-            if (!xml.isSelected()) {
+            if (xml.isSelected()) {
+                // Switching back to text view — apply pending graphical edits
+                String pending = pendingGraphicEditXml;
+                if (pending != null) {
+                    pendingGraphicEditXml = null;
+                    setEditorText(pending);
+                }
+            } else {
                 try {
                     if (!codeArea.getText().isEmpty()) {
                         document = db.parse(new ByteArrayInputStream(codeArea.getText().getBytes(StandardCharsets.UTF_8)));
@@ -1949,15 +1959,12 @@ public class XmlEditor extends Tab {
             XmlCanvasView canvasView = new XmlCanvasView(xmlEditorContext);
             canvasView.expandAll();
 
-            // Sync changes back to text view
+            // Store changes for deferred sync when switching back to text view.
+            // Writing directly to a hidden CodeArea breaks syntax highlighting
+            // and can cause rendering artifacts (extra blank lines).
             canvasView.setOnDocumentModified(xml -> {
-                if (xml != null && !xml.equals(codeArea.getText())) {
-                    int caretPos = codeArea.getCaretPosition();
-                    codeArea.replaceText(xml);
-                    // Try to restore caret position
-                    if (caretPos < xml.length()) {
-                        codeArea.moveTo(caretPos);
-                    }
+                if (xml != null) {
+                    pendingGraphicEditXml = xml;
                 }
             });
 
