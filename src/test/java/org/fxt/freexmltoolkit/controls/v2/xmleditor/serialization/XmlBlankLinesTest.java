@@ -216,6 +216,27 @@ class XmlBlankLinesTest {
     }
 
     @Test
+    void testSerializerUsesConfiguredIndentSize() {
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<root>\n" +
+                "  <child>value</child>\n" +
+                "</root>";
+
+        XmlParser parser = new XmlParser();
+        XmlDocument doc = parser.parse(xml);
+
+        // Serializer with indent size 4
+        XmlSerializer serializer4 = new XmlSerializer(4);
+        String result = serializer4.serialize(doc);
+        assertTrue(result.contains("    <child>"), "Serializer should use indent size 4. Got:\n" + result);
+
+        // Serializer with indent size 3
+        XmlSerializer serializer3 = new XmlSerializer(3);
+        String result3 = serializer3.serialize(doc);
+        assertTrue(result3.contains("   <child>"), "Serializer should use indent size 3. Got:\n" + result3);
+    }
+
+    @Test
     void testWithRealFile() throws IOException {
         // Test with actual FundsXML file if available
         Path realFile = Path.of("/home/karl/FreeXmlToolkit/HRICAMUSEEB4-2026-02-27.xml");

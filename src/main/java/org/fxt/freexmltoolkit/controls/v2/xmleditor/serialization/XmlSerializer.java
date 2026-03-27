@@ -57,9 +57,9 @@ public class XmlSerializer {
             DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     /**
-     * Default indentation (2 spaces).
+     * Default indentation (4 spaces, matches PropertiesService default).
      */
-    private static final int DEFAULT_INDENT = 2;
+    private static final int DEFAULT_INDENT = 4;
 
     /**
      * Indentation size (number of spaces per level).
@@ -99,7 +99,7 @@ public class XmlSerializer {
             throw new IllegalArgumentException("Document cannot be null");
         }
 
-        return document.serialize(0);
+        return document.serialize(0, indentSize);
     }
 
     /**
@@ -113,7 +113,7 @@ public class XmlSerializer {
             throw new IllegalArgumentException("Node cannot be null");
         }
 
-        return node.serialize(0);
+        return node.serialize(0, indentSize);
     }
 
     /**
@@ -140,7 +140,7 @@ public class XmlSerializer {
     private String serializeCompact(XmlDocument document) {
         // For now, just use the standard serialize
         // In a full implementation, we would remove all extra whitespace
-        return document.serialize(0).replaceAll("\\n\\s*", "");
+        return document.serialize(0, indentSize).replaceAll("\\n\\s*", "");
     }
 
     // ==================== File I/O Methods ====================

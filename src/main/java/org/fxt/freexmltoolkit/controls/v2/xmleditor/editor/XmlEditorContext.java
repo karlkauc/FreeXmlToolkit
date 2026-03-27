@@ -152,7 +152,19 @@ public class XmlEditorContext {
         this.commandManager = new CommandManager();
         this.selectionModel = new SelectionModel();
         this.parser = new XmlParser();
-        this.serializer = new XmlSerializer();
+
+        // Use configured indent size from PropertiesService
+        int indentSize = 4; // default
+        try {
+            var propertiesService = org.fxt.freexmltoolkit.di.ServiceRegistry.get(
+                    org.fxt.freexmltoolkit.service.PropertiesService.class);
+            if (propertiesService != null) {
+                indentSize = propertiesService.getXmlIndentSpaces();
+            }
+        } catch (Exception e) {
+            // Fall back to default if ServiceRegistry not available (e.g., in tests)
+        }
+        this.serializer = new XmlSerializer(indentSize);
 
         // Listen to command manager for dirty flag and undo/redo changes
         commandManager.addPropertyChangeListener("dirty", evt -> {
