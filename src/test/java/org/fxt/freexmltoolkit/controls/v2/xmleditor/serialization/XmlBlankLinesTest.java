@@ -29,33 +29,8 @@ class XmlBlankLinesTest {
         XmlSerializer serializer = new XmlSerializer();
 
         XmlDocument doc = parser.parse(xml);
-
-        // Print model structure
-        XmlElement root = doc.getRootElement();
-        System.out.println("Root children count: " + root.getChildCount());
-        for (XmlNode child : root.getChildren()) {
-            System.out.println("  " + child.getClass().getSimpleName() + ": " +
-                    (child instanceof XmlText t ? "'" + t.getText().replace("\n", "\\n") + "'" : child));
-        }
-
-        XmlElement controlData = root.getChildElements().get(0);
-        System.out.println("ControlData children count: " + controlData.getChildCount());
-        for (XmlNode child : controlData.getChildren()) {
-            System.out.println("  " + child.getClass().getSimpleName() + ": " +
-                    (child instanceof XmlText t ? "'" + t.getText().replace("\n", "\\n") + "'" : child));
-        }
-
         String serialized = serializer.serialize(doc);
-        System.out.println("\n=== Serialized output ===");
-        System.out.println(serialized);
-        System.out.println("=== End ===");
 
-        // Write output to file for debugging
-        try {
-            Files.writeString(Path.of("/tmp/xml_roundtrip_output.txt"), serialized);
-        } catch (IOException e) { /* ignore */ }
-
-        // Verify no consecutive blank lines
         assertFalse(serialized.contains("\n\n"),
                 "Serialized XML should not contain consecutive blank lines. Output:\n" + serialized);
     }
@@ -83,7 +58,6 @@ class XmlBlankLinesTest {
         XmlElement uniqueDocId = controlData.getChildElements().get(0);
 
         // Simulate graphical edit: change text content
-        // Remove old text nodes
         var oldTextNodes = uniqueDocId.getChildren().stream()
                 .filter(c -> c instanceof XmlText).toList();
         for (XmlNode t : oldTextNodes) {
@@ -92,20 +66,15 @@ class XmlBlankLinesTest {
         uniqueDocId.addChild(new XmlText("EAM_7511019_20260130_FUND_105"));
 
         String serialized = serializer.serialize(doc);
-        System.out.println("\n=== After edit ===");
-        System.out.println(serialized);
-        System.out.println("=== End ===");
 
         assertFalse(serialized.contains("\n\n"),
                 "After edit, serialized XML should not contain consecutive blank lines. Output:\n" + serialized);
-
         assertTrue(serialized.contains("EAM_7511019_20260130_FUND_105"),
                 "Edited value should appear in output");
     }
 
     @Test
-    void testWithCommentsAndBlankLinesInOriginal() throws IOException {
-        // Test with XML that has comments and blank lines (like the AT_ file)
+    void testWithCommentsAndBlankLinesInOriginal() {
         String xml = """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <!--
@@ -128,16 +97,12 @@ class XmlBlankLinesTest {
         XmlDocument doc = parser.parse(xml);
         String serialized = serializer.serialize(doc);
 
-        Files.writeString(Path.of("/tmp/xml_comments_output.txt"), serialized);
-
-        // Check no consecutive blank lines
         assertFalse(serialized.contains("\n\n\n"),
                 "Should not have triple newlines. Output:\n" + serialized);
     }
 
     @Test
-    void testWith3SpaceIndentation() throws IOException {
-        // Simulate user's original 3-space indentation
+    void testWith3SpaceIndentation() {
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<FundsXML4 xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
                 "           xsi:noNamespaceSchemaLocation=\"https://fdp-service.oekb.at/FundsXML_4.1.10_AI.xsd\">\n" +
@@ -152,40 +117,7 @@ class XmlBlankLinesTest {
         XmlSerializer serializer = new XmlSerializer();
 
         XmlDocument doc = parser.parse(xml);
-
-        // Print all children details
-        StringBuilder sb = new StringBuilder();
-        sb.append("=== Document children ===\n");
-        for (XmlNode child : doc.getChildren()) {
-            sb.append("  ").append(child.getClass().getSimpleName());
-            if (child instanceof XmlText t) {
-                sb.append(": '").append(t.getText().replace("\n", "\\n")).append("'");
-            }
-            sb.append("\n");
-        }
-        XmlElement root = doc.getRootElement();
-        sb.append("=== Root element children ===\n");
-        for (XmlNode child : root.getChildren()) {
-            sb.append("  ").append(child.getClass().getSimpleName());
-            if (child instanceof XmlText t) {
-                sb.append(": '").append(t.getText().replace("\n", "\\n")).append("'");
-            }
-            sb.append("\n");
-        }
-        XmlElement controlData = root.getChildElements().get(0);
-        sb.append("=== ControlData children ===\n");
-        for (XmlNode child : controlData.getChildren()) {
-            sb.append("  ").append(child.getClass().getSimpleName());
-            if (child instanceof XmlText t) {
-                sb.append(": '").append(t.getText().replace("\n", "\\n")).append("'");
-            }
-            sb.append("\n");
-        }
-
         String serialized = serializer.serialize(doc);
-        sb.append("\n=== Serialized ===\n").append(serialized).append("\n=== End ===\n");
-
-        Files.writeString(Path.of("/tmp/xml_3space_output.txt"), sb.toString());
 
         assertFalse(serialized.contains("\n\n"),
                 "Should not have blank lines. Output:\n" + serialized);
@@ -238,10 +170,9 @@ class XmlBlankLinesTest {
 
     @Test
     void testWithRealFile() throws IOException {
-        // Test with actual FundsXML file if available
         Path realFile = Path.of("/home/karl/FreeXmlToolkit/HRICAMUSEEB4-2026-02-27.xml");
         if (!Files.exists(realFile)) {
-            return; // Skip if file not available
+            return;
         }
 
         String xml = Files.readString(realFile);
@@ -263,7 +194,6 @@ class XmlBlankLinesTest {
         uniqueDocId.addChild(new XmlText("EDITED_VALUE"));
 
         String serialized = serializer.serialize(doc);
-        Files.writeString(Path.of("/tmp/xml_real_file_output.txt"), serialized.substring(0, Math.min(2000, serialized.length())));
 
         assertFalse(serialized.contains("\n\n"),
                 "Real file: Should not have blank lines after edit");
