@@ -2386,8 +2386,9 @@ public class XmlEditor extends Tab {
         }
     }
 
-    // Store the original divider position to restore later
+    // Store the original divider position and sidebar node to restore later
     private double savedDividerPosition = 0.8;
+    private javafx.scene.Node savedSidebarNode = null;
 
     /**
      * Sets the visibility of the XML Editor Sidebar.
@@ -2395,41 +2396,27 @@ public class XmlEditor extends Tab {
      * @param visible true to show the sidebar, false to hide it completely
      */
     public void setXmlEditorSidebarVisible(boolean visible) {
-        if (splitPane != null && splitPane.getItems().size() > 1) {
-            javafx.scene.Node sidebarNode = splitPane.getItems().get(1); // Sidebar is the second item
+        if (splitPane == null) {
+            logger.warn("SplitPane not available - cannot set sidebar visibility");
+            return;
+        }
 
-            if (visible) {
-                // Show sidebar - restore visibility and divider position
-                sidebarNode.setVisible(true);
-                sidebarNode.setManaged(true);
+        boolean sidebarCurrentlyInPane = splitPane.getItems().size() > 1;
 
-                // Restore the saved divider position
-                Platform.runLater(() -> {
-                    splitPane.setDividerPositions(savedDividerPosition);
-                    logger.debug("Restored SplitPane divider position to: {}", savedDividerPosition);
-                });
+        if (visible && !sidebarCurrentlyInPane && savedSidebarNode != null) {
+            // Add sidebar back and restore divider position
+            splitPane.getItems().add(savedSidebarNode);
+            savedSidebarNode = null;
+            Platform.runLater(() -> splitPane.setDividerPositions(savedDividerPosition));
+            logger.debug("XML Editor Sidebar shown, divider restored to: {}", savedDividerPosition);
 
-                logger.debug("XML Editor Sidebar shown");
-            } else {
-                // Hide sidebar - save current position and maximize main content
-                if (splitPane.getDividers().size() > 0) {
-                    savedDividerPosition = splitPane.getDividerPositions()[0];
-                    logger.debug("Saved current divider position: {}", savedDividerPosition);
-                }
-
-                sidebarNode.setVisible(false);
-                sidebarNode.setManaged(false);
-
-                // Set divider to give all space to main content
-                Platform.runLater(() -> {
-                    splitPane.setDividerPositions(1.0);
-                    logger.debug("Set SplitPane divider to 1.0 (full width for main content)");
-                });
-
-                logger.debug("XML Editor Sidebar hidden");
+        } else if (!visible && sidebarCurrentlyInPane) {
+            // Save divider position and remove sidebar from SplitPane
+            if (!splitPane.getDividers().isEmpty()) {
+                savedDividerPosition = splitPane.getDividerPositions()[0];
             }
-        } else {
-            logger.warn("SplitPane or sidebar not available - cannot set visibility");
+            savedSidebarNode = splitPane.getItems().remove(1);
+            logger.debug("XML Editor Sidebar hidden, divider was: {}", savedDividerPosition);
         }
     }
 
