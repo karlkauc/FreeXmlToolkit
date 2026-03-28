@@ -1976,7 +1976,6 @@ public class XmlEditor extends Tab {
 
             // Create XmlCanvasView with the context (XMLSpy Grid-style view)
             XmlCanvasView canvasView = new XmlCanvasView(xmlEditorContext);
-            canvasView.expandAll();
 
             // Store changes for deferred sync when switching back to text view.
             // Writing directly to a hidden CodeArea breaks syntax highlighting

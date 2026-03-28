@@ -501,7 +501,7 @@ public class FlatRow {
                         // Create a single row representing the repeating group
                         FlatRow tableRow = new FlatRow(RowType.ELEMENT, depth + 1, childElement,
                                 elementRow, childElement.getName(), null, group.size());
-                        tableRow.setExpanded(expandByDefault);
+                        tableRow.setExpanded(false); // Default to collapsed, like non-repeating children
                         rows.add(tableRow);
                     }
                     // Skip individual elements that are part of a repeating group

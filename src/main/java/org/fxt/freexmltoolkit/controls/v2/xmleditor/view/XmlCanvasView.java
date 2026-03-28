@@ -387,9 +387,10 @@ public class XmlCanvasView extends Pane {
                     }
                 }
             }
-            // Re-apply visibility based on restored expand state
-            recalculateVisibility();
         }
+        
+        // Re-apply visibility based on restored or default expand state
+        recalculateVisibility();
 
         recalculateVisibleRows();
         updateScrollBars();
