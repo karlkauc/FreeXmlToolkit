@@ -240,7 +240,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         // Set callback for visibility changes
         multiFunctionalPane.setOnVisibilityChanged(() -> {
             if (propertiesToggle != null) {
-                propertiesToggle.setSelected(multiFunctionalPane.isVisible() && multiFunctionalPane.isManaged());
+                propertiesToggle.setSelected(multiFunctionalPane.isShowing());
             }
         });
 

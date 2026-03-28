@@ -119,6 +119,7 @@ public class MultiFunctionalSidePane extends VBox {
     // SplitPane management
     private javafx.scene.control.SplitPane parentSplitPane;
     private double lastDividerPosition = 0.75; // Default 75% for editor, 25% for pane
+    private int savedInsertIndex = 1; // Default insert position in SplitPane
 
     // Callbacks
     private Consumer<File> onFavoriteSelected;
@@ -478,7 +479,7 @@ public class MultiFunctionalSidePane extends VBox {
      * Toggles the visibility of the pane.
      */
     public void toggleVisibility() {
-        if (isVisible() && isManaged()) {
+        if (currentState != SidePaneState.HIDDEN) {
             hide();
         } else {
             show();
@@ -486,16 +487,14 @@ public class MultiFunctionalSidePane extends VBox {
     }
 
     /**
-     * Shows the pane.
+     * Shows the pane by adding it back to the parent SplitPane.
      */
     public void show() {
-        setVisible(true);
-        setManaged(true);
         currentState = SidePaneState.PROPERTIES;
         toggleButton.setSelected(true);
 
         // Ensure properties are showing
-        if (currentPropertiesPane != null && currentState == SidePaneState.PROPERTIES) {
+        if (currentPropertiesPane != null) {
             contentStack.getChildren().clear();
             contentStack.getChildren().add(currentPropertiesPane);
             if (currentEditorType != null) {
@@ -503,8 +502,16 @@ public class MultiFunctionalSidePane extends VBox {
             }
         }
 
-        // Restore divider position in parent SplitPane
-        restoreDividerPosition();
+        // Add back to SplitPane if currently removed
+        if (parentSplitPane == null) {
+            findParentSplitPane();
+        }
+        if (parentSplitPane != null && !parentSplitPane.getItems().contains(this)) {
+            parentSplitPane.getItems().add(savedInsertIndex, this);
+            javafx.application.Platform.runLater(() ->
+                    parentSplitPane.setDividerPosition(savedInsertIndex - 1, lastDividerPosition));
+            logger.debug("Added pane back to SplitPane at index {}, divider: {}", savedInsertIndex, lastDividerPosition);
+        }
 
         if (onVisibilityChanged != null) {
             onVisibilityChanged.run();
@@ -519,56 +526,30 @@ public class MultiFunctionalSidePane extends VBox {
     }
 
     /**
-     * Hides the pane.
+     * Hides the pane by removing it from the parent SplitPane.
      */
     public void hide() {
-        // Save divider position before hiding
-        saveDividerPosition();
-
-        setVisible(false);
-        setManaged(false);
         currentState = SidePaneState.HIDDEN;
         toggleButton.setSelected(false);
+
+        // Remove from SplitPane to free space
+        if (parentSplitPane == null) {
+            findParentSplitPane();
+        }
+        if (parentSplitPane != null && parentSplitPane.getItems().contains(this)) {
+            savedInsertIndex = parentSplitPane.getItems().indexOf(this);
+            if (savedInsertIndex > 0 && parentSplitPane.getDividerPositions().length >= savedInsertIndex) {
+                lastDividerPosition = parentSplitPane.getDividerPositions()[savedInsertIndex - 1];
+            }
+            parentSplitPane.getItems().remove(this);
+            logger.debug("Removed pane from SplitPane (was at index {}), divider was: {}", savedInsertIndex, lastDividerPosition);
+        }
 
         if (onVisibilityChanged != null) {
             onVisibilityChanged.run();
         }
 
         logger.debug("Hiding multi-functional pane");
-    }
-
-    /**
-     * Saves the current divider position from the parent SplitPane.
-     */
-    private void saveDividerPosition() {
-        if (parentSplitPane == null) {
-            findParentSplitPane();
-        }
-        if (parentSplitPane != null && parentSplitPane.getDividerPositions().length > 0) {
-            int myIndex = parentSplitPane.getItems().indexOf(this);
-            if (myIndex > 0 && parentSplitPane.getDividerPositions().length >= myIndex) {
-                lastDividerPosition = parentSplitPane.getDividerPositions()[myIndex - 1];
-                logger.debug("Saved divider position: {}", lastDividerPosition);
-            }
-        }
-    }
-
-    /**
-     * Restores the divider position in the parent SplitPane.
-     */
-    private void restoreDividerPosition() {
-        if (parentSplitPane == null) {
-            findParentSplitPane();
-        }
-        if (parentSplitPane != null) {
-            int myIndex = parentSplitPane.getItems().indexOf(this);
-            if (myIndex > 0 && parentSplitPane.getDividerPositions().length >= myIndex) {
-                javafx.application.Platform.runLater(() -> {
-                    parentSplitPane.setDividerPosition(myIndex - 1, lastDividerPosition);
-                    logger.debug("Restored divider position: {}", lastDividerPosition);
-                });
-            }
-        }
     }
 
     /**
@@ -658,6 +639,10 @@ public class MultiFunctionalSidePane extends VBox {
      */
     public boolean isFavoritesShowing() {
         return currentState == SidePaneState.FAVORITES;
+    }
+
+    public boolean isShowing() {
+        return currentState != SidePaneState.HIDDEN;
     }
 
     /**
