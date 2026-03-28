@@ -440,8 +440,11 @@ public class FlatRow {
      */
     private static void flattenElement(XmlElement element, int depth, FlatRow parentRow,
                                        List<FlatRow> rows, boolean expandByDefault) {
-        // Count only non-attribute child nodes (elements, text, comments, etc.)
+        // Count only child nodes that will actually be rendered as separate rows.
         // Attributes are always shown inline and don't need expand/collapse.
+        // Text nodes are only rendered as separate rows in mixed content (element has child elements),
+        // so pure-leaf text should NOT be counted (it's shown inline via extractTextContent).
+        boolean hasElementChildren = element.hasElementChildren();
         int childCount = 0;
         for (XmlNode child : element.getChildren()) {
             if (child instanceof XmlElement) {
@@ -453,7 +456,7 @@ public class FlatRow {
             } else if (child instanceof XmlCData) {
                 childCount++;
             } else if (child instanceof XmlText text) {
-                if (!text.isWhitespace()) {
+                if (!text.isWhitespace() && hasElementChildren) {
                     childCount++;
                 }
             }
