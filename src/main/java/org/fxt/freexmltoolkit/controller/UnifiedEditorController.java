@@ -204,9 +204,6 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         initializeRecentFilesMenu();
 
         // Hide linked files panel initially - remove from SplitPane to free space
-        linkedFilesPanel.setVisible(false);
-        linkedFilesPanel.setManaged(false);
-        // Find and store the panel index, then remove it
         linkedFilesPanelIndex = mainSplitPane.getItems().indexOf(linkedFilesPanel);
         if (linkedFilesPanelIndex >= 0) {
             mainSplitPane.getItems().remove(linkedFilesPanel);
@@ -276,28 +273,19 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
      * Sets up the XPath/XQuery panel at the bottom of the editor.
      */
     private void setupXPathPanel() {
-        // Create the XPath panel
+        // Create the XPath panel (not yet added to SplitPane - hidden by default)
         xpathPanel = new UnifiedXPathQueryPanel();
-        xpathPanel.setVisible(false);
-        xpathPanel.setManaged(false);
-
-        // Find the center content from mainSplitPane and wrap it
-        // The mainSplitPane contains: editorTabPane + linkedFilesPanel
-        // We need to create a vertical split pane that contains:
-        // - The tab pane (top)
-        // - The XPath panel (bottom, hidden by default)
 
         // Create the vertical split pane for editor + xpath
         editorXPathSplitPane = new SplitPane();
         editorXPathSplitPane.setOrientation(Orientation.VERTICAL);
-        editorXPathSplitPane.setDividerPositions(1.0); // XPath panel hidden initially
 
         // Create wrapper for tab pane
         VBox editorWrapper = new VBox(editorTabPane);
         VBox.setVgrow(editorTabPane, Priority.ALWAYS);
 
-        // Add to vertical split pane
-        editorXPathSplitPane.getItems().addAll(editorWrapper, xpathPanel);
+        // Add only the editor wrapper; xpathPanel is added on demand
+        editorXPathSplitPane.getItems().add(editorWrapper);
 
         // Replace the first item in mainSplitPane with our new vertical split
         // The mainSplitPane should have editorTabPane as first item
@@ -792,7 +780,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
             setXPathPanelVisible(show);
         } else {
             // If no toggle button, just toggle the current state
-            setXPathPanelVisible(!xpathPanel.isVisible());
+            setXPathPanelVisible(!isXPathPanelVisible());
         }
     }
 
@@ -802,26 +790,22 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
      * @param visible true to show the panel, false to hide it
      */
     public void setXPathPanelVisible(boolean visible) {
-        if (xpathPanel == null) {
+        if (xpathPanel == null || editorXPathSplitPane == null) {
             return;
         }
-
-        xpathPanel.setVisible(visible);
-        xpathPanel.setManaged(visible);
 
         if (xpathPanelToggle != null) {
             xpathPanelToggle.setSelected(visible);
         }
 
-        if (visible) {
-            // Set divider position to show the panel (70% editor, 30% xpath)
-            editorXPathSplitPane.setDividerPositions(0.7);
+        boolean currentlyInPane = editorXPathSplitPane.getItems().contains(xpathPanel);
 
-            // Connect to current tab's content
+        if (visible && !currentlyInPane) {
+            editorXPathSplitPane.getItems().add(xpathPanel);
+            Platform.runLater(() -> editorXPathSplitPane.setDividerPositions(0.7));
             updateXPathPanelContent();
-        } else {
-            // Hide panel by moving divider to bottom
-            editorXPathSplitPane.setDividerPositions(1.0);
+        } else if (!visible && currentlyInPane) {
+            editorXPathSplitPane.getItems().remove(xpathPanel);
         }
     }
 
@@ -863,7 +847,8 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
      * @return true if the panel is visible
      */
     public boolean isXPathPanelVisible() {
-        return xpathPanel != null && xpathPanel.isVisible();
+        return xpathPanel != null && editorXPathSplitPane != null
+                && editorXPathSplitPane.getItems().contains(xpathPanel);
     }
 
     // ==================== Linked Files ====================
@@ -878,9 +863,6 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         if (show) {
             // Add panel back to SplitPane if not already there
             if (!linkedFilesPanelInSplitPane) {
-                linkedFilesPanel.setVisible(true);
-                linkedFilesPanel.setManaged(true);
-
                 // Insert at the correct position (before multiFunctionalPane)
                 int insertIndex = Math.min(linkedFilesPanelIndex, mainSplitPane.getItems().size());
                 mainSplitPane.getItems().add(insertIndex, linkedFilesPanel);
@@ -909,8 +891,6 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                     linkedFilesDividerPosition = mainSplitPane.getDividerPositions()[panelIndex - 1];
                 }
 
-                linkedFilesPanel.setVisible(false);
-                linkedFilesPanel.setManaged(false);
                 mainSplitPane.getItems().remove(linkedFilesPanel);
                 linkedFilesPanelInSplitPane = false;
             }
@@ -1049,7 +1029,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
             }
 
             // Update XPath panel content provider if visible
-            if (xpathPanel != null && xpathPanel.isVisible()) {
+            if (isXPathPanelVisible()) {
                 updateXPathPanelContent();
             }
 
