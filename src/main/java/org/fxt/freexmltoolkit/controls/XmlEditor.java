@@ -56,6 +56,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdElementDisplayUtils;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.SaxonXPathHelper;
@@ -663,7 +664,7 @@ public class XmlEditor extends Tab {
             sidebarController.setElementType("");
             sidebarController.setDocumentation("");
             sidebarController.setExampleValues(List.of("No element selected"));
-            sidebarController.setPossibleChildElements(List.of("No element selected"));
+            sidebarController.setPossibleChildElementsSimple(List.of("No element selected"));
             return;
         }
 
@@ -691,31 +692,26 @@ public class XmlEditor extends Tab {
                     sidebarController.setExampleValues(List.of("No example values available"));
                 }
 
-                // Set child elements - format to resolve SEQUENCE_, CHOICE_, ALL_ containers
-                List<String> children = xsdElement.getChildren();
-                if (children != null && !children.isEmpty()) {
-                    List<String> formattedChildren = formatChildElementsForDisplay(children, true);
-                    if (formattedChildren.isEmpty()) {
-                        sidebarController.setPossibleChildElements(List.of("No child elements defined"));
-                    } else {
-                        sidebarController.setPossibleChildElements(formattedChildren);
-                    }
+                // Set child elements with rich display
+                var richChildren = XsdElementDisplayUtils.resolveChildElements(xsdElement, xsdDocumentationData);
+                if (richChildren.isEmpty()) {
+                    sidebarController.setPossibleChildElementsSimple(List.of("No child elements defined"));
                 } else {
-                    sidebarController.setPossibleChildElements(List.of("No child elements defined"));
+                    sidebarController.setPossibleChildElements(richChildren);
                 }
             } else {
                 // Element not found in XSD
                 sidebarController.setElementType("");
                 sidebarController.setDocumentation("Element '" + elementName + "' not found in XSD schema");
                 sidebarController.setExampleValues(List.of("No example values available"));
-                sidebarController.setPossibleChildElements(List.of("No child elements"));
+                sidebarController.setPossibleChildElementsSimple(List.of("No child elements"));
             }
         } else {
             // No XSD linked
             sidebarController.setElementType("");
             sidebarController.setDocumentation("Link an XSD schema to see documentation");
             sidebarController.setExampleValues(List.of("Link XSD for example values"));
-            sidebarController.setPossibleChildElements(List.of("Link XSD for child elements"));
+            sidebarController.setPossibleChildElementsSimple(List.of("Link XSD for child elements"));
         }
     }
 
@@ -2075,7 +2071,7 @@ public class XmlEditor extends Tab {
             sidebarController.setDocumentation("");
             sidebarController.setXPath("");
             sidebarController.setExampleValues(List.of("No element selected"));
-            sidebarController.setPossibleChildElements(List.of("No element selected"));
+            sidebarController.setPossibleChildElementsSimple(List.of("No element selected"));
             return;
         }
 
@@ -2111,30 +2107,26 @@ public class XmlEditor extends Tab {
                         sidebarController.setExampleValues(List.of("No example values available"));
                     }
 
-                    // Set child elements - format to resolve SEQUENCE_, CHOICE_, ALL_ containers
-                    if (xsdElement.getChildren() != null && !xsdElement.getChildren().isEmpty()) {
-                        List<String> formattedChildren = formatChildElementsForDisplay(xsdElement.getChildren(), true);
-                        if (formattedChildren.isEmpty()) {
-                            sidebarController.setPossibleChildElements(List.of("No child elements defined"));
-                        } else {
-                            sidebarController.setPossibleChildElements(formattedChildren);
-                        }
+                    // Set child elements with rich display
+                    var richChildren = XsdElementDisplayUtils.resolveChildElements(xsdElement, xsdDocumentationData);
+                    if (richChildren.isEmpty()) {
+                        sidebarController.setPossibleChildElementsSimple(List.of("No child elements defined"));
                     } else {
-                        sidebarController.setPossibleChildElements(List.of("No child elements defined"));
+                        sidebarController.setPossibleChildElements(richChildren);
                     }
                 } else {
                     // No XSD info available
                     sidebarController.setElementType("Unknown (no XSD)");
                     sidebarController.setDocumentation("No XSD documentation available");
                     sidebarController.setExampleValues(List.of("Link XSD for example values"));
-                    sidebarController.setPossibleChildElements(getV2ChildElementNames(element));
+                    sidebarController.setPossibleChildElementsSimple(getV2ChildElementNames(element));
                 }
             } else {
                 // No XSD linked
                 sidebarController.setElementType("Unknown (no XSD linked)");
                 sidebarController.setDocumentation("Link an XSD schema to see documentation");
                 sidebarController.setExampleValues(List.of("Link XSD for example values"));
-                sidebarController.setPossibleChildElements(getV2ChildElementNames(element));
+                sidebarController.setPossibleChildElementsSimple(getV2ChildElementNames(element));
             }
 
         } else if (selectedNode instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText textNode) {
@@ -2143,7 +2135,7 @@ public class XmlEditor extends Tab {
             sidebarController.setDocumentation("Text content: " + truncateText(textNode.getText(), 200));
             sidebarController.setXPath("");
             sidebarController.setExampleValues(List.of("N/A for text nodes"));
-            sidebarController.setPossibleChildElements(List.of("Text nodes have no children"));
+            sidebarController.setPossibleChildElementsSimple(List.of("Text nodes have no children"));
 
         } else if (selectedNode instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment commentNode) {
             sidebarController.setElementName("Comment");
@@ -2151,7 +2143,7 @@ public class XmlEditor extends Tab {
             sidebarController.setDocumentation("Comment: " + truncateText(commentNode.getText(), 200));
             sidebarController.setXPath("");
             sidebarController.setExampleValues(List.of("N/A for comments"));
-            sidebarController.setPossibleChildElements(List.of("Comments have no children"));
+            sidebarController.setPossibleChildElementsSimple(List.of("Comments have no children"));
 
         } else {
             // Generic XmlNode
@@ -2160,7 +2152,7 @@ public class XmlEditor extends Tab {
             sidebarController.setDocumentation("");
             sidebarController.setXPath("");
             sidebarController.setExampleValues(List.of());
-            sidebarController.setPossibleChildElements(List.of());
+            sidebarController.setPossibleChildElementsSimple(List.of());
         }
     }
 

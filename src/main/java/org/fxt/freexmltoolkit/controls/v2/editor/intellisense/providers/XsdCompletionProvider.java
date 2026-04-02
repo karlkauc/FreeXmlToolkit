@@ -17,6 +17,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionIt
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
 import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdElementDisplayUtils;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 
 /**
@@ -222,7 +223,7 @@ public class XsdCompletionProvider implements CompletionProvider {
             return -1; // No info available, assume unbounded
         }
 
-        String maxOccurs = getNodeAttribute(sourceNode, "maxOccurs");
+        String maxOccurs = XsdElementDisplayUtils.getNodeAttribute(sourceNode, "maxOccurs");
         if (maxOccurs == null || maxOccurs.isEmpty()) {
             return 1; // Default maxOccurs is 1
         }
@@ -256,319 +257,37 @@ public class XsdCompletionProvider implements CompletionProvider {
     }
 
     /**
-     * Recursively collects real child elements, skipping compositor elements (SEQUENCE, CHOICE, etc.).
-     * Digs into compositors to find actual element definitions.
-     *
-     * @param parent the parent element
-     * @param xsdData the XSD documentation data
-     * @param result the list to collect results into
-     * @param visited set of visited paths to prevent infinite loops
+     * Recursively collects real child elements, skipping compositor elements.
+     * Delegates to {@link XsdElementDisplayUtils#collectRealChildElements}.
      */
     private void collectRealChildElements(XsdExtendedElement parent, XsdDocumentationData xsdData,
                                           List<XsdExtendedElement> result, java.util.Set<String> visited) {
-        if (parent == null || parent.getChildren() == null) {
-            return;
-        }
-
-        for (String childXpath : parent.getChildren()) {
-            // Prevent infinite loops
-            if (visited.contains(childXpath)) {
-                continue;
-            }
-            visited.add(childXpath);
-
-            XsdExtendedElement childInfo = xsdData.getExtendedXsdElementMap().get(childXpath);
-            if (childInfo == null || childInfo.getElementName() == null) {
-                continue;
-            }
-
-            String elementName = childInfo.getElementName();
-
-            // Check if this is a compositor element (SEQUENCE, CHOICE, ALL, GROUP)
-            if (isCompositorElement(elementName)) {
-                // Recursively dig into the compositor to find real elements
-                collectRealChildElements(childInfo, xsdData, result, visited);
-            } else {
-                // This is a real element - add it if not already present
-                boolean alreadyAdded = result.stream()
-                        .anyMatch(e -> e.getElementName().equals(elementName));
-                if (!alreadyAdded) {
-                    result.add(childInfo);
-                }
-            }
-        }
-    }
-
-    /**
-     * Checks if an element name is an XSD compositor (SEQUENCE, CHOICE, ALL, GROUP).
-     * These are internal XSD structure elements, not actual XML elements.
-     */
-    private boolean isCompositorElement(String name) {
-        if (name == null) {
-            return false;
-        }
-        // Check for exact matches (element names without numbers)
-        // and prefixed versions (with numbers like SEQUENCE_1)
-        return name.equals("SEQUENCE") || name.startsWith("SEQUENCE_") ||
-               name.equals("CHOICE") || name.startsWith("CHOICE_") ||
-               name.equals("ALL") || name.startsWith("ALL_") ||
-               name.equals("GROUP") || name.startsWith("GROUP_");
+        XsdElementDisplayUtils.collectRealChildElements(parent, xsdData, result, visited);
     }
 
     /**
      * Creates a completion item from XSD element info.
+     * Delegates to {@link XsdElementDisplayUtils#buildCompletionItem} and adds IntelliSense-specific description.
      */
     private CompletionItem createElementCompletionItem(XsdExtendedElement elementInfo, int index) {
-        String elementName = elementInfo.getElementName();
+        // Build the base item with all display fields via shared utility
+        CompletionItem baseItem = XsdElementDisplayUtils.buildCompletionItem(elementInfo, index);
 
-        CompletionItem.Builder builder = new CompletionItem.Builder(
-                elementName,
-                elementName,
-                CompletionItemType.ELEMENT
-        );
-
-        // Add documentation from XSD annotations
+        // Re-build with IntelliSense-specific description (tooltip)
         String documentation = buildElementDescription(elementInfo);
-        builder.description(documentation);
 
-        // Add type information
-        if (elementInfo.getElementType() != null) {
-            builder.dataType(elementInfo.getElementType());
-        }
-
-        // Mark required elements
-        boolean isRequired = elementInfo.isMandatory();
-        builder.required(isRequired);
-
-        // Set relevance score (required first, preserve XSD order)
-        int baseScore = isRequired ? 150 : 100;
-        builder.relevanceScore(baseScore + (1000 - index));
-
-        // === Extended fields ===
-
-        // Cardinality (minOccurs/maxOccurs)
-        String cardinality = buildCardinalityString(elementInfo);
-        if (!cardinality.isEmpty()) {
-            builder.cardinality(cardinality);
-        }
-
-        // Default value
-        String defaultValue = extractDefaultValue(elementInfo);
-        if (defaultValue != null && !defaultValue.isEmpty()) {
-            builder.defaultValue(defaultValue);
-        }
-
-        // Facet hints
-        List<String> facetHints = buildFacetHints(elementInfo);
-        if (!facetHints.isEmpty()) {
-            builder.facetHints(facetHints);
-        }
-
-        // Examples from enumeration or sample data
-        List<String> examples = extractExamples(elementInfo);
-        if (!examples.isEmpty()) {
-            builder.examples(examples);
-        }
-
-        // Namespace info
-        if (elementInfo.getSourceNamespace() != null && !elementInfo.getSourceNamespace().isEmpty()) {
-            builder.namespace(elementInfo.getSourceNamespace());
-        }
-        if (elementInfo.getSourceNamespacePrefix() != null && !elementInfo.getSourceNamespacePrefix().isEmpty()) {
-            builder.prefix(elementInfo.getSourceNamespacePrefix());
-        }
-
-        return builder.build();
-    }
-
-    /**
-     * Builds a cardinality string from minOccurs/maxOccurs.
-     * Examples: "1", "0..1", "1..*", "0..*", "2..5"
-     */
-    private String buildCardinalityString(XsdExtendedElement elementInfo) {
-        org.w3c.dom.Node cardNode = elementInfo.getCardinalityNode();
-        org.w3c.dom.Node currentNode = elementInfo.getCurrentNode();
-
-        // Try cardinalityNode first (for element references), then currentNode
-        org.w3c.dom.Node sourceNode = cardNode != null ? cardNode : currentNode;
-        if (sourceNode == null) {
-            return "";
-        }
-
-        String minOccurs = getNodeAttribute(sourceNode, "minOccurs");
-        String maxOccurs = getNodeAttribute(sourceNode, "maxOccurs");
-
-        // Defaults: minOccurs=1, maxOccurs=1
-        int min = 1;
-        int max = 1;
-        boolean unbounded = false;
-
-        if (minOccurs != null) {
-            try {
-                min = Integer.parseInt(minOccurs);
-            } catch (NumberFormatException ignored) {
-            }
-        }
-
-        if (maxOccurs != null) {
-            if ("unbounded".equals(maxOccurs)) {
-                unbounded = true;
-            } else {
-                try {
-                    max = Integer.parseInt(maxOccurs);
-                } catch (NumberFormatException ignored) {
-                }
-            }
-        }
-
-        // Format cardinality
-        if (min == 1 && max == 1 && !unbounded) {
-            return "1";  // Exactly one (default)
-        } else if (min == 0 && max == 1) {
-            return "0..1";  // Optional
-        } else if (min == 0 && unbounded) {
-            return "0..*";  // Zero or more
-        } else if (min == 1 && unbounded) {
-            return "1..*";  // One or more
-        } else if (unbounded) {
-            return min + "..*";
-        } else if (min == max) {
-            return String.valueOf(min);
-        } else {
-            return min + ".." + max;
-        }
-    }
-
-    /**
-     * Extracts the default value from the element definition.
-     */
-    private String extractDefaultValue(XsdExtendedElement elementInfo) {
-        org.w3c.dom.Node currentNode = elementInfo.getCurrentNode();
-        if (currentNode == null) {
-            return null;
-        }
-
-        // Check for default attribute
-        String defaultVal = getNodeAttribute(currentNode, "default");
-        if (defaultVal != null) {
-            return defaultVal;
-        }
-
-        // Check for fixed attribute (also a kind of default)
-        String fixedVal = getNodeAttribute(currentNode, "fixed");
-        if (fixedVal != null) {
-            return fixedVal + " (fixed)";
-        }
-
-        return null;
-    }
-
-    /**
-     * Builds facet hints from restriction info.
-     * Returns a list like ["pattern", "maxLength:100", "minInclusive:0"]
-     */
-    private List<String> buildFacetHints(XsdExtendedElement elementInfo) {
-        List<String> hints = new ArrayList<>();
-
-        XsdExtendedElement.RestrictionInfo restrictionInfo = elementInfo.getRestrictionInfo();
-        if (restrictionInfo == null || restrictionInfo.facets() == null) {
-            return hints;
-        }
-
-        Map<String, List<String>> facets = restrictionInfo.facets();
-
-        // Add facet hints (skip enumeration as it's handled in examples)
-        for (Map.Entry<String, List<String>> entry : facets.entrySet()) {
-            String facetName = entry.getKey();
-            List<String> values = entry.getValue();
-
-            if (values == null || values.isEmpty()) {
-                continue;
-            }
-
-            switch (facetName) {
-                case "pattern":
-                    // Just indicate pattern exists (actual patterns can be complex)
-                    hints.add("pattern");
-                    break;
-                case "enumeration":
-                    // Skip - handled separately in examples
-                    break;
-                case "minLength":
-                case "maxLength":
-                case "length":
-                case "minInclusive":
-                case "maxInclusive":
-                case "minExclusive":
-                case "maxExclusive":
-                case "totalDigits":
-                case "fractionDigits":
-                    // Show name:value
-                    hints.add(facetName + ":" + values.get(0));
-                    break;
-                case "whiteSpace":
-                    hints.add("whiteSpace:" + values.get(0));
-                    break;
-                default:
-                    hints.add(facetName);
-                    break;
-            }
-        }
-
-        return hints;
-    }
-
-    /**
-     * Extracts example values from enumeration or sample data.
-     */
-    private List<String> extractExamples(XsdExtendedElement elementInfo) {
-        List<String> examples = new ArrayList<>();
-
-        // First, check for enumeration values in restriction
-        XsdExtendedElement.RestrictionInfo restrictionInfo = elementInfo.getRestrictionInfo();
-        if (restrictionInfo != null && restrictionInfo.facets() != null) {
-            List<String> enumerations = restrictionInfo.facets().get("enumeration");
-            if (enumerations != null && !enumerations.isEmpty()) {
-                // Limit to first 5 values for display
-                int limit = Math.min(5, enumerations.size());
-                for (int i = 0; i < limit; i++) {
-                    examples.add(enumerations.get(i));
-                }
-                if (enumerations.size() > 5) {
-                    examples.add("... (" + (enumerations.size() - 5) + " more)");
-                }
-                return examples;
-            }
-        }
-
-        // Fall back to example values from XSD
-        List<String> exampleValues = elementInfo.getExampleValues();
-        if (exampleValues != null && !exampleValues.isEmpty()) {
-            int limit = Math.min(3, exampleValues.size());
-            for (int i = 0; i < limit; i++) {
-                examples.add(exampleValues.get(i));
-            }
-            return examples;
-        }
-
-        // Fall back to sample data if available
-        String sampleData = elementInfo.getDisplaySampleData();
-        if (sampleData != null && !sampleData.isEmpty() && sampleData.length() < 50) {
-            examples.add(sampleData);
-        }
-
-        return examples;
-    }
-
-    /**
-     * Helper to get attribute value from a DOM Node.
-     */
-    private String getNodeAttribute(org.w3c.dom.Node node, String attrName) {
-        if (node == null || node.getAttributes() == null) {
-            return null;
-        }
-        org.w3c.dom.Node attrNode = node.getAttributes().getNamedItem(attrName);
-        return attrNode != null ? attrNode.getNodeValue() : null;
+        return new CompletionItem.Builder(baseItem.getLabel(), baseItem.getInsertText(), baseItem.getType())
+                .description(documentation)
+                .dataType(baseItem.getDataType())
+                .required(baseItem.isRequired())
+                .relevanceScore(baseItem.getRelevanceScore())
+                .cardinality(baseItem.getCardinality())
+                .defaultValue(baseItem.getDefaultValue())
+                .facetHints(baseItem.getFacetHints())
+                .examples(baseItem.getExamples())
+                .namespace(baseItem.getNamespace())
+                .prefix(baseItem.getPrefix())
+                .build();
     }
 
     /**

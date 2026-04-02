@@ -32,6 +32,9 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.ui.CompletionItemCellRenderer;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.domain.ValidationError;
@@ -81,7 +84,7 @@ public class XmlEditorSidebarController {
     private ListView<String> exampleValuesListView;
 
     @FXML
-    private ListView<String> childElementsListView;
+    private ListView<CompletionItem> childElementsListView;
 
     @FXML
     private TitledPane validationErrorsPane;
@@ -496,8 +499,18 @@ public class XmlEditorSidebarController {
         xpathField.setText(xpath);
     }
 
-    public void setPossibleChildElements(java.util.List<String> childElements) {
+    public void setPossibleChildElements(java.util.List<CompletionItem> childElements) {
         childElementsListView.getItems().setAll(childElements);
+    }
+
+    /**
+     * Sets informational messages (e.g. "No element selected") as simple label-only items.
+     */
+    public void setPossibleChildElementsSimple(java.util.List<String> messages) {
+        List<CompletionItem> items = messages.stream()
+                .map(msg -> new CompletionItem.Builder(msg, msg, CompletionItemType.ELEMENT).build())
+                .toList();
+        childElementsListView.getItems().setAll(items);
     }
 
     public boolean isContinuousValidationSelected() {
@@ -820,23 +833,28 @@ public class XmlEditorSidebarController {
                     // Set child elements (filter out SEQUENCE_, CHOICE_, ALL_ containers)
                     if (xsdElement.getChildren() != null && !xsdElement.getChildren().isEmpty()) {
                         var xsdData = xmlEditor.getXsdDocumentationData();
-                        setPossibleChildElements(formatChildElementsForDisplay(xsdElement.getChildren(), xsdData));
+                        var richChildren = org.fxt.freexmltoolkit.domain.XsdElementDisplayUtils.resolveChildElements(xsdElement, xsdData);
+                        if (richChildren.isEmpty()) {
+                            setPossibleChildElementsSimple(java.util.List.of("No child elements available"));
+                        } else {
+                            setPossibleChildElements(richChildren);
+                        }
                     } else {
-                        setPossibleChildElements(java.util.List.of("No child elements available"));
+                        setPossibleChildElementsSimple(java.util.List.of("No child elements available"));
                     }
                 } else {
                     // Fallback to DOM-based information
                     setElementType("Unknown");
                     setDocumentation("No XSD documentation available");
                     setExampleValues(java.util.List.of("No example values available"));
-                    setPossibleChildElements(java.util.List.of("No child elements available"));
+                    setPossibleChildElementsSimple(java.util.List.of("No child elements available"));
                 }
             } else {
                 setElementName(node.getNodeName());
                 setElementType(getNodeTypeName(node.getNodeType()));
                 setDocumentation("Node type: " + getNodeTypeName(node.getNodeType()));
                 setExampleValues(java.util.List.of("No example values available"));
-                setPossibleChildElements(java.util.List.of("No child elements available"));
+                setPossibleChildElementsSimple(java.util.List.of("No child elements available"));
             }
         } catch (Exception e) {
             logger.error("Error updating sidebar with node info: {}", e.getMessage(), e);
@@ -873,77 +891,6 @@ public class XmlEditorSidebarController {
      * @param xsdData The XSD documentation data for looking up container children
      * @return A list of formatted element names suitable for display
      */
-    private java.util.List<String> formatChildElementsForDisplay(
-            java.util.List<String> childXPaths,
-            org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdData) {
-        if (childXPaths == null || childXPaths.isEmpty()) {
-            return java.util.List.of("No child elements");
-        }
-
-        var elementMap = xsdData != null ? xsdData.getExtendedXsdElementMap() : null;
-        java.util.List<String> formatted = new java.util.ArrayList<>();
-
-        logger.debug("formatChildElementsForDisplay called with {} children, elementMap size: {}",
-            childXPaths.size(), elementMap != null ? elementMap.size() : 0);
-
-        for (String childXPath : childXPaths) {
-            if (childXPath == null || childXPath.isEmpty()) {
-                continue;
-            }
-
-            // Skip attributes
-            if (childXPath.contains("/@")) {
-                continue;
-            }
-
-            // Extract element name from XPath
-            String elementName = childXPath;
-            int lastSlash = childXPath.lastIndexOf('/');
-            if (lastSlash >= 0 && lastSlash < childXPath.length() - 1) {
-                elementName = childXPath.substring(lastSlash + 1);
-            }
-
-            // Skip container elements (SEQUENCE_, CHOICE_, ALL_) - resolve them recursively
-            if (elementName.startsWith("SEQUENCE_") || elementName.startsWith("CHOICE_") || elementName.startsWith("ALL_")) {
-                // For containers, look at their children instead
-                boolean foundInMap = elementMap != null && elementMap.containsKey(childXPath);
-                logger.debug("Container element: {} (full path: {}), found in map: {}",
-                    elementName, childXPath, foundInMap);
-                if (foundInMap) {
-                    var containerElement = elementMap.get(childXPath);
-                    if (containerElement.getChildren() != null) {
-                        logger.debug("Container has {} children", containerElement.getChildren().size());
-                        formatted.addAll(formatChildElementsForDisplay(containerElement.getChildren(), xsdData));
-                    }
-                }
-                continue;
-            }
-
-            // Get type information if available
-            String displayText = elementName;
-            if (elementMap != null && elementMap.containsKey(childXPath)) {
-                var childElement = elementMap.get(childXPath);
-                String type = childElement.getElementType();
-                if (type != null && !type.isEmpty() && !type.equals("(container)")) {
-                    displayText = elementName + " : " + type;
-                }
-                // Add cardinality indicator for mandatory elements
-                if (childElement.isMandatory()) {
-                    displayText += " *";
-                }
-            }
-
-            if (!formatted.contains(displayText)) {
-                formatted.add(displayText);
-            }
-        }
-
-        if (formatted.isEmpty()) {
-            return java.util.List.of("No child elements");
-        }
-
-        return formatted;
-    }
 
     /**
      * Setup XSD favorites dropdown with available XSD files
@@ -1251,17 +1198,25 @@ public class XmlEditorSidebarController {
      */
     private void initializeChildElementsList() {
         if (childElementsListView != null) {
+            // Use rich cell renderer for two-line display with icons, type, facets, examples
+            childElementsListView.setCellFactory(lv -> new CompletionItemCellRenderer());
+            var intellisenseCss = getClass().getResource("/css/xml-intellisense.css");
+            if (intellisenseCss != null) {
+                childElementsListView.getStylesheets().add(intellisenseCss.toExternalForm());
+            }
+
             childElementsListView.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2) { // Double click
-                    String selectedElement = childElementsListView.getSelectionModel().getSelectedItem();
-                    if (selectedElement != null && !selectedElement.isEmpty() &&
-                        !selectedElement.startsWith("No ") && !selectedElement.startsWith("Error:")) {
-                        insertChildElementIntoEditor(selectedElement);
+                    CompletionItem selectedItem = childElementsListView.getSelectionModel().getSelectedItem();
+                    if (selectedItem != null && selectedItem.getLabel() != null &&
+                        !selectedItem.getLabel().startsWith("No ") && !selectedItem.getLabel().startsWith("Error:") &&
+                        !selectedItem.getLabel().startsWith("Link ") && !selectedItem.getLabel().startsWith("Text ") &&
+                        !selectedItem.getLabel().startsWith("Comments ")) {
+                        insertChildElementIntoEditor(selectedItem.getLabel());
                     }
                 }
             });
 
-            // Add visual feedback to indicate the list is double-clickable
             childElementsListView.setStyle("-fx-cursor: hand;");
             childElementsListView.setTooltip(new Tooltip("Double-click to insert element with opening and closing tags"));
         }

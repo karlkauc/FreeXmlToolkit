@@ -682,7 +682,7 @@ public class MultiFunctionalSidePane extends VBox {
             xmlSidebarController.setElementName("");
             xmlSidebarController.setElementType("");
             xmlSidebarController.setDocumentation("");
-            xmlSidebarController.setPossibleChildElements(java.util.Collections.emptyList());
+            xmlSidebarController.setPossibleChildElementsSimple(java.util.Collections.emptyList());
             return;
         }
 
@@ -933,13 +933,12 @@ public class MultiFunctionalSidePane extends VBox {
                             xmlSidebarController.setExampleValues(java.util.List.of("No example values available"));
                         }
 
-                        // Set child elements (format XPaths for display)
-                        java.util.List<String> children = xsdElement.getChildren();
-                        if (children != null && !children.isEmpty()) {
-                            java.util.List<String> formattedChildren = formatChildElementsForDisplay(children, xsdData);
-                            xmlSidebarController.setPossibleChildElements(formattedChildren);
+                        // Set child elements with rich display
+                        var richChildren = org.fxt.freexmltoolkit.domain.XsdElementDisplayUtils.resolveChildElements(xsdElement, xsdData);
+                        if (richChildren.isEmpty()) {
+                            xmlSidebarController.setPossibleChildElementsSimple(java.util.List.of("No child elements"));
                         } else {
-                            xmlSidebarController.setPossibleChildElements(java.util.List.of("No child elements"));
+                            xmlSidebarController.setPossibleChildElements(richChildren);
                         }
                     } else {
                         // Element not found in XSD - log element map keys for debugging
@@ -951,14 +950,14 @@ public class MultiFunctionalSidePane extends VBox {
                         xmlSidebarController.setElementType("");
                         xmlSidebarController.setDocumentation("Element '" + elementInfo.name + "' not found in XSD schema");
                         xmlSidebarController.setExampleValues(java.util.List.of("No example values available"));
-                        xmlSidebarController.setPossibleChildElements(java.util.List.of("No child elements"));
+                        xmlSidebarController.setPossibleChildElementsSimple(java.util.List.of("No child elements"));
                     }
                 } else {
                     // No XSD linked
                     xmlSidebarController.setElementType(elementInfo.type != null ? elementInfo.type : "");
                     xmlSidebarController.setDocumentation("");
                     xmlSidebarController.setExampleValues(java.util.List.of("Link XSD to see example values"));
-                    xmlSidebarController.setPossibleChildElements(java.util.List.of("Link XSD to see child elements"));
+                    xmlSidebarController.setPossibleChildElementsSimple(java.util.List.of("Link XSD to see child elements"));
                 }
             }
         } catch (Exception e) {
@@ -1076,66 +1075,6 @@ public class MultiFunctionalSidePane extends VBox {
         return null;
     }
 
-    /**
-     * Formats child element XPaths for display, extracting just the element name.
-     * Filters out attributes (starting with @) and container elements (SEQUENCE_, CHOICE_, ALL_).
-     */
-    private java.util.List<String> formatChildElementsForDisplay(
-            java.util.List<String> childXPaths,
-            org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdData) {
-        if (childXPaths == null || childXPaths.isEmpty()) {
-            return java.util.List.of("No child elements");
-        }
-
-        var elementMap = xsdData != null ? xsdData.getExtendedXsdElementMap() : null;
-        java.util.List<String> formatted = new java.util.ArrayList<>();
-
-        for (String childXPath : childXPaths) {
-            // Skip attributes
-            if (childXPath.contains("/@")) {
-                continue;
-            }
-
-            // Extract element name from XPath
-            String elementName = childXPath;
-            int lastSlash = childXPath.lastIndexOf('/');
-            if (lastSlash >= 0 && lastSlash < childXPath.length() - 1) {
-                elementName = childXPath.substring(lastSlash + 1);
-            }
-
-            // Skip container elements (SEQUENCE_, CHOICE_, ALL_)
-            if (elementName.startsWith("SEQUENCE_") || elementName.startsWith("CHOICE_") || elementName.startsWith("ALL_")) {
-                // For containers, look at their children instead
-                if (elementMap != null && elementMap.containsKey(childXPath)) {
-                    var containerElement = elementMap.get(childXPath);
-                    if (containerElement.getChildren() != null) {
-                        formatted.addAll(formatChildElementsForDisplay(containerElement.getChildren(), xsdData));
-                    }
-                }
-                continue;
-            }
-
-            // Get type information if available
-            String displayText = elementName;
-            if (elementMap != null && elementMap.containsKey(childXPath)) {
-                var childElement = elementMap.get(childXPath);
-                String type = childElement.getElementType();
-                if (type != null && !type.isEmpty() && !type.equals("(container)")) {
-                    displayText = elementName + " : " + type;
-                }
-                // Add cardinality indicator
-                if (childElement.isMandatory()) {
-                    displayText += " *";
-                }
-            }
-
-            if (!formatted.contains(displayText)) {
-                formatted.add(displayText);
-            }
-        }
-
-        return formatted.isEmpty() ? java.util.List.of("No child elements") : formatted;
-    }
 
     /**
      * Calculates the XPath for the given position in the XML content.
