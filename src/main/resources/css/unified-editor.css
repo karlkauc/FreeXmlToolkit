@@ -17,6 +17,9 @@
  * Unified Editor CSS Styles
  */
 
+/* Import customizable section styles */
+@import url("customizable-sections.css");
+
 /* ===== Tab Type Styling ===== */
 
 /* Base unified tab styling */

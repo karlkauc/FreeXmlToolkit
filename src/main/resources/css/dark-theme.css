@@ -2374,3 +2374,29 @@
     -fx-border-width: 0 0 0 4;
     -fx-effect: dropshadow(gaussian, rgba(55, 148, 255, 0.2), 4, 0, 0, 0);
 }
+
+/* ========================================================
+   Customizable Section Container - Dark Theme Overrides
+   ======================================================== */
+
+.settings-popup {
+    -fx-background-color: #252526;
+    -fx-border-color: #3c3c3c;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 4);
+}
+
+.settings-popup-item:hover {
+    -fx-background-color: #2a2d2e;
+}
+
+.settings-gear-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
+.section-drag-handle {
+    -fx-fill: #6c6c6c;
+}
+
+.section-drag-handle:hover {
+    -fx-fill: #cccccc;
+}

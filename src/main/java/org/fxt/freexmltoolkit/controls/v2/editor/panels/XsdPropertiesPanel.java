@@ -31,6 +31,8 @@ import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.shared.CustomizableSectionContainer;
+import org.fxt.freexmltoolkit.controls.shared.SectionDefinition;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAssertionCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddEnumerationCommand;
@@ -94,6 +96,11 @@ public class XsdPropertiesPanel extends BorderPane {
     private Tab attributesTab;
     private Tab facetsTab;
     private Tab docsTab;
+
+    // Customizable section containers (one per tab)
+    private CustomizableSectionContainer attributesSectionContainer;
+    private CustomizableSectionContainer facetsSectionContainer;
+    private CustomizableSectionContainer docsSectionContainer;
 
     // General section controls
     private TextField nameField;
@@ -230,9 +237,6 @@ public class XsdPropertiesPanel extends BorderPane {
      * Contains: Schema Information, General, Cardinality, Constraints, Advanced
      */
     private Tab createAttributesTab() {
-        VBox content = new VBox(10);
-        content.setPadding(new Insets(10));
-
         // Create TitledPanes for schema and general properties
         schemaInfoPane = createSchemaInformationTitledPane();
         TitledPane generalPane = createGeneralTitledPane();
@@ -240,15 +244,17 @@ public class XsdPropertiesPanel extends BorderPane {
         TitledPane constraintsPane = createConstraintsTitledPane();
         TitledPane advancedPane = createAdvancedTitledPane();
 
-        content.getChildren().addAll(
-                schemaInfoPane,
-                generalPane,
-                cardinalityPane,
-                constraintsPane,
-                advancedPane
-        );
+        // Wrap in customizable section container
+        attributesSectionContainer = new CustomizableSectionContainer("xsd-attributes");
+        attributesSectionContainer.addSection(new SectionDefinition("general", "General", generalPane, true, 1));
+        attributesSectionContainer.addSection(new SectionDefinition("cardinality", "Cardinality", cardinalityPane, true, 2));
+        attributesSectionContainer.addSection(new SectionDefinition("constraints", "Constraints", constraintsPane, true, 3));
+        attributesSectionContainer.addSection(new SectionDefinition("schemaInfo", "Schema Information", schemaInfoPane, true, 4));
+        attributesSectionContainer.addSection(new SectionDefinition("advanced", "Advanced", advancedPane, true, 5));
+        attributesSectionContainer.setPadding(new Insets(10));
+        attributesSectionContainer.initialize();
 
-        ScrollPane scrollPane = wrapInScrollPane(content);
+        ScrollPane scrollPane = wrapInScrollPane(attributesSectionContainer);
 
         Tab tab = new Tab("Attributes", scrollPane);
         FontIcon icon = new FontIcon("bi-tags");
@@ -264,23 +270,22 @@ public class XsdPropertiesPanel extends BorderPane {
      * Contains: Facets Grid, Patterns, Enumerations, Assertions
      */
     private Tab createFacetsTab() {
-        VBox content = new VBox(10);
-        content.setPadding(new Insets(10));
-
         // Create TitledPanes for facets
         TitledPane facetsPane = createFacetsTitledPane();
         TitledPane patternsPane = createPatternsTitledPane();
         TitledPane enumerationsPane = createEnumerationsTitledPane();
         TitledPane assertionsPane = createAssertionsTitledPane();
 
-        content.getChildren().addAll(
-                facetsPane,
-                patternsPane,
-                enumerationsPane,
-                assertionsPane
-        );
+        // Wrap in customizable section container
+        facetsSectionContainer = new CustomizableSectionContainer("xsd-facets");
+        facetsSectionContainer.addSection(new SectionDefinition("facets", "Facets", facetsPane, true, 1));
+        facetsSectionContainer.addSection(new SectionDefinition("enumerations", "Enumerations", enumerationsPane, true, 2));
+        facetsSectionContainer.addSection(new SectionDefinition("patterns", "Patterns", patternsPane, true, 3));
+        facetsSectionContainer.addSection(new SectionDefinition("assertions", "Assertions", assertionsPane, true, 4));
+        facetsSectionContainer.setPadding(new Insets(10));
+        facetsSectionContainer.initialize();
 
-        ScrollPane scrollPane = wrapInScrollPane(content);
+        ScrollPane scrollPane = wrapInScrollPane(facetsSectionContainer);
 
         Tab tab = new Tab("Facets", scrollPane);
         FontIcon icon = new FontIcon("bi-sliders");
@@ -296,9 +301,6 @@ public class XsdPropertiesPanel extends BorderPane {
      * Contains: Documentation, AppInfo
      */
     private Tab createDocsTab() {
-        VBox content = new VBox(10);
-        content.setPadding(new Insets(10));
-
         // Inline documentation editor (replaces old GridPane + modal dialogs)
         documentationEditor = new InlineDocumentationEditor(editorContext);
         TitledPane documentationPane = new TitledPane("Documentation", documentationEditor);
@@ -310,12 +312,14 @@ public class XsdPropertiesPanel extends BorderPane {
 
         TitledPane appInfoPane = createAppInfoTitledPane();
 
-        content.getChildren().addAll(
-                documentationPane,
-                appInfoPane
-        );
+        // Wrap in customizable section container
+        docsSectionContainer = new CustomizableSectionContainer("xsd-docs");
+        docsSectionContainer.addSection(new SectionDefinition("documentation", "Documentation", documentationPane, true, 1));
+        docsSectionContainer.addSection(new SectionDefinition("appInfo", "AppInfo", appInfoPane, true, 2));
+        docsSectionContainer.setPadding(new Insets(10));
+        docsSectionContainer.initialize();
 
-        ScrollPane scrollPane = wrapInScrollPane(content);
+        ScrollPane scrollPane = wrapInScrollPane(docsSectionContainer);
 
         Tab tab = new Tab("Docs", scrollPane);
         FontIcon icon = new FontIcon("bi-journal-text");
@@ -2762,5 +2766,18 @@ public class XsdPropertiesPanel extends BorderPane {
         } finally {
             updating = false;
         }
+    }
+
+    /**
+     * Returns the section container for the currently active tab.
+     * Used by MultiFunctionalSidePane to show the settings popup.
+     */
+    public CustomizableSectionContainer getActiveSectionContainer() {
+        if (mainTabPane == null) return null;
+        Tab selectedTab = mainTabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab == attributesTab) return attributesSectionContainer;
+        if (selectedTab == facetsTab) return facetsSectionContainer;
+        if (selectedTab == docsTab) return docsSectionContainer;
+        return attributesSectionContainer;
     }
 }

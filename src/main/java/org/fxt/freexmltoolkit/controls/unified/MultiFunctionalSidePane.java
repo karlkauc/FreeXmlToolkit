@@ -45,6 +45,8 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.FavoritesParentController;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
+import org.fxt.freexmltoolkit.controls.shared.CustomizableSectionContainer;
+import org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdPropertiesPanel;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
@@ -104,6 +106,7 @@ public class MultiFunctionalSidePane extends VBox {
     private ToggleButton toggleButton;
     private Label titleLabel;
     private Button closeButton;
+    private Button settingsGearButton;
 
     // Content containers
     private final Map<UnifiedEditorFileType, Node> propertiesPanes = new EnumMap<>(UnifiedEditorFileType.class);
@@ -129,6 +132,7 @@ public class MultiFunctionalSidePane extends VBox {
     // Controllers for property panes
     private XmlEditorSidebarController xmlSidebarController;
     private XsdPropertiesPanel xsdPropertiesPanel;
+    private SchematronPropertiesPane schematronPropertiesPane;
     private XsdEditorContext currentXsdContext;
 
     /**
@@ -184,6 +188,15 @@ public class MultiFunctionalSidePane extends VBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        // Settings gear button
+        settingsGearButton = new Button();
+        FontIcon gearIcon = new FontIcon("bi-gear");
+        gearIcon.setIconSize(14);
+        settingsGearButton.setGraphic(gearIcon);
+        settingsGearButton.setTooltip(new Tooltip("Customize sections"));
+        settingsGearButton.getStyleClass().addAll("settings-gear-button", "flat-button");
+        settingsGearButton.setOnAction(e -> showCurrentPaneSettings());
+
         // Close button
         closeButton = new Button();
         FontIcon closeIcon = new FontIcon("bi-x");
@@ -193,7 +206,7 @@ public class MultiFunctionalSidePane extends VBox {
         closeButton.getStyleClass().add("flat-button");
         closeButton.setOnAction(e -> hide());
 
-        headerBox.getChildren().addAll(toggleButton, titleLabel, spacer, closeButton);
+        headerBox.getChildren().addAll(toggleButton, titleLabel, spacer, settingsGearButton, closeButton);
         return headerBox;
     }
 
@@ -321,9 +334,9 @@ public class MultiFunctionalSidePane extends VBox {
      * Creates the Schematron properties pane with templates and XPath tester.
      */
     private Node createSchematronPropertiesPane() {
-        SchematronPropertiesPane propertiesPane = new SchematronPropertiesPane();
+        schematronPropertiesPane = new SchematronPropertiesPane();
         logger.debug("Created Schematron properties pane");
-        return propertiesPane;
+        return schematronPropertiesPane;
     }
 
     /**
@@ -484,6 +497,40 @@ public class MultiFunctionalSidePane extends VBox {
         } else {
             show();
         }
+    }
+
+    /**
+     * Shows the section settings popup for the currently active properties pane.
+     * Delegates to the appropriate CustomizableSectionContainer based on the active editor type.
+     */
+    private void showCurrentPaneSettings() {
+        CustomizableSectionContainer container = getActiveSectionContainer();
+        if (container != null && settingsGearButton != null) {
+            var popup = new SectionSettingsPopup(container);
+            var order = container.getCurrentOrder();
+            var visibility = new java.util.HashMap<String, Boolean>();
+            var enabled = new java.util.HashMap<String, Boolean>();
+            for (String id : order) {
+                visibility.put(id, container.isSectionVisible(id));
+                enabled.put(id, container.isSectionEnabled(id));
+            }
+            popup.refresh(order, visibility, enabled);
+            popup.show(settingsGearButton);
+        }
+    }
+
+    /**
+     * Returns the active CustomizableSectionContainer based on the current editor type.
+     */
+    private CustomizableSectionContainer getActiveSectionContainer() {
+        if (currentEditorType == null) return null;
+
+        return switch (currentEditorType) {
+            case XML -> xmlSidebarController != null ? xmlSidebarController.getSectionContainer() : null;
+            case XSD -> xsdPropertiesPanel != null ? xsdPropertiesPanel.getActiveSectionContainer() : null;
+            case SCHEMATRON -> schematronPropertiesPane != null ? schematronPropertiesPane.getSectionContainer() : null;
+            default -> null;
+        };
     }
 
     /**

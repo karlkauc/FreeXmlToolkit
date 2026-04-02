@@ -36,6 +36,8 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.shared.CustomizableSectionContainer;
+import org.fxt.freexmltoolkit.controls.shared.SectionDefinition;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
@@ -67,35 +69,52 @@ public class SchematronPropertiesPane extends VBox {
     private Consumer<String> onInsertTemplate;
     private Consumer<String> onXPathTest;
 
+    // Section container for customizable ordering
+    private final CustomizableSectionContainer sectionContainer;
+
     /**
      * Creates a new Schematron properties pane.
      */
     public SchematronPropertiesPane() {
-        super(12);
+        super(0);
         setPadding(new Insets(12));
         getStyleClass().add("schematron-properties-pane");
-
-        // Quick Help section
-        TitledPane quickHelpPane = createQuickHelpSection();
 
         // Structure section
         rootItem = new TreeItem<>("Schematron Document");
         rootItem.setExpanded(true);
         structureTree = new TreeView<>(rootItem);
         structureTree.setPrefHeight(150);
-        TitledPane structurePane = createStructureSection();
 
-        // Templates section
-        TitledPane templatesPane = createTemplatesSection();
-
-        // XPath Tester section
+        // XPath Tester fields
         xpathInput = new TextField();
         xpathResult = new TextArea();
+
+        // Create all sections
+        TitledPane structurePane = createStructureSection();
+        TitledPane templatesPane = createTemplatesSection();
         TitledPane xpathPane = createXPathTesterSection();
+        TitledPane quickHelpPane = createQuickHelpSection();
 
-        getChildren().addAll(quickHelpPane, structurePane, templatesPane, xpathPane);
+        // Build customizable container with new default order
+        sectionContainer = new CustomizableSectionContainer("schematron");
+        sectionContainer.addSection(new SectionDefinition("structure", "Document Structure", structurePane, true, 1));
+        sectionContainer.addSection(new SectionDefinition("templates", "Templates", templatesPane, true, 2));
+        sectionContainer.addSection(new SectionDefinition("xpathTester", "XPath Tester", xpathPane, true, 3));
+        sectionContainer.addSection(new SectionDefinition("quickHelp", "Quick Help", quickHelpPane, true, 4));
+        sectionContainer.initialize();
 
-        logger.debug("SchematronPropertiesPane created");
+        VBox.setVgrow(sectionContainer, Priority.ALWAYS);
+        getChildren().add(sectionContainer);
+
+        logger.debug("SchematronPropertiesPane created with customizable sections");
+    }
+
+    /**
+     * Returns the section container for external access (e.g. settings gear button).
+     */
+    public CustomizableSectionContainer getSectionContainer() {
+        return sectionContainer;
     }
 
     /**

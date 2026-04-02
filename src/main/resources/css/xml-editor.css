@@ -6,6 +6,9 @@
 /* Import base schematron styles */
 @import url("schematron-editor.css");
 
+/* Import customizable section styles */
+@import url("customizable-sections.css");
+
 /* ========== General Styles ========== */
 
 .xml-editor-root {

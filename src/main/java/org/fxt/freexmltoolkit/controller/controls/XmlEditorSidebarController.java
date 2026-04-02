@@ -23,8 +23,8 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -32,6 +32,8 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.controls.shared.CustomizableSectionContainer;
+import org.fxt.freexmltoolkit.controls.shared.SectionDefinition;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.ui.CompletionItemCellRenderer;
@@ -147,19 +149,21 @@ public class XmlEditorSidebarController {
     @FXML
     private Button refreshTreeButton;
 
-    // Code Assistance Section (XSD-dependent)
+    // Section wrappers for customizable ordering
     @FXML
-    private VBox codeAssistanceSection;
-
-    // XSD-dependent pane stacks and overlays
+    private VBox documentStructureSection;
     @FXML
-    private StackPane cursorInfoStack;
+    private VBox cursorInfoSection;
     @FXML
-    private StackPane documentationStack;
+    private VBox childElementsSection;
     @FXML
-    private StackPane exampleValuesStack;
+    private VBox schemaValidationSection;
     @FXML
-    private StackPane childElementsStack;
+    private VBox nodeDocumentationSection;
+    @FXML
+    private VBox businessRulesSection;
+    @FXML
+    private VBox exampleValuesSection;
 
     @FXML
     private TitledPane cursorInfoPane;
@@ -169,6 +173,9 @@ public class XmlEditorSidebarController {
     private TitledPane exampleValuesPane;
     @FXML
     private TitledPane childElementsPane;
+
+    @FXML
+    private Button settingsGearButton;
 
     private XmlEditor xmlEditor;
 
@@ -187,6 +194,9 @@ public class XmlEditorSidebarController {
     private boolean sidebarVisible = true;
 
     private org.fxt.freexmltoolkit.controller.MainController mainController;
+
+    // Customizable section container
+    private CustomizableSectionContainer sectionContainer;
 
     private VBox sidebarContainer; // Reference to the main container
     private double expandedWidth = 300; // Store the expanded width
@@ -415,6 +425,64 @@ public class XmlEditorSidebarController {
                     }
                 }
             });
+        }
+
+        // Setup customizable section container
+        setupCustomizableSections();
+    }
+
+    /**
+     * Builds the CustomizableSectionContainer from the FXML-defined section wrappers.
+     * Extracts sections from sidebarContent and wraps them in a reorderable container.
+     */
+    private void setupCustomizableSections() {
+        if (sidebarContent == null) return;
+
+        // Remove all section VBoxes from sidebarContent
+        sidebarContent.getChildren().clear();
+
+        // Create the customizable container with improved default order
+        sectionContainer = new CustomizableSectionContainer("xml-sidebar");
+        sectionContainer.addSection(new SectionDefinition("documentStructure", "Document Structure", documentStructureSection, true, 1));
+        sectionContainer.addSection(new SectionDefinition("cursorInfo", "Cursor Information", cursorInfoSection, true, 2));
+        sectionContainer.addSection(new SectionDefinition("childElements", "Possible Child Elements", childElementsSection, true, 3));
+        sectionContainer.addSection(new SectionDefinition("schemaValidation", "Schema Validation", schemaValidationSection, true, 4));
+        sectionContainer.addSection(new SectionDefinition("nodeDocumentation", "Node Documentation", nodeDocumentationSection, true, 5));
+        sectionContainer.addSection(new SectionDefinition("businessRules", "Business Rules", businessRulesSection, true, 6));
+        sectionContainer.addSection(new SectionDefinition("exampleValues", "Example Values", exampleValuesSection, false, 7));
+        sectionContainer.initialize();
+
+        VBox.setVgrow(sectionContainer, Priority.ALWAYS);
+        sidebarContent.getChildren().add(sectionContainer);
+
+        // Wire up settings gear button
+        if (settingsGearButton != null) {
+            settingsGearButton.setOnAction(e -> showSectionSettings());
+        }
+    }
+
+    /**
+     * Returns the customizable section container for external access.
+     */
+    public CustomizableSectionContainer getSectionContainer() {
+        return sectionContainer;
+    }
+
+    /**
+     * Shows the section settings popup anchored to the gear button.
+     */
+    private void showSectionSettings() {
+        if (sectionContainer != null && settingsGearButton != null) {
+            var popup = new org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup(sectionContainer);
+            var order = sectionContainer.getCurrentOrder();
+            var visibility = new java.util.HashMap<String, Boolean>();
+            var enabled = new java.util.HashMap<String, Boolean>();
+            for (String id : order) {
+                visibility.put(id, sectionContainer.isSectionVisible(id));
+                enabled.put(id, sectionContainer.isSectionEnabled(id));
+            }
+            popup.refresh(order, visibility, enabled);
+            popup.show(settingsGearButton);
         }
     }
 
@@ -1541,14 +1609,12 @@ public class XmlEditorSidebarController {
         this.xsdLinked = hasXsd;
         logger.debug("Updating XSD-dependent panes: XSD linked = {}", hasXsd);
 
-        // Hide/Show Node Documentation pane
-        setXsdPaneVisibility(documentationStack, hasXsd);
-
-        // Hide/Show Example Values pane
-        setXsdPaneVisibility(exampleValuesStack, hasXsd);
-
-        // Hide/Show Child Elements pane
-        setXsdPaneVisibility(childElementsStack, hasXsd);
+        // Enable/disable XSD-dependent sections via CustomizableSectionContainer
+        if (sectionContainer != null) {
+            sectionContainer.setSectionEnabled("nodeDocumentation", hasXsd);
+            sectionContainer.setSectionEnabled("exampleValues", hasXsd);
+            sectionContainer.setSectionEnabled("childElements", hasXsd);
+        }
 
         // Update Element Type field in Cursor Information (partially XSD-dependent)
         if (elementTypeField != null) {
@@ -1560,21 +1626,6 @@ public class XmlEditorSidebarController {
                 elementTypeField.setStyle("");
             }
         }
-    }
-
-    /**
-     * Sets the visibility of an XSD-dependent pane.
-     * When hidden, the pane is also unmanaged so it doesn't take up space.
-     *
-     * @param paneStack the StackPane containing the pane to show/hide
-     * @param visible   true to show, false to hide completely
-     */
-    private void setXsdPaneVisibility(StackPane paneStack, boolean visible) {
-        if (paneStack == null) {
-            return;
-        }
-        paneStack.setVisible(visible);
-        paneStack.setManaged(visible);
     }
 
     /**

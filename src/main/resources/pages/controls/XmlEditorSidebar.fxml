@@ -8,27 +8,95 @@
       fx:controller="org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController"
       styleClass="xml-editor-sidebar" prefWidth="300" minWidth="250" maxWidth="400">
 
-    <!-- Toggle Button -->
-    <Button fx:id="toggleSidebarButton" text="◀" onAction="#toggleSidebar"
-            styleClass="sidebar-toggle-button"
-            maxWidth="Infinity" minHeight="30" prefHeight="30"/>
+    <!-- Toggle Button + Settings Gear -->
+    <HBox spacing="0" alignment="CENTER_LEFT">
+        <Button fx:id="toggleSidebarButton" text="&#x25C0;" onAction="#toggleSidebar"
+                styleClass="sidebar-toggle-button"
+                HBox.hgrow="ALWAYS" maxWidth="Infinity" minHeight="30" prefHeight="30"/>
+        <Button fx:id="settingsGearButton" styleClass="settings-gear-button"
+                minHeight="30" prefHeight="30" prefWidth="30">
+            <graphic><FontIcon iconLiteral="bi-gear" iconSize="14"/></graphic>
+            <tooltip><Tooltip text="Customize sections"/></tooltip>
+        </Button>
+    </HBox>
 
     <!-- Sidebar Content with ScrollPane -->
     <ScrollPane fx:id="sidebarScrollPane" styleClass="sidebar-scroll-pane" fitToWidth="true" VBox.vgrow="ALWAYS">
         <VBox fx:id="sidebarContent" spacing="0">
 
             <!-- ============================================ -->
-            <!-- SECTION 1: Schema Validation                 -->
+            <!-- SECTION: Document Structure                   -->
             <!-- ============================================ -->
-            <HBox styleClass="sidebar-section-header" spacing="8" alignment="CENTER_LEFT">
-                <padding><Insets top="16" right="10" bottom="8" left="10"/></padding>
-                <FontIcon iconLiteral="bi-file-earmark-check" iconSize="14"/>
-                <Label text="Schema Validation" style="-fx-font-weight: bold;"/>
-            </HBox>
+            <VBox fx:id="documentStructureSection" styleClass="sidebar-section-container">
+                <TitledPane text="Document Structure" styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
+                    <graphic><FontIcon iconLiteral="bi-diagram-3" iconSize="14"/></graphic>
+                    <VBox spacing="5">
+                        <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Button fx:id="expandAllButton" text="Expand All" styleClass="sidebar-button" style="-fx-font-size: 10px;">
+                                <graphic><FontIcon iconLiteral="bi-arrows-expand" iconSize="12"/></graphic>
+                            </Button>
+                            <Button fx:id="collapseAllButton" text="Collapse All" styleClass="sidebar-button" style="-fx-font-size: 10px;">
+                                <graphic><FontIcon iconLiteral="bi-arrows-collapse" iconSize="12"/></graphic>
+                            </Button>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="refreshTreeButton" text="" styleClass="sidebar-button" prefWidth="25" maxWidth="25">
+                                <graphic><FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/></graphic>
+                                <tooltip><Tooltip text="Refresh tree"/></tooltip>
+                            </Button>
+                        </HBox>
+                        <TreeView fx:id="documentTreeView" styleClass="sidebar-tree-view" prefHeight="200" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </TitledPane>
+            </VBox>
 
-            <VBox styleClass="sidebar-section-container">
+            <!-- ============================================ -->
+            <!-- SECTION: Cursor Information                   -->
+            <!-- ============================================ -->
+            <VBox fx:id="cursorInfoSection" styleClass="sidebar-section-container">
+                <TitledPane fx:id="cursorInfoPane" text="Cursor Information"
+                            styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
+                    <graphic><FontIcon iconLiteral="bi-cursor-text" iconSize="14"/></graphic>
+                    <VBox spacing="6">
+                        <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                        <Label text="XPath:" styleClass="cursor-info-label"/>
+                        <TextField fx:id="xpathField" editable="false" styleClass="cursor-info-field"
+                                   promptText="XPath will appear here..."/>
+                        <Label text="Node Name:" styleClass="cursor-info-label"/>
+                        <TextField fx:id="elementNameField" editable="false" styleClass="cursor-info-field"
+                                   promptText="Node name will appear here..."/>
+                        <Label text="Element Type:" styleClass="cursor-info-label"/>
+                        <TextField fx:id="elementTypeField" editable="false" styleClass="cursor-info-field"
+                                   promptText="Element type will appear here..."/>
+                    </VBox>
+                </TitledPane>
+            </VBox>
+
+            <!-- ============================================ -->
+            <!-- SECTION: Possible Child Elements (XSD-dep.)  -->
+            <!-- ============================================ -->
+            <VBox fx:id="childElementsSection" styleClass="sidebar-section-container" VBox.vgrow="ALWAYS">
+                <TitledPane fx:id="childElementsPane" text="Possible Child Elements"
+                            styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true"
+                            VBox.vgrow="ALWAYS">
+                    <graphic><FontIcon iconLiteral="bi-list-nested" iconSize="14"/></graphic>
+                    <VBox spacing="5" VBox.vgrow="ALWAYS">
+                        <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                        <ListView fx:id="childElementsListView" styleClass="sidebar-list-view"
+                                  VBox.vgrow="ALWAYS">
+                            <placeholder><Label text="Child elements will appear here..."/></placeholder>
+                        </ListView>
+                    </VBox>
+                </TitledPane>
+            </VBox>
+
+            <!-- ============================================ -->
+            <!-- SECTION: Schema Validation                   -->
+            <!-- ============================================ -->
+            <VBox fx:id="schemaValidationSection" styleClass="sidebar-section-container">
                 <!-- XSD Schema TitledPane -->
-                <TitledPane text="XSD Schema" styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
+                <TitledPane text="Schema Validation" styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
+                    <graphic><FontIcon iconLiteral="bi-file-earmark-check" iconSize="14"/></graphic>
                     <VBox spacing="8">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
 
@@ -44,7 +112,7 @@
                             <Label text="Favorites:" styleClass="cursor-info-label" prefWidth="55"/>
                             <ComboBox fx:id="xsdFavoritesComboBox" HBox.hgrow="ALWAYS"
                                       promptText="Select XSD from favorites" styleClass="sidebar-combo-box"/>
-                            <Button fx:id="resetXsdButton" text="↺" prefWidth="25" maxWidth="25"
+                            <Button fx:id="resetXsdButton" text="&#x21BA;" prefWidth="25" maxWidth="25"
                                     styleClass="sidebar-button" style="-fx-font-size: 10px;">
                                 <tooltip><Tooltip text="Reset to original XSD"/></tooltip>
                             </Button>
@@ -98,18 +166,29 @@
             </VBox>
 
             <!-- ============================================ -->
-            <!-- SECTION 2: Business Rules                    -->
+            <!-- SECTION: Node Documentation (XSD-dependent)  -->
             <!-- ============================================ -->
-            <HBox styleClass="sidebar-section-header" spacing="8" alignment="CENTER_LEFT">
-                <padding><Insets top="16" right="10" bottom="8" left="10"/></padding>
-                <FontIcon iconLiteral="bi-shield-check" iconSize="14"/>
-                <Label text="Business Rules" style="-fx-font-weight: bold;"/>
-            </HBox>
+            <VBox fx:id="nodeDocumentationSection" styleClass="sidebar-section-container">
+                <TitledPane fx:id="documentationPane" text="Node Documentation"
+                            styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="false">
+                    <graphic><FontIcon iconLiteral="bi-book" iconSize="14"/></graphic>
+                    <VBox spacing="5">
+                        <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                        <TextArea fx:id="documentationTextArea" prefRowCount="3" editable="false"
+                                  wrapText="true" styleClass="documentation-text-area"
+                                  promptText="Node documentation will appear here..."/>
+                    </VBox>
+                </TitledPane>
+            </VBox>
 
-            <VBox styleClass="sidebar-section-container">
+            <!-- ============================================ -->
+            <!-- SECTION: Business Rules                      -->
+            <!-- ============================================ -->
+            <VBox fx:id="businessRulesSection" styleClass="sidebar-section-container">
                 <!-- Schematron Rules TitledPane -->
-                <TitledPane text="Schematron Rules" styleClass="xml-sidebar-titled-pane"
+                <TitledPane text="Business Rules" styleClass="xml-sidebar-titled-pane"
                             collapsible="true" expanded="false">
+                    <graphic><FontIcon iconLiteral="bi-shield-check" iconSize="14"/></graphic>
                     <VBox spacing="8">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
 
@@ -153,107 +232,20 @@
             </VBox>
 
             <!-- ============================================ -->
-            <!-- SECTION 3: Document Structure                -->
+            <!-- SECTION: Example Values (XSD-dependent)      -->
             <!-- ============================================ -->
-            <HBox styleClass="sidebar-section-header" spacing="8" alignment="CENTER_LEFT">
-                <padding><Insets top="16" right="10" bottom="8" left="10"/></padding>
-                <FontIcon iconLiteral="bi-diagram-3" iconSize="14"/>
-                <Label text="Document Structure" style="-fx-font-weight: bold;"/>
-            </HBox>
-
-            <VBox styleClass="sidebar-section-container">
-                <TitledPane text="XML Tree" styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
+            <VBox fx:id="exampleValuesSection" styleClass="sidebar-section-container">
+                <TitledPane fx:id="exampleValuesPane" text="Example Values"
+                            styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="false">
+                    <graphic><FontIcon iconLiteral="bi-card-list" iconSize="14"/></graphic>
                     <VBox spacing="5">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
-                        <HBox spacing="5" alignment="CENTER_LEFT">
-                            <Button fx:id="expandAllButton" text="Expand All" styleClass="sidebar-button" style="-fx-font-size: 10px;">
-                                <graphic><FontIcon iconLiteral="bi-arrows-expand" iconSize="12"/></graphic>
-                            </Button>
-                            <Button fx:id="collapseAllButton" text="Collapse All" styleClass="sidebar-button" style="-fx-font-size: 10px;">
-                                <graphic><FontIcon iconLiteral="bi-arrows-collapse" iconSize="12"/></graphic>
-                            </Button>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Button fx:id="refreshTreeButton" text="" styleClass="sidebar-button" prefWidth="25" maxWidth="25">
-                                <graphic><FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/></graphic>
-                                <tooltip><Tooltip text="Refresh tree"/></tooltip>
-                            </Button>
-                        </HBox>
-                        <TreeView fx:id="documentTreeView" styleClass="sidebar-tree-view" prefHeight="200" VBox.vgrow="ALWAYS"/>
+                        <ListView fx:id="exampleValuesListView" styleClass="sidebar-list-view"
+                                  prefHeight="80">
+                            <placeholder><Label text="Example values will appear here..."/></placeholder>
+                        </ListView>
                     </VBox>
                 </TitledPane>
-            </VBox>
-
-            <!-- ============================================ -->
-            <!-- SECTION 4: Code Assistance (XSD-dependent)   -->
-            <!-- ============================================ -->
-            <HBox styleClass="sidebar-section-header" spacing="8" alignment="CENTER_LEFT">
-                <padding><Insets top="16" right="10" bottom="8" left="10"/></padding>
-                <FontIcon iconLiteral="bi-lightbulb" iconSize="14"/>
-                <Label text="Code Assistance" style="-fx-font-weight: bold;"/>
-            </HBox>
-
-            <VBox fx:id="codeAssistanceSection" styleClass="sidebar-section-container">
-
-                <!-- Cursor Information (partially XSD-dependent) -->
-                <StackPane fx:id="cursorInfoStack">
-                    <TitledPane fx:id="cursorInfoPane" text="Cursor Information"
-                                styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
-                        <VBox spacing="6">
-                            <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
-                            <Label text="XPath:" styleClass="cursor-info-label"/>
-                            <TextField fx:id="xpathField" editable="false" styleClass="cursor-info-field"
-                                       promptText="XPath will appear here..."/>
-                            <Label text="Node Name:" styleClass="cursor-info-label"/>
-                            <TextField fx:id="elementNameField" editable="false" styleClass="cursor-info-field"
-                                       promptText="Node name will appear here..."/>
-                            <Label text="Element Type:" styleClass="cursor-info-label"/>
-                            <TextField fx:id="elementTypeField" editable="false" styleClass="cursor-info-field"
-                                       promptText="Element type will appear here..."/>
-                        </VBox>
-                    </TitledPane>
-                </StackPane>
-
-                <!-- Node Documentation (XSD-dependent - hidden when no XSD) -->
-                <StackPane fx:id="documentationStack">
-                    <TitledPane fx:id="documentationPane" text="Node Documentation"
-                                styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="false">
-                        <VBox spacing="5">
-                            <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
-                            <TextArea fx:id="documentationTextArea" prefRowCount="3" editable="false"
-                                      wrapText="true" styleClass="documentation-text-area"
-                                      promptText="Node documentation will appear here..."/>
-                        </VBox>
-                    </TitledPane>
-                </StackPane>
-
-                <!-- Example Values (XSD-dependent - hidden when no XSD) -->
-                <StackPane fx:id="exampleValuesStack">
-                    <TitledPane fx:id="exampleValuesPane" text="Example Values"
-                                styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="false">
-                        <VBox spacing="5">
-                            <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
-                            <ListView fx:id="exampleValuesListView" styleClass="sidebar-list-view"
-                                      prefHeight="80">
-                                <placeholder><Label text="Example values will appear here..."/></placeholder>
-                            </ListView>
-                        </VBox>
-                    </TitledPane>
-                </StackPane>
-
-                <!-- Possible Child Elements (XSD-dependent - hidden when no XSD) -->
-                <StackPane fx:id="childElementsStack" VBox.vgrow="ALWAYS">
-                    <TitledPane fx:id="childElementsPane" text="Possible Child Elements"
-                                styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true"
-                                VBox.vgrow="ALWAYS">
-                        <VBox spacing="5" VBox.vgrow="ALWAYS">
-                            <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
-                            <ListView fx:id="childElementsListView" styleClass="sidebar-list-view"
-                                      VBox.vgrow="ALWAYS">
-                                <placeholder><Label text="Child elements will appear here..."/></placeholder>
-                            </ListView>
-                        </VBox>
-                    </TitledPane>
-                </StackPane>
             </VBox>
 
         </VBox>

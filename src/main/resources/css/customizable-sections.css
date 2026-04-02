@@ -1,0 +1,87 @@
+/* ============================================
+ * Customizable Section Container Styles
+ * ============================================ */
+
+.customizable-section-container {
+    -fx-background-color: transparent;
+}
+
+/* Section wrapper */
+.section-wrapper {
+    -fx-border-color: transparent;
+    -fx-border-width: 2 0 2 0;
+}
+
+/* Drag-over indicators */
+.section-wrapper.drag-over-above {
+    -fx-border-color: #007bff transparent transparent transparent;
+    -fx-border-width: 3 0 0 0;
+}
+
+.section-wrapper.drag-over-below {
+    -fx-border-color: transparent transparent #007bff transparent;
+    -fx-border-width: 0 0 3 0;
+}
+
+/* Section being dragged */
+.section-wrapper.section-dragging {
+    -fx-opacity: 0.4;
+}
+
+/* Settings gear button */
+.settings-gear-button {
+    -fx-background-color: transparent;
+    -fx-padding: 4;
+    -fx-cursor: hand;
+    -fx-background-radius: 4;
+}
+
+.settings-gear-button:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Settings popup */
+.settings-popup {
+    -fx-background-color: white;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 10, 0, 0, 4);
+}
+
+/* Settings popup items */
+.settings-popup-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.settings-popup-item:hover {
+    -fx-background-color: #f8f9fa;
+}
+
+.settings-popup-item.drag-over-above {
+    -fx-border-color: #007bff transparent transparent transparent;
+    -fx-border-width: 2 0 0 0;
+}
+
+.settings-popup-item.drag-over-below {
+    -fx-border-color: transparent transparent #007bff transparent;
+    -fx-border-width: 0 0 2 0;
+}
+
+/* Drag handle */
+.section-drag-handle {
+    -fx-cursor: move;
+    -fx-fill: #adb5bd;
+}
+
+.section-drag-handle:hover {
+    -fx-fill: #6c757d;
+}
+
+/* Reset button */
+.settings-popup-reset-button {
+    -fx-font-size: 12px;
+}
