@@ -169,7 +169,7 @@ public class SectionSettingsPopup {
 
         // Move up button
         Button moveUpBtn = new Button();
-        FontIcon upIcon = new FontIcon("bi-chevron-up");
+        FontIcon upIcon = new FontIcon("bi-arrow-up");
         upIcon.setIconSize(12);
         moveUpBtn.setGraphic(upIcon);
         moveUpBtn.getStyleClass().add("section-move-button");
@@ -179,7 +179,7 @@ public class SectionSettingsPopup {
 
         // Move down button
         Button moveDownBtn = new Button();
-        FontIcon downIcon = new FontIcon("bi-chevron-down");
+        FontIcon downIcon = new FontIcon("bi-arrow-down");
         downIcon.setIconSize(12);
         moveDownBtn.setGraphic(downIcon);
         moveDownBtn.getStyleClass().add("section-move-button");
@@ -187,7 +187,11 @@ public class SectionSettingsPopup {
         moveDownBtn.setDisable(index == totalCount - 1);
         moveDownBtn.setOnAction(e -> moveAndRefresh(sectionId, index + 1));
 
-        row.getChildren().addAll(dragHandle, checkBox, moveUpBtn, moveDownBtn);
+        // Container for move buttons to keep them together on the right
+        HBox moveButtons = new HBox(2, moveUpBtn, moveDownBtn);
+        moveButtons.setAlignment(Pos.CENTER_RIGHT);
+
+        row.getChildren().addAll(dragHandle, checkBox, moveButtons);
 
         // Drag-and-drop within the popup
         setupPopupDragSource(row, sectionId);

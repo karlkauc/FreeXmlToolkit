@@ -2405,8 +2405,16 @@
     -fx-background-color: white;
 }
 
+.settings-popup .section-move-button .ikonli-font-icon {
+    -fx-icon-color: #888;
+}
+
 .settings-popup .section-move-button:hover {
     -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
+.settings-popup .section-move-button:hover .ikonli-font-icon {
+    -fx-icon-color: #eee;
 }
 
 .settings-gear-button:hover {

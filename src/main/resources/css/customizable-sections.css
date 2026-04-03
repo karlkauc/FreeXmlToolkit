@@ -105,18 +105,30 @@
 /* Move up/down buttons */
 .section-move-button {
     -fx-background-color: transparent;
-    -fx-padding: 2;
+    -fx-padding: 3;
     -fx-cursor: hand;
-    -fx-background-radius: 3;
+    -fx-background-radius: 4;
+}
+
+.section-move-button .ikonli-font-icon {
+    -fx-icon-color: #6c757d;
 }
 
 .section-move-button:hover {
-    -fx-background-color: rgba(0, 0, 0, 0.08);
+    -fx-background-color: #e9ecef;
+}
+
+.section-move-button:hover .ikonli-font-icon {
+    -fx-icon-color: #212529;
 }
 
 .section-move-button:disabled {
     -fx-opacity: 0.3;
     -fx-cursor: default;
+}
+
+.section-move-button:disabled .ikonli-font-icon {
+    -fx-icon-color: #adb5bd;
 }
 
 /* Reset button */
