@@ -177,6 +177,9 @@ public class XmlEditorSidebarController {
     @FXML
     private Button settingsGearButton;
 
+    private org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup settingsPopup;
+    private long lastSettingsPopupHiddenTime = 0;
+
     private XmlEditor xmlEditor;
 
     // Support for Unified Editor (XmlUnifiedTab)
@@ -472,8 +475,19 @@ public class XmlEditorSidebarController {
      * Shows the section settings popup anchored to the gear button.
      */
     private void showSectionSettings() {
+        if (settingsPopup != null && settingsPopup.isShowing()) {
+            settingsPopup.hide();
+            return;
+        }
+
+        // If it was just hidden (e.g., by auto-hide because we clicked the button), don't show it again
+        if (System.currentTimeMillis() - lastSettingsPopupHiddenTime < 250) {
+            return;
+        }
+
         if (sectionContainer != null && settingsGearButton != null) {
-            var popup = new org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup(sectionContainer);
+            settingsPopup = new org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup(sectionContainer);
+            settingsPopup.setOnHidden(e -> lastSettingsPopupHiddenTime = System.currentTimeMillis());
             var order = sectionContainer.getCurrentOrder();
             var visibility = new java.util.HashMap<String, Boolean>();
             var enabled = new java.util.HashMap<String, Boolean>();
@@ -481,8 +495,8 @@ public class XmlEditorSidebarController {
                 visibility.put(id, sectionContainer.isSectionVisible(id));
                 enabled.put(id, sectionContainer.isSectionEnabled(id));
             }
-            popup.refresh(order, visibility, enabled);
-            popup.show(settingsGearButton);
+            settingsPopup.refresh(order, visibility, enabled);
+            settingsPopup.show(settingsGearButton);
         }
     }
 

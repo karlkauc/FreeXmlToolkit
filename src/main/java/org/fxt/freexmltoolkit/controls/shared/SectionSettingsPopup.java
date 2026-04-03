@@ -63,10 +63,13 @@ public class SectionSettingsPopup {
         this.popup.setAutoHide(true);
 
         content = new VBox(8);
-        content.getStyleClass().add("settings-popup");
+        content.getStyleClass().addAll("settings-popup", "theme-popup-container");
         content.setPadding(new Insets(12));
         content.setMinWidth(220);
         content.setMaxWidth(300);
+        
+        // Ensure background is opaque even if CSS fails to load
+        content.setStyle("-fx-background-color: -fx-control-inner-background; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-width: 1; -fx-border-color: derive(-fx-control-inner-background, -20%);");
 
         // Header
         Label header = new Label("Customize Sections");
@@ -115,6 +118,10 @@ public class SectionSettingsPopup {
             HBox row = createRow(sectionId, def, isVisible, isEnabled, i, validIds.size());
             itemsBox.getChildren().add(row);
         }
+    }
+
+    public void setOnHidden(javafx.event.EventHandler<javafx.stage.WindowEvent> handler) {
+        popup.setOnHidden(handler);
     }
 
     public boolean isShowing() {

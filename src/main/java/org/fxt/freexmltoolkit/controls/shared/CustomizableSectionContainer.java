@@ -69,6 +69,7 @@ public class CustomizableSectionContainer extends VBox {
     private Map<String, Boolean> currentVisibility = new HashMap<>();
 
     private SectionSettingsPopup settingsPopup;
+    private long lastPopupHiddenTime = 0;
     private String dragSourceId;
 
     public CustomizableSectionContainer(String containerId) {
@@ -407,14 +408,20 @@ public class CustomizableSectionContainer extends VBox {
     }
 
     private void showSettingsPopup(Node anchor) {
-        if (settingsPopup == null) {
-            settingsPopup = new SectionSettingsPopup(this);
-        }
-
         // Toggle: close if already open
-        if (settingsPopup.isShowing()) {
+        if (settingsPopup != null && settingsPopup.isShowing()) {
             settingsPopup.hide();
             return;
+        }
+
+        // If it was just hidden (e.g. by auto-hide because we clicked the button), don't show it again
+        if (System.currentTimeMillis() - lastPopupHiddenTime < 250) {
+            return;
+        }
+
+        if (settingsPopup == null) {
+            settingsPopup = new SectionSettingsPopup(this);
+            settingsPopup.setOnHidden(e -> lastPopupHiddenTime = System.currentTimeMillis());
         }
 
         settingsPopup.refresh(currentOrder, currentVisibility, sectionEnabled);

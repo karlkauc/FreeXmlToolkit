@@ -107,6 +107,8 @@ public class MultiFunctionalSidePane extends VBox {
     private Label titleLabel;
     private Button closeButton;
     private Button settingsGearButton;
+    private SectionSettingsPopup currentSettingsPopup;
+    private long lastPopupHiddenTime = 0;
 
     // Content containers
     private final Map<UnifiedEditorFileType, Node> propertiesPanes = new EnumMap<>(UnifiedEditorFileType.class);
@@ -504,9 +506,20 @@ public class MultiFunctionalSidePane extends VBox {
      * Delegates to the appropriate CustomizableSectionContainer based on the active editor type.
      */
     private void showCurrentPaneSettings() {
+        if (currentSettingsPopup != null && currentSettingsPopup.isShowing()) {
+            currentSettingsPopup.hide();
+            return;
+        }
+
+        // If it was just hidden (e.g., by auto-hide because we clicked the button), don't show it again
+        if (System.currentTimeMillis() - lastPopupHiddenTime < 250) {
+            return;
+        }
+
         CustomizableSectionContainer container = getActiveSectionContainer();
         if (container != null && settingsGearButton != null) {
-            var popup = new SectionSettingsPopup(container);
+            currentSettingsPopup = new SectionSettingsPopup(container);
+            currentSettingsPopup.setOnHidden(e -> lastPopupHiddenTime = System.currentTimeMillis());
             var order = container.getCurrentOrder();
             var visibility = new java.util.HashMap<String, Boolean>();
             var enabled = new java.util.HashMap<String, Boolean>();
@@ -514,8 +527,8 @@ public class MultiFunctionalSidePane extends VBox {
                 visibility.put(id, container.isSectionVisible(id));
                 enabled.put(id, container.isSectionEnabled(id));
             }
-            popup.refresh(order, visibility, enabled);
-            popup.show(settingsGearButton);
+            currentSettingsPopup.refresh(order, visibility, enabled);
+            currentSettingsPopup.show(settingsGearButton);
         }
     }
 
