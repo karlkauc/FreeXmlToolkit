@@ -170,7 +170,7 @@ public class SectionSettingsPopup {
         // Move up button
         Button moveUpBtn = new Button();
         FontIcon upIcon = new FontIcon("bi-arrow-up");
-        upIcon.setIconSize(12);
+        upIcon.setIconSize(10);
         moveUpBtn.setGraphic(upIcon);
         moveUpBtn.getStyleClass().add("section-move-button");
         moveUpBtn.setTooltip(new Tooltip("Move up"));
@@ -180,15 +180,15 @@ public class SectionSettingsPopup {
         // Move down button
         Button moveDownBtn = new Button();
         FontIcon downIcon = new FontIcon("bi-arrow-down");
-        downIcon.setIconSize(12);
+        downIcon.setIconSize(10);
         moveDownBtn.setGraphic(downIcon);
         moveDownBtn.getStyleClass().add("section-move-button");
         moveDownBtn.setTooltip(new Tooltip("Move down"));
         moveDownBtn.setDisable(index == totalCount - 1);
         moveDownBtn.setOnAction(e -> moveAndRefresh(sectionId, index + 1));
 
-        // Container for move buttons to keep them together on the right
-        HBox moveButtons = new HBox(2, moveUpBtn, moveDownBtn);
+        // Container for move buttons to keep them together on the right (stacked vertically)
+        VBox moveButtons = new VBox(0, moveUpBtn, moveDownBtn);
         moveButtons.setAlignment(Pos.CENTER_RIGHT);
 
         row.getChildren().addAll(dragHandle, checkBox, moveButtons);
