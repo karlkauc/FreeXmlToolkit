@@ -2389,6 +2389,26 @@
     -fx-background-color: #2a2d2e;
 }
 
+.settings-popup .check-box .box {
+    -fx-background-color: #3c3c3c;
+    -fx-border-color: #555;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.settings-popup .check-box:selected .box {
+    -fx-background-color: #3794ff;
+    -fx-border-color: #3794ff;
+}
+
+.settings-popup .check-box:selected .box .mark {
+    -fx-background-color: white;
+}
+
+.settings-popup .section-move-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
 .settings-gear-button:hover {
     -fx-background-color: rgba(255, 255, 255, 0.1);
 }

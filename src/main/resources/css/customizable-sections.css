@@ -81,6 +81,44 @@
     -fx-fill: #6c757d;
 }
 
+/* Checkbox styling within popup */
+.settings-popup .check-box .box {
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.settings-popup .check-box:selected .box {
+    -fx-background-color: #007bff;
+    -fx-border-color: #007bff;
+}
+
+.settings-popup .check-box:selected .box .mark {
+    -fx-background-color: white;
+}
+
+.settings-popup .check-box:disabled {
+    -fx-opacity: 0.5;
+}
+
+/* Move up/down buttons */
+.section-move-button {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+    -fx-cursor: hand;
+    -fx-background-radius: 3;
+}
+
+.section-move-button:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.08);
+}
+
+.section-move-button:disabled {
+    -fx-opacity: 0.3;
+    -fx-cursor: default;
+}
+
 /* Reset button */
 .settings-popup-reset-button {
     -fx-font-size: 12px;

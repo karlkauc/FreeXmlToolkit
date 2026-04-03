@@ -100,14 +100,19 @@ public class SectionSettingsPopup {
 
         Map<String, SectionDefinition> sections = container.getRegisteredSections();
 
-        for (String sectionId : localOrder) {
+        // Filter to valid sections first to get accurate count
+        List<String> validIds = localOrder.stream()
+                .filter(sections::containsKey)
+                .toList();
+
+        for (int i = 0; i < validIds.size(); i++) {
+            String sectionId = validIds.get(i);
             SectionDefinition def = sections.get(sectionId);
-            if (def == null) continue;
 
             boolean isEnabled = enabled.getOrDefault(sectionId, true);
             boolean isVisible = visibility.getOrDefault(sectionId, true);
 
-            HBox row = createRow(sectionId, def, isVisible, isEnabled);
+            HBox row = createRow(sectionId, def, isVisible, isEnabled, i, validIds.size());
             itemsBox.getChildren().add(row);
         }
     }
@@ -124,8 +129,8 @@ public class SectionSettingsPopup {
     }
 
     private HBox createRow(String sectionId, SectionDefinition def,
-                           boolean isVisible, boolean isEnabled) {
-        HBox row = new HBox(6);
+                           boolean isVisible, boolean isEnabled, int index, int totalCount) {
+        HBox row = new HBox(4);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(4, 6, 4, 6));
         row.getStyleClass().add("settings-popup-item");
@@ -147,13 +152,47 @@ public class SectionSettingsPopup {
         });
         HBox.setHgrow(checkBox, Priority.ALWAYS);
 
-        row.getChildren().addAll(dragHandle, checkBox);
+        // Move up button
+        Button moveUpBtn = new Button();
+        FontIcon upIcon = new FontIcon("bi-chevron-up");
+        upIcon.setIconSize(12);
+        moveUpBtn.setGraphic(upIcon);
+        moveUpBtn.getStyleClass().add("section-move-button");
+        moveUpBtn.setTooltip(new Tooltip("Move up"));
+        moveUpBtn.setDisable(index == 0);
+        moveUpBtn.setOnAction(e -> moveAndRefresh(sectionId, index - 1));
+
+        // Move down button
+        Button moveDownBtn = new Button();
+        FontIcon downIcon = new FontIcon("bi-chevron-down");
+        downIcon.setIconSize(12);
+        moveDownBtn.setGraphic(downIcon);
+        moveDownBtn.getStyleClass().add("section-move-button");
+        moveDownBtn.setTooltip(new Tooltip("Move down"));
+        moveDownBtn.setDisable(index == totalCount - 1);
+        moveDownBtn.setOnAction(e -> moveAndRefresh(sectionId, index + 1));
+
+        row.getChildren().addAll(dragHandle, checkBox, moveUpBtn, moveDownBtn);
 
         // Drag-and-drop within the popup
         setupPopupDragSource(row, sectionId);
         setupPopupDragTarget(row, sectionId);
 
         return row;
+    }
+
+    private void moveAndRefresh(String sectionId, int newIndex) {
+        localOrder.remove(sectionId);
+        localOrder.add(newIndex, sectionId);
+        container.moveSection(sectionId, newIndex);
+
+        Map<String, Boolean> vis = new HashMap<>();
+        Map<String, Boolean> en = new HashMap<>();
+        for (String id : localOrder) {
+            vis.put(id, container.isSectionVisible(id));
+            en.put(id, container.isSectionEnabled(id));
+        }
+        refresh(localOrder, vis, en);
     }
 
     private void setupPopupDragSource(HBox row, String sectionId) {
