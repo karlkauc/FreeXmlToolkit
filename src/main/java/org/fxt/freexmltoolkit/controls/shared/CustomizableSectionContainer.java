@@ -410,6 +410,13 @@ public class CustomizableSectionContainer extends VBox {
         if (settingsPopup == null) {
             settingsPopup = new SectionSettingsPopup(this);
         }
+
+        // Toggle: close if already open
+        if (settingsPopup.isShowing()) {
+            settingsPopup.hide();
+            return;
+        }
+
         settingsPopup.refresh(currentOrder, currentVisibility, sectionEnabled);
         settingsPopup.show(anchor);
     }

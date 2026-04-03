@@ -117,7 +117,15 @@ public class SectionSettingsPopup {
         }
     }
 
+    public boolean isShowing() {
+        return popup.isShowing();
+    }
+
     public void show(Node anchor) {
+        // Copy stylesheets from the anchor's scene so popup content is properly styled
+        if (anchor.getScene() != null) {
+            content.getStylesheets().setAll(anchor.getScene().getStylesheets());
+        }
         Bounds bounds = anchor.localToScreen(anchor.getBoundsInLocal());
         if (bounds != null) {
             popup.show(anchor, bounds.getMinX(), bounds.getMaxY() + 4);
