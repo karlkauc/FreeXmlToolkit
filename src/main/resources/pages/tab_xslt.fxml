@@ -74,6 +74,37 @@
         </Button>
     </ToolBar>
 
+    <!-- Quick Folder Favorites Toolbar: one-click navigation to frequently used XML/XSLT directories -->
+    <ToolBar fx:id="quickFoldersBar" styleClass="xsd-toolbar">
+        <Label text="XML Folders:" styleClass="field-label-bold"/>
+        <HBox fx:id="xmlFolderBar" spacing="4" alignment="CENTER_LEFT"/>
+        <Button fx:id="addXmlFolderBtn" text="Add" contentDisplay="LEFT" styleClass="toolbar-button"
+                onAction="#handleAddXmlFolderFavorite">
+            <graphic>
+                <FontIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"
+                          styleClass="toolbar-icon-success"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Add a folder to the XML quick folders list"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL"/>
+
+        <Label text="XSLT Folders:" styleClass="field-label-bold"/>
+        <HBox fx:id="xsltFolderBar" spacing="4" alignment="CENTER_LEFT"/>
+        <Button fx:id="addXsltFolderBtn" text="Add" contentDisplay="LEFT" styleClass="toolbar-button"
+                onAction="#handleAddXsltFolderFavorite">
+            <graphic>
+                <FontIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"
+                          styleClass="toolbar-icon-success"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Add a folder to the XSLT quick folders list"/>
+            </tooltip>
+        </Button>
+    </ToolBar>
+
     <!-- Main Content Area -->
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.25">
 

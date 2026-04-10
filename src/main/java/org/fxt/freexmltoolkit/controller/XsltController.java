@@ -22,6 +22,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -39,16 +41,25 @@ import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.DirectoryChooser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,19 +68,24 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.FileExplorer;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.util.DialogHelper;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class XsltController {
 
     private static final Logger logger = LogManager.getLogger(XsltController.class);
     private static final int FILE_WATCH_INTERVAL_SECONDS = 3;
     private static final int FILE_EXPLORER_REFRESH_INTERVAL_SECONDS = 5;
+    private static final int MAX_FOLDER_BUTTON_LABEL_LEN = 24;
 
     private final XmlService xmlService = ServiceRegistry.get(XmlService.class);
     private final PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+    private final FavoritesService favoritesService = FavoritesService.getInstance();
     private File xmlFile, xsltFile;
     private WebEngine webEngine;
     private final CodeArea codeArea = new CodeArea();
@@ -84,6 +100,10 @@ public class XsltController {
     private FileExplorer xmlFileExplorer, xsltFileExplorer;
     @FXML
     private Button openInDefaultWebBrowser, openInDefaultTextEditor, reloadBtn, helpBtn;
+    @FXML
+    private HBox xmlFolderBar, xsltFolderBar;
+    @FXML
+    private Button addXmlFolderBtn, addXsltFolderBtn;
     @FXML
     private ProgressBar progressBar;
     @FXML
@@ -136,6 +156,172 @@ public class XsltController {
         setupAutoRefresh();
         setupFileWatching();
         applySmallIconsSetting();
+        refreshFolderBars();
+    }
+
+    // ==================== QUICK FOLDER FAVORITES ====================
+
+    /**
+     * Rebuilds both Quick Folder toolbars from the FavoritesService.
+     * Safe to call from any thread - dispatches to the FX thread if needed.
+     */
+    private void refreshFolderBars() {
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(this::refreshFolderBars);
+            return;
+        }
+        if (xmlFolderBar == null || xsltFolderBar == null) {
+            return;
+        }
+        renderOneFolderBar(xmlFolderBar,
+                favoritesService.getFolderFavorites(FileFavorite.FileType.XML),
+                xmlFileExplorer);
+        renderOneFolderBar(xsltFolderBar,
+                favoritesService.getFolderFavorites(FileFavorite.FileType.XSLT),
+                xsltFileExplorer);
+    }
+
+    private void renderOneFolderBar(HBox bar, List<FileFavorite> favorites, FileExplorer targetExplorer) {
+        bar.getChildren().clear();
+        for (FileFavorite fav : favorites) {
+            bar.getChildren().add(buildFolderButton(fav, targetExplorer));
+        }
+    }
+
+    private Button buildFolderButton(FileFavorite fav, FileExplorer targetExplorer) {
+        String label = fav.getName();
+        if (label == null || label.isBlank()) {
+            label = fav.getFileName();
+        }
+        if (label.length() > MAX_FOLDER_BUTTON_LABEL_LEN) {
+            label = label.substring(0, MAX_FOLDER_BUTTON_LABEL_LEN - 1) + "\u2026";
+        }
+
+        Button btn = new Button(label);
+        btn.getStyleClass().add("toolbar-button");
+        FontIcon icon = new FontIcon("bi-folder");
+        icon.setIconSize(16);
+        icon.setIconColor(Color.web("#fd7e14"));
+        btn.setGraphic(icon);
+        btn.setContentDisplay(ContentDisplay.LEFT);
+        btn.setTooltip(new Tooltip(fav.getFilePath()));
+
+        btn.setOnAction(e -> handleFolderFavoriteClick(fav, targetExplorer));
+        btn.setContextMenu(buildFolderContextMenu(fav));
+        return btn;
+    }
+
+    private void handleFolderFavoriteClick(FileFavorite fav, FileExplorer targetExplorer) {
+        try {
+            Path path = Path.of(fav.getFilePath());
+            if (!Files.isDirectory(path)) {
+                DialogHelper.showError("Folder not found",
+                        "The folder no longer exists on disk",
+                        fav.getFilePath());
+                return;
+            }
+            targetExplorer.selectPath(path);
+        } catch (Exception ex) {
+            logger.error("Failed to navigate to folder favorite {}", fav.getFilePath(), ex);
+            DialogHelper.showError("Navigation failed",
+                    "Could not navigate to the selected folder",
+                    ex.getMessage());
+        }
+    }
+
+    @FXML
+    public void handleAddXmlFolderFavorite() {
+        addFolderFavorite(FileFavorite.FileType.XML);
+    }
+
+    @FXML
+    public void handleAddXsltFolderFavorite() {
+        addFolderFavorite(FileFavorite.FileType.XSLT);
+    }
+
+    private void addFolderFavorite(FileFavorite.FileType type) {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Select " + type + " folder to add");
+
+        FileExplorer explorer = (type == FileFavorite.FileType.XML) ? xmlFileExplorer : xsltFileExplorer;
+        Path current = explorer != null ? explorer.getSelectedFile() : null;
+        if (current != null) {
+            File dir = Files.isDirectory(current)
+                    ? current.toFile()
+                    : (current.getParent() != null ? current.getParent().toFile() : null);
+            if (dir != null && dir.exists()) {
+                chooser.setInitialDirectory(dir);
+            }
+        }
+
+        File picked = chooser.showDialog(reloadBtn.getScene().getWindow());
+        if (picked == null) {
+            return;
+        }
+
+        TextInputDialog nameDialog = new TextInputDialog(picked.getName());
+        nameDialog.setTitle("Quick Folder Name");
+        nameDialog.setHeaderText("Name for the quick folder button");
+        nameDialog.setContentText("Name:");
+        Optional<String> nameOpt = nameDialog.showAndWait();
+        if (nameOpt.isEmpty()) {
+            return;
+        }
+
+        FileFavorite added = favoritesService.addFolderFavorite(nameOpt.get(), picked.toPath(), type);
+        if (added == null) {
+            logger.warn("FavoritesService rejected folder {}", picked);
+            return;
+        }
+        refreshFolderBars();
+    }
+
+    private ContextMenu buildFolderContextMenu(FileFavorite fav) {
+        ContextMenu menu = new ContextMenu();
+
+        MenuItem rename = new MenuItem("Rename");
+        FontIcon renameIcon = new FontIcon("bi-pencil");
+        renameIcon.setIconSize(16);
+        rename.setGraphic(renameIcon);
+        rename.setOnAction(e -> {
+            TextInputDialog dlg = new TextInputDialog(fav.getName());
+            dlg.setTitle("Rename Quick Folder");
+            dlg.setHeaderText("New name for this quick folder");
+            dlg.setContentText("Name:");
+            Optional<String> newName = dlg.showAndWait();
+            if (newName.isPresent() && !newName.get().isBlank()) {
+                favoritesService.updateFolderFavoriteName(fav.getId(), newName.get());
+                refreshFolderBars();
+            }
+        });
+
+        MenuItem openOs = new MenuItem("Open in System File Manager");
+        FontIcon openIcon = new FontIcon("bi-box-arrow-up-right");
+        openIcon.setIconSize(16);
+        openOs.setGraphic(openIcon);
+        openOs.setOnAction(e -> {
+            try {
+                Desktop.getDesktop().open(new File(fav.getFilePath()));
+            } catch (Exception ex) {
+                logger.error("Failed to open folder in OS file manager: {}", fav.getFilePath(), ex);
+                DialogHelper.showError("Open failed",
+                        "Could not open the folder in the system file manager",
+                        ex.getMessage());
+            }
+        });
+
+        MenuItem remove = new MenuItem("Remove");
+        FontIcon removeIcon = new FontIcon("bi-trash");
+        removeIcon.setIconSize(16);
+        removeIcon.setIconColor(Color.web("#dc3545"));
+        remove.setGraphic(removeIcon);
+        remove.setOnAction(e -> {
+            favoritesService.removeFolderFavorite(fav.getId());
+            refreshFolderBars();
+        });
+
+        menu.getItems().addAll(rename, openOs, new SeparatorMenuItem(), remove);
+        return menu;
     }
 
     /**

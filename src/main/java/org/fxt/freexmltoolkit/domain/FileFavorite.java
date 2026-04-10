@@ -33,6 +33,7 @@ public class FileFavorite {
     private String[] relatedFiles;     // Related file paths (XSD, XSLT, etc.)
     private boolean isTemplate;        // Whether this is a template
     private boolean isPinned;          // Pinned to top of list
+    private boolean isDirectory;       // True if this favorite points to a directory, not a file
     private int colorCode;             // Custom color coding
     private String validationStatus;   // Last validation result
     
@@ -157,6 +158,27 @@ public class FileFavorite {
     public FileFavorite(String name, String filePath, String folderName) {
         this(name, filePath);
         this.folderName = folderName;
+    }
+
+    /**
+     * Creates a folder (directory) favorite with the given display name, absolute folder
+     * path and file type (used to route the entry into the correct list, e.g. XML or XSLT).
+     * The resulting favorite has {@link #isDirectory()} set to {@code true} and bypasses
+     * the extension-based {@link FileType#fromExtension(String)} detection.
+     *
+     * @param name       the display name shown on the quick folder button
+     * @param folderPath the absolute path to the directory
+     * @param type       the file type this folder is associated with (e.g. XML, XSLT)
+     * @return a new FileFavorite flagged as a directory
+     */
+    public static FileFavorite forDirectory(String name, String folderPath, FileType type) {
+        FileFavorite f = new FileFavorite();
+        f.name = name;
+        f.filePath = folderPath;
+        f.fileType = type;
+        f.iconColor = type != null ? type.getDefaultColor() : null;
+        f.isDirectory = true;
+        return f;
     }
 
     /**
@@ -581,6 +603,26 @@ public class FileFavorite {
      */
     public void setPinned(boolean pinned) {
         isPinned = pinned;
+    }
+
+    /**
+     * Checks whether this favorite points to a directory rather than a file.
+     * Directory favorites are used by the XSLT viewer quick-folder bar and must be
+     * filtered out of file-oriented favorite lists.
+     *
+     * @return true if this favorite represents a folder
+     */
+    public boolean isDirectory() {
+        return isDirectory;
+    }
+
+    /**
+     * Marks this favorite as pointing to a directory.
+     *
+     * @param directory true to flag as a directory favorite
+     */
+    public void setDirectory(boolean directory) {
+        this.isDirectory = directory;
     }
 
     /**

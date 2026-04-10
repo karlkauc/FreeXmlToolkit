@@ -274,21 +274,29 @@ public class FavoritesService {
     
     /**
      * Get all favorites.
+     * Directory favorites are excluded - they are managed separately via
+     * {@link #getFolderFavorites(FileFavorite.FileType)} and must not leak into
+     * file-oriented favorite views.
      *
-     * @return list of all favorites
+     * @return list of all file favorites (directory favorites excluded)
      */
     public List<FileFavorite> getAllFavorites() {
-        return new ArrayList<>(favorites);
+        return favorites.stream()
+            .filter(f -> !f.isDirectory())
+            .collect(Collectors.toList());
     }
-    
+
     /**
      * Get favorites by folder.
+     * Directory favorites are excluded from the result.
      *
      * @param folderName the folder name to filter by
-     * @return list of favorites in the specified folder
+     * @return list of file favorites in the specified folder (directory favorites excluded)
      */
     public List<FileFavorite> getFavoritesByFolder(String folderName) {
-        return favoritesByFolder.getOrDefault(folderName, new ArrayList<>());
+        return favoritesByFolder.getOrDefault(folderName, new ArrayList<>()).stream()
+            .filter(f -> !f.isDirectory())
+            .collect(Collectors.toList());
     }
     
     /**
@@ -332,6 +340,89 @@ public class FavoritesService {
      */
     public List<FileFavorite> getFavoritesByType(FileFavorite.FileType type) {
         return favorites.stream()
+            .filter(f -> !f.isDirectory())
+            .filter(f -> f.getFileType() == type)
+            .collect(Collectors.toList());
+    }
+
+    // ========== Folder (directory) Favorites ==========
+
+    /**
+     * Register a directory (not a file) as a favorite for either the XML or XSLT list.
+     * Used by the XSLT Viewer's quick-folder toolbar.
+     *
+     * @param name   user-visible alias for the button; falls back to the directory name when blank
+     * @param folder absolute directory path; must exist and be a directory
+     * @param type   the list this folder belongs to; must be {@link FileFavorite.FileType#XML}
+     *               or {@link FileFavorite.FileType#XSLT}
+     * @return the persisted FileFavorite, or {@code null} if {@code folder} is not a directory
+     * @throws IllegalArgumentException if {@code type} is neither XML nor XSLT
+     */
+    public FileFavorite addFolderFavorite(String name, java.nio.file.Path folder, FileFavorite.FileType type) {
+        if (folder == null || !java.nio.file.Files.isDirectory(folder)) {
+            logger.warn("Refusing to add folder favorite - not a directory: {}", folder);
+            return null;
+        }
+        if (type != FileFavorite.FileType.XML && type != FileFavorite.FileType.XSLT) {
+            throw new IllegalArgumentException("Folder favorites only support XML or XSLT, got " + type);
+        }
+        String displayName = (name == null || name.isBlank())
+                ? (folder.getFileName() != null ? folder.getFileName().toString() : folder.toString())
+                : name;
+
+        FileFavorite favorite = FileFavorite.forDirectory(displayName, folder.toString(), type);
+        favorites.add(favorite);
+        organizeFavoritesByFolder();
+        saveFavorites();
+        logger.info("Added folder favorite: {} -> {}", displayName, folder);
+        return favorite;
+    }
+
+    /**
+     * Remove a folder favorite by its UUID.
+     * No-op (returns {@code false}) if the id is unknown or points to a file favorite.
+     *
+     * @param id the UUID of the folder favorite to remove
+     * @return true if a folder favorite was removed, false otherwise
+     */
+    public boolean removeFolderFavorite(String id) {
+        boolean removed = favorites.removeIf(f -> f.isDirectory() && f.getId().equals(id));
+        if (removed) {
+            organizeFavoritesByFolder();
+            saveFavorites();
+            logger.info("Removed folder favorite with ID: {}", id);
+        }
+        return removed;
+    }
+
+    /**
+     * Update only the display name of a folder favorite.
+     *
+     * @param id      the UUID of the folder favorite
+     * @param newName the new display name
+     * @return true if the entry was found and renamed
+     */
+    public boolean updateFolderFavoriteName(String id, String newName) {
+        for (FileFavorite f : favorites) {
+            if (f.isDirectory() && f.getId().equals(id)) {
+                f.setName(newName);
+                saveFavorites();
+                logger.info("Renamed folder favorite {} to {}", id, newName);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get all directory favorites for the given type, in insertion order.
+     *
+     * @param type must be {@link FileFavorite.FileType#XML} or {@link FileFavorite.FileType#XSLT}
+     * @return the list of folder favorites; never {@code null}
+     */
+    public List<FileFavorite> getFolderFavorites(FileFavorite.FileType type) {
+        return favorites.stream()
+            .filter(FileFavorite::isDirectory)
             .filter(f -> f.getFileType() == type)
             .collect(Collectors.toList());
     }
