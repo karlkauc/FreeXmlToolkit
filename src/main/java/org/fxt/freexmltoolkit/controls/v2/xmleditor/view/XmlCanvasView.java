@@ -1167,15 +1167,28 @@ public class XmlCanvasView extends Pane {
 
         double cellPadding = RepeatingElementsTable.CELL_PADDING;
 
-        // Calculate name column width for this cell's content
+        // Calculate the required name column width for this cell's content.
+        // This mirrors the formula in RepeatingElementsTable.calculateColumnWidths().
         double cellNameColWidth = 0;
+        double maxValueWidth = 0;
         for (FlatRow row : visibleCellRows) {
             double indent = row.getDepth() * INDENT + ICON_AREA_WIDTH;
             double labelW = (row.getLabel() != null ? row.getLabel().length() * 7.2 : 0);
             double expandW = row.isExpandable() ? EXPAND_BAR_WIDTH : 0;
             cellNameColWidth = Math.max(cellNameColWidth, indent + expandW + labelW + 20);
+            if (row.getValue() != null) {
+                maxValueWidth = Math.max(maxValueWidth, row.getValue().length() * 7.2);
+            }
         }
-        cellNameColWidth = Math.min(cellNameColWidth, cellWidth * 0.5);
+        // Soft cap: reserve space for the widest actual value instead of a hard
+        // 50% cap, so labels can use as much room as the column was sized for.
+        // calculateColumnWidths() grows the column to fit both label and value,
+        // so this branch only clamps when MAX_COLUMN_WIDTH_EXPANDED has kicked in.
+        double maxAllowedNameColWidth = cellWidth - cellPadding * 2 - maxValueWidth;
+        if (maxAllowedNameColWidth < 40) {
+            maxAllowedNameColWidth = Math.max(40, cellWidth - cellPadding * 2 - 40);
+        }
+        cellNameColWidth = Math.min(cellNameColWidth, maxAllowedNameColWidth);
 
         // Draw tree connection lines within cell
         drawCellTreeLines(visibleCellRows, cellX + cellPadding, cellY);

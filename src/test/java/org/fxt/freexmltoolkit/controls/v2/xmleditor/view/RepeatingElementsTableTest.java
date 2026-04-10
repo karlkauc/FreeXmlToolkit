@@ -383,6 +383,90 @@ class RepeatingElementsTableTest {
                 "Columns should be ordered according to their document order across all elements");
     }
 
+    // ==================== Column Auto-Resize Tests ====================
+
+    /**
+     * Verifies that a column containing a complex cell grows in width when
+     * the cell is expanded and shrinks back to its original width when the
+     * cell is collapsed again. This is the regression test for the "…"
+     * truncation issue where expanded nested labels were cut off.
+     */
+    @Test
+    void testColumnWidthGrowsOnExpandAndShrinksOnCollapse() {
+        // Create Asset with a complex child "AssetDetails" containing nested elements.
+        XmlElement asset = new XmlElement("Asset");
+        asset.addChild(createElementWithText("UniqueID", "ID_001"));
+
+        XmlElement details = new XmlElement("AssetDetails");
+        details.addChild(createElementWithText("DeepNestedLabelName", "some value"));
+        details.addChild(createElementWithText("AnotherVeryLongLabelName",
+                "another deeply nested value that needs room"));
+        asset.addChild(details);
+
+        RepeatingElementsTable table = new RepeatingElementsTable(
+                "Asset", List.of(asset), 0, () -> {});
+
+        RepeatingElementsTable.TableColumn detailsCol = table.getColumns().stream()
+                .filter(c -> "AssetDetails".equals(c.getName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("AssetDetails column not found"));
+
+        double collapsedWidth = detailsCol.getWidth();
+
+        RepeatingElementsTable.TableRow row = table.getRows().get(0);
+        assertTrue(row.hasComplexChild("AssetDetails"),
+                "AssetDetails should be a complex child");
+
+        // Expand the complex cell
+        row.toggleColumnExpanded("AssetDetails");
+        table.recalculateColumnWidths();
+        double expandedWidth = detailsCol.getWidth();
+
+        assertTrue(expandedWidth > collapsedWidth,
+                "Column should grow on expand (collapsed=" + collapsedWidth
+                        + ", expanded=" + expandedWidth + ")");
+
+        // Collapse again
+        row.toggleColumnExpanded("AssetDetails");
+        table.recalculateColumnWidths();
+        double recollapsedWidth = detailsCol.getWidth();
+
+        assertEquals(collapsedWidth, recollapsedWidth, 0.001,
+                "Column should shrink back to its original width on collapse");
+    }
+
+    /**
+     * Verifies that even very large expanded content does not push the column
+     * beyond {@code MAX_COLUMN_WIDTH_EXPANDED}. This prevents a single massive
+     * element from blowing up the whole table layout.
+     */
+    @Test
+    void testColumnWidthCappedAtMaxExpanded() {
+        XmlElement asset = new XmlElement("Asset");
+        XmlElement nested = new XmlElement("Nested");
+        XmlElement deep = new XmlElement(
+                "SuperLongElementNameThatShouldPushTheWidthOutByItself");
+        deep.addChild(createElementWithText(
+                "EvenDeeperLabelThatIsVeryLongAndVerbose",
+                "a value that is also very long to force the column to want to grow past the max allowed expanded width"));
+        nested.addChild(deep);
+        asset.addChild(nested);
+
+        RepeatingElementsTable table = new RepeatingElementsTable(
+                "Asset", List.of(asset), 0, () -> {});
+        RepeatingElementsTable.TableColumn col = table.getColumns().stream()
+                .filter(c -> "Nested".equals(c.getName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Nested column not found"));
+
+        table.getRows().get(0).toggleColumnExpanded("Nested");
+        table.recalculateColumnWidths();
+
+        assertTrue(col.getWidth() <= 500.0001,
+                "Column width must not exceed MAX_COLUMN_WIDTH_EXPANDED, was "
+                        + col.getWidth());
+    }
+
     // ==================== Helper Methods ====================
 
     /**

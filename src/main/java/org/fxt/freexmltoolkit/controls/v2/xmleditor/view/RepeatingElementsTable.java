@@ -88,6 +88,26 @@ public class RepeatingElementsTable {
      */
     private static final double MIN_TABLE_WIDTH = 200;
 
+    // ==================== Sub-Row Layout Constants ====================
+    // These must stay in sync with XmlCanvasView.INDENT / ICON_AREA_WIDTH /
+    // EXPAND_BAR_WIDTH so that column width calculations match the actual
+    // rendering inside renderCellTree().
+
+    /** Indentation per depth level for sub-rows in expanded complex cells. */
+    private static final double SUB_ROW_INDENT = 20;
+
+    /** Icon area width in sub-rows (must match XmlCanvasView.ICON_AREA_WIDTH). */
+    private static final double SUB_ROW_ICON_AREA_WIDTH = 24;
+
+    /** Expand-bar width in sub-rows (must match XmlCanvasView.EXPAND_BAR_WIDTH). */
+    private static final double SUB_ROW_EXPAND_BAR_WIDTH = 12;
+
+    /** Approximate glyph width in pixels for ROW_FONT used in sub-rows. */
+    private static final double SUB_ROW_CHAR_WIDTH = 7.2;
+
+    /** Gap between the label and the value column inside a sub-row. */
+    private static final double SUB_ROW_LABEL_VALUE_GAP = 20;
+
     // ==================== Column Order Cache ====================
     // Caches the original column order per element name to maintain stability after sorting
     private static final Map<String, List<String>> columnOrderCache = new HashMap<>();
@@ -833,30 +853,63 @@ public class RepeatingElementsTable {
 
     /**
      * Calculates optimal column widths based on content.
+     *
+     * <p>Takes into account both the regular row values and the content of any
+     * expanded complex cells. When a column contains an expanded cell, its width
+     * is allowed to grow up to {@link #MAX_COLUMN_WIDTH_EXPANDED}; otherwise the
+     * cap is {@link #MAX_COLUMN_WIDTH}. This way the column auto-resizes on
+     * expand and shrinks back on collapse, and the formula used here mirrors
+     * the layout inside
+     * {@link XmlCanvasView#renderCellTree(List, double, double, double)} so the
+     * computed width is exactly what the renderer needs to show everything
+     * without ellipsis.</p>
      */
     private void calculateColumnWidths() {
         for (TableColumn col : columns) {
             double maxWidth = col.getDisplayName().length() * 8 + CELL_PADDING * 2;
+            boolean anyCellExpanded = false;
 
             for (TableRow row : rows) {
                 String value = row.getValue(col.getName());
-                double valueWidth = value.length() * 7 + CELL_PADDING * 2;
+                double valueWidth = value.length() * SUB_ROW_CHAR_WIDTH + CELL_PADDING * 2;
+                // Leave space for the complex-cell expand arrow (~14px offset).
+                if (row.hasComplexChild(col.getName())) {
+                    valueWidth += 14;
+                }
                 maxWidth = Math.max(maxWidth, valueWidth);
 
-                // Account for expanded cell content
+                // Account for expanded cell content (only visible sub-rows contribute).
                 if (row.isColumnExpanded(col.getName())) {
+                    anyCellExpanded = true;
                     List<FlatRow> cellRows = row.getExpandedCellRows(col.getName());
                     for (FlatRow subRow : cellRows) {
-                        double subIndent = subRow.getDepth() * 12;
-                        double labelWidth = (subRow.getLabel() != null ? subRow.getLabel().length() * 7 : 0);
-                        double valueW = (subRow.getValue() != null ? subRow.getValue().length() * 7 : 0);
-                        double subRowWidth = CELL_PADDING + subIndent + 18 + labelWidth + 20 + valueW + CELL_PADDING;
+                        if (!subRow.isVisible()) {
+                            continue;
+                        }
+                        double subIndent = subRow.getDepth() * SUB_ROW_INDENT;
+                        double expandW = subRow.isExpandable() ? SUB_ROW_EXPAND_BAR_WIDTH : 0;
+                        double labelW = (subRow.getLabel() != null
+                                ? subRow.getLabel().length() * SUB_ROW_CHAR_WIDTH
+                                : 0);
+                        double valueW = (subRow.getValue() != null
+                                ? subRow.getValue().length() * SUB_ROW_CHAR_WIDTH
+                                : 0);
+                        double subRowWidth = CELL_PADDING
+                                + subIndent
+                                + expandW
+                                + SUB_ROW_ICON_AREA_WIDTH
+                                + labelW
+                                + SUB_ROW_LABEL_VALUE_GAP
+                                + valueW
+                                + CELL_PADDING;
                         maxWidth = Math.max(maxWidth, subRowWidth);
                     }
                 }
             }
 
-            col.setWidth(Math.max(MIN_COLUMN_WIDTH, maxWidth));
+            double effectiveMax = anyCellExpanded ? MAX_COLUMN_WIDTH_EXPANDED : MAX_COLUMN_WIDTH;
+            double clamped = Math.max(MIN_COLUMN_WIDTH, Math.min(maxWidth, effectiveMax));
+            col.setWidth(clamped);
         }
     }
 
