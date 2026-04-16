@@ -127,11 +127,11 @@ public class ProfiledXmlGeneratorService {
             String typeName = element.getElementType() != null ? element.getElementType() : "";
             String cleanXpath = stripContainers(xpath);
 
-            xpaths.add(new XPathInfo(cleanXpath, typeName, element.isMandatory(), isAttribute));
+            xpaths.add(new XPathInfo(cleanXpath, typeName, element.isMandatory(), isAttribute, element.getCounter()));
         }
 
-        // Sort by XPath for consistent ordering
-        xpaths.sort(Comparator.comparing(XPathInfo::xpath));
+        // Sort by schema order (counter) to preserve XSD document order
+        xpaths.sort(Comparator.comparing(XPathInfo::schemaOrder));
         return xpaths;
     }
 

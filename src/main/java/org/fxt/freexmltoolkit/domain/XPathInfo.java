@@ -22,10 +22,11 @@ package org.fxt.freexmltoolkit.domain;
  * Information about an XPath extracted from an XSD schema.
  * Used to auto-populate the XPath rules table in the UI.
  *
- * @param xpath      the full XPath expression (e.g., "/order/customer/name")
- * @param typeName   the XSD type name (e.g., "xs:string", "CustomerType")
- * @param mandatory  whether this element/attribute is required (minOccurs >= 1 or use="required")
+ * @param xpath       the full XPath expression (e.g., "/order/customer/name")
+ * @param typeName    the XSD type name (e.g., "xs:string", "CustomerType")
+ * @param mandatory   whether this element/attribute is required (minOccurs >= 1 or use="required")
  * @param isAttribute whether this is an attribute (true) or element (false)
+ * @param schemaOrder the position in the XSD document (for preserving document order)
  */
-public record XPathInfo(String xpath, String typeName, boolean mandatory, boolean isAttribute) {
+public record XPathInfo(String xpath, String typeName, boolean mandatory, boolean isAttribute, int schemaOrder) {
 }
