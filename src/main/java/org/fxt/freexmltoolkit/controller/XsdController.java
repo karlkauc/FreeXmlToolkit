@@ -940,13 +940,13 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
             validationTask.setOnSucceeded(validationEvent -> {
                 XsdDocumentationService.ValidationResult result = validationTask.getValue();
                 if (result.isValid()) {
-                    statusText.setText("Sample XML generated and validated successfully.");
+                    if (statusText != null) statusText.setText("Sample XML generated and validated successfully.");
                     String message = result.message().isEmpty()
                             ? "The generated XML is valid according to the XSD schema."
                             : "Valid with notes: " + result.message();
                     showValidationResult(true, "Validation Successful", message, result.errors());
                 } else {
-                    statusText.setText("Sample XML generated but validation failed.");
+                    if (statusText != null) statusText.setText("Sample XML generated but validation failed.");
                     int errorCount = result.errors().size();
                     String summaryMessage = errorCount > 0
                             ? String.format("%d error(s) found. See details below.", errorCount)
@@ -957,7 +957,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
 
             validationTask.setOnFailed(validationEvent -> {
                 logger.error("Validation task failed", validationTask.getException());
-                statusText.setText("Sample XML generated but validation could not be performed.");
+                if (statusText != null) statusText.setText("Sample XML generated but validation could not be performed.");
             });
 
             executorService.submit(validationTask);
@@ -973,7 +973,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
             progressSampleData.setVisible(false);
             Throwable e = generationTask.getException();
             logger.error("Failed to generate sample XML data.", e);
-            statusText.setText("Error generating sample XML.");
+            if (statusText != null) statusText.setText("Error generating sample XML.");
             if (e instanceof Exception ex) {
                 DialogHelper.showException("Generate Sample Data", "Failed to Generate Sample XML", ex);
             } else {
@@ -1021,7 +1021,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
             for (XPathInfo info : xpaths) {
                 rulesList.add(new XPathRule(info.xpath(), GenerationStrategy.AUTO));
             }
-            statusText.setText(xpaths.size() + " XPaths extracted from XSD.");
+            if (statusText != null) statusText.setText(xpaths.size() + " XPaths extracted from XSD.");
         });
         task.setOnFailed(e -> {
             logger.error("Failed to extract XPaths", task.getException());
@@ -1047,7 +1047,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
         profile.setName(currentProfile.getName());
         GenerationProfileService.getInstance().save(profile);
         currentProfile = profile;
-        statusText.setText("Profile '" + profile.getName() + "' saved.");
+        if (statusText != null) statusText.setText("Profile '" + profile.getName() + "' saved.");
         loadProfileList();
         profileComboBox.setValue(profile.getName());
     }
@@ -1064,7 +1064,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
             profile.setName(name);
             GenerationProfileService.getInstance().save(profile);
             currentProfile = profile;
-            statusText.setText("Profile '" + name + "' saved.");
+            if (statusText != null) statusText.setText("Profile '" + name + "' saved.");
             loadProfileList();
             profileComboBox.setValue(name);
         });
@@ -1078,7 +1078,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
         GenerationProfileService.getInstance().delete(currentProfile.getName());
         currentProfile = null;
         rulesList.clear();
-        statusText.setText("Profile deleted.");
+        if (statusText != null) statusText.setText("Profile deleted.");
         loadProfileList();
     }
 
@@ -1103,7 +1103,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
             if (fileNamePatternField != null && loaded.getFileNamePattern() != null) {
                 fileNamePatternField.setText(loaded.getFileNamePattern());
             }
-            statusText.setText("Profile '" + selected + "' loaded.");
+            if (statusText != null) statusText.setText("Profile '" + selected + "' loaded.");
         }
     }
 
