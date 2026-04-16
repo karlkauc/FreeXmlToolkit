@@ -529,26 +529,19 @@
 
                 <!-- Main content: SplitPane with Rules Table + Preview -->
                 <SplitPane dividerPositions="0.4" VBox.vgrow="ALWAYS">
-                    <!-- Left: Rules Table + Config Panel -->
-                    <VBox spacing="5">
-                        <TableView fx:id="rulesTableView" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <TableColumn fx:id="ruleXPathColumn" text="XPath" prefWidth="250" minWidth="120"/>
-                                <TableColumn fx:id="ruleStrategyColumn" text="Strategy" prefWidth="120" minWidth="90"/>
-                                <TableColumn fx:id="ruleEnabledColumn" text="On" prefWidth="40" minWidth="35"/>
-                            </columns>
-                            <placeholder>
-                                <Label text="No rules configured. Click 'Auto-fill XPaths' or 'Add Rule'."/>
-                            </placeholder>
-                        </TableView>
-                        <!-- Config Panel for selected rule -->
-                        <TitledPane fx:id="ruleConfigPane" text="Rule Configuration" collapsible="true"
-                                    expanded="true" maxHeight="180">
-                            <VBox fx:id="ruleConfigContent" spacing="8" style="-fx-padding: 8;">
-                                <Label text="Select a rule to configure." styleClass="label-small" style="-fx-text-fill: #888;"/>
-                            </VBox>
-                        </TitledPane>
-                    </VBox>
+                    <!-- Left: Rules Table (inline editing) -->
+                    <TableView fx:id="rulesTableView">
+                        <columns>
+                            <TableColumn fx:id="ruleEnabledColumn" text="" prefWidth="30" minWidth="30" maxWidth="35"/>
+                            <TableColumn fx:id="ruleXPathColumn" text="XPath" prefWidth="220" minWidth="120"/>
+                            <TableColumn fx:id="ruleStrategyColumn" text="Strategy" prefWidth="110" minWidth="90"/>
+                            <TableColumn fx:id="ruleConfigColumn" text="Config" prefWidth="180" minWidth="100"/>
+                            <TableColumn fx:id="ruleDeleteColumn" text="" prefWidth="30" minWidth="30" maxWidth="35"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="No rules configured. Click 'Auto-fill XPaths' or 'Add Rule'."/>
+                        </placeholder>
+                    </TableView>
 
                     <!-- Right: Generated XML Preview -->
                     <VBox spacing="5">

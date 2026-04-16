@@ -34,7 +34,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -178,9 +177,9 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
     @FXML
     private TableColumn<XPathRule, Boolean> ruleEnabledColumn;
     @FXML
-    private TitledPane ruleConfigPane;
+    private TableColumn<XPathRule, String> ruleConfigColumn;
     @FXML
-    private VBox ruleConfigContent;
+    private TableColumn<XPathRule, Void> ruleDeleteColumn;
 
     private final ObservableList<XPathRule> rulesList = FXCollections.observableArrayList();
     private final ProfiledXmlGeneratorService profiledGenerator = new ProfiledXmlGeneratorService();
@@ -1352,22 +1351,155 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
         rulesTableView.setItems(rulesList);
         rulesTableView.setEditable(true);
 
+        // Enabled column: CheckBox
+        if (ruleEnabledColumn != null) {
+            ruleEnabledColumn.setCellValueFactory(cell ->
+                    new SimpleBooleanProperty(cell.getValue().isEnabled()));
+            ruleEnabledColumn.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+                private final CheckBox checkBox = new CheckBox();
+                {
+                    checkBox.setOnAction(e -> {
+                        XPathRule rule = getTableView().getItems().get(getIndex());
+                        rule.setEnabled(checkBox.isSelected());
+                    });
+                }
+                @Override
+                protected void updateItem(Boolean item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) { setGraphic(null); } else { checkBox.setSelected(item != null && item); setGraphic(checkBox); }
+                }
+            });
+        }
+
+        // XPath column: read-only text
         if (ruleXPathColumn != null) {
             ruleXPathColumn.setCellValueFactory(cell ->
                     new SimpleStringProperty(cell.getValue().getXpath()));
         }
+
+        // Strategy column: ComboBox
         if (ruleStrategyColumn != null) {
             ruleStrategyColumn.setCellValueFactory(cell ->
                     new SimpleStringProperty(cell.getValue().getStrategy().getDisplayName()));
-        }
-        if (ruleEnabledColumn != null) {
-            ruleEnabledColumn.setCellValueFactory(cell ->
-                    new SimpleBooleanProperty(cell.getValue().isEnabled()));
+            ruleStrategyColumn.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+                private final ComboBox<GenerationStrategy> combo = new ComboBox<>();
+                {
+                    combo.getItems().addAll(GenerationStrategy.values());
+                    combo.setMaxWidth(Double.MAX_VALUE);
+                    combo.setOnAction(e -> {
+                        XPathRule rule = getTableView().getItems().get(getIndex());
+                        GenerationStrategy old = rule.getStrategy();
+                        rule.setStrategy(combo.getValue());
+                        // Clear config when strategy changes
+                        if (old != combo.getValue()) {
+                            rule.setConfig(null);
+                        }
+                        getTableView().refresh();
+                    });
+                }
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) { setGraphic(null); } else {
+                        combo.setValue(getTableView().getItems().get(getIndex()).getStrategy());
+                        setGraphic(combo);
+                    }
+                }
+            });
         }
 
-        // Update config panel when selection changes
-        rulesTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) ->
-                updateRuleConfigPanel(newVal));
+        // Config column: context-sensitive text field
+        if (ruleConfigColumn != null) {
+            ruleConfigColumn.setCellValueFactory(cell ->
+                    new SimpleStringProperty(getConfigDisplayValue(cell.getValue())));
+            ruleConfigColumn.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+                private final TextField field = new TextField();
+                {
+                    field.setOnAction(e -> commitConfigEdit());
+                    field.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+                        if (!isFocused) commitConfigEdit();
+                    });
+                }
+                private void commitConfigEdit() {
+                    XPathRule rule = getTableView().getItems().get(getIndex());
+                    setConfigFromText(rule, field.getText());
+                }
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) { setGraphic(null); setText(null); } else {
+                        XPathRule rule = getTableView().getItems().get(getIndex());
+                        if (needsConfig(rule.getStrategy())) {
+                            field.setText(item != null ? item : "");
+                            field.setPromptText(getConfigPrompt(rule.getStrategy()));
+                            setGraphic(field);
+                            setText(null);
+                        } else {
+                            setGraphic(null);
+                            setText("");
+                        }
+                    }
+                }
+            });
+        }
+
+        // Delete column: button
+        if (ruleDeleteColumn != null) {
+            ruleDeleteColumn.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+                private final Button btn = new Button();
+                {
+                    btn.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-x-circle"));
+                    btn.setStyle("-fx-background-color: transparent; -fx-padding: 2;");
+                    btn.setOnAction(e -> rulesList.remove(getIndex()));
+                }
+                @Override
+                protected void updateItem(Void item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setGraphic(empty ? null : btn);
+                }
+            });
+        }
+    }
+
+    private static String getConfigDisplayValue(XPathRule rule) {
+        return switch (rule.getStrategy()) {
+            case FIXED -> rule.getConfigValue("value");
+            case SEQUENCE -> rule.getConfigValue("pattern");
+            case RANDOM_FROM_LIST -> rule.getConfigValue("values");
+            case XPATH_REF -> rule.getConfigValue("ref");
+            case TEMPLATE -> rule.getConfigValue("pattern");
+            default -> null;
+        };
+    }
+
+    private static void setConfigFromText(XPathRule rule, String text) {
+        switch (rule.getStrategy()) {
+            case FIXED -> rule.setConfigValue("value", text);
+            case SEQUENCE -> rule.setConfigValue("pattern", text);
+            case RANDOM_FROM_LIST -> rule.setConfigValue("values", text);
+            case XPATH_REF -> rule.setConfigValue("ref", text);
+            case TEMPLATE -> rule.setConfigValue("pattern", text);
+            default -> {}
+        }
+    }
+
+    private static boolean needsConfig(GenerationStrategy strategy) {
+        return strategy == GenerationStrategy.FIXED
+                || strategy == GenerationStrategy.SEQUENCE
+                || strategy == GenerationStrategy.RANDOM_FROM_LIST
+                || strategy == GenerationStrategy.XPATH_REF
+                || strategy == GenerationStrategy.TEMPLATE;
+    }
+
+    private static String getConfigPrompt(GenerationStrategy strategy) {
+        return switch (strategy) {
+            case FIXED -> "Fixed value";
+            case SEQUENCE -> "e.g. ID-{seq:4}";
+            case RANDOM_FROM_LIST -> "A,B,C";
+            case XPATH_REF -> "/order/@id";
+            case TEMPLATE -> "ORD-{seq:4}-{date:yyyy}";
+            default -> "";
+        };
     }
 
     private void loadProfileList() {
@@ -1381,59 +1513,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
         profileComboBox.getSelectionModel().selectFirst();
     }
 
-    private void updateRuleConfigPanel(XPathRule rule) {
-        if (ruleConfigContent == null) return;
-        ruleConfigContent.getChildren().clear();
 
-        if (rule == null) {
-            ruleConfigContent.getChildren().add(new Label("Select a rule to configure."));
-            return;
-        }
-
-        // Strategy selector
-        var strategyBox = new javafx.scene.layout.HBox(10);
-        strategyBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        var strategyLabel = new Label("Strategy:");
-        var strategyCombo = new ComboBox<GenerationStrategy>();
-        strategyCombo.getItems().addAll(GenerationStrategy.values());
-        strategyCombo.setValue(rule.getStrategy());
-        strategyCombo.setOnAction(e -> {
-            rule.setStrategy(strategyCombo.getValue());
-            rulesTableView.refresh();
-            updateRuleConfigPanel(rule);
-        });
-        strategyBox.getChildren().addAll(strategyLabel, strategyCombo);
-        ruleConfigContent.getChildren().add(strategyBox);
-
-        // Strategy-specific config fields
-        switch (rule.getStrategy()) {
-            case FIXED -> addConfigField(rule, "value", "Value:", "Enter fixed value");
-            case SEQUENCE -> {
-                addConfigField(rule, "pattern", "Pattern:", "e.g. ID-{seq:4}");
-                addConfigField(rule, "start", "Start:", "1");
-                addConfigField(rule, "step", "Step:", "1");
-            }
-            case RANDOM_FROM_LIST -> addConfigField(rule, "values", "Values (comma-sep.):", "A,B,C");
-            case XPATH_REF -> addConfigField(rule, "ref", "Reference XPath:", "/order/@id");
-            case TEMPLATE -> addConfigField(rule, "pattern", "Template:", "ORD-{seq:4}-{date:yyyy}");
-            default -> {
-                // AUTO, OMIT, EMPTY, NULL, XSD_EXAMPLE, ENUM_CYCLE need no config
-            }
-        }
-    }
-
-    private void addConfigField(XPathRule rule, String key, String label, String prompt) {
-        var hbox = new javafx.scene.layout.HBox(10);
-        hbox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        var lbl = new Label(label);
-        lbl.setMinWidth(120);
-        var field = new TextField(rule.getConfigValue(key));
-        field.setPromptText(prompt);
-        javafx.scene.layout.HBox.setHgrow(field, javafx.scene.layout.Priority.ALWAYS);
-        field.textProperty().addListener((obs, oldVal, newVal) -> rule.setConfigValue(key, newVal));
-        hbox.getChildren().addAll(lbl, field);
-        ruleConfigContent.getChildren().add(hbox);
-    }
 
     private void saveStringToFile(String content, File file) {
         Task<Void> saveTask = new Task<>() {
