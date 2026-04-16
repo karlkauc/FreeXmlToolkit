@@ -18,7 +18,7 @@
         <link rel="prev" href="../json-editor/">
       
       
-        <link rel="next" href="../xsd-validation/">
+        <link rel="next" href="../profiled-xml-generation/">
       
       
         
@@ -1276,10 +1276,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#how-to-use_3" class="md-nav__link">
+  <a href="#quick-start-basic-generation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to Use
+        Quick Start (Basic Generation)
       
     </span>
   </a>
@@ -1287,10 +1287,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#options" class="md-nav__link">
+  <a href="#profiled-generation-advanced" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Options
+        Profiled Generation (Advanced)
       
     </span>
   </a>
@@ -1326,7 +1326,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#how-to-use_4" class="md-nav__link">
+  <a href="#how-to-use_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         How to Use
@@ -1400,6 +1400,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profiled-xml-generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Profiled XML Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2325,10 +2353,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#how-to-use_3" class="md-nav__link">
+  <a href="#quick-start-basic-generation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to Use
+        Quick Start (Basic Generation)
       
     </span>
   </a>
@@ -2336,10 +2364,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#options" class="md-nav__link">
+  <a href="#profiled-generation-advanced" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Options
+        Profiled Generation (Advanced)
       
     </span>
   </a>
@@ -2375,7 +2403,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#how-to-use_4" class="md-nav__link">
+  <a href="#how-to-use_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         How to Use
@@ -2467,7 +2495,7 @@
 
 <h1 id="xsd-tools">XSD Tools<a class="headerlink" href="#xsd-tools" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> March 2026 | <strong>Version:</strong> 1.6.3</p>
+<p><strong>Last Updated:</strong> April 2026 | <strong>Version:</strong> 1.7.0</p>
 </blockquote>
 <p>This part of the application provides tools for working with XML Schemas (XSD). These tools help you understand,
 document, and use XSD files effectively.</p>
@@ -2512,7 +2540,7 @@ document, and use XSD files effectively.</p>
 </tr>
 <tr>
 <td><strong>Generate Example Data</strong></td>
-<td>Create sample XML from schema</td>
+<td>Create sample XML from schema with customizable rules and profiles</td>
 </tr>
 <tr>
 <td><strong>Flatten Schema</strong></td>
@@ -2949,10 +2977,11 @@ document, and use XSD files effectively.</p>
 </code></pre></div>
 <hr />
 <h2 id="7-sample-xml-generator">7. Sample XML Generator<a class="headerlink" href="#7-sample-xml-generator" title="Permanent link">&para;</a></h2>
-<p>Create sample XML files based on your XSD schema. This is useful for testing or as a template.</p>
+<p>Create sample XML files based on your XSD schema. This is useful for testing, data migration, or as a starting template.</p>
 <p><img alt="Sample XML Generator" src="../img/xsd-sample-generator.png" />
-<em>Sample XML generator panel</em></p>
-<h3 id="how-to-use_3">How to Use<a class="headerlink" href="#how-to-use_3" title="Permanent link">&para;</a></h3>
+<em>Sample XML generator with rules table and XML preview</em></p>
+<h3 id="quick-start-basic-generation">Quick Start (Basic Generation)<a class="headerlink" href="#quick-start-basic-generation" title="Permanent link">&para;</a></h3>
+<p>For simple use cases, you can generate sample XML in seconds:</p>
 <ol>
 <li>Load your XSD file</li>
 <li>Go to the <strong>Generate Example Data</strong> tab</li>
@@ -2965,25 +2994,43 @@ document, and use XSD files effectively.</p>
 <li><strong>Validate</strong> the generated XML against the schema</li>
 <li>Save or copy the generated XML</li>
 </ol>
-<h3 id="options">Options<a class="headerlink" href="#options" title="Permanent link">&para;</a></h3>
+<h3 id="profiled-generation-advanced">Profiled Generation (Advanced)<a class="headerlink" href="#profiled-generation-advanced" title="Permanent link">&para;</a></h3>
+<p>For more control, you can define rules that specify exactly how each element or attribute gets its value. The Generate Example Data tab now includes:</p>
 <table>
 <thead>
 <tr>
-<th>Option</th>
+<th>Feature</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Create mandatory elements only</strong></td>
-<td>Only generate required elements</td>
+<td><strong>XPath-Based Rules</strong></td>
+<td>Set a generation strategy for each element or attribute by its XPath</td>
 </tr>
 <tr>
-<td><strong>Max occurrences</strong></td>
-<td>Limit repeating elements (default: 2)</td>
+<td><strong>11 Strategies</strong></td>
+<td>Auto, Fixed Value, Omit, Empty, XSD Example, Enum Cycle, Sequence, XPath Reference, Random from List, Template, and Null</td>
+</tr>
+<tr>
+<td><strong>Auto-Fill XPaths</strong></td>
+<td>Automatically extract all XPaths from your schema to populate the rules table</td>
+</tr>
+<tr>
+<td><strong>Saveable Profiles</strong></td>
+<td>Save your generation configuration and reload it later</td>
+</tr>
+<tr>
+<td><strong>Profile Sharing</strong></td>
+<td>Export and import profiles to share with colleagues</td>
+</tr>
+<tr>
+<td><strong>Batch Generation</strong></td>
+<td>Generate multiple files at once with configurable file naming (for example, <code>order_001.xml</code>, <code>order_002.xml</code>)</td>
 </tr>
 </tbody>
 </table>
+<p>For a complete guide with step-by-step instructions and examples, see <strong><a href="../profiled-xml-generation/">Profiled XML Generation</a></strong>.</p>
 <h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
 <p>After generating sample XML, you can validate it:</p>
 <ol>
@@ -2997,7 +3044,7 @@ document, and use XSD files effectively.</p>
 <p>Combine multiple XSD files into a single file. Useful when your schema imports other schemas.</p>
 <p><img alt="XSD Flattener" src="../img/xsd-flattener.png" />
 <em>Flattener tool with before/after view</em></p>
-<h3 id="how-to-use_4">How to Use<a class="headerlink" href="#how-to-use_4" title="Permanent link">&para;</a></h3>
+<h3 id="how-to-use_3">How to Use<a class="headerlink" href="#how-to-use_3" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Select your main XSD file</li>
 <li>Choose where to save the new file</li>
@@ -3115,12 +3162,11 @@ document, and use XSD files effectively.</p>
 <tr>
 <td><a href="../xml-editor-features/">XML Editor Features</a></td>
 <td><a href="../">Home</a></td>
-<td><a href="../xsd-validation/">XSD Validation</a></td>
+<td><a href="../profiled-xml-generation/">Profiled XML Generation</a></td>
 </tr>
 </tbody>
 </table>
-<p>**All Pages:
-** <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="./">XSD Tools</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../licenses/">Licenses</a></p>
+<p><strong>All Pages:</strong> <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="./">XSD Tools</a> | <a href="../profiled-xml-generation/">Profiled XML Generation</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../licenses/">Licenses</a></p>
 
 
 
@@ -3175,13 +3221,13 @@ document, and use XSD files effectively.</p>
         
         
           
-          <a href="../xsd-validation/" class="md-footer__link md-footer__link--next" aria-label="Next: XSD Validation">
+          <a href="../profiled-xml-generation/" class="md-footer__link md-footer__link--next" aria-label="Next: Profiled XML Generation">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                XSD Validation
+                Profiled XML Generation
               </div>
             </div>
             <div class="md-footer__button md-icon">

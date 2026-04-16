@@ -12,13 +12,13 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/xsd-validation/">
+        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/profiled-xml-generation/">
       
       
-        <link rel="prev" href="../profiled-xml-generation/">
+        <link rel="prev" href="../xsd-tools/">
       
       
-        <link rel="next" href="../schema-support/">
+        <link rel="next" href="../xsd-validation/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>XSD Validation - FreeXmlToolkit Documentation</title>
+        <title>Profiled XML Generation - FreeXmlToolkit Documentation</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#xsd-validation" class="md-skip">
+        <a href="#profiled-xml-generation" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              XSD Validation
+              Profiled XML Generation
             
           </span>
         </div>
@@ -879,34 +879,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../profiled-xml-generation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Profiled XML Generation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -926,7 +898,7 @@
   <span class="md-ellipsis">
     
   
-    XSD Validation
+    Profiled XML Generation
   
 
     
@@ -944,7 +916,7 @@
   <span class="md-ellipsis">
     
   
-    XSD Validation
+    Profiled XML Generation
   
 
     
@@ -970,22 +942,77 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#why-use-profiled-generation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Why Use Profiled Generation?
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Overview">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-generation-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Generation Workspace
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Generation Workspace">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#what-does-it-check" class="md-nav__link">
+  <a href="#toolbar" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What Does It Check?
+        Toolbar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Bar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rules-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules Table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xml-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML Preview
       
     </span>
   </a>
@@ -998,22 +1025,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#single-file-validation" class="md-nav__link">
+  <a href="#generation-strategies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Single File Validation
+        Generation Strategies
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Single File Validation">
+    <nav class="md-nav" aria-label="Generation Strategies">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#step-1-load-your-files" class="md-nav__link">
+  <a href="#auto-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 1: Load Your Files
+        Auto (Default)
       
     </span>
   </a>
@@ -1021,10 +1048,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-validate" class="md-nav__link">
+  <a href="#fixed-value" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: Validate
+        Fixed Value
       
     </span>
   </a>
@@ -1032,10 +1059,98 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-view-results" class="md-nav__link">
+  <a href="#omit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 3: View Results
+        Omit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Empty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xsd-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XSD Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enum-cycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enum Cycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xpath-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPath Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#random-from-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Random from List
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Null
       
     </span>
   </a>
@@ -1048,22 +1163,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#batch-validation" class="md-nav__link">
+  <a href="#working-with-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Batch Validation
+        Working with Rules
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Batch Validation">
+    <nav class="md-nav" aria-label="Working with Rules">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#xsd-mode-selection" class="md-nav__link">
+  <a href="#adding-rules-manually" class="md-nav__link">
     <span class="md-ellipsis">
       
-        XSD Mode Selection
+        Adding Rules Manually
       
     </span>
   </a>
@@ -1071,10 +1186,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#adding-files" class="md-nav__link">
+  <a href="#auto-fill-from-xsd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adding Files
+        Auto-Fill from XSD
       
     </span>
   </a>
@@ -1082,10 +1197,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-batch-validation" class="md-nav__link">
+  <a href="#enabling-and-disabling-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Running Batch Validation
+        Enabling and Disabling Rules
       
     </span>
   </a>
@@ -1093,10 +1208,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#results-table" class="md-nav__link">
+  <a href="#rule-priority" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results Table
+        Rule Priority
       
     </span>
   </a>
@@ -1104,32 +1219,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
+  <a href="#xpath-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Summary
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#filter-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Filter Results
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#error-details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Details
+        XPath Patterns
       
     </span>
   </a>
@@ -1142,22 +1235,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exporting-results" class="md-nav__link">
+  <a href="#profiles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exporting Results
+        Profiles
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Exporting Results">
+    <nav class="md-nav" aria-label="Profiles">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#single-file-export" class="md-nav__link">
+  <a href="#saving-a-profile" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Single File Export
+        Saving a Profile
       
     </span>
   </a>
@@ -1165,10 +1258,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#batch-export" class="md-nav__link">
+  <a href="#loading-a-profile" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Batch Export
+        Loading a Profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting a Profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-profiles-are-stored" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where Profiles Are Stored
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sharing-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sharing Profiles
       
     </span>
   </a>
@@ -1181,10 +1307,121 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#favorites-integration" class="md-nav__link">
+  <a href="#batch-generation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Favorites Integration
+        Batch Generation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Batch Generation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-to-use-batch-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Use Batch Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-name-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Name Patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-strategies-behave-across-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Strategies Behave Across Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Tasks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generate-test-data-with-sequential-ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate Test Data with Sequential IDs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate-multiple-files-for-load-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate Multiple Files for Load Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-realistic-customer-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create Realistic Customer Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#skip-optional-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skip Optional Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backward-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backward Compatibility
       
     </span>
   </a>
@@ -1192,46 +1429,74 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#toolbar-reference" class="md-nav__link">
+  <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Toolbar Reference
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generated-xml-fails-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated XML fails validation
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#supported-standards" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#xpath-reference-shows-empty-values" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Supported Standards
+        XPath Reference shows empty values
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#tips" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#sequence-numbers-restart-unexpectedly" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tips
+        Sequence numbers restart unexpectedly
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#keyboard-shortcuts" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#auto-fill-shows-fewer-xpaths-than-expected" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Keyboard Shortcuts
+        Auto-fill shows fewer XPaths than expected
       
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#profile-not-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profile not loading
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1250,6 +1515,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xsd-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XSD Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1785,22 +2078,77 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#why-use-profiled-generation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Why Use Profiled Generation?
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Overview">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-generation-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Generation Workspace
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Generation Workspace">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#what-does-it-check" class="md-nav__link">
+  <a href="#toolbar" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What Does It Check?
+        Toolbar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Bar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rules-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules Table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xml-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML Preview
       
     </span>
   </a>
@@ -1813,22 +2161,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#single-file-validation" class="md-nav__link">
+  <a href="#generation-strategies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Single File Validation
+        Generation Strategies
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Single File Validation">
+    <nav class="md-nav" aria-label="Generation Strategies">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#step-1-load-your-files" class="md-nav__link">
+  <a href="#auto-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 1: Load Your Files
+        Auto (Default)
       
     </span>
   </a>
@@ -1836,10 +2184,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-validate" class="md-nav__link">
+  <a href="#fixed-value" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2: Validate
+        Fixed Value
       
     </span>
   </a>
@@ -1847,10 +2195,98 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-3-view-results" class="md-nav__link">
+  <a href="#omit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 3: View Results
+        Omit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Empty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xsd-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XSD Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enum-cycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enum Cycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xpath-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XPath Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#random-from-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Random from List
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Null
       
     </span>
   </a>
@@ -1863,22 +2299,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#batch-validation" class="md-nav__link">
+  <a href="#working-with-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Batch Validation
+        Working with Rules
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Batch Validation">
+    <nav class="md-nav" aria-label="Working with Rules">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#xsd-mode-selection" class="md-nav__link">
+  <a href="#adding-rules-manually" class="md-nav__link">
     <span class="md-ellipsis">
       
-        XSD Mode Selection
+        Adding Rules Manually
       
     </span>
   </a>
@@ -1886,10 +2322,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#adding-files" class="md-nav__link">
+  <a href="#auto-fill-from-xsd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adding Files
+        Auto-Fill from XSD
       
     </span>
   </a>
@@ -1897,10 +2333,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-batch-validation" class="md-nav__link">
+  <a href="#enabling-and-disabling-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Running Batch Validation
+        Enabling and Disabling Rules
       
     </span>
   </a>
@@ -1908,10 +2344,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#results-table" class="md-nav__link">
+  <a href="#rule-priority" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Results Table
+        Rule Priority
       
     </span>
   </a>
@@ -1919,32 +2355,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
+  <a href="#xpath-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Summary
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#filter-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Filter Results
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#error-details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Details
+        XPath Patterns
       
     </span>
   </a>
@@ -1957,22 +2371,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exporting-results" class="md-nav__link">
+  <a href="#profiles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exporting Results
+        Profiles
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Exporting Results">
+    <nav class="md-nav" aria-label="Profiles">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#single-file-export" class="md-nav__link">
+  <a href="#saving-a-profile" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Single File Export
+        Saving a Profile
       
     </span>
   </a>
@@ -1980,10 +2394,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#batch-export" class="md-nav__link">
+  <a href="#loading-a-profile" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Batch Export
+        Loading a Profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting a Profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-profiles-are-stored" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where Profiles Are Stored
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sharing-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sharing Profiles
       
     </span>
   </a>
@@ -1996,10 +2443,121 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#favorites-integration" class="md-nav__link">
+  <a href="#batch-generation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Favorites Integration
+        Batch Generation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Batch Generation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-to-use-batch-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Use Batch Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-name-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Name Patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-strategies-behave-across-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Strategies Behave Across Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Tasks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generate-test-data-with-sequential-ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate Test Data with Sequential IDs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate-multiple-files-for-load-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate Multiple Files for Load Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-realistic-customer-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create Realistic Customer Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#skip-optional-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skip Optional Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backward-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backward Compatibility
       
     </span>
   </a>
@@ -2007,46 +2565,74 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#toolbar-reference" class="md-nav__link">
+  <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Toolbar Reference
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generated-xml-fails-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated XML fails validation
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#supported-standards" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#xpath-reference-shows-empty-values" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Supported Standards
+        XPath Reference shows empty values
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#tips" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#sequence-numbers-restart-unexpectedly" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tips
+        Sequence numbers restart unexpectedly
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#keyboard-shortcuts" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#auto-fill-shows-fewer-xpaths-than-expected" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Keyboard Shortcuts
+        Auto-fill shows fewer XPaths than expected
       
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#profile-not-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profile not loading
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2081,166 +2667,52 @@
   
 
 
-<h1 id="xsd-validation">XSD Validation<a class="headerlink" href="#xsd-validation" title="Permanent link">&para;</a></h1>
+<h1 id="profiled-xml-generation">Profiled XML Generation<a class="headerlink" href="#profiled-xml-generation" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> December 2025 | <strong>Version:</strong> 1.1.0</p>
+<p><strong>Added in:</strong> April 2026</p>
 </blockquote>
-<p>Validate your XML files against XSD schemas to check if documents follow the rules defined in the schema. Supports both single file and batch validation.</p>
+<p>Generate realistic, customized XML sample data from your XSD schemas. This feature lets you control exactly how each element and attribute gets its value, save your configurations as reusable profiles, and generate multiple files in one go.</p>
 <hr />
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>The XSD Validation tool provides two modes:</p>
-<table>
-<thead>
-<tr>
-<th>Mode</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Single File</strong></td>
-<td>Validate one XML file at a time</td>
-</tr>
-<tr>
-<td><strong>Batch Validation</strong></td>
-<td>Validate multiple XML files at once</td>
-</tr>
-</tbody>
-</table>
-<p><img alt="XSD Validation Overview" src="../img/xsd-validation.png" />
-<em>The XSD Validation interface</em></p>
-<h3 id="what-does-it-check">What Does It Check?<a class="headerlink" href="#what-does-it-check" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Check</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Structure</strong></td>
-<td>Are elements in the right order?</td>
-</tr>
-<tr>
-<td><strong>Required Fields</strong></td>
-<td>Are all mandatory elements present?</td>
-</tr>
-<tr>
-<td><strong>Data Types</strong></td>
-<td>Are values the correct type (text, number, date)?</td>
-</tr>
-<tr>
-<td><strong>Constraints</strong></td>
-<td>Do values meet length, range, or pattern requirements?</td>
-</tr>
-<tr>
-<td><strong>XSD 1.1 Assertions</strong></td>
-<td>Do values pass custom assertion rules?</td>
-</tr>
-</tbody>
-</table>
+<h2 id="why-use-profiled-generation">Why Use Profiled Generation?<a class="headerlink" href="#why-use-profiled-generation" title="Permanent link">&para;</a></h2>
+<p>The basic sample XML generator creates generic data based on element types. That is useful for quick tests, but real-world scenarios often need more:</p>
+<ul>
+<li><strong>Integration testing</strong> -- You need specific values in specific fields (country codes, IDs, dates).</li>
+<li><strong>Data migration</strong> -- You want sample files that look like actual production data.</li>
+<li><strong>System setup</strong> -- You need multiple files with sequential IDs and realistic names.</li>
+<li><strong>Schema validation</strong> -- You want to test edge cases by omitting optional fields or using boundary values.</li>
+</ul>
+<p>Profiled generation solves these by letting you define rules for individual XPath locations in your XML.</p>
 <hr />
-<h2 id="single-file-validation">Single File Validation<a class="headerlink" href="#single-file-validation" title="Permanent link">&para;</a></h2>
-<p>Use this mode to validate one XML file against a schema.</p>
-<h3 id="step-1-load-your-files">Step 1: Load Your Files<a class="headerlink" href="#step-1-load-your-files" title="Permanent link">&para;</a></h3>
+<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Open XML File</strong>: Click "Open XML" in the toolbar or use the Browse button</li>
-<li><strong>Schema Selection</strong>:</li>
-<li><strong>Autodetect</strong> (default): Automatically finds schema references in the XML</li>
-<li><strong>Manual</strong>: Uncheck Autodetect and select an XSD file manually</li>
+<li>Open your XSD file in the <strong>XSD</strong> tab.</li>
+<li>Go to the <strong>Generate Example Data</strong> sub-tab.</li>
+<li>You will see the generation workspace with a rules table on the left and an XML preview on the right.</li>
 </ol>
-<h3 id="step-2-validate">Step 2: Validate<a class="headerlink" href="#step-2-validate" title="Permanent link">&para;</a></h3>
-<p>Click <strong>Validate</strong> or press <strong>F5</strong> to start validation.</p>
-<h3 id="step-3-view-results">Step 3: View Results<a class="headerlink" href="#step-3-view-results" title="Permanent link">&para;</a></h3>
-<p>Results appear immediately:</p>
-<table>
-<thead>
-<tr>
-<th>Status</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Green checkmark</strong></td>
-<td>Your XML is valid</td>
-</tr>
-<tr>
-<td><strong>Red X</strong></td>
-<td>Errors were found</td>
-</tr>
-</tbody>
-</table>
-<p>If validation fails, you'll see a list of errors with:
-- <strong>Error message</strong> - What's wrong
-- <strong>Line number</strong> - Where the problem is
-- <strong>Severity</strong> - Error, Warning, or Info</p>
-<p>Click an error to see more details.</p>
+<p>If you have used this tab before: the basic controls (mandatory only, max occurrences) are still there. Without any rules, generation works exactly as it did before.</p>
 <hr />
-<h2 id="batch-validation">Batch Validation<a class="headerlink" href="#batch-validation" title="Permanent link">&para;</a></h2>
-<p>Validate multiple XML files at once. Useful for testing entire folders of XML documents.</p>
-<p><img alt="Batch Validation" src="img/xsd-validation-batch.png" />
-<em>Batch validation with multiple files</em></p>
-<!-- TODO: Screenshot needed - Show Batch Validation tab with files table, progress bar, and summary -->
-
-<h3 id="xsd-mode-selection">XSD Mode Selection<a class="headerlink" href="#xsd-mode-selection" title="Permanent link">&para;</a></h3>
-<p>Choose how schemas are determined for each file:</p>
-<table>
-<thead>
-<tr>
-<th>Mode</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Auto-detect XSD per file</strong></td>
-<td>Each XML file uses its own referenced schema</td>
-</tr>
-<tr>
-<td><strong>Use same XSD for all files</strong></td>
-<td>All files are validated against a single schema you select</td>
-</tr>
-</tbody>
-</table>
-<h3 id="adding-files">Adding Files<a class="headerlink" href="#adding-files" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Button</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Add Files</strong></td>
-<td>Select individual XML files</td>
-</tr>
-<tr>
-<td><strong>Add Folder</strong></td>
-<td>Add all XML files from a folder (recursive)</td>
-</tr>
-<tr>
-<td><strong>Remove Selected</strong></td>
-<td>Remove selected files from the list</td>
-</tr>
-<tr>
-<td><strong>Clear All</strong></td>
-<td>Remove all files</td>
-</tr>
-</tbody>
-</table>
-<h3 id="running-batch-validation">Running Batch Validation<a class="headerlink" href="#running-batch-validation" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Add your XML files</li>
-<li>Choose the XSD mode</li>
-<li>Click <strong>Run Validation</strong></li>
-<li>Watch progress in the progress bar</li>
-</ol>
-<p>You can <strong>Cancel</strong> a running batch validation at any time.</p>
-<h3 id="results-table">Results Table<a class="headerlink" href="#results-table" title="Permanent link">&para;</a></h3>
-<p>The results table shows:</p>
+<h2 id="the-generation-workspace">The Generation Workspace<a class="headerlink" href="#the-generation-workspace" title="Permanent link">&para;</a></h2>
+<p>The workspace is split into several areas:</p>
+<h3 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h3>
+<p>At the top, you will find:</p>
+<ul>
+<li><strong>Generate</strong> -- Create the XML output.</li>
+<li><strong>Validate</strong> -- Check the generated XML against the schema.</li>
+<li><strong>Profile dropdown</strong> -- Select a saved profile.</li>
+<li><strong>Save / Save As / Delete</strong> -- Manage your profiles.</li>
+</ul>
+<h3 id="configuration-bar">Configuration Bar<a class="headerlink" href="#configuration-bar" title="Permanent link">&para;</a></h3>
+<p>Below the toolbar:</p>
+<ul>
+<li><strong>XSD file path</strong> -- Shows which schema is loaded.</li>
+<li><strong>Mandatory only</strong> -- When checked, only required elements are generated.</li>
+<li><strong>Max occurrences</strong> -- Limits how many times repeating elements appear (default: 3).</li>
+<li><strong>Batch count</strong> -- How many files to generate (default: 1).</li>
+<li><strong>File name pattern</strong> -- Naming pattern for batch files (for example, <code>order_{seq:3}.xml</code>).</li>
+<li><strong>Output directory</strong> -- Where batch files are saved (choose with the Browse button).</li>
+</ul>
+<h3 id="rules-table">Rules Table<a class="headerlink" href="#rules-table" title="Permanent link">&para;</a></h3>
+<p>The left side of the workspace shows a table of generation rules. Each row defines how a specific XPath location in the XML should be populated. The columns are:</p>
 <table>
 <thead>
 <tr>
@@ -2250,188 +2722,386 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>File Name</strong></td>
-<td>Name of the XML file</td>
+<td><strong>XPath</strong></td>
+<td>The path to the element or attribute</td>
 </tr>
 <tr>
-<td><strong>Path</strong></td>
-<td>Full path to the file</td>
+<td><strong>Strategy</strong></td>
+<td>How the value should be generated</td>
 </tr>
 <tr>
-<td><strong>Status</strong></td>
-<td>Valid, Invalid, or Error</td>
-</tr>
-<tr>
-<td><strong>Errors</strong></td>
-<td>Number of validation errors</td>
-</tr>
-<tr>
-<td><strong>XSD Used</strong></td>
-<td>Which schema was used</td>
-</tr>
-<tr>
-<td><strong>Duration</strong></td>
-<td>How long validation took</td>
+<td><strong>Enabled</strong></td>
+<td>Toggle the rule on or off without deleting it</td>
 </tr>
 </tbody>
 </table>
-<h3 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h3>
-<p>Below the table, you'll see a summary:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Total: 25 | Passed: 20 | Failed: 5
-</code></pre></div>
-<h3 id="filter-results">Filter Results<a class="headerlink" href="#filter-results" title="Permanent link">&para;</a></h3>
-<p>Use the filter dropdown to show:
-- <strong>All</strong> - All files
-- <strong>Passed</strong> - Only valid files
-- <strong>Failed</strong> - Only files with errors</p>
-<h3 id="error-details">Error Details<a class="headerlink" href="#error-details" title="Permanent link">&para;</a></h3>
-<p>Click on a file to see its validation errors in the <strong>Error Details</strong> panel below the table.</p>
+<p>When you select a rule in the table, a configuration panel appears below it. This panel shows settings specific to the chosen strategy.</p>
+<h3 id="xml-preview">XML Preview<a class="headerlink" href="#xml-preview" title="Permanent link">&para;</a></h3>
+<p>The right side shows the generated XML with syntax highlighting. For batch generation, it shows the first generated file.</p>
 <hr />
-<h2 id="exporting-results">Exporting Results<a class="headerlink" href="#exporting-results" title="Permanent link">&para;</a></h2>
-<h3 id="single-file-export">Single File Export<a class="headerlink" href="#single-file-export" title="Permanent link">&para;</a></h3>
-<p>Click <strong>Export</strong> in the toolbar to save errors to Excel.</p>
-<h3 id="batch-export">Batch Export<a class="headerlink" href="#batch-export" title="Permanent link">&para;</a></h3>
+<h2 id="generation-strategies">Generation Strategies<a class="headerlink" href="#generation-strategies" title="Permanent link">&para;</a></h2>
+<p>Each rule uses a strategy to determine the value. Here are all available strategies:</p>
+<h3 id="auto-default">Auto (Default)<a class="headerlink" href="#auto-default" title="Permanent link">&para;</a></h3>
+<p>Uses the standard type-based generation. This is the same behavior as the basic generator. Numbers get numeric values, dates get date values, strings get string values, and so on. You do not need to configure anything.</p>
+<p><strong>When to use:</strong> For elements where you do not care about the specific value.</p>
+<h3 id="fixed-value">Fixed Value<a class="headerlink" href="#fixed-value" title="Permanent link">&para;</a></h3>
+<p>Always uses a specific value you provide.</p>
 <table>
 <thead>
 <tr>
-<th>Button</th>
+<th>Setting</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Export All</strong></td>
-<td>Export all validation results to Excel</td>
-</tr>
-<tr>
-<td><strong>Export Selected</strong></td>
-<td>Export only the selected file's errors</td>
+<td><strong>Value</strong></td>
+<td>The exact value to use</td>
 </tr>
 </tbody>
 </table>
-<p>The Excel export includes:
-- File name and path
-- Error messages with line numbers
-- Schema used
-- Validation timestamp</p>
-<hr />
-<h2 id="favorites-integration">Favorites Integration<a class="headerlink" href="#favorites-integration" title="Permanent link">&para;</a></h2>
-<p>Save frequently used XML and XSD files to favorites for quick access:</p>
-<ul>
-<li><strong>Add Favorite</strong> (Ctrl+D) - Add current file to favorites</li>
-<li><strong>Favorites</strong> (Ctrl+Shift+D) - Show/hide favorites panel</li>
-</ul>
-<hr />
-<h2 id="toolbar-reference">Toolbar Reference<a class="headerlink" href="#toolbar-reference" title="Permanent link">&para;</a></h2>
+<p><strong>Example:</strong> Set a country code to always be <code>AT</code>, or a currency to <code>EUR</code>.</p>
+<h3 id="omit">Omit<a class="headerlink" href="#omit" title="Permanent link">&para;</a></h3>
+<p>Skips the element or attribute entirely, even if the schema marks it as required.</p>
+<p><strong>When to use:</strong> Testing how your system handles missing data, or generating minimal files.</p>
+<h3 id="empty">Empty<a class="headerlink" href="#empty" title="Permanent link">&para;</a></h3>
+<p>Creates the element in the XML but leaves its content empty.</p>
+<p><strong>When to use:</strong> Testing required-but-empty field handling.</p>
+<h3 id="xsd-example">XSD Example<a class="headerlink" href="#xsd-example" title="Permanent link">&para;</a></h3>
+<p>Uses example values found in the XSD annotations (from <code>xs:documentation</code> or <code>xs:appinfo</code>). If no example is found, falls back to auto-generation.</p>
+<p><strong>When to use:</strong> When your schema already contains good example values.</p>
+<h3 id="enum-cycle">Enum Cycle<a class="headerlink" href="#enum-cycle" title="Permanent link">&para;</a></h3>
+<p>For elements with enumeration restrictions, cycles through the allowed values in order. If the element appears three times and the enumeration has values <code>A</code>, <code>B</code>, <code>C</code>, the generated values will be <code>A</code>, <code>B</code>, <code>C</code>. The cycle continues across batch files.</p>
+<p><strong>When to use:</strong> Ensuring all enumeration values appear in your test data.</p>
+<h3 id="sequence">Sequence<a class="headerlink" href="#sequence" title="Permanent link">&para;</a></h3>
+<p>Generates auto-incrementing values using a pattern.</p>
 <table>
 <thead>
 <tr>
-<th>Button</th>
-<th>Shortcut</th>
+<th>Setting</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Open XML</strong></td>
-<td>-</td>
-<td>Load XML file to validate</td>
+<td><strong>Pattern</strong></td>
+<td>The format string, for example <code>ORD-{seq:6}</code></td>
 </tr>
 <tr>
-<td><strong>Open XSD</strong></td>
-<td>-</td>
-<td>Load XSD schema manually</td>
+<td><strong>Start</strong></td>
+<td>The first number in the sequence (default: 1)</td>
 </tr>
 <tr>
-<td><strong>Validate</strong></td>
-<td>F5</td>
-<td>Start validation</td>
-</tr>
-<tr>
-<td><strong>Clear</strong></td>
-<td>-</td>
-<td>Clear results</td>
-</tr>
-<tr>
-<td><strong>Export</strong></td>
-<td>-</td>
-<td>Export to Excel</td>
-</tr>
-<tr>
-<td><strong>Add Favorite</strong></td>
-<td>Ctrl+D</td>
-<td>Add to favorites</td>
-</tr>
-<tr>
-<td><strong>Favorites</strong></td>
-<td>Ctrl+Shift+D</td>
-<td>Toggle favorites panel</td>
-</tr>
-<tr>
-<td><strong>Help</strong></td>
-<td>F1</td>
-<td>Show help</td>
+<td><strong>Step</strong></td>
+<td>How much to increment each time (default: 1)</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="supported-standards">Supported Standards<a class="headerlink" href="#supported-standards" title="Permanent link">&para;</a></h2>
+<p>The <code>{seq:N}</code> placeholder is replaced with a zero-padded number, where <code>N</code> is the number of digits. For example, <code>ORD-{seq:4}</code> with start 1 produces <code>ORD-0001</code>, <code>ORD-0002</code>, <code>ORD-0003</code>, and so on.</p>
+<p>Sequence counters persist across batch files. If you generate 5 files with 3 orders each, the IDs continue from 1 to 15.</p>
+<p><strong>When to use:</strong> Generating unique IDs, order numbers, or any incrementing values.</p>
+<h3 id="xpath-reference">XPath Reference<a class="headerlink" href="#xpath-reference" title="Permanent link">&para;</a></h3>
+<p>Copies the value from another element that was already generated in the same file.</p>
 <table>
 <thead>
 <tr>
-<th>Standard</th>
-<th>Support</th>
+<th>Setting</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>XSD 1.0</td>
-<td>Full support</td>
-</tr>
-<tr>
-<td>XSD 1.1 (with assertions)</td>
-<td>Full support</td>
+<td><strong>Reference XPath</strong></td>
+<td>The XPath of the element to copy from</td>
 </tr>
 </tbody>
 </table>
-<p>The validation engine uses Xerces 2.12.2 with full XSD 1.1 support.</p>
+<p><strong>Example:</strong> You want a confirmation message to include the order ID. Set the reference to <code>/order/@id</code>, and the value from that attribute will be reused.</p>
+<p><strong>When to use:</strong> When one field should match or reference another field in the same document.</p>
+<h3 id="random-from-list">Random from List<a class="headerlink" href="#random-from-list" title="Permanent link">&para;</a></h3>
+<p>Picks a random value from a list you provide.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Values</strong></td>
+<td>Comma-separated list of possible values</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong> Enter <code>Mueller,Schmidt,Huber,Wagner</code> to get random German last names.</p>
+<p><strong>When to use:</strong> Creating realistic-looking data with variety across multiple files or repeating elements.</p>
+<h3 id="template">Template<a class="headerlink" href="#template" title="Permanent link">&para;</a></h3>
+<p>Combines multiple placeholders into a single value.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pattern</strong></td>
+<td>A string with placeholders</td>
+</tr>
+</tbody>
+</table>
+<p>Available placeholders:</p>
+<table>
+<thead>
+<tr>
+<th>Placeholder</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{seq:N}</code></td>
+<td>Zero-padded sequence number</td>
+<td><code>{seq:4}</code> becomes <code>0001</code></td>
+</tr>
+<tr>
+<td><code>{date:format}</code></td>
+<td>Current date in the given format</td>
+<td><code>{date:yyyy-MM-dd}</code> becomes <code>2026-04-16</code></td>
+</tr>
+<tr>
+<td><code>{random:N}</code></td>
+<td>Random N-digit number</td>
+<td><code>{random:4}</code> becomes <code>7283</code></td>
+</tr>
+<tr>
+<td><code>{ref:xpath}</code></td>
+<td>Value from another XPath</td>
+<td><code>{ref:/order/@id}</code> copies the order ID</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong> The pattern <code>INV-{seq:4}-{date:yyyy}</code> produces values like <code>INV-0001-2026</code>, <code>INV-0002-2026</code>.</p>
+<p><strong>When to use:</strong> Creating composite values that include sequences, dates, or references.</p>
+<h3 id="null">Null<a class="headerlink" href="#null" title="Permanent link">&para;</a></h3>
+<p>Sets the element to <code>xsi:nil="true"</code>. This only works for elements that are marked as nillable in the schema.</p>
+<p><strong>When to use:</strong> Testing how your system handles explicitly null values.</p>
 <hr />
-<h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
+<h2 id="working-with-rules">Working with Rules<a class="headerlink" href="#working-with-rules" title="Permanent link">&para;</a></h2>
+<h3 id="adding-rules-manually">Adding Rules Manually<a class="headerlink" href="#adding-rules-manually" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click the <strong>Add</strong> button below the rules table.</li>
+<li>Enter the XPath for the element or attribute.</li>
+<li>Choose a strategy from the dropdown.</li>
+<li>Configure the strategy settings in the panel below the table.</li>
+</ol>
+<h3 id="auto-fill-from-xsd">Auto-Fill from XSD<a class="headerlink" href="#auto-fill-from-xsd" title="Permanent link">&para;</a></h3>
+<p>Instead of typing XPaths manually, click the <strong>Auto-fill from XSD</strong> button. This scans the loaded schema and populates the rules table with all available XPaths, each set to the <strong>Auto</strong> strategy by default. You can then change individual strategies as needed.</p>
+<p>This is the recommended way to start: auto-fill first, then customize.</p>
+<h3 id="enabling-and-disabling-rules">Enabling and Disabling Rules<a class="headerlink" href="#enabling-and-disabling-rules" title="Permanent link">&para;</a></h3>
+<p>Each rule has an enabled/disabled toggle. Disabling a rule keeps it in the table (with all its settings) but ignores it during generation. This is useful for temporarily turning off rules without losing your configuration.</p>
+<h3 id="rule-priority">Rule Priority<a class="headerlink" href="#rule-priority" title="Permanent link">&para;</a></h3>
+<p>When multiple rules could match the same element (for example, an exact path and a descendant wildcard), the rule with the highest priority number wins. If priorities are equal, more specific paths take precedence:</p>
+<ol>
+<li>Exact paths (most specific): <code>/order/customer/name</code></li>
+<li>Wildcard paths: <code>/order/item[*]/sku</code></li>
+<li>Descendant paths (least specific): <code>//sku</code></li>
+</ol>
+<h3 id="xpath-patterns">XPath Patterns<a class="headerlink" href="#xpath-patterns" title="Permanent link">&para;</a></h3>
+<p>Rules use simplified XPath expressions:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Matches</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/root/child/element</code></td>
+<td>Exact path</td>
+<td><code>/order/customer/name</code></td>
+</tr>
+<tr>
+<td><code>/root/child[*]/element</code></td>
+<td>Any index position</td>
+<td><code>/order/item[*]/sku</code></td>
+</tr>
+<tr>
+<td><code>//element</code></td>
+<td>Any element at any depth</td>
+<td><code>//sku</code></td>
+</tr>
+<tr>
+<td><code>/root/@attribute</code></td>
+<td>An attribute</td>
+<td><code>/order/@id</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="profiles">Profiles<a class="headerlink" href="#profiles" title="Permanent link">&para;</a></h2>
+<p>Profiles let you save your generation configuration and reuse it later. This is especially useful when you need to generate test data repeatedly during development.</p>
+<h3 id="saving-a-profile">Saving a Profile<a class="headerlink" href="#saving-a-profile" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Configure your rules and settings.</li>
+<li>Click <strong>Save As</strong> in the toolbar.</li>
+<li>Enter a name for the profile.</li>
+<li>The profile is saved and appears in the profile dropdown.</li>
+</ol>
+<p>To update an existing profile, make your changes and click <strong>Save</strong>.</p>
+<h3 id="loading-a-profile">Loading a Profile<a class="headerlink" href="#loading-a-profile" title="Permanent link">&para;</a></h3>
+<p>Select a profile from the dropdown in the toolbar. All rules and settings are restored.</p>
+<h3 id="deleting-a-profile">Deleting a Profile<a class="headerlink" href="#deleting-a-profile" title="Permanent link">&para;</a></h3>
+<p>Select the profile in the dropdown and click <strong>Delete</strong>.</p>
+<h3 id="where-profiles-are-stored">Where Profiles Are Stored<a class="headerlink" href="#where-profiles-are-stored" title="Permanent link">&para;</a></h3>
+<p>Profiles are saved as JSON files in your user directory:</p>
 <ul>
-<li>Use <strong>Autodetect</strong> when your XML already references its schema via <code>xsi:schemaLocation</code></li>
-<li>Use <strong>Batch Validation</strong> for testing multiple files efficiently</li>
-<li><strong>Export to Excel</strong> when working with large documents or sharing results</li>
-<li>The <strong>Filter</strong> dropdown helps focus on files that need attention</li>
-<li>Double-click a file in the batch table to open it in the XML Editor</li>
+<li><strong>Windows:</strong> <code>C:\Users\&lt;your-name&gt;\.freeXmlToolkit\generation-profiles\</code></li>
+<li><strong>macOS:</strong> <code>/Users/&lt;your-name&gt;/.freeXmlToolkit/generation-profiles/</code></li>
+<li><strong>Linux:</strong> <code>/home/&lt;your-name&gt;/.freeXmlToolkit/generation-profiles/</code></li>
 </ul>
+<h3 id="sharing-profiles">Sharing Profiles<a class="headerlink" href="#sharing-profiles" title="Permanent link">&para;</a></h3>
+<p>You can share profiles with other users:</p>
+<ul>
+<li><strong>Export:</strong> Use the export function to save a profile to any location on your computer.</li>
+<li><strong>Import:</strong> Use the import function to load a profile from a file.</li>
+</ul>
+<p>Simply copy the JSON profile file and share it. The recipient can import it into their own FreeXmlToolkit installation.</p>
 <hr />
-<h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
+<h2 id="batch-generation">Batch Generation<a class="headerlink" href="#batch-generation" title="Permanent link">&para;</a></h2>
+<p>Generate multiple XML files at once, each with different values.</p>
+<h3 id="how-to-use-batch-generation">How to Use Batch Generation<a class="headerlink" href="#how-to-use-batch-generation" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Set the <strong>Batch count</strong> to the number of files you want (for example, 5).</li>
+<li>Set a <strong>File name pattern</strong> (for example, <code>order_{seq:3}.xml</code>).</li>
+<li>Choose an <strong>Output directory</strong> using the Browse button.</li>
+<li>Click <strong>Generate</strong>.</li>
+</ol>
+<h3 id="file-name-patterns">File Name Patterns<a class="headerlink" href="#file-name-patterns" title="Permanent link">&para;</a></h3>
+<p>The file name pattern supports the <code>{seq:N}</code> placeholder, where <code>N</code> is the number of digits for zero-padding:</p>
 <table>
 <thead>
 <tr>
-<th>Shortcut</th>
-<th>Action</th>
+<th>Pattern</th>
+<th>Files Generated</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>F5</td>
-<td>Start validation</td>
+<td><code>order_{seq:3}.xml</code></td>
+<td><code>order_001.xml</code>, <code>order_002.xml</code>, <code>order_003.xml</code></td>
 </tr>
 <tr>
-<td>Ctrl+D</td>
-<td>Add to favorites</td>
+<td><code>test_{seq:2}.xml</code></td>
+<td><code>test_01.xml</code>, <code>test_02.xml</code></td>
 </tr>
 <tr>
-<td>Ctrl+Shift+D</td>
-<td>Toggle favorites</td>
-</tr>
-<tr>
-<td>F1</td>
-<td>Help</td>
+<td><code>data_{seq:4}.xml</code></td>
+<td><code>data_0001.xml</code>, <code>data_0002.xml</code></td>
 </tr>
 </tbody>
 </table>
+<h3 id="how-strategies-behave-across-files">How Strategies Behave Across Files<a class="headerlink" href="#how-strategies-behave-across-files" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Across Files</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sequence</strong></td>
+<td>Counters keep incrementing. File 1 might have IDs 1-3, file 2 has 4-6.</td>
+</tr>
+<tr>
+<td><strong>Enum Cycle</strong></td>
+<td>Cycling continues. If file 1 ends on value B, file 2 starts with C.</td>
+</tr>
+<tr>
+<td><strong>Random from List</strong></td>
+<td>Different random picks per file.</td>
+</tr>
+<tr>
+<td><strong>Auto</strong></td>
+<td>Different generated values per file.</td>
+</tr>
+<tr>
+<td><strong>Fixed</strong></td>
+<td>Same value in every file.</td>
+</tr>
+<tr>
+<td><strong>XPath Reference</strong></td>
+<td>References are resolved within each file independently.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="common-tasks">Common Tasks<a class="headerlink" href="#common-tasks" title="Permanent link">&para;</a></h2>
+<h3 id="generate-test-data-with-sequential-ids">Generate Test Data with Sequential IDs<a class="headerlink" href="#generate-test-data-with-sequential-ids" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Load your XSD file.</li>
+<li>Go to <strong>Generate Example Data</strong>.</li>
+<li>Click <strong>Auto-fill from XSD</strong>.</li>
+<li>Find the ID element in the rules table (for example, <code>/order/@id</code>).</li>
+<li>Change its strategy to <strong>Sequence</strong>.</li>
+<li>Set the pattern to <code>ORD-{seq:6}</code>, start to <code>1</code>, step to <code>1</code>.</li>
+<li>Click <strong>Generate</strong>.</li>
+</ol>
+<h3 id="generate-multiple-files-for-load-testing">Generate Multiple Files for Load Testing<a class="headerlink" href="#generate-multiple-files-for-load-testing" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Follow the steps above to configure your rules.</li>
+<li>Set <strong>Batch count</strong> to the number of files you need (for example, 100).</li>
+<li>Set the <strong>File name pattern</strong> to <code>test_{seq:4}.xml</code>.</li>
+<li>Choose an output directory.</li>
+<li>Click <strong>Generate</strong>.</li>
+</ol>
+<h3 id="create-realistic-customer-data">Create Realistic Customer Data<a class="headerlink" href="#create-realistic-customer-data" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Load your XSD file and click <strong>Auto-fill from XSD</strong>.</li>
+<li>Set the name field to <strong>Random from List</strong> with values like <code>Smith,Johnson,Williams,Brown,Jones</code>.</li>
+<li>Set the country field to <strong>Fixed</strong> with value <code>US</code>.</li>
+<li>Set the email field to <strong>Template</strong> with pattern <code>user{seq:3}@example.com</code>.</li>
+<li>Click <strong>Generate</strong>.</li>
+</ol>
+<h3 id="skip-optional-fields">Skip Optional Fields<a class="headerlink" href="#skip-optional-fields" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Load your XSD and click <strong>Auto-fill from XSD</strong>.</li>
+<li>Check the <strong>Mandatory only</strong> checkbox, or</li>
+<li>Find specific optional elements in the rules table and set their strategy to <strong>Omit</strong>.</li>
+</ol>
+<hr />
+<h2 id="backward-compatibility">Backward Compatibility<a class="headerlink" href="#backward-compatibility" title="Permanent link">&para;</a></h2>
+<p>If you do not configure any rules, the generator behaves exactly as it did before this feature was added. The basic controls (mandatory only, max occurrences) work the same way. You only need to use profiles and rules when you want more control.</p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="generated-xml-fails-validation">Generated XML fails validation<a class="headerlink" href="#generated-xml-fails-validation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Check that <strong>Omit</strong> is not used on mandatory elements that the schema requires.</li>
+<li>Verify that <strong>Fixed</strong> values match the expected data type (for example, do not put text in a numeric field).</li>
+<li>Make sure <strong>Null</strong> is only used on elements marked as nillable in the schema.</li>
+</ul>
+<h3 id="xpath-reference-shows-empty-values">XPath Reference shows empty values<a class="headerlink" href="#xpath-reference-shows-empty-values" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The referenced XPath must appear earlier in the XML than the element using it. The generator processes elements in document order, so a reference can only point to something already generated.</li>
+</ul>
+<h3 id="sequence-numbers-restart-unexpectedly">Sequence numbers restart unexpectedly<a class="headerlink" href="#sequence-numbers-restart-unexpectedly" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Sequence counters persist across batch files but reset when you click Generate again. If you need to continue from a previous run, adjust the <strong>Start</strong> value.</li>
+</ul>
+<h3 id="auto-fill-shows-fewer-xpaths-than-expected">Auto-fill shows fewer XPaths than expected<a class="headerlink" href="#auto-fill-shows-fewer-xpaths-than-expected" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Auto-fill extracts XPaths from the schema structure. Elements inside deeply nested or imported schemas may not appear. You can always add rules manually for any XPath.</li>
+</ul>
+<h3 id="profile-not-loading">Profile not loading<a class="headerlink" href="#profile-not-loading" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Make sure the profile was saved for the same schema (or a compatible one). Profiles are associated with the schema file they were created for.</li>
+</ul>
 <hr />
 <h2 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">&para;</a></h2>
 <table>
@@ -2444,13 +3114,13 @@
 </thead>
 <tbody>
 <tr>
-<td><a href="../profiled-xml-generation/">Profiled XML Generation</a></td>
+<td><a href="../xsd-tools/">XSD Tools</a></td>
 <td><a href="../">Home</a></td>
-<td><a href="../xslt-viewer/">XSLT Viewer</a></td>
+<td><a href="../xsd-validation/">XSD Validation</a></td>
 </tr>
 </tbody>
 </table>
-<p><strong>All Pages:</strong> <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="../profiled-xml-generation/">Profiled XML Generation</a> | <a href="./">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../licenses/">Licenses</a></p>
+<p><strong>All Pages:</strong> <a href="../xml-editor/">XML Editor</a> | <a href="../xml-editor-features/">XML Features</a> | <a href="../xsd-tools/">XSD Tools</a> | <a href="./">Profiled XML Generation</a> | <a href="../xsd-validation/">XSD Validation</a> | <a href="../xslt-viewer/">XSLT Viewer</a> | <a href="../xslt-developer/">XSLT Developer</a> | <a href="../pdf-generator/">FOP/PDF</a> | <a href="../digital-signatures/">Signatures</a> | <a href="../context-sensitive-intellisense/">IntelliSense</a> | <a href="../schematron-support/">Schematron</a> | <a href="../favorites-system/">Favorites</a> | <a href="../template-management/">Templates</a> | <a href="../technology-stack/">Tech Stack</a> | <a href="../licenses/">Licenses</a></p>
 
 
 
@@ -2488,7 +3158,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../profiled-xml-generation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Profiled XML Generation">
+          <a href="../xsd-tools/" class="md-footer__link md-footer__link--prev" aria-label="Previous: XSD Editor &amp; Tools">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2498,20 +3168,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Profiled XML Generation
+                XSD Editor & Tools
               </div>
             </div>
           </a>
         
         
           
-          <a href="../schema-support/" class="md-footer__link md-footer__link--next" aria-label="Next: Schema Support">
+          <a href="../xsd-validation/" class="md-footer__link md-footer__link--next" aria-label="Next: XSD Validation">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Schema Support
+                XSD Validation
               </div>
             </div>
             <div class="md-footer__button md-icon">
