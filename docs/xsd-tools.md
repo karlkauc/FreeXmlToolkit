@@ -1,6 +1,6 @@
 # XSD Tools
 
-> **Last Updated:** March 2026 | **Version:** 1.6.3
+> **Last Updated:** April 2026 | **Version:** 1.7.0
 
 This part of the application provides tools for working with XML Schemas (XSD). These tools help you understand,
 document, and use XSD files effectively.
@@ -20,7 +20,7 @@ The XSD Tools section contains several tabs, each with a specific purpose:
 | **Schema Analysis**       | Statistics, constraints, validation, and quality checks |
 | **Documentation**         | Generate HTML, Word, or PDF documentation               |
 | **Preview**               | Preview generated documentation                         |
-| **Generate Example Data** | Create sample XML from schema                           |
+| **Generate Example Data** | Create sample XML from schema with customizable rules and profiles |
 | **Flatten Schema**        | Merge includes into one file                            |
 
 ---
@@ -310,12 +310,14 @@ You can add structured technical information directly in your XSD files:
 
 ## 7. Sample XML Generator
 
-Create sample XML files based on your XSD schema. This is useful for testing or as a template.
+Create sample XML files based on your XSD schema. This is useful for testing, data migration, or as a starting template.
 
 ![Sample XML Generator](img/xsd-sample-generator.png)
-*Sample XML generator panel*
+*Sample XML generator with rules table and XML preview*
 
-### How to Use
+### Quick Start (Basic Generation)
+
+For simple use cases, you can generate sample XML in seconds:
 
 1. Load your XSD file
 2. Go to the **Generate Example Data** tab
@@ -326,12 +328,20 @@ Create sample XML files based on your XSD schema. This is useful for testing or 
 5. **Validate** the generated XML against the schema
 6. Save or copy the generated XML
 
-### Options
+### Profiled Generation (Advanced)
 
-| Option                             | Description                           |
-|------------------------------------|---------------------------------------|
-| **Create mandatory elements only** | Only generate required elements       |
-| **Max occurrences**                | Limit repeating elements (default: 2) |
+For more control, you can define rules that specify exactly how each element or attribute gets its value. The Generate Example Data tab now includes:
+
+| Feature | Description |
+|---------|-------------|
+| **XPath-Based Rules** | Set a generation strategy for each element or attribute by its XPath |
+| **11 Strategies** | Auto, Fixed Value, Omit, Empty, XSD Example, Enum Cycle, Sequence, XPath Reference, Random from List, Template, and Null |
+| **Auto-Fill XPaths** | Automatically extract all XPaths from your schema to populate the rules table |
+| **Saveable Profiles** | Save your generation configuration and reload it later |
+| **Profile Sharing** | Export and import profiles to share with colleagues |
+| **Batch Generation** | Generate multiple files at once with configurable file naming (for example, `order_001.xml`, `order_002.xml`) |
+
+For a complete guide with step-by-step instructions and examples, see **[Profiled XML Generation](profiled-xml-generation.md)**.
 
 ### Validation
 
@@ -405,7 +415,6 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 
 | Previous                                      | Home             | Next                                |
 |-----------------------------------------------|------------------|-------------------------------------|
-| [XML Editor Features](xml-editor-features.md) | [Home](index.md) | [XSD Validation](xsd-validation.md) |
+| [XML Editor Features](xml-editor-features.md) | [Home](index.md) | [Profiled XML Generation](profiled-xml-generation.md) |
 
-**All Pages:
-** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
+**All Pages:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

@@ -1,6 +1,6 @@
 # FreeXmlToolkit Documentation
 
-> **Last Updated:** March 2026 | **Version:** 1.6.3
+> **Last Updated:** April 2026 | **Version:** 1.7.0
 
 ## Welcome
 
@@ -90,10 +90,11 @@ Work with XML Schema files:
 |---------|--------------|
 | **Visual Schema Viewer** | See your schema as an interactive diagram |
 | **Documentation Generator** | Create HTML documentation from schemas |
-| **Sample XML Generator** | Generate valid sample XML files |
+| **Sample XML Generator** | Generate valid sample XML files with customizable rules |
+| **Profiled Generation** | Control values per element, save profiles, batch generate |
 | **Schema Flattening** | Combine multiple schema files into one |
 
-Learn more: [XSD Tools Guide](xsd-tools.md) | [XSD Validation](xsd-validation.md)
+Learn more: [XSD Tools Guide](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md)
 
 ### XSLT Transformation
 
@@ -226,6 +227,7 @@ If the interface appears blurry or animations are slow, your system may be using
 | [XML Editor Features](xml-editor-features.md) | Detailed editor features                 |
 | [JSON Editor](json-editor.md)                 | How to edit JSON files                   |
 | [XSD Tools](xsd-tools.md)                     | Working with XML schemas                 |
+| [Profiled XML Generation](profiled-xml-generation.md) | Advanced sample XML generation with profiles |
 | [XSD Validation](xsd-validation.md)           | Validating XML against schemas           |
 | [XSLT Viewer](xslt-viewer.md)                 | Quick XSLT transformations               |
 | [XSLT Developer](xslt-developer.md)           | Full XSLT/XQuery development environment |
@@ -262,7 +264,7 @@ If the interface appears blurry or animations are slow, your system may be using
 
 ## Quick Links
 
-**Editors:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [PDF/FOP](pdf-generator.md) | [Signatures](digital-signatures.md)
+**Editors:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [PDF/FOP](pdf-generator.md) | [Signatures](digital-signatures.md)
 
 **Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
 

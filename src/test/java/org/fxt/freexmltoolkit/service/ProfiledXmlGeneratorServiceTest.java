@@ -1,0 +1,273 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2025.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+package org.fxt.freexmltoolkit.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
+import org.fxt.freexmltoolkit.domain.GenerationProfile;
+import org.fxt.freexmltoolkit.domain.GenerationStrategy;
+import org.fxt.freexmltoolkit.domain.XPathInfo;
+import org.fxt.freexmltoolkit.domain.XPathRule;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+@DisplayName("ProfiledXmlGeneratorService")
+class ProfiledXmlGeneratorServiceTest {
+
+    private ProfiledXmlGeneratorService service;
+    private XsdDocumentationData data;
+    private String xsdFilePath;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        service = new ProfiledXmlGeneratorService();
+
+        // Use the test XSD
+        File xsdFile = new File("src/test/resources/demo-xsd/test-profiled-generation.xsd");
+        assertTrue(xsdFile.exists(), "Test XSD file must exist");
+        xsdFilePath = xsdFile.getAbsolutePath();
+
+        XsdDocumentationService docService = new XsdDocumentationService();
+        docService.setXsdFilePath(xsdFilePath);
+        docService.processXsd(false);
+        data = docService.xsdDocumentationData;
+    }
+
+    @Nested
+    @DisplayName("Generate with empty profile")
+    class EmptyProfileTests {
+
+        @Test
+        @DisplayName("Empty profile generates valid XML")
+        void emptyProfileGeneratesXml() {
+            var profile = new GenerationProfile("Empty");
+            String xml = service.generate(profile, data, xsdFilePath);
+
+            assertNotNull(xml);
+            assertTrue(xml.startsWith("<?xml version=\"1.0\""));
+            assertTrue(xml.contains("<order"));
+            assertTrue(xml.contains("</order>"));
+        }
+
+        @Test
+        @DisplayName("Empty profile produces similar output to original generation")
+        void emptyProfileSimilarToOriginal() {
+            var profile = new GenerationProfile("Default");
+            String xml = service.generate(profile, data, xsdFilePath);
+
+            // Should contain all mandatory elements
+            assertTrue(xml.contains("<customer>") || xml.contains("<customer\n"));
+            assertTrue(xml.contains("<name>") || xml.contains("<name/>"));
+            assertTrue(xml.contains("<item") || xml.contains("<item>"));
+        }
+    }
+
+    @Nested
+    @DisplayName("Generate with rules")
+    class RuleTests {
+
+        @Test
+        @DisplayName("FIXED strategy sets literal value")
+        void fixedStrategy() {
+            var profile = new GenerationProfile("Fixed Test");
+            profile.addRule(new XPathRule("/order/customer/country", GenerationStrategy.FIXED,
+                    Map.of("value", "AT")));
+
+            String xml = service.generate(profile, data, xsdFilePath);
+            assertTrue(xml.contains("<country>AT</country>"), "Should contain fixed value AT");
+        }
+
+        @Test
+        @DisplayName("OMIT strategy removes element")
+        void omitStrategy() {
+            var profile = new GenerationProfile("Omit Test");
+            profile.addRule(new XPathRule("/order/notes", GenerationStrategy.OMIT));
+
+            String xml = service.generate(profile, data, xsdFilePath);
+            assertFalse(xml.contains("<notes"), "Should not contain notes element");
+        }
+
+        @Test
+        @DisplayName("EMPTY strategy creates empty element")
+        void emptyStrategy() {
+            var profile = new GenerationProfile("Empty Test");
+            profile.addRule(new XPathRule("/order/customer/name", GenerationStrategy.EMPTY));
+
+            String xml = service.generate(profile, data, xsdFilePath);
+            assertTrue(xml.contains("<name></name>") || xml.contains("<name/>"),
+                    "Should contain empty name element");
+        }
+
+        @Test
+        @DisplayName("SEQUENCE strategy generates incrementing values")
+        void sequenceStrategy() {
+            var profile = new GenerationProfile("Seq Test");
+            profile.setMaxOccurrences(2);
+            profile.addRule(new XPathRule("/order/item/@itemId", GenerationStrategy.SEQUENCE,
+                    Map.of("pattern", "ITEM-{seq:3}", "start", "1")));
+
+            String xml = service.generate(profile, data, xsdFilePath);
+            assertTrue(xml.contains("ITEM-001"), "Should contain ITEM-001");
+            assertTrue(xml.contains("ITEM-002"), "Should contain ITEM-002 for second item");
+        }
+    }
+
+    @Nested
+    @DisplayName("XPath matching")
+    class XPathMatchingTests {
+
+        @Test
+        @DisplayName("Exact match")
+        void exactMatch() {
+            assertTrue(ProfiledXmlGeneratorService.xpathMatches("/order/customer/name", "/order/customer/name"));
+            assertFalse(ProfiledXmlGeneratorService.xpathMatches("/order/customer/email", "/order/customer/name"));
+        }
+
+        @Test
+        @DisplayName("Descendant match with //")
+        void descendantMatch() {
+            assertTrue(ProfiledXmlGeneratorService.xpathMatches("/order/customer/name", "//name"));
+            assertTrue(ProfiledXmlGeneratorService.xpathMatches("/order/item/sku", "//sku"));
+            assertFalse(ProfiledXmlGeneratorService.xpathMatches("/order/customer/name", "//email"));
+        }
+
+        @Test
+        @DisplayName("Wildcard match with [*]")
+        void wildcardMatch() {
+            assertTrue(ProfiledXmlGeneratorService.xpathMatches("/order/item[1]/sku", "/order/item[*]/sku"));
+            assertTrue(ProfiledXmlGeneratorService.xpathMatches("/order/item[2]/sku", "/order/item[*]/sku"));
+            assertFalse(ProfiledXmlGeneratorService.xpathMatches("/order/customer/name", "/order/item[*]/sku"));
+        }
+
+        @Test
+        @DisplayName("Null inputs return false")
+        void nullInputs() {
+            assertFalse(ProfiledXmlGeneratorService.xpathMatches(null, "/a"));
+            assertFalse(ProfiledXmlGeneratorService.xpathMatches("/a", null));
+            assertFalse(ProfiledXmlGeneratorService.xpathMatches(null, null));
+        }
+    }
+
+    @Nested
+    @DisplayName("XPath extraction")
+    class XPathExtractionTests {
+
+        @Test
+        @DisplayName("Extracts XPaths from schema")
+        void extractsXPaths() {
+            List<XPathInfo> xpaths = service.extractXPaths(data);
+            assertFalse(xpaths.isEmpty(), "Should extract at least one XPath");
+
+            // Check for known elements
+            List<String> paths = xpaths.stream().map(XPathInfo::xpath).toList();
+            assertTrue(paths.stream().anyMatch(p -> p.contains("customer")), "Should contain customer path");
+            assertTrue(paths.stream().anyMatch(p -> p.contains("item")), "Should contain item path");
+        }
+
+        @Test
+        @DisplayName("Distinguishes elements and attributes")
+        void distinguishesAttributesAndElements() {
+            List<XPathInfo> xpaths = service.extractXPaths(data);
+
+            boolean hasAttributes = xpaths.stream().anyMatch(XPathInfo::isAttribute);
+            boolean hasElements = xpaths.stream().anyMatch(x -> !x.isAttribute());
+
+            assertTrue(hasAttributes, "Should have attributes");
+            assertTrue(hasElements, "Should have elements");
+        }
+
+        @Test
+        @DisplayName("Filters out structural containers")
+        void filtersContainers() {
+            List<XPathInfo> xpaths = service.extractXPaths(data);
+            boolean hasContainers = xpaths.stream()
+                    .anyMatch(x -> x.xpath().contains("SEQUENCE") || x.xpath().contains("CHOICE"));
+            assertFalse(hasContainers, "Should not contain structural containers");
+        }
+    }
+
+    @Nested
+    @DisplayName("Rule priority")
+    class RulePriorityTests {
+
+        @Test
+        @DisplayName("Higher priority rule wins")
+        void higherPriorityWins() {
+            var generalRule = new XPathRule("//name", GenerationStrategy.FIXED, Map.of("value", "GENERAL"));
+            var specificRule = new XPathRule("/order/customer/name", GenerationStrategy.FIXED, Map.of("value", "SPECIFIC"));
+            specificRule.setPriority(10);
+
+            var result = service.matchRule("/order/customer/name", List.of(generalRule, specificRule));
+            assertTrue(result.isPresent());
+            assertEquals("SPECIFIC", result.get().getConfigValue("value"));
+        }
+
+        @Test
+        @DisplayName("More specific path wins on same priority")
+        void moreSpecificWins() {
+            var descendantRule = new XPathRule("//name", GenerationStrategy.FIXED, Map.of("value", "DESCENDANT"));
+            var exactRule = new XPathRule("/order/customer/name", GenerationStrategy.FIXED, Map.of("value", "EXACT"));
+
+            var result = service.matchRule("/order/customer/name", List.of(descendantRule, exactRule));
+            assertTrue(result.isPresent());
+            assertEquals("EXACT", result.get().getConfigValue("value"));
+        }
+
+        @Test
+        @DisplayName("Disabled rules are skipped")
+        void disabledRulesSkipped() {
+            var rule = new XPathRule("/order/customer/name", GenerationStrategy.FIXED, Map.of("value", "DISABLED"));
+            rule.setEnabled(false);
+
+            var result = service.matchRule("/order/customer/name", List.of(rule));
+            assertFalse(result.isPresent());
+        }
+    }
+
+    @Nested
+    @DisplayName("File name resolution")
+    class FileNameTests {
+
+        @Test
+        @DisplayName("Pattern with seq placeholder")
+        void patternWithSeq() {
+            assertEquals("order_001.xml", service.resolveFileName("order_{seq:3}.xml", 1));
+            assertEquals("order_042.xml", service.resolveFileName("order_{seq:3}.xml", 42));
+        }
+
+        @Test
+        @DisplayName("Pattern without placeholder")
+        void patternWithoutPlaceholder() {
+            assertEquals("static.xml", service.resolveFileName("static.xml", 1));
+        }
+
+        @Test
+        @DisplayName("Blank pattern uses default")
+        void blankPattern() {
+            assertEquals("example_1.xml", service.resolveFileName("", 1));
+        }
+    }
+}

@@ -1,0 +1,670 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2025.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+package org.fxt.freexmltoolkit.service;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.GeneratedFile;
+import org.fxt.freexmltoolkit.domain.GenerationProfile;
+import org.fxt.freexmltoolkit.domain.GenerationStrategy;
+import org.fxt.freexmltoolkit.domain.XPathInfo;
+import org.fxt.freexmltoolkit.domain.XPathRule;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.service.strategy.ValueStrategy;
+import org.fxt.freexmltoolkit.service.strategy.ValueStrategyFactory;
+import org.w3c.dom.Node;
+
+/**
+ * Generates XML example data from XSD schemas using configurable generation profiles.
+ * Supports XPath-based rules for controlling value generation per element/attribute,
+ * batch generation of multiple files, and various value strategies (sequences, templates, etc.).
+ */
+public class ProfiledXmlGeneratorService {
+
+    private static final Logger logger = LogManager.getLogger(ProfiledXmlGeneratorService.class);
+    private static final Pattern WILDCARD_INDEX = Pattern.compile("\\[\\*]");
+    private static final Pattern CONTAINER_SEGMENT = Pattern.compile("/(SEQUENCE|CHOICE|ALL)_?\\d*");
+
+    private final Random random = new Random();
+
+    /**
+     * Generates a single XML document from an XSD schema using the given profile.
+     *
+     * @param profile the generation profile with rules and settings
+     * @param data    the parsed XSD documentation data
+     * @param xsdFilePath the path to the XSD file (for schema location reference)
+     * @return the generated XML as a string
+     */
+    public String generate(GenerationProfile profile, XsdDocumentationData data, String xsdFilePath) {
+        XsdSampleDataGenerator sampleGenerator = new XsdSampleDataGenerator();
+        setupTypeResolver(sampleGenerator, data);
+        ValueStrategyFactory strategyFactory = new ValueStrategyFactory(sampleGenerator);
+        GenerationContext context = new GenerationContext();
+
+        return buildXmlDocument(profile, data, xsdFilePath, strategyFactory, context);
+    }
+
+    /**
+     * Generates multiple XML documents in batch mode.
+     *
+     * @param profile the generation profile with rules, batch count, and file name pattern
+     * @param data    the parsed XSD documentation data
+     * @param xsdFilePath the path to the XSD file
+     * @return list of generated files with names and content
+     */
+    public List<GeneratedFile> generateBatch(GenerationProfile profile, XsdDocumentationData data, String xsdFilePath) {
+        XsdSampleDataGenerator sampleGenerator = new XsdSampleDataGenerator();
+        setupTypeResolver(sampleGenerator, data);
+        ValueStrategyFactory strategyFactory = new ValueStrategyFactory(sampleGenerator);
+        GenerationContext context = new GenerationContext();
+
+        List<GeneratedFile> files = new ArrayList<>();
+        int count = Math.max(1, profile.getBatchCount());
+
+        for (int i = 0; i < count; i++) {
+            if (i > 0) {
+                context.resetForNewFile();
+            }
+            String content = buildXmlDocument(profile, data, xsdFilePath, strategyFactory, context);
+            String fileName = resolveFileName(profile.getFileNamePattern(), i + 1);
+            files.add(new GeneratedFile(fileName, content));
+        }
+
+        return files;
+    }
+
+    /**
+     * Extracts all XPaths from the parsed XSD data for auto-populating the rules table.
+     *
+     * @param data the parsed XSD documentation data
+     * @return list of XPath info records
+     */
+    public List<XPathInfo> extractXPaths(XsdDocumentationData data) {
+        List<XPathInfo> xpaths = new ArrayList<>();
+        Map<String, XsdExtendedElement> elementMap = data.getExtendedXsdElementMap();
+
+        for (Map.Entry<String, XsdExtendedElement> entry : elementMap.entrySet()) {
+            XsdExtendedElement element = entry.getValue();
+            String xpath = entry.getKey();
+            String name = element.getElementName();
+
+            // Skip structural containers
+            if (name == null || name.startsWith("SEQUENCE") || name.startsWith("CHOICE") || name.startsWith("ALL")) {
+                continue;
+            }
+
+            boolean isAttribute = name.startsWith("@");
+            String typeName = element.getElementType() != null ? element.getElementType() : "";
+            String cleanXpath = stripContainers(xpath);
+
+            xpaths.add(new XPathInfo(cleanXpath, typeName, element.isMandatory(), isAttribute));
+        }
+
+        // Sort by XPath for consistent ordering
+        xpaths.sort(Comparator.comparing(XPathInfo::xpath));
+        return xpaths;
+    }
+
+    // ---- Internal XML building ----
+
+    private String buildXmlDocument(GenerationProfile profile, XsdDocumentationData data,
+                                     String xsdFilePath, ValueStrategyFactory strategyFactory,
+                                     GenerationContext context) {
+        Map<String, XsdExtendedElement> elementMap = data.getExtendedXsdElementMap();
+
+        List<XsdExtendedElement> rootElements = elementMap.values().stream()
+                .filter(e -> e.getParentXpath() == null || e.getParentXpath().equals("/"))
+                .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
+                .toList();
+
+        if (rootElements.isEmpty()) {
+            return "<!-- No root element found in XSD -->";
+        }
+
+        StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        XsdExtendedElement rootElement = rootElements.getFirst();
+        String rootName = rootElement.getElementName();
+
+        // Schema location and namespace declarations
+        String targetNamespace = data.getTargetNamespace();
+        String schemaLocationUri = new File(xsdFilePath).toURI().toString();
+
+        xml.append("<").append(rootName)
+                .append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+
+        if (targetNamespace != null && !targetNamespace.isBlank()) {
+            xml.append(" xmlns=\"").append(targetNamespace).append("\"")
+                    .append(" xsi:schemaLocation=\"")
+                    .append(targetNamespace).append(" ")
+                    .append(schemaLocationUri).append("\"");
+        } else {
+            xml.append(" xsi:noNamespaceSchemaLocation=\"")
+                    .append(schemaLocationUri).append("\"");
+        }
+
+        // Collect used namespaces
+        Map<String, String> usedNamespaces = collectUsedNamespaces(rootElement, profile.isMandatoryOnly(), elementMap);
+        for (Map.Entry<String, String> ns : usedNamespaces.entrySet()) {
+            if (ns.getKey() != null && !ns.getKey().isEmpty() && ns.getValue() != null && !ns.getValue().isEmpty()) {
+                xml.append(" xmlns:").append(ns.getKey()).append("=\"").append(ns.getValue()).append("\"");
+            }
+        }
+
+        // Root element attributes
+        List<XPathRule> enabledRules = profile.getEnabledRules();
+        IdentityConstraintTracker constraintTracker = new IdentityConstraintTracker();
+        constraintTracker.scanConstraints(elementMap);
+
+        List<XsdExtendedElement> rootAttributes = rootElement.getChildren().stream()
+                .map(elementMap::get)
+                .filter(Objects::nonNull)
+                .filter(e -> e.getElementName().startsWith("@"))
+                .toList();
+
+        for (XsdExtendedElement attr : rootAttributes) {
+            String attrXpath = rootElement.getCurrentXpath() + "/@" + attr.getElementName().substring(1);
+            renderAttribute(xml, attr, attrXpath, profile, enabledRules, strategyFactory, context, constraintTracker);
+        }
+
+        xml.append(">\n");
+
+        // Root element children
+        List<XsdExtendedElement> rootChildren = rootElement.getChildren().stream()
+                .map(elementMap::get)
+                .filter(Objects::nonNull)
+                .filter(e -> !e.getElementName().startsWith("@"))
+                .toList();
+
+        for (XsdExtendedElement child : rootChildren) {
+            buildElement(xml, child, profile, enabledRules, elementMap, strategyFactory, context, constraintTracker, 1);
+        }
+
+        xml.append("</").append(rootName).append(">\n");
+        return xml.toString();
+    }
+
+    private void buildElement(StringBuilder sb, XsdExtendedElement element, GenerationProfile profile,
+                               List<XPathRule> rules, Map<String, XsdExtendedElement> elementMap,
+                               ValueStrategyFactory strategyFactory, GenerationContext context,
+                               IdentityConstraintTracker constraintTracker, int indentLevel) {
+        if (element == null) {
+            return;
+        }
+
+        String elementName = element.getElementName();
+        if (elementName == null || elementName.startsWith("@")) {
+            return;
+        }
+
+        String xpath = element.getCurrentXpath();
+        boolean mandatoryOnly = profile.isMandatoryOnly();
+        int maxOccurrences = profile.getMaxOccurrences();
+
+        // Check if there's a rule for this element
+        Optional<XPathRule> matchedRule = matchRule(xpath, rules);
+
+        // Handle OMIT strategy
+        if (matchedRule.isPresent() && matchedRule.get().getStrategy() == GenerationStrategy.OMIT) {
+            return;
+        }
+
+        // Skip optional elements in mandatory-only mode (unless explicitly ruled)
+        if (mandatoryOnly && !element.isMandatory() && matchedRule.isEmpty()) {
+            return;
+        }
+
+        // Handle container elements (SEQUENCE, CHOICE, ALL)
+        if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
+            List<XsdExtendedElement> containerChildren = element.getChildren().stream()
+                    .map(elementMap::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
+                    .toList();
+            for (XsdExtendedElement child : containerChildren) {
+                buildElement(sb, child, profile, rules, elementMap, strategyFactory, context, constraintTracker, indentLevel);
+            }
+            return;
+        }
+
+        if (elementName.startsWith("CHOICE")) {
+            List<XsdExtendedElement> choiceOptions = element.getChildren().stream()
+                    .map(elementMap::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
+                    .toList();
+            if (!choiceOptions.isEmpty()) {
+                int repeatCount = calculateRepeatCount(element, mandatoryOnly, maxOccurrences);
+                for (int i = 0; i < repeatCount; i++) {
+                    XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
+                    buildElement(sb, selected, profile, rules, elementMap, strategyFactory, context, constraintTracker, indentLevel);
+                }
+            }
+            return;
+        }
+
+        // Skip optional containers that would be empty
+        if (!element.isMandatory() && matchedRule.isEmpty()
+                && wouldProduceEmptyContainer(element, mandatoryOnly, elementMap)) {
+            return;
+        }
+
+        // Calculate repeat count for this element
+        int repeatCount = calculateElementRepeatCount(element, maxOccurrences);
+
+        for (int i = 0; i < repeatCount; i++) {
+            String indent = "\t".repeat(indentLevel);
+            String qualifiedName = getQualifiedName(element);
+
+            sb.append(indent).append("<").append(qualifiedName);
+
+            // Attributes
+            List<XsdExtendedElement> attributes = element.getChildren().stream()
+                    .map(elementMap::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> e.getElementName().startsWith("@"))
+                    .toList();
+
+            List<XsdExtendedElement> childElements = element.getChildren().stream()
+                    .map(elementMap::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> !e.getElementName().startsWith("@"))
+                    .toList();
+
+            for (XsdExtendedElement attr : attributes) {
+                String attrXpath = xpath + "/@" + attr.getElementName().substring(1);
+                renderAttribute(sb, attr, attrXpath, profile, rules, strategyFactory, context, constraintTracker);
+            }
+
+            // Resolve value for this element
+            context.setCurrentXPath(xpath);
+            String value = resolveElementValue(element, xpath, matchedRule.orElse(null), strategyFactory, context, constraintTracker);
+
+            // Handle NIL sentinel
+            if (ValueStrategy.NIL_SENTINEL.equals(value)) {
+                sb.append(" xsi:nil=\"true\"/>\n");
+                continue;
+            }
+
+            if (childElements.isEmpty() && value.isEmpty()) {
+                sb.append("/>\n");
+            } else {
+                sb.append(">").append(escapeXml(value));
+                if (!childElements.isEmpty()) {
+                    sb.append("\n");
+                    for (XsdExtendedElement child : childElements) {
+                        buildElement(sb, child, profile, rules, elementMap, strategyFactory, context, constraintTracker, indentLevel + 1);
+                    }
+                    sb.append(indent);
+                }
+                sb.append("</").append(qualifiedName).append(">\n");
+            }
+
+            // Record generated value for XPATH_REF
+            if (!value.isEmpty()) {
+                context.recordGeneratedValue(xpath, value);
+            }
+        }
+    }
+
+    private void renderAttribute(StringBuilder sb, XsdExtendedElement attr, String attrXpath,
+                                  GenerationProfile profile, List<XPathRule> rules,
+                                  ValueStrategyFactory strategyFactory, GenerationContext context,
+                                  IdentityConstraintTracker constraintTracker) {
+        Optional<XPathRule> attrRule = matchRule(attrXpath, rules);
+
+        // Handle OMIT for attributes
+        if (attrRule.isPresent() && attrRule.get().getStrategy() == GenerationStrategy.OMIT) {
+            return;
+        }
+
+        // Skip optional attributes in mandatory-only mode (unless explicitly ruled)
+        String fixedOrDefault = getAttributeValue(attr.getCurrentNode(), "fixed",
+                getAttributeValue(attr.getCurrentNode(), "default", null));
+        if (profile.isMandatoryOnly() && !attr.isMandatory() && fixedOrDefault == null && attrRule.isEmpty()) {
+            return;
+        }
+
+        String attrName = attr.getElementName().substring(1);
+        String attrValue;
+
+        if (attrRule.isPresent() && attrRule.get().getStrategy() != GenerationStrategy.AUTO) {
+            context.setCurrentXPath(attrXpath);
+            ValueStrategy strategy = strategyFactory.forStrategy(attrRule.get().getStrategy());
+            attrValue = strategy.resolve(attr, attrRule.get().getConfig(), context);
+        } else if (fixedOrDefault != null) {
+            attrValue = fixedOrDefault;
+        } else {
+            attrValue = attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "";
+        }
+
+        // Apply constraint tracking
+        if (constraintTracker != null && fixedOrDefault == null) {
+            if (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath)) {
+                attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
+            }
+        }
+
+        sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
+
+        // Record for XPATH_REF
+        if (!attrValue.isEmpty()) {
+            context.recordGeneratedValue(attrXpath, attrValue);
+        }
+    }
+
+    private String resolveElementValue(XsdExtendedElement element, String xpath, XPathRule rule,
+                                        ValueStrategyFactory strategyFactory, GenerationContext context,
+                                        IdentityConstraintTracker constraintTracker) {
+        String value;
+
+        if (rule != null && rule.getStrategy() != GenerationStrategy.AUTO) {
+            ValueStrategy strategy = strategyFactory.forStrategy(rule.getStrategy());
+            value = strategy.resolve(element, rule.getConfig(), context);
+        } else {
+            value = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
+        }
+
+        // Apply constraint tracking
+        if (constraintTracker != null && !value.isEmpty()) {
+            if (constraintTracker.isConstrainedField(xpath) || constraintTracker.isKeyrefField(xpath)) {
+                value = constraintTracker.getUniqueValue(xpath, value, element);
+            }
+        }
+
+        return value;
+    }
+
+    // ---- XPath matching ----
+
+    /**
+     * Matches a current XPath against the list of rules.
+     * Priority order: highest priority value wins; on tie, most specific path wins.
+     */
+    Optional<XPathRule> matchRule(String currentXPath, List<XPathRule> rules) {
+        if (currentXPath == null || rules == null || rules.isEmpty()) {
+            return Optional.empty();
+        }
+
+        XPathRule bestMatch = null;
+        int bestSpecificity = -1;
+
+        for (XPathRule rule : rules) {
+            if (!rule.isEnabled() || rule.getStrategy() == GenerationStrategy.AUTO) {
+                continue;
+            }
+            if (xpathMatches(currentXPath, rule.getXpath())) {
+                int specificity = calculateSpecificity(rule.getXpath());
+                if (bestMatch == null
+                        || rule.getPriority() > bestMatch.getPriority()
+                        || (rule.getPriority() == bestMatch.getPriority() && specificity > bestSpecificity)) {
+                    bestMatch = rule;
+                    bestSpecificity = specificity;
+                }
+            }
+        }
+
+        return Optional.ofNullable(bestMatch);
+    }
+
+    /**
+     * Checks if a current XPath matches a rule XPath pattern.
+     * Supports exact match, wildcard [*], and descendant // patterns.
+     * Structural containers (SEQUENCE_N, CHOICE_N, ALL_N) in the current XPath
+     * are stripped before matching so users don't need to know about them.
+     */
+    static boolean xpathMatches(String currentXPath, String ruleXPath) {
+        if (currentXPath == null || ruleXPath == null) {
+            return false;
+        }
+
+        // Strip structural containers from the current XPath
+        String stripped = stripContainers(currentXPath);
+
+        // Exact match (against stripped path)
+        if (stripped.equals(ruleXPath) || currentXPath.equals(ruleXPath)) {
+            return true;
+        }
+
+        // Descendant match: //name matches any element with that local name
+        if (ruleXPath.startsWith("//")) {
+            String suffix = ruleXPath.substring(1); // Remove one /, keep /name
+            return stripped.endsWith(suffix)
+                    || stripped.contains(suffix + "/")
+                    || stripped.contains(suffix + "[");
+        }
+
+        // Wildcard match: /order/item[*]/sku matches /order/item[1]/sku, /order/item[2]/sku, etc.
+        String regexPattern = WILDCARD_INDEX.matcher(Pattern.quote(ruleXPath))
+                .replaceAll("\\\\E\\\\[\\\\d+\\\\]\\\\Q");
+        // Clean up empty \Q\E sequences
+        regexPattern = regexPattern.replace("\\Q\\E", "");
+        return stripped.matches(regexPattern) || currentXPath.matches(regexPattern);
+    }
+
+    /**
+     * Strips structural container segments (SEQUENCE_N, CHOICE_N, ALL_N)
+     * from an XPath so users can write clean paths like /order/customer/name
+     * instead of /order/SEQUENCE_1/customer/SEQUENCE_2/name.
+     */
+    static String stripContainers(String xpath) {
+        if (xpath == null) return null;
+        return CONTAINER_SEGMENT.matcher(xpath).replaceAll("");
+    }
+
+    /**
+     * Calculates specificity of a rule XPath. Higher = more specific.
+     * Exact paths are more specific than wildcards, which are more specific than descendants.
+     */
+    private static int calculateSpecificity(String ruleXPath) {
+        if (ruleXPath.startsWith("//")) {
+            return 1; // Least specific
+        }
+        if (ruleXPath.contains("[*]")) {
+            return 2; // Medium specificity
+        }
+        return 3; // Exact match - most specific
+    }
+
+    // ---- Helper methods ----
+
+    private Map<String, String> collectUsedNamespaces(XsdExtendedElement element, boolean mandatoryOnly,
+                                                       Map<String, XsdExtendedElement> elementMap) {
+        Map<String, String> namespaces = new HashMap<>();
+        collectNamespacesRecursive(element, mandatoryOnly, namespaces, new HashSet<>(), elementMap);
+        return namespaces;
+    }
+
+    private void collectNamespacesRecursive(XsdExtendedElement element, boolean mandatoryOnly,
+                                             Map<String, String> namespaces, Set<String> visited,
+                                             Map<String, XsdExtendedElement> elementMap) {
+        if (element == null || (mandatoryOnly && !element.isMandatory())) {
+            return;
+        }
+        String xpath = element.getCurrentXpath();
+        if (xpath == null || visited.contains(xpath)) {
+            return;
+        }
+        visited.add(xpath);
+
+        String prefix = element.getSourceNamespacePrefix();
+        String ns = element.getSourceNamespace();
+        if (prefix != null && !prefix.isEmpty() && ns != null && !ns.isEmpty()) {
+            namespaces.put(prefix, ns);
+        }
+
+        List<XsdExtendedElement> children = element.getChildren().stream()
+                .map(elementMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+        for (XsdExtendedElement child : children) {
+            collectNamespacesRecursive(child, mandatoryOnly, namespaces, visited, elementMap);
+        }
+    }
+
+    private void setupTypeResolver(XsdSampleDataGenerator generator, XsdDocumentationData data) {
+        Map<String, XsdExtendedElement> elementMap = data.getExtendedXsdElementMap();
+        generator.setTypeResolver(typeName -> {
+            for (XsdExtendedElement elem : elementMap.values()) {
+                if (typeName.equals(elem.getReferencedTypeName()) || typeName.equals(elem.getElementType())) {
+                    String baseType = elem.getElementType();
+                    var restriction = elem.getRestrictionInfo();
+                    if (baseType != null) {
+                        return new XsdSampleDataGenerator.ResolvedType(baseType, restriction);
+                    }
+                }
+            }
+            return null;
+        });
+    }
+
+    private int calculateRepeatCount(XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences) {
+        Node node = element.getCurrentNode();
+        String minOccursStr = getAttributeValue(node, "minOccurs", "1");
+        String maxOccursStr = getAttributeValue(node, "maxOccurs", "1");
+
+        int minOccurs;
+        try {
+            minOccurs = Integer.parseInt(minOccursStr);
+        } catch (NumberFormatException e) {
+            minOccurs = 1;
+        }
+
+        if (mandatoryOnly && minOccurs == 0) {
+            return 0;
+        }
+
+        int maxOccurs;
+        if ("unbounded".equalsIgnoreCase(maxOccursStr)) {
+            maxOccurs = maxOccurrences;
+        } else {
+            try {
+                maxOccurs = Math.min(Integer.parseInt(maxOccursStr), maxOccurrences);
+            } catch (NumberFormatException e) {
+                maxOccurs = 1;
+            }
+        }
+
+        if (mandatoryOnly) {
+            return Math.max(1, minOccurs);
+        }
+        return Math.max(1, Math.min(maxOccurs, maxOccurrences));
+    }
+
+    private int calculateElementRepeatCount(XsdExtendedElement element, int maxOccurrences) {
+        String maxOccurs = getAttributeValue(element.getCurrentNode(), "maxOccurs", "1");
+        if ("1".equals(maxOccurs)) {
+            return 1;
+        }
+        if ("unbounded".equalsIgnoreCase(maxOccurs)) {
+            return maxOccurrences;
+        }
+        try {
+            return Math.min(Integer.parseInt(maxOccurs), maxOccurrences);
+        } catch (NumberFormatException e) {
+            return 1;
+        }
+    }
+
+    private boolean wouldProduceEmptyContainer(XsdExtendedElement element, boolean mandatoryOnly,
+                                                Map<String, XsdExtendedElement> elementMap) {
+        List<XsdExtendedElement> children = element.getChildren().stream()
+                .map(elementMap::get)
+                .filter(Objects::nonNull)
+                .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
+                .toList();
+
+        if (children.isEmpty()) {
+            String sampleData = element.getDisplaySampleData();
+            return sampleData == null || sampleData.isEmpty();
+        }
+
+        if (mandatoryOnly) {
+            return children.stream().noneMatch(XsdExtendedElement::isMandatory);
+        }
+        return false;
+    }
+
+    private String getQualifiedName(XsdExtendedElement element) {
+        String name = element.getElementName();
+        String prefix = element.getSourceNamespacePrefix();
+        if (prefix != null && !prefix.isEmpty()) {
+            return prefix + ":" + name;
+        }
+        return name;
+    }
+
+    String resolveFileName(String pattern, int fileNumber) {
+        if (pattern == null || pattern.isBlank()) {
+            return "example_" + fileNumber + ".xml";
+        }
+        // Replace {seq:N} with zero-padded file number
+        return SequenceValueStrategy_replaceSequencePlaceholders(pattern, fileNumber);
+    }
+
+    private String SequenceValueStrategy_replaceSequencePlaceholders(String pattern, int value) {
+        java.util.regex.Matcher matcher = Pattern.compile("\\{seq(?::(\\d+))?}").matcher(pattern);
+        StringBuilder result = new StringBuilder();
+        while (matcher.find()) {
+            String widthStr = matcher.group(1);
+            int width = widthStr != null ? Integer.parseInt(widthStr) : 0;
+            String replacement = width > 0
+                    ? String.format("%0" + width + "d", value)
+                    : String.valueOf(value);
+            matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(result);
+        if (result.toString().equals(pattern)) {
+            return pattern; // No placeholders found, use as-is
+        }
+        return result.toString();
+    }
+
+    private static String getAttributeValue(Node node, String attrName, String defaultValue) {
+        if (node == null || node.getAttributes() == null) {
+            return defaultValue;
+        }
+        Node attrNode = node.getAttributes().getNamedItem(attrName);
+        return attrNode != null ? attrNode.getNodeValue() : defaultValue;
+    }
+
+    private static String escapeXml(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
+    }
+}

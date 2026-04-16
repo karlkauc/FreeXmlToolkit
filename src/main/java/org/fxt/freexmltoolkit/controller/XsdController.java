@@ -10,11 +10,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
@@ -28,6 +33,8 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -45,8 +52,16 @@ import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.GeneratedFile;
+import org.fxt.freexmltoolkit.domain.GenerationProfile;
+import org.fxt.freexmltoolkit.domain.GenerationStrategy;
+import org.fxt.freexmltoolkit.domain.XPathInfo;
+import org.fxt.freexmltoolkit.domain.XPathRule;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.GenerationProfileService;
+import org.fxt.freexmltoolkit.service.ProfiledXmlGeneratorService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
@@ -146,6 +161,30 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
     private ProgressIndicator progressSampleData;
 
     private final List<XsdDocumentationService.ValidationError> currentValidationErrors = new ArrayList<>();
+
+    // Profiled generation fields
+    @FXML
+    private ComboBox<String> profileComboBox;
+    @FXML
+    private Spinner<Integer> batchCountSpinner;
+    @FXML
+    private TextField fileNamePatternField;
+    @FXML
+    private TableView<XPathRule> rulesTableView;
+    @FXML
+    private TableColumn<XPathRule, String> ruleXPathColumn;
+    @FXML
+    private TableColumn<XPathRule, String> ruleStrategyColumn;
+    @FXML
+    private TableColumn<XPathRule, Boolean> ruleEnabledColumn;
+    @FXML
+    private TitledPane ruleConfigPane;
+    @FXML
+    private VBox ruleConfigContent;
+
+    private final ObservableList<XPathRule> rulesList = FXCollections.observableArrayList();
+    private final ProfiledXmlGeneratorService profiledGenerator = new ProfiledXmlGeneratorService();
+    private GenerationProfile currentProfile;
 
     @FXML
     private StackPane typeLibraryStackPane;
@@ -827,9 +866,16 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
 
         boolean mandatoryOnly = mandatoryOnlyCheckBox.isSelected();
         int maxOccurrences = maxOccurrencesSpinner.getValue();
+        int batchCount = batchCountSpinner != null ? batchCountSpinner.getValue() : 1;
+
+        // Build profile from current UI state
+        GenerationProfile profile = buildProfileFromUI();
 
         progressSampleData.setVisible(true);
         sampleDataTextArea.clear();
+
+        // Use profiled generation when rules exist, otherwise fallback to original
+        boolean useProfiled = !rulesList.isEmpty();
 
         Task<String> generationTask = new Task<>() {
             @Override
@@ -837,7 +883,35 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
                 updateMessage("Generating sample XML...");
                 XsdDocumentationService docService = new XsdDocumentationService();
                 docService.setXsdFilePath(xsdFile.getAbsolutePath());
-                return docService.generateSampleXml(mandatoryOnly, maxOccurrences);
+
+                if (useProfiled) {
+                    docService.processXsd(false);
+                    XsdDocumentationData data = docService.xsdDocumentationData;
+
+                    if (batchCount > 1) {
+                        List<GeneratedFile> files = profiledGenerator.generateBatch(profile, data, xsdFile.getAbsolutePath());
+                        // Save batch files to output directory
+                        String outputPath = outputXmlPath.getText();
+                        if (outputPath != null && !outputPath.isBlank()) {
+                            File outputDir = new File(outputPath);
+                            if (!outputDir.isDirectory()) {
+                                outputDir = outputDir.getParentFile();
+                            }
+                            if (outputDir != null) {
+                                Files.createDirectories(outputDir.toPath());
+                                for (GeneratedFile gf : files) {
+                                    Files.writeString(outputDir.toPath().resolve(gf.fileName()), gf.content());
+                                }
+                            }
+                        }
+                        // Show first file in preview
+                        return files.isEmpty() ? "" : files.getFirst().content();
+                    } else {
+                        return profiledGenerator.generate(profile, data, xsdFile.getAbsolutePath());
+                    }
+                } else {
+                    return docService.generateSampleXml(mandatoryOnly, maxOccurrences);
+                }
             }
         };
 
@@ -908,6 +982,129 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
         });
 
         executeTask(generationTask);
+    }
+
+    private GenerationProfile buildProfileFromUI() {
+        GenerationProfile profile = currentProfile != null ? currentProfile.deepCopy() : new GenerationProfile("Unnamed");
+        profile.setMandatoryOnly(mandatoryOnlyCheckBox.isSelected());
+        profile.setMaxOccurrences(maxOccurrencesSpinner.getValue());
+        profile.setBatchCount(batchCountSpinner != null ? batchCountSpinner.getValue() : 1);
+        if (fileNamePatternField != null && !fileNamePatternField.getText().isBlank()) {
+            profile.setFileNamePattern(fileNamePatternField.getText());
+        }
+        if (xsdForSampleDataPath != null) {
+            profile.setSchemaFile(xsdForSampleDataPath.getText());
+        }
+        profile.setRules(new ArrayList<>(rulesList));
+        return profile;
+    }
+
+    @FXML
+    public void handleAutoFillXPaths() {
+        String xsdPath = xsdForSampleDataPath.getText();
+        if (xsdPath == null || xsdPath.isBlank()) {
+            DialogHelper.showError("Auto-fill XPaths", "No XSD", "Please load an XSD file first.");
+            return;
+        }
+        Task<List<XPathInfo>> task = new Task<>() {
+            @Override
+            protected List<XPathInfo> call() throws Exception {
+                XsdDocumentationService docService = new XsdDocumentationService();
+                docService.setXsdFilePath(new File(xsdPath).getAbsolutePath());
+                docService.processXsd(false);
+                return profiledGenerator.extractXPaths(docService.xsdDocumentationData);
+            }
+        };
+        task.setOnSucceeded(e -> {
+            List<XPathInfo> xpaths = task.getValue();
+            rulesList.clear();
+            for (XPathInfo info : xpaths) {
+                rulesList.add(new XPathRule(info.xpath(), GenerationStrategy.AUTO));
+            }
+            statusText.setText(xpaths.size() + " XPaths extracted from XSD.");
+        });
+        task.setOnFailed(e -> {
+            logger.error("Failed to extract XPaths", task.getException());
+            DialogHelper.showError("Auto-fill XPaths", "Error", "Failed to extract XPaths: " + task.getException().getMessage());
+        });
+        executorService.submit(task);
+    }
+
+    @FXML
+    public void handleAddRule() {
+        XPathRule newRule = new XPathRule("", GenerationStrategy.AUTO);
+        rulesList.add(newRule);
+        rulesTableView.getSelectionModel().select(newRule);
+    }
+
+    @FXML
+    public void handleSaveProfile() {
+        if (currentProfile == null) {
+            handleSaveProfileAs();
+            return;
+        }
+        GenerationProfile profile = buildProfileFromUI();
+        profile.setName(currentProfile.getName());
+        GenerationProfileService.getInstance().save(profile);
+        currentProfile = profile;
+        statusText.setText("Profile '" + profile.getName() + "' saved.");
+        loadProfileList();
+        profileComboBox.setValue(profile.getName());
+    }
+
+    @FXML
+    public void handleSaveProfileAs() {
+        TextInputDialog dialog = new TextInputDialog("New Profile");
+        dialog.setTitle("Save Profile As");
+        dialog.setHeaderText("Enter a name for the profile");
+        dialog.setContentText("Profile name:");
+        dialog.showAndWait().ifPresent(name -> {
+            if (name.isBlank()) return;
+            GenerationProfile profile = buildProfileFromUI();
+            profile.setName(name);
+            GenerationProfileService.getInstance().save(profile);
+            currentProfile = profile;
+            statusText.setText("Profile '" + name + "' saved.");
+            loadProfileList();
+            profileComboBox.setValue(name);
+        });
+    }
+
+    @FXML
+    public void handleDeleteProfile() {
+        if (currentProfile == null || currentProfile.getName() == null) {
+            return;
+        }
+        GenerationProfileService.getInstance().delete(currentProfile.getName());
+        currentProfile = null;
+        rulesList.clear();
+        statusText.setText("Profile deleted.");
+        loadProfileList();
+    }
+
+    @FXML
+    public void handleProfileSelection() {
+        if (profileComboBox == null) return;
+        String selected = profileComboBox.getValue();
+        if (selected == null || "(No Profile)".equals(selected)) {
+            currentProfile = null;
+            rulesList.clear();
+            return;
+        }
+        GenerationProfile loaded = GenerationProfileService.getInstance().load(selected);
+        if (loaded != null) {
+            currentProfile = loaded;
+            rulesList.setAll(loaded.getRules());
+            mandatoryOnlyCheckBox.setSelected(loaded.isMandatoryOnly());
+            maxOccurrencesSpinner.getValueFactory().setValue(loaded.getMaxOccurrences());
+            if (batchCountSpinner != null) {
+                batchCountSpinner.getValueFactory().setValue(loaded.getBatchCount());
+            }
+            if (fileNamePatternField != null && loaded.getFileNamePattern() != null) {
+                fileNamePatternField.setText(loaded.getFileNamePattern());
+            }
+            statusText.setText("Profile '" + selected + "' loaded.");
+        }
     }
 
     @FXML
@@ -1136,9 +1333,106 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
         if (maxOccurrencesSpinner != null) {
             maxOccurrencesSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 3));
         }
+        if (batchCountSpinner != null) {
+            batchCountSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 1));
+        }
+        if (fileNamePatternField != null) {
+            fileNamePatternField.setText("example_{seq:3}.xml");
+        }
         if (generateSampleDataButton != null && xsdForSampleDataPath != null) {
             generateSampleDataButton.disableProperty().bind(xsdForSampleDataPath.textProperty().isEmpty());
         }
+        initializeRulesTable();
+        loadProfileList();
+    }
+
+    private void initializeRulesTable() {
+        if (rulesTableView == null) return;
+
+        rulesTableView.setItems(rulesList);
+        rulesTableView.setEditable(true);
+
+        if (ruleXPathColumn != null) {
+            ruleXPathColumn.setCellValueFactory(cell ->
+                    new SimpleStringProperty(cell.getValue().getXpath()));
+        }
+        if (ruleStrategyColumn != null) {
+            ruleStrategyColumn.setCellValueFactory(cell ->
+                    new SimpleStringProperty(cell.getValue().getStrategy().getDisplayName()));
+        }
+        if (ruleEnabledColumn != null) {
+            ruleEnabledColumn.setCellValueFactory(cell ->
+                    new SimpleBooleanProperty(cell.getValue().isEnabled()));
+        }
+
+        // Update config panel when selection changes
+        rulesTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) ->
+                updateRuleConfigPanel(newVal));
+    }
+
+    private void loadProfileList() {
+        if (profileComboBox == null) return;
+        List<GenerationProfile> profiles = GenerationProfileService.getInstance().loadAll();
+        profileComboBox.getItems().clear();
+        profileComboBox.getItems().add("(No Profile)");
+        for (GenerationProfile p : profiles) {
+            profileComboBox.getItems().add(p.getName());
+        }
+        profileComboBox.getSelectionModel().selectFirst();
+    }
+
+    private void updateRuleConfigPanel(XPathRule rule) {
+        if (ruleConfigContent == null) return;
+        ruleConfigContent.getChildren().clear();
+
+        if (rule == null) {
+            ruleConfigContent.getChildren().add(new Label("Select a rule to configure."));
+            return;
+        }
+
+        // Strategy selector
+        var strategyBox = new javafx.scene.layout.HBox(10);
+        strategyBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        var strategyLabel = new Label("Strategy:");
+        var strategyCombo = new ComboBox<GenerationStrategy>();
+        strategyCombo.getItems().addAll(GenerationStrategy.values());
+        strategyCombo.setValue(rule.getStrategy());
+        strategyCombo.setOnAction(e -> {
+            rule.setStrategy(strategyCombo.getValue());
+            rulesTableView.refresh();
+            updateRuleConfigPanel(rule);
+        });
+        strategyBox.getChildren().addAll(strategyLabel, strategyCombo);
+        ruleConfigContent.getChildren().add(strategyBox);
+
+        // Strategy-specific config fields
+        switch (rule.getStrategy()) {
+            case FIXED -> addConfigField(rule, "value", "Value:", "Enter fixed value");
+            case SEQUENCE -> {
+                addConfigField(rule, "pattern", "Pattern:", "e.g. ID-{seq:4}");
+                addConfigField(rule, "start", "Start:", "1");
+                addConfigField(rule, "step", "Step:", "1");
+            }
+            case RANDOM_FROM_LIST -> addConfigField(rule, "values", "Values (comma-sep.):", "A,B,C");
+            case XPATH_REF -> addConfigField(rule, "ref", "Reference XPath:", "/order/@id");
+            case TEMPLATE -> addConfigField(rule, "pattern", "Template:", "ORD-{seq:4}-{date:yyyy}");
+            default -> {
+                // AUTO, OMIT, EMPTY, NULL, XSD_EXAMPLE, ENUM_CYCLE need no config
+            }
+        }
+    }
+
+    private void addConfigField(XPathRule rule, String key, String label, String prompt) {
+        var hbox = new javafx.scene.layout.HBox(10);
+        hbox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        var lbl = new Label(label);
+        lbl.setMinWidth(120);
+        var field = new TextField(rule.getConfigValue(key));
+        field.setPromptText(prompt);
+        javafx.scene.layout.HBox.setHgrow(field, javafx.scene.layout.Priority.ALWAYS);
+        field.textProperty().addListener((obs, oldVal, newVal) -> rule.setConfigValue(key, newVal));
+        hbox.getChildren().addAll(lbl, field);
+        ruleConfigContent.getChildren().add(hbox);
     }
 
     private void saveStringToFile(String content, File file) {

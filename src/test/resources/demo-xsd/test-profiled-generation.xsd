@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="order" type="OrderType"/>
+
+    <xs:complexType name="OrderType">
+        <xs:sequence>
+            <xs:element name="customer" type="CustomerType"/>
+            <xs:element name="item" type="ItemType" maxOccurs="unbounded"/>
+            <xs:element name="notes" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string" use="required"/>
+        <xs:attribute name="date" type="xs:date"/>
+    </xs:complexType>
+
+    <xs:complexType name="CustomerType">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="email" type="xs:string" minOccurs="0"/>
+            <xs:element name="country" type="CountryType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ItemType">
+        <xs:sequence>
+            <xs:element name="sku" type="xs:string"/>
+            <xs:element name="quantity" type="xs:positiveInteger"/>
+            <xs:element name="price" type="xs:decimal"/>
+        </xs:sequence>
+        <xs:attribute name="itemId" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:simpleType name="CountryType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="AT"/>
+            <xs:enumeration value="DE"/>
+            <xs:enumeration value="CH"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

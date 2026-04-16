@@ -423,128 +423,180 @@
 
         <Tab styleClass="output-tab" closable="false" text="Generate Example Data">
             <tooltip>
-                <Tooltip text="Sample Data Generator - Create XML examples (Ctrl+6)"/>
+                <Tooltip text="Sample Data Generator - Create XML examples with profiles (Ctrl+6)"/>
             </tooltip>
             <graphic>
                 <FontIcon iconLiteral="bi-keyboard" iconSize="16"/>
             </graphic>
-            <VBox spacing="15" styleClass="p-5, theme-bg-primary">
-                <VBox spacing="10">
-                    <Label styleClass="h3" text="Sample Data Generator"/>
-                    <Label wrapText="true"
-                           text="This tab allows you to generate sample XML data that conforms to the loaded XSD schema. You can specify whether to include only mandatory elements and set a limit for repeating elements."/>
-                    <Separator/>
-
-                    <GridPane hgap="10" vgap="10">
+            <VBox spacing="8" styleClass="p-5, theme-bg-primary">
+                <!-- Config Bar -->
+                <VBox spacing="8">
+                    <GridPane hgap="10" vgap="8">
                         <Label text="XSD Source File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                         <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
                             <TextField fx:id="xsdForSampleDataPath" promptText="Load an XSD file..."
                                        HBox.hgrow="ALWAYS"/>
                             <Button onAction="#handleToolbarLoadFile" text="Load XSD">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-folder2-open"/>
+                                    <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                                 </graphic>
                             </Button>
                         </HBox>
 
-                        <Label text="Output XML File (optional):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
-                            <TextField fx:id="outputXmlPath" promptText="Select where to save the XML file..."
-                                       HBox.hgrow="ALWAYS"/>
-                            <Button onAction="#selectOutputXmlFile" text="Save to...">
+                        <Label text="Profile:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <HBox spacing="5" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <ComboBox fx:id="profileComboBox" promptText="(No Profile)" prefWidth="250"
+                                      onAction="#handleProfileSelection"/>
+                            <Button onAction="#handleSaveProfile" text="Save">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-save"/>
+                                    <FontIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
                                 </graphic>
+                                <tooltip><Tooltip text="Save current profile"/></tooltip>
+                            </Button>
+                            <Button onAction="#handleSaveProfileAs" text="Save As...">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-save2" iconSize="16"/>
+                                </graphic>
+                                <tooltip><Tooltip text="Save as new profile"/></tooltip>
+                            </Button>
+                            <Button onAction="#handleDeleteProfile">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-trash" iconSize="16" iconColor="#dc3545"/>
+                                </graphic>
+                                <tooltip><Tooltip text="Delete selected profile"/></tooltip>
                             </Button>
                         </HBox>
 
                         <Label text="Settings:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                        <HBox spacing="20" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                            <CheckBox fx:id="mandatoryOnlyCheckBox" text="Create mandatory elements only"/>
-                            <Label text="Max occurrences for repeating elements:"/>
+                        <HBox spacing="15" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <CheckBox fx:id="mandatoryOnlyCheckBox" text="Mandatory only"/>
+                            <Label text="Max Occ:"/>
                             <Spinner fx:id="maxOccurrencesSpinner" editable="true" prefWidth="70"/>
+                            <Separator orientation="VERTICAL"/>
+                            <Label text="Batch:"/>
+                            <Spinner fx:id="batchCountSpinner" editable="true" prefWidth="70"/>
+                            <Label text="File Pattern:"/>
+                            <TextField fx:id="fileNamePatternField" promptText="example_{seq:3}.xml"
+                                       prefWidth="180"/>
+                        </HBox>
+
+                        <Label text="Output:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                        <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3" HBox.hgrow="ALWAYS">
+                            <TextField fx:id="outputXmlPath" promptText="Output directory or file..."
+                                       HBox.hgrow="ALWAYS"/>
+                            <Button onAction="#selectOutputXmlFile" text="Browse">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                                </graphic>
+                            </Button>
                         </HBox>
 
                         <columnConstraints>
-                            <ColumnConstraints hgrow="NEVER" minWidth="180.0"/>
+                            <ColumnConstraints hgrow="NEVER" minWidth="120.0"/>
                             <ColumnConstraints hgrow="ALWAYS"/>
                         </columnConstraints>
-                        <rowConstraints>
-                            <RowConstraints/>
-                            <RowConstraints/>
-                            <RowConstraints/>
-                        </rowConstraints>
                     </GridPane>
+
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Button fx:id="generateSampleDataButton" onAction="#generateSampleDataAction"
-                                text="Generate Sample XML" disable="true">
+                                text="Generate" disable="true" styleClass="btn-success">
                             <graphic>
                                 <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
                             </graphic>
                         </Button>
                         <Button fx:id="validateGeneratedXmlButton" onAction="#validateGeneratedXmlAction"
-                                text="Validate XML" disable="true">
+                                text="Validate" disable="true">
                             <graphic>
                                 <FontIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
                             </graphic>
-                            <tooltip>
-                                <Tooltip text="Validate the generated XML against the XSD schema"/>
-                            </tooltip>
+                        </Button>
+                        <Separator orientation="VERTICAL"/>
+                        <Button onAction="#handleAutoFillXPaths" text="Auto-fill XPaths" disable="${generateSampleDataButton.disable}">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-list-check" iconSize="16" iconColor="#007bff"/>
+                            </graphic>
+                            <tooltip><Tooltip text="Extract all XPaths from the loaded XSD"/></tooltip>
+                        </Button>
+                        <Button onAction="#handleAddRule" text="Add Rule">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"/>
+                            </graphic>
                         </Button>
                     </HBox>
                 </VBox>
 
-                <!-- Validation Result Panel -->
-                <VBox fx:id="sampleDataValidationResultPanel" spacing="8" visible="false" managed="false">
-                    <!-- Header with summary -->
-                    <HBox spacing="10" alignment="CENTER_LEFT">
-                        <FontIcon fx:id="sampleDataValidationIcon" iconSize="18"/>
-                        <VBox spacing="2" HBox.hgrow="ALWAYS">
-                            <Label fx:id="sampleDataValidationTitle" styleClass="label-bold"/>
-                            <Label fx:id="sampleDataValidationMessage" wrapText="true" styleClass="label-small"/>
-                        </VBox>
-                        <HBox spacing="5" alignment="CENTER_RIGHT">
-                            <Button fx:id="exportValidationErrorsButton" onAction="#exportValidationErrors"
-                                    text="Export" styleClass="label-small">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-download" iconSize="12"/>
-                                </graphic>
-                                <tooltip>
-                                    <Tooltip text="Export validation errors to file"/>
-                                </tooltip>
-                            </Button>
-                            <Button onAction="#closeSampleDataValidationPanel"
-                                    style="-fx-background-color: transparent; -fx-padding: 2;">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-x" iconSize="14"/>
-                                </graphic>
-                            </Button>
-                        </HBox>
-                    </HBox>
-                    <!-- Error Table -->
-                    <TableView fx:id="validationErrorsTable" prefHeight="150" maxHeight="200"
-                               styleClass="label-small">
-                        <columns>
-                            <TableColumn fx:id="errorLineColumn" text="Line" prefWidth="50" minWidth="40"/>
-                            <TableColumn fx:id="errorColumnColumn" text="Col" prefWidth="40" minWidth="35"/>
-                            <TableColumn fx:id="errorSeverityColumn" text="Severity" prefWidth="70" minWidth="60"/>
-                            <TableColumn fx:id="errorMessageColumn" text="Message" prefWidth="500" minWidth="200"/>
-                        </columns>
-                        <placeholder>
-                            <Label text="No validation errors"/>
-                        </placeholder>
-                    </TableView>
-                </VBox>
+                <Separator/>
 
-                <StackPane VBox.vgrow="ALWAYS">
-                    <!-- RichTextFX: VirtualizedScrollPane für Scrollbalken -->
-                    <VirtualizedScrollPane>
-                        <content>
-                            <CodeArea fx:id="sampleDataTextArea" prefWidth="800" prefHeight="600"/>
-                        </content>
-                    </VirtualizedScrollPane>
-                    <ProgressIndicator fx:id="progressSampleData" maxWidth="80" maxHeight="80" visible="false"/>
-                </StackPane>
+                <!-- Main content: SplitPane with Rules Table + Preview -->
+                <SplitPane dividerPositions="0.4" VBox.vgrow="ALWAYS">
+                    <!-- Left: Rules Table + Config Panel -->
+                    <VBox spacing="5">
+                        <TableView fx:id="rulesTableView" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="ruleXPathColumn" text="XPath" prefWidth="250" minWidth="120"/>
+                                <TableColumn fx:id="ruleStrategyColumn" text="Strategy" prefWidth="120" minWidth="90"/>
+                                <TableColumn fx:id="ruleEnabledColumn" text="On" prefWidth="40" minWidth="35"/>
+                            </columns>
+                            <placeholder>
+                                <Label text="No rules configured. Click 'Auto-fill XPaths' or 'Add Rule'."/>
+                            </placeholder>
+                        </TableView>
+                        <!-- Config Panel for selected rule -->
+                        <TitledPane fx:id="ruleConfigPane" text="Rule Configuration" collapsible="true"
+                                    expanded="true" maxHeight="180">
+                            <VBox fx:id="ruleConfigContent" spacing="8" style="-fx-padding: 8;">
+                                <Label text="Select a rule to configure." styleClass="label-small" style="-fx-text-fill: #888;"/>
+                            </VBox>
+                        </TitledPane>
+                    </VBox>
+
+                    <!-- Right: Generated XML Preview -->
+                    <VBox spacing="5">
+                        <!-- Validation Result Panel -->
+                        <VBox fx:id="sampleDataValidationResultPanel" spacing="8" visible="false" managed="false">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <FontIcon fx:id="sampleDataValidationIcon" iconSize="18"/>
+                                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="sampleDataValidationTitle" styleClass="label-bold"/>
+                                    <Label fx:id="sampleDataValidationMessage" wrapText="true" styleClass="label-small"/>
+                                </VBox>
+                                <HBox spacing="5" alignment="CENTER_RIGHT">
+                                    <Button fx:id="exportValidationErrorsButton" onAction="#exportValidationErrors"
+                                            text="Export" styleClass="label-small">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-download" iconSize="12"/>
+                                        </graphic>
+                                    </Button>
+                                    <Button onAction="#closeSampleDataValidationPanel"
+                                            style="-fx-background-color: transparent; -fx-padding: 2;">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-x" iconSize="14"/>
+                                        </graphic>
+                                    </Button>
+                                </HBox>
+                            </HBox>
+                            <TableView fx:id="validationErrorsTable" prefHeight="120" maxHeight="150"
+                                       styleClass="label-small">
+                                <columns>
+                                    <TableColumn fx:id="errorLineColumn" text="Line" prefWidth="50" minWidth="40"/>
+                                    <TableColumn fx:id="errorColumnColumn" text="Col" prefWidth="40" minWidth="35"/>
+                                    <TableColumn fx:id="errorSeverityColumn" text="Severity" prefWidth="70" minWidth="60"/>
+                                    <TableColumn fx:id="errorMessageColumn" text="Message" prefWidth="500" minWidth="200"/>
+                                </columns>
+                                <placeholder><Label text="No validation errors"/></placeholder>
+                            </TableView>
+                        </VBox>
+
+                        <StackPane VBox.vgrow="ALWAYS">
+                            <VirtualizedScrollPane>
+                                <content>
+                                    <CodeArea fx:id="sampleDataTextArea" prefWidth="800" prefHeight="600"/>
+                                </content>
+                            </VirtualizedScrollPane>
+                            <ProgressIndicator fx:id="progressSampleData" maxWidth="80" maxHeight="80" visible="false"/>
+                        </StackPane>
+                    </VBox>
+                </SplitPane>
             </VBox>
         </Tab>
         <fx:include fx:id="flattenTab" source="flatten_tab.fxml" />
