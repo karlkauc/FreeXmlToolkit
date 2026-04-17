@@ -319,6 +319,81 @@ class ProfiledXmlGeneratorServiceTest {
     }
 
     @Nested
+    @DisplayName("Per-rule maxOccurrences override")
+    class MaxOccurrencesOverrideTests {
+
+        @Test
+        @DisplayName("Rule config maxOccurrences overrides profile global for matched xpath")
+        void overrideAppliedToMatchedElement() {
+            var profile = new GenerationProfile("ItemOverride");
+            profile.setMaxOccurrences(1);
+            profile.addRule(new XPathRule("/order/item", GenerationStrategy.AUTO,
+                    Map.of("maxOccurrences", "3")));
+
+            String xml = service.generate(profile, data, xsdFilePath);
+            long itemCount = xml.lines().filter(l -> l.contains("<item")).count();
+            assertEquals(3, itemCount,
+                    "Rule override should force three <item> instances; XML was:\n" + xml);
+        }
+
+        @Test
+        @DisplayName("Override only affects matched xpath, other elements keep profile default")
+        void overrideIsScoped() {
+            var profile = new GenerationProfile("ScopedOverride");
+            profile.setMaxOccurrences(1);
+            profile.addRule(new XPathRule("/order/item", GenerationStrategy.AUTO,
+                    Map.of("maxOccurrences", "4")));
+
+            String xml = service.generate(profile, data, xsdFilePath);
+            long itemCount = xml.lines().filter(l -> l.contains("<item")).count();
+            long customerCount = xml.lines().filter(l -> l.contains("<customer>")).count();
+            assertEquals(4, itemCount, "item overridden to 4");
+            assertEquals(1, customerCount, "customer keeps profile default of 1");
+        }
+
+        @Test
+        @DisplayName("findRepeatOverride returns -1 when no rule matches")
+        void noMatchingRuleReturnsNoOverride() {
+            var rules = List.of(
+                    new XPathRule("/a/b", GenerationStrategy.AUTO, Map.of("maxOccurrences", "5")));
+            assertEquals(-1, ProfiledXmlGeneratorService.findRepeatOverride("/x/y", rules));
+        }
+
+        @Test
+        @DisplayName("findRepeatOverride ignores disabled rules")
+        void disabledRuleIgnored() {
+            var disabled = new XPathRule("/a/b", GenerationStrategy.AUTO,
+                    Map.of("maxOccurrences", "5"));
+            disabled.setEnabled(false);
+            assertEquals(-1, ProfiledXmlGeneratorService.findRepeatOverride("/a/b", List.of(disabled)));
+        }
+
+        @Test
+        @DisplayName("findRepeatOverride ignores non-numeric and negative values")
+        void invalidOverrideIgnored() {
+            var bad = new XPathRule("/a/b", GenerationStrategy.AUTO,
+                    Map.of("maxOccurrences", "not-a-number"));
+            var negative = new XPathRule("/a/b", GenerationStrategy.AUTO,
+                    Map.of("maxOccurrences", "-3"));
+            assertEquals(-1, ProfiledXmlGeneratorService.findRepeatOverride("/a/b", List.of(bad)));
+            assertEquals(-1, ProfiledXmlGeneratorService.findRepeatOverride("/a/b", List.of(negative)));
+        }
+
+        @Test
+        @DisplayName("Override works with // descendant pattern")
+        void overrideWithDescendantPattern() {
+            var profile = new GenerationProfile("DescendantOverride");
+            profile.setMaxOccurrences(1);
+            profile.addRule(new XPathRule("//item", GenerationStrategy.AUTO,
+                    Map.of("maxOccurrences", "2")));
+
+            String xml = service.generate(profile, data, xsdFilePath);
+            long itemCount = xml.lines().filter(l -> l.contains("<item")).count();
+            assertEquals(2, itemCount, "Descendant rule //item should repeat items twice");
+        }
+    }
+
+    @Nested
     @DisplayName("CHOICE selection via rule preference")
     class ChoiceSelectionTests {
 
@@ -484,6 +559,11 @@ class ProfiledXmlGeneratorServiceTest {
                     "Rule-driven CHOICE must select Bond subtype for Position");
             assertTrue(xml.contains("<Nominal>1000000</Nominal>"),
                     "Bond/Nominal FIXED value must appear");
+
+            // maxOccurrences override: profile requests 3 Positions via per-rule config
+            long positionCount = xml.lines().filter(l -> l.contains("<Position>")).count();
+            assertEquals(3, positionCount,
+                    "Per-rule maxOccurrences override must produce 3 Positions");
 
             // Schema validity is the whole point of the profile after Phase-2 fixes.
             assertTrue(validation.isValid(),

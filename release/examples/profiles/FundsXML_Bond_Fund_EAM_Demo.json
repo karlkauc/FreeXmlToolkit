@@ -146,6 +146,13 @@
       "config": {"value": "1000000"},
       "priority": 10,
       "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position",
+      "strategy": "AUTO",
+      "config": {"maxOccurrences": "3"},
+      "priority": 10,
+      "enabled": true
     }
   ]
 }

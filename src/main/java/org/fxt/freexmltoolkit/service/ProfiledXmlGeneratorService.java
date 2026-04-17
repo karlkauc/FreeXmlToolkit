@@ -141,16 +141,25 @@ public class ProfiledXmlGeneratorService {
 
     /**
      * Returns {@code true} if the profile has no rules that would affect generation,
-     * i.e. the rules list is empty or all enabled rules use {@link GenerationStrategy#AUTO}
-     * (which means "use default behavior"). In this case the profiled generator should
+     * i.e. the rules list is empty or every enabled rule uses
+     * {@link GenerationStrategy#AUTO} <em>and</em> carries no structural config such
+     * as a {@code maxOccurrences} override. In this case the profiled generator should
      * delegate to the plain generator to avoid structural divergence.
+     *
+     * <p>AUTO rules that specify {@code maxOccurrences} DO affect generation (they
+     * change repeat counts) so they must keep the profiled path active.</p>
      */
     static boolean hasNoEffectiveRules(GenerationProfile profile) {
         if (profile == null) {
             return true;
         }
         return profile.getEnabledRules().stream()
-                .allMatch(r -> r.getStrategy() == GenerationStrategy.AUTO);
+                .allMatch(r -> r.getStrategy() == GenerationStrategy.AUTO && !hasStructuralConfig(r));
+    }
+
+    private static boolean hasStructuralConfig(XPathRule rule) {
+        Map<String, String> cfg = rule == null ? null : rule.getConfig();
+        return cfg != null && cfg.get("maxOccurrences") != null;
     }
 
     /**
@@ -357,8 +366,13 @@ public class ProfiledXmlGeneratorService {
             return;
         }
 
-        // Calculate repeat count for this element
+        // Calculate repeat count for this element; a per-rule maxOccurrences config
+        // overrides the profile's global setting for this xpath only.
         int repeatCount = calculateElementRepeatCount(element, maxOccurrences);
+        int override = findRepeatOverride(xpath, rules);
+        if (override >= 0) {
+            repeatCount = override;
+        }
 
         for (int i = 0; i < repeatCount; i++) {
             String indent = "\t".repeat(indentLevel);
@@ -519,6 +533,45 @@ public class ProfiledXmlGeneratorService {
         }
 
         return Optional.ofNullable(bestMatch);
+    }
+
+    /**
+     * Looks up a per-rule {@code maxOccurrences} override for the given element XPath.
+     * Any enabled rule (including AUTO, since the override is structural rather than
+     * value-generating) whose XPath matches the current element and whose config
+     * carries a numeric {@code maxOccurrences} key wins. Returns {@code -1} when no
+     * override applies and the caller should keep the profile's global count.
+     */
+    static int findRepeatOverride(String currentXPath, List<XPathRule> rules) {
+        if (currentXPath == null || rules == null || rules.isEmpty()) {
+            return -1;
+        }
+        String stripped = stripContainers(currentXPath);
+        for (XPathRule rule : rules) {
+            if (rule == null || !rule.isEnabled()) {
+                continue;
+            }
+            Map<String, String> cfg = rule.getConfig();
+            if (cfg == null) {
+                continue;
+            }
+            String override = cfg.get("maxOccurrences");
+            if (override == null) {
+                continue;
+            }
+            if (!xpathMatches(currentXPath, stripped, rule.getXpath())) {
+                continue;
+            }
+            try {
+                int n = Integer.parseInt(override.trim());
+                if (n >= 0) {
+                    return n;
+                }
+            } catch (NumberFormatException ignored) {
+                // Invalid number — fall through and try next rule.
+            }
+        }
+        return -1;
     }
 
     /**
