@@ -518,7 +518,7 @@
                             </graphic>
                         </Button>
                         <Button fx:id="cancelSampleDataButton" onAction="#handleCancelSampleDataGeneration"
-                                text="Cancel" disable="true">
+                                text="Cancel">
                             <graphic>
                                 <FontIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
                             </graphic>

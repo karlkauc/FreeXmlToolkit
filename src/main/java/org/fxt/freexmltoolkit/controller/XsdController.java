@@ -142,6 +142,8 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
     private Button exportValidationErrorsButton;
 
     private Task<String> currentGenerationTask;
+    private final javafx.beans.property.BooleanProperty isGeneratingSampleData =
+            new javafx.beans.property.SimpleBooleanProperty(false);
     @FXML
     private org.kordamp.ikonli.javafx.FontIcon sampleDataValidationIcon;
     @FXML
@@ -919,17 +921,11 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
         };
 
         currentGenerationTask = generationTask;
-        if (cancelSampleDataButton != null) {
-            cancelSampleDataButton.setDisable(false);
-        }
-        if (generateSampleDataButton != null) {
-            generateSampleDataButton.setDisable(true);
-        }
+        isGeneratingSampleData.set(true);
 
         generationTask.setOnSucceeded(event -> {
             progressSampleData.setVisible(false);
-            if (cancelSampleDataButton != null) cancelSampleDataButton.setDisable(true);
-            if (generateSampleDataButton != null) generateSampleDataButton.setDisable(false);
+            isGeneratingSampleData.set(false);
             currentGenerationTask = null;
             String resultXml = generationTask.getValue();
 
@@ -985,8 +981,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
 
         generationTask.setOnFailed(event -> {
             progressSampleData.setVisible(false);
-            if (cancelSampleDataButton != null) cancelSampleDataButton.setDisable(true);
-            if (generateSampleDataButton != null) generateSampleDataButton.setDisable(false);
+            isGeneratingSampleData.set(false);
             currentGenerationTask = null;
             Throwable e = generationTask.getException();
             if (e instanceof java.util.concurrent.CancellationException
@@ -1005,8 +1000,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
 
         generationTask.setOnCancelled(event -> {
             progressSampleData.setVisible(false);
-            if (cancelSampleDataButton != null) cancelSampleDataButton.setDisable(true);
-            if (generateSampleDataButton != null) generateSampleDataButton.setDisable(false);
+            isGeneratingSampleData.set(false);
             currentGenerationTask = null;
             if (statusText != null) statusText.setText("Sample XML generation cancelled.");
         });
@@ -1442,7 +1436,11 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
             fileNamePatternField.setText("example_{seq:3}.xml");
         }
         if (generateSampleDataButton != null && xsdForSampleDataPath != null) {
-            generateSampleDataButton.disableProperty().bind(xsdForSampleDataPath.textProperty().isEmpty());
+            generateSampleDataButton.disableProperty().bind(
+                    xsdForSampleDataPath.textProperty().isEmpty().or(isGeneratingSampleData));
+        }
+        if (cancelSampleDataButton != null) {
+            cancelSampleDataButton.disableProperty().bind(isGeneratingSampleData.not());
         }
         initializeRulesTable();
         loadProfileList();
