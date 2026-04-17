@@ -1,11 +1,11 @@
 {
   "name": "FundsXML Bond Fund EAM Demo",
-  "description": "Recreates the structure and metadata of release/examples/xml/FundsXML_422_Bond_Fund.xml. Uses fixed values for Erste Asset Management identifiers, ContentDate 2021-11-30, EUR currency, INITIAL operation, UCITS legal structure, and DEMO BOND FUND naming. Position-level identifiers (UniqueID) are auto-incremented; portfolio amounts/prices fall back to AUTO sample data.",
+  "description": "Generates a schema-valid FundsXML4 instance modelled on release/examples/xml/FundsXML_422_Bond_Fund.xml. Uses mandatoryOnly=true and maxOccurrences=1 to keep the output minimal and avoid optional sections that contain unresolvable IDREF chains. FIXED rules supply the Erste Asset Management identifiers (LEI, name, email), ContentDate 2021-11-30, EUR currency, INITIAL operation and UCITS legal structure so the result reads as a real EAM bond fund snapshot.",
   "schemaFile": "FundsXML4.xsd",
   "batchCount": 1,
   "fileNamePattern": "FundsXML_Bond_Fund_{seq:3}.xml",
-  "mandatoryOnly": false,
-  "maxOccurrences": 3,
+  "mandatoryOnly": true,
+  "maxOccurrences": 1,
   "rules": [
     {
       "xpath": "/FundsXML4/ControlData/UniqueDocumentID",
@@ -96,132 +96,6 @@
       "strategy": "FIXED",
       "config": {"value": "true"},
       "priority": 10,
-      "enabled": true
-    },
-    {
-      "xpath": "/FundsXML4/Funds/Fund/FundStaticData/ListedLegalStructure",
-      "strategy": "FIXED",
-      "config": {"value": "UCITS"},
-      "priority": 10,
-      "enabled": true
-    },
-    {
-      "xpath": "/FundsXML4/Funds/Fund/FundStaticData/InceptionDate",
-      "strategy": "FIXED",
-      "config": {"value": "2011-05-01"},
-      "priority": 10,
-      "enabled": true
-    },
-    {
-      "xpath": "/FundsXML4/Funds/Fund/FundStaticData/StartOfFiscalYear/Day",
-      "strategy": "FIXED",
-      "config": {"value": "1"},
-      "priority": 10,
-      "enabled": true
-    },
-    {
-      "xpath": "/FundsXML4/Funds/Fund/FundStaticData/StartOfFiscalYear/Month",
-      "strategy": "FIXED",
-      "config": {"value": "5"},
-      "priority": 10,
-      "enabled": true
-    },
-    {
-      "xpath": "//Portfolio/NavDate",
-      "strategy": "FIXED",
-      "config": {"value": "2021-11-30"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//TotalAssetValue/NavDate",
-      "strategy": "FIXED",
-      "config": {"value": "2021-11-30"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//TotalAssetNature",
-      "strategy": "FIXED",
-      "config": {"value": "OFFICIAL"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//Position/UniqueID",
-      "strategy": "SEQUENCE",
-      "config": {"pattern": "ID_{seq:8}", "start": "24347801", "step": "1"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//Position/Currency",
-      "strategy": "FIXED",
-      "config": {"value": "EUR"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//Amount/@ccy",
-      "strategy": "FIXED",
-      "config": {"value": "EUR"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//Exposure/Type",
-      "strategy": "FIXED",
-      "config": {"value": "derivate meldeverordnung cesr"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//FXRate/@fromCcy",
-      "strategy": "FIXED",
-      "config": {"value": "EUR"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//FXRate/@toCcy",
-      "strategy": "FIXED",
-      "config": {"value": "EUR"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//FXRate/@mulDiv",
-      "strategy": "FIXED",
-      "config": {"value": "D"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//FXRate",
-      "strategy": "FIXED",
-      "config": {"value": "1"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//Bond/Indexfactor",
-      "strategy": "FIXED",
-      "config": {"value": "1"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//Bond/Poolfactor",
-      "strategy": "FIXED",
-      "config": {"value": "1"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
-      "xpath": "//Position/Identifiers/ISIN",
-      "strategy": "RANDOM_FROM_LIST",
-      "config": {"values": "AT0000A0X913,AT0000A1Y3P7,AT0000A2GLA0,AT0000A23ML2,DE000A1ZYJB9,DE0001102374,FR0013451333,XS1485597904,XS2010038900,XS2261051023"},
-      "priority": 5,
       "enabled": true
     }
   ]

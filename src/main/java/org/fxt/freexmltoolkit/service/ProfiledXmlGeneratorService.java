@@ -305,8 +305,12 @@ public class ProfiledXmlGeneratorService {
             return;
         }
 
-        // Skip optional elements in mandatory-only mode (unless explicitly ruled)
-        if (mandatoryOnly && !element.isMandatory() && matchedRule.isEmpty()) {
+        // Skip optional elements in mandatory-only mode (unless explicitly ruled or
+        // an enabled non-AUTO rule targets a descendant — without this lookahead a
+        // FIXED rule on /a/b/c would silently never apply because optional ancestor
+        // /a would be skipped before the recursion even reached c).
+        if (mandatoryOnly && !element.isMandatory() && matchedRule.isEmpty()
+                && !hasDescendantRule(xpath, rules)) {
             return;
         }
 
@@ -339,8 +343,9 @@ public class ProfiledXmlGeneratorService {
             return;
         }
 
-        // Skip optional containers that would be empty
+        // Skip optional containers that would be empty (unless a descendant rule needs them)
         if (!element.isMandatory() && matchedRule.isEmpty()
+                && !hasDescendantRule(xpath, rules)
                 && wouldProduceEmptyContainer(element, mandatoryOnly, elementMap)) {
             return;
         }
@@ -507,6 +512,35 @@ public class ProfiledXmlGeneratorService {
         }
 
         return Optional.ofNullable(bestMatch);
+    }
+
+    /**
+     * Returns {@code true} if any enabled non-AUTO rule targets a descendant of the
+     * given element (i.e. some rule's xpath has the element's xpath as a strict prefix).
+     * Used to keep optional ancestors in the output when a deeper rule would otherwise
+     * silently never apply because its container was skipped first.
+     *
+     * <p>Descendant patterns ({@code //foo}) are excluded from this lookahead because
+     * we cannot tell from the rule alone whether the target lives under this subtree.</p>
+     */
+    static boolean hasDescendantRule(String elementXpath, List<XPathRule> rules) {
+        if (elementXpath == null || rules == null || rules.isEmpty()) {
+            return false;
+        }
+        String prefix = stripContainers(elementXpath) + "/";
+        for (XPathRule rule : rules) {
+            if (rule == null || !rule.isEnabled() || rule.getStrategy() == GenerationStrategy.AUTO) {
+                continue;
+            }
+            String ruleXpath = rule.getXpath();
+            if (ruleXpath == null || ruleXpath.startsWith("//")) {
+                continue;
+            }
+            if (ruleXpath.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

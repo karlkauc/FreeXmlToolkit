@@ -367,9 +367,23 @@ class ProfiledXmlGeneratorServiceTest {
             System.out.println("Schema validation:     " + valMs + " ms");
             System.out.println("Schema valid:          " + validation.isValid());
             System.out.println("Validation errors:     " + validation.errors().size());
+            if (xml.length() < 5000) {
+                System.out.println("--- Generated XML ---");
+                System.out.println(xml);
+            }
             if (!validation.errors().isEmpty()) {
-                System.out.println("First 5 errors:");
-                validation.errors().stream().limit(5).forEach(e -> System.out.println("  " + e));
+                java.util.Map<String, Long> errorCategories = validation.errors().stream()
+                        .collect(java.util.stream.Collectors.groupingBy(
+                                e -> {
+                                    String normalized = e.message().replaceAll("'[^']*'", "'X'");
+                                    return normalized.length() > 100 ? normalized.substring(0, 100) : normalized;
+                                },
+                                java.util.stream.Collectors.counting()));
+                System.out.println("Error categories (top 15):");
+                errorCategories.entrySet().stream()
+                        .sorted(java.util.Map.Entry.<String, Long>comparingByValue().reversed())
+                        .limit(15)
+                        .forEach(e -> System.out.println(String.format("  %5d × %s", e.getValue(), e.getKey())));
             }
             System.out.println();
 
@@ -384,7 +398,11 @@ class ProfiledXmlGeneratorServiceTest {
                     "DataSupplier name from profile must appear in XML");
             assertTrue(xml.contains("EAM_FUND_003"), "UniqueDocumentID from profile must appear");
             assertTrue(xml.contains("2021-11-30"), "ContentDate from profile must appear");
-            assertTrue(xml.contains("UCITS"), "ListedLegalStructure from profile must appear");
+            assertTrue(xml.contains("DEMO BOND FUND"), "Fund name from profile must appear");
+
+            // Schema validity is the whole point of the profile after Phase-2 fixes.
+            assertTrue(validation.isValid(),
+                    "Generated XML must be schema-valid; got " + validation.errors().size() + " errors");
 
             // Performance budget: regex-cache fix + Phase-2 structural alignment with the
             // plain generator brought generation down from 10+ minutes (pre-fix) → 57s

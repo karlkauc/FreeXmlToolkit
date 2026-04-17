@@ -290,14 +290,13 @@ class GenerationProfileServiceTest {
             assertRulePresent(loaded.getRules(), "//DataSupplier/Name", "Erste Asset Management GmbH");
             assertRulePresent(loaded.getRules(), "/FundsXML4/Funds/Fund/Identifiers/LEI", "PQOH26KWDF7CG10L6792");
             assertRulePresent(loaded.getRules(), "/FundsXML4/ControlData/ContentDate", "2021-11-30");
-            assertRulePresent(loaded.getRules(), "/FundsXML4/Funds/Fund/FundStaticData/ListedLegalStructure", "UCITS");
+            assertRulePresent(loaded.getRules(), "/FundsXML4/Funds/Fund/Names/OfficialName", "DEMO BOND FUND");
 
-            // SEQUENCE rule for position IDs must use the proper pattern
-            XPathRule uniqueIdRule = loaded.getRules().stream()
-                    .filter(r -> "//Position/UniqueID".equals(r.getXpath()))
-                    .findFirst().orElseThrow();
-            assertEquals(GenerationStrategy.SEQUENCE, uniqueIdRule.getStrategy());
-            assertEquals("ID_{seq:8}", uniqueIdRule.getConfigValue("pattern"));
+            // Profile must be tuned for schema validity (mandatoryOnly + maxOccurrences=1)
+            assertTrue(loaded.isMandatoryOnly(),
+                    "Profile must use mandatoryOnly to keep output schema-valid");
+            assertEquals(1, loaded.getMaxOccurrences(),
+                    "Profile must use maxOccurrences=1 to avoid IDREF explosion");
         }
 
         private void assertRulePresent(List<XPathRule> rules, String xpath, String expectedValue) {
