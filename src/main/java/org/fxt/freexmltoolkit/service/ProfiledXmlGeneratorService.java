@@ -65,7 +65,29 @@ public class ProfiledXmlGeneratorService {
      */
     private static final ConcurrentHashMap<String, Pattern> WILDCARD_PATTERN_CACHE = new ConcurrentHashMap<>();
 
-    private final Random random = new Random();
+    private final Random random;
+
+    /**
+     * Creates a generator with a non-deterministic {@link Random} source. CHOICE
+     * selections and the CHOICE cardinality logic will differ across runs.
+     */
+    public ProfiledXmlGeneratorService() {
+        this.random = new Random();
+    }
+
+    /**
+     * Creates a generator seeded with a fixed value so CHOICE selection and the
+     * random cardinality picks become reproducible across runs. Useful for tests
+     * that want to assert on the generated structure.
+     *
+     * <p>Note: values supplied via {@link XsdSampleDataGenerator} (numeric samples,
+     * dates, enumeration picks when no enumeration filter applies) still draw from
+     * {@link java.util.concurrent.ThreadLocalRandom} and are not affected by this
+     * seed; structural reproducibility only covers CHOICE pathways.</p>
+     */
+    public ProfiledXmlGeneratorService(long seed) {
+        this.random = new Random(seed);
+    }
 
     /**
      * Generates a single XML document from an XSD schema using the given profile.
@@ -84,8 +106,16 @@ public class ProfiledXmlGeneratorService {
      */
     public String generate(GenerationProfile profile, XsdDocumentationData data, String xsdFilePath) {
         if (hasNoEffectiveRules(profile)) {
+            logger.debug("Profile '{}' has no effective rules; delegating to plain generator",
+                    profile != null ? profile.getName() : "<null>");
             return delegateToPlainGenerator(profile, xsdFilePath);
         }
+
+        logger.debug("Generating with profile '{}' ({} enabled rules, mandatoryOnly={}, maxOccurrences={})",
+                profile.getName(),
+                profile.getEnabledRules().size(),
+                profile.isMandatoryOnly(),
+                profile.getMaxOccurrences());
 
         XsdSampleDataGenerator sampleGenerator = new XsdSampleDataGenerator();
         setupTypeResolver(sampleGenerator, data);
@@ -121,6 +151,8 @@ public class ProfiledXmlGeneratorService {
 
         List<GeneratedFile> files = new ArrayList<>();
         int count = Math.max(1, profile.getBatchCount());
+        logger.info("Generating batch of {} files for profile '{}' ({} mode)",
+                count, profile.getName(), delegate ? "plain-delegation" : "profiled");
 
         for (int i = 0; i < count; i++) {
             String content;

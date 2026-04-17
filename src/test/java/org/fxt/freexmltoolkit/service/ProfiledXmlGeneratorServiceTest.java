@@ -319,6 +319,47 @@ class ProfiledXmlGeneratorServiceTest {
     }
 
     @Nested
+    @DisplayName("Seeded generator produces reproducible CHOICE selections")
+    class SeededGenerationTests {
+
+        @Test
+        @DisplayName("Two services with the same seed pick the same CHOICE option")
+        void sameSeedSameChoice() throws Exception {
+            File xsdFile = new File("src/test/resources/choiceTest.xsd");
+            assertTrue(xsdFile.exists());
+            String path = xsdFile.getAbsolutePath();
+            XsdDocumentationService docService = new XsdDocumentationService();
+            docService.setXsdFilePath(path);
+            docService.processXsd(false);
+            XsdDocumentationData localData = docService.xsdDocumentationData;
+
+            // With all-AUTO rules the profiled generator delegates to plain, so force
+            // a non-AUTO rule to keep the profiled CHOICE path active.
+            var profile = new GenerationProfile("SeededChoice");
+            profile.addRule(new XPathRule("/Order/OrderID", GenerationStrategy.FIXED,
+                    Map.of("value", "ORDER-1")));
+
+            var a = new ProfiledXmlGeneratorService(42L);
+            var b = new ProfiledXmlGeneratorService(42L);
+            String xmlA = a.generate(profile, localData, path);
+            String xmlB = b.generate(profile, localData, path);
+
+            // Extract which CHOICE option each one picked — must match.
+            String optA = extractChoiceOption(xmlA);
+            String optB = extractChoiceOption(xmlB);
+            assertEquals(optA, optB,
+                    "Same seed must produce the same CHOICE pick; got " + optA + " vs " + optB);
+        }
+
+        private String extractChoiceOption(String xml) {
+            for (String opt : new String[]{"CreditCard", "BankTransfer", "Cash", "Cheque"}) {
+                if (xml.contains("<" + opt + ">")) return opt;
+            }
+            return "<none>";
+        }
+    }
+
+    @Nested
     @DisplayName("Per-rule maxOccurrences override")
     class MaxOccurrencesOverrideTests {
 
