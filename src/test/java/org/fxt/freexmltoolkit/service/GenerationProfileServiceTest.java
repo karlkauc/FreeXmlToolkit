@@ -292,12 +292,20 @@ class GenerationProfileServiceTest {
             assertRulePresent(loaded.getRules(), "/FundsXML4/ControlData/ContentDate", "2021-11-30");
             assertRulePresent(loaded.getRules(), "/FundsXML4/Funds/Fund/Names/OfficialName", "DEMO BOND FUND");
 
-            // Portfolio / Position / Asset rules and matching IDREF/ID must be present
-            assertRulePresent(loaded.getRules(),
-                    "/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position/UniqueID",
-                    "ASSET_BOND_001");
-            assertRulePresent(loaded.getRules(),
-                    "/FundsXML4/AssetMasterData/Asset/UniqueID", "ASSET_BOND_001");
+            // Portfolio / Position / Asset rules and matching IDREF/ID must be present.
+            // Position/UniqueID and Asset/UniqueID use SEQUENCE so the counters align
+            // and each Position points at a corresponding Asset.
+            XPathRule positionId = loaded.getRules().stream()
+                    .filter(r -> r.getXpath() != null
+                            && r.getXpath().endsWith("/Positions/Position/UniqueID"))
+                    .findFirst().orElseThrow();
+            assertEquals(GenerationStrategy.SEQUENCE, positionId.getStrategy());
+            assertEquals("ASSET_BOND_{seq:3}", positionId.getConfigValue("pattern"));
+            XPathRule assetId = loaded.getRules().stream()
+                    .filter(r -> "/FundsXML4/AssetMasterData/Asset/UniqueID".equals(r.getXpath()))
+                    .findFirst().orElseThrow();
+            assertEquals(GenerationStrategy.SEQUENCE, assetId.getStrategy());
+            assertEquals("ASSET_BOND_{seq:3}", assetId.getConfigValue("pattern"));
             assertRulePresent(loaded.getRules(),
                     "/FundsXML4/AssetMasterData/Asset/AssetType", "BO");
 

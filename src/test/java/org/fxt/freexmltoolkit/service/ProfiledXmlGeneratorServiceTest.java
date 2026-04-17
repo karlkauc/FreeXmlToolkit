@@ -560,10 +560,17 @@ class ProfiledXmlGeneratorServiceTest {
             assertTrue(xml.contains("<Nominal>1000000</Nominal>"),
                     "Bond/Nominal FIXED value must appear");
 
-            // maxOccurrences override: profile requests 3 Positions via per-rule config
+            // maxOccurrences override: profile requests 3 Positions and 3 Assets
             long positionCount = xml.lines().filter(l -> l.contains("<Position>")).count();
+            long assetCount = xml.lines().filter(l -> l.contains("<Asset>")).count();
             assertEquals(3, positionCount,
                     "Per-rule maxOccurrences override must produce 3 Positions");
+            assertEquals(3, assetCount,
+                    "Per-rule maxOccurrences override must produce 3 Assets");
+
+            // SEQUENCE strategy yields unique but coordinated IDs for IDREF/ID linking
+            assertTrue(xml.contains("ASSET_BOND_002"), "Second sequential ID must appear");
+            assertTrue(xml.contains("ASSET_BOND_003"), "Third sequential ID must appear");
 
             // Schema validity is the whole point of the profile after Phase-2 fixes.
             assertTrue(validation.isValid(),

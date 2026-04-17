@@ -100,15 +100,22 @@
     },
     {
       "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position/UniqueID",
-      "strategy": "FIXED",
-      "config": {"value": "ASSET_BOND_001"},
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "ASSET_BOND_{seq:3}", "start": "1", "step": "1"},
       "priority": 10,
       "enabled": true
     },
     {
       "xpath": "/FundsXML4/AssetMasterData/Asset/UniqueID",
-      "strategy": "FIXED",
-      "config": {"value": "ASSET_BOND_001"},
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "ASSET_BOND_{seq:3}", "start": "1", "step": "1"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset",
+      "strategy": "AUTO",
+      "config": {"maxOccurrences": "3"},
       "priority": 10,
       "enabled": true
     },
