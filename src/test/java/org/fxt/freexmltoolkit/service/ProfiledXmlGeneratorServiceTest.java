@@ -319,6 +319,83 @@ class ProfiledXmlGeneratorServiceTest {
     }
 
     @Nested
+    @DisplayName("FundsXML Bond Fund profile end-to-end")
+    class BondFundIntegrationTests {
+
+        @Test
+        @DisplayName("Bond Fund profile generates schema-valid XML against FundsXML4.xsd in reasonable time")
+        void bondFundProfileGeneratesAgainstFundsXML4() throws Exception {
+            File xsdFile = new File("release/examples/xsd/FundsXML4.xsd");
+            File profileFile = new File("release/examples/profiles/FundsXML_Bond_Fund_EAM_Demo.json");
+            assertTrue(xsdFile.exists(), "FundsXML4.xsd must exist at " + xsdFile.getAbsolutePath());
+            assertTrue(profileFile.exists(), "Profile must exist at " + profileFile.getAbsolutePath());
+
+            // Load profile from disk
+            GenerationProfileService profileService =
+                    new GenerationProfileService(java.nio.file.Files.createTempDirectory("profile-test"));
+            GenerationProfile profile = profileService.importFromFile(profileFile);
+            assertNotNull(profile, "Profile must deserialize");
+
+            // Parse FundsXML4.xsd
+            long parseStart = System.nanoTime();
+            XsdDocumentationService docService = new XsdDocumentationService();
+            docService.setXsdFilePath(xsdFile.getAbsolutePath());
+            docService.processXsd(false);
+            long parseMs = (System.nanoTime() - parseStart) / 1_000_000;
+            XsdDocumentationData fundsXmlData = docService.xsdDocumentationData;
+            int elementCount = fundsXmlData.getExtendedXsdElementMap().size();
+
+            // Generate XML with the profile, measuring duration
+            ProfiledXmlGeneratorService gen = new ProfiledXmlGeneratorService();
+            long genStart = System.nanoTime();
+            String xml = gen.generate(profile, fundsXmlData, xsdFile.getAbsolutePath());
+            long genMs = (System.nanoTime() - genStart) / 1_000_000;
+
+            // Validate against schema
+            long valStart = System.nanoTime();
+            XsdDocumentationService.ValidationResult validation = docService.validateXmlAgainstSchema(xml);
+            long valMs = (System.nanoTime() - valStart) / 1_000_000;
+
+            // Diagnostics — visible in test output for performance tracking
+            System.out.println();
+            System.out.println("=== FundsXML Bond Fund profile generation ===");
+            System.out.println("XSD elements parsed:   " + elementCount);
+            System.out.println("XSD parse time:        " + parseMs + " ms");
+            System.out.println("Generation time:       " + genMs + " ms");
+            System.out.println("Generated XML size:    " + xml.length() + " chars (~"
+                    + (xml.length() / 1024) + " KB)");
+            System.out.println("Schema validation:     " + valMs + " ms");
+            System.out.println("Schema valid:          " + validation.isValid());
+            System.out.println("Validation errors:     " + validation.errors().size());
+            if (!validation.errors().isEmpty()) {
+                System.out.println("First 5 errors:");
+                validation.errors().stream().limit(5).forEach(e -> System.out.println("  " + e));
+            }
+            System.out.println();
+
+            // Hard assertions — fail loud if regression occurs
+            assertNotNull(xml, "Generation must produce XML");
+            assertTrue(xml.startsWith("<?xml version=\"1.0\""), "XML must have prolog");
+            assertTrue(xml.contains("FundsXML4"), "Root element must be FundsXML4");
+
+            // Profile fingerprint values must appear in the output
+            assertTrue(xml.contains("PQOH26KWDF7CG10L6792"), "LEI from profile must appear in XML");
+            assertTrue(xml.contains("Erste Asset Management GmbH"),
+                    "DataSupplier name from profile must appear in XML");
+            assertTrue(xml.contains("EAM_FUND_003"), "UniqueDocumentID from profile must appear");
+            assertTrue(xml.contains("2021-11-30"), "ContentDate from profile must appear");
+            assertTrue(xml.contains("UCITS"), "ListedLegalStructure from profile must appear");
+
+            // Performance budget: with the regex-cache fix the previous "10+ minute" runaway
+            // completes in ~60s on a developer machine. The generous 180s budget catches
+            // regressions where matchRule re-introduces per-call Pattern.compile() in the
+            // hot loop without being flaky on slower CI runners.
+            assertTrue(genMs < 180_000,
+                    "Generation must finish in under 180s, took " + genMs + " ms");
+        }
+    }
+
+    @Nested
     @DisplayName("All-AUTO delegation to plain generator")
     class AutoDelegationTests {
 
