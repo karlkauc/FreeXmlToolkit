@@ -572,6 +572,18 @@ class ProfiledXmlGeneratorServiceTest {
             assertTrue(xml.contains("ASSET_BOND_002"), "Second sequential ID must appear");
             assertTrue(xml.contains("ASSET_BOND_003"), "Third sequential ID must appear");
 
+            // Amount values come from AUTO (fresh per iteration) — three positions should
+            // have at least two distinct amounts. If all were identical, the generator
+            // was using cached displaySampleData instead of resolving per call.
+            java.util.regex.Matcher amountMatcher = java.util.regex.Pattern
+                    .compile("<Amount[^>]*>([^<]+)</Amount>").matcher(xml);
+            java.util.Set<String> amounts = new java.util.HashSet<>();
+            while (amountMatcher.find()) {
+                amounts.add(amountMatcher.group(1));
+            }
+            assertTrue(amounts.size() >= 2,
+                    "AUTO-valued Amount must vary across the three positions; saw " + amounts);
+
             // Schema validity is the whole point of the profile after Phase-2 fixes.
             assertTrue(validation.isValid(),
                     "Generated XML must be schema-valid; got " + validation.errors().size() + " errors");

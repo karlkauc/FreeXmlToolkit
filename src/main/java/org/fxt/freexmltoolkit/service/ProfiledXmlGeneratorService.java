@@ -484,7 +484,17 @@ public class ProfiledXmlGeneratorService {
             ValueStrategy strategy = strategyFactory.forStrategy(rule.getStrategy());
             value = strategy.resolve(element, rule.getConfig(), context);
         } else {
-            value = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
+            // Prefer the schema's fixed/default if present (those must stay constant),
+            // otherwise ask AutoValueStrategy for a fresh sample so values vary across
+            // repeat iterations instead of all positions showing the same amount.
+            String fixedOrDefault = getAttributeValue(element.getCurrentNode(), "fixed",
+                    getAttributeValue(element.getCurrentNode(), "default", null));
+            if (fixedOrDefault != null) {
+                value = fixedOrDefault;
+            } else {
+                ValueStrategy autoStrategy = strategyFactory.forStrategy(GenerationStrategy.AUTO);
+                value = autoStrategy.resolve(element, java.util.Collections.emptyMap(), context);
+            }
         }
 
         // Apply constraint tracking
