@@ -386,10 +386,11 @@ class ProfiledXmlGeneratorServiceTest {
             assertTrue(xml.contains("2021-11-30"), "ContentDate from profile must appear");
             assertTrue(xml.contains("UCITS"), "ListedLegalStructure from profile must appear");
 
-            // Performance budget: with the regex-cache fix the previous "10+ minute" runaway
-            // completes in ~60s on a developer machine. The generous 180s budget catches
-            // regressions where matchRule re-introduces per-call Pattern.compile() in the
-            // hot loop without being flaky on slower CI runners.
+            // Performance budget: regex-cache fix + Phase-2 structural alignment with the
+            // plain generator brought generation down from 10+ minutes (pre-fix) → 57s
+            // (regex cache) → ~30s (Phase 2: recursive wouldProduceEmptyContainer + plain's
+            // CHOICE cardinality). The generous 180s budget catches regressions in either
+            // direction without being flaky on slower CI runners.
             assertTrue(genMs < 180_000,
                     "Generation must finish in under 180s, took " + genMs + " ms");
         }

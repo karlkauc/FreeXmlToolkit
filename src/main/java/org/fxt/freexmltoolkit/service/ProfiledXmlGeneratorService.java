@@ -330,7 +330,7 @@ public class ProfiledXmlGeneratorService {
                     .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
                     .toList();
             if (!choiceOptions.isEmpty()) {
-                int repeatCount = calculateRepeatCount(element, mandatoryOnly, maxOccurrences);
+                int repeatCount = calculateChoiceRepeatCount(element, mandatoryOnly, maxOccurrences);
                 for (int i = 0; i < repeatCount; i++) {
                     XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
                     buildElement(sb, selected, profile, rules, elementMap, strategyFactory, context, constraintTracker, indentLevel);
@@ -640,7 +640,15 @@ public class ProfiledXmlGeneratorService {
         });
     }
 
-    private int calculateRepeatCount(XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences) {
+    /**
+     * Mirrors {@code XsdDocumentationService.processChildElementsForGeneration}'s CHOICE
+     * repeat logic so the profiled generator produces the same shape as the plain one.
+     * In non-mandatory mode an optional CHOICE (minOccurs=0) is randomly skipped or
+     * generated up to its bounded maximum; in mandatory mode it's emitted exactly
+     * minOccurs times. Without this alignment the profiled path emitted at least one
+     * instance of every optional CHOICE which inflated output by an order of magnitude.
+     */
+    private int calculateChoiceRepeatCount(XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences) {
         Node node = element.getCurrentNode();
         String minOccursStr = getAttributeValue(node, "minOccurs", "1");
         String maxOccursStr = getAttributeValue(node, "maxOccurs", "1");
@@ -652,25 +660,29 @@ public class ProfiledXmlGeneratorService {
             minOccurs = 1;
         }
 
-        if (mandatoryOnly && minOccurs == 0) {
-            return 0;
-        }
-
-        int maxOccurs;
+        int choiceMaxOccurs;
         if ("unbounded".equalsIgnoreCase(maxOccursStr)) {
-            maxOccurs = maxOccurrences;
+            choiceMaxOccurs = maxOccurrences;
         } else {
             try {
-                maxOccurs = Math.min(Integer.parseInt(maxOccursStr), maxOccurrences);
+                choiceMaxOccurs = Math.min(Integer.parseInt(maxOccursStr), maxOccurrences);
             } catch (NumberFormatException e) {
-                maxOccurs = 1;
+                choiceMaxOccurs = 1;
             }
         }
 
-        if (mandatoryOnly) {
-            return Math.max(1, minOccurs);
+        if (mandatoryOnly && minOccurs == 0) {
+            return 0;
         }
-        return Math.max(1, Math.min(maxOccurs, maxOccurrences));
+        if (mandatoryOnly) {
+            return minOccurs;
+        }
+
+        int effectiveMax = Math.min(choiceMaxOccurs, maxOccurrences);
+        if (minOccurs >= effectiveMax) {
+            return effectiveMax;
+        }
+        return minOccurs + random.nextInt(effectiveMax - minOccurs + 1);
     }
 
     private int calculateElementRepeatCount(XsdExtendedElement element, int maxOccurrences) {
@@ -688,23 +700,69 @@ public class ProfiledXmlGeneratorService {
         }
     }
 
+    /**
+     * Determines whether rendering this element would produce no content
+     * (no text and no rendered children). Mirrors
+     * {@code XsdDocumentationService.wouldProduceEmptyContainer} so the profiled
+     * generator agrees with the plain generator on which optional elements to
+     * skip — without this alignment the profiled path emits empty containers
+     * like {@code <BreakDowns/>} that the plain path correctly omits, producing
+     * thousands of {@code "content of element X is not complete"} validation
+     * errors against schemas like FundsXML.
+     *
+     * <p>Recurses through structural containers (SEQUENCE, CHOICE, ALL) and
+     * treats external-namespace references (e.g. {@code ds:Signature}) as
+     * non-empty so they remain in the output.</p>
+     */
     private boolean wouldProduceEmptyContainer(XsdExtendedElement element, boolean mandatoryOnly,
                                                 Map<String, XsdExtendedElement> elementMap) {
-        List<XsdExtendedElement> children = element.getChildren().stream()
+        if (element == null) {
+            return true;
+        }
+
+        // External namespace references render even without local children.
+        if (element.isExternalNamespaceReference()) {
+            return false;
+        }
+
+        // Has text content → not empty.
+        String sampleData = element.getDisplaySampleData();
+        if (sampleData != null && !sampleData.isEmpty()) {
+            return false;
+        }
+
+        List<XsdExtendedElement> childElements = element.getChildren().stream()
                 .map(elementMap::get)
                 .filter(Objects::nonNull)
                 .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
                 .toList();
 
-        if (children.isEmpty()) {
-            String sampleData = element.getDisplaySampleData();
-            return sampleData == null || sampleData.isEmpty();
+        if (childElements.isEmpty()) {
+            // No element children — only rendered if the element carries attributes.
+            boolean hasAttributes = element.getChildren().stream()
+                    .map(elementMap::get)
+                    .filter(Objects::nonNull)
+                    .anyMatch(e -> e.getElementName() != null && e.getElementName().startsWith("@"));
+            return !hasAttributes;
         }
 
-        if (mandatoryOnly) {
-            return children.stream().noneMatch(XsdExtendedElement::isMandatory);
+        for (XsdExtendedElement child : childElements) {
+            String childName = child.getElementName();
+            if (childName == null) {
+                continue;
+            }
+
+            if (childName.startsWith("SEQUENCE") || childName.startsWith("ALL") || childName.startsWith("CHOICE")) {
+                if (!wouldProduceEmptyContainer(child, mandatoryOnly, elementMap)) {
+                    return false;
+                }
+            } else if (!mandatoryOnly || child.isMandatory()) {
+                // A non-container child that would actually be rendered.
+                return false;
+            }
         }
-        return false;
+
+        return true;
     }
 
     private String getQualifiedName(XsdExtendedElement element) {
