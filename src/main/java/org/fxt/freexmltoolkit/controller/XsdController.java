@@ -1450,7 +1450,19 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
                 {
                     btn.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-x-circle"));
                     btn.setStyle("-fx-background-color: transparent; -fx-padding: 2;");
-                    btn.setOnAction(e -> rulesList.remove(getIndex()));
+                    btn.setOnAction(e -> {
+                        int idx = getIndex();
+                        if (idx < 0 || idx >= rulesList.size()) return;
+                        XPathRule removed = rulesList.remove(idx);
+                        String parentPath = removed.getXpath();
+                        if (parentPath != null && !parentPath.isBlank()) {
+                            String prefix = parentPath + "/";
+                            rulesList.removeIf(r -> {
+                                String xp = r.getXpath();
+                                return xp != null && xp.startsWith(prefix);
+                            });
+                        }
+                    });
                 }
                 @Override
                 protected void updateItem(Void item, boolean empty) {
