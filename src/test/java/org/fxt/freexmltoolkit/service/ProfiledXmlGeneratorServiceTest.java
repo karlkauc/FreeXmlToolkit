@@ -270,4 +270,162 @@ class ProfiledXmlGeneratorServiceTest {
             assertEquals("example_1.xml", service.resolveFileName("", 1));
         }
     }
+
+    @Nested
+    @DisplayName("hasNoEffectiveRules")
+    class HasNoEffectiveRulesTests {
+
+        @Test
+        @DisplayName("null profile is treated as no effective rules")
+        void nullProfile() {
+            assertTrue(ProfiledXmlGeneratorService.hasNoEffectiveRules(null));
+        }
+
+        @Test
+        @DisplayName("empty rules list is no effective rules")
+        void emptyRules() {
+            var profile = new GenerationProfile("E");
+            assertTrue(ProfiledXmlGeneratorService.hasNoEffectiveRules(profile));
+        }
+
+        @Test
+        @DisplayName("all enabled rules with AUTO strategy is no effective rules")
+        void allAutoEnabled() {
+            var profile = new GenerationProfile("AllAuto");
+            profile.addRule(new XPathRule("/a", GenerationStrategy.AUTO));
+            profile.addRule(new XPathRule("/b", GenerationStrategy.AUTO));
+            assertTrue(ProfiledXmlGeneratorService.hasNoEffectiveRules(profile));
+        }
+
+        @Test
+        @DisplayName("disabled non-AUTO rules count as no effective rules")
+        void disabledNonAutoIgnored() {
+            var profile = new GenerationProfile("Disabled");
+            var fixed = new XPathRule("/a", GenerationStrategy.FIXED, Map.of("value", "X"));
+            fixed.setEnabled(false);
+            profile.addRule(fixed);
+            profile.addRule(new XPathRule("/b", GenerationStrategy.AUTO));
+            assertTrue(ProfiledXmlGeneratorService.hasNoEffectiveRules(profile));
+        }
+
+        @Test
+        @DisplayName("at least one enabled non-AUTO rule means effective rules exist")
+        void enabledFixedTriggersProfiled() {
+            var profile = new GenerationProfile("Mixed");
+            profile.addRule(new XPathRule("/a", GenerationStrategy.AUTO));
+            profile.addRule(new XPathRule("/b", GenerationStrategy.FIXED, Map.of("value", "X")));
+            assertFalse(ProfiledXmlGeneratorService.hasNoEffectiveRules(profile));
+        }
+    }
+
+    @Nested
+    @DisplayName("All-AUTO delegation to plain generator")
+    class AutoDelegationTests {
+
+        @Test
+        @DisplayName("empty profile delegates to plain generator")
+        void emptyProfileDelegates() {
+            var spy = new SpyService();
+            var profile = new GenerationProfile("Empty");
+            String xml = spy.generate(profile, data, xsdFilePath);
+
+            assertEquals(1, spy.delegateCalls, "Empty profile must delegate exactly once");
+            assertNotNull(xml);
+            assertTrue(xml.startsWith("<?xml version=\"1.0\""));
+        }
+
+        @Test
+        @DisplayName("all-AUTO rules from auto-fill delegate to plain generator")
+        void allAutoRulesDelegate() {
+            var spy = new SpyService();
+            var profile = new GenerationProfile("AllAuto");
+            for (XPathInfo info : spy.extractXPaths(data)) {
+                profile.addRule(new XPathRule(info.xpath(), GenerationStrategy.AUTO));
+            }
+            String xml = spy.generate(profile, data, xsdFilePath);
+
+            assertEquals(1, spy.delegateCalls,
+                    "All-AUTO profile must delegate to plain generator exactly once");
+            assertNotNull(xml);
+            assertTrue(xml.contains("<order"));
+        }
+
+        @Test
+        @DisplayName("mandatoryOnly + maxOccurrences are passed through to plain generator")
+        void delegationPassesProfileSettings() {
+            var spy = new SpyService();
+            var profile = new GenerationProfile("MandatoryOnly");
+            profile.setMandatoryOnly(true);
+            profile.setMaxOccurrences(7);
+            spy.generate(profile, data, xsdFilePath);
+
+            assertEquals(1, spy.delegateCalls);
+            assertTrue(spy.lastDelegatedMandatoryOnly,
+                    "mandatoryOnly setting must be passed to plain generator");
+            assertEquals(7, spy.lastDelegatedMaxOccurrences,
+                    "maxOccurrences setting must be passed to plain generator");
+        }
+
+        @Test
+        @DisplayName("mixed AUTO + FIXED bypasses delegation and uses profiled path")
+        void mixedRulesUseProfiledPath() {
+            var spy = new SpyService();
+            var profile = new GenerationProfile("Mixed");
+            for (XPathInfo info : spy.extractXPaths(data)) {
+                profile.addRule(new XPathRule(info.xpath(), GenerationStrategy.AUTO));
+            }
+            profile.addRule(new XPathRule("/order/customer/country",
+                    GenerationStrategy.FIXED, Map.of("value", "AT")));
+            String xml = spy.generate(profile, data, xsdFilePath);
+
+            assertEquals(0, spy.delegateCalls,
+                    "Profile with FIXED rule must use profiled path, not delegate");
+            assertTrue(xml.contains("<country>AT</country>"),
+                    "FIXED rule must override AUTO and apply value AT");
+        }
+
+        @Test
+        @DisplayName("batch with all-AUTO delegates per file")
+        void batchAllAutoDelegatesPerFile() {
+            var spy = new SpyService();
+            var profile = new GenerationProfile("BatchAuto");
+            profile.setBatchCount(3);
+            var files = spy.generateBatch(profile, data, xsdFilePath);
+
+            assertEquals(3, files.size());
+            assertEquals(3, spy.delegateCalls,
+                    "Each batch entry must delegate to plain generator");
+        }
+
+        @Test
+        @DisplayName("batch with mixed rules uses profiled path")
+        void batchMixedUsesProfiledPath() {
+            var spy = new SpyService();
+            var profile = new GenerationProfile("BatchMixed");
+            profile.setBatchCount(2);
+            profile.addRule(new XPathRule("/order/customer/country",
+                    GenerationStrategy.FIXED, Map.of("value", "AT")));
+            var files = spy.generateBatch(profile, data, xsdFilePath);
+
+            assertEquals(2, files.size());
+            assertEquals(0, spy.delegateCalls,
+                    "Batch with non-AUTO rule must not delegate");
+            files.forEach(f -> assertTrue(f.content().contains("<country>AT</country>")));
+        }
+
+        /** Test spy that records delegation calls and the parameters passed. */
+        class SpyService extends ProfiledXmlGeneratorService {
+            int delegateCalls = 0;
+            boolean lastDelegatedMandatoryOnly;
+            int lastDelegatedMaxOccurrences;
+
+            @Override
+            String delegateToPlainGenerator(GenerationProfile profile, String xsdPath) {
+                delegateCalls++;
+                lastDelegatedMandatoryOnly = profile.isMandatoryOnly();
+                lastDelegatedMaxOccurrences = profile.getMaxOccurrences();
+                return super.delegateToPlainGenerator(profile, xsdPath);
+            }
+        }
+    }
 }

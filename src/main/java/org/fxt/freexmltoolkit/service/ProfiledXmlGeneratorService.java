@@ -60,12 +60,23 @@ public class ProfiledXmlGeneratorService {
     /**
      * Generates a single XML document from an XSD schema using the given profile.
      *
-     * @param profile the generation profile with rules and settings
-     * @param data    the parsed XSD documentation data
+     * <p>When the profile has no enabled non-AUTO rules, generation is delegated to the
+     * plain {@link XsdDocumentationService#generateSampleXml(boolean, int)} so that the
+     * "all AUTO" case is byte-equivalent to running without any profile. This avoids
+     * structural divergences between the two generators (CHOICE cardinality, empty-container
+     * detection, external-namespace handling) that otherwise compound across deeply
+     * nested schemas like FundsXML.</p>
+     *
+     * @param profile     the generation profile with rules and settings
+     * @param data        the parsed XSD documentation data
      * @param xsdFilePath the path to the XSD file (for schema location reference)
      * @return the generated XML as a string
      */
     public String generate(GenerationProfile profile, XsdDocumentationData data, String xsdFilePath) {
+        if (hasNoEffectiveRules(profile)) {
+            return delegateToPlainGenerator(profile, xsdFilePath);
+        }
+
         XsdSampleDataGenerator sampleGenerator = new XsdSampleDataGenerator();
         setupTypeResolver(sampleGenerator, data);
         ValueStrategyFactory strategyFactory = new ValueStrategyFactory(sampleGenerator);
@@ -77,30 +88,73 @@ public class ProfiledXmlGeneratorService {
     /**
      * Generates multiple XML documents in batch mode.
      *
-     * @param profile the generation profile with rules, batch count, and file name pattern
-     * @param data    the parsed XSD documentation data
+     * <p>When the profile has no enabled non-AUTO rules, each batch entry is produced via
+     * the plain generator (see {@link #generate(GenerationProfile, XsdDocumentationData, String)}).</p>
+     *
+     * @param profile     the generation profile with rules, batch count, and file name pattern
+     * @param data        the parsed XSD documentation data
      * @param xsdFilePath the path to the XSD file
      * @return list of generated files with names and content
      */
     public List<GeneratedFile> generateBatch(GenerationProfile profile, XsdDocumentationData data, String xsdFilePath) {
-        XsdSampleDataGenerator sampleGenerator = new XsdSampleDataGenerator();
-        setupTypeResolver(sampleGenerator, data);
-        ValueStrategyFactory strategyFactory = new ValueStrategyFactory(sampleGenerator);
-        GenerationContext context = new GenerationContext();
+        boolean delegate = hasNoEffectiveRules(profile);
+        XsdSampleDataGenerator sampleGenerator = null;
+        ValueStrategyFactory strategyFactory = null;
+        GenerationContext context = null;
+
+        if (!delegate) {
+            sampleGenerator = new XsdSampleDataGenerator();
+            setupTypeResolver(sampleGenerator, data);
+            strategyFactory = new ValueStrategyFactory(sampleGenerator);
+            context = new GenerationContext();
+        }
 
         List<GeneratedFile> files = new ArrayList<>();
         int count = Math.max(1, profile.getBatchCount());
 
         for (int i = 0; i < count; i++) {
-            if (i > 0) {
-                context.resetForNewFile();
+            String content;
+            if (delegate) {
+                content = delegateToPlainGenerator(profile, xsdFilePath);
+            } else {
+                if (i > 0) {
+                    context.resetForNewFile();
+                }
+                content = buildXmlDocument(profile, data, xsdFilePath, strategyFactory, context);
             }
-            String content = buildXmlDocument(profile, data, xsdFilePath, strategyFactory, context);
             String fileName = resolveFileName(profile.getFileNamePattern(), i + 1);
             files.add(new GeneratedFile(fileName, content));
         }
 
         return files;
+    }
+
+    /**
+     * Returns {@code true} if the profile has no rules that would affect generation,
+     * i.e. the rules list is empty or all enabled rules use {@link GenerationStrategy#AUTO}
+     * (which means "use default behavior"). In this case the profiled generator should
+     * delegate to the plain generator to avoid structural divergence.
+     */
+    static boolean hasNoEffectiveRules(GenerationProfile profile) {
+        if (profile == null) {
+            return true;
+        }
+        return profile.getEnabledRules().stream()
+                .allMatch(r -> r.getStrategy() == GenerationStrategy.AUTO);
+    }
+
+    /**
+     * Delegates XML generation to {@link XsdDocumentationService#generateSampleXml(boolean, int)}
+     * using the profile's mandatoryOnly and maxOccurrences settings. The plain generator
+     * performs its own XSD parsing internally, so no shared state with the profiled path
+     * is required.
+     *
+     * <p>Visible for testing so subclasses can verify that delegation occurred.</p>
+     */
+    String delegateToPlainGenerator(GenerationProfile profile, String xsdFilePath) {
+        XsdDocumentationService docService = new XsdDocumentationService();
+        docService.setXsdFilePath(xsdFilePath);
+        return docService.generateSampleXml(profile.isMandatoryOnly(), profile.getMaxOccurrences());
     }
 
     /**
