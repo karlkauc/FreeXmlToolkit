@@ -319,6 +319,77 @@ class ProfiledXmlGeneratorServiceTest {
     }
 
     @Nested
+    @DisplayName("CHOICE selection via rule preference")
+    class ChoiceSelectionTests {
+
+        private ProfiledXmlGeneratorService choiceService;
+        private XsdDocumentationData choiceData;
+        private String choiceXsdPath;
+
+        @BeforeEach
+        void setUpChoice() throws Exception {
+            choiceService = new ProfiledXmlGeneratorService();
+            File xsdFile = new File("src/test/resources/choiceTest.xsd");
+            assertTrue(xsdFile.exists(), "choiceTest.xsd must exist");
+            choiceXsdPath = xsdFile.getAbsolutePath();
+            XsdDocumentationService docService = new XsdDocumentationService();
+            docService.setXsdFilePath(choiceXsdPath);
+            docService.processXsd(false);
+            choiceData = docService.xsdDocumentationData;
+        }
+
+        @Test
+        @DisplayName("FIXED rule under one CHOICE option steers selection to that option")
+        void fixedRuleStearsChoiceSelection() {
+            var profile = new GenerationProfile("SteeredChoice");
+            profile.addRule(new XPathRule("/Order/BankTransfer",
+                    GenerationStrategy.FIXED, Map.of("value", "DE89...")));
+
+            // Run multiple times — with random fallback we'd sometimes pick other options;
+            // with preference the rule-targeted option must be chosen every time.
+            for (int i = 0; i < 20; i++) {
+                String xml = choiceService.generate(profile, choiceData, choiceXsdPath);
+                assertTrue(xml.contains("<BankTransfer>DE89...</BankTransfer>"),
+                        "Iteration " + i + " must select BankTransfer, got: " + xml);
+                assertFalse(xml.contains("<CreditCard>"), "CreditCard must not appear");
+                assertFalse(xml.contains("<Cash>"), "Cash must not appear");
+                assertFalse(xml.contains("<Cheque>"), "Cheque must not appear");
+            }
+        }
+
+        @Test
+        @DisplayName("Descendant rule //name/field also steers CHOICE selection")
+        void descendantRuleStearsChoice() {
+            var profile = new GenerationProfile("DescendantChoice");
+            profile.addRule(new XPathRule("//CreditCard",
+                    GenerationStrategy.FIXED, Map.of("value", "4111-1111-1111-1111")));
+
+            for (int i = 0; i < 20; i++) {
+                String xml = choiceService.generate(profile, choiceData, choiceXsdPath);
+                assertTrue(xml.contains("<CreditCard>4111-1111-1111-1111</CreditCard>"),
+                        "Descendant rule //CreditCard must force CreditCard selection");
+                assertFalse(xml.contains("<BankTransfer>"));
+            }
+        }
+
+        @Test
+        @DisplayName("No rule means random selection across all options")
+        void noRuleMeansRandom() {
+            var profile = new GenerationProfile("RandomChoice");
+            java.util.Set<String> seenOptions = new java.util.HashSet<>();
+            for (int i = 0; i < 40; i++) {
+                String xml = choiceService.generate(profile, choiceData, choiceXsdPath);
+                if (xml.contains("<CreditCard>")) seenOptions.add("CreditCard");
+                if (xml.contains("<BankTransfer>")) seenOptions.add("BankTransfer");
+                if (xml.contains("<Cash>")) seenOptions.add("Cash");
+                if (xml.contains("<Cheque>")) seenOptions.add("Cheque");
+            }
+            assertTrue(seenOptions.size() >= 2,
+                    "Without rule preference, multiple options should appear across runs; saw " + seenOptions);
+        }
+    }
+
+    @Nested
     @DisplayName("FundsXML Bond Fund profile end-to-end")
     class BondFundIntegrationTests {
 
@@ -409,6 +480,10 @@ class ProfiledXmlGeneratorServiceTest {
                     "Position/UniqueID IDREF must resolve to Asset/UniqueID ID");
             assertTrue(xml.contains("DEMO BOND 2030"), "Asset name must appear");
             assertTrue(xml.contains("<AssetType>BO</AssetType>"), "Bond AssetType must appear");
+            assertTrue(xml.contains("<Bond>"),
+                    "Rule-driven CHOICE must select Bond subtype for Position");
+            assertTrue(xml.contains("<Nominal>1000000</Nominal>"),
+                    "Bond/Nominal FIXED value must appear");
 
             // Schema validity is the whole point of the profile after Phase-2 fixes.
             assertTrue(validation.isValid(),

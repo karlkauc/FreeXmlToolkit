@@ -335,8 +335,15 @@ public class ProfiledXmlGeneratorService {
                     .toList();
             if (!choiceOptions.isEmpty()) {
                 int repeatCount = calculateChoiceRepeatCount(element, mandatoryOnly, maxOccurrences);
+                // Prefer options whose subtree contains an enabled non-AUTO rule so users
+                // can steer CHOICE selection by adding rules for the option they want
+                // (e.g. FIXED rules on Bond/Nominal → generator picks Bond, not Future).
+                List<XsdExtendedElement> preferred = choiceOptions.stream()
+                        .filter(opt -> hasRuleInSubtree(opt, rules))
+                        .toList();
+                List<XsdExtendedElement> selectionPool = preferred.isEmpty() ? choiceOptions : preferred;
                 for (int i = 0; i < repeatCount; i++) {
-                    XsdExtendedElement selected = choiceOptions.get(random.nextInt(choiceOptions.size()));
+                    XsdExtendedElement selected = selectionPool.get(random.nextInt(selectionPool.size()));
                     buildElement(sb, selected, profile, rules, elementMap, strategyFactory, context, constraintTracker, indentLevel);
                 }
             }
@@ -537,6 +544,53 @@ public class ProfiledXmlGeneratorService {
                 continue;
             }
             if (ruleXpath.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if any enabled non-AUTO rule targets this element or anything
+     * in its subtree. Used to steer CHOICE selection — the option with rules in its
+     * subtree is the one the user wants, so we prefer it over random selection.
+     *
+     * <p>Unlike {@link #hasDescendantRule} this also honours {@code //name} descendant
+     * patterns: a rule like {@code //Bond/Nominal} is considered to match the {@code Bond}
+     * CHOICE option even though we don't know the full ancestor path.</p>
+     */
+    static boolean hasRuleInSubtree(XsdExtendedElement element, List<XPathRule> rules) {
+        if (element == null || rules == null || rules.isEmpty()) {
+            return false;
+        }
+        String xpath = element.getCurrentXpath();
+        String name = element.getElementName();
+        if (xpath == null && name == null) {
+            return false;
+        }
+        String stripped = xpath != null ? stripContainers(xpath) : null;
+        String prefix = stripped != null ? stripped + "/" : null;
+        for (XPathRule rule : rules) {
+            if (rule == null || !rule.isEnabled() || rule.getStrategy() == GenerationStrategy.AUTO) {
+                continue;
+            }
+            String ruleXpath = rule.getXpath();
+            if (ruleXpath == null) {
+                continue;
+            }
+            if (ruleXpath.startsWith("//")) {
+                // Descendant pattern: consider it a match if the first segment after //
+                // is the element name or appears anywhere in the path to the target.
+                if (name != null) {
+                    String tail = ruleXpath.substring(2); // strip leading //
+                    String firstSegment = tail.contains("/") ? tail.substring(0, tail.indexOf('/')) : tail;
+                    if (name.equals(firstSegment)) {
+                        return true;
+                    }
+                }
+                continue;
+            }
+            if (stripped != null && (ruleXpath.equals(stripped) || ruleXpath.startsWith(prefix))) {
                 return true;
             }
         }

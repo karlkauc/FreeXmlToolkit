@@ -139,6 +139,13 @@
       "config": {"value": "EUR"},
       "priority": 5,
       "enabled": true
+    },
+    {
+      "xpath": "//Bond/Nominal",
+      "strategy": "FIXED",
+      "config": {"value": "1000000"},
+      "priority": 10,
+      "enabled": true
     }
   ]
 }
