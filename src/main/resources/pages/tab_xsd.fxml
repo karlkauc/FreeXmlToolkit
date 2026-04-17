@@ -517,6 +517,13 @@
                                 <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
                             </graphic>
                         </Button>
+                        <Button fx:id="cancelSampleDataButton" onAction="#handleCancelSampleDataGeneration"
+                                text="Cancel" disable="true">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
+                            </graphic>
+                            <tooltip><Tooltip text="Cancel running XML generation"/></tooltip>
+                        </Button>
                         <Button fx:id="validateGeneratedXmlButton" onAction="#validateGeneratedXmlAction"
                                 text="Validate" disable="true">
                             <graphic>

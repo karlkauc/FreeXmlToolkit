@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
@@ -54,6 +55,15 @@ public class ProfiledXmlGeneratorService {
     private static final Logger logger = LogManager.getLogger(ProfiledXmlGeneratorService.class);
     private static final Pattern WILDCARD_INDEX = Pattern.compile("\\[\\*]");
     private static final Pattern CONTAINER_SEGMENT = Pattern.compile("/(SEQUENCE|CHOICE|ALL)_?\\d*");
+
+    /**
+     * Cache of compiled regex patterns for rule XPaths that contain {@code [*]} wildcards.
+     * Without this cache, {@link #xpathMatches(String, String, String)} would call
+     * {@link String#matches(String)} which compiles a fresh {@link Pattern} on every call —
+     * with N rules and M elements that becomes O(N*M) regex compilations and dominates
+     * generation time for large schemas like FundsXML.
+     */
+    private static final ConcurrentHashMap<String, Pattern> WILDCARD_PATTERN_CACHE = new ConcurrentHashMap<>();
 
     private final Random random = new Random();
 
@@ -271,6 +281,9 @@ public class ProfiledXmlGeneratorService {
                                List<XPathRule> rules, Map<String, XsdExtendedElement> elementMap,
                                ValueStrategyFactory strategyFactory, GenerationContext context,
                                IdentityConstraintTracker constraintTracker, int indentLevel) {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new java.util.concurrent.CancellationException("XML generation cancelled");
+        }
         if (element == null) {
             return;
         }
@@ -463,11 +476,17 @@ public class ProfiledXmlGeneratorService {
     /**
      * Matches a current XPath against the list of rules.
      * Priority order: highest priority value wins; on tie, most specific path wins.
+     *
+     * <p>{@link #stripContainers(String)} is called once per invocation and the result is
+     * threaded into {@link #xpathMatches(String, String, String)} so each rule check does
+     * not re-strip the same path.</p>
      */
     Optional<XPathRule> matchRule(String currentXPath, List<XPathRule> rules) {
         if (currentXPath == null || rules == null || rules.isEmpty()) {
             return Optional.empty();
         }
+
+        String stripped = stripContainers(currentXPath);
 
         XPathRule bestMatch = null;
         int bestSpecificity = -1;
@@ -476,7 +495,7 @@ public class ProfiledXmlGeneratorService {
             if (!rule.isEnabled() || rule.getStrategy() == GenerationStrategy.AUTO) {
                 continue;
             }
-            if (xpathMatches(currentXPath, rule.getXpath())) {
+            if (xpathMatches(currentXPath, stripped, rule.getXpath())) {
                 int specificity = calculateSpecificity(rule.getXpath());
                 if (bestMatch == null
                         || rule.getPriority() > bestMatch.getPriority()
@@ -491,18 +510,31 @@ public class ProfiledXmlGeneratorService {
     }
 
     /**
-     * Checks if a current XPath matches a rule XPath pattern.
-     * Supports exact match, wildcard [*], and descendant // patterns.
-     * Structural containers (SEQUENCE_N, CHOICE_N, ALL_N) in the current XPath
-     * are stripped before matching so users don't need to know about them.
+     * Backwards-compatible single-arg form for tests and external callers. Computes
+     * {@code stripped} on the fly; prefer {@link #xpathMatches(String, String, String)}
+     * inside the rule loop where {@code stripped} can be computed once.
      */
     static boolean xpathMatches(String currentXPath, String ruleXPath) {
         if (currentXPath == null || ruleXPath == null) {
             return false;
         }
+        return xpathMatches(currentXPath, stripContainers(currentXPath), ruleXPath);
+    }
 
-        // Strip structural containers from the current XPath
-        String stripped = stripContainers(currentXPath);
+    /**
+     * Checks if a current XPath matches a rule XPath pattern.
+     * Supports exact match, wildcard {@code [*]}, and descendant {@code //} patterns.
+     * Structural containers (SEQUENCE_N, CHOICE_N, ALL_N) in the current XPath
+     * are stripped before matching so users don't need to know about them.
+     *
+     * <p>For exact-path rules and descendant rules, no regex is compiled. For wildcard
+     * rules the compiled {@link Pattern} is cached in {@link #WILDCARD_PATTERN_CACHE}
+     * to avoid repeated compilation.</p>
+     */
+    static boolean xpathMatches(String currentXPath, String stripped, String ruleXPath) {
+        if (currentXPath == null || ruleXPath == null) {
+            return false;
+        }
 
         // Exact match (against stripped path)
         if (stripped.equals(ruleXPath) || currentXPath.equals(ruleXPath)) {
@@ -517,12 +549,19 @@ public class ProfiledXmlGeneratorService {
                     || stripped.contains(suffix + "[");
         }
 
-        // Wildcard match: /order/item[*]/sku matches /order/item[1]/sku, /order/item[2]/sku, etc.
-        String regexPattern = WILDCARD_INDEX.matcher(Pattern.quote(ruleXPath))
-                .replaceAll("\\\\E\\\\[\\\\d+\\\\]\\\\Q");
-        // Clean up empty \Q\E sequences
-        regexPattern = regexPattern.replace("\\Q\\E", "");
-        return stripped.matches(regexPattern) || currentXPath.matches(regexPattern);
+        // No wildcard and no exact match → no possible match (skip regex compilation entirely)
+        if (!ruleXPath.contains("[*]")) {
+            return false;
+        }
+
+        // Wildcard match: /order/item[*]/sku matches /order/item[1]/sku, etc.
+        Pattern pattern = WILDCARD_PATTERN_CACHE.computeIfAbsent(ruleXPath, rx -> {
+            String regex = WILDCARD_INDEX.matcher(Pattern.quote(rx))
+                    .replaceAll("\\\\E\\\\[\\\\d+\\\\]\\\\Q");
+            regex = regex.replace("\\Q\\E", "");
+            return Pattern.compile(regex);
+        });
+        return pattern.matcher(stripped).matches() || pattern.matcher(currentXPath).matches();
     }
 
     /**

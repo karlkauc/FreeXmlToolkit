@@ -2253,6 +2253,9 @@ public class XsdDocumentationService {
      * Builds XML element content without the root element tags (for schema-referenced XML).
      */
     private void buildXmlElementContent(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel, IdentityConstraintTracker constraintTracker) {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new java.util.concurrent.CancellationException("XML generation cancelled");
+        }
         if (element == null || (mandatoryOnly && !element.isMandatory())) {
             return;
         }

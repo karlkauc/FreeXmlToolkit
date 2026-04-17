@@ -135,9 +135,13 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
     @FXML
     private Button generateSampleDataButton;
     @FXML
+    private Button cancelSampleDataButton;
+    @FXML
     private Button validateGeneratedXmlButton;
     @FXML
     private Button exportValidationErrorsButton;
+
+    private Task<String> currentGenerationTask;
     @FXML
     private org.kordamp.ikonli.javafx.FontIcon sampleDataValidationIcon;
     @FXML
@@ -914,8 +918,19 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
             }
         };
 
+        currentGenerationTask = generationTask;
+        if (cancelSampleDataButton != null) {
+            cancelSampleDataButton.setDisable(false);
+        }
+        if (generateSampleDataButton != null) {
+            generateSampleDataButton.setDisable(true);
+        }
+
         generationTask.setOnSucceeded(event -> {
             progressSampleData.setVisible(false);
+            if (cancelSampleDataButton != null) cancelSampleDataButton.setDisable(true);
+            if (generateSampleDataButton != null) generateSampleDataButton.setDisable(false);
+            currentGenerationTask = null;
             String resultXml = generationTask.getValue();
 
             sampleDataTextArea.replaceText(resultXml);
@@ -970,7 +985,15 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
 
         generationTask.setOnFailed(event -> {
             progressSampleData.setVisible(false);
+            if (cancelSampleDataButton != null) cancelSampleDataButton.setDisable(true);
+            if (generateSampleDataButton != null) generateSampleDataButton.setDisable(false);
+            currentGenerationTask = null;
             Throwable e = generationTask.getException();
+            if (e instanceof java.util.concurrent.CancellationException
+                    || (e != null && e.getCause() instanceof java.util.concurrent.CancellationException)) {
+                if (statusText != null) statusText.setText("Sample XML generation cancelled.");
+                return;
+            }
             logger.error("Failed to generate sample XML data.", e);
             if (statusText != null) statusText.setText("Error generating sample XML.");
             if (e instanceof Exception ex) {
@@ -980,7 +1003,23 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
             }
         });
 
+        generationTask.setOnCancelled(event -> {
+            progressSampleData.setVisible(false);
+            if (cancelSampleDataButton != null) cancelSampleDataButton.setDisable(true);
+            if (generateSampleDataButton != null) generateSampleDataButton.setDisable(false);
+            currentGenerationTask = null;
+            if (statusText != null) statusText.setText("Sample XML generation cancelled.");
+        });
+
         executeTask(generationTask);
+    }
+
+    @FXML
+    public void handleCancelSampleDataGeneration() {
+        if (currentGenerationTask != null && !currentGenerationTask.isDone()) {
+            currentGenerationTask.cancel(true);
+            if (statusText != null) statusText.setText("Cancelling generation...");
+        }
     }
 
     private GenerationProfile buildProfileFromUI() {
