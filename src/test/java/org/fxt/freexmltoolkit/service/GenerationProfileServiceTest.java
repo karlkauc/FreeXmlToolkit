@@ -292,6 +292,15 @@ class GenerationProfileServiceTest {
             assertRulePresent(loaded.getRules(), "/FundsXML4/ControlData/ContentDate", "2021-11-30");
             assertRulePresent(loaded.getRules(), "/FundsXML4/Funds/Fund/Names/OfficialName", "DEMO BOND FUND");
 
+            // Portfolio / Position / Asset rules and matching IDREF/ID must be present
+            assertRulePresent(loaded.getRules(),
+                    "/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position/UniqueID",
+                    "ASSET_BOND_001");
+            assertRulePresent(loaded.getRules(),
+                    "/FundsXML4/AssetMasterData/Asset/UniqueID", "ASSET_BOND_001");
+            assertRulePresent(loaded.getRules(),
+                    "/FundsXML4/AssetMasterData/Asset/AssetType", "BO");
+
             // Profile must be tuned for schema validity (mandatoryOnly + maxOccurrences=1)
             assertTrue(loaded.isMandatoryOnly(),
                     "Profile must use mandatoryOnly to keep output schema-valid");

@@ -400,6 +400,16 @@ class ProfiledXmlGeneratorServiceTest {
             assertTrue(xml.contains("2021-11-30"), "ContentDate from profile must appear");
             assertTrue(xml.contains("DEMO BOND FUND"), "Fund name from profile must appear");
 
+            // Portfolio / Position / AssetMasterData must be generated and cross-linked
+            assertTrue(xml.contains("<Portfolio>"), "Portfolio must be generated");
+            assertTrue(xml.contains("<Position>"), "Position must be generated");
+            assertTrue(xml.contains("<AssetMasterData>"), "AssetMasterData must be generated");
+            assertTrue(xml.contains("<Asset>"), "Asset must be generated");
+            assertTrue(xml.contains("ASSET_BOND_001"),
+                    "Position/UniqueID IDREF must resolve to Asset/UniqueID ID");
+            assertTrue(xml.contains("DEMO BOND 2030"), "Asset name must appear");
+            assertTrue(xml.contains("<AssetType>BO</AssetType>"), "Bond AssetType must appear");
+
             // Schema validity is the whole point of the profile after Phase-2 fixes.
             assertTrue(validation.isValid(),
                     "Generated XML must be schema-valid; got " + validation.errors().size() + " errors");

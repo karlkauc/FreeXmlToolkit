@@ -1,6 +1,6 @@
 {
   "name": "FundsXML Bond Fund EAM Demo",
-  "description": "Generates a schema-valid FundsXML4 instance modelled on release/examples/xml/FundsXML_422_Bond_Fund.xml. Uses mandatoryOnly=true and maxOccurrences=1 to keep the output minimal and avoid optional sections that contain unresolvable IDREF chains. FIXED rules supply the Erste Asset Management identifiers (LEI, name, email), ContentDate 2021-11-30, EUR currency, INITIAL operation and UCITS legal structure so the result reads as a real EAM bond fund snapshot.",
+  "description": "Generates a schema-valid FundsXML4 instance modelled on release/examples/xml/FundsXML_422_Bond_Fund.xml. Produces ControlData with the Erste Asset Management identifiers, a Funds/Fund entry with LEI/name/currency, a Portfolio with one Position, and an AssetMasterData entry whose UniqueID matches the Position's IDREF. Uses mandatoryOnly=true and maxOccurrences=1 to keep the output minimal and deterministic.",
   "schemaFile": "FundsXML4.xsd",
   "batchCount": 1,
   "fileNamePattern": "FundsXML_Bond_Fund_{seq:3}.xml",
@@ -64,13 +64,6 @@
       "enabled": true
     },
     {
-      "xpath": "//DataSupplier/Contact/Email",
-      "strategy": "FIXED",
-      "config": {"value": "datamanagement@erste-am.com"},
-      "priority": 5,
-      "enabled": true
-    },
-    {
       "xpath": "/FundsXML4/Funds/Fund/Identifiers/LEI",
       "strategy": "FIXED",
       "config": {"value": "PQOH26KWDF7CG10L6792"},
@@ -96,6 +89,55 @@
       "strategy": "FIXED",
       "config": {"value": "true"},
       "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio/NavDate",
+      "strategy": "FIXED",
+      "config": {"value": "2021-11-30"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio/Positions/Position/UniqueID",
+      "strategy": "FIXED",
+      "config": {"value": "ASSET_BOND_001"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/UniqueID",
+      "strategy": "FIXED",
+      "config": {"value": "ASSET_BOND_001"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/Currency",
+      "strategy": "FIXED",
+      "config": {"value": "EUR"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/Name",
+      "strategy": "FIXED",
+      "config": {"value": "DEMO BOND 2030"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetType",
+      "strategy": "FIXED",
+      "config": {"value": "BO"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "//Amount/@ccy",
+      "strategy": "FIXED",
+      "config": {"value": "EUR"},
+      "priority": 5,
       "enabled": true
     }
   ]
