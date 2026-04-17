@@ -465,6 +465,19 @@
                                 </graphic>
                                 <tooltip><Tooltip text="Delete selected profile"/></tooltip>
                             </Button>
+                            <Separator orientation="VERTICAL"/>
+                            <Button onAction="#handleImportProfile" text="Import...">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-upload" iconSize="16" iconColor="#28a745"/>
+                                </graphic>
+                                <tooltip><Tooltip text="Import profile from JSON file"/></tooltip>
+                            </Button>
+                            <Button onAction="#handleExportProfile" text="Export...">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-download" iconSize="16"/>
+                                </graphic>
+                                <tooltip><Tooltip text="Export current profile to JSON file"/></tooltip>
+                            </Button>
                         </HBox>
 
                         <Label text="Settings:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>

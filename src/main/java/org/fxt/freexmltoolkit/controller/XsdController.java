@@ -1082,6 +1082,70 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
     }
 
     @FXML
+    public void handleImportProfile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Import Generation Profile");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Profile JSON", "*.json"));
+        File file = fileChooser.showOpenDialog(null);
+        if (file == null) {
+            return;
+        }
+        try {
+            GenerationProfile imported = GenerationProfileService.getInstance().importFromFile(file);
+            if (imported == null || imported.getName() == null || imported.getName().isBlank()) {
+                DialogHelper.showError("Import Profile", "Invalid Profile",
+                        "The selected file does not contain a valid profile (missing name).");
+                return;
+            }
+            GenerationProfileService.getInstance().save(imported);
+            currentProfile = imported;
+            rulesList.setAll(imported.getRules());
+            mandatoryOnlyCheckBox.setSelected(imported.isMandatoryOnly());
+            maxOccurrencesSpinner.getValueFactory().setValue(imported.getMaxOccurrences());
+            if (batchCountSpinner != null) {
+                batchCountSpinner.getValueFactory().setValue(imported.getBatchCount());
+            }
+            if (fileNamePatternField != null && imported.getFileNamePattern() != null) {
+                fileNamePatternField.setText(imported.getFileNamePattern());
+            }
+            loadProfileList();
+            profileComboBox.setValue(imported.getName());
+            if (statusText != null) statusText.setText("Profile '" + imported.getName() + "' imported.");
+        } catch (IOException e) {
+            logger.error("Failed to import profile from {}", file, e);
+            DialogHelper.showError("Import Profile", "Import Failed",
+                    "Could not import profile: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    public void handleExportProfile() {
+        if (currentProfile == null) {
+            DialogHelper.showError("Export Profile", "No Profile Selected",
+                    "Please select or save a profile first.");
+            return;
+        }
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Generation Profile");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Profile JSON", "*.json"));
+        fileChooser.setInitialFileName(currentProfile.getName().replaceAll("[^a-zA-Z0-9_\\-]", "_") + ".json");
+        File file = fileChooser.showSaveDialog(null);
+        if (file == null) {
+            return;
+        }
+        try {
+            GenerationProfile snapshot = buildProfileFromUI();
+            snapshot.setName(currentProfile.getName());
+            GenerationProfileService.getInstance().exportToFile(snapshot, file);
+            if (statusText != null) statusText.setText("Profile '" + snapshot.getName() + "' exported to " + file.getName() + ".");
+        } catch (IOException e) {
+            logger.error("Failed to export profile to {}", file, e);
+            DialogHelper.showError("Export Profile", "Export Failed",
+                    "Could not export profile: " + e.getMessage());
+        }
+    }
+
+    @FXML
     public void handleProfileSelection() {
         if (profileComboBox == null) return;
         String selected = profileComboBox.getValue();
