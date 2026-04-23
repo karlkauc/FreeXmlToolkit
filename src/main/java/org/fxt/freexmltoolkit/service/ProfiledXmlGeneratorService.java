@@ -382,6 +382,14 @@ public class ProfiledXmlGeneratorService {
                 List<XsdExtendedElement> preferred = choiceOptions.stream()
                         .filter(opt -> hasRuleInSubtree(opt, rules))
                         .toList();
+                // In mandatoryOnly mode an optional CHOICE (minOccurs=0) yields repeatCount=0
+                // from calculateChoiceRepeatCount. When the user has rules targeting a
+                // specific option we still render the CHOICE once so those rules actually
+                // apply; otherwise the profile would silently have no effect on paths that
+                // sit inside an optional CHOICE.
+                if (repeatCount == 0 && !preferred.isEmpty()) {
+                    repeatCount = 1;
+                }
                 List<XsdExtendedElement> selectionPool = preferred.isEmpty() ? choiceOptions : preferred;
                 for (int i = 0; i < repeatCount; i++) {
                     XsdExtendedElement selected = selectionPool.get(random.nextInt(selectionPool.size()));

@@ -160,6 +160,223 @@
       "config": {"maxOccurrences": "3"},
       "priority": 10,
       "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/TotalAssetValues/TotalAssetValue/NavDate",
+      "strategy": "FIXED",
+      "config": {"value": "2021-11-30"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalAssetNature",
+      "strategy": "FIXED",
+      "config": {"value": "OFFICIAL"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount",
+      "strategy": "FIXED",
+      "config": {"value": "25535819.05"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass",
+      "strategy": "AUTO",
+      "config": {"maxOccurrences": "2"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Identifiers/ISIN",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "AT00000{seq:5}", "start": "10001", "step": "1"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Names/OfficialName",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "DEMO BOND FUND SHARECLASS {seq:1}", "start": "1", "step": "1"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Currency",
+      "strategy": "FIXED",
+      "config": {"value": "EUR"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Prices/Price/ActionCode",
+      "strategy": "FIXED",
+      "config": {"value": "C"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Prices/Price/NavDate",
+      "strategy": "FIXED",
+      "config": {"value": "2021-11-30"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Prices/Price/PriceCurrency",
+      "strategy": "FIXED",
+      "config": {"value": "EUR"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Prices/Price/PriceNature",
+      "strategy": "FIXED",
+      "config": {"value": "OFFICIAL"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/Prices/Price/NavPrice",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "1{seq:2}.924576", "start": "37", "step": "5"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/NavDate",
+      "strategy": "FIXED",
+      "config": {"value": "2021-11-30"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/TotalAssetNature",
+      "strategy": "FIXED",
+      "config": {"value": "OFFICIAL"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "1{seq:7}.05", "start": "8245392", "step": "255487"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/Funds/Fund/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/SharesOutstanding",
+      "strategy": "SEQUENCE",
+      "config": {"pattern": "{seq:6}", "start": "131775", "step": "2345"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond/ConvertibleFlag",
+      "strategy": "FIXED",
+      "config": {"value": "false"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "//Bond/IssueDate",
+      "strategy": "FIXED",
+      "config": {"value": "2020-06-15"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "//Bond/MaturityDate",
+      "strategy": "FIXED",
+      "config": {"value": "2030-06-15"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "//Bond/InterestRate",
+      "strategy": "FIXED",
+      "config": {"value": "3.25"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "//Bond/RedemptionRate",
+      "strategy": "FIXED",
+      "config": {"value": "100"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "//Bond/Listing",
+      "strategy": "FIXED",
+      "config": {"value": "A"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "//Bond/StockMarket",
+      "strategy": "FIXED",
+      "config": {"value": "WBAH"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond/Coupon/Type",
+      "strategy": "FIXED",
+      "config": {"value": "fix"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond/Coupon/PaymentFrequency",
+      "strategy": "FIXED",
+      "config": {"value": "YEAR"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond/Coupon/OffsetBPS",
+      "strategy": "FIXED",
+      "config": {"value": "0"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond/Issuer/Name",
+      "strategy": "FIXED",
+      "config": {"value": "Republic of Austria"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond/Issuer/Identifiers/LEI",
+      "strategy": "FIXED",
+      "config": {"value": "529900S2SS5KMF9Z2G23"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond/Issuer/Address/StreetName",
+      "strategy": "FIXED",
+      "config": {"value": "Ballhausplatz 2"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond/Issuer/Address/CityName",
+      "strategy": "FIXED",
+      "config": {"value": "Vienna"},
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond/Issuer/Address/Country",
+      "strategy": "FIXED",
+      "config": {"value": "AT"},
+      "priority": 10,
+      "enabled": true
     }
   ]
 }

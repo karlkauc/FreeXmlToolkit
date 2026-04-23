@@ -503,6 +503,65 @@ class ProfiledXmlGeneratorServiceTest {
             assertTrue(seenOptions.size() >= 2,
                     "Without rule preference, multiple options should appear across runs; saw " + seenOptions);
         }
+
+        @Test
+        @DisplayName("Optional CHOICE under mandatoryOnly is still rendered when a rule targets one option")
+        void optionalChoiceBumpedByRulePreference() throws Exception {
+            // Uses a dedicated fixture where the CHOICE has minOccurs=0. Without the
+            // rule-preference bump in the CHOICE handler, mandatoryOnly=true would
+            // skip the CHOICE entirely and the user's rule would silently have no
+            // effect. The fix bumps repeat=0 to 1 when any option is rule-targeted.
+            File xsdFile = new File("src/test/resources/optionalChoiceTest.xsd");
+            assertTrue(xsdFile.exists(), "optionalChoiceTest.xsd must exist");
+            XsdDocumentationService docService = new XsdDocumentationService();
+            docService.setXsdFilePath(xsdFile.getAbsolutePath());
+            docService.processXsd(false);
+            XsdDocumentationData data = docService.xsdDocumentationData;
+
+            var profile = new GenerationProfile("OptionalChoiceBump");
+            profile.setMandatoryOnly(true);
+            profile.addRule(new XPathRule("/Order/BankTransfer",
+                    GenerationStrategy.FIXED, Map.of("value", "DE89...")));
+
+            var service = new ProfiledXmlGeneratorService();
+            String xml = service.generate(profile, data, xsdFile.getAbsolutePath());
+
+            assertTrue(xml.contains("<BankTransfer>DE89...</BankTransfer>"),
+                    "Optional CHOICE must render because rule targets BankTransfer, got: " + xml);
+            assertFalse(xml.contains("<CreditCard>"),
+                    "CreditCard must not appear — rule only targets BankTransfer");
+        }
+
+        @Test
+        @DisplayName("Optional CHOICE without rules stays skipped under mandatoryOnly")
+        void optionalChoiceStaysSkippedWithoutRules() throws Exception {
+            // Inverse of the bump test — without any rule on a CHOICE option the
+            // default mandatoryOnly behaviour (skip optional CHOICE) must be kept.
+            File xsdFile = new File("src/test/resources/optionalChoiceTest.xsd");
+            XsdDocumentationService docService = new XsdDocumentationService();
+            docService.setXsdFilePath(xsdFile.getAbsolutePath());
+            docService.processXsd(false);
+            XsdDocumentationData data = docService.xsdDocumentationData;
+
+            var profile = new GenerationProfile("OptionalChoiceNoRules");
+            profile.setMandatoryOnly(true);
+            // Deliberately empty rules — ensure CHOICE stays out.
+
+            var service = new ProfiledXmlGeneratorService();
+            // Empty profile delegates to the plain generator, which under mandatoryOnly
+            // also skips the optional CHOICE. Add a non-structural FIXED rule OUTSIDE
+            // the CHOICE so the profiled path is actually active.
+            profile.addRule(new XPathRule("/Order/OrderID",
+                    GenerationStrategy.FIXED, Map.of("value", "ORD-001")));
+            String xml = service.generate(profile, data, xsdFile.getAbsolutePath());
+
+            assertTrue(xml.contains("<OrderID>ORD-001</OrderID>"),
+                    "Sanity: OrderID FIXED rule must apply, got: " + xml);
+            assertFalse(xml.contains("<CreditCard>"),
+                    "Optional CHOICE without rule preference must stay skipped");
+            assertFalse(xml.contains("<BankTransfer>"),
+                    "Optional CHOICE without rule preference must stay skipped");
+        }
     }
 
     @Nested
@@ -628,6 +687,52 @@ class ProfiledXmlGeneratorServiceTest {
             // Schema validity is the whole point of the profile after Phase-2 fixes.
             assertTrue(validation.isValid(),
                     "Generated XML must be schema-valid; got " + validation.errors().size() + " errors");
+
+            // Fund volume on FundDynamicData — profile extension.
+            assertTrue(xml.contains("<TotalNetAssetValue>"),
+                    "Fund-level TotalNetAssetValue must be generated (Fondsvolumen)");
+            assertTrue(xml.contains("25535819.05"),
+                    "Fund volume FIXED Amount must appear in XML");
+
+            // Two ShareClass siblings under SingleFund, driven out of optional CHOICE by
+            // rule preferences. Each must carry differentiated SEQUENCE values.
+            assertTrue(xml.contains("<SingleFund>"),
+                    "SingleFund must be generated despite sitting inside an optional CHOICE");
+            assertTrue(xml.contains("<ShareClasses>"),
+                    "ShareClasses container must be generated");
+            long shareClassCount = java.util.regex.Pattern.compile("<ShareClass>")
+                    .matcher(xml).results().count();
+            assertEquals(2, shareClassCount,
+                    "Per-rule maxOccurrences=2 override must produce exactly 2 ShareClass elements");
+            assertTrue(xml.contains("AT0000010001") && xml.contains("AT0000010002"),
+                    "Both SEQUENCE-driven ISINs must appear");
+            assertTrue(xml.contains("SHARECLASS 1") && xml.contains("SHARECLASS 2"),
+                    "Both SEQUENCE-driven OfficialNames must appear");
+            assertTrue(xml.contains("<NavPrice>137.924576</NavPrice>")
+                            && xml.contains("<NavPrice>142.924576</NavPrice>"),
+                    "Both SEQUENCE-driven NavPrice values must appear");
+
+            // Bond master data was added as a profile extension — verify the representative
+            // fields make it into every Asset/AssetDetails/Bond block.
+            assertTrue(xml.contains("<ConvertibleFlag>false</ConvertibleFlag>"),
+                    "Bond/ConvertibleFlag FIXED value must appear");
+            assertTrue(xml.contains("<IssueDate>2020-06-15</IssueDate>"),
+                    "Bond/IssueDate FIXED value must appear");
+            assertTrue(xml.contains("<MaturityDate>2030-06-15</MaturityDate>"),
+                    "Bond/MaturityDate FIXED value must appear");
+            assertTrue(xml.contains("<InterestRate>3.25</InterestRate>"),
+                    "Bond/InterestRate FIXED value must appear");
+            assertTrue(xml.contains("<RedemptionRate>100</RedemptionRate>"),
+                    "Bond/RedemptionRate FIXED value must appear");
+            assertTrue(xml.contains("<Type>fix</Type>")
+                            && xml.contains("<PaymentFrequency>YEAR</PaymentFrequency>"),
+                    "Bond/Coupon fields must appear");
+            assertTrue(xml.contains("Republic of Austria")
+                            && xml.contains("529900S2SS5KMF9Z2G23"),
+                    "Bond/Issuer Name and LEI must appear");
+            assertTrue(xml.contains("Ballhausplatz 2")
+                            && xml.contains("<CityName>Vienna</CityName>"),
+                    "Bond/Issuer Address fields must appear");
 
             // Performance budget: regex-cache fix + Phase-2 structural alignment with the
             // plain generator brought generation down from 10+ minutes (pre-fix) → 57s

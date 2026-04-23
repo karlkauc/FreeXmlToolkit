@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <!-- Fixture for rule-driven optional CHOICE rendering.
+         The CHOICE is minOccurs=0 so mandatoryOnly generation would normally
+         skip it entirely; a rule targeting one of its options must bump the
+         repeat to 1 and pick that option. -->
+    <xs:element name="Order">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="OrderID" type="xs:string"/>
+                <xs:choice minOccurs="0" maxOccurs="1">
+                    <xs:element name="CreditCard" type="xs:string"/>
+                    <xs:element name="BankTransfer" type="xs:string"/>
+                </xs:choice>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
