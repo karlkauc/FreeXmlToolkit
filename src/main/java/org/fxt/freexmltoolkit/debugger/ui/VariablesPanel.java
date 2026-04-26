@@ -3,11 +3,11 @@ package org.fxt.freexmltoolkit.debugger.ui;
 import java.util.List;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import org.fxt.freexmltoolkit.debugger.VariableBinding;
 
 /**
@@ -19,21 +19,23 @@ public class VariablesPanel extends TableView<VariableBinding> {
 
     @SuppressWarnings("unchecked")
     public VariablesPanel() {
+        // VariableBinding is a Java record; record accessors don't follow the
+        // get* JavaBean convention that PropertyValueFactory expects, so we
+        // wire each column to the record accessor directly.
         TableColumn<VariableBinding, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().name()));
         nameCol.setPrefWidth(120);
 
         TableColumn<VariableBinding, String> valueCol = new TableColumn<>("Value");
-        valueCol.setCellValueFactory(new PropertyValueFactory<>("value"));
+        valueCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().value()));
         valueCol.setPrefWidth(200);
 
         TableColumn<VariableBinding, String> typeCol = new TableColumn<>("Type");
-        typeCol.setCellValueFactory(new PropertyValueFactory<>("type"));
+        typeCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().type()));
         typeCol.setPrefWidth(110);
 
         TableColumn<VariableBinding, String> scopeCol = new TableColumn<>("Scope");
-        scopeCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                c.getValue().scope().name()));
+        scopeCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().scope().name()));
         scopeCol.setPrefWidth(80);
 
         getColumns().addAll(nameCol, valueCol, typeCol, scopeCol);
