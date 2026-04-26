@@ -539,6 +539,14 @@
                     </VBox>
                 </Tab>
 
+                <!-- Live Debugger Tab (interactive XSLT debugger with breakpoints, step, variables) -->
+                <Tab text="Live Debugger" closable="false">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-bug-fill" iconSize="16" iconColor="#dc3545"/>
+                    </graphic>
+                    <StackPane fx:id="debugPanelRoot"/>
+                </Tab>
+
                 <!-- Debug Tab -->
                 <Tab text="Debug" closable="false">
                     <graphic>

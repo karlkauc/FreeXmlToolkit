@@ -11,13 +11,23 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.debugger.DebugSession;
+import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
+import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
+import org.fxt.freexmltoolkit.debugger.VariableBinding;
+import org.fxt.freexmltoolkit.debugger.VariableScope;
 
 import net.sf.saxon.Controller;
+import net.sf.saxon.expr.StackFrame;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.expr.instruct.GlobalVariable;
+import net.sf.saxon.expr.instruct.SlotManager;
 import net.sf.saxon.expr.instruct.TemplateRule;
 import net.sf.saxon.lib.TraceListener;
 import net.sf.saxon.om.Item;
+import net.sf.saxon.om.Sequence;
+import net.sf.saxon.om.StructuredQName;
+import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.trace.Traceable;
 import net.sf.saxon.trans.Mode;
 
@@ -58,6 +68,22 @@ public class XsltDebugTraceListener implements TraceListener {
     // Template rule search tracking
     private long ruleSearchStartTime;
 
+    // Optional interactive debug session — when non-null, enter() can pause execution.
+    private final DebugSession debugSession;
+
+    /** Default constructor — post-hoc trace collection only. */
+    public XsltDebugTraceListener() {
+        this(null);
+    }
+
+    /**
+     * Interactive constructor. When {@code session} is non-null, {@link #enter}
+     * consults the session to honor breakpoints and step requests.
+     */
+    public XsltDebugTraceListener(DebugSession session) {
+        this.debugSession = session;
+    }
+
     /**
      * Called when a traceable instruction is entered.
      * Used to track template calls, variable assignments, and call stack.
@@ -89,6 +115,23 @@ public class XsltDebugTraceListener implements TraceListener {
             // Capture variable values
             captureVariableValue(traceable, context);
 
+            // Interactive pause — only if a session is attached
+            if (debugSession != null && lineNumber > 0) {
+                String systemId = traceable.getLocation() != null
+                        ? safeString(traceable.getLocation().getSystemId())
+                        : "";
+                int depth = callStack.size();
+                final XPathContext ctxRef = context;
+                final Traceable traceableRef = traceable;
+                boolean alive = debugSession.checkAndPause(systemId, lineNumber, depth,
+                        () -> buildPausedSnapshot(systemId, lineNumber, ctxRef, traceableRef));
+                if (!alive) {
+                    throw new XsltDebugStopException();
+                }
+            }
+
+        } catch (XsltDebugStopException stop) {
+            throw stop;
         } catch (Exception e) {
             logger.debug("Error in trace enter: {}", e.getMessage());
         }
@@ -102,6 +145,9 @@ public class XsltDebugTraceListener implements TraceListener {
     public void leave(Traceable traceable) {
         try {
             if (!callStack.isEmpty()) {
+                if (debugSession != null) {
+                    debugSession.notifyLeave(callStack.size() - 1);
+                }
                 CallStackEntry entry = callStack.pop();
 
                 // Record leave in history
@@ -303,6 +349,90 @@ public class XsltDebugTraceListener implements TraceListener {
         } catch (Exception e) {
             return -1;
         }
+    }
+
+    private static String safeString(String s) {
+        return s == null ? "" : s;
+    }
+
+    /**
+     * Snapshot the live execution state at a pause point. Must be called on
+     * the Saxon thread BEFORE blocking, because XPathContext is mutable.
+     */
+    private PausedSnapshot buildPausedSnapshot(String systemId, int line,
+                                                XPathContext context, Traceable traceable) {
+        List<VariableBinding> vars = captureVariableBindings(context);
+        List<DebugStackFrame> frames = buildStackFrameSnapshot(systemId, line);
+        String contextItem = "";
+        try {
+            Item ctxItem = context.getContextItem();
+            if (ctxItem != null) {
+                contextItem = truncate(ctxItem.toShortString(), 200);
+            }
+        } catch (Exception ignored) {
+            // Context item access is best-effort
+        }
+        return new PausedSnapshot(systemId, line, frames, vars, contextItem);
+    }
+
+    /**
+     * Captures local variables (from the current XPathContext stack frame)
+     * and global variables (already collected in {@code variableValues}).
+     */
+    private List<VariableBinding> captureVariableBindings(XPathContext context) {
+        List<VariableBinding> bindings = new ArrayList<>();
+        try {
+            StackFrame frame = context.getStackFrame();
+            if (frame != null) {
+                SlotManager slotManager = frame.getStackFrameMap();
+                Sequence[] values = frame.getStackFrameValues();
+                List<StructuredQName> names = slotManager != null ? slotManager.getVariableMap() : null;
+                int slotCount = values == null ? 0 : values.length;
+                for (int i = 0; i < slotCount; i++) {
+                    Sequence value = values[i];
+                    if (value == null) continue;
+                    String name;
+                    if (names != null && i < names.size() && names.get(i) != null) {
+                        StructuredQName qname = names.get(i);
+                        name = "$" + qname.getLocalPart();
+                    } else {
+                        name = "$$slot" + i;
+                    }
+                    String stringValue;
+                    String typeName = "";
+                    try {
+                        XdmValue xdm = XdmValue.wrap(value);
+                        stringValue = truncate(xdm.toString(), VariableBinding.MAX_VALUE_LENGTH);
+                        typeName = xdm.getUnderlyingValue().getClass().getSimpleName();
+                    } catch (Exception e) {
+                        stringValue = "<unavailable>";
+                    }
+                    bindings.add(new VariableBinding(name, stringValue, typeName, VariableScope.LOCAL));
+                }
+            }
+        } catch (Throwable t) {
+            logger.debug("Failed to capture local variables: {}", t.getMessage());
+        }
+
+        // Globals: surface what we already collected post-hoc into the listener map.
+        for (Map.Entry<String, Object> entry : variableValues.entrySet()) {
+            String name = entry.getKey();
+            Object raw = entry.getValue();
+            String value = raw == null ? "" : truncate(String.valueOf(raw), VariableBinding.MAX_VALUE_LENGTH);
+            String type = raw == null ? "" : raw.getClass().getSimpleName();
+            bindings.add(new VariableBinding(name, value, type, VariableScope.GLOBAL));
+        }
+        return bindings;
+    }
+
+    private List<DebugStackFrame> buildStackFrameSnapshot(String currentSystemId, int currentLine) {
+        List<DebugStackFrame> frames = new ArrayList<>();
+        // Top of stack first — matches typical debugger view ordering
+        for (CallStackEntry entry : callStack) {
+            frames.add(new DebugStackFrame(entry.description(), currentSystemId,
+                    entry.lineNumber() > 0 ? entry.lineNumber() : currentLine, List.of()));
+        }
+        return frames;
     }
 
     private String truncate(String text, int maxLength) {

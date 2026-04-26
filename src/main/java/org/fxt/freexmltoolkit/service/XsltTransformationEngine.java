@@ -18,6 +18,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.debugger.DebugSession;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 
 import net.sf.saxon.Configuration;
@@ -315,6 +316,113 @@ public class XsltTransformationEngine {
      */
     public XsltTransformationResult quickTransform(String xmlContent, String xsltContent) {
         return transform(xmlContent, xsltContent, new HashMap<>(), OutputFormat.XML);
+    }
+
+    /**
+     * Transform with an interactive {@link DebugSession} attached. The session
+     * receives a callback at every traceable instruction so the user can hit
+     * breakpoints, step, or stop.
+     *
+     * <p>Streaming-mode XSLTs ({@code xsl:stream}, {@code saxon:stream}) are
+     * incompatible with TraceListener and rejected up front.</p>
+     */
+    public XsltTransformationResult transformWithDebugSession(
+            String xmlContent, String xsltContent,
+            Map<String, Object> parameters, OutputFormat outputFormat,
+            DebugSession session) {
+
+        if (session == null) {
+            return transform(xmlContent, xsltContent, parameters, outputFormat);
+        }
+
+        // Streaming-mode guard
+        if (xsltContent != null
+                && (xsltContent.contains("xsl:stream") || xsltContent.contains("saxon:stream"))) {
+            session.close();
+            return XsltTransformationResult.error(
+                    "Streaming mode (xsl:stream / saxon:stream) is incompatible with the debugger. "
+                            + "Disable streaming or run without debug.");
+        }
+
+        long startTime = System.currentTimeMillis();
+        XsltDebugTraceListener traceListener = new XsltDebugTraceListener(session);
+        XsltDebugMessageListener messageListener = new XsltDebugMessageListener();
+
+        boolean priorDebug = this.enableDebugging;
+        this.enableDebugging = true;
+        try {
+            TransformationContext context = new TransformationContext(xmlContent, xsltContent,
+                    parameters, outputFormat);
+
+            XsltExecutable executable = compileStylesheet(xsltContent, context);
+            if (executable == null) {
+                return XsltTransformationResult.error("Failed to compile XSLT stylesheet");
+            }
+
+            XsltTransformer transformer = executable.load();
+            configureTransformer(transformer, parameters, outputFormat);
+            transformer.setTraceListener(traceListener);
+            transformer.setMessageHandler(messageListener);
+
+            XdmNode sourceDoc = parseXmlDocument(xmlContent);
+            transformer.setInitialContextNode(sourceDoc);
+
+            StringWriter outputWriter = new StringWriter();
+            transformer.setDestination(saxonProcessor.newSerializer(outputWriter));
+            configureSerializer(transformer.getDestination(), outputFormat);
+
+            TransformationProfile profile = new TransformationProfile();
+            profile.startTransformation();
+            try {
+                transformer.transform();
+            } catch (XsltDebugStopException stop) {
+                logger.debug("Debug session stopped by user");
+                profile.endTransformation();
+                XsltTransformationResult stopped = XsltTransformationResult.error(
+                        "Debug session stopped");
+                stopped.setExecutionTime(System.currentTimeMillis() - startTime);
+                stopped.setTransformationContext(context);
+                return stopped;
+            } catch (SaxonApiException e) {
+                if (e.getCause() instanceof XsltDebugStopException) {
+                    logger.debug("Debug session stopped by user (wrapped)");
+                    XsltTransformationResult stopped = XsltTransformationResult.error(
+                            "Debug session stopped");
+                    stopped.setExecutionTime(System.currentTimeMillis() - startTime);
+                    stopped.setTransformationContext(context);
+                    return stopped;
+                }
+                throw e;
+            }
+            profile.endTransformation();
+            profile.setOutputSize(outputWriter.toString().length());
+
+            XsltTransformationResult result = XsltTransformationResult.success(
+                    outputWriter.toString(), outputFormat, profile);
+            result.setExecutionTime(System.currentTimeMillis() - startTime);
+            result.setTransformationContext(context);
+            result.setTemplateMatches(traceListener.getTemplateMatches());
+            result.setVariableValues(traceListener.getVariableValues());
+            result.setCallStack(traceListener.getCallStack());
+            result.setMessages(messageListener.getMessages());
+            if (!messageListener.getWarnings().isEmpty()) {
+                result.addAllWarnings(messageListener.getWarnings());
+            }
+            return result;
+
+        } catch (SaxonApiException e) {
+            logger.error("XSLT transformation (debug) failed: {}", e.getMessage(), e);
+            return XsltTransformationResult.error("Transformation failed: " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Unexpected error during debug XSLT transformation", e);
+            return XsltTransformationResult.error("Unexpected error: " + e.getMessage());
+        } finally {
+            this.enableDebugging = priorDebug;
+            // Mark session done so the UI re-enables Run-Debug
+            if (session.getState() != DebugSession.State.STOPPED) {
+                session.close();
+            }
+        }
     }
 
     /**

@@ -60,6 +60,10 @@ public class XmlCodeEditorV2 extends VBox {
     // Folding control - can be disabled for single-line XML files
     private boolean foldingEnabled = true;
 
+    // Optional extra gutter element prepended to the line-number/fold strip.
+    // Used by the XSLT debugger to render breakpoint dots and execution markers.
+    private java.util.function.IntFunction<javafx.scene.Node> extraGutterFactory;
+
     // Font size control
     private static final int DEFAULT_FONT_SIZE = 11;
     private static final int MIN_FONT_SIZE = 6;
@@ -150,6 +154,14 @@ public class XmlCodeEditorV2 extends VBox {
             javafx.scene.layout.HBox hbox = new javafx.scene.layout.HBox(3);
             hbox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
+            // Optional extra gutter (e.g. breakpoint markers) — first slot
+            if (extraGutterFactory != null) {
+                javafx.scene.Node extra = extraGutterFactory.apply(lineIndex);
+                if (extra != null) {
+                    hbox.getChildren().add(extra);
+                }
+            }
+
             // Get fold indicator from folding manager
             javafx.scene.Node foldIndicator = foldingManager.createFoldIndicator(lineIndex);
             if (foldIndicator != null) {
@@ -169,6 +181,25 @@ public class XmlCodeEditorV2 extends VBox {
 
             return hbox;
         };
+    }
+
+    /**
+     * Installs (or removes, when {@code factory} is {@code null}) an extra
+     * gutter component prepended to the existing line-number/fold strip. Used
+     * by the XSLT debugger to draw breakpoint markers and execution arrows.
+     */
+    public void setExtraGutterFactory(java.util.function.IntFunction<javafx.scene.Node> factory) {
+        this.extraGutterFactory = factory;
+        // Force RichTextFX to re-render all paragraph graphics
+        codeArea.setParagraphGraphicFactory(createCombinedParagraphGraphicFactory());
+    }
+
+    /**
+     * Forces a refresh of paragraph graphics. Call after a breakpoint set
+     * change to re-render the gutter without modifying text.
+     */
+    public void refreshGutter() {
+        codeArea.setParagraphGraphicFactory(createCombinedParagraphGraphicFactory());
     }
 
     /**

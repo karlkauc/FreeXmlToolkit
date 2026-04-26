@@ -60,6 +60,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -227,6 +228,20 @@ public class XsltDeveloperController implements FavoritesParentController {
     @FXML
     private TextArea traceArea;
 
+    // Live Debugger (interactive)
+    @FXML
+    private StackPane debugPanelRoot;
+    private org.fxt.freexmltoolkit.debugger.DebugSession debugSession;
+    private org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory breakpointGutter;
+    private org.fxt.freexmltoolkit.debugger.ui.VariablesPanel variablesPanel;
+    private org.fxt.freexmltoolkit.debugger.ui.CallStackPanel callStackPanel;
+    private org.fxt.freexmltoolkit.debugger.ui.WatchPanel watchPanel;
+    private org.fxt.freexmltoolkit.debugger.ui.BreakpointsPanel breakpointsPanel;
+    private Button debugRunBtn, debugContinueBtn, debugPauseBtn,
+            debugStepIntoBtn, debugStepOverBtn, debugStepOutBtn, debugStopBtn,
+            toggleBreakpointBtn;
+    private Label debugStatusLabel;
+
     // UI Components - Favorites (unified FavoritesPanel)
     @FXML
     private Button addToFavoritesBtn;
@@ -321,6 +336,9 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         // Apply small icons setting from user preferences
         applySmallIconsSetting();
+
+        // Live debugger UI
+        initializeLiveDebugger();
 
         logger.info("XSLT Developer Controller initialized successfully");
     }
@@ -2613,5 +2631,432 @@ public class XsltDeveloperController implements FavoritesParentController {
      */
     public void refreshToolbarIcons() {
         applySmallIconsSetting();
+    }
+
+    // =========================================================================
+    // Live Debugger (interactive XSLT debugging)
+    // =========================================================================
+
+    private void initializeLiveDebugger() {
+        if (debugPanelRoot == null) return; // FXML mismatch — fail soft
+
+        debugSession = new org.fxt.freexmltoolkit.debugger.DebugSession();
+        debugSession.addPropertyChangeListener(evt -> {
+            if (!org.fxt.freexmltoolkit.debugger.DebugSession.PROP_STATE.equals(evt.getPropertyName())) return;
+            org.fxt.freexmltoolkit.debugger.DebugSession.State newState =
+                    (org.fxt.freexmltoolkit.debugger.DebugSession.State) evt.getNewValue();
+            javafx.application.Platform.runLater(() -> onDebugStateChanged(newState));
+        });
+
+        // Build the panels
+        variablesPanel = new org.fxt.freexmltoolkit.debugger.ui.VariablesPanel();
+        callStackPanel = new org.fxt.freexmltoolkit.debugger.ui.CallStackPanel();
+        callStackPanel.setFrameDoubleClick(frame -> jumpEditorToLine(frame.lineNumber()));
+        watchPanel = new org.fxt.freexmltoolkit.debugger.ui.WatchPanel();
+        watchPanel.setOnAdded(w -> persistWatchExpressions());
+        watchPanel.setOnRemoved(w -> persistWatchExpressions());
+        breakpointsPanel = new org.fxt.freexmltoolkit.debugger.ui.BreakpointsPanel();
+        breakpointsPanel.bind(debugSession);
+        breakpointsPanel.setOnChanged(() -> { refreshBreakpointGutter(); persistBreakpoints(); });
+        breakpointsPanel.setOnJump((file, line) -> jumpEditorToLine(line));
+
+        // Restore persisted breakpoints + watches
+        restoreBreakpoints();
+        restoreWatchExpressions();
+
+        breakpointGutter = new org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory(
+                debugSession, v -> refreshBreakpointGutter());
+        attachGutterToEditor();
+
+        // Build toolbar
+        ToolBar toolbar = buildDebugToolbar();
+        debugStatusLabel = new Label("Idle");
+        debugStatusLabel.setStyle("-fx-padding: 4 8 4 8; -fx-text-fill: gray;");
+
+        // Right side: TitledPanes for the four panels
+        javafx.scene.control.TitledPane variablesPane =
+                new javafx.scene.control.TitledPane("Variables", variablesPanel);
+        javafx.scene.control.TitledPane callStackPane =
+                new javafx.scene.control.TitledPane("Call Stack", callStackPanel);
+        javafx.scene.control.TitledPane watchPane =
+                new javafx.scene.control.TitledPane("Watch", watchPanel);
+        javafx.scene.control.TitledPane breakpointsPane =
+                new javafx.scene.control.TitledPane("Breakpoints", breakpointsPanel);
+        variablesPane.setExpanded(true);
+        callStackPane.setExpanded(true);
+        watchPane.setExpanded(false);
+        breakpointsPane.setExpanded(false);
+
+        VBox right = new VBox(4, variablesPane, callStackPane, watchPane, breakpointsPane);
+        right.setFillWidth(true);
+        VBox.setVgrow(variablesPane, Priority.ALWAYS);
+        right.setStyle("-fx-padding: 4;");
+        javafx.scene.control.ScrollPane rightScroll = new javafx.scene.control.ScrollPane(right);
+        rightScroll.setFitToWidth(true);
+
+        Label hint = new Label(
+                "Set breakpoints by clicking the gutter on the XSLT input editor (left tab), then press Run-Debug.");
+        hint.setWrapText(true);
+        hint.setStyle("-fx-padding: 8; -fx-text-fill: #555;");
+
+        javafx.scene.layout.BorderPane root = new javafx.scene.layout.BorderPane();
+        root.setTop(toolbar);
+        root.setCenter(rightScroll);
+        root.setBottom(debugStatusLabel);
+        debugPanelRoot.getChildren().add(root);
+
+        // Keyboard shortcut F9: toggle breakpoint at caret line
+        if (xsltInputEditor != null) {
+            xsltInputEditor.getCodeArea().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, evt -> {
+                if (evt.getCode() == javafx.scene.input.KeyCode.F9) {
+                    handleToggleBreakpoint();
+                    evt.consume();
+                }
+            });
+        }
+
+        updateToolbarStateForState(org.fxt.freexmltoolkit.debugger.DebugSession.State.IDLE);
+    }
+
+    private ToolBar buildDebugToolbar() {
+        debugRunBtn = makeDebugButton("Run-Debug", "bi-play-fill", "#28a745",
+                "Start debug run (F5)", this::handleDebugRun);
+        debugContinueBtn = makeDebugButton("Continue", "bi-skip-forward-fill", "#28a745",
+                "Continue (F8)", this::handleDebugContinue);
+        debugPauseBtn = makeDebugButton("Pause", "bi-pause-fill", "#ffc107",
+                "Pause (best-effort in Saxon HE)", this::handleDebugPause);
+        debugStepIntoBtn = makeDebugButton("Step Into", "bi-arrow-down-square", "#17a2b8",
+                "Step Into (F7)", this::handleDebugStepInto);
+        debugStepOverBtn = makeDebugButton("Step Over", "bi-arrow-right-square", "#17a2b8",
+                "Step Over (F10)", this::handleDebugStepOver);
+        debugStepOutBtn = makeDebugButton("Step Out", "bi-arrow-up-square", "#17a2b8",
+                "Step Out (Shift+F11)", this::handleDebugStepOut);
+        debugStopBtn = makeDebugButton("Stop", "bi-stop-fill", "#dc3545",
+                "Stop debug session", this::handleDebugStop);
+        toggleBreakpointBtn = makeDebugButton("Breakpoint", "bi-circle-fill", "#dc3545",
+                "Toggle breakpoint at caret line (F9)", this::handleToggleBreakpoint);
+
+        ToolBar tb = new ToolBar(
+                debugRunBtn, debugContinueBtn, debugPauseBtn, debugStopBtn,
+                new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
+                debugStepIntoBtn, debugStepOverBtn, debugStepOutBtn,
+                new javafx.scene.control.Separator(javafx.geometry.Orientation.VERTICAL),
+                toggleBreakpointBtn);
+        return tb;
+    }
+
+    private Button makeDebugButton(String text, String iconLiteral, String color,
+                                    String tooltip, Runnable handler) {
+        Button btn = new Button(text);
+        org.kordamp.ikonli.javafx.FontIcon fi = new org.kordamp.ikonli.javafx.FontIcon(iconLiteral);
+        fi.setIconSize(16);
+        try {
+            fi.setIconColor(javafx.scene.paint.Color.web(color));
+        } catch (IllegalArgumentException ignored) {
+            // Defensive: if color string is bad, keep default
+        }
+        btn.setGraphic(fi);
+        btn.setTooltip(new Tooltip(tooltip));
+        btn.setOnAction(e -> handler.run());
+        return btn;
+    }
+
+    private void attachGutterToEditor() {
+        if (xsltInputEditor == null || breakpointGutter == null) return;
+        breakpointGutter.setFilePath(currentXsltFile != null ? currentXsltFile.getAbsolutePath() : "");
+        xsltInputEditor.setExtraGutterFactory(breakpointGutter);
+    }
+
+    private void refreshBreakpointGutter() {
+        if (xsltInputEditor != null) {
+            javafx.application.Platform.runLater(xsltInputEditor::refreshGutter);
+        }
+        if (breakpointsPanel != null) breakpointsPanel.refresh();
+    }
+
+    private void jumpEditorToLine(int line1Based) {
+        if (xsltInputEditor == null || line1Based < 1) return;
+        org.fxmisc.richtext.CodeArea ca = xsltInputEditor.getCodeArea();
+        int idx = Math.min(line1Based - 1, ca.getParagraphs().size() - 1);
+        if (idx >= 0) {
+            ca.showParagraphAtTop(idx);
+            ca.moveTo(idx, 0);
+        }
+    }
+
+    @FXML
+    public void handleDebugRun() {
+        if (debugSession == null) return;
+        if (xsltInputEditor == null || xmlInputEditor == null) {
+            showDebugStatus("Editors not ready", "#dc3545");
+            return;
+        }
+        String xml = xmlInputEditor.getCodeArea().getText();
+        String xslt = xsltInputEditor.getCodeArea().getText();
+        if (xslt == null || xslt.trim().isEmpty()) {
+            showDebugStatus("XSLT input is empty", "#dc3545");
+            return;
+        }
+        attachGutterToEditor();
+        breakpointsPanel.refresh();
+
+        debugSession.startSession();
+
+        executorService.submit(() -> {
+            try {
+                XsltTransformationResult result = xsltEngine.transformWithDebugSession(
+                        xml, xslt, new HashMap<>(),
+                        XsltTransformationEngine.OutputFormat.XML, debugSession);
+                javafx.application.Platform.runLater(() -> onDebugRunCompleted(result));
+            } catch (Exception ex) {
+                javafx.application.Platform.runLater(() ->
+                        showDebugStatus("Error: " + ex.getMessage(), "#dc3545"));
+                logger.error("Debug run failed", ex);
+            }
+        });
+    }
+
+    @FXML
+    public void handleDebugContinue() {
+        if (debugSession != null) debugSession.requestContinue();
+    }
+
+    @FXML
+    public void handleDebugPause() {
+        // Saxon HE has no native pause — interpret as Stop with explanatory status
+        if (debugSession != null) {
+            debugSession.requestStop();
+            showDebugStatus("Pause-stop requested (Saxon HE has no true pause)", "#ffc107");
+        }
+    }
+
+    @FXML
+    public void handleDebugStepInto() {
+        if (debugSession != null) debugSession.requestStepInto();
+    }
+
+    @FXML
+    public void handleDebugStepOver() {
+        if (debugSession != null) debugSession.requestStepOver();
+    }
+
+    @FXML
+    public void handleDebugStepOut() {
+        if (debugSession != null) debugSession.requestStepOut();
+    }
+
+    @FXML
+    public void handleDebugStop() {
+        if (debugSession != null) debugSession.requestStop();
+    }
+
+    @FXML
+    public void handleToggleBreakpoint() {
+        if (xsltInputEditor == null || debugSession == null) return;
+        org.fxmisc.richtext.CodeArea ca = xsltInputEditor.getCodeArea();
+        int line = ca.getCurrentParagraph() + 1; // 1-based
+        String fp = currentXsltFile != null ? currentXsltFile.getAbsolutePath() : "";
+        debugSession.toggleBreakpoint(fp, line);
+        refreshBreakpointGutter();
+        persistBreakpoints();
+    }
+
+    // ------------------ Persistence ------------------
+
+    private static String breakpointKeyFor(String filePath) {
+        String fp = filePath == null ? "" : filePath;
+        return "debugger.breakpoints." + Math.abs(fp.hashCode());
+    }
+
+    private void persistBreakpoints() {
+        try {
+            PropertiesService ps = ServiceRegistry.get(PropertiesService.class);
+            if (ps == null || debugSession == null) return;
+            // Group by file path
+            java.util.Map<String, java.util.List<Integer>> byFile = new java.util.HashMap<>();
+            for (var bp : debugSession.getBreakpoints()) {
+                if (!bp.enabled()) continue; // only persist enabled ones (v1)
+                byFile.computeIfAbsent(bp.filePath(), k -> new java.util.ArrayList<>()).add(bp.lineNumber());
+            }
+            // Persist current file's breakpoints (if known)
+            String fp = currentXsltFile != null ? currentXsltFile.getAbsolutePath() : "";
+            java.util.List<Integer> lines = byFile.getOrDefault(fp, java.util.List.of());
+            String value = lines.stream().sorted().map(String::valueOf)
+                    .collect(java.util.stream.Collectors.joining(","));
+            ps.set(breakpointKeyFor(fp), value);
+        } catch (Exception e) {
+            logger.debug("Failed to persist breakpoints: {}", e.getMessage());
+        }
+    }
+
+    private void restoreBreakpoints() {
+        try {
+            PropertiesService ps = ServiceRegistry.get(PropertiesService.class);
+            if (ps == null || debugSession == null) return;
+            String fp = currentXsltFile != null ? currentXsltFile.getAbsolutePath() : "";
+            String stored = ps.get(breakpointKeyFor(fp));
+            if (stored == null || stored.isBlank()) return;
+            for (String token : stored.split(",")) {
+                token = token.trim();
+                if (token.isEmpty()) continue;
+                try {
+                    int line = Integer.parseInt(token);
+                    debugSession.addBreakpoint(
+                            new org.fxt.freexmltoolkit.debugger.Breakpoint(fp, line, true));
+                } catch (NumberFormatException ignored) { }
+            }
+            refreshBreakpointGutter();
+        } catch (Exception e) {
+            logger.debug("Failed to restore breakpoints: {}", e.getMessage());
+        }
+    }
+
+    private void persistWatchExpressions() {
+        try {
+            PropertiesService ps = ServiceRegistry.get(PropertiesService.class);
+            if (ps == null || watchPanel == null) return;
+            var ws = watchPanel.getWatches();
+            ps.set("debugger.watch.count", String.valueOf(ws.size()));
+            for (int i = 0; i < ws.size(); i++) {
+                ps.set("debugger.watch." + i, ws.get(i).getXpath());
+            }
+        } catch (Exception e) {
+            logger.debug("Failed to persist watches: {}", e.getMessage());
+        }
+    }
+
+    private void restoreWatchExpressions() {
+        try {
+            PropertiesService ps = ServiceRegistry.get(PropertiesService.class);
+            if (ps == null || watchPanel == null) return;
+            String countStr = ps.get("debugger.watch.count");
+            if (countStr == null) return;
+            int count = Integer.parseInt(countStr);
+            for (int i = 0; i < count; i++) {
+                String xp = ps.get("debugger.watch." + i);
+                if (xp != null && !xp.isBlank()) {
+                    watchPanel.addExisting(new org.fxt.freexmltoolkit.debugger.WatchExpression(xp));
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Failed to restore watches: {}", e.getMessage());
+        }
+    }
+
+    private void onDebugStateChanged(org.fxt.freexmltoolkit.debugger.DebugSession.State newState) {
+        updateToolbarStateForState(newState);
+        switch (newState) {
+            case PAUSED -> onDebugSessionPaused();
+            case RUNNING -> {
+                if (breakpointGutter != null) breakpointGutter.setCurrentExecutionLine(-1);
+                if (xsltInputEditor != null) xsltInputEditor.refreshGutter();
+                showDebugStatus("Running", "#007bff");
+            }
+            case STOPPED -> {
+                if (breakpointGutter != null) breakpointGutter.setCurrentExecutionLine(-1);
+                if (xsltInputEditor != null) xsltInputEditor.refreshGutter();
+                showDebugStatus("Stopped", "#dc3545");
+            }
+            case IDLE -> {
+                if (breakpointGutter != null) breakpointGutter.setCurrentExecutionLine(-1);
+                if (xsltInputEditor != null) xsltInputEditor.refreshGutter();
+                if (variablesPanel != null) variablesPanel.clear();
+                if (callStackPanel != null) callStackPanel.clear();
+                showDebugStatus("Idle", "gray");
+            }
+        }
+    }
+
+    private void onDebugSessionPaused() {
+        org.fxt.freexmltoolkit.debugger.PausedSnapshot snap = debugSession.getPausedSnapshot();
+        if (snap == null) return;
+        if (breakpointGutter != null) breakpointGutter.setCurrentExecutionLine(snap.lineNumber());
+        if (xsltInputEditor != null) {
+            xsltInputEditor.refreshGutter();
+            jumpEditorToLine(snap.lineNumber());
+        }
+        if (variablesPanel != null) variablesPanel.setBindings(snap.variables());
+        if (callStackPanel != null) callStackPanel.setFrames(snap.callStack());
+        evaluateWatchExpressions(snap);
+        String ctx = snap.contextItem().isEmpty() ? "" : " | Context: " + snap.contextItem();
+        showDebugStatus("Paused at line " + snap.lineNumber() + ctx, "#ffc107");
+    }
+
+    private void evaluateWatchExpressions(org.fxt.freexmltoolkit.debugger.PausedSnapshot snap) {
+        if (watchPanel == null) return;
+        var watches = new java.util.ArrayList<>(watchPanel.getWatches());
+        if (watches.isEmpty()) return;
+        // XPath evaluation: best-effort — we don't have a live XPathContext here
+        // post-pause, so we evaluate against the original input XML using a
+        // fresh Saxon XPathCompiler. Watches reference document state, not
+        // mid-execution variables.
+        String xml = xmlInputEditor != null ? xmlInputEditor.getCodeArea().getText() : "";
+        executorService.submit(() -> {
+            try {
+                net.sf.saxon.s9api.Processor p = new net.sf.saxon.s9api.Processor(false);
+                net.sf.saxon.s9api.XdmNode source = null;
+                if (xml != null && !xml.isBlank()) {
+                    source = p.newDocumentBuilder().build(
+                            new javax.xml.transform.stream.StreamSource(new java.io.StringReader(xml)));
+                }
+                net.sf.saxon.s9api.XPathCompiler xpc = p.newXPathCompiler();
+                for (var w : watches) {
+                    try {
+                        net.sf.saxon.s9api.XPathExecutable exe = xpc.compile(w.getXpath());
+                        net.sf.saxon.s9api.XPathSelector sel = exe.load();
+                        if (source != null) sel.setContextItem(source);
+                        net.sf.saxon.s9api.XdmValue val = sel.evaluate();
+                        w.setLastValue(val.toString());
+                    } catch (Exception ex) {
+                        w.setLastError(ex.getMessage());
+                    }
+                }
+                javafx.application.Platform.runLater(() -> watchPanel.refreshValues());
+            } catch (Exception ex) {
+                logger.debug("Watch evaluation failed: {}", ex.getMessage());
+            }
+        });
+    }
+
+    private void onDebugRunCompleted(XsltTransformationResult result) {
+        if (result == null) {
+            showDebugStatus("No result", "#dc3545");
+            return;
+        }
+        if (transformationResultArea != null && result.isSuccess()) {
+            transformationResultArea.setText(result.getOutputContent());
+        }
+        if (result.isSuccess()) {
+            showDebugStatus("Completed in " + result.getExecutionTime() + "ms", "#28a745");
+        } else {
+            showDebugStatus(result.getErrorMessage() != null
+                    ? result.getErrorMessage() : "Failed", "#dc3545");
+        }
+    }
+
+    private void updateToolbarStateForState(org.fxt.freexmltoolkit.debugger.DebugSession.State state) {
+        if (debugRunBtn == null) return;
+        boolean idle = state == org.fxt.freexmltoolkit.debugger.DebugSession.State.IDLE
+                || state == org.fxt.freexmltoolkit.debugger.DebugSession.State.STOPPED;
+        boolean paused = state == org.fxt.freexmltoolkit.debugger.DebugSession.State.PAUSED;
+        boolean running = state == org.fxt.freexmltoolkit.debugger.DebugSession.State.RUNNING;
+        debugRunBtn.setDisable(!idle);
+        debugContinueBtn.setDisable(!paused);
+        debugPauseBtn.setDisable(!running);
+        debugStepIntoBtn.setDisable(!paused);
+        debugStepOverBtn.setDisable(!paused);
+        debugStepOutBtn.setDisable(!paused);
+        debugStopBtn.setDisable(idle);
+        toggleBreakpointBtn.setDisable(false);
+    }
+
+    private void showDebugStatus(String text, String color) {
+        if (debugStatusLabel == null) return;
+        Runnable r = () -> {
+            debugStatusLabel.setText(text);
+            debugStatusLabel.setStyle("-fx-padding: 4 8 4 8; -fx-text-fill: " + color + ";");
+        };
+        if (javafx.application.Platform.isFxApplicationThread()) r.run();
+        else javafx.application.Platform.runLater(r);
     }
 }
