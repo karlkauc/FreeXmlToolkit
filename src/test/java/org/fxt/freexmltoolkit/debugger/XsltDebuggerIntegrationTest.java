@@ -87,6 +87,13 @@ class XsltDebuggerIntegrationTest {
                 "Pause line should be within stylesheet (was " + snap.lineNumber() + ")");
         assertNotNull(snap.callStack(), "Call stack list must not be null");
         assertFalse(snap.callStack().isEmpty(), "Call stack must not be empty at pause");
+        assertNotNull(snap.variables(), "Variables list must not be null");
+        assertFalse(snap.variables().isEmpty(),
+                "Variables panel must show at least the context item / focus");
+        // Context item should always be present as a synthetic '.' binding
+        boolean hasContextItem = snap.variables().stream()
+                .anyMatch(v -> ".".equals(v.name()));
+        assertTrue(hasContextItem, "Context item ('.') should appear in variables");
 
         // Drain further pauses by continuing repeatedly until completion
         Thread continuer = new Thread(() -> {

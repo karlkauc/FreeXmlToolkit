@@ -376,11 +376,40 @@ public class XsltDebugTraceListener implements TraceListener {
     }
 
     /**
-     * Captures local variables (from the current XPathContext stack frame)
-     * and global variables (already collected in {@code variableValues}).
+     * Captures variables visible at the pause point: context item, focus
+     * (position/last), local stack-frame slots, and accumulated globals.
      */
     private List<VariableBinding> captureVariableBindings(XPathContext context) {
         List<VariableBinding> bindings = new ArrayList<>();
+
+        // 1. Context item — always present in template execution
+        try {
+            Item ctxItem = context.getContextItem();
+            if (ctxItem != null) {
+                String s = truncate(ctxItem.toShortString(), VariableBinding.MAX_VALUE_LENGTH);
+                bindings.add(new VariableBinding(".", s,
+                        ctxItem.getClass().getSimpleName(), VariableScope.LOCAL));
+            } else {
+                bindings.add(new VariableBinding(".", "<no context>", "", VariableScope.LOCAL));
+            }
+        } catch (Throwable ignored) { /* best-effort */ }
+
+        // 2. Focus — position() and last()
+        try {
+            var iter = context.getCurrentIterator();
+            if (iter != null) {
+                bindings.add(new VariableBinding("position()",
+                        String.valueOf(iter.position()),
+                        "xs:integer", VariableScope.LOCAL));
+            }
+        } catch (Throwable ignored) { /* outside focus — skip */ }
+        try {
+            bindings.add(new VariableBinding("last()",
+                    String.valueOf(context.getLast()),
+                    "xs:integer", VariableScope.LOCAL));
+        } catch (Throwable ignored) { /* outside focus — skip */ }
+
+        // 3. Local stack-frame slots — display all slots, including unbound
         try {
             StackFrame frame = context.getStackFrame();
             if (frame != null) {
@@ -390,7 +419,6 @@ public class XsltDebugTraceListener implements TraceListener {
                 int slotCount = values == null ? 0 : values.length;
                 for (int i = 0; i < slotCount; i++) {
                     Sequence value = values[i];
-                    if (value == null) continue;
                     String name;
                     if (names != null && i < names.size() && names.get(i) != null) {
                         StructuredQName qname = names.get(i);
@@ -400,12 +428,17 @@ public class XsltDebugTraceListener implements TraceListener {
                     }
                     String stringValue;
                     String typeName = "";
-                    try {
-                        XdmValue xdm = XdmValue.wrap(value);
-                        stringValue = truncate(xdm.toString(), VariableBinding.MAX_VALUE_LENGTH);
-                        typeName = xdm.getUnderlyingValue().getClass().getSimpleName();
-                    } catch (Exception e) {
-                        stringValue = "<unavailable>";
+                    if (value == null) {
+                        stringValue = "<unbound>";
+                    } else {
+                        try {
+                            XdmValue xdm = XdmValue.wrap(value);
+                            stringValue = truncate(xdm.toString(), VariableBinding.MAX_VALUE_LENGTH);
+                            if (stringValue.isEmpty()) stringValue = "<empty sequence>";
+                            typeName = xdm.getUnderlyingValue().getClass().getSimpleName();
+                        } catch (Exception e) {
+                            stringValue = "<unavailable>";
+                        }
                     }
                     bindings.add(new VariableBinding(name, stringValue, typeName, VariableScope.LOCAL));
                 }
@@ -414,7 +447,7 @@ public class XsltDebugTraceListener implements TraceListener {
             logger.debug("Failed to capture local variables: {}", t.getMessage());
         }
 
-        // Globals: surface what we already collected post-hoc into the listener map.
+        // 4. Globals — accumulated from earlier GlobalVariable trace events
         for (Map.Entry<String, Object> entry : variableValues.entrySet()) {
             String name = entry.getKey();
             Object raw = entry.getValue();
