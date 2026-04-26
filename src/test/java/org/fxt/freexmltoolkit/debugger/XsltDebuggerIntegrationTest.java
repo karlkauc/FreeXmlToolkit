@@ -155,6 +155,62 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void breakpointAtSpecificLineFires() throws Exception {
+        // Use \n only — every line is exactly 1 line in the source
+        String xml = "<root><a>x</a></root>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\">\n"                                                       // 2
+                + "    <out>\n"                                                                          // 3
+                + "      <xsl:value-of select=\"//a\"/>\n"                                               // 4 — BP here
+                + "    </out>\n"                                                                          // 5
+                + "  </xsl:template>\n"                                                                   // 6
+                + "</xsl:stylesheet>\n";                                                                  // 7
+
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("", 4, true));
+
+        java.util.List<Integer> seenPauseLines = java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+        CountDownLatch pausedLatch = new CountDownLatch(1);
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                seenPauseLines.add(session.getPausedSnapshot().lineNumber());
+                pausedLatch.countDown();
+            }
+        });
+
+        XsltTransformationEngine engine = XsltTransformationEngine.getInstance();
+        CountDownLatch doneLatch = new CountDownLatch(1);
+        bg.submit(() -> {
+            try {
+                engine.transformWithDebugSession(xml, xslt, new HashMap<>(),
+                        XsltTransformationEngine.OutputFormat.XML, session);
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        Thread continuer = new Thread(() -> {
+            while (doneLatch.getCount() > 0) {
+                if (session.getState() == DebugSession.State.PAUSED) session.requestContinue();
+                try { Thread.sleep(20); } catch (InterruptedException ie) { return; }
+            }
+        }, "continuer");
+        continuer.setDaemon(true);
+        continuer.start();
+
+        assertTrue(pausedLatch.await(10, TimeUnit.SECONDS),
+                "Breakpoint at line 4 must fire — Saxon line numbering must be active");
+        assertTrue(doneLatch.await(15, TimeUnit.SECONDS));
+
+        // Every observed pause must be at line 4 (no other BPs were set)
+        for (Integer line : seenPauseLines) {
+            assertEquals(4, line.intValue(),
+                    "All pauses must be at line 4 (BP location), saw lines: " + seenPauseLines);
+        }
+    }
+
+    @Test
     void streamingModeIsRejected() {
         String xslt = ""
                 + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"

@@ -350,6 +350,15 @@ public class XsltTransformationEngine {
 
         boolean priorDebug = this.enableDebugging;
         this.enableDebugging = true;
+        // Saxon HE does not retain source line numbers unless line numbering
+        // is explicitly enabled on the Configuration. Without this, every
+        // traceable.getLocation().getLineNumber() returns -1 and breakpoints
+        // can never match.
+        net.sf.saxon.Configuration cfg = saxonProcessor.getUnderlyingConfiguration();
+        boolean priorLineNumbering = cfg.isLineNumbering();
+        cfg.setLineNumbering(true);
+        // Bust any cached executable that was compiled without line info
+        compiledStylesheets.clear();
         try {
             TransformationContext context = new TransformationContext(xmlContent, xsltContent,
                     parameters, outputFormat);
@@ -418,6 +427,7 @@ public class XsltTransformationEngine {
             return XsltTransformationResult.error("Unexpected error: " + e.getMessage());
         } finally {
             this.enableDebugging = priorDebug;
+            cfg.setLineNumbering(priorLineNumbering);
             // Mark session done so the UI re-enables Run-Debug
             if (session.getState() != DebugSession.State.STOPPED) {
                 session.close();

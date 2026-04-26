@@ -115,8 +115,11 @@ public class XsltDebugTraceListener implements TraceListener {
             // Capture variable values
             captureVariableValue(traceable, context);
 
-            // Interactive pause — only if a session is attached
-            if (debugSession != null && lineNumber > 0) {
+            // Interactive pause — always consult the session so step-modes
+            // work even at instructions with no line info (lineNumber == -1).
+            // Breakpoint matching itself requires a real line; that's handled
+            // by Breakpoint.matches.
+            if (debugSession != null) {
                 String systemId = traceable.getLocation() != null
                         ? safeString(traceable.getLocation().getSystemId())
                         : "";
