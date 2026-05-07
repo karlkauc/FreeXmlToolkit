@@ -36,9 +36,10 @@ mod win {
     use windows_sys::Win32::Foundation::{
         CloseHandle, GetLastError, FILETIME, HANDLE, WAIT_OBJECT_0, WAIT_TIMEOUT,
     };
+    use windows_sys::Win32::Storage::FileSystem::SYNCHRONIZE;
     use windows_sys::Win32::System::Threading::{
         GetProcessTimes, OpenProcess, WaitForSingleObject,
-        PROCESS_QUERY_LIMITED_INFORMATION, SYNCHRONIZE,
+        PROCESS_QUERY_LIMITED_INFORMATION,
     };
 
     pub fn wait_for_parent_exit(
@@ -54,7 +55,7 @@ mod win {
                 parent_pid,
             )
         };
-        if handle == 0 {
+        if handle.is_null() {
             log.info(&format!("Parent PID {} already gone (OpenProcess returned NULL)", parent_pid));
             return Ok(());
         }

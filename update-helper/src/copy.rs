@@ -1,6 +1,6 @@
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::thread;
 use std::time::Duration;
 
@@ -102,6 +102,7 @@ mod tests {
     use super::*;
     use std::fs::File;
     use std::io::Write;
+    use std::path::PathBuf;
 
     fn make_tree(root: &Path, files: &[(&str, &str)]) {
         for (rel, content) in files {
