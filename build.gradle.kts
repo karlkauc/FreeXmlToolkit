@@ -698,7 +698,44 @@ $platformArgs""".trimIndent())
 
 // Create all package types for all platform/architecture combinations with new naming convention
 
-// Windows packages  
+// ----------------------------------------------------------------------
+// Native Rust Update Helper (Windows-only)
+// ----------------------------------------------------------------------
+
+val buildWindowsUpdateHelper = tasks.register<Exec>("buildWindowsUpdateHelper") {
+    group = "distribution"
+    description = "Compile native Rust UpdateHelper for Windows"
+
+    workingDir = file("update-helper")
+    commandLine("cargo", "build", "--release")
+
+    onlyIf {
+        System.getProperty("os.name").lowercase().contains("windows")
+    }
+
+    inputs.dir("update-helper/src")
+    inputs.file("update-helper/Cargo.toml")
+    inputs.file("update-helper/Cargo.lock")
+    outputs.file("update-helper/target/release/fxt-update-helper.exe")
+
+    doFirst {
+        println("📦 Compiling Rust update helper...")
+    }
+    doLast {
+        val output = file("update-helper/target/release/fxt-update-helper.exe")
+        if (output.exists()) {
+            println("✅ Helper built: ${output.absolutePath} (${output.length()} bytes)")
+        } else {
+            throw GradleException("Helper binary not produced at: ${output.absolutePath}")
+        }
+    }
+}
+
+val rustUpdateHelperBinary: Provider<File> = buildWindowsUpdateHelper.map {
+    file("update-helper/target/release/fxt-update-helper.exe")
+}
+
+// Windows packages
 createJPackageTask("createWindowsExecutableX64", "windows", "x64", "exe")
 createJPackageTask("createWindowsMsiX64", "windows", "x64", "msi")
 createJPackageTask("createWindowsAppImageX64", "windows", "x64", "app-image")
