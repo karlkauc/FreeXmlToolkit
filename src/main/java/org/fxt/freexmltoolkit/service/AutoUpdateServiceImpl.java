@@ -466,64 +466,189 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
      * @return true if the helper was launched successfully
      */
     private boolean launchUpdater(Path extractedDir, Path debugLog) {
+        if (isWindows()) {
+            return launchUpdaterWindowsRust(extractedDir, debugLog);
+        } else {
+            return launchUpdaterPosix(extractedDir, debugLog);
+        }
+    }
+
+    /**
+     * New Windows updater path (since v1.9.0): copies the installed Rust helper
+     * to %TEMP% and launches it from there with a TOML config file.
+     *
+     * @param extractedDir directory containing the extracted update payload
+     * @param debugLog debug log file path
+     * @return true if the helper was launched successfully
+     */
+    private boolean launchUpdaterWindowsRust(Path extractedDir, Path debugLog) {
         try {
             Path appDir = getApplicationDirectory();
             Path launcher = getApplicationLauncher();
-            String helperExecutableName = getUpdateHelperExecutableName();
 
-            writeDebugLog(debugLog, "Application directory: " + appDir);
-            writeDebugLog(debugLog, "Application directory exists: " + Files.exists(appDir));
-            writeDebugLog(debugLog, "Launcher: " + launcher);
-            writeDebugLog(debugLog, "Launcher exists: " + Files.exists(launcher));
-
-            // Prefer extracted UpdateHelper to avoid file locks on the installed copy
-            Path helperLauncher = null;
-            Path extractedHelper = findHelperInUpdate(extractedDir, helperExecutableName);
-            if (extractedHelper != null) {
-                helperLauncher = extractedHelper;
-                writeDebugLog(debugLog, "Using UpdateHelper from update payload (avoids file locks): " + extractedHelper);
+            // 1. Find the helper. Prefer installed copy, fall back to extracted.
+            Path installedHelper = appDir.resolve("fxt-update-helper.exe");
+            Path extractedHelper = extractedDir.resolve("FreeXmlToolkit").resolve("fxt-update-helper.exe");
+            Path sourceHelper;
+            if (Files.exists(installedHelper)) {
+                sourceHelper = installedHelper;
+                writeDebugLog(debugLog, "Helper source (installed): " + sourceHelper);
+            } else if (Files.exists(extractedHelper)) {
+                sourceHelper = extractedHelper;
+                writeDebugLog(debugLog, "Helper source (extracted fallback): " + sourceHelper);
             } else {
-                helperLauncher = getUpdateHelperLauncher();
-                writeDebugLog(debugLog, "Fallback: using UpdateHelper from installation directory: " + helperLauncher);
-            }
-            writeDebugLog(debugLog, "Helper launcher exists: " + Files.exists(helperLauncher));
-            writeDebugLog(debugLog, "Helper launcher resolved path: " + helperLauncher);
-            writeDebugLog(debugLog, "Update directory: " + extractedDir);
-            writeDebugLog(debugLog, "Update directory exists: " + Files.exists(extractedDir));
-
-            // List contents of extracted directory
-            try (var stream = Files.list(extractedDir)) {
-                writeDebugLog(debugLog, "Extracted directory contents:");
-                stream.forEach(p -> writeDebugLog(debugLog, "  - " + p.getFileName()));
-            }
-
-            // SECURITY: Validate paths before passing to shell scripts
-            if (!validateUpdaterPaths(appDir, extractedDir, launcher)) {
-                writeDebugLog(debugLog, "ERROR: Security validation failed for updater paths");
-                return false;
-            }
-            if (!Files.exists(helperLauncher)) {
-                writeDebugLog(debugLog, "ERROR: Update helper launcher not found: " + helperLauncher);
-                return false;
-            }
-            writeDebugLog(debugLog, "Security validation passed");
-
-            Path configFile = createUpdateHelperConfig(extractedDir, appDir, launcher);
-            writeDebugLog(debugLog, "Update helper config: " + configFile);
-
-            boolean launched = launchUpdateHelper(helperLauncher, configFile, extractedDir, appDir, debugLog);
-            if (!launched) {
-                writeDebugLog(debugLog, "ERROR: Failed to launch update helper");
+                writeDebugLog(debugLog, "ERROR: No helper found in install or extracted location");
                 return false;
             }
 
+            // 2. Copy helper to %TEMP% so its install-dir copy is free for overwrite
+            Path tempHelper = Files.createTempFile("fxt-helper-", ".exe");
+            Files.copy(sourceHelper, tempHelper, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            writeDebugLog(debugLog, "Helper copied to temp: " + tempHelper);
+
+            // 3. Write TOML config
+            Path configFile = extractedDir.resolve("helper-config.toml");
+            Path helperLog = Path.of(System.getProperty("user.home"), "fxt-update-helper.log");
+            writeRustHelperConfig(configFile, extractedDir, appDir, launcher, helperLog);
+            writeDebugLog(debugLog, "Helper config written: " + configFile);
+
+            // 4. Launch (UAC if needed)
+            boolean writable = isAppDirectoryWritable(appDir);
+            writeDebugLog(debugLog, "App directory writable without elevation: " + writable);
+
+            ProcessBuilder pb;
+            if (writable) {
+                pb = new ProcessBuilder(tempHelper.toString(), configFile.toString());
+                writeDebugLog(debugLog, "Launching Rust helper directly (no elevation)");
+            } else {
+                String command = "Start-Process -FilePath '" + tempHelper +
+                    "' -ArgumentList '" + configFile + "' -Verb RunAs";
+                pb = new ProcessBuilder("powershell.exe", "-NoProfile", "-Command", command);
+                writeDebugLog(debugLog, "Launching Rust helper via PowerShell elevation: " + command);
+            }
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            writeDebugLog(debugLog, "Helper process started with PID: " + process.pid());
             return true;
 
         } catch (IOException e) {
-            writeDebugLog(debugLog, "ERROR (IOException) in launchUpdater: " + e.getMessage());
-            writeDebugLog(debugLog, "Stack: " + java.util.Arrays.toString(e.getStackTrace()));
-            logger.error("Failed to launch updater", e);
+            writeDebugLog(debugLog, "ERROR (IOException) in launchUpdaterWindowsRust: " + e.getMessage());
+            logger.error("Failed to launch Rust update helper", e);
             return false;
+        }
+    }
+
+    /**
+     * Writes a TOML config file consumable by the Rust helper.
+     * See spec section 4.4 for schema.
+     */
+    private void writeRustHelperConfig(Path configFile, Path extractedDir, Path appDir,
+                                        Path launcher, Path helperLog) throws IOException {
+        long parentPid = ProcessHandle.current().pid();
+        long parentCreationTime = currentProcessFiletime();
+        String oldVersion = currentVersionString();
+        String newVersion = "unknown"; // populated below if available
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("schema_version = 1\n");
+        sb.append("parent_pid = ").append(parentPid).append("\n");
+        sb.append("parent_creation_time = ").append(parentCreationTime).append("\n");
+        sb.append("extracted_dir = '").append(extractedDir.toAbsolutePath()).append("'\n");
+        sb.append("install_dir = '").append(appDir.toAbsolutePath()).append("'\n");
+        sb.append("launcher_path = '").append(launcher.toAbsolutePath()).append("'\n");
+        sb.append("log_path = '").append(helperLog.toAbsolutePath()).append("'\n");
+        sb.append("old_version = \"").append(oldVersion).append("\"\n");
+        sb.append("new_version = \"").append(newVersion).append("\"\n");
+
+        Files.writeString(configFile, sb.toString());
+    }
+
+    /**
+     * Returns the current process's creation time as a Win32 FILETIME (100-ns
+     * intervals since 1601-01-01 UTC). On non-Windows, returns 0.
+     */
+    private long currentProcessFiletime() {
+        java.time.Instant start = ProcessHandle.current().info().startInstant().orElse(null);
+        if (start == null) {
+            return 0L;
+        }
+        // Convert UNIX epoch instant to Win32 FILETIME:
+        // FILETIME epoch = 1601-01-01, in 100-ns ticks.
+        // Difference between 1601 and 1970 = 11644473600 seconds.
+        long unixSeconds = start.getEpochSecond();
+        long unixNanos = start.getNano();
+        long ticksSince1601 = (unixSeconds + 11644473600L) * 10_000_000L
+            + unixNanos / 100;
+        return ticksSince1601;
+    }
+
+    private String currentVersionString() {
+        try {
+            Package pkg = AutoUpdateServiceImpl.class.getPackage();
+            String v = pkg != null ? pkg.getImplementationVersion() : null;
+            return v != null ? v : "unknown";
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
+
+    /**
+     * Mac/Linux updater path: copies extracted update directly over the install
+     * directory and starts the new launcher. Works because POSIX inode-replace
+     * allows overwriting files of running processes.
+     */
+    private boolean launchUpdaterPosix(Path extractedDir, Path debugLog) {
+        try {
+            Path appDir = getApplicationDirectory();
+            Path launcher = getApplicationLauncher();
+
+            // Locate the source dir (top-level "FreeXmlToolkit" inside extract).
+            Path source = extractedDir.resolve("FreeXmlToolkit");
+            if (!Files.exists(source)) {
+                writeDebugLog(debugLog, "ERROR: extracted source not found: " + source);
+                return false;
+            }
+
+            writeDebugLog(debugLog, "POSIX in-process copy: " + source + " -> " + appDir);
+            copyTreeReplaceExisting(source, appDir);
+
+            writeDebugLog(debugLog, "Launching new app: " + launcher);
+            new ProcessBuilder(launcher.toString())
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .start();
+            return true;
+
+        } catch (IOException e) {
+            writeDebugLog(debugLog, "ERROR in launchUpdaterPosix: " + e.getMessage());
+            logger.error("POSIX updater failed", e);
+            return false;
+        }
+    }
+
+    private void copyTreeReplaceExisting(Path source, Path target) throws IOException {
+        try (var stream = Files.walk(source)) {
+            stream.forEach(path -> {
+                try {
+                    Path rel = source.relativize(path);
+                    Path dest = target.resolve(rel);
+                    if (Files.isDirectory(path)) {
+                        Files.createDirectories(dest);
+                    } else {
+                        Files.createDirectories(dest.getParent());
+                        Files.copy(path, dest,
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                            java.nio.file.StandardCopyOption.COPY_ATTRIBUTES);
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof IOException) {
+                throw (IOException) e.getCause();
+            }
+            throw e;
         }
     }
 
