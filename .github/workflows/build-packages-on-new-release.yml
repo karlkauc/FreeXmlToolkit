@@ -91,6 +91,16 @@ jobs:
           java-version: '25'
           distribution: 'liberica'
 
+      - name: Setup Rust toolchain (Windows only)
+        if: matrix.os == 'windows-latest'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts (Windows only)
+        if: matrix.os == 'windows-latest'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: update-helper
+
       # Schritt 3: Gradle Wrapper ausführbar machen (wichtig für Linux/macOS)
       - name: Make Gradle wrapper executable
         if: runner.os != 'Windows'
