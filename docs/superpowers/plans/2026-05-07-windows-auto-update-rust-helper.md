@@ -8,6 +8,8 @@
 
 **Tech Stack:** Rust 2021, `windows-sys` for Win32 bindings, `serde` + `toml` for config, jpackage `--app-content`, GitHub Actions with `dtolnay/rust-toolchain`.
 
+**Toolchain note:** Cargo ≥ 1.85 required (transitive `indexmap` needs `edition2024`). On Linux dev hosts where apt provides only an older cargo, install rustup: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`, then `source "$HOME/.cargo/env"`.
+
 **Spec:** `docs/superpowers/specs/2026-05-07-windows-auto-update-redesign.md`
 
 ---
@@ -432,8 +434,9 @@ mod tests {
 
     #[test]
     fn epoch_2026_05_07_known_value() {
-        // 2026-05-07T00:00:00 UTC = 1762473600 seconds since epoch
-        let (y, mo, d, _h, _mi, _s) = epoch_to_civil(1762473600);
+        // 2026-05-07T00:00:00 UTC = 1778112000 seconds since epoch
+        // (verify with: date -u -d @1778112000)
+        let (y, mo, d, _h, _mi, _s) = epoch_to_civil(1778112000);
         assert_eq!((y, mo, d), (2026, 5, 7));
     }
 
