@@ -29,7 +29,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -653,84 +652,6 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
     }
 
     /**
-     * Validates paths before passing them to updater scripts.
-     *
-     * <p>This method ensures paths don't contain characters that could
-     * be used for command injection attacks. For auto-updates, we allow
-     * the application directory even if it's in a protected location like
-     * Program Files, as long as it's the legitimate app installation directory.
-     *
-     * @return true if all paths are valid, false otherwise
-     */
-    private boolean validateUpdaterPaths(Path appDir, Path extractedDir, Path launcher) {
-        // For the application directory, we need to allow Program Files since
-        // that's where applications are typically installed on Windows.
-        // We validate by checking that the launcher actually exists there
-        // and that the directory contains expected application files.
-
-        // Check that app directory exists and contains our executable
-        if (!Files.exists(appDir)) {
-            logger.warn("SECURITY: Application directory does not exist: {}", appDir);
-            return false;
-        }
-
-        // Check that the launcher exists in the app directory
-        if (!Files.exists(launcher)) {
-            logger.warn("SECURITY: Launcher does not exist: {}", launcher);
-            return false;
-        }
-
-        // Verify launcher is inside app directory (prevents path manipulation)
-        try {
-            if (!launcher.toRealPath().startsWith(appDir.toRealPath())) {
-                logger.warn("SECURITY: Launcher is not inside application directory");
-                return false;
-            }
-        } catch (IOException e) {
-            logger.warn("SECURITY: Could not verify launcher path: {}", e.getMessage());
-            return false;
-        }
-
-        // Check that extracted directory is in a temp location (not system dirs)
-        String extractedPath = extractedDir.toString().toLowerCase().replace('\\', '/');
-        if (!extractedPath.contains("/temp/") && !extractedPath.contains("/tmp/")) {
-            logger.warn("SECURITY: Extracted directory is not in temp: {}", extractedDir);
-            return false;
-        }
-
-        // Check for suspicious characters that could break shell parsing
-        String[] paths = {appDir.toString(), extractedDir.toString(), launcher.toString()};
-        for (String path : paths) {
-            if (path.contains("`") || path.contains("$(") || path.contains("${") ||
-                path.contains("\0") || path.contains("\n") || path.contains("\r")) {
-                logger.warn("SECURITY: Path contains suspicious characters: {}", path);
-                return false;
-            }
-        }
-
-        logger.info("SECURITY: All updater paths validated successfully");
-        return true;
-    }
-
-    private Path createUpdateHelperConfig(Path extractedDir, Path appDir, Path launcher) throws IOException {
-        Path configFile = extractedDir.resolve("update-helper.properties");
-        Path helperLog = Path.of(System.getProperty("user.home"), "fxt-update-helper.log");
-
-        Properties properties = new Properties();
-        properties.setProperty("appDir", appDir.toString());
-        properties.setProperty("updateDir", extractedDir.toString());
-        properties.setProperty("launcher", launcher.toString());
-        properties.setProperty("logFile", helperLog.toString());
-        properties.setProperty("platform", getPlatformName());
-        properties.setProperty("processName", launcher.getFileName().toString());
-
-        try (OutputStream out = Files.newOutputStream(configFile)) {
-            properties.store(out, "FreeXmlToolkit Update Helper");
-        }
-        return configFile;
-    }
-
-    /**
      * Checks whether the application directory is writable by the current user.
      *
      * <p>Uses a probe-file approach instead of {@link Files#isWritable(Path)} because
@@ -748,58 +669,6 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
         } catch (IOException | SecurityException e) {
             return false;
         }
-    }
-
-    private boolean launchUpdateHelper(Path helperLauncher, Path configFile, Path workingDir, Path appDir, Path debugLog) throws IOException {
-        boolean writable = isAppDirectoryWritable(appDir);
-        writeDebugLog(debugLog, "App directory writable without elevation: " + writable);
-
-        ProcessBuilder pb;
-        if (writable) {
-            // App directory is writable — no elevation needed
-            pb = new ProcessBuilder(helperLauncher.toString(), configFile.toString());
-            writeDebugLog(debugLog, "Launching update helper directly (no elevation required)");
-        } else if (isWindows()) {
-            String command = "Start-Process -FilePath '" + helperLauncher + "' -ArgumentList '" + configFile + "' -Verb RunAs";
-            pb = new ProcessBuilder("powershell.exe", "-NoProfile", "-Command", command);
-            writeDebugLog(debugLog, "Platform: Windows - using PowerShell Start-Process with elevation");
-            writeDebugLog(debugLog, "Command: " + command);
-        } else if (isMacOS()) {
-            String shellCommand = "\"" + helperLauncher + "\" \"" + configFile + "\"";
-            String appleScript = "do shell script \"" + escapeForAppleScript(shellCommand) + "\" with administrator privileges";
-            pb = new ProcessBuilder("/usr/bin/osascript", "-e", appleScript);
-            writeDebugLog(debugLog, "Platform: macOS - using osascript elevation");
-            writeDebugLog(debugLog, "AppleScript: " + appleScript);
-        } else {
-            Path pkexec = Path.of("/usr/bin/pkexec");
-            if (Files.isExecutable(pkexec)) {
-                pb = new ProcessBuilder(pkexec.toString(), helperLauncher.toString(), configFile.toString());
-                writeDebugLog(debugLog, "Platform: Linux - using pkexec elevation");
-            } else {
-                pb = new ProcessBuilder("sudo", helperLauncher.toString(), configFile.toString());
-                writeDebugLog(debugLog, "Platform: Linux - pkexec not found, using sudo elevation");
-            }
-        }
-
-        pb.directory(workingDir.toFile());
-        pb.redirectErrorStream(true);
-        Process process = pb.start();
-        writeDebugLog(debugLog, "Helper process started with PID: " + process.pid());
-        return true;
-    }
-
-    private String escapeForAppleScript(String input) {
-        return input.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
-
-    private String getPlatformName() {
-        if (isWindows()) {
-            return "windows";
-        }
-        if (isMacOS()) {
-            return "macos";
-        }
-        return "linux";
     }
 
     /**
@@ -843,34 +712,6 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             return appDir.resolve("bin/FreeXmlToolkit");
         } else {
             return appDir.resolve("bin/FreeXmlToolkit");
-        }
-    }
-
-    private Path getUpdateHelperLauncher() {
-        Path appDir = getApplicationDirectory();
-        if (isWindows()) {
-            return appDir.resolve("UpdateHelper.exe");
-        } else if (isMacOS()) {
-            return appDir.resolve("Contents/MacOS/UpdateHelper");
-        } else {
-            return appDir.resolve("bin/UpdateHelper");
-        }
-    }
-
-    private String getUpdateHelperExecutableName() {
-        return isWindows() ? "UpdateHelper.exe" : "UpdateHelper";
-    }
-
-    private Path findHelperInUpdate(Path extractedDir, String helperExecutableName) {
-        try {
-            return Files.find(extractedDir, 4,
-                    (path, attrs) -> attrs.isRegularFile()
-                            && path.getFileName().toString().equalsIgnoreCase(helperExecutableName))
-                    .findFirst()
-                    .orElse(null);
-        } catch (IOException e) {
-            logger.warn("Could not locate update helper in extracted directory: {}", e.getMessage());
-            return null;
         }
     }
 
