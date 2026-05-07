@@ -58,10 +58,15 @@ pub fn copy_with_retry(
     log: &Logger,
 ) -> Result<()> {
     let mut delay = initial_delay_ms;
+    // Try max_retries+1 times total: 1 initial attempt plus max_retries retries.
     for attempt in 0..=max_retries {
         match fs::copy(src, dst) {
             Ok(_) => return Ok(()),
-            Err(e) if is_lock_error(&e) && attempt < max_retries => {
+            Err(e) if is_lock_error(&e) => {
+                if attempt == max_retries {
+                    // All retries exhausted on lock errors.
+                    return Err(HelperError::CopyExhausted(dst.to_path_buf()));
+                }
                 log.warn(&format!(
                     "Copy locked (attempt {}): {} ({})",
                     attempt + 1,
@@ -71,9 +76,6 @@ pub fn copy_with_retry(
                 thread::sleep(Duration::from_millis(delay));
                 delay = delay.saturating_mul(2);
             }
-            Err(e) if is_lock_error(&e) => {
-                return Err(HelperError::CopyExhausted(dst.to_path_buf()));
-            }
             Err(e) => {
                 return Err(HelperError::CopyFailed {
                     path: dst.to_path_buf(),
@@ -82,7 +84,10 @@ pub fn copy_with_retry(
             }
         }
     }
-    Err(HelperError::CopyExhausted(dst.to_path_buf()))
+    // Loop has at least one iteration (max_retries: u32, range 0..=u32).
+    // The CopyExhausted return inside the loop fires on the last iteration.
+    // This is unreachable but rustc cannot prove that.
+    unreachable!("loop above always returns")
 }
 
 pub fn is_lock_error(e: &io::Error) -> bool {

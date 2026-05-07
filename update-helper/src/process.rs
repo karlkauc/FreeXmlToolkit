@@ -33,7 +33,6 @@ pub fn wait_for_parent_exit(
 #[cfg(windows)]
 mod win {
     use super::*;
-    use std::ffi::c_void;
     use windows_sys::Win32::Foundation::{
         CloseHandle, GetLastError, FILETIME, HANDLE, WAIT_OBJECT_0, WAIT_TIMEOUT,
     };
@@ -61,7 +60,7 @@ mod win {
         }
 
         // PID-recycling defense
-        match get_creation_time(handle as *mut c_void) {
+        match get_creation_time(handle) {
             Ok(actual) if actual != expected_creation_time => {
                 unsafe { CloseHandle(handle) };
                 log.warn(&format!(
@@ -100,7 +99,7 @@ mod win {
         }
     }
 
-    fn get_creation_time(handle: *mut c_void) -> std::result::Result<i64, String> {
+    fn get_creation_time(handle: HANDLE) -> std::result::Result<i64, String> {
         let mut creation = FILETIME { dwLowDateTime: 0, dwHighDateTime: 0 };
         let mut exit = FILETIME { dwLowDateTime: 0, dwHighDateTime: 0 };
         let mut kernel = FILETIME { dwLowDateTime: 0, dwHighDateTime: 0 };
@@ -108,7 +107,7 @@ mod win {
 
         let ok = unsafe {
             GetProcessTimes(
-                handle as HANDLE,
+                handle,
                 &mut creation,
                 &mut exit,
                 &mut kernel,
@@ -133,7 +132,7 @@ mod win {
         #[test]
         fn get_creation_time_works_on_own_process() {
             let me = unsafe { GetCurrentProcess() };
-            let t = get_creation_time(me as *mut c_void).expect("must work on own process");
+            let t = get_creation_time(me).expect("must work on own process");
             assert!(t > 0, "creation time should be positive: {}", t);
         }
 
@@ -152,11 +151,22 @@ mod win {
 mod tests {
     use super::*;
 
+    fn null_logger() -> Logger {
+        let p = std::env::temp_dir().join(format!(
+            "fxt-helper-test-{}.log",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        Logger::open(p)
+    }
+
     #[test]
     fn non_windows_stub_returns_ok() {
         // On non-Windows, the stub always returns Ok.
         // On Windows, this test still works because PID 0xFFFFFFFF is invalid → OpenProcess null → Ok.
-        let log = Logger::open(std::env::temp_dir().join("test.log"));
+        let log = null_logger();
         let r = wait_for_parent_exit(u32::MAX, 0, Duration::from_secs(1), &log);
         assert!(r.is_ok(), "should treat invalid PID as parent gone");
     }

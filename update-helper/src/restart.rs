@@ -99,7 +99,14 @@ mod tests {
     use std::path::PathBuf;
 
     fn null_logger() -> Logger {
-        Logger::open(std::env::temp_dir().join("test.log"))
+        let p = std::env::temp_dir().join(format!(
+            "fxt-helper-test-{}.log",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        Logger::open(p)
     }
 
     #[test]
