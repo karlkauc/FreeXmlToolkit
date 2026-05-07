@@ -4,6 +4,7 @@ mod copy;
 mod error;
 mod logger;
 mod process;
+mod restart;
 
 fn main() {
     println!("fxt-update-helper {} (Rust)", env!("CARGO_PKG_VERSION"));
