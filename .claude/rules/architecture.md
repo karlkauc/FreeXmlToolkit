@@ -65,6 +65,22 @@ commandManager.executeCommand(new RenameNodeCommand(element, "NewName"));
 
 ---
 
+## Auto-Update Subsystem
+
+The `AutoUpdateServiceImpl` orchestrates downloads and platform-specific
+updater dispatch:
+
+- **Windows:** Native Rust helper (`update-helper/` crate, ~500 KB binary)
+  is bundled into the app-image at `<install>/fxt-update-helper.exe`.
+  At update time, the helper is copied to `%TEMP%`, launched from there,
+  and the install directory becomes free for overwrite. See
+  `docs/superpowers/specs/2026-05-07-windows-auto-update-redesign.md`.
+- **Mac/Linux:** No separate helper — `AutoUpdateServiceImpl` performs
+  in-process recursive copy then exec's the new launcher (POSIX inode
+  semantics allow overwriting files of running processes).
+
+---
+
 ## Key Controllers (25 total)
 
 | Controller | Tab / Context | Responsibility |
