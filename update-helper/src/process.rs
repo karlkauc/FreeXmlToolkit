@@ -121,7 +121,11 @@ mod win {
     }
 
     fn filetime_to_i64(ft: &FILETIME) -> i64 {
-        ((ft.dwHighDateTime as i64) << 32) | (ft.dwLowDateTime as i64 & 0xFFFF_FFFF)
+        // Assemble the 64-bit FILETIME value via unsigned arithmetic so the
+        // result is correct by construction. Casting `dwLowDateTime` (u32)
+        // straight to i64 sign-extends when bit 31 is set; doing the assembly
+        // in u64 first avoids that pitfall entirely.
+        ((ft.dwHighDateTime as u64) << 32 | ft.dwLowDateTime as u64) as i64
     }
 
     #[cfg(test)]
