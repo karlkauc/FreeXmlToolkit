@@ -431,7 +431,12 @@ fun createJPackageTask(taskName: String, platform: String, arch: String, package
         group = "distribution"
         description = "Create $packageType package for $platform-$arch with custom runtime"
         dependsOn("jar", runtimeTaskName)
-        
+
+        // Windows packages also need the Rust update helper
+        if (platform == "windows") {
+            dependsOn("buildWindowsUpdateHelper")
+        }
+
         doFirst {
             val outputDir = project.layout.buildDirectory.dir("dist/$platform-$arch-$packageType").get().asFile
             delete(outputDir)
@@ -505,14 +510,18 @@ Development
             // For app-image, icon is embedded in the executable - use project relative path
             val projectIconPath = File(project.rootDir, iconPath).absolutePath
             val iconArg = if (File(project.rootDir, iconPath).exists()) "--icon\n$projectIconPath" else ""
-            val helperLauncherFile = File(project.layout.buildDirectory.asFile.get(),
-                "update-helper-$platform-$arch-$packageType.properties")
-            helperLauncherFile.writeText("""
-                main-jar=FreeXmlToolkit.jar
-                main-class=org.fxt.freexmltoolkit.service.update.UpdateHelperMain
-                name=UpdateHelper
-            """.trimIndent())
-            
+            // Bundle native Rust update helper on Windows via --app-content
+            val rustHelperArg = if (platform == "windows") {
+                val helperExe = file("update-helper/target/release/fxt-update-helper.exe")
+                if (!helperExe.exists()) {
+                    throw GradleException("Rust update helper not found: ${helperExe.absolutePath}\nRun :buildWindowsUpdateHelper first.")
+                }
+                "--app-content\n${helperExe.absolutePath}"
+            } else {
+                ""
+            }
+
+
             // Use custom runtime - REQUIRED for all packages
             val runtimePath = project.layout.buildDirectory.dir("runtime/$platform-$arch").get().asFile
             val runtimeFile = runtimePath
@@ -557,8 +566,7 @@ ${project.version}
 --description
 "FreeXMLToolkit - Universal Toolkit for XML"
 $iconArg
---add-launcher
-UpdateHelper=${helperLauncherFile.absolutePath}
+$rustHelperArg
 $runtimeArg
 --java-options
 --enable-preview
@@ -599,7 +607,16 @@ $platformArgs""".trimIndent())
         doLast {
             val sourceDir = "build/dist/$platform-$arch-$packageType"
             val version = project.version.toString()
-            
+
+            // Verify Rust helper made it into the package (Windows only)
+            if (platform == "windows" && packageType == "app-image") {
+                val expected = File("$sourceDir/FreeXmlToolkit/fxt-update-helper.exe")
+                if (!expected.exists()) {
+                    throw GradleException("Build inconsistent: missing $expected")
+                }
+                println("✅ Rust helper verified in app-image: ${expected.length()} bytes")
+            }
+
             when {
                 packageType == "app-image" -> {
                     // Ensure source directory exists before processing
