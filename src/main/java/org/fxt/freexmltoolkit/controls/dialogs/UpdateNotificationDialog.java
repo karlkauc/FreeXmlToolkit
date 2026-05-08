@@ -32,6 +32,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
@@ -94,8 +95,11 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         initModality(Modality.APPLICATION_MODAL);
 
         DialogPane dialogPane = getDialogPane();
-        dialogPane.setMinWidth(650);
-        dialogPane.setPrefWidth(700);
+        // Width must accommodate four buttons in one row without truncation
+        // ("Download & Install" + "Open in Browser" + "Remind Me Later" +
+        // "Skip This Version" plus icons, padding, and ButtonBar gaps).
+        dialogPane.setMinWidth(820);
+        dialogPane.setPrefWidth(860);
         dialogPane.setPrefHeight(500);
 
         // Load CSS
@@ -132,6 +136,16 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         ButtonType skipVersionButton = new ButtonType("Skip This Version", ButtonBar.ButtonData.OTHER);
 
         dialogPane.getButtonTypes().addAll(installButton, downloadButton, remindLaterButton, skipVersionButton);
+
+        // ButtonBar enforces a uniform default min-width that truncates the
+        // longer labels ("Open in Browser", "Skip This Version"). Force each
+        // button to grow to its natural label width so nothing gets clipped.
+        for (ButtonType bt : new ButtonType[]{installButton, downloadButton, remindLaterButton, skipVersionButton}) {
+            Button b = (Button) dialogPane.lookupButton(bt);
+            if (b != null) {
+                b.setMinWidth(Region.USE_PREF_SIZE);
+            }
+        }
 
         // Style the Install button (primary action)
         Button installBtn = (Button) dialogPane.lookupButton(installButton);
