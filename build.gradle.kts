@@ -147,7 +147,7 @@ dependencies {
 // - For local development: Set JAVA_HOME to JDK with JavaFX or use toolchain auto-provisioning
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(26) // Use Java 26 with JavaFX 26 (native Headless platform)
+        languageVersion = JavaLanguageVersion.of(25) // Use Java 25 with JavaFX
         vendor = JvmVendorSpec.BELLSOFT  // Use Liberica Full JDK with JavaFX
     }
 }
