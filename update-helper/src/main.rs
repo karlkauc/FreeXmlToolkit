@@ -93,22 +93,47 @@ fn run(config_path: &std::path::Path) -> Result<()> {
     let source_dir = locate_source_dir(&config.extracted_dir, &config.launcher_path, &log)?;
     log.info(&format!("Copying from: {}", source_dir.display()));
 
-    let count = copy::copy_tree(
+    // Capture the copy outcome but DO NOT bail out on failure: the launcher
+    // .exe and the application JAR sit alphabetically before runtime/bin
+    // (the lock-prone subtree), so by the time a copy fails most user-visible
+    // files are already updated. Restarting still gives the user the new
+    // version; aborting here would force them to start the app manually.
+    let copy_result = copy::copy_tree(
         &source_dir,
         &config.install_dir,
         config.copy_retry_initial_ms,
         config.copy_retry_max,
         &log,
-    )?;
-    log.info(&format!("Copied {} files", count));
+    );
+    match &copy_result {
+        Ok(count) => log.info(&format!("Copied {} files", count)),
+        Err(e) => log.error(&format!(
+            "Copy partially failed: {}. Attempting restart anyway.",
+            e
+        )),
+    }
 
     log.info(&format!("Restarting: {}", config.launcher_path.display()));
-    restart::restart_application(&config.launcher_path, &log)?;
+    let restart_result = restart::restart_application(&config.launcher_path, &log);
+    if let Err(e) = &restart_result {
+        log.error(&format!("Restart failed: {}", e));
+    }
 
     cleanup::delete_dir_quietly(&config.extracted_dir, &log);
 
-    log.info("UpdateHelper completed successfully (exit 0)");
-    Ok(())
+    match (copy_result, restart_result) {
+        (Ok(_), Ok(())) => {
+            log.info("UpdateHelper completed successfully (exit 0)");
+            Ok(())
+        }
+        (Err(copy_err), Ok(())) => {
+            log.warn("UpdateHelper completed with copy errors; restart succeeded");
+            Err(copy_err)
+        }
+        (Ok(_), Err(restart_err)) => Err(restart_err),
+        // Both failed: surface the copy error since it's the root cause.
+        (Err(copy_err), Err(_)) => Err(copy_err),
+    }
 }
 
 /// The extracted ZIP has a top-level "FreeXmlToolkit" directory. Locate it by
