@@ -67,6 +67,15 @@
             </tooltip>
         </Button>
 
+        <Button fx:id="toolbarCompare" text="Compare" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarCompare">
+            <graphic>
+                <FontIcon iconLiteral="bi-files" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Compare with file..."/>
+            </tooltip>
+        </Button>
+
         <Separator orientation="VERTICAL"/>
 
         <Button fx:id="toolbarReload" text="Reload" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarReload">

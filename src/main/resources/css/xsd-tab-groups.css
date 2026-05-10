@@ -299,3 +299,73 @@
     -fx-background-color: #f8f9fa;
     -fx-padding: 60;
 }
+
+/* ===================================== */
+/* Diff & Merge View                     */
+/* ===================================== */
+.diff-view {
+    -fx-background-color: #f8f9fa;
+}
+
+.diff-pane-header-bar {
+    -fx-background-color: #eef2f7;
+    -fx-border-color: transparent transparent #d0d7de transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.diff-pane-header {
+    -fx-font-weight: bold;
+    -fx-text-fill: #24292f;
+    -fx-font-size: 12px;
+}
+
+.diff-gutter {
+    -fx-background-color: #f1f3f5;
+    -fx-border-color: #d0d7de;
+    -fx-border-width: 0 1 0 1;
+}
+
+.diff-gutter-arrow {
+    -fx-background-color: white;
+    -fx-border-color: #4a90e2;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 0 2 0 2;
+    -fx-font-size: 11px;
+    -fx-text-fill: #4a90e2;
+    -fx-cursor: hand;
+}
+
+.diff-gutter-arrow:hover {
+    -fx-background-color: #4a90e2;
+    -fx-text-fill: white;
+}
+
+/* Line backgrounds */
+.diff-deleted {
+    -fx-background-color: #ffe5e5;
+    -fx-fill: #6c757d;
+}
+
+.diff-added {
+    -fx-background-color: #e6ffed;
+    -fx-fill: #6c757d;
+}
+
+.diff-modified {
+    -fx-background-color: #fff8c5;
+}
+
+/* Intra-line word emphasis */
+.diff-word-removed {
+    -fx-fill: #b31d28;
+    -fx-font-weight: bold;
+    -fx-background-color: #ffd1d1;
+}
+
+.diff-word-added {
+    -fx-fill: #22863a;
+    -fx-font-weight: bold;
+    -fx-background-color: #c8f0d4;
+}

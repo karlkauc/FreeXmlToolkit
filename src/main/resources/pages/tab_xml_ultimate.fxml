@@ -49,6 +49,15 @@
             </tooltip>
         </Button>
 
+        <Button fx:id="compareFile" text="Compare" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleCompareWithFile">
+            <graphic>
+                <FontIcon iconLiteral="bi-files" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Compare with file..."/>
+            </tooltip>
+        </Button>
+
         <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
                 <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>

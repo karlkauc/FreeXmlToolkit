@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,6 +98,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.controls.diff.DiffView;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
@@ -1384,6 +1386,61 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                 }
             }
         }
+    }
+
+    /**
+     * Open a side-by-side diff between the currently active XML editor and a
+     * file picked from disk. The editor's content is the LEFT pane; the picked
+     * file is the RIGHT pane. The result is added as a new tab.
+     */
+    @FXML
+    public void handleCompareWithFile() {
+        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
+        if (!(currentTab instanceof XmlEditor editor)) {
+            showError("Compare", "Open an XML file first, then choose Compare.");
+            return;
+        }
+        String leftText = editor.getEditorText();
+        File leftFile = editor.getXmlFile();
+        String leftDisplayName = leftFile != null ? leftFile.getName() : "(unsaved)";
+
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Compare with file...");
+        chooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("XML Files", "*.xml"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+        if (leftFile != null && leftFile.getParentFile() != null && leftFile.getParentFile().isDirectory()) {
+            chooser.setInitialDirectory(leftFile.getParentFile());
+        } else {
+            String lastDir = propertiesService.getLastOpenDirectory();
+            if (lastDir != null) {
+                File d = new File(lastDir);
+                if (d.exists() && d.isDirectory()) chooser.setInitialDirectory(d);
+            }
+        }
+        File rightFile = chooser.showOpenDialog(null);
+        if (rightFile == null) return;
+
+        java.util.function.Consumer<String> leftSave = newText -> {
+            try {
+                if (leftFile != null) {
+                    Files.writeString(leftFile.toPath(), newText, StandardCharsets.UTF_8);
+                    editor.setEditorText(newText);
+                    editor.notifyEditorFileSaved();
+                    logToConsole("Saved (from diff) " + leftFile.getAbsolutePath());
+                } else {
+                    // No backing file: just push the text into the editor
+                    editor.setEditorText(newText);
+                }
+            } catch (IOException e) {
+                showError("Save Error", "Could not save: " + e.getMessage());
+            }
+        };
+
+        DiffView diff = new DiffView(leftDisplayName, leftText, leftSave, rightFile);
+        xmlFilesPane.getTabs().add(diff);
+        xmlFilesPane.getSelectionModel().select(diff);
     }
 
     /**

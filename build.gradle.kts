@@ -83,6 +83,9 @@ dependencies {
 
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")
 
+    // Side-by-side diff/merge for XML & XSD text editors
+    implementation("io.github.java-diff-utils:java-diff-utils:4.12")
+
     implementation("org.apache.logging.log4j:log4j-api:2.25.3")
     implementation("org.apache.logging.log4j:log4j-core:2.25.3")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3")

@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
+import org.fxt.freexmltoolkit.controls.diff.DiffView;
 import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.utilities.FindReplaceDialog;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
@@ -805,6 +807,55 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
     public void handleToolbarSaveAs() {
         saveXsdFileAs();
     }
+
+    /**
+     * Open a side-by-side diff between the XSD source editor and a file picked
+     * from disk. The text-tab editor's content is the LEFT pane; the picked
+     * file is the RIGHT pane. The diff is added as a new tab in the XSD TabPane.
+     */
+    @FXML
+    public void handleToolbarCompare() {
+        if (sourceCodeEditor == null) {
+            showAlert(Alert.AlertType.WARNING, "Compare", "Open an XSD file first.");
+            return;
+        }
+        String leftText = sourceCodeEditor.getCodeArea().getText();
+        File leftFile = currentXsdFile;
+        String leftDisplayName = leftFile != null ? leftFile.getName() : "(unsaved)";
+
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Compare with file...");
+        chooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("XSD Files", "*.xsd"),
+                new FileChooser.ExtensionFilter("XML Files", "*.xml"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+        if (leftFile != null && leftFile.getParentFile() != null && leftFile.getParentFile().isDirectory()) {
+            chooser.setInitialDirectory(leftFile.getParentFile());
+        }
+        File rightFile = chooser.showOpenDialog(null);
+        if (rightFile == null) return;
+
+        java.util.function.Consumer<String> leftSave = newText -> {
+            try {
+                if (leftFile != null) {
+                    Files.writeString(leftFile.toPath(), newText, StandardCharsets.UTF_8);
+                    sourceCodeEditor.getCodeArea().replaceText(newText);
+                } else {
+                    sourceCodeEditor.getCodeArea().replaceText(newText);
+                }
+            } catch (IOException e) {
+                showAlert(Alert.AlertType.ERROR, "Save Error", "Could not save: " + e.getMessage());
+            }
+        };
+
+        DiffView diff = new DiffView(leftDisplayName, leftText, leftSave, rightFile);
+        if (tabPane != null) {
+            tabPane.getTabs().add(diff);
+            tabPane.getSelectionModel().select(diff);
+        }
+    }
+
     @FXML
     public void handleToolbarAddFavorite() {
         if (currentXsdFile != null && favoritesService != null) {
