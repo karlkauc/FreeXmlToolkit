@@ -761,11 +761,28 @@ public class XsdValidationController implements FavoritesParentController {
      */
     private void goToErrorTab() {
         try {
-            TabPane tabPane = (TabPane) rootVBox.getParent().getParent();
-            tabPane.getTabs().stream()
+            // Walk up the scene graph until we find the enclosing TabPane.
+            // The exact nesting depth/containers may vary, so don't assume a
+            // fixed parent chain (previously caused a BorderPane -> TabPane
+            // ClassCastException).
+            javafx.scene.Node current = rootVBox;
+            TabPane tabPane = null;
+            while (current != null) {
+                if (current instanceof TabPane tp) {
+                    tabPane = tp;
+                    break;
+                }
+                current = current.getParent();
+            }
+            if (tabPane == null) {
+                logger.warn("Could not locate enclosing TabPane to switch to the XML tab.");
+                return;
+            }
+            final TabPane resolvedTabPane = tabPane;
+            resolvedTabPane.getTabs().stream()
                     .filter(tab -> "tabPaneXml".equals(tab.getId()))
                     .findFirst()
-                    .ifPresent(tabPane.getSelectionModel()::select);
+                    .ifPresent(resolvedTabPane.getSelectionModel()::select);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
