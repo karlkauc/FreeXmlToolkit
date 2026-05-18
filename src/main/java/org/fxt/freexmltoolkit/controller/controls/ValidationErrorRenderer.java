@@ -65,6 +65,26 @@ public final class ValidationErrorRenderer {
     }
 
     /**
+     * Computes the 1-based source line that should receive the error
+     * highlight. This mirrors the clamping done by {@link #contextRange}: when
+     * the parser reports a line beyond the end of the file (common for
+     * "incomplete content" / "missing required element" errors, especially
+     * after the single-file view pretty-formats the document), the highlight
+     * is placed on the last available line instead of being silently dropped.
+     *
+     * @param errorLine  the 1-based line reported by the parser
+     * @param totalLines total number of lines in the source file
+     * @return the 1-based line to highlight, or {@code 0} when there is
+     * nothing to highlight (no source lines or no usable line number)
+     */
+    public static int highlightLine(int errorLine, int totalLines) {
+        if (totalLines <= 0 || errorLine <= 0) {
+            return 0;
+        }
+        return Math.min(errorLine, totalLines);
+    }
+
+    /**
      * Builds a single error card.
      *
      * @param displayIndex zero-based index of the error (shown as {@code #n})
@@ -100,6 +120,7 @@ public final class ValidationErrorRenderer {
         // --- Source-code context (error line +/- 1) ---
         int total = (sourceLines == null) ? 0 : sourceLines.size();
         int[] range = contextRange(ex.getLineNumber(), 1, total);
+        int highlight = highlightLine(ex.getLineNumber(), total);
         if (range[0] > 0) {
             VBox codeBox = new VBox();
             codeBox.getStyleClass().add("validation-code-context");
@@ -119,7 +140,7 @@ public final class ValidationErrorRenderer {
                 HBox row = new HBox(10, number, code);
                 row.setAlignment(Pos.CENTER_LEFT);
                 row.getStyleClass().add("validation-code-line");
-                if (ln == ex.getLineNumber()) {
+                if (ln == highlight) {
                     row.getStyleClass().add("validation-code-line-error");
                 }
                 codeBox.getChildren().add(row);

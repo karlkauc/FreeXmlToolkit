@@ -18,6 +18,7 @@
 package org.fxt.freexmltoolkit.controller.controls;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -65,5 +66,33 @@ class ValidationErrorRendererTest {
         assertArrayEquals(new int[]{0, 0}, ValidationErrorRenderer.contextRange(-1, 1, 10));
         assertArrayEquals(new int[]{0, 0}, ValidationErrorRenderer.contextRange(5, 1, 0));
         assertArrayEquals(new int[]{0, 0}, ValidationErrorRenderer.contextRange(5, -1, 10));
+    }
+
+    @Test
+    @DisplayName("Highlight targets the reported line when it is within the file")
+    void highlightWithinFile() {
+        assertEquals(5, ValidationErrorRenderer.highlightLine(5, 10));
+        assertEquals(1, ValidationErrorRenderer.highlightLine(1, 10));
+        assertEquals(10, ValidationErrorRenderer.highlightLine(10, 10));
+    }
+
+    @Test
+    @DisplayName("Highlight clamps to the last line when the error line is beyond the file")
+    void highlightBeyondFileClampsToLastLine() {
+        // Regression: single-file view pretty-formats the document, so
+        // "incomplete content" errors are reported past the end of the file.
+        // The offending line must still be highlighted (on the last line)
+        // instead of being silently dropped, matching contextRange's clamp.
+        assertEquals(10, ValidationErrorRenderer.highlightLine(99, 10));
+        assertEquals(10, ValidationErrorRenderer.highlightLine(11, 10));
+        assertEquals(1, ValidationErrorRenderer.highlightLine(1, 1));
+    }
+
+    @Test
+    @DisplayName("No usable line number or empty file yields no highlight")
+    void highlightEmptyOrUnknown() {
+        assertEquals(0, ValidationErrorRenderer.highlightLine(0, 10));
+        assertEquals(0, ValidationErrorRenderer.highlightLine(-1, 10));
+        assertEquals(0, ValidationErrorRenderer.highlightLine(5, 0));
     }
 }
