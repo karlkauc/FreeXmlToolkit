@@ -26,7 +26,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -54,22 +53,18 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
+import org.fxt.freexmltoolkit.controller.controls.ValidationErrorRenderer;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.BatchValidationFile;
 import org.fxt.freexmltoolkit.domain.ValidationStatus;
@@ -116,7 +111,7 @@ public class XsdValidationController implements FavoritesParentController {
     @FXML
     private HBox statusPane;
     @FXML
-    private ImageView statusImage;
+    private FontIcon statusIcon;
     @FXML
     private Label statusLabel;
 
@@ -660,26 +655,28 @@ public class XsdValidationController implements FavoritesParentController {
         if (validationErrors != null && !validationErrors.isEmpty()) {
             logger.warn(validationErrors.toString());
             updateStatus(SingleFileValidationStatus.ERROR, "Validation failed. " + validationErrors.size() + " error(s) found.");
+            List<String> sourceLines = readCurrentXmlLines();
             for (int i = 0; i < validationErrors.size(); i++) {
                 SAXParseException ex = validationErrors.get(i);
-                TextFlow textFlow = createTextFlow(i, ex);
-                errorListBox.getChildren().addAll(textFlow, createGoToErrorButton(), new Separator());
+                errorListBox.getChildren().add(
+                        ValidationErrorRenderer.buildErrorCard(i, ex, sourceLines, this::goToErrorTab));
             }
         } else {
             // Show clear success message
             logger.debug("No errors in validation");
             updateStatus(SingleFileValidationStatus.SUCCESS, "Validation successful. No errors found.");
-
-            Label successLabel = new Label("The XML file is valid according to the provided schema.");
-            successLabel.getStyleClass().add("validation-result-success");
-            FontIcon icon = new FontIcon("bi-check-circle-fill");
-            icon.setIconColor(Color.GREEN);
-            icon.setIconSize(18);
-            successLabel.setGraphic(icon);
-            successLabel.setGraphicTextGap(10);
-
-            errorListBox.getChildren().add(successLabel);
+            errorListBox.getChildren().add(ValidationErrorRenderer.buildSuccessCard(
+                    "The XML file is valid according to the provided schema."));
         }
+    }
+
+    /**
+     * Reads the lines of the currently validated XML file.
+     *
+     * @return the file lines, or an empty list if the file cannot be read
+     */
+    private List<String> readCurrentXmlLines() {
+        return readXmlLines(xmlService.getCurrentXmlFile());
     }
 
     /**
@@ -729,7 +726,7 @@ public class XsdValidationController implements FavoritesParentController {
     private static final String STATUS_CLASS_READY = "validation-status-ready";
 
     private void updateStatus(SingleFileValidationStatus status, String message) {
-        if (statusPane == null || statusLabel == null || statusImage == null) {
+        if (statusPane == null || statusLabel == null || statusIcon == null) {
             return;
         }
 
@@ -738,87 +735,40 @@ public class XsdValidationController implements FavoritesParentController {
         // Remove previous status classes
         statusPane.getStyleClass().removeAll(STATUS_CLASS_SUCCESS, STATUS_CLASS_ERROR, STATUS_CLASS_READY);
 
-        String imagePath = null;
-
         switch (status) {
             case SUCCESS -> {
                 statusPane.getStyleClass().add(STATUS_CLASS_SUCCESS);
-                imagePath = "/img/icons8-ok-48.png";
+                statusIcon.setIconLiteral("bi-check-circle-fill");
+                statusIcon.setIconColor(Color.web("#28a745"));
             }
             case ERROR -> {
                 statusPane.getStyleClass().add(STATUS_CLASS_ERROR);
-                imagePath = "/img/icons8-stornieren-48.png";
+                statusIcon.setIconLiteral("bi-x-circle-fill");
+                statusIcon.setIconColor(Color.web("#dc3545"));
             }
             case READY -> {
                 statusPane.getStyleClass().add(STATUS_CLASS_READY);
-                imagePath = null;
+                statusIcon.setIconLiteral("bi-info-circle");
+                statusIcon.setIconColor(Color.web("#17a2b8"));
             }
             default -> throw new IllegalStateException("Unexpected value: " + status);
-        }
-
-        if (imagePath != null) {
-            statusImage.setImage(new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toString()));
-        } else {
-            statusImage.setImage(null);
         }
     }
 
     /**
-     * Creates a TextFlow element for displaying a validation error.
-     *
-     * @param index the index of the error
-     * @param ex    the SAXParseException representing the error
-     * @return the created TextFlow element
+     * Switches to the XML editor tab so the user can jump to the error
+     * location. Wired to the "Go to error" button of single-file error cards.
      */
-    private TextFlow createTextFlow(int index, SAXParseException ex) {
-        TextFlow textFlow = new TextFlow();
-        textFlow.setLineSpacing(5.0);
-        textFlow.getChildren().addAll(
-                createText("#" + (index + 1) + ": " + ex.getLocalizedMessage(), 14),
-                createText("Line: " + ex.getLineNumber() + " Column: " + ex.getColumnNumber()),
-                createText(getFileLine(ex.getLineNumber() - 1)),
-                createText(getFileLine(ex.getLineNumber())),
-                createText(getFileLine(ex.getLineNumber() + 1))
-        );
-        return textFlow;
-    }
-
-    private Text createText(String content, int fontSize) {
-        Text text = new Text(content + System.lineSeparator());
-        text.setFont(Font.font("Verdana", fontSize));
-        return text;
-    }
-
-    private Text createText(String content) {
-        return new Text(content + System.lineSeparator());
-    }
-
-    private String getFileLine(int lineNumber) {
-        if (lineNumber <= 0) {
-            return "";
-        }
+    private void goToErrorTab() {
         try {
-            return Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(lineNumber - 1).trim();
+            TabPane tabPane = (TabPane) rootVBox.getParent().getParent();
+            tabPane.getTabs().stream()
+                    .filter(tab -> "tabPaneXml".equals(tab.getId()))
+                    .findFirst()
+                    .ifPresent(tabPane.getSelectionModel()::select);
         } catch (Exception e) {
-            // IOException or IndexOutOfBoundsException
-            return "";
+            logger.error(e.getMessage());
         }
-    }
-
-    private Button createGoToErrorButton() {
-        Button goToError = new Button("Go to error");
-        goToError.setOnAction(ae -> {
-            try {
-                TabPane tabPane = (TabPane) rootVBox.getParent().getParent();
-                tabPane.getTabs().stream()
-                        .filter(tab -> "tabPaneXml".equals(tab.getId()))
-                        .findFirst()
-                        .ifPresent(tabPane.getSelectionModel()::select);
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
-        });
-        return goToError;
     }
 
     /**
@@ -1572,25 +1522,33 @@ public class XsdValidationController implements FavoritesParentController {
             errorsHeader.getStyleClass().add("batch-errors-header");
             batchErrorDetailsBox.getChildren().add(errorsHeader);
 
+            List<String> sourceLines = readXmlLines(file.getXmlFile());
             for (int i = 0; i < errors.size(); i++) {
                 SAXParseException ex = errors.get(i);
-                VBox errorBox = new VBox(3);
-                errorBox.getStyleClass().addAll("warning-box", "batch-error-item");
-
-                Label errorLabel = new Label("#" + (i + 1) + ": " + ex.getLocalizedMessage());
-                errorLabel.setWrapText(true);
-                errorLabel.getStyleClass().add("label-small");
-
-                Label locationLabel = new Label("Line: " + ex.getLineNumber() + ", Column: " + ex.getColumnNumber());
-                locationLabel.getStyleClass().add("desc-label");
-
-                errorBox.getChildren().addAll(errorLabel, locationLabel);
-                batchErrorDetailsBox.getChildren().add(errorBox);
+                batchErrorDetailsBox.getChildren().add(
+                        ValidationErrorRenderer.buildErrorCard(i, ex, sourceLines, null));
             }
         } else if (file.getStatus() == ValidationStatus.PASSED) {
-            Label successLabel = new Label("No validation errors found.");
-            successLabel.getStyleClass().add("status-success");
-            batchErrorDetailsBox.getChildren().add(successLabel);
+            batchErrorDetailsBox.getChildren().add(
+                    ValidationErrorRenderer.buildSuccessCard("No validation errors found."));
+        }
+    }
+
+    /**
+     * Reads the lines of the given XML file.
+     *
+     * @param xmlFile the file to read (may be {@code null})
+     * @return the file lines, or an empty list if the file cannot be read
+     */
+    private List<String> readXmlLines(File xmlFile) {
+        if (xmlFile == null) {
+            return List.of();
+        }
+        try {
+            return Files.readAllLines(xmlFile.toPath());
+        } catch (Exception e) {
+            logger.debug("Could not read XML source lines: {}", e.getMessage());
+            return List.of();
         }
     }
 

@@ -217,7 +217,7 @@
 
                         <HBox fx:id="statusPane" alignment="CENTER_LEFT" spacing="10"
                               styleClass="panel-light">
-                            <FontIcon iconLiteral="bi-info-circle" iconSize="20" iconColor="#17a2b8"/>
+                            <FontIcon fx:id="statusIcon" iconLiteral="bi-info-circle" iconSize="20" iconColor="#17a2b8"/>
                             <Label fx:id="statusLabel" text="Ready for validation." styleClass="panel-header-label"/>
                             <Region HBox.hgrow="ALWAYS"/>
                             <ProgressIndicator fx:id="progressIndicator" maxWidth="40" maxHeight="40" progress="0.0" visible="false"/>

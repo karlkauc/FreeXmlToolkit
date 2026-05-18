@@ -1124,6 +1124,94 @@
 }
 
 /* ============================================
+   SHARED VALIDATION ERROR CARDS
+   (single-file + batch, online_viewer style)
+   ============================================ */
+
+.validation-error-card {
+    -fx-background-color: -bg-primary;
+    -fx-border-color: -border-light;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10;
+}
+
+.validation-severity-badge {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 4;
+}
+
+.validation-severity-badge-error {
+    -fx-background-color: derive(-color-danger, 80%);
+    -fx-text-fill: -color-danger;
+}
+
+.validation-severity-badge-warning {
+    -fx-background-color: -color-warning-bg;
+    -fx-text-fill: -color-warning-text;
+}
+
+.validation-error-location {
+    -fx-font-family: "monospace";
+    -fx-font-size: 11px;
+    -fx-text-fill: -text-secondary;
+}
+
+.validation-error-message {
+    -fx-text-fill: -text-primary;
+    -fx-font-size: 13px;
+}
+
+.validation-code-context {
+    -fx-background-color: -bg-secondary;
+    -fx-border-color: -border-light;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 6;
+}
+
+.validation-code-line {
+    -fx-padding: 1 4 1 4;
+}
+
+.validation-code-lineno {
+    -fx-font-family: "monospace";
+    -fx-font-size: 12px;
+    -fx-text-fill: -text-muted;
+}
+
+.validation-code-text {
+    -fx-font-family: "monospace";
+    -fx-font-size: 12px;
+    -fx-text-fill: -text-primary;
+}
+
+.validation-code-line-error {
+    -fx-background-color: derive(-color-danger, 85%);
+    -fx-border-color: -color-danger;
+    -fx-border-width: 0 0 0 3;
+}
+
+.validation-success-card {
+    -fx-background-color: derive(-color-success, 85%);
+    -fx-border-color: -color-success;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 12;
+}
+
+.validation-success-message {
+    -fx-text-fill: -color-success;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* ============================================
    PADDING DIRECTIONAL UTILITIES
    ============================================ */
 
