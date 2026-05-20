@@ -158,6 +158,18 @@ public class XmlEditorSidebarController {
     @FXML
     private VBox exampleValuesSection;
 
+    // FundsXML section (opt-in; only added to the TabPane when fundsxml.enabled is true)
+    @FXML
+    private VBox fundsxmlSection;
+    @FXML
+    private Label fundsxmlActiveVersionLabel;
+    @FXML
+    private ListView<java.nio.file.Path> fundsxmlExamplesListView;
+    @FXML
+    private Button fundsxmlSidebarValidateButton;
+    @FXML
+    private Button fundsxmlSidebarRefreshButton;
+
     @FXML
     private TitledPane cursorInfoPane;
     @FXML
@@ -430,6 +442,9 @@ public class XmlEditorSidebarController {
     private static final String VALIDATION_COLOR = "#007bff"; // Blue
     private static final String STRUCTURE_COLOR  = "#fd7e14"; // Orange
     private static final String SELECTION_COLOR  = "#28a745"; // Green
+    private static final String FUNDSXML_COLOR   = "#28a745"; // Green (same family — feature is optional)
+
+    private CustomizableSectionContainer fundsxmlContainer; // null when feature disabled
 
     /**
      * Builds a TabPane with three tabs (Validation / Structure / Selection),
@@ -464,6 +479,16 @@ public class XmlEditorSidebarController {
         selectionContainer.setPadding(new Insets(10));
         selectionContainer.initialize();
 
+        // --- Tab 4 (optional): FundsXML — only when the user opted in ---
+        boolean fundsxmlEnabled = isFundsXmlEnabled();
+        if (fundsxmlEnabled && fundsxmlSection != null) {
+            fundsxmlContainer = new CustomizableSectionContainer("xml-sidebar-fundsxml");
+            fundsxmlContainer.addSection(new SectionDefinition("fundsxml", "FundsXML", fundsxmlSection, true, 1));
+            fundsxmlContainer.setPadding(new Insets(10));
+            fundsxmlContainer.initialize();
+            setupFundsXmlSidebar();
+        }
+
         // --- Assemble TabPane ---
         sidebarTabPane = new javafx.scene.control.TabPane();
         sidebarTabPane.setTabClosingPolicy(javafx.scene.control.TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -472,9 +497,83 @@ public class XmlEditorSidebarController {
                 buildTab("Structure",  "bi-diagram-3",     STRUCTURE_COLOR,  structureContainer),
                 buildTab("Selection",  "bi-cursor-text",   SELECTION_COLOR,  selectionContainer)
         );
+        if (fundsxmlContainer != null) {
+            sidebarTabPane.getTabs().add(
+                    buildTab("FundsXML", "bi-piggy-bank", FUNDSXML_COLOR, fundsxmlContainer));
+        }
 
         VBox.setVgrow(sidebarTabPane, Priority.ALWAYS);
         sidebarContent.getChildren().add(sidebarTabPane);
+    }
+
+    private boolean isFundsXmlEnabled() {
+        try {
+            return Boolean.parseBoolean(propertiesService.loadProperties()
+                    .getProperty(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED, "false"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void setupFundsXmlSidebar() {
+        if (fundsxmlExamplesListView != null) {
+            fundsxmlExamplesListView.setCellFactory(view -> new ListCell<>() {
+                @Override
+                protected void updateItem(java.nio.file.Path item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty || item == null ? null : item.getFileName().toString());
+                }
+            });
+            fundsxmlExamplesListView.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2) {
+                    java.nio.file.Path selected = fundsxmlExamplesListView.getSelectionModel().getSelectedItem();
+                    if (selected != null && mainController != null) {
+                        mainController.openXmlFileInEditor(selected.toFile());
+                    }
+                }
+            });
+        }
+        refreshFundsXmlSidebar();
+    }
+
+    /**
+     * Reloads the active-version label and examples ListView from the cache. Safe to call
+     * even when the feature is disabled — guards on null fields.
+     */
+    public void refreshFundsXmlSidebar() {
+        if (fundsxmlActiveVersionLabel == null || fundsxmlExamplesListView == null) {
+            return;
+        }
+        org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache cache =
+                org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache.getInstance();
+        String active = cache.loadMetadata().getActiveSchemaVersion();
+        fundsxmlActiveVersionLabel.setText(active == null || active.isBlank() ? "(none)" : active);
+
+        java.util.List<java.nio.file.Path> examples = new java.util.ArrayList<>();
+        java.nio.file.Path examplesDir = cache.getExamplesDir();
+        if (java.nio.file.Files.isDirectory(examplesDir)) {
+            try (java.util.stream.Stream<java.nio.file.Path> walk = java.nio.file.Files.walk(examplesDir)) {
+                walk.filter(java.nio.file.Files::isRegularFile)
+                        .filter(p -> p.getFileName().toString().toLowerCase(java.util.Locale.ROOT).endsWith(".xml"))
+                        .limit(50)
+                        .forEach(examples::add);
+            } catch (java.io.IOException e) {
+                logger.warn("Failed to list FundsXML examples: {}", e.getMessage());
+            }
+        }
+        fundsxmlExamplesListView.getItems().setAll(examples);
+    }
+
+    @FXML
+    public void handleFundsXmlSidebarValidate() {
+        if (mainController != null) {
+            mainController.validateAgainstFundsXml();
+        }
+    }
+
+    @FXML
+    public void handleFundsXmlSidebarRefresh() {
+        refreshFundsXmlSidebar();
     }
 
     /**

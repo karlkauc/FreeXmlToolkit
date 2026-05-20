@@ -44,6 +44,8 @@ import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioMenuItem;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -71,6 +73,10 @@ import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
@@ -194,6 +200,18 @@ public class MainController implements Initializable {
      */
     @FXML
     Menu lastOpenFilesMenu;
+
+    /**
+     * Top-level FundsXML menu. Visible only when {@code fundsxml.enabled} is true.
+     */
+    @FXML
+    Menu fundsxmlMenu;
+
+    /**
+     * Submenu listing installed FundsXML schema versions for active-version selection.
+     */
+    @FXML
+    Menu fundsxmlMenuActiveVersion;
 
     /**
      * Check menu item for toggling the XML editor sidebar visibility.
@@ -1722,6 +1740,7 @@ public class MainController implements Initializable {
         loadXmlEditorSidebarPreference();
         loadXPathQueryPanePreference();
         loadXmlEditorTheme();
+        refreshFundsXmlMenu();
 
         // Initialize drag and drop
         initializeDragAndDrop();
@@ -1734,7 +1753,33 @@ public class MainController implements Initializable {
 
             // Check for updates asynchronously after startup (with small delay)
             scheduler.schedule(this::checkForUpdatesOnStartup, 2, TimeUnit.SECONDS);
+
+            // FundsXML release check (throttled to once per 24h)
+            scheduler.schedule(this::checkFundsXmlUpdatesOnStartup, 5, TimeUnit.SECONDS);
         });
+    }
+
+    /**
+     * Performs the daily FundsXML release check on a background thread. Surfaces a
+     * non-intrusive information alert when a newer schema release is available.
+     */
+    private void checkFundsXmlUpdatesOnStartup() {
+        try {
+            var checker = new org.fxt.freexmltoolkit.service.fundsxml.FundsXmlUpdateChecker(
+                    propertiesService,
+                    ServiceRegistry.get(FundsXmlExtensionService.class),
+                    FundsXmlCache.getInstance());
+            checker.runIfDue().ifPresent(release -> Platform.runLater(() -> {
+                String body = "A newer FundsXML schema release is available on GitHub:\n\n"
+                        + "  • Tag: " + release.tagName() + "\n"
+                        + (release.publishedAt() == null ? "" : "  • Published: " + release.publishedAt() + "\n")
+                        + "\nOpen Settings → FundsXML and click 'Download / Update' to install it.";
+                DialogHelper.showInformation("FundsXML Update Available",
+                        "New FundsXML release: " + release.tagName(), body);
+            }));
+        } catch (Exception e) {
+            logger.warn("FundsXML update check failed: {}", e.getMessage());
+        }
     }
 
     /**
@@ -2272,6 +2317,160 @@ public class MainController implements Initializable {
         settings.getStyleClass().add("active");
         loadPageFromPath("/pages/settings.fxml");
         activeTabId = "settings";
+    }
+
+    // ==================== FUNDSXML MENU ====================
+
+    private static final String FUNDSXML_DOCS_URL = "https://fundsxml.org/";
+
+    /**
+     * Updates the visibility of the FundsXML top-level menu based on the user setting
+     * and repopulates the active-version submenu from the on-disk cache.
+     *
+     * <p>Called on startup and again by {@link SettingsController} whenever the user
+     * toggles the FundsXML setting, so the menu appears/disappears without a restart.
+     */
+    public void refreshFundsXmlMenu() {
+        if (fundsxmlMenu == null) {
+            return;
+        }
+        boolean enabled = Boolean.parseBoolean(
+                propertiesService.loadProperties().getProperty(FundsXmlPropertyKeys.ENABLED, "false"));
+        fundsxmlMenu.setVisible(enabled);
+        if (enabled) {
+            populateFundsXmlVersionMenu();
+        }
+    }
+
+    private void populateFundsXmlVersionMenu() {
+        if (fundsxmlMenuActiveVersion == null) {
+            return;
+        }
+        fundsxmlMenuActiveVersion.getItems().clear();
+        FundsXmlExtensionService service = ServiceRegistry.get(FundsXmlExtensionService.class);
+        List<String> versions = service.getInstalledVersions();
+        if (versions.isEmpty()) {
+            MenuItem empty = new MenuItem("(no versions installed)");
+            empty.setDisable(true);
+            fundsxmlMenuActiveVersion.getItems().add(empty);
+            return;
+        }
+        String active = FundsXmlCache.getInstance().loadMetadata().getActiveSchemaVersion();
+        ToggleGroup group = new ToggleGroup();
+        for (String version : versions) {
+            RadioMenuItem item = new RadioMenuItem(version);
+            item.setToggleGroup(group);
+            item.setSelected(version.equals(active));
+            item.setOnAction(e -> {
+                if (service.setActiveVersion(version)) {
+                    logger.info("FundsXML active schema version set to {}", version);
+                }
+            });
+            fundsxmlMenuActiveVersion.getItems().add(item);
+        }
+    }
+
+    /**
+     * Opens the Settings page on the FundsXML tab so the user can trigger a download.
+     * (Keeping the download UI in one place avoids duplicating the progress/cancel logic.)
+     */
+    @FXML
+    public void openFundsXmlDownload() {
+        logger.debug("FundsXML menu → Download / Update Content");
+        openSettings();
+        DialogHelper.showInformation("FundsXML Download",
+                "Open the FundsXML tab",
+                "Switch to the 'FundsXML' tab in Settings and click 'Download / Update FundsXML Content'.");
+    }
+
+    /**
+     * Validates the currently-focused XML buffer against the active FundsXML schema.
+     * Surfaces a simple alert with the result; full validation panel integration is
+     * the responsibility of the dedicated XSD-validation tab.
+     */
+    @FXML
+    public void validateAgainstFundsXml() {
+        String xml = xmlUltimateController != null ? xmlUltimateController.getCurrentXmlContent() : null;
+        org.fxt.freexmltoolkit.service.fundsxml.FundsXmlValidator validator =
+                new org.fxt.freexmltoolkit.service.fundsxml.FundsXmlValidator(
+                        FundsXmlCache.getInstance(),
+                        ServiceRegistry.get(XmlService.class));
+        var outcome = validator.validate(xml);
+        switch (outcome.status()) {
+            case NO_ACTIVE_SCHEMA -> DialogHelper.showInformation("FundsXML Validation",
+                    "No active FundsXML schema",
+                    "Download FundsXML content first, then pick an active schema version from the FundsXML menu.");
+            case NO_XML_CONTENT -> DialogHelper.showInformation("FundsXML Validation",
+                    "No XML document open",
+                    "Open an XML file in the XML editor before running FundsXML validation.");
+            case VALID -> DialogHelper.showInformation("FundsXML Validation",
+                    "Document is valid",
+                    "The XML document is valid against FundsXML schema "
+                            + (outcome.schemaVersion() == null ? "" : outcome.schemaVersion()) + ".");
+            case INVALID -> {
+                StringBuilder body = new StringBuilder("Found ").append(outcome.errors().size())
+                        .append(" issue(s) against schema ")
+                        .append(outcome.schemaVersion() == null ? "" : outcome.schemaVersion())
+                        .append(":\n\n");
+                int shown = 0;
+                for (org.xml.sax.SAXParseException e : outcome.errors()) {
+                    if (shown++ >= 10) {
+                        body.append("... (").append(outcome.errors().size() - 10).append(" more)\n");
+                        break;
+                    }
+                    body.append("  • line ").append(e.getLineNumber())
+                            .append(": ").append(e.getMessage()).append("\n");
+                }
+                DialogHelper.showError("FundsXML Validation", "Validation failed", body.toString());
+            }
+            case ERROR -> DialogHelper.showError("FundsXML Validation",
+                    "Validation error",
+                    outcome.errorMessage() == null ? "An unexpected error occurred." : outcome.errorMessage());
+        }
+    }
+
+    @FXML
+    public void openFundsXmlExamplesFolder() {
+        openInFileManager(FundsXmlCache.getInstance().getExamplesDir());
+    }
+
+    @FXML
+    public void openFundsXmlSchemaFolder() {
+        openInFileManager(FundsXmlCache.getInstance().getSchemaDir());
+    }
+
+    @FXML
+    public void openFundsXmlSchematronFolder() {
+        openInFileManager(FundsXmlCache.getInstance().getSchematronDir());
+    }
+
+    @FXML
+    public void openFundsXmlOnlineDocs() {
+        try {
+            java.awt.Desktop.getDesktop().browse(new java.net.URI(FUNDSXML_DOCS_URL));
+        } catch (Exception e) {
+            logger.error("Failed to open FundsXML online docs", e);
+            DialogHelper.showError("Cannot Open Browser", "Could not open " + FUNDSXML_DOCS_URL,
+                    e.getMessage());
+        }
+    }
+
+    private void openInFileManager(java.nio.file.Path path) {
+        try {
+            if (!java.nio.file.Files.exists(path)) {
+                java.nio.file.Files.createDirectories(path);
+            }
+            if (java.awt.Desktop.isDesktopSupported()
+                    && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.OPEN)) {
+                java.awt.Desktop.getDesktop().open(path.toFile());
+            } else {
+                DialogHelper.showInformation("Folder Location", path.toString(), path.toString());
+            }
+        } catch (java.io.IOException e) {
+            logger.error("Failed to open folder {}", path, e);
+            DialogHelper.showError("Cannot Open Folder",
+                    "Could not open " + path, e.getMessage());
+        }
     }
 
     // ==================== EDIT MENU HANDLERS ====================

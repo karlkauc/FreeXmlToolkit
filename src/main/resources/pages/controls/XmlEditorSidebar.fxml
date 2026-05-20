@@ -222,6 +222,42 @@
             </VBox>
 
             <!-- ============================================ -->
+            <!-- SECTION: FundsXML (optional, opt-in)         -->
+            <!-- ============================================ -->
+            <VBox fx:id="fundsxmlSection" styleClass="sidebar-section-container">
+                <TitledPane text="FundsXML" styleClass="xml-sidebar-titled-pane"
+                            collapsible="true" expanded="true">
+                    <graphic><FontIcon iconLiteral="bi-piggy-bank" iconSize="14" iconColor="#28a745"/></graphic>
+                    <VBox spacing="8">
+                        <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Label text="Active version:" styleClass="cursor-info-label" prefWidth="90"/>
+                            <Label fx:id="fundsxmlActiveVersionLabel" text="(none)"
+                                   styleClass="cursor-info-label" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                        <Label text="Examples (double-click to open):" styleClass="cursor-info-label"/>
+                        <ListView fx:id="fundsxmlExamplesListView" styleClass="sidebar-list-view"
+                                  prefHeight="120" maxHeight="180">
+                            <placeholder><Label text="No FundsXML examples downloaded yet."/></placeholder>
+                        </ListView>
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Button fx:id="fundsxmlSidebarValidateButton" text="Validate"
+                                    onAction="#handleFundsXmlSidebarValidate" styleClass="sidebar-button"
+                                    HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                                <graphic><FontIcon iconLiteral="bi-shield-check" iconSize="12" iconColor="#28a745"/></graphic>
+                                <tooltip><Tooltip text="Validate the current XML against the active FundsXML schema"/></tooltip>
+                            </Button>
+                            <Button fx:id="fundsxmlSidebarRefreshButton" text="" onAction="#handleFundsXmlSidebarRefresh"
+                                    styleClass="sidebar-button" prefWidth="25" maxWidth="25">
+                                <graphic><FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/></graphic>
+                                <tooltip><Tooltip text="Refresh examples list and active version from cache"/></tooltip>
+                            </Button>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+            </VBox>
+
+            <!-- ============================================ -->
             <!-- SECTION: Example Values (XSD-dependent)      -->
             <!-- ============================================ -->
             <VBox fx:id="exampleValuesSection" styleClass="sidebar-section-container">

@@ -247,6 +247,59 @@
                     </items>
                 </Menu>
 
+                <Menu fx:id="fundsxmlMenu" text="FundsXML" visible="false">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-piggy-bank" iconSize="16" iconColor="#28a745"/>
+                    </graphic>
+                    <items>
+                        <MenuItem fx:id="fundsxmlMenuDownload" text="Download / Update Content..."
+                                  onAction="#openFundsXmlDownload">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-cloud-download" iconSize="16" iconColor="#28a745"/>
+                            </graphic>
+                        </MenuItem>
+                        <Menu fx:id="fundsxmlMenuActiveVersion" text="Active Schema Version">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-tag" iconSize="16" iconColor="#17a2b8"/>
+                            </graphic>
+                        </Menu>
+                        <SeparatorMenuItem/>
+                        <MenuItem fx:id="fundsxmlMenuValidate" text="Validate Current XML Against FundsXML"
+                                  onAction="#validateAgainstFundsXml"
+                                  accelerator="Shortcut+Shift+F">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#28a745"/>
+                            </graphic>
+                        </MenuItem>
+                        <SeparatorMenuItem/>
+                        <MenuItem fx:id="fundsxmlMenuOpenExamples" text="Open Examples Folder"
+                                  onAction="#openFundsXmlExamplesFolder">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#fd7e14"/>
+                            </graphic>
+                        </MenuItem>
+                        <MenuItem fx:id="fundsxmlMenuOpenSchema" text="Open Schema Folder"
+                                  onAction="#openFundsXmlSchemaFolder">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
+                            </graphic>
+                        </MenuItem>
+                        <MenuItem fx:id="fundsxmlMenuOpenSchematron" text="Open Schematron Folder"
+                                  onAction="#openFundsXmlSchematronFolder">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#dc3545"/>
+                            </graphic>
+                        </MenuItem>
+                        <SeparatorMenuItem/>
+                        <MenuItem fx:id="fundsxmlMenuOnlineDocs" text="Open FundsXML Online Docs"
+                                  onAction="#openFundsXmlOnlineDocs">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-box-arrow-up-right" iconSize="16" iconColor="#007bff"/>
+                            </graphic>
+                        </MenuItem>
+                    </items>
+                </Menu>
+
                 <Menu text="Window">
                     <graphic>
                         <FontIcon iconLiteral="bi-window" iconSize="16" iconColor="#1e88e5"/>

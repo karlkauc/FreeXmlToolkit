@@ -115,6 +115,9 @@ public class WelcomeController {
     @FXML
     private VBox statisticsDashboard;
 
+    @FXML
+    private VBox fundsxmlCard;
+
     private StatisticsCard validationsCard;
     private StatisticsCard errorsFixedCard;
     private StatisticsCard transformationsCard;
@@ -183,6 +186,34 @@ public class WelcomeController {
 
         // Initialize statistics dashboard
         initializeStatisticsDashboard();
+
+        // FundsXML tile is shown only when the user opted in
+        refreshFundsXmlTileVisibility();
+    }
+
+    /**
+     * Shows or hides the FundsXML welcome tile based on the {@code fundsxml.enabled}
+     * setting. Called from {@code initialize} and again from {@link SettingsController}
+     * after the toggle changes so the tile appears/disappears without a restart.
+     */
+    public void refreshFundsXmlTileVisibility() {
+        if (fundsxmlCard == null || propertiesService == null) {
+            return;
+        }
+        boolean enabled = Boolean.parseBoolean(
+                propertiesService.loadProperties().getProperty(
+                        org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED, "false"));
+        fundsxmlCard.setVisible(enabled);
+        fundsxmlCard.setManaged(enabled);
+    }
+
+    /**
+     * Welcome card → navigate to the XML editor (where the FundsXML sidebar tab lives).
+     */
+    @FXML
+    public void openFundsXmlExtensions() {
+        logger.debug("Opening FundsXML Extensions from welcome screen");
+        navigateTo("xmlUltimate");
     }
 
     /**

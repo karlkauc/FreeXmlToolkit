@@ -20,6 +20,7 @@ import org.fxt.freexmltoolkit.service.UsageTrackingService;
 import org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
 
 /**
  * Central registry for service instances with support for dependency injection.
@@ -98,6 +99,9 @@ public final class ServiceRegistry {
 
         // 9. UsageTrackingService - for gamification dashboard
         registerFactory(UsageTrackingService.class, UsageTrackingServiceImpl::getInstance);
+
+        // 10. FundsXmlExtensionService - for FundsXML schema/example downloads
+        registerFactory(FundsXmlExtensionService.class, FundsXmlExtensionService::getInstance);
 
         initialized = true;
     }

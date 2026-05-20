@@ -22,8 +22,13 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -65,6 +70,10 @@ import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.fxt.freexmltoolkit.service.UsageTrackingService;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys;
+import org.fxt.freexmltoolkit.domain.FundsXmlMetadata;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -96,6 +105,7 @@ public class SettingsController {
     private final FavoritesService favoritesService = ServiceRegistry.get(FavoritesService.class);
     private final UpdateCheckService updateCheckService = ServiceRegistry.get(UpdateCheckService.class);
     private final UsageTrackingService usageTrackingService = ServiceRegistry.get(UsageTrackingService.class);
+    private final FundsXmlExtensionService fundsXmlExtensionService = ServiceRegistry.get(FundsXmlExtensionService.class);
 
     @FXML
     RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder, lightTheme, darkTheme;
@@ -208,6 +218,19 @@ public class SettingsController {
 
     @FXML
     Label cacheSizeLabel, cachePathLabel;
+
+    // FundsXML Extensions
+    @FXML
+    CheckBox fundsxmlEnabled, fundsxmlUpdateCheckEnabled;
+
+    @FXML
+    ComboBox<String> fundsxmlActiveVersion;
+
+    @FXML
+    Label fundsxmlInstalledVersionsLabel, fundsxmlLastUpdateLabel;
+
+    @FXML
+    Button fundsxmlDownloadButton, fundsxmlOpenFolderButton;
 
     // Data for favorites table
     private final ObservableList<FileFavorite> favoritesData = FXCollections.observableArrayList();
@@ -407,6 +430,80 @@ public class SettingsController {
     }
 
     /**
+     * Kicks off the FundsXML download / update on a background thread. Updates the
+     * cache, then refreshes the version picker and status labels.
+     */
+    @FXML
+    public void handleFundsXmlDownload() {
+        fundsxmlDownloadButton.setDisable(true);
+        String originalText = fundsxmlDownloadButton.getText();
+        fundsxmlDownloadButton.setText("Downloading…");
+
+        CompletableFuture.supplyAsync(() -> fundsXmlExtensionService.downloadOrUpdate((stage, bytes, total, msg) -> {
+            // Lightweight progress logging — UI gets a final summary via the alert below
+            logger.debug("FundsXML download progress: {} — {}", stage, msg);
+        })).whenComplete((result, error) -> Platform.runLater(() -> {
+            fundsxmlDownloadButton.setDisable(!fundsxmlEnabled.isSelected());
+            fundsxmlDownloadButton.setText(originalText);
+
+            if (error != null) {
+                logger.error("FundsXML download failed", error);
+                showAlert(Alert.AlertType.ERROR, "FundsXML Download Failed",
+                        "Could not download FundsXML content:\n" + error.getMessage());
+                return;
+            }
+
+            refreshFundsXmlContent();
+            if (parentController != null) {
+                parentController.refreshFundsXmlMenu();
+            }
+
+            if (!result.isSuccess()) {
+                showAlert(Alert.AlertType.ERROR, "FundsXML Download Failed", result.error());
+                return;
+            }
+
+            StringBuilder summary = new StringBuilder();
+            if (result.schemaVersion() != null) {
+                summary.append("Schema version: ").append(result.schemaVersion())
+                        .append(result.schemaDownloaded() ? " (downloaded)" : " (already installed)")
+                        .append("\n");
+            }
+            summary.append("Examples: ").append(result.examplesDownloaded()).append(" file(s)\n");
+            summary.append("Schematron rules: ").append(result.schematronDownloaded()).append(" file(s)\n");
+            summary.append("Query snippets: ").append(result.queriesDownloaded()).append(" file(s)\n");
+            summary.append("Favorites registered: ").append(result.favoritesAdded()).append("\n");
+            summary.append("Snippets seeded: ").append(result.snippetsAdded()).append("\n");
+            summary.append("\nCache location: ")
+                    .append(FundsXmlCache.getInstance().getBaseDir().toString());
+
+            showAlert(Alert.AlertType.INFORMATION, "FundsXML Content Updated", summary.toString());
+        }));
+    }
+
+    /**
+     * Opens the FundsXML cache directory in the system file manager.
+     */
+    @FXML
+    public void handleFundsXmlOpenFolder() {
+        Path baseDir = FundsXmlCache.getInstance().getBaseDir();
+        try {
+            if (!java.nio.file.Files.exists(baseDir)) {
+                java.nio.file.Files.createDirectories(baseDir);
+            }
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+                Desktop.getDesktop().open(baseDir.toFile());
+            } else {
+                showAlert(Alert.AlertType.INFORMATION, "FundsXML Cache Folder", baseDir.toString());
+            }
+        } catch (IOException e) {
+            logger.error("Failed to open FundsXML cache folder", e);
+            showAlert(Alert.AlertType.ERROR, "Cannot Open Folder",
+                    "Could not open " + baseDir + ":\n" + e.getMessage());
+        }
+    }
+
+    /**
      * Shows an alert with update information and option to download.
      *
      * @param updateInfo The update information to display
@@ -557,6 +654,15 @@ public class SettingsController {
             props.setProperty("user.email", userEmail.getText().trim());
             props.setProperty("user.company", userCompany.getText().trim());
 
+            // Save FundsXML settings
+            props.setProperty(FundsXmlPropertyKeys.ENABLED, String.valueOf(fundsxmlEnabled.isSelected()));
+            props.setProperty(FundsXmlPropertyKeys.UPDATE_CHECK_ENABLED, String.valueOf(fundsxmlUpdateCheckEnabled.isSelected()));
+            String selectedVersion = fundsxmlActiveVersion.getSelectionModel().getSelectedItem();
+            if (selectedVersion != null && !selectedVersion.isBlank()) {
+                props.setProperty(FundsXmlPropertyKeys.ACTIVE_VERSION, selectedVersion);
+                fundsXmlExtensionService.setActiveVersion(selectedVersion);
+            }
+
             propertiesService.saveProperties(props);
 
             // Apply toolbar icon size changes immediately
@@ -569,6 +675,11 @@ public class SettingsController {
             if (parentController != null) {
                 parentController.applyTheme();
                 logger.debug("Applied theme changes immediately");
+            }
+
+            // Refresh the FundsXML menu so the visibility toggle takes effect without restart
+            if (parentController != null) {
+                parentController.refreshFundsXmlMenu();
             }
 
             // Show success message
@@ -765,6 +876,72 @@ public class SettingsController {
         userName.setText(props.getProperty("user.name", ""));
         userEmail.setText(props.getProperty("user.email", ""));
         userCompany.setText(props.getProperty("user.company", ""));
+
+        // Load FundsXML settings
+        loadFundsXmlSettings();
+    }
+
+    /**
+     * Populates the FundsXML tab from properties + on-disk metadata. Also wires the
+     * enabled/disabled state of dependent controls to the master toggle.
+     */
+    private void loadFundsXmlSettings() {
+        boolean enabled = Boolean.parseBoolean(props.getProperty(FundsXmlPropertyKeys.ENABLED, "false"));
+        boolean updateCheck = Boolean.parseBoolean(props.getProperty(FundsXmlPropertyKeys.UPDATE_CHECK_ENABLED, "true"));
+        fundsxmlEnabled.setSelected(enabled);
+        fundsxmlUpdateCheckEnabled.setSelected(updateCheck);
+
+        // Toggle dependent controls when the master toggle changes
+        fundsxmlEnabled.selectedProperty().addListener((obs, was, is) -> refreshFundsXmlControlState());
+
+        refreshFundsXmlContent();
+        refreshFundsXmlControlState();
+    }
+
+    /**
+     * Repopulates the installed-versions combo, status labels, and last-update label
+     * from the cache. Safe to call after a download completes.
+     */
+    private void refreshFundsXmlContent() {
+        List<String> versions = fundsXmlExtensionService.getInstalledVersions();
+        fundsxmlActiveVersion.getItems().setAll(versions);
+
+        FundsXmlMetadata meta = FundsXmlCache.getInstance().loadMetadata();
+        String active = meta.getActiveSchemaVersion();
+        if (active != null && versions.contains(active)) {
+            fundsxmlActiveVersion.getSelectionModel().select(active);
+        } else if (!versions.isEmpty()) {
+            fundsxmlActiveVersion.getSelectionModel().select(0);
+        }
+
+        fundsxmlInstalledVersionsLabel.setText(versions.isEmpty()
+                ? "No versions installed."
+                : "Installed versions: " + String.join(", ", versions));
+
+        String lastUpdated = meta.getSchemaLastUpdated();
+        if (lastUpdated == null || lastUpdated.isBlank()) {
+            fundsxmlLastUpdateLabel.setText("Never updated.");
+        } else {
+            fundsxmlLastUpdateLabel.setText("Last updated: " + formatTimestamp(lastUpdated));
+        }
+    }
+
+    private static String formatTimestamp(String isoTimestamp) {
+        try {
+            return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                    .withZone(ZoneId.systemDefault())
+                    .format(Instant.parse(isoTimestamp));
+        } catch (Exception e) {
+            return isoTimestamp;
+        }
+    }
+
+    private void refreshFundsXmlControlState() {
+        boolean on = fundsxmlEnabled.isSelected();
+        fundsxmlUpdateCheckEnabled.setDisable(!on);
+        fundsxmlActiveVersion.setDisable(!on);
+        fundsxmlDownloadButton.setDisable(!on);
+        fundsxmlOpenFolderButton.setDisable(!on);
     }
 
     // Favorites Management Methods

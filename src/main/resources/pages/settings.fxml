@@ -538,6 +538,75 @@
                 </content>
             </Tab>
 
+            <!-- Tab 6: FundsXML Extensions -->
+            <Tab text="FundsXML" closable="false">
+                <graphic>
+                    <FontIcon iconLiteral="bi-piggy-bank" iconSize="16" iconColor="#28a745"/>
+                </graphic>
+                <content>
+                    <ScrollPane fitToWidth="true" styleClass="dashboard-scroll">
+                        <VBox styleClass="settings-tab-content" spacing="20">
+                            <Label text="FundsXML Extensions"
+                                   styleClass="settings-section-title"/>
+                            <Label text="Optional integration with the FundsXML standard. When enabled, schemas, examples, Schematron rules, and saved queries are downloaded from github.com/fundsxml on demand."
+                                   styleClass="settings-section-hint" wrapText="true"/>
+
+                            <!-- Master Toggle -->
+                            <VBox spacing="8" styleClass="settings-section, settings-section-green">
+                                <Label text="Integration" styleClass="settings-section-subtitle"/>
+                                <CheckBox fx:id="fundsxmlEnabled" text="Enable FundsXML extensions"/>
+                                <Label text="Adds a top-level FundsXML menu, a sidebar section in the XML editor, and a welcome-screen tile. No network activity happens until you click 'Download / Update' below."
+                                       styleClass="settings-section-hint" wrapText="true"/>
+                            </VBox>
+
+                            <!-- Active Version Picker -->
+                            <VBox spacing="8" styleClass="settings-section, settings-section-blue">
+                                <Label text="Active Schema Version" styleClass="settings-section-subtitle"/>
+                                <HBox spacing="12" alignment="CENTER_LEFT">
+                                    <Label text="Active version:"/>
+                                    <ComboBox fx:id="fundsxmlActiveVersion" prefWidth="200"/>
+                                </HBox>
+                                <Label fx:id="fundsxmlInstalledVersionsLabel"
+                                       text="No versions installed."
+                                       styleClass="settings-section-hint"/>
+                            </VBox>
+
+                            <!-- Download / Update -->
+                            <VBox spacing="8" styleClass="settings-section, settings-section-yellow">
+                                <Label text="Content" styleClass="settings-section-subtitle"/>
+                                <CheckBox fx:id="fundsxmlUpdateCheckEnabled"
+                                          text="Periodically check GitHub for new schema releases"/>
+                                <Label fx:id="fundsxmlLastUpdateLabel"
+                                       text="Never updated."
+                                       styleClass="settings-section-hint"/>
+                                <HBox spacing="8" alignment="CENTER_LEFT">
+                                    <Button fx:id="fundsxmlDownloadButton"
+                                            mnemonicParsing="false"
+                                            onAction="#handleFundsXmlDownload"
+                                            text="Download / Update FundsXML Content"
+                                            styleClass="btn-success-action">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-cloud-download" iconSize="14"/>
+                                        </graphic>
+                                    </Button>
+                                    <Button fx:id="fundsxmlOpenFolderButton"
+                                            mnemonicParsing="false"
+                                            onAction="#handleFundsXmlOpenFolder"
+                                            text="Open Cache Folder"
+                                            styleClass="btn-info-action">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                        </graphic>
+                                    </Button>
+                                </HBox>
+                                <Label text="Schemas (XSD), examples (XML), Schematron rules, and XPath/XQuery snippets are downloaded under ~/.freeXmlToolkit/fundsxml/. Examples are also registered as favorites and snippets become available in the XPath/XQuery tab."
+                                       styleClass="settings-section-hint" wrapText="true"/>
+                            </VBox>
+                        </VBox>
+                    </ScrollPane>
+                </content>
+            </Tab>
+
         </TabPane>
 
         <!-- Action Buttons -->
