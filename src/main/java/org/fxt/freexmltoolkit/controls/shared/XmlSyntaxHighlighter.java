@@ -50,6 +50,12 @@ public final class XmlSyntaxHighlighter {
             text = "";
         }
 
+        // Normalize line endings to match RichTextFX CodeArea, which collapses
+        // \r\n and lone \r to \n internally. Without this, every \r\n in the
+        // input shortens the CodeArea by one character per line, causing a
+        // cumulative one-char drift of tag/element coloring downstream.
+        text = text.replace("\r\n", "\n").replace('\r', '\n');
+
         Matcher matcher = XML_TAG.matcher(text);
         int lastKwEnd = 0;
         StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();

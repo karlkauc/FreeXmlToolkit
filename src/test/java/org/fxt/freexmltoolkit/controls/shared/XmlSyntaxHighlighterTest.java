@@ -442,6 +442,48 @@ class XmlSyntaxHighlighterTest {
         }
 
         @Test
+        @DisplayName("CRLF line endings — spans align with RichTextFX-normalized text (no cumulative drift)")
+        void crlfLineEndingsAlignWithNormalizedText() {
+            // RichTextFX CodeArea normalizes \r\n -> \n internally. The highlighter must
+            // produce spans whose positions match the normalized text, otherwise each line
+            // introduces a one-character drift downstream (visible as tag/element colors
+            // shifting onto wrong characters).
+            String input = "<FundsXML>\r\n  <ControlData>\r\n    <UniqueDocumentId>\r\n";
+            String normalized = input.replace("\r\n", "\n");
+
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(input);
+
+            // Span length must match normalized text length (what the CodeArea actually holds)
+            assertEquals(normalized.length(), spans.length(),
+                    "Span length must match CodeArea-normalized text length, got " + spans.length()
+                            + " for normalized length " + normalized.length());
+
+            // Verify '<' of each tag is tagmark at its normalized position
+            int p1 = normalized.indexOf("<FundsXML>");
+            int p2 = normalized.indexOf("<ControlData>");
+            int p3 = normalized.indexOf("<UniqueDocumentId>");
+            assertEquals("tagmark", styleAt(spans, p1), "< of <FundsXML> at " + p1);
+            assertEquals("anytag", styleAt(spans, p1 + 1), "F of FundsXML");
+            assertEquals("tagmark", styleAt(spans, p2), "< of <ControlData> at " + p2);
+            assertEquals("anytag", styleAt(spans, p2 + 1), "C of ControlData");
+            assertEquals("tagmark", styleAt(spans, p3), "< of <UniqueDocumentId> at " + p3);
+            assertEquals("anytag", styleAt(spans, p3 + 1), "U of UniqueDocumentId");
+        }
+
+        @Test
+        @DisplayName("Lone CR line endings — spans align with normalized text")
+        void loneCRLineEndingsAlignWithNormalizedText() {
+            String input = "<A>\r<B>\r<C>";
+            String normalized = input.replace("\r", "\n");
+            StyleSpans<Collection<String>> spans = XmlSyntaxHighlighter.computeHighlighting(input);
+
+            assertEquals(normalized.length(), spans.length());
+            assertEquals("tagmark", styleAt(spans, normalized.indexOf("<A>")));
+            assertEquals("tagmark", styleAt(spans, normalized.indexOf("<B>")));
+            assertEquals("tagmark", styleAt(spans, normalized.indexOf("<C>")));
+        }
+
+        @Test
         @DisplayName("Mixed self-closing and regular tags with attributes — no offset")
         void mixedTagsWithAttributes() {
             String text = "<A x=\"1\"/><B y=\"2\"><C/></B>";
