@@ -129,9 +129,6 @@ public class XmlEditorSidebarController {
     @FXML
     private VBox sidebarContent;
 
-    @FXML
-    private ScrollPane sidebarScrollPane;
-
     // Document Structure Section
     @FXML
     private TreeView<String> documentTreeView;
@@ -190,11 +187,8 @@ public class XmlEditorSidebarController {
 
     private org.fxt.freexmltoolkit.controller.MainController mainController;
 
-    // Customizable section container
-    private CustomizableSectionContainer sectionContainer;
-
-    private VBox sidebarContainer; // Reference to the main container
-    private double expandedWidth = 300; // Store the expanded width
+    private VBox sidebarContainer; // Reference to the main container (kept for setSidebarContainer API)
+    private double expandedWidth = 300; // Stored for legacy callers
     private final List<SchematronService.SchematronValidationError> currentSchematronErrors = new ArrayList<>();
     private final List<ValidationError> currentValidationErrors = new ArrayList<>();
 
@@ -426,37 +420,104 @@ public class XmlEditorSidebarController {
         setupCustomizableSections();
     }
 
+    // Per-tab section containers (mirrors XSD properties panel architecture).
+    private CustomizableSectionContainer validationContainer;
+    private CustomizableSectionContainer structureContainer;
+    private CustomizableSectionContainer selectionContainer;
+    private javafx.scene.control.TabPane sidebarTabPane;
+
+    // Tab accent colors (matching XsdPropertiesPanel for visual consistency).
+    private static final String VALIDATION_COLOR = "#007bff"; // Blue
+    private static final String STRUCTURE_COLOR  = "#fd7e14"; // Orange
+    private static final String SELECTION_COLOR  = "#28a745"; // Green
+
     /**
-     * Builds the CustomizableSectionContainer from the FXML-defined section wrappers.
-     * Extracts sections from sidebarContent and wraps them in a reorderable container.
+     * Builds a TabPane with three tabs (Validation / Structure / Selection),
+     * each containing a CustomizableSectionContainer of the relevant FXML-defined
+     * section wrappers. Mirrors the layout of {@code XsdPropertiesPanel}.
      */
     private void setupCustomizableSections() {
         if (sidebarContent == null) return;
 
-        // Remove all section VBoxes from sidebarContent
+        // Detach section VBoxes from sidebarContent before reparenting them.
         sidebarContent.getChildren().clear();
 
-        // Create the customizable container with reordered default sections:
-        // most relevant document-level info first, then context, then structure.
-        sectionContainer = new CustomizableSectionContainer("xml-sidebar");
-        sectionContainer.addSection(new SectionDefinition("schemaValidation", "Schema Validation", schemaValidationSection, true, 1));
-        sectionContainer.addSection(new SectionDefinition("businessRules", "Business Rules", businessRulesSection, true, 2));
-        sectionContainer.addSection(new SectionDefinition("cursorInfo", "Cursor Information", cursorInfoSection, true, 3));
-        sectionContainer.addSection(new SectionDefinition("childElements", "Possible Child Elements", childElementsSection, true, 4));
-        sectionContainer.addSection(new SectionDefinition("documentStructure", "Document Structure", documentStructureSection, true, 5));
-        sectionContainer.addSection(new SectionDefinition("nodeDocumentation", "Node Documentation", nodeDocumentationSection, true, 6));
-        sectionContainer.addSection(new SectionDefinition("exampleValues", "Example Values", exampleValuesSection, false, 7));
-        sectionContainer.initialize();
+        // --- Tab 1: Validation (file-global checks, always first) ---
+        validationContainer = new CustomizableSectionContainer("xml-sidebar-validation");
+        validationContainer.addSection(new SectionDefinition("schemaValidation", "Schema Validation", schemaValidationSection, true, 1));
+        validationContainer.addSection(new SectionDefinition("businessRules", "Business Rules", businessRulesSection, true, 2));
+        validationContainer.setPadding(new Insets(10));
+        validationContainer.initialize();
 
-        VBox.setVgrow(sectionContainer, Priority.ALWAYS);
-        sidebarContent.getChildren().add(sectionContainer);
+        // --- Tab 2: Structure (document tree + valid children) ---
+        structureContainer = new CustomizableSectionContainer("xml-sidebar-structure");
+        structureContainer.addSection(new SectionDefinition("documentStructure", "Document Structure", documentStructureSection, true, 1));
+        structureContainer.addSection(new SectionDefinition("childElements", "Possible Child Elements", childElementsSection, true, 2));
+        structureContainer.setPadding(new Insets(10));
+        structureContainer.initialize();
+
+        // --- Tab 3: Selection (context for the currently selected node) ---
+        selectionContainer = new CustomizableSectionContainer("xml-sidebar-selection");
+        selectionContainer.addSection(new SectionDefinition("cursorInfo", "Cursor Information", cursorInfoSection, true, 1));
+        selectionContainer.addSection(new SectionDefinition("nodeDocumentation", "Node Documentation", nodeDocumentationSection, true, 2));
+        selectionContainer.addSection(new SectionDefinition("exampleValues", "Example Values", exampleValuesSection, true, 3));
+        selectionContainer.setPadding(new Insets(10));
+        selectionContainer.initialize();
+
+        // --- Assemble TabPane ---
+        sidebarTabPane = new javafx.scene.control.TabPane();
+        sidebarTabPane.setTabClosingPolicy(javafx.scene.control.TabPane.TabClosingPolicy.UNAVAILABLE);
+        sidebarTabPane.getTabs().addAll(
+                buildTab("Validation", "bi-shield-check", VALIDATION_COLOR, validationContainer),
+                buildTab("Structure",  "bi-diagram-3",     STRUCTURE_COLOR,  structureContainer),
+                buildTab("Selection",  "bi-cursor-text",   SELECTION_COLOR,  selectionContainer)
+        );
+
+        VBox.setVgrow(sidebarTabPane, Priority.ALWAYS);
+        sidebarContent.getChildren().add(sidebarTabPane);
     }
 
     /**
-     * Returns the customizable section container for external access.
+     * Creates a TabPane tab with a colored Bootstrap icon and a scrollable container.
      */
+    private javafx.scene.control.Tab buildTab(String title, String iconLiteral, String color,
+                                              CustomizableSectionContainer container) {
+        ScrollPane scrollPane = new ScrollPane(container);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.getStyleClass().add("sidebar-scroll-pane");
+
+        javafx.scene.control.Tab tab = new javafx.scene.control.Tab(title, scrollPane);
+        org.kordamp.ikonli.javafx.FontIcon icon = new org.kordamp.ikonli.javafx.FontIcon(iconLiteral);
+        icon.setIconSize(16);
+        icon.setIconColor(javafx.scene.paint.Color.web(color));
+        tab.setGraphic(icon);
+        return tab;
+    }
+
+    /**
+     * Returns the section container of the currently selected tab.
+     * Used by the outer wrapper's gear button to customize the active tab.
+     */
+    public CustomizableSectionContainer getActiveSectionContainer() {
+        if (sidebarTabPane == null) return null;
+        int idx = sidebarTabPane.getSelectionModel().getSelectedIndex();
+        return switch (idx) {
+            case 0 -> validationContainer;
+            case 1 -> structureContainer;
+            case 2 -> selectionContainer;
+            default -> validationContainer;
+        };
+    }
+
+    /**
+     * @deprecated Use {@link #getActiveSectionContainer()} instead.
+     * Kept for backwards compatibility with callers that expect a single container.
+     */
+    @Deprecated
     public CustomizableSectionContainer getSectionContainer() {
-        return sectionContainer;
+        return getActiveSectionContainer();
     }
 
     /**
@@ -473,15 +534,16 @@ public class XmlEditorSidebarController {
             return;
         }
 
-        if (sectionContainer != null && anchor != null) {
-            settingsPopup = new org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup(sectionContainer);
+        CustomizableSectionContainer container = getActiveSectionContainer();
+        if (container != null && anchor != null) {
+            settingsPopup = new org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup(container);
             settingsPopup.setOnHidden(e -> lastSettingsPopupHiddenTime = System.currentTimeMillis());
-            var order = sectionContainer.getCurrentOrder();
+            var order = container.getCurrentOrder();
             var visibility = new java.util.HashMap<String, Boolean>();
             var enabled = new java.util.HashMap<String, Boolean>();
             for (String id : order) {
-                visibility.put(id, sectionContainer.isSectionVisible(id));
-                enabled.put(id, sectionContainer.isSectionEnabled(id));
+                visibility.put(id, container.isSectionVisible(id));
+                enabled.put(id, container.isSectionEnabled(id));
             }
             settingsPopup.refresh(order, visibility, enabled);
             settingsPopup.show(anchor);
@@ -1538,11 +1600,13 @@ public class XmlEditorSidebarController {
         this.xsdLinked = hasXsd;
         logger.debug("Updating XSD-dependent panes: XSD linked = {}", hasXsd);
 
-        // Enable/disable XSD-dependent sections via CustomizableSectionContainer
-        if (sectionContainer != null) {
-            sectionContainer.setSectionEnabled("nodeDocumentation", hasXsd);
-            sectionContainer.setSectionEnabled("exampleValues", hasXsd);
-            sectionContainer.setSectionEnabled("childElements", hasXsd);
+        // Enable/disable XSD-dependent sections in their respective tab containers.
+        if (selectionContainer != null) {
+            selectionContainer.setSectionEnabled("nodeDocumentation", hasXsd);
+            selectionContainer.setSectionEnabled("exampleValues", hasXsd);
+        }
+        if (structureContainer != null) {
+            structureContainer.setSectionEnabled("childElements", hasXsd);
         }
 
         // Update Element Type field in Cursor Information (partially XSD-dependent)

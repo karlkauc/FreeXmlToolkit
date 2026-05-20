@@ -528,7 +528,7 @@ public class MultiFunctionalSidePane extends VBox {
         if (currentEditorType == null) return null;
 
         return switch (currentEditorType) {
-            case XML -> xmlSidebarController != null ? xmlSidebarController.getSectionContainer() : null;
+            case XML -> xmlSidebarController != null ? xmlSidebarController.getActiveSectionContainer() : null;
             case XSD -> xsdPropertiesPanel != null ? xsdPropertiesPanel.getActiveSectionContainer() : null;
             case SCHEMATRON -> schematronPropertiesPane != null ? schematronPropertiesPane.getSectionContainer() : null;
             default -> null;
