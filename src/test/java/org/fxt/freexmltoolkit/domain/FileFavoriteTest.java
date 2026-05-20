@@ -102,7 +102,7 @@ class FileFavoriteTest {
         @DisplayName("XSLT type has correct properties")
         void xsltTypeHasCorrectProperties() {
             assertEquals("XSLT Stylesheet", FileFavorite.FileType.XSLT.getDisplayName());
-            assertEquals("bi-file-earmark-arrow-right", FileFavorite.FileType.XSLT.getIconLiteral());
+            assertEquals("bi-file-earmark-arrow-up", FileFavorite.FileType.XSLT.getIconLiteral());
             assertEquals("#fd7e14", FileFavorite.FileType.XSLT.getDefaultColor());
         }
     }

@@ -1588,10 +1588,10 @@ public class XsdPropertiesPanel extends BorderPane {
             return "bi-hash";
         }
         if (lower.endsWith(":int") || lower.equals("int")) {
-            return "bi-1-circle-fill";
+            return "bi-circle-fill";
         }
         if (lower.endsWith("long")) {
-            return "bi-2-circle-fill";
+            return "bi-circle";
         }
         if (lower.endsWith("short")) {
             return "bi-dash-square";

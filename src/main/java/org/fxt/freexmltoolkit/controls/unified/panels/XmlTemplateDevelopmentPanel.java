@@ -125,7 +125,7 @@ public class XmlTemplateDevelopmentPanel extends VBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button closeBtn = new Button();
-        closeBtn.setGraphic(createIcon("bi-x-lg", 14));
+        closeBtn.setGraphic(createIcon("bi-x", 14));
         closeBtn.setOnAction(e -> {
             if (onCloseRequested != null) onCloseRequested.run();
         });

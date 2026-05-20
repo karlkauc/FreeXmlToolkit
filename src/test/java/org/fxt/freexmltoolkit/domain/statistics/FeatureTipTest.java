@@ -200,12 +200,12 @@ class FeatureTipTest {
                     "Generate PDF documents from XML using XSL-FO",
                     "fop",
                     3,
-                    "bi-file-earmark-pdf"
+                    "bi-file-earmark-richtext"
             );
 
             assertEquals("pdf-generation", tip.getFeatureId());
             assertEquals("fop", tip.getActionLink());
-            assertEquals("bi-file-earmark-pdf", tip.getIconLiteral());
+            assertEquals("bi-file-earmark-richtext", tip.getIconLiteral());
         }
 
         @Test

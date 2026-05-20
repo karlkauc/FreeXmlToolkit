@@ -985,10 +985,12 @@ public class XmlEditorSidebarController {
         List<FileFavorite> xsdFavorites = favoritesService.getFavoritesByType(FileFavorite.FileType.XSD);
 
         for (FileFavorite favorite : xsdFavorites) {
-            // Display format: "name (folder)" or just "name" if no folder
+            // Display format: "name (folder)" — folder suffix is omitted for the
+            // default "XSD Schemas" category since the dropdown only lists XSD favorites
             String displayName = favorite.getName();
-            if (favorite.getFolderName() != null && !favorite.getFolderName().isEmpty()) {
-                displayName += " (" + favorite.getFolderName() + ")";
+            String folder = favorite.getFolderName();
+            if (folder != null && !folder.isEmpty() && !"XSD Schemas".equals(folder)) {
+                displayName += " (" + folder + ")";
             }
             xsdFavoritesComboBox.getItems().add(displayName);
         }
@@ -1006,8 +1008,9 @@ public class XmlEditorSidebarController {
         FileFavorite selectedFavorite = null;
         for (FileFavorite favorite : xsdFavorites) {
             String displayName = favorite.getName();
-            if (favorite.getFolderName() != null && !favorite.getFolderName().isEmpty()) {
-                displayName += " (" + favorite.getFolderName() + ")";
+            String folder = favorite.getFolderName();
+            if (folder != null && !folder.isEmpty() && !"XSD Schemas".equals(folder)) {
+                displayName += " (" + folder + ")";
             }
 
             if (displayName.equals(selectedDisplayName)) {

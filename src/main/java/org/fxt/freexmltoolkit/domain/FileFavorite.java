@@ -48,7 +48,7 @@ public class FileFavorite {
         /** Schematron validation rule files */
         SCHEMATRON("Schematron Rules", "bi-file-earmark-ruled", "#dc3545"),
         /** XSLT transformation stylesheet files */
-        XSLT("XSLT Stylesheet", "bi-file-earmark-arrow-right", "#fd7e14"),
+        XSLT("XSLT Stylesheet", "bi-file-earmark-arrow-up", "#fd7e14"),
         /** XPath query files */
         XPATH("XPath Query", "bi-code-slash", "#6f42c1"),
         /** XQuery script files */

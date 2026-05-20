@@ -57,7 +57,7 @@ public class XmlConsolePanel extends VBox {
         clearBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
 
         Button closeBtn = new Button();
-        closeBtn.setGraphic(createIcon("bi-x-lg", 14));
+        closeBtn.setGraphic(createIcon("bi-x", 14));
         closeBtn.setOnAction(e -> {
             if (onCloseRequested != null) onCloseRequested.run();
         });

@@ -143,7 +143,7 @@ public class DialogHelperTest {
             shortcuts.add(new String[]{"Ctrl+F", "Find"});
             
             Dialog<ButtonType> dialog = DialogHelper.createHelpDialog(
-                    "Help", "Help Header", "Help Sub", "bi-help", 
+                    "Help", "Help Header", "Help Sub", "bi-question-circle",
                     DialogHelper.HeaderTheme.PURPLE, features, shortcuts
             );
             
