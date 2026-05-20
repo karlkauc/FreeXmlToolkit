@@ -100,6 +100,8 @@ nav:
     - PDF Generator (FOP): pdf-generator.md
   - Validation:
     - Schematron: schematron-support.md
+  - Industry Standards:
+    - FundsXML Extensions: fundsxml-extensions.md
   - Security:
     - Security Features: SECURITY.md
     - Digital Signatures: digital-signatures.md

@@ -112,6 +112,19 @@ The favorites menu includes:
 
 ---
 
+## Auto-Populated Categories
+
+Some optional features add their own files to your Favorites automatically:
+
+| Category | Source |
+|----------|--------|
+| **FundsXML Examples** | Created by the [FundsXML Extensions](fundsxml-extensions.md) feature when you download FundsXML content |
+| **FundsXML Schematron** | Schematron rule files downloaded by the FundsXML Extensions feature |
+
+These categories appear only after you enable the corresponding feature.
+
+---
+
 ## Navigation
 
 | Previous | Home | Next |

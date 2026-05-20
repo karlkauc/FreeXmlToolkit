@@ -151,6 +151,22 @@ Define custom business rules:
 
 Learn more: [Schematron Guide](schematron-support.md)
 
+### FundsXML Extensions (Optional)
+
+Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard for fund data exchange:
+
+| Feature | What It Does |
+|---------|--------------|
+| **Schema Download** | Fetch the official FundsXML schemas from GitHub |
+| **Sample Library** | One-click access to FundsXML example documents via Favorites |
+| **Quick-Validate** | Check any open XML against the active FundsXML schema (Ctrl+Shift+F) |
+| **Schematron Rules** | Ready-made business-rule checks for FundsXML documents |
+| **Query Snippets** | Pre-built XPath/XQuery expressions for common tasks |
+
+This feature is **off by default**. Enable it from Settings only if you work with FundsXML files.
+
+Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
+
 ---
 
 ## Getting Started
@@ -234,6 +250,7 @@ If the interface appears blurry or animations are slow, your system may be using
 | [PDF Generator](pdf-generator.md)             | Creating PDF documents                   |
 | [Digital Signatures](digital-signatures.md)   | Signing XML documents                    |
 | [Schematron Support](schematron-support.md)   | Business rule validation                 |
+| [FundsXML Extensions](fundsxml-extensions.md) | Optional FundsXML standard integration   |
 
 ### Productivity Tools
 
@@ -266,6 +283,6 @@ If the interface appears blurry or animations are slow, your system may be using
 
 **Editors:** [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [PDF/FOP](pdf-generator.md) | [Signatures](digital-signatures.md)
 
-**Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
+**Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
 
 **Reference:** [Security](SECURITY.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)
