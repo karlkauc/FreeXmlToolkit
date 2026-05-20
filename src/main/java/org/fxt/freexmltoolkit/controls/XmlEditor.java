@@ -31,15 +31,21 @@ import javax.xml.transform.TransformerFactory;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.CacheHint;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
@@ -340,7 +346,7 @@ public class XmlEditor extends Tab {
             // Initialize XSD-dependent panes state (disabled by default until XSD is linked)
             sidebarController.updateXsdDependentPanes(xsdFile != null);
 
-            return sidebar;
+            return wrapWithHeader(sidebar, "Properties");
         } catch (IOException e) {
             logger.error("Failed to load sidebar FXML", e);
             // Fallback: create a simple error message
@@ -348,6 +354,52 @@ public class XmlEditor extends Tab {
             errorBox.getChildren().add(new Label("Error loading sidebar: " + e.getMessage()));
             return errorBox;
         }
+    }
+
+    /**
+     * Wraps a sidebar VBox with a unified header [title | gear | close].
+     * The close button hides the sidebar via setXmlEditorSidebarVisible(false);
+     * the gear button opens the section settings popup of the sidebar controller.
+     */
+    private VBox wrapWithHeader(VBox sidebar, String title) {
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button gearButton = new Button();
+        FontIcon gearIcon = new FontIcon("bi-gear");
+        gearIcon.setIconSize(14);
+        gearButton.setGraphic(gearIcon);
+        gearButton.setTooltip(new Tooltip("Customize sections"));
+        gearButton.getStyleClass().addAll("settings-gear-button", "flat-button");
+        gearButton.setOnAction(e -> {
+            if (sidebarController != null) {
+                sidebarController.showSectionSettings(gearButton);
+            }
+        });
+
+        Button closeButton = new Button();
+        FontIcon closeIcon = new FontIcon("bi-x");
+        closeIcon.setIconSize(14);
+        closeButton.setGraphic(closeIcon);
+        closeButton.setTooltip(new Tooltip("Hide Panel"));
+        closeButton.getStyleClass().add("flat-button");
+        closeButton.setOnAction(e -> setXmlEditorSidebarVisible(false));
+
+        HBox header = new HBox(8, titleLabel, spacer, gearButton, closeButton);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(8, 12, 8, 12));
+        header.getStyleClass().add("side-pane-header");
+
+        VBox wrapper = new VBox(header, new Separator(), sidebar);
+        wrapper.setMinWidth(sidebar.getMinWidth());
+        wrapper.setMaxWidth(sidebar.getMaxWidth());
+        wrapper.setPrefWidth(sidebar.getPrefWidth());
+        wrapper.getStyleClass().add("xml-editor-sidebar-wrapper");
+        VBox.setVgrow(sidebar, Priority.ALWAYS);
+        return wrapper;
     }
 
     /**

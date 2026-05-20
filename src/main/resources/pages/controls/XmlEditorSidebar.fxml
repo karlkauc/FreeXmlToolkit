@@ -8,18 +8,6 @@
       fx:controller="org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController"
       styleClass="xml-editor-sidebar" prefWidth="300" minWidth="250" maxWidth="400">
 
-    <!-- Toggle Button + Settings Gear -->
-    <HBox spacing="0" alignment="CENTER_LEFT">
-        <Button fx:id="toggleSidebarButton" text="&#x25C0;" onAction="#toggleSidebar"
-                styleClass="sidebar-toggle-button"
-                HBox.hgrow="ALWAYS" maxWidth="Infinity" minHeight="30" prefHeight="30"/>
-        <Button fx:id="settingsGearButton" styleClass="settings-gear-button"
-                minHeight="30" prefHeight="30" prefWidth="30">
-            <graphic><FontIcon iconLiteral="bi-gear" iconSize="14"/></graphic>
-            <tooltip><Tooltip text="Customize sections"/></tooltip>
-        </Button>
-    </HBox>
-
     <!-- Sidebar Content with ScrollPane -->
     <ScrollPane fx:id="sidebarScrollPane" styleClass="sidebar-scroll-pane" fitToWidth="true" VBox.vgrow="ALWAYS">
         <VBox fx:id="sidebarContent" spacing="0">

@@ -215,8 +215,77 @@ public class XsdPropertiesPanel extends BorderPane {
 
         setCenter(mainTabPane);
 
+        // Top: unified header + fixed Schema Information section (file-global, not node-dependent)
+        schemaInfoPane = createSchemaInformationTitledPane();
+        javafx.scene.layout.VBox topContainer = new javafx.scene.layout.VBox(
+                createUnifiedHeader(),
+                new javafx.scene.control.Separator(),
+                schemaInfoPane
+        );
+        topContainer.setSpacing(0);
+        setTop(topContainer);
+
         // Initially disabled until a node is selected
-        setDisable(true);
+        // (header + schema info remain enabled — they show file-global info)
+        mainTabPane.setDisable(true);
+    }
+
+    /**
+     * Creates the unified panel header: [title | spacer | gear | close].
+     * The gear opens section settings for the active tab; close hides the panel.
+     */
+    private javafx.scene.layout.HBox createUnifiedHeader() {
+        javafx.scene.control.Label titleLabel = new javafx.scene.control.Label("Schema Properties");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+
+        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+        javafx.scene.control.Button gearButton = new javafx.scene.control.Button();
+        FontIcon gearIcon = new FontIcon("bi-gear");
+        gearIcon.setIconSize(14);
+        gearButton.setGraphic(gearIcon);
+        gearButton.setTooltip(new javafx.scene.control.Tooltip("Customize sections"));
+        gearButton.getStyleClass().addAll("settings-gear-button", "flat-button");
+        gearButton.setOnAction(e -> showActiveTabSectionSettings(gearButton));
+
+        javafx.scene.control.Button closeButton = new javafx.scene.control.Button();
+        FontIcon closeIcon = new FontIcon("bi-x");
+        closeIcon.setIconSize(14);
+        closeButton.setGraphic(closeIcon);
+        closeButton.setTooltip(new javafx.scene.control.Tooltip("Hide Panel"));
+        closeButton.getStyleClass().add("flat-button");
+        closeButton.setOnAction(e -> {
+            setVisible(false);
+            setManaged(false);
+        });
+
+        javafx.scene.layout.HBox header = new javafx.scene.layout.HBox(8,
+                titleLabel, spacer, gearButton, closeButton);
+        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        header.setPadding(new Insets(8, 12, 8, 12));
+        header.getStyleClass().add("side-pane-header");
+        return header;
+    }
+
+    /**
+     * Opens the section settings popup for the section container of the currently active tab.
+     */
+    private void showActiveTabSectionSettings(javafx.scene.Node anchor) {
+        CustomizableSectionContainer container = getActiveSectionContainer();
+        if (container == null || anchor == null) return;
+
+        org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup popup =
+                new org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup(container);
+        var order = container.getCurrentOrder();
+        var visibility = new java.util.HashMap<String, Boolean>();
+        var enabled = new java.util.HashMap<String, Boolean>();
+        for (String id : order) {
+            visibility.put(id, container.isSectionVisible(id));
+            enabled.put(id, container.isSectionEnabled(id));
+        }
+        popup.refresh(order, visibility, enabled);
+        popup.show(anchor);
     }
 
     /**
@@ -237,8 +306,8 @@ public class XsdPropertiesPanel extends BorderPane {
      * Contains: Schema Information, General, Cardinality, Constraints, Advanced
      */
     private Tab createAttributesTab() {
-        // Create TitledPanes for schema and general properties
-        schemaInfoPane = createSchemaInformationTitledPane();
+        // Schema Information is now a fixed section at the top of the panel,
+        // outside the TabPane, so it stays visible regardless of selection.
         TitledPane generalPane = createGeneralTitledPane();
         TitledPane cardinalityPane = createCardinalityTitledPane();
         TitledPane constraintsPane = createConstraintsTitledPane();
@@ -249,8 +318,7 @@ public class XsdPropertiesPanel extends BorderPane {
         attributesSectionContainer.addSection(new SectionDefinition("general", "General", generalPane, true, 1));
         attributesSectionContainer.addSection(new SectionDefinition("cardinality", "Cardinality", cardinalityPane, true, 2));
         attributesSectionContainer.addSection(new SectionDefinition("constraints", "Constraints", constraintsPane, true, 3));
-        attributesSectionContainer.addSection(new SectionDefinition("schemaInfo", "Schema Information", schemaInfoPane, true, 4));
-        attributesSectionContainer.addSection(new SectionDefinition("advanced", "Advanced", advancedPane, true, 5));
+        attributesSectionContainer.addSection(new SectionDefinition("advanced", "Advanced", advancedPane, true, 4));
         attributesSectionContainer.setPadding(new Insets(10));
         attributesSectionContainer.initialize();
 
@@ -916,8 +984,9 @@ public class XsdPropertiesPanel extends BorderPane {
             boolean isEditMode = editorContext.isEditMode();
             logger.info("==== Updating properties panel for node: {}, Edit Mode: {} ====", node.getLabel(), isEditMode);
 
-            // Always enable the panel for viewing, but disable editing controls
-            setDisable(false);
+            // Always enable the tab pane for viewing, but disable editing controls.
+            // Header + Schema Information stay enabled all the time.
+            mainTabPane.setDisable(false);
 
             // Disable editing controls if not in edit mode
             nameField.setEditable(isEditMode);
@@ -1310,7 +1379,7 @@ public class XsdPropertiesPanel extends BorderPane {
         updating = true;
 
         try {
-            setDisable(true);
+            mainTabPane.setDisable(true);
 
             nameField.clear();
             typeComboBox.setValue(null);
@@ -2717,7 +2786,7 @@ public class XsdPropertiesPanel extends BorderPane {
      */
     private void showCommentProperties(VisualNode node) {
         try {
-            setDisable(false);
+            mainTabPane.setDisable(false);
 
             XsdComment comment = (XsdComment) node.getModelObject();
             boolean isEditMode = editorContext.isEditMode();

@@ -32,7 +32,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -103,7 +102,6 @@ public class MultiFunctionalSidePane extends VBox {
     // UI Components
     private final HBox header;
     private final StackPane contentStack;
-    private ToggleButton toggleButton;
     private Label titleLabel;
     private Button closeButton;
     private Button settingsGearButton;
@@ -163,7 +161,9 @@ public class MultiFunctionalSidePane extends VBox {
     }
 
     /**
-     * Creates the header with toggle, title, and close buttons.
+     * Creates the header with title, settings gear and close buttons.
+     * The previous toggle-button was removed; visibility is controlled via the
+     * close-button here and the toolbar's properties-toggle in the parent view.
      */
     private HBox createHeader() {
         HBox headerBox = new HBox(8);
@@ -171,20 +171,9 @@ public class MultiFunctionalSidePane extends VBox {
         headerBox.setPadding(new Insets(8, 12, 8, 12));
         headerBox.getStyleClass().add("side-pane-header");
 
-        // Toggle button
-        toggleButton = new ToggleButton();
-        toggleButton.setSelected(true);
-        FontIcon toggleIcon = new FontIcon("bi-layout-sidebar-inset-reverse");
-        toggleIcon.setIconSize(16);
-        toggleButton.setGraphic(toggleIcon);
-        toggleButton.setTooltip(new Tooltip("Toggle Properties Panel (Ctrl+Shift+P)"));
-        toggleButton.getStyleClass().add("flat-button");
-        toggleButton.setOnAction(e -> toggleVisibility());
-
         // Title label
         titleLabel = new Label("Properties");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
-        HBox.setHgrow(titleLabel, Priority.ALWAYS);
 
         // Spacer
         Region spacer = new Region();
@@ -208,7 +197,7 @@ public class MultiFunctionalSidePane extends VBox {
         closeButton.getStyleClass().add("flat-button");
         closeButton.setOnAction(e -> hide());
 
-        headerBox.getChildren().addAll(toggleButton, titleLabel, spacer, settingsGearButton, closeButton);
+        headerBox.getChildren().addAll(titleLabel, spacer, settingsGearButton, closeButton);
         return headerBox;
     }
 
@@ -551,7 +540,6 @@ public class MultiFunctionalSidePane extends VBox {
      */
     public void show() {
         currentState = SidePaneState.PROPERTIES;
-        toggleButton.setSelected(true);
 
         // Ensure properties are showing
         if (currentPropertiesPane != null) {
@@ -590,7 +578,6 @@ public class MultiFunctionalSidePane extends VBox {
      */
     public void hide() {
         currentState = SidePaneState.HIDDEN;
-        toggleButton.setSelected(false);
 
         // Remove from SplitPane to free space
         if (parentSplitPane == null) {

@@ -24,7 +24,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -122,9 +121,6 @@ public class XmlEditorSidebarController {
     private ListView<SchematronService.SchematronValidationError> schematronErrorsListView;
 
     @FXML
-    private Button toggleSidebarButton;
-
-    @FXML
     private ToggleButton xsdDocumentationToggleButton;
 
     @FXML
@@ -174,9 +170,6 @@ public class XmlEditorSidebarController {
     @FXML
     private TitledPane childElementsPane;
 
-    @FXML
-    private Button settingsGearButton;
-
     private org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup settingsPopup;
     private long lastSettingsPopupHiddenTime = 0;
 
@@ -194,7 +187,6 @@ public class XmlEditorSidebarController {
     // XSD management
     private File originalXsdFile; // Store the original linked XSD
 
-    private boolean sidebarVisible = true;
 
     private org.fxt.freexmltoolkit.controller.MainController mainController;
 
@@ -444,24 +436,20 @@ public class XmlEditorSidebarController {
         // Remove all section VBoxes from sidebarContent
         sidebarContent.getChildren().clear();
 
-        // Create the customizable container with improved default order
+        // Create the customizable container with reordered default sections:
+        // most relevant document-level info first, then context, then structure.
         sectionContainer = new CustomizableSectionContainer("xml-sidebar");
-        sectionContainer.addSection(new SectionDefinition("documentStructure", "Document Structure", documentStructureSection, true, 1));
-        sectionContainer.addSection(new SectionDefinition("cursorInfo", "Cursor Information", cursorInfoSection, true, 2));
-        sectionContainer.addSection(new SectionDefinition("childElements", "Possible Child Elements", childElementsSection, true, 3));
-        sectionContainer.addSection(new SectionDefinition("schemaValidation", "Schema Validation", schemaValidationSection, true, 4));
-        sectionContainer.addSection(new SectionDefinition("nodeDocumentation", "Node Documentation", nodeDocumentationSection, true, 5));
-        sectionContainer.addSection(new SectionDefinition("businessRules", "Business Rules", businessRulesSection, true, 6));
+        sectionContainer.addSection(new SectionDefinition("schemaValidation", "Schema Validation", schemaValidationSection, true, 1));
+        sectionContainer.addSection(new SectionDefinition("businessRules", "Business Rules", businessRulesSection, true, 2));
+        sectionContainer.addSection(new SectionDefinition("cursorInfo", "Cursor Information", cursorInfoSection, true, 3));
+        sectionContainer.addSection(new SectionDefinition("childElements", "Possible Child Elements", childElementsSection, true, 4));
+        sectionContainer.addSection(new SectionDefinition("documentStructure", "Document Structure", documentStructureSection, true, 5));
+        sectionContainer.addSection(new SectionDefinition("nodeDocumentation", "Node Documentation", nodeDocumentationSection, true, 6));
         sectionContainer.addSection(new SectionDefinition("exampleValues", "Example Values", exampleValuesSection, false, 7));
         sectionContainer.initialize();
 
         VBox.setVgrow(sectionContainer, Priority.ALWAYS);
         sidebarContent.getChildren().add(sectionContainer);
-
-        // Wire up settings gear button
-        if (settingsGearButton != null) {
-            settingsGearButton.setOnAction(e -> showSectionSettings());
-        }
     }
 
     /**
@@ -472,20 +460,20 @@ public class XmlEditorSidebarController {
     }
 
     /**
-     * Shows the section settings popup anchored to the gear button.
+     * Shows the section settings popup anchored to the given node.
+     * Invoked by the outer wrapper header (no longer owned by this sidebar).
      */
-    private void showSectionSettings() {
+    public void showSectionSettings(javafx.scene.Node anchor) {
         if (settingsPopup != null && settingsPopup.isShowing()) {
             settingsPopup.hide();
             return;
         }
 
-        // If it was just hidden (e.g., by auto-hide because we clicked the button), don't show it again
         if (System.currentTimeMillis() - lastSettingsPopupHiddenTime < 250) {
             return;
         }
 
-        if (sectionContainer != null && settingsGearButton != null) {
+        if (sectionContainer != null && anchor != null) {
             settingsPopup = new org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup(sectionContainer);
             settingsPopup.setOnHidden(e -> lastSettingsPopupHiddenTime = System.currentTimeMillis());
             var order = sectionContainer.getCurrentOrder();
@@ -496,80 +484,7 @@ public class XmlEditorSidebarController {
                 enabled.put(id, sectionContainer.isSectionEnabled(id));
             }
             settingsPopup.refresh(order, visibility, enabled);
-            settingsPopup.show(settingsGearButton);
-        }
-    }
-
-    @FXML
-    public void toggleSidebar() {
-        // Use the global sidebar toggle functionality instead of local minimize/maximize
-        if (mainController != null) {
-            // Get the current state from the main controller's menu
-            boolean currentlyVisible = mainController.isXmlEditorSidebarVisible();
-
-            // Toggle the state through the MainController - this will:
-            // 1. Update the menu CheckMenuItem
-            // 2. Save the preference 
-            // 3. Apply to all XML Editor tabs
-            // 4. Completely hide/show the sidebar (not just minimize)
-            mainController.toggleXmlEditorSidebarFromSidebar(!currentlyVisible);
-        } else {
-            // Alternative approach: Try to find the MainController through the Stage
-            logger.warn("MainController not available directly - trying alternative approach");
-
-            try {
-                // Get the current stage and find MainController through the window
-                javafx.stage.Window window = toggleSidebarButton.getScene().getWindow();
-                if (window instanceof javafx.stage.Stage) {
-                    // This is a fallback - in practice, we should ensure MainController is available
-                    // For now, just use local toggle as fallback
-                    toggleSidebarLocal();
-                }
-            } catch (Exception e) {
-                logger.warn("Fallback failed - using local sidebar toggle: {}", e.getMessage());
-                toggleSidebarLocal();
-            }
-        }
-    }
-
-    /**
-     * Fallback method for local sidebar toggle (original behavior)
-     */
-    private void toggleSidebarLocal() {
-        sidebarVisible = !sidebarVisible;
-
-        if (sidebarVisible) {
-            // Expand sidebar
-            sidebarContent.setVisible(true);
-            sidebarContent.setManaged(true);
-
-            if (sidebarContainer != null) {
-                sidebarContainer.setPrefWidth(expandedWidth);
-                sidebarContainer.setMinWidth(250);
-                sidebarContainer.setMaxWidth(400);
-            }
-
-            // Reset toggle button width when expanded
-            toggleSidebarButton.setPrefWidth(Region.USE_COMPUTED_SIZE);
-            toggleSidebarButton.setMinWidth(Region.USE_COMPUTED_SIZE);
-
-            toggleSidebarButton.setText("◀");
-        } else {
-            // Collapse sidebar - minimize to just the toggle button width
-            sidebarContent.setVisible(false);
-            sidebarContent.setManaged(false);
-
-            if (sidebarContainer != null) {
-                sidebarContainer.setPrefWidth(32); // Minimal width for just the toggle button
-                sidebarContainer.setMinWidth(32);
-                sidebarContainer.setMaxWidth(32);
-            }
-
-            // Make toggle button take minimal space when collapsed
-            toggleSidebarButton.setPrefWidth(30);
-            toggleSidebarButton.setMinWidth(30);
-
-            toggleSidebarButton.setText("▶");
+            settingsPopup.show(anchor);
         }
     }
 
