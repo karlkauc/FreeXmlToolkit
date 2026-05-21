@@ -306,6 +306,9 @@ tasks.test {
         "-Dglass.platform=Monocle",
         "-Dmonocle.platform=Headless"
     )
+
+    // Forward the opt-in flag for FundsXmlDownloadIntegrationTest (real GitHub).
+    System.getProperty("fundsxml.integration")?.let { systemProperty("fundsxml.integration", it) }
 }
 
 // JaCoCo Code Coverage Configuration

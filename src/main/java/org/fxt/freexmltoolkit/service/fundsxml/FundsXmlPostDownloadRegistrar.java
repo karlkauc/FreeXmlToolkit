@@ -26,6 +26,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.domain.XPathSnippet;
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.TemplateRepository;
 import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
@@ -335,8 +336,17 @@ public class FundsXmlPostDownloadRegistrar {
             }
             try {
                 String content = Files.readString(p);
-                templateRepository.createNewTemplate(id, displayName, content,
-                        TEMPLATE_CATEGORY, "Sample from FundsXML examples: " + relative);
+                // Construct explicitly so the deterministic ID survives — the
+                // convenience method createNewTemplate(id, name, ...) treats its
+                // first arg as the *name*, leaving a random UUID as the ID.
+                XmlTemplate template = new XmlTemplate();
+                template.setId(id);
+                template.setName(displayName);
+                template.setContent(content);
+                template.setCategory(TEMPLATE_CATEGORY);
+                template.setDescription("Sample from FundsXML examples: " + relative);
+                template.setBuiltIn(false);
+                templateRepository.addTemplate(template, true);
                 result.templateAdded();
             } catch (Exception e) {
                 logger.warn("Failed to seed FundsXML template from {}: {}", p, e.getMessage());
