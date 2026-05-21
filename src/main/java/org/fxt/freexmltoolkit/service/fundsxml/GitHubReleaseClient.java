@@ -244,7 +244,9 @@ public class GitHubReleaseClient {
         try {
             conn = connectionFactory.open(uri);
             conn.setRequestMethod("GET");
-            conn.setRequestProperty("Accept", "application/octet-stream");
+            // GitHub's zipball/tarball endpoints reject "application/octet-stream" with HTTP 415.
+            // "*/*" works for both the api.github.com redirect and the codeload.github.com download.
+            conn.setRequestProperty("Accept", "*/*");
             conn.setRequestProperty("User-Agent", USER_AGENT);
             conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
             conn.setReadTimeout(READ_TIMEOUT_MS);

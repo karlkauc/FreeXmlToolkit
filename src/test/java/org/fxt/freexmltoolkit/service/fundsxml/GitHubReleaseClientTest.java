@@ -22,15 +22,32 @@ import org.fxt.freexmltoolkit.domain.GitHubRelease;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("GitHubReleaseClient JSON parsing")
+@DisplayName("GitHubReleaseClient")
 class GitHubReleaseClientTest {
 
     private static final String RELEASES_FIXTURE = """
@@ -174,5 +191,136 @@ class GitHubReleaseClientTest {
             assertEquals("", new GitHubRelease(null, null, null, null, null, null, null).normalizedVersion());
             assertEquals("", new GitHubRelease("", null, null, null, null, null, null).normalizedVersion());
         }
+    }
+
+    @Nested
+    @DisplayName("Binary download (HTTP)")
+    class BinaryDownload {
+
+        @Test
+        @DisplayName("Sends Accept: */* — regression for HTTP 415 on GitHub /zipball")
+        void usesWildcardAccept(@TempDir Path tmp) throws IOException {
+            FakeConnection conn = new FakeConnection(200, "schema-bytes".getBytes(StandardCharsets.UTF_8));
+            GitHubReleaseClient client = new GitHubReleaseClient(uri -> conn);
+
+            client.downloadFile(URI.create("https://api.github.com/repos/x/y/zipball/1.0"),
+                    tmp.resolve("out.zip"), null, "download");
+
+            assertEquals("*/*", conn.requestProperties.get("Accept"),
+                    "GitHub's /zipball/{ref} endpoint returns HTTP 415 for application/octet-stream");
+            assertEquals("FreeXmlToolkit-FundsXML", conn.requestProperties.get("User-Agent"));
+        }
+
+        @Test
+        @DisplayName("Writes the response body to disk verbatim")
+        void writesBytesToDisk(@TempDir Path tmp) throws IOException {
+            byte[] payload = {'P', 'K', 0x03, 0x04, 0x14, 0x00};
+            FakeConnection conn = new FakeConnection(200, payload);
+            GitHubReleaseClient client = new GitHubReleaseClient(uri -> conn);
+
+            Path out = tmp.resolve("nested/out.zip");
+            client.downloadFile(URI.create("https://example.com/x"), out, null, "stage");
+
+            assertArrayEquals(payload, Files.readAllBytes(out));
+        }
+
+        @Test
+        @DisplayName("Invokes the progress callback with the final byte count")
+        void invokesProgressCallback(@TempDir Path tmp) throws IOException {
+            byte[] payload = new byte[4096];
+            FakeConnection conn = new FakeConnection(200, payload);
+            GitHubReleaseClient client = new GitHubReleaseClient(uri -> conn);
+
+            List<Long> progress = new ArrayList<>();
+            client.downloadFile(URI.create("https://example.com/x"),
+                    tmp.resolve("out.bin"),
+                    (stage, bytes, total, msg) -> progress.add(bytes),
+                    "download");
+
+            assertFalse(progress.isEmpty(), "Callback must fire at least once");
+            assertEquals(payload.length, progress.get(progress.size() - 1).longValue());
+        }
+
+        @Test
+        @DisplayName("Follows a 302 redirect to the codeload archive host")
+        void followsRedirects(@TempDir Path tmp) throws IOException {
+            FakeConnection redirect = new FakeConnection(302, new byte[0]);
+            redirect.headers.put("Location", "https://codeload.github.com/x/y/zip/1.0");
+            byte[] payload = "final-bytes".getBytes(StandardCharsets.UTF_8);
+            FakeConnection finalConn = new FakeConnection(200, payload);
+
+            AtomicInteger calls = new AtomicInteger();
+            GitHubReleaseClient client = new GitHubReleaseClient(uri ->
+                    calls.getAndIncrement() == 0 ? redirect : finalConn);
+
+            Path out = tmp.resolve("out.zip");
+            client.downloadFile(URI.create("https://api.github.com/repos/x/y/zipball/1.0"),
+                    out, null, "download");
+
+            assertEquals(2, calls.get(), "Expected exactly one redirect hop");
+            assertArrayEquals(payload, Files.readAllBytes(out));
+        }
+
+        @Test
+        @DisplayName("Throws IOException on HTTP 415 (regression for the original failure)")
+        void throwsOnHttp415(@TempDir Path tmp) {
+            FakeConnection conn = new FakeConnection(415, new byte[0]);
+            GitHubReleaseClient client = new GitHubReleaseClient(uri -> conn);
+
+            URI uri = URI.create("https://api.github.com/repos/x/y/zipball/1.0");
+            IOException ex = assertThrows(IOException.class, () ->
+                    client.downloadFile(uri, tmp.resolve("out.zip"), null, "download"));
+            assertTrue(ex.getMessage().contains("415"),
+                    "Message should mention status code, was: " + ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("downloadZipball rejects a release without a zipball URL")
+        void rejectsMissingZipballUrl(@TempDir Path tmp) {
+            GitHubReleaseClient client = new GitHubReleaseClient(uri -> {
+                throw new AssertionError("Should not open a connection");
+            });
+            GitHubRelease release = new GitHubRelease("1.0", null, null, null, null, "", null);
+            assertThrows(IOException.class, () ->
+                    client.downloadZipball(release, tmp.resolve("out.zip"), null));
+        }
+    }
+
+    /** Fake HttpURLConnection that records request headers and serves canned bytes. */
+    private static class FakeConnection extends HttpURLConnection {
+        final int status;
+        final byte[] body;
+        final Map<String, String> requestProperties = new HashMap<>();
+        final Map<String, String> headers = new HashMap<>();
+
+        FakeConnection(int status, byte[] body) {
+            super(stubUrl());
+            this.status = status;
+            this.body = body;
+        }
+
+        private static URL stubUrl() {
+            try {
+                return URI.create("http://stub.invalid/").toURL();
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        @Override public void setRequestProperty(String key, String value) {
+            requestProperties.put(key, value);
+        }
+
+        @Override public int getResponseCode() { return status; }
+
+        @Override public InputStream getInputStream() { return new ByteArrayInputStream(body); }
+
+        @Override public long getContentLengthLong() { return body.length; }
+
+        @Override public String getHeaderField(String name) { return headers.get(name); }
+
+        @Override public void disconnect() { /* no-op */ }
+        @Override public boolean usingProxy() { return false; }
+        @Override public void connect() { /* no-op */ }
     }
 }
