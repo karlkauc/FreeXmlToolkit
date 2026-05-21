@@ -31,6 +31,7 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
@@ -40,8 +41,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * View showing a list of all SimpleTypes in the schema.
@@ -149,7 +148,7 @@ public class SimpleTypesListView extends BorderPane {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button addBtn = new Button("Add SimpleType");
-        addBtn.setGraphic(new FontIcon(BootstrapIcons.PLUS_CIRCLE));
+        addBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
         addBtn.setTooltip(new Tooltip("Add new SimpleType (Ctrl+N)"));
         addBtn.setStyle("-fx-font-weight: bold;");
         addBtn.setOnAction(e -> handleAddType());
@@ -320,14 +319,14 @@ public class SimpleTypesListView extends BorderPane {
             private final Button delBtn = new Button();
 
             {
-                editBtn.setGraphic(new FontIcon(BootstrapIcons.PENCIL));
+                editBtn.setGraphic(new IconifyIcon("bi-pencil"));
                 editBtn.setTooltip(new Tooltip("Edit type (Double-click)"));
                 editBtn.setOnAction(e -> {
                     SimpleTypeRow row = getTableView().getItems().get(getIndex());
                     handleEditType(row.getSimpleType());
                 });
 
-                delBtn.setGraphic(new FontIcon(BootstrapIcons.TRASH));
+                delBtn.setGraphic(new IconifyIcon("bi-trash"));
                 delBtn.setTooltip(new Tooltip("Delete type (Delete key)"));
                 delBtn.setStyle("-fx-text-fill: red;");
                 delBtn.setOnAction(e -> {
@@ -403,7 +402,7 @@ public class SimpleTypesListView extends BorderPane {
         ToolBar toolbar = new ToolBar();
 
         Button editBtn = new Button("Edit Selected");
-        editBtn.setGraphic(new FontIcon(BootstrapIcons.PENCIL_SQUARE));
+        editBtn.setGraphic(new IconifyIcon("bi-pencil-square"));
         editBtn.setTooltip(new Tooltip("Edit selected type (Enter)"));
         editBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
@@ -413,7 +412,7 @@ public class SimpleTypesListView extends BorderPane {
         });
 
         Button duplicateBtn = new Button("Duplicate");
-        duplicateBtn.setGraphic(new FontIcon(BootstrapIcons.FILES));
+        duplicateBtn.setGraphic(new IconifyIcon("bi-files"));
         duplicateBtn.setTooltip(new Tooltip("Duplicate selected type (Ctrl+D)"));
         duplicateBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
@@ -423,7 +422,7 @@ public class SimpleTypesListView extends BorderPane {
         });
 
         Button findUsageBtn = new Button("Find Usage");
-        findUsageBtn.setGraphic(new FontIcon(BootstrapIcons.SEARCH));
+        findUsageBtn.setGraphic(new IconifyIcon("bi-search"));
         findUsageBtn.setTooltip(new Tooltip("Find where this type is used (Ctrl+U)"));
         findUsageBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
@@ -433,7 +432,7 @@ public class SimpleTypesListView extends BorderPane {
         });
 
         Button deleteBtn = new Button("Delete");
-        deleteBtn.setGraphic(new FontIcon(BootstrapIcons.TRASH));
+        deleteBtn.setGraphic(new IconifyIcon("bi-trash"));
         deleteBtn.setTooltip(new Tooltip("Delete selected type (Delete key)"));
         deleteBtn.setStyle("-fx-text-fill: red;");
         deleteBtn.setOnAction(e -> {

@@ -1106,7 +1106,7 @@ public class JsonController {
         }
         button.setContentDisplay(displayMode);
         button.setStyle(style);
-        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+        if (button.getGraphic() instanceof org.fxt.freexmltoolkit.controls.icons.IconifyIcon fontIcon) {
             fontIcon.setIconSize(iconSize);
         }
     }

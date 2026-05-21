@@ -33,6 +33,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.SchematronDocumentationGenerator;
 import org.fxt.freexmltoolkit.controls.SchematronTester;
 import org.fxt.freexmltoolkit.controls.SchematronVisualBuilder;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
@@ -40,7 +41,6 @@ import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
 import org.fxt.freexmltoolkit.service.LinkedFileDetector;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Full-featured Unified Editor tab for Schematron files.
@@ -151,14 +151,14 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
         innerTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         // Code tab with sidebar
-        FontIcon codeIcon = new FontIcon("bi-code-slash");
+        IconifyIcon codeIcon = new IconifyIcon("bi-code-slash");
         codeIcon.setIconSize(14);
         codeTab.setGraphic(codeIcon);
         codeTab.getStyleClass().add("primary-tab");
         codeTab.setContent(createCodeTabContent());
 
         // Visual Builder tab
-        FontIcon visualIcon = new FontIcon("bi-grid-3x3-gap");
+        IconifyIcon visualIcon = new IconifyIcon("bi-grid-3x3-gap");
         visualIcon.setIconSize(14);
         visualBuilderTab.setGraphic(visualIcon);
         visualBuilderTab.getStyleClass().add("primary-tab");
@@ -168,7 +168,7 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
         visualBuilderTab.setContent(visualScrollPane);
 
         // Test tab
-        FontIcon testIcon = new FontIcon("bi-check-circle");
+        IconifyIcon testIcon = new IconifyIcon("bi-check-circle");
         testIcon.setIconSize(14);
         testTab.setGraphic(testIcon);
         testTab.getStyleClass().add("output-tab");
@@ -176,7 +176,7 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
         testTab.setContent(tester);
 
         // Documentation tab
-        FontIcon docsIcon = new FontIcon("bi-file-text");
+        IconifyIcon docsIcon = new IconifyIcon("bi-file-text");
         docsIcon.setIconSize(14);
         documentationTab.setGraphic(docsIcon);
         documentationTab.getStyleClass().add("utility-tab");
@@ -309,7 +309,7 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
         content.getChildren().addAll(title, helpText);
 
         TitledPane pane = new TitledPane("Quick Help", content);
-        FontIcon icon = new FontIcon("bi-question-circle");
+        IconifyIcon icon = new IconifyIcon("bi-question-circle");
         icon.setIconSize(14);
         pane.setGraphic(icon);
 
@@ -344,7 +344,7 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
         VBox.setVgrow(structureTreeView, Priority.ALWAYS);
 
         TitledPane pane = new TitledPane("Document Structure", content);
-        FontIcon icon = new FontIcon("bi-list-nested");
+        IconifyIcon icon = new IconifyIcon("bi-list-nested");
         icon.setIconSize(14);
         pane.setGraphic(icon);
 
@@ -381,7 +381,7 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
         content.getChildren().addAll(templatesList, insertBtn);
 
         TitledPane pane = new TitledPane("Rule Templates", content);
-        FontIcon icon = new FontIcon("bi-file-earmark-plus");
+        IconifyIcon icon = new IconifyIcon("bi-file-earmark-plus");
         icon.setIconSize(14);
         pane.setGraphic(icon);
 
@@ -413,7 +413,7 @@ public class SchematronUnifiedTab extends AbstractUnifiedEditorTab {
         content.getChildren().addAll(inputRow, xpathResultArea);
 
         TitledPane pane = new TitledPane("XPath Tester", content);
-        FontIcon icon = new FontIcon("bi-terminal");
+        IconifyIcon icon = new IconifyIcon("bi-terminal");
         icon.setIconSize(14);
         pane.setGraphic(icon);
 

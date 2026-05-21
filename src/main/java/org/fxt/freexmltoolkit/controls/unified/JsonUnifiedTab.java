@@ -33,6 +33,7 @@ import javafx.scene.control.TabPane;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonCodeEditor;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeFactory;
@@ -40,7 +41,6 @@ import org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
 import org.fxt.freexmltoolkit.service.JsonService;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Full-featured Unified Editor tab for JSON files.
@@ -126,14 +126,14 @@ public class JsonUnifiedTab extends AbstractUnifiedEditorTab {
         viewTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         // JSON (Text) tab
-        FontIcon jsonIcon = new FontIcon("bi-code-slash");
+        IconifyIcon jsonIcon = new IconifyIcon("bi-code-slash");
         jsonIcon.setIconSize(14);
         jsonTab.setGraphic(jsonIcon);
         jsonTab.getStyleClass().add("primary-tab");
         jsonTab.setContent(textEditor);
 
         // Tree tab with actual tree view
-        FontIcon treeIcon = new FontIcon("bi-diagram-3");
+        IconifyIcon treeIcon = new IconifyIcon("bi-diagram-3");
         treeIcon.setIconSize(14);
         treeTab.setGraphic(treeIcon);
         treeTab.getStyleClass().add("output-tab");

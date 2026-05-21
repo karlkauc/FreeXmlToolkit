@@ -67,7 +67,7 @@
    MENU ITEM ICONS
    ============================================ */
 
-.context-menu .menu-item .ikonli-font-icon {
+.context-menu .menu-item .iconify-icon {
     -fx-icon-size: 12px;
 }
 
@@ -258,7 +258,7 @@
     -fx-background-color: -bg-hover;
 }
 
-.context-menu .custom-menu-item .ikonli-font-icon {
+.context-menu .custom-menu-item .iconify-icon {
     -fx-icon-size: 12px;
 }
 
@@ -429,8 +429,8 @@
     -fx-padding: 6 12;
 }
 
-.xml-context-menu .menu-item .ikonli-font-icon,
-.xsd-context-menu .menu-item .ikonli-font-icon {
+.xml-context-menu .menu-item .iconify-icon,
+.xsd-context-menu .menu-item .iconify-icon {
     -fx-icon-size: 12;
 }
 

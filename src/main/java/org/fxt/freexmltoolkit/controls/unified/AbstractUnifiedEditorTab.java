@@ -10,9 +10,9 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
 
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Abstract base class for all Unified Editor tabs.
@@ -53,7 +53,7 @@ public abstract class AbstractUnifiedEditorTab extends Tab {
         setClosable(true);
 
         // Set icon based on file type
-        FontIcon icon = new FontIcon(fileType.getIcon());
+        IconifyIcon icon = new IconifyIcon(fileType.getIcon());
         icon.setIconSize(16);
         icon.setIconColor(Color.web(fileType.getColor()));
         setGraphic(icon);

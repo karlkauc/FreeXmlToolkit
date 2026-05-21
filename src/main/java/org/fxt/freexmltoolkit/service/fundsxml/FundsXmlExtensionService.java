@@ -18,11 +18,6 @@
 
 package org.fxt.freexmltoolkit.service.fundsxml;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.FundsXmlMetadata;
-import org.fxt.freexmltoolkit.domain.GitHubRelease;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -37,6 +32,11 @@ import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.FundsXmlMetadata;
+import org.fxt.freexmltoolkit.domain.GitHubRelease;
 
 /**
  * Coordinates downloads of FundsXML content from GitHub into the local cache.

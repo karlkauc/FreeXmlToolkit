@@ -25,8 +25,8 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Helper class for type-related functionality in XsdPropertiesPanel.
@@ -62,7 +62,7 @@ public class XsdPropertiesPanelTypeHelper {
      * @param typeIcon the icon to update
      * @param datatype the datatype string
      */
-    public void updateTypeIcon(FontIcon typeIcon, String datatype) {
+    public void updateTypeIcon(IconifyIcon typeIcon, String datatype) {
         if (datatype == null || datatype.isEmpty()) {
             typeIcon.setIconLiteral("bi-diagram-3");
             typeIcon.getStyleClass().add("lock-icon-muted");

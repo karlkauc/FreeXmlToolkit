@@ -13,7 +13,7 @@
 
     <!-- Header -->
     <HBox alignment="CENTER_LEFT" spacing="10" styleClass="popup-header">
-        <FontIcon iconLiteral="bi-file-text" iconColor="#28a745" iconSize="24"/>
+        <IconifyIcon iconLiteral="bi-file-text" iconColor="#28a745" iconSize="24"/>
         <VBox spacing="2">
             <Label text="Smart Templates Manager" styleClass="popup-title"/>
             <Label text="Create and manage XML templates for rapid development" styleClass="popup-subtitle"/>
@@ -28,14 +28,14 @@
         <ComboBox fx:id="templateCategoryCombo" prefWidth="150" promptText="Select category"/>
         <Button fx:id="refreshTemplatesButton" text="Refresh" onAction="#refreshTemplates">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/>
+                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/>
             </graphic>
         </Button>
         <Region HBox.hgrow="ALWAYS"/>
         <Button fx:id="createNewTemplateButton" text="Create New" styleClass="btn-primary"
                 onAction="#createNewTemplate">
             <graphic>
-                <FontIcon iconLiteral="bi-plus-circle" iconColor="white" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-plus-circle" iconColor="white" iconSize="14"/>
             </graphic>
         </Button>
     </HBox>
@@ -70,7 +70,7 @@
                     <Label text="Template Parameters:" styleClass="section-label"/>
                     <Button fx:id="addParameterButton" text="Add Parameter" onAction="#addParameter">
                         <graphic>
-                            <FontIcon iconLiteral="bi-plus-circle" iconSize="12"/>
+                            <IconifyIcon iconLiteral="bi-plus-circle" iconSize="12"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -82,7 +82,7 @@
                     </columns>
                     <placeholder>
                         <VBox alignment="CENTER" spacing="10" styleClass="empty-state">
-                            <FontIcon iconLiteral="bi-table" iconColor="#6c757d" iconSize="64"/>
+                            <IconifyIcon iconLiteral="bi-table" iconColor="#6c757d" iconSize="64"/>
                             <Label text="No parameters defined" styleClass="empty-state-description"/>
                         </VBox>
                     </placeholder>
@@ -95,7 +95,7 @@
                     <Label text="Preview:" styleClass="section-label"/>
                     <Button fx:id="generatePreviewButton" text="Generate Preview" onAction="#generatePreview">
                         <graphic>
-                            <FontIcon iconLiteral="bi-eye" iconSize="12"/>
+                            <IconifyIcon iconLiteral="bi-eye" iconSize="12"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -111,23 +111,23 @@
         <Button fx:id="validateTemplateButton" text="Validate Parameters" styleClass="btn-warning"
                 onAction="#validateTemplate">
             <graphic>
-                <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-check-circle" iconSize="14"/>
             </graphic>
         </Button>
         <Button fx:id="applyTemplateButton" text="Apply to Editor" styleClass="btn-success" onAction="#applyTemplate">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-right" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14"/>
             </graphic>
         </Button>
         <Button fx:id="insertTemplateButton" text="Insert at Cursor" styleClass="btn-primary"
                 onAction="#insertTemplate">
             <graphic>
-                <FontIcon iconLiteral="bi-cursor-text" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-cursor-text" iconSize="14"/>
             </graphic>
         </Button>
         <Button fx:id="cancelButton" text="Cancel" styleClass="btn-secondary">
             <graphic>
-                <FontIcon iconLiteral="bi-x-circle" iconSize="14"/>
+                <IconifyIcon iconLiteral="bi-x-circle" iconSize="14"/>
             </graphic>
         </Button>
     </HBox>

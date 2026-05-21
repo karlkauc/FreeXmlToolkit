@@ -52,19 +52,24 @@ public class MyCommand implements XsdCommand {
 
 ---
 
-## Icons (Ikonli Bootstrap)
+## Icons (IconifyIcon — bundled Iconify SVG)
+
+Icons use `org.fxt.freexmltoolkit.controls.icons.IconifyIcon` (not Ikonli). Bundled set:
+`src/main/resources/icons/iconify/bi.json` (Bootstrap Icons). Same `iconLiteral`/`iconSize`/
+`iconColor` API as the old `FontIcon`.
 
 ### Valid Patterns
 ```java
-new FontIcon("bi-save")          // Save icon
-new FontIcon("bi-trash")         // Delete icon
-new FontIcon("bi-plus-circle")   // Add icon
-new FontIcon("bi-pencil")        // Edit icon
+new IconifyIcon("bi-save")          // Save icon
+new IconifyIcon("bi-trash")         // Delete icon
+new IconifyIcon("bi-plus-circle")   // Add icon
+new IconifyIcon("bi-pencil")        // Edit icon
 ```
 
-### INVALID Icons (DO NOT USE)
-- `bi-database` - Does not exist!
-- Always validate: https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
+### Unknown icons
+- Do **not** crash — they render a placeholder and log a warning.
+- `IconifyIconCoverageTest` fails the build for any unresolved `bi-*` literal in FXML/Java.
+- Browse names: https://icons.getbootstrap.com/
 
 ### Standard Sizes
 - Menu items: `iconSize="16"`

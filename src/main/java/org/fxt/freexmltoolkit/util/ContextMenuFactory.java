@@ -9,7 +9,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.paint.Color;
 
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Utility class for creating consistent, modern context menus across the application.
@@ -420,14 +420,14 @@ public class ContextMenuFactory {
     // ============================================
 
     /**
-     * Creates a FontIcon with the specified icon literal and color.
+     * Creates a IconifyIcon with the specified icon literal and color.
      *
      * @param iconLiteral the Bootstrap icon literal (e.g., "bi-plus-circle")
      * @param iconColor the icon color (hex string, e.g., "#28a745")
-     * @return the configured FontIcon
+     * @return the configured IconifyIcon
      */
-    public static FontIcon createIcon(String iconLiteral, String iconColor) {
-        FontIcon icon = new FontIcon(iconLiteral);
+    public static IconifyIcon createIcon(String iconLiteral, String iconColor) {
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(ICON_SIZE);
         if (iconColor != null && !iconColor.isEmpty()) {
             icon.setIconColor(Color.web(iconColor));
@@ -436,12 +436,12 @@ public class ContextMenuFactory {
     }
 
     /**
-     * Creates a FontIcon with default secondary color.
+     * Creates a IconifyIcon with default secondary color.
      *
      * @param iconLiteral the Bootstrap icon literal
-     * @return the configured FontIcon
+     * @return the configured IconifyIcon
      */
-    public static FontIcon createIcon(String iconLiteral) {
+    public static IconifyIcon createIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_SECONDARY);
     }
 
@@ -449,9 +449,9 @@ public class ContextMenuFactory {
      * Creates a success (green) icon.
      *
      * @param iconLiteral The icon literal.
-     * @return The configured FontIcon.
+     * @return The configured IconifyIcon.
      */
-    public static FontIcon createSuccessIcon(String iconLiteral) {
+    public static IconifyIcon createSuccessIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_SUCCESS);
     }
 
@@ -459,9 +459,9 @@ public class ContextMenuFactory {
      * Creates a danger (red) icon.
      *
      * @param iconLiteral The icon literal.
-     * @return The configured FontIcon.
+     * @return The configured IconifyIcon.
      */
-    public static FontIcon createDangerIcon(String iconLiteral) {
+    public static IconifyIcon createDangerIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_DANGER);
     }
 
@@ -469,9 +469,9 @@ public class ContextMenuFactory {
      * Creates a warning (yellow) icon.
      *
      * @param iconLiteral The icon literal.
-     * @return The configured FontIcon.
+     * @return The configured IconifyIcon.
      */
-    public static FontIcon createWarningIcon(String iconLiteral) {
+    public static IconifyIcon createWarningIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_WARNING);
     }
 
@@ -479,9 +479,9 @@ public class ContextMenuFactory {
      * Creates an info (cyan) icon.
      *
      * @param iconLiteral The icon literal.
-     * @return The configured FontIcon.
+     * @return The configured IconifyIcon.
      */
-    public static FontIcon createInfoIcon(String iconLiteral) {
+    public static IconifyIcon createInfoIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_INFO);
     }
 
@@ -489,9 +489,9 @@ public class ContextMenuFactory {
      * Creates a primary (blue) icon.
      *
      * @param iconLiteral The icon literal.
-     * @return The configured FontIcon.
+     * @return The configured IconifyIcon.
      */
-    public static FontIcon createPrimaryIcon(String iconLiteral) {
+    public static IconifyIcon createPrimaryIcon(String iconLiteral) {
         return createIcon(iconLiteral, COLOR_PRIMARY);
     }
 

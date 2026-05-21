@@ -58,6 +58,7 @@ import org.fxt.freexmltoolkit.controls.dashboard.FeatureProgressGrid;
 import org.fxt.freexmltoolkit.controls.dashboard.StatisticsCard;
 import org.fxt.freexmltoolkit.controls.dashboard.TipsBanner;
 import org.fxt.freexmltoolkit.controls.dashboard.TrendSparkline;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.domain.statistics.UsageStatistics;
@@ -65,7 +66,6 @@ import org.fxt.freexmltoolkit.service.DragDropService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.fxt.freexmltoolkit.service.UsageTrackingService;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Controller for the Welcome/Dashboard page.
@@ -349,7 +349,7 @@ public class WelcomeController {
         iconWrapper.setMaxSize(36, 36);
         iconWrapper.setStyle("-fx-background-color: " + getBackgroundColorForType(entry.fileType()) + "; -fx-background-radius: 6;");
 
-        FontIcon icon = new FontIcon(getIconForType(entry.fileType()));
+        IconifyIcon icon = new IconifyIcon(getIconForType(entry.fileType()));
         icon.setIconSize(18);
         icon.setIconColor(Color.web(getColorForType(entry.fileType())));
         iconWrapper.getChildren().add(icon);
@@ -376,11 +376,11 @@ public class WelcomeController {
         // Context menu
         ContextMenu contextMenu = new ContextMenu();
         MenuItem openItem = new MenuItem("Open");
-        openItem.setGraphic(new FontIcon("bi-folder2-open"));
+        openItem.setGraphic(new IconifyIcon("bi-folder2-open"));
         openItem.setOnAction(e -> openRecentFile(entry));
 
         MenuItem removeItem = new MenuItem("Remove from list");
-        removeItem.setGraphic(new FontIcon("bi-x"));
+        removeItem.setGraphic(new IconifyIcon("bi-x"));
         removeItem.setOnAction(e -> {
             recentFiles.remove(entry);
             recentFilesGrid.getChildren().remove(card);

@@ -13,7 +13,7 @@
         <Tooltip text="Schema Flattener - Merge includes into one file (Ctrl+7)"/>
     </tooltip>
     <graphic>
-        <FontIcon iconLiteral="bi-layers-half" iconSize="16"/>
+        <IconifyIcon iconLiteral="bi-layers-half" iconSize="16"/>
     </graphic>
     <content>
         <VBox spacing="15" style="-fx-padding: 20px; -fx-background-color: white;">
@@ -28,7 +28,7 @@
                     <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
                         <TextField fx:id="xsdToFlattenPath" promptText="Load the main XSD file..." HBox.hgrow="ALWAYS"/>
                         <Button onAction="#openXsdToFlattenChooser" text="Load XSD">
-                            <graphic><FontIcon iconLiteral="bi-folder2-open"/></graphic>
+                            <graphic><IconifyIcon iconLiteral="bi-folder2-open"/></graphic>
                         </Button>
                     </HBox>
 
@@ -36,7 +36,7 @@
                     <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
                         <TextField fx:id="flattenedXsdPath" promptText="Select where to save..." HBox.hgrow="ALWAYS"/>
                         <Button onAction="#selectFlattenedXsdPath" text="Save to...">
-                            <graphic><FontIcon iconLiteral="bi-save"/></graphic>
+                            <graphic><IconifyIcon iconLiteral="bi-save"/></graphic>
                         </Button>
                     </HBox>
 
@@ -47,7 +47,7 @@
                     </VBox>
                 </GridPane>
                 <Button fx:id="flattenXsdButton" onAction="#flattenXsdAction" text="Flatten XSD" disable="true">
-                    <graphic><FontIcon iconLiteral="bi-play-fill" iconSize="16"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="16"/></graphic>
                 </Button>
                 <Label fx:id="flattenStatusLabel" style="-fx-padding: 5 0;"/>
             </VBox>

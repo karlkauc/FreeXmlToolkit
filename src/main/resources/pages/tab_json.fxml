@@ -14,7 +14,7 @@
         <!-- File Operations Group -->
         <Button fx:id="newFile" text="New" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#newFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="New JSON Document (Ctrl+N)"/>
@@ -23,7 +23,7 @@
 
         <Button fx:id="openFile" text="Open" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#openFile">
             <graphic>
-                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open JSON Document (Ctrl+O)"/>
@@ -32,7 +32,7 @@
 
         <Button fx:id="saveFile" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveFile">
             <graphic>
-                <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save Document (Ctrl+S)"/>
@@ -41,7 +41,7 @@
 
         <Button fx:id="saveAsFile" text="Save As" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAsFile">
             <graphic>
-                <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save As... (Ctrl+Shift+S)"/>
@@ -50,7 +50,7 @@
 
         <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Recent Files"/>
@@ -62,7 +62,7 @@
         <!-- Edit Operations Group -->
         <Button fx:id="undoBtn" text="Undo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#undo">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Undo (Ctrl+Z)"/>
@@ -71,7 +71,7 @@
 
         <Button fx:id="redoBtn" text="Redo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#redo">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Redo (Ctrl+Y)"/>
@@ -83,7 +83,7 @@
         <!-- Format Operations Group -->
         <Button fx:id="formatJson" text="Format" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#formatJson">
             <graphic>
-                <FontIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-json"/>
+                <IconifyIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-json"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Format JSON (Ctrl+Alt+F)"/>
@@ -92,7 +92,7 @@
 
         <Button fx:id="minifyJson" text="Minify" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#minifyJson">
             <graphic>
-                <FontIcon iconLiteral="bi-file-zip" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-file-zip" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Minify JSON"/>
@@ -104,7 +104,7 @@
         <!-- Validation Group -->
         <Button fx:id="validateBtn" text="Validate" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#validateJson">
             <graphic>
-                <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Validate JSON (F5)"/>
@@ -113,7 +113,7 @@
 
         <MenuButton fx:id="schemaBtn" text="Schema" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#9c27b0" styleClass="toolbar-icon-purple"/>
+                <IconifyIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#9c27b0" styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
                 <Tooltip text="JSON Schema Options"/>
@@ -121,18 +121,18 @@
             <items>
                 <MenuItem text="Load Schema..." onAction="#loadSchema">
                     <graphic>
-                        <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="Clear Schema" onAction="#clearSchema">
                     <graphic>
-                        <FontIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
+                        <IconifyIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
                     </graphic>
                 </MenuItem>
                 <SeparatorMenuItem/>
                 <MenuItem text="Validate Against Schema" onAction="#validateAgainstSchema">
                     <graphic>
-                        <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                 </MenuItem>
             </items>
@@ -143,7 +143,7 @@
         <!-- JSONPath Query Group -->
         <Button fx:id="jsonPathBtn" text="JSONPath" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#runJsonPath">
             <graphic>
-                <FontIcon iconLiteral="bi-search" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+                <IconifyIcon iconLiteral="bi-search" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Run JSONPath Query"/>
@@ -155,7 +155,7 @@
         <!-- View Toggle Group -->
         <ToggleButton fx:id="treeViewToggle" text="Tree" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#toggleTreeView">
             <graphic>
-                <FontIcon iconLiteral="bi-diagram-2" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-diagram-2" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle Tree View (Ctrl+T)"/>
@@ -164,7 +164,7 @@
 
         <MenuButton fx:id="treeViewOptions" text="View" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-eye" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-eye" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="View Options"/>
@@ -172,18 +172,18 @@
             <items>
                 <MenuItem text="Expand All" onAction="#expandAllNodes">
                     <graphic>
-                        <FontIcon iconLiteral="bi-arrows-expand" iconSize="16" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-arrows-expand" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="Collapse All" onAction="#collapseAllNodes">
                     <graphic>
-                        <FontIcon iconLiteral="bi-arrows-collapse" iconSize="16" iconColor="#6c757d"/>
+                        <IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="16" iconColor="#6c757d"/>
                     </graphic>
                 </MenuItem>
                 <SeparatorMenuItem/>
                 <MenuItem text="Sync with Editor" onAction="#syncTreeWithEditor">
                     <graphic>
-                        <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                 </MenuItem>
             </items>
@@ -199,7 +199,7 @@
         <!-- Help -->
         <Button fx:id="helpButton" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
@@ -215,19 +215,19 @@
             <!-- Empty State -->
             <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
                   visible="true" managed="true">
-                <FontIcon iconLiteral="bi-braces" iconSize="64" iconColor="#fd7e14"/>
+                <IconifyIcon iconLiteral="bi-braces" iconSize="64" iconColor="#fd7e14"/>
                 <Label text="Ready to Edit JSON" styleClass="empty-state-title"/>
                 <Label text="Create a new JSON file or open an existing document to start editing" wrapText="true" textAlignment="CENTER"
                        styleClass="empty-state-description" maxWidth="400"/>
                 <HBox spacing="10" alignment="CENTER">
                     <Button fx:id="emptyStateNewButton" text="New JSON File" styleClass="btn-primary" onAction="#newFile">
                         <graphic>
-                            <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="white"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="white"/>
                         </graphic>
                     </Button>
                     <Button fx:id="emptyStateOpenButton" text="Open JSON File" styleClass="btn-secondary" onAction="#openFile">
                         <graphic>
-                            <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -248,12 +248,12 @@
         <VBox fx:id="jsonPathPane" spacing="10" styleClass="jsonpath-panel-root" minHeight="150" visible="false" managed="false">
             <!-- Header with title and close button -->
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <FontIcon iconLiteral="bi-search" iconSize="18" iconColor="#6f42c1"/>
+                <IconifyIcon iconLiteral="bi-search" iconSize="18" iconColor="#6f42c1"/>
                 <Label text="JSONPath Query" styleClass="section-label"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button onAction="#toggleJsonPath" style="-fx-background-color: transparent;" mnemonicParsing="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-x" iconSize="16" iconColor="#6c757d"/>
+                        <IconifyIcon iconLiteral="bi-x" iconSize="16" iconColor="#6c757d"/>
                     </graphic>
                     <tooltip>
                         <Tooltip text="Close JSONPath Panel"/>
@@ -271,12 +271,12 @@
                         text="Execute" prefWidth="100"
                         styleClass="btn-execute">
                     <graphic>
-                        <FontIcon iconColor="white" iconLiteral="bi-play-fill" iconSize="16"/>
+                        <IconifyIcon iconColor="white" iconLiteral="bi-play-fill" iconSize="16"/>
                     </graphic>
                 </Button>
                 <Button fx:id="clearQueryButton" onAction="#clearJsonPath" text="Clear" prefWidth="80">
                     <graphic>
-                        <FontIcon iconColor="#6c757d" iconLiteral="bi-eraser" iconSize="14"/>
+                        <IconifyIcon iconColor="#6c757d" iconLiteral="bi-eraser" iconSize="14"/>
                     </graphic>
                 </Button>
                 <Separator orientation="VERTICAL"/>

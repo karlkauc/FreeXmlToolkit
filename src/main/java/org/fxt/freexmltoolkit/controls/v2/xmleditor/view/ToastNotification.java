@@ -14,9 +14,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
-import org.kordamp.ikonli.Ikon;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Toast notification component for the XML Editor V2.
@@ -29,19 +27,19 @@ public class ToastNotification extends HBox {
      */
     public enum Type {
         /** Informational message (blue). */
-        INFO(BootstrapIcons.INFO_CIRCLE, "#3b82f6", "#eff6ff"),
+        INFO("bi-info-circle", "#3b82f6", "#eff6ff"),
         /** Success message (green). */
-        SUCCESS(BootstrapIcons.CHECK_CIRCLE, "#22c55e", "#f0fdf4"),
+        SUCCESS("bi-check-circle", "#22c55e", "#f0fdf4"),
         /** Warning message (orange). */
-        WARNING(BootstrapIcons.EXCLAMATION_TRIANGLE, "#f59e0b", "#fffbeb"),
+        WARNING("bi-exclamation-triangle", "#f59e0b", "#fffbeb"),
         /** Error message (red). */
-        ERROR(BootstrapIcons.X_CIRCLE, "#ef4444", "#fef2f2");
+        ERROR("bi-x-circle", "#ef4444", "#fef2f2");
 
-        final Ikon icon;
+        final String icon;
         final String iconColor;
         final String backgroundColor;
 
-        Type(Ikon icon, String iconColor, String backgroundColor) {
+        Type(String icon, String iconColor, String backgroundColor) {
             this.icon = icon;
             this.iconColor = iconColor;
             this.backgroundColor = backgroundColor;
@@ -53,7 +51,7 @@ public class ToastNotification extends HBox {
     private static final double MARGIN = 16;
 
     private final Label messageLabel;
-    private final FontIcon icon;
+    private final IconifyIcon icon;
 
     /**
      * Creates a new toast notification.
@@ -68,7 +66,7 @@ public class ToastNotification extends HBox {
         setPadding(new Insets(10, 16, 10, 12));
 
         // Icon
-        icon = new FontIcon(type.icon);
+        icon = new IconifyIcon(type.icon);
         icon.setIconSize(16);
         icon.setIconColor(Color.web(type.iconColor));
 

@@ -1,14 +1,14 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
-import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
-import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+
+import org.fxmisc.richtext.model.StyleSpans;
+import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 
 /**
  * Builds {@link StyleSpans} that overlay the XML syntax highlighting with diff

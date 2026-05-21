@@ -40,12 +40,12 @@ import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.FavoritesParentController;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.util.ContextMenuFactory;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Controller for the enhanced Favorites Panel with XMLSpy styling.
@@ -631,33 +631,33 @@ public class FavoritesPanelController implements Initializable {
 
                 if (item.favorite() != null) {
                     // File node - add appropriate icon
-                    FontIcon icon = createIconForFile(item.favorite().getFilePath());
+                    IconifyIcon icon = createIconForFile(item.favorite().getFilePath());
                     setGraphic(icon);
 
                     // Add context menu
                     setContextMenu(createContextMenu(item.favorite()));
                 } else {
                     // Category/Project node
-                    FontIcon icon = new FontIcon("bi-folder");
+                    IconifyIcon icon = new IconifyIcon("bi-folder");
                     icon.setIconColor(Color.web("#d4a147"));
                     setGraphic(icon);
                 }
             }
         }
 
-        private FontIcon createIconForFile(String filePath) {
-            FontIcon icon;
+        private IconifyIcon createIconForFile(String filePath) {
+            IconifyIcon icon;
             if (filePath.endsWith(".xml")) {
-                icon = new FontIcon("bi-file-earmark-code");
+                icon = new IconifyIcon("bi-file-earmark-code");
                 icon.setIconColor(Color.web("#4a90e2"));
             } else if (filePath.endsWith(".xsd")) {
-                icon = new FontIcon("bi-diagram-3");
+                icon = new IconifyIcon("bi-diagram-3");
                 icon.setIconColor(Color.web("#d4a147"));
             } else if (filePath.endsWith(".xsl") || filePath.endsWith(".xslt")) {
-                icon = new FontIcon("bi-arrow-repeat");
+                icon = new IconifyIcon("bi-arrow-repeat");
                 icon.setIconColor(Color.web("#e27429"));
             } else {
-                icon = new FontIcon("bi-file");
+                icon = new IconifyIcon("bi-file");
                 icon.setIconColor(Color.web("#6c757d"));
             }
             icon.setIconSize(14);

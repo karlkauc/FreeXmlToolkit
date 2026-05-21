@@ -39,10 +39,10 @@ import javafx.stage.Modality;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Dialog that displays update notification with release notes.
@@ -151,7 +151,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         Button installBtn = (Button) dialogPane.lookupButton(installButton);
         if (installBtn != null) {
             installBtn.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;");
-            FontIcon installIcon = new FontIcon("bi-cloud-download");
+            IconifyIcon installIcon = new IconifyIcon("bi-cloud-download");
             installIcon.setIconSize(14);
             installIcon.setIconColor(Color.WHITE);
             installBtn.setGraphic(installIcon);
@@ -161,7 +161,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         Button downloadBtn = (Button) dialogPane.lookupButton(downloadButton);
         if (downloadBtn != null) {
             downloadBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
-            FontIcon downloadIcon = new FontIcon("bi-box-arrow-up-right");
+            IconifyIcon downloadIcon = new IconifyIcon("bi-box-arrow-up-right");
             downloadIcon.setIconSize(14);
             downloadIcon.setIconColor(Color.WHITE);
             downloadBtn.setGraphic(downloadIcon);
@@ -191,7 +191,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         headerContent.setAlignment(Pos.CENTER_LEFT);
 
         // Icon
-        FontIcon icon = new FontIcon("bi-arrow-up-circle-fill");
+        IconifyIcon icon = new IconifyIcon("bi-arrow-up-circle-fill");
         icon.setIconSize(48);
         icon.setIconColor(Color.WHITE);
 
@@ -222,7 +222,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         VBox currentBox = createVersionBox("Current Version", updateInfo.currentVersion(), "#6c757d");
 
         // Arrow
-        FontIcon arrowIcon = new FontIcon("bi-arrow-right");
+        IconifyIcon arrowIcon = new IconifyIcon("bi-arrow-right");
         arrowIcon.setIconSize(24);
         arrowIcon.setIconColor(Color.web("#28a745"));
 
@@ -262,7 +262,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         HBox headerBox = new HBox(10);
         headerBox.setAlignment(Pos.CENTER_LEFT);
 
-        FontIcon notesIcon = new FontIcon("bi-journal-text");
+        IconifyIcon notesIcon = new IconifyIcon("bi-journal-text");
         notesIcon.setIconSize(18);
         notesIcon.setIconColor(Color.web("#007bff"));
 
@@ -316,7 +316,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
                         "-fx-border-radius: 4px;"
         );
 
-        FontIcon infoIcon = new FontIcon("bi-info-circle-fill");
+        IconifyIcon infoIcon = new IconifyIcon("bi-info-circle-fill");
         infoIcon.setIconSize(16);
         infoIcon.setIconColor(Color.web("#0d6efd"));
 

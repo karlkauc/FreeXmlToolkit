@@ -31,11 +31,11 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XsdXPathCompletionProvider;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XmlDocumentElementExtractor;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.xpath.XsdSchemaElementExtractor;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
@@ -176,12 +176,12 @@ public class XsdXPathQueryPanel extends VBox {
         // Create tabs
         xPathTab = new Tab("XPath");
         xPathTab.setClosable(false);
-        xPathTab.setGraphic(new FontIcon("bi-code-slash"));
+        xPathTab.setGraphic(new IconifyIcon("bi-code-slash"));
         xPathTab.setContent(xpathScrollPane);
 
         xQueryTab = new Tab("XQuery");
         xQueryTab.setClosable(false);
-        xQueryTab.setGraphic(new FontIcon("bi-braces"));
+        xQueryTab.setGraphic(new IconifyIcon("bi-braces"));
         xQueryTab.setContent(xqueryScrollPane);
 
         queryTabPane = new TabPane(xPathTab, xQueryTab);
@@ -267,7 +267,7 @@ public class XsdXPathQueryPanel extends VBox {
      */
     private Button createIconButton(String iconLiteral, String tooltip, String iconColor) {
         Button button = new Button();
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(16);
         icon.setIconColor(Color.web(iconColor));
         button.setGraphic(icon);

@@ -2,7 +2,7 @@ package org.fxt.freexmltoolkit.controls.unified;
 
 import javafx.scene.control.Tab;
 
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Base class for tool tabs in the Unified Editor.
@@ -18,7 +18,7 @@ public abstract class AbstractToolTab extends Tab {
         this.toolId = toolId;
         setClosable(true);
 
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(16);
         icon.setIconColor(javafx.scene.paint.Color.web(iconColor));
         setGraphic(icon);

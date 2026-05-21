@@ -30,7 +30,7 @@ import javafx.scene.text.FontWeight;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Advanced Search &amp; Replace Panel for XML Editor with professional features.
@@ -208,7 +208,7 @@ public class XmlSearchReplacePanel extends VBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         closeButton = new Button();
-        closeButton.setGraphic(new FontIcon("bi-x"));
+        closeButton.setGraphic(new IconifyIcon("bi-x"));
         closeButton.getStyleClass().addAll("search-close-button", "button-icon");
         closeButton.setTooltip(new Tooltip("Close Search Panel (Esc)"));
 
@@ -325,21 +325,21 @@ public class XmlSearchReplacePanel extends VBox {
         section.getStyleClass().add("search-actions");
 
         findNextButton = new Button("Find Next");
-        findNextButton.setGraphic(new FontIcon("bi-arrow-down"));
+        findNextButton.setGraphic(new IconifyIcon("bi-arrow-down"));
         findNextButton.getStyleClass().addAll("search-button", "primary-button");
         findNextButton.setDefaultButton(true);
 
         findPreviousButton = new Button("Find Previous");
-        findPreviousButton.setGraphic(new FontIcon("bi-arrow-up"));
+        findPreviousButton.setGraphic(new IconifyIcon("bi-arrow-up"));
         findPreviousButton.getStyleClass().addAll("search-button", "secondary-button");
 
         replaceButton = new Button("Replace");
-        replaceButton.setGraphic(new FontIcon("bi-arrow-clockwise"));
+        replaceButton.setGraphic(new IconifyIcon("bi-arrow-clockwise"));
         replaceButton.getStyleClass().addAll("search-button", "secondary-button");
         replaceButton.setDisable(true);
 
         replaceAllButton = new Button("Replace All");
-        replaceAllButton.setGraphic(new FontIcon("bi-arrow-repeat"));
+        replaceAllButton.setGraphic(new IconifyIcon("bi-arrow-repeat"));
         replaceAllButton.getStyleClass().addAll("search-button", "warning-button");
         replaceAllButton.setDisable(true);
 

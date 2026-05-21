@@ -32,6 +32,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser;
 
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageFinder;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
@@ -44,7 +45,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -190,9 +190,9 @@ public class TypeLibraryView extends BorderPane {
 
         // Create buttons for new types
         Button createComplexTypeBtn = new Button("New ComplexType");
-        createComplexTypeBtn.setGraphic(new FontIcon("bi-file-earmark-plus"));
-        ((FontIcon) createComplexTypeBtn.getGraphic()).setIconColor(javafx.scene.paint.Color.web("#28a745"));
-        ((FontIcon) createComplexTypeBtn.getGraphic()).setIconSize(16);
+        createComplexTypeBtn.setGraphic(new IconifyIcon("bi-file-earmark-plus"));
+        ((IconifyIcon) createComplexTypeBtn.getGraphic()).setIconColor(javafx.scene.paint.Color.web("#28a745"));
+        ((IconifyIcon) createComplexTypeBtn.getGraphic()).setIconSize(16);
         createComplexTypeBtn.setStyle("-fx-font-size: 11px;");
         createComplexTypeBtn.setOnAction(e -> {
             if (typeEditorTabManager != null) {
@@ -201,9 +201,9 @@ public class TypeLibraryView extends BorderPane {
         });
 
         Button createSimpleTypeBtn = new Button("New SimpleType");
-        createSimpleTypeBtn.setGraphic(new FontIcon("bi-plus-circle"));
-        ((FontIcon) createSimpleTypeBtn.getGraphic()).setIconColor(javafx.scene.paint.Color.web("#17a2b8"));
-        ((FontIcon) createSimpleTypeBtn.getGraphic()).setIconSize(16);
+        createSimpleTypeBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
+        ((IconifyIcon) createSimpleTypeBtn.getGraphic()).setIconColor(javafx.scene.paint.Color.web("#17a2b8"));
+        ((IconifyIcon) createSimpleTypeBtn.getGraphic()).setIconSize(16);
         createSimpleTypeBtn.setStyle("-fx-font-size: 11px;");
         createSimpleTypeBtn.setOnAction(e -> {
             if (typeEditorTabManager != null) {
@@ -1013,14 +1013,14 @@ public class TypeLibraryView extends BorderPane {
     }
 
     /**
-     * Creates a colored FontIcon for menu items.
+     * Creates a colored IconifyIcon for menu items.
      *
      * @param iconLiteral The icon literal (e.g., "bi-file-earmark-code")
      * @param color       The color in hex format (e.g., "#007bff")
-     * @return FontIcon with specified color
+     * @return IconifyIcon with specified color
      */
-    private FontIcon createMenuIcon(String iconLiteral, String color) {
-        FontIcon icon = new FontIcon(iconLiteral);
+    private IconifyIcon createMenuIcon(String iconLiteral, String color) {
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconColor(javafx.scene.paint.Color.web(color));
         icon.setIconSize(16);
         return icon;

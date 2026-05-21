@@ -819,8 +819,8 @@ public class FopController implements FavoritesParentController {
             button.getStyleClass().add(compactClass);
         }
 
-        // Update icon size if the button has a FontIcon graphic
-        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+        // Update icon size if the button has a IconifyIcon graphic
+        if (button.getGraphic() instanceof org.fxt.freexmltoolkit.controls.icons.IconifyIcon fontIcon) {
             fontIcon.setIconSize(iconSize);
         }
     }

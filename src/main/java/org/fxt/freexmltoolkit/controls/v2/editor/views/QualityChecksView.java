@@ -47,6 +47,7 @@ import javafx.stage.FileChooser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.IssueCategory;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.IssueSeverity;
@@ -55,8 +56,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.Qu
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.QualityResult;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityExporter;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * View displaying XSD schema quality analysis results.
@@ -162,7 +161,7 @@ public class QualityChecksView extends BorderPane {
     private ToolBar createToolbar() {
         Label titleLabel = new Label("Quality Analysis");
         titleLabel.setStyle("-fx-font-size: 14pt; -fx-font-weight: bold;");
-        FontIcon titleIcon = new FontIcon(BootstrapIcons.AWARD);
+        IconifyIcon titleIcon = new IconifyIcon("bi-award");
         titleIcon.setIconSize(18);
         titleLabel.setGraphic(titleIcon);
 
@@ -176,28 +175,28 @@ public class QualityChecksView extends BorderPane {
         scoreDescriptionLabel.getStyleClass().add("theme-text-secondary");
 
         Button refreshBtn = new Button("Refresh");
-        refreshBtn.setGraphic(new FontIcon(BootstrapIcons.ARROW_CLOCKWISE));
+        refreshBtn.setGraphic(new IconifyIcon("bi-arrow-clockwise"));
         refreshBtn.setOnAction(e -> refresh());
 
         // Export buttons
         Button exportCsvBtn = new Button("CSV");
-        exportCsvBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_SPREADSHEET));
+        exportCsvBtn.setGraphic(new IconifyIcon("bi-file-earmark-spreadsheet"));
         exportCsvBtn.setOnAction(e -> exportToCsv());
 
         Button exportJsonBtn = new Button("JSON");
-        exportJsonBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_CODE));
+        exportJsonBtn.setGraphic(new IconifyIcon("bi-file-earmark-code"));
         exportJsonBtn.setOnAction(e -> exportToJson());
 
         Button exportPdfBtn = new Button("PDF");
-        exportPdfBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_RICHTEXT));
+        exportPdfBtn.setGraphic(new IconifyIcon("bi-file-earmark-richtext"));
         exportPdfBtn.setOnAction(e -> exportToPdf());
 
         Button exportHtmlBtn = new Button("HTML");
-        exportHtmlBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_TEXT));
+        exportHtmlBtn.setGraphic(new IconifyIcon("bi-file-earmark-text"));
         exportHtmlBtn.setOnAction(e -> exportToHtml());
 
         Button exportExcelBtn = new Button("Excel");
-        exportExcelBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_EXCEL));
+        exportExcelBtn.setGraphic(new IconifyIcon("bi-file-earmark-excel"));
         exportExcelBtn.setOnAction(e -> exportToExcel());
 
         return new ToolBar(titleLabel, spacer, scoreLabel, scoreDescriptionLabel,
@@ -230,7 +229,7 @@ public class QualityChecksView extends BorderPane {
         searchField.setPrefWidth(200);
         searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
 
-        FontIcon searchIcon = new FontIcon("bi-search");
+        IconifyIcon searchIcon = new IconifyIcon("bi-search");
         searchIcon.setIconSize(14);
         searchIcon.setIconColor(Color.GRAY);
         Label searchIconLabel = new Label();
@@ -238,7 +237,7 @@ public class QualityChecksView extends BorderPane {
 
         // Clear search button
         Button clearBtn = new Button();
-        FontIcon clearIcon = new FontIcon("bi-x-circle");
+        IconifyIcon clearIcon = new IconifyIcon("bi-x-circle");
         clearIcon.setIconSize(14);
         clearBtn.setGraphic(clearIcon);
         clearBtn.setTooltip(new Tooltip("Clear filters"));
@@ -416,7 +415,7 @@ public class QualityChecksView extends BorderPane {
                     setGraphic(null);
                 } else {
                     IssueSeverity severity = IssueSeverity.valueOf(item);
-                    FontIcon icon = getSeverityIcon(severity);
+                    IconifyIcon icon = getSeverityIcon(severity);
                     setGraphic(icon);
                     setText(getSeverityText(severity));
                 }
@@ -436,7 +435,7 @@ public class QualityChecksView extends BorderPane {
                     setGraphic(null);
                 } else {
                     IssueCategory category = IssueCategory.valueOf(item);
-                    FontIcon icon = getCategoryIcon(category);
+                    IconifyIcon icon = getCategoryIcon(category);
                     setGraphic(icon);
                     setText(getCategoryText(category));
                 }
@@ -509,8 +508,8 @@ public class QualityChecksView extends BorderPane {
     /**
      * Gets the severity icon.
      */
-    private FontIcon getSeverityIcon(IssueSeverity severity) {
-        FontIcon icon = new FontIcon();
+    private IconifyIcon getSeverityIcon(IssueSeverity severity) {
+        IconifyIcon icon = new IconifyIcon();
         icon.setIconSize(14);
 
         switch (severity) {
@@ -563,8 +562,8 @@ public class QualityChecksView extends BorderPane {
     /**
      * Gets the category icon.
      */
-    private FontIcon getCategoryIcon(IssueCategory category) {
-        FontIcon icon = new FontIcon();
+    private IconifyIcon getCategoryIcon(IssueCategory category) {
+        IconifyIcon icon = new IconifyIcon();
         icon.setIconSize(14);
 
         switch (category) {

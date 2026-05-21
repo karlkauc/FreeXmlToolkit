@@ -12,9 +12,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Reusable cell renderer for {@link CompletionItem} in a ListView.
@@ -96,7 +96,7 @@ public class CompletionItemCellRenderer extends ListCell<CompletionItem> {
         HBox line = new HBox(6);
         line.setAlignment(Pos.CENTER_LEFT);
 
-        FontIcon icon = createIcon(item.getType());
+        IconifyIcon icon = createIcon(item.getType());
         icon.setIconSize(16);
         line.getChildren().add(icon);
 
@@ -149,7 +149,7 @@ public class CompletionItemCellRenderer extends ListCell<CompletionItem> {
 
         List<String> facets = item.getFacetHints();
         if (facets != null && !facets.isEmpty()) {
-            FontIcon facetIcon = new FontIcon("bi-list-check");
+            IconifyIcon facetIcon = new IconifyIcon("bi-list-check");
             facetIcon.setIconSize(12);
             facetIcon.getStyleClass().add("completion-facet-icon");
             line.getChildren().add(facetIcon);
@@ -185,7 +185,7 @@ public class CompletionItemCellRenderer extends ListCell<CompletionItem> {
                 sep.getStyleClass().add("completion-separator");
                 line.getChildren().add(sep);
             }
-            FontIcon attrIcon = new FontIcon("bi-exclamation-triangle");
+            IconifyIcon attrIcon = new IconifyIcon("bi-exclamation-triangle");
             attrIcon.setIconSize(12);
             attrIcon.getStyleClass().add("completion-attr-icon");
             line.getChildren().add(attrIcon);
@@ -198,12 +198,12 @@ public class CompletionItemCellRenderer extends ListCell<CompletionItem> {
         return line;
     }
 
-    private FontIcon createIcon(CompletionItemType type) {
+    private IconifyIcon createIcon(CompletionItemType type) {
         String iconLiteral;
         String styleClass;
 
         if (type == null) {
-            FontIcon icon = new FontIcon(ICON_DEFAULT);
+            IconifyIcon icon = new IconifyIcon(ICON_DEFAULT);
             icon.getStyleClass().add("completion-icon-default");
             return icon;
         }
@@ -259,7 +259,7 @@ public class CompletionItemCellRenderer extends ListCell<CompletionItem> {
                 break;
         }
 
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.getStyleClass().add(styleClass);
         return icon;
     }

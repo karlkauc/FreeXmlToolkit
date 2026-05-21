@@ -15,19 +15,19 @@
     <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
         <Tab text="FreeXmlToolkit Documentation" fx:id="tabFXTDoc" styleClass="primary-tab">
             <graphic>
-                <FontIcon iconLiteral="bi-book" iconSize="16"/>
+                <IconifyIcon iconLiteral="bi-book" iconSize="16"/>
             </graphic>
             <WebView fx:id="viewFXTDoc"/>
         </Tab>
         <Tab text="FundsXML Webseite" fx:id="tabFundsXMlSite" styleClass="primary-tab">
             <graphic>
-                <FontIcon iconLiteral="bi-file-text" iconSize="16"/>
+                <IconifyIcon iconLiteral="bi-file-text" iconSize="16"/>
             </graphic>
             <WebView fx:id="viewFundsXMLSite"/>
         </Tab>
         <Tab text="FundsXML4 Schema Documentation" fx:id="tabMigrationGuide" styleClass="utility-tab">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16"/>
+                <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="16"/>
             </graphic>
             <WebView fx:id="viewMigrationGuide"/>
         </Tab>

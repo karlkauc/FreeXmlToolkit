@@ -147,7 +147,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
     private final javafx.beans.property.BooleanProperty isGeneratingSampleData =
             new javafx.beans.property.SimpleBooleanProperty(false);
     @FXML
-    private org.kordamp.ikonli.javafx.FontIcon sampleDataValidationIcon;
+    private org.fxt.freexmltoolkit.controls.icons.IconifyIcon sampleDataValidationIcon;
     @FXML
     private Label sampleDataValidationTitle;
     @FXML
@@ -591,7 +591,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
         }
         button.setContentDisplay(displayMode);
         button.setStyle(style);
-        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+        if (button.getGraphic() instanceof org.fxt.freexmltoolkit.controls.icons.IconifyIcon fontIcon) {
             fontIcon.setIconSize(iconSize);
         }
     }
@@ -1600,7 +1600,7 @@ public class XsdController implements FavoritesParentController, XsdToolHost {
             ruleDeleteColumn.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
                 private final Button btn = new Button();
                 {
-                    btn.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-x-circle"));
+                    btn.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-x-circle"));
                     btn.setStyle("-fx-background-color: transparent; -fx-padding: 2;");
                     btn.setOnAction(e -> {
                         int idx = getIndex();

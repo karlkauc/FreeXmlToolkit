@@ -7,7 +7,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Manages the context menu for XML code editing.
@@ -231,14 +231,14 @@ public class XmlContextMenuManager {
     }
 
     /**
-     * Creates a colored FontIcon for menu items.
+     * Creates a colored IconifyIcon for menu items.
      *
      * @param iconLiteral The icon literal
      * @param color       The color in hex format
-     * @return FontIcon with specified color
+     * @return IconifyIcon with specified color
      */
-    private FontIcon createColoredIcon(String iconLiteral, String color) {
-        FontIcon icon = new FontIcon(iconLiteral);
+    private IconifyIcon createColoredIcon(String iconLiteral, String color) {
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconColor(javafx.scene.paint.Color.web(color));
         icon.setIconSize(12);
         return icon;

@@ -20,7 +20,7 @@ import javafx.stage.Window;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Popup for autocomplete suggestions when typing link references.
@@ -253,7 +253,7 @@ public class LinkAutocompletePopup extends Popup {
      */
     private static class SuggestionCell extends ListCell<XsdElementPathExtractor.LinkSuggestion> {
         private final HBox content;
-        private final FontIcon icon;
+        private final IconifyIcon icon;
         private final Label textLabel;
         private final Label typeLabel;
 
@@ -261,7 +261,7 @@ public class LinkAutocompletePopup extends Popup {
             content = new HBox(8);
             content.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-            icon = new FontIcon();
+            icon = new IconifyIcon();
             icon.setIconSize(14);
 
             textLabel = new Label();

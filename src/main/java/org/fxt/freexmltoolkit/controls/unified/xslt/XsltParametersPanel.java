@@ -16,7 +16,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Panel for managing XSLT transformation parameters.
@@ -41,14 +41,14 @@ public class XsltParametersPanel extends VBox {
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 11px;");
 
         Button addBtn = new Button();
-        FontIcon addIcon = new FontIcon("bi-plus-circle");
+        IconifyIcon addIcon = new IconifyIcon("bi-plus-circle");
         addIcon.setIconSize(12);
         addBtn.setGraphic(addIcon);
         addBtn.setStyle("-fx-font-size: 10px; -fx-background-color: transparent; -fx-cursor: hand;");
         addBtn.setOnAction(e -> addParameter());
 
         Button removeBtn = new Button();
-        FontIcon removeIcon = new FontIcon("bi-dash-circle");
+        IconifyIcon removeIcon = new IconifyIcon("bi-dash-circle");
         removeIcon.setIconSize(12);
         removeBtn.setGraphic(removeIcon);
         removeBtn.setStyle("-fx-font-size: 10px; -fx-background-color: transparent; -fx-cursor: hand;");

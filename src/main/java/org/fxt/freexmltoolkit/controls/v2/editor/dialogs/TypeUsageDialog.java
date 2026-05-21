@@ -25,10 +25,9 @@ import javafx.stage.Modality;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Dialog displaying all locations where a type is used in the schema.
@@ -123,7 +122,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
         HBox headerBox = new HBox(10);
         headerBox.setAlignment(Pos.CENTER_LEFT);
 
-        FontIcon icon = new FontIcon(BootstrapIcons.SEARCH);
+        IconifyIcon icon = new IconifyIcon("bi-search");
         icon.setIconSize(20);
         icon.setIconColor(Color.DODGERBLUE);
 
@@ -145,7 +144,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
         messageBox.setAlignment(Pos.CENTER);
         messageBox.setPadding(new Insets(40));
 
-        FontIcon checkIcon = new FontIcon(BootstrapIcons.CHECK_CIRCLE);
+        IconifyIcon checkIcon = new IconifyIcon("bi-check-circle");
         checkIcon.setIconSize(48);
         checkIcon.setIconColor(Color.web("#28a745"));
 
@@ -216,7 +215,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem navigateItem = new MenuItem("Navigate to Node");
-        navigateItem.setGraphic(new FontIcon(BootstrapIcons.ARROW_RIGHT_CIRCLE));
+        navigateItem.setGraphic(new IconifyIcon("bi-arrow-right-circle"));
         navigateItem.setOnAction(e -> {
             TypeUsageLocation selected = tableView.getSelectionModel().getSelectedItem();
             if (selected != null && onNavigateToNode != null) {
@@ -226,7 +225,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
         });
 
         MenuItem copyPathItem = new MenuItem("Copy Path");
-        copyPathItem.setGraphic(new FontIcon(BootstrapIcons.CLIPBOARD));
+        copyPathItem.setGraphic(new IconifyIcon("bi-clipboard"));
         copyPathItem.setOnAction(e -> {
             TypeUsageLocation selected = tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {

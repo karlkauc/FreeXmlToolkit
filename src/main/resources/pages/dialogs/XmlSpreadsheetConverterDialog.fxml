@@ -2,7 +2,7 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <DialogPane prefWidth="900" prefHeight="700" xmlns="http://javafx.com/javafx/11.0.14-internal"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.XmlSpreadsheetConverterDialogController">
@@ -20,12 +20,12 @@
                     <RadioButton fx:id="xmlToSpreadsheetRadio" text="XML → Spreadsheet (Excel/CSV)"
                                  selected="true">
                         <graphic>
-                            <FontIcon iconLiteral="bi-arrow-right" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14"/>
                         </graphic>
                     </RadioButton>
                     <RadioButton fx:id="spreadsheetToXmlRadio" text="Spreadsheet (Excel/CSV) → XML">
                         <graphic>
-                            <FontIcon iconLiteral="bi-arrow-left" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-arrow-left" iconSize="14"/>
                         </graphic>
                     </RadioButton>
                 </VBox>
@@ -129,12 +129,12 @@
                     <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 10 0;">
                         <Button fx:id="previewButton" text="Generate Preview" onAction="#generatePreview">
                             <graphic>
-                                <FontIcon iconLiteral="bi-eye" iconSize="14"/>
+                                <IconifyIcon iconLiteral="bi-eye" iconSize="14"/>
                             </graphic>
                         </Button>
                         <Button fx:id="clearPreviewButton" text="Clear" onAction="#clearPreview">
                             <graphic>
-                                <FontIcon iconLiteral="bi-x-circle" iconSize="14"/>
+                                <IconifyIcon iconLiteral="bi-x-circle" iconSize="14"/>
                             </graphic>
                         </Button>
                         <Region HBox.hgrow="ALWAYS"/>

@@ -21,6 +21,7 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddFacetCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteFacetCommand;
@@ -32,7 +33,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Panel for viewing and editing XSD facets (restrictions).
@@ -299,7 +299,7 @@ public class FacetsPanel extends VBox {
                     label.setStyle("-fx-text-fill: #666666;");
 
                     // Add lock icon
-                    FontIcon lockIcon = new FontIcon("bi-lock-fill");
+                    IconifyIcon lockIcon = new IconifyIcon("bi-lock-fill");
                     lockIcon.setIconSize(12);
                     lockIcon.setStyle("-fx-icon-color: #999999;");
                     Label labelWithIcon = new Label(facetType.getXmlName() + ":", lockIcon);

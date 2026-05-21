@@ -3,7 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController"
       styleClass="xml-editor-sidebar" prefWidth="300" minWidth="250" maxWidth="400">
@@ -17,19 +17,19 @@
             <!-- ============================================ -->
             <VBox fx:id="documentStructureSection" styleClass="sidebar-section-container">
                 <TitledPane text="Document Structure" styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
-                    <graphic><FontIcon iconLiteral="bi-diagram-3" iconSize="14" iconColor="#fd7e14"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="14" iconColor="#fd7e14"/></graphic>
                     <VBox spacing="5">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
                         <HBox spacing="5" alignment="CENTER_LEFT">
                             <Button fx:id="expandAllButton" text="Expand All" styleClass="sidebar-button" style="-fx-font-size: 10px;">
-                                <graphic><FontIcon iconLiteral="bi-arrows-expand" iconSize="12"/></graphic>
+                                <graphic><IconifyIcon iconLiteral="bi-arrows-expand" iconSize="12"/></graphic>
                             </Button>
                             <Button fx:id="collapseAllButton" text="Collapse All" styleClass="sidebar-button" style="-fx-font-size: 10px;">
-                                <graphic><FontIcon iconLiteral="bi-arrows-collapse" iconSize="12"/></graphic>
+                                <graphic><IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="12"/></graphic>
                             </Button>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Button fx:id="refreshTreeButton" text="" styleClass="sidebar-button" prefWidth="25" maxWidth="25">
-                                <graphic><FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/></graphic>
+                                <graphic><IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/></graphic>
                                 <tooltip><Tooltip text="Refresh tree"/></tooltip>
                             </Button>
                         </HBox>
@@ -44,7 +44,7 @@
             <VBox fx:id="cursorInfoSection" styleClass="sidebar-section-container">
                 <TitledPane fx:id="cursorInfoPane" text="Cursor Information"
                             styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
-                    <graphic><FontIcon iconLiteral="bi-cursor-text" iconSize="14" iconColor="#28a745"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-cursor-text" iconSize="14" iconColor="#28a745"/></graphic>
                     <VBox spacing="6">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
                         <Label text="XPath:" styleClass="cursor-info-label"/>
@@ -67,7 +67,7 @@
                 <TitledPane fx:id="childElementsPane" text="Possible Child Elements"
                             styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true"
                             VBox.vgrow="ALWAYS">
-                    <graphic><FontIcon iconLiteral="bi-list-nested" iconSize="14" iconColor="#fd7e14"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-list-nested" iconSize="14" iconColor="#fd7e14"/></graphic>
                     <VBox spacing="5" VBox.vgrow="ALWAYS">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
                         <ListView fx:id="childElementsListView" styleClass="sidebar-list-view"
@@ -84,7 +84,7 @@
             <VBox fx:id="schemaValidationSection" styleClass="sidebar-section-container">
                 <!-- XSD Schema TitledPane -->
                 <TitledPane text="Schema Validation" styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="true">
-                    <graphic><FontIcon iconLiteral="bi-file-earmark-check" iconSize="14" iconColor="#007bff"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-file-earmark-check" iconSize="14" iconColor="#007bff"/></graphic>
                     <VBox spacing="8">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
 
@@ -129,7 +129,7 @@
                         <HBox spacing="8" alignment="CENTER_LEFT">
                             <ToggleButton fx:id="xsdDocumentationToggleButton" text="XSD Comments"
                                           onAction="#toggleXsdDocumentationComments" styleClass="sidebar-button">
-                                <graphic><FontIcon iconLiteral="bi-journal-text" iconSize="12"/></graphic>
+                                <graphic><IconifyIcon iconLiteral="bi-journal-text" iconSize="12"/></graphic>
                                 <tooltip><Tooltip text="Toggle XSD documentation as XML comments"/></tooltip>
                             </ToggleButton>
                             <Label fx:id="xsdCommentsStatusLabel" text="" styleClass="cursor-info-label"/>
@@ -141,7 +141,7 @@
                 <TitledPane text="Validation Errors" styleClass="xml-sidebar-titled-pane"
                             collapsible="true" expanded="true" fx:id="validationErrorsPane"
                             visible="false" managed="false">
-                    <graphic><FontIcon iconLiteral="bi-exclamation-triangle" iconSize="14" iconColor="#dc3545"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-exclamation-triangle" iconSize="14" iconColor="#dc3545"/></graphic>
                     <VBox spacing="5">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
                         <Label fx:id="validationErrorsCountLabel" text="Validation Errors (0)"
@@ -160,7 +160,7 @@
             <VBox fx:id="nodeDocumentationSection" styleClass="sidebar-section-container">
                 <TitledPane fx:id="documentationPane" text="Node Documentation"
                             styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="false">
-                    <graphic><FontIcon iconLiteral="bi-book" iconSize="14" iconColor="#28a745"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-book" iconSize="14" iconColor="#28a745"/></graphic>
                     <VBox spacing="5">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
                         <TextArea fx:id="documentationTextArea" prefRowCount="3" editable="false"
@@ -177,7 +177,7 @@
                 <!-- Schematron Rules TitledPane -->
                 <TitledPane text="Business Rules" styleClass="xml-sidebar-titled-pane"
                             collapsible="true" expanded="true">
-                    <graphic><FontIcon iconLiteral="bi-shield-check" iconSize="14" iconColor="#007bff"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-shield-check" iconSize="14" iconColor="#007bff"/></graphic>
                     <VBox spacing="8">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
 
@@ -208,7 +208,7 @@
                 <TitledPane text="Schematron Errors" styleClass="xml-sidebar-titled-pane"
                             collapsible="true" expanded="true" fx:id="schematronErrorsPane"
                             visible="false" managed="false">
-                    <graphic><FontIcon iconLiteral="bi-exclamation-triangle" iconSize="14" iconColor="#dc3545"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-exclamation-triangle" iconSize="14" iconColor="#dc3545"/></graphic>
                     <VBox spacing="5">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
                         <Label fx:id="schematronErrorsCountLabel" text="Schematron Errors (0)"
@@ -227,7 +227,7 @@
             <VBox fx:id="fundsxmlSection" styleClass="sidebar-section-container">
                 <TitledPane text="FundsXML" styleClass="xml-sidebar-titled-pane"
                             collapsible="true" expanded="true">
-                    <graphic><FontIcon iconLiteral="bi-collection" iconSize="14" iconColor="#28a745"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-collection" iconSize="14" iconColor="#28a745"/></graphic>
                     <VBox spacing="8">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
                         <HBox spacing="5" alignment="CENTER_LEFT">
@@ -244,12 +244,12 @@
                             <Button fx:id="fundsxmlSidebarValidateButton" text="Validate"
                                     onAction="#handleFundsXmlSidebarValidate" styleClass="sidebar-button"
                                     HBox.hgrow="ALWAYS" maxWidth="Infinity">
-                                <graphic><FontIcon iconLiteral="bi-shield-check" iconSize="12" iconColor="#28a745"/></graphic>
+                                <graphic><IconifyIcon iconLiteral="bi-shield-check" iconSize="12" iconColor="#28a745"/></graphic>
                                 <tooltip><Tooltip text="Validate the current XML against the active FundsXML schema"/></tooltip>
                             </Button>
                             <Button fx:id="fundsxmlSidebarRefreshButton" text="" onAction="#handleFundsXmlSidebarRefresh"
                                     styleClass="sidebar-button" prefWidth="25" maxWidth="25">
-                                <graphic><FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/></graphic>
+                                <graphic><IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/></graphic>
                                 <tooltip><Tooltip text="Refresh examples list and active version from cache"/></tooltip>
                             </Button>
                         </HBox>
@@ -263,7 +263,7 @@
             <VBox fx:id="exampleValuesSection" styleClass="sidebar-section-container">
                 <TitledPane fx:id="exampleValuesPane" text="Example Values"
                             styleClass="xml-sidebar-titled-pane" collapsible="true" expanded="false">
-                    <graphic><FontIcon iconLiteral="bi-card-list" iconSize="14" iconColor="#28a745"/></graphic>
+                    <graphic><IconifyIcon iconLiteral="bi-card-list" iconSize="14" iconColor="#28a745"/></graphic>
                     <VBox spacing="5">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
                         <ListView fx:id="exampleValuesListView" styleClass="sidebar-list-view"

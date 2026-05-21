@@ -56,39 +56,39 @@
 }
 
 /* Menu Item Icons - FontIcon styling */
-.context-menu .menu-item .ikonli-font-icon {
+.context-menu .menu-item .iconify-icon {
     -fx-icon-size: 12px;
     -fx-fill: currentColor;
 }
 
 /* Icon color adjustments for different action types */
-.context-menu .menu-item.comment-action .ikonli-font-icon {
+.context-menu .menu-item.comment-action .iconify-icon {
     -fx-fill: #6c757d;
 }
 
-.context-menu .menu-item.edit-action .ikonli-font-icon {
+.context-menu .menu-item.edit-action .iconify-icon {
     -fx-fill: #333333;
 }
 
-.context-menu .menu-item.xml-action .ikonli-font-icon {
+.context-menu .menu-item.xml-action .iconify-icon {
     -fx-fill: #8b6914;
 }
 
-.context-menu .menu-item.search-action .ikonli-font-icon {
+.context-menu .menu-item.search-action .iconify-icon {
     -fx-fill: #495057;
 }
 
-.context-menu .menu-item.format-action .ikonli-font-icon {
+.context-menu .menu-item.format-action .iconify-icon {
     -fx-fill: #2c5aa0;
 }
 
-.context-menu .menu-item.fold-action .ikonli-font-icon {
+.context-menu .menu-item.fold-action .iconify-icon {
     -fx-fill: #6c757d;
 }
 
 /* Icon color changes on hover/focus */
-.context-menu .menu-item:hover .ikonli-font-icon,
-.context-menu .menu-item:focused .ikonli-font-icon {
+.context-menu .menu-item:hover .iconify-icon,
+.context-menu .menu-item:focused .iconify-icon {
     -fx-fill: inherit;
 }
 

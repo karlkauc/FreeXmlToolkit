@@ -12,12 +12,11 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.VirtualSchemaFactory;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Main view for editing a ComplexType in the graphic editor.
@@ -151,7 +150,7 @@ public class ComplexTypeEditorView extends BorderPane {
 
         // Close button
         Button closeBtn = new Button("Close");
-        closeBtn.setGraphic(new FontIcon(BootstrapIcons.X_CIRCLE));
+        closeBtn.setGraphic(new IconifyIcon("bi-x-circle"));
         closeBtn.setTooltip(new Tooltip("Close editor (Esc)"));
         closeBtn.setOnAction(e -> {
             if (onCloseCallback != null) {

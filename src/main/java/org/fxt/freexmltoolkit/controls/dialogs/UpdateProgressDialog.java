@@ -41,13 +41,13 @@ import javafx.stage.StageStyle;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.AutoUpdateService;
 import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateProgress;
 import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateResult;
 import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateStage;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Dialog that shows progress during update download and installation.
@@ -74,7 +74,7 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
     private Label statusLabel;
     private Label detailsLabel;
     private Button cancelButton;
-    private FontIcon stageIcon;
+    private IconifyIcon stageIcon;
 
     private CompletableFuture<UpdateResult> updateFuture;
     private volatile boolean cancelled = false;
@@ -156,7 +156,7 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
         HBox headerRow = new HBox(10);
         headerRow.setAlignment(Pos.CENTER_LEFT);
 
-        stageIcon = new FontIcon("bi-cloud-download");
+        stageIcon = new IconifyIcon("bi-cloud-download");
         stageIcon.setIconSize(24);
         stageIcon.setIconColor(Color.web("#007bff"));
 

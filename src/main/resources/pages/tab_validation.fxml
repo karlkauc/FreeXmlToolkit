@@ -35,7 +35,7 @@
         <!-- File Operations Group -->
         <Button fx:id="xmlLoadButton" text="Open XML" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open XML File to Validate"/>
@@ -44,7 +44,7 @@
 
         <Button fx:id="xsdLoadButton" text="Open XSD" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-diagram-3" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open XSD Schema File (manual)"/>
@@ -56,7 +56,7 @@
         <!-- Validation Action Group -->
         <Button fx:id="validateBtn" text="Validate" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#processXmlFile">
             <graphic>
-                <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Start Validation (F5)"/>
@@ -65,7 +65,7 @@
 
         <Button fx:id="clearResults" text="Clear" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#clearResultAction">
             <graphic>
-                <FontIcon iconLiteral="bi-eraser" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-eraser" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Clear Results"/>
@@ -77,7 +77,7 @@
         <!-- Export Group -->
         <Button fx:id="excelExport" text="Export" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#excelExport">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-excel" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-excel" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Export Results to Excel"/>
@@ -87,7 +87,7 @@
         <!-- Favorites Group -->
         <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add to Favorites (Ctrl+D)"/>
@@ -96,7 +96,7 @@
 
         <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Show/Hide Favorites (Ctrl+Shift+D)"/>
@@ -108,7 +108,7 @@
         <!-- Help -->
         <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
@@ -122,7 +122,7 @@
         <!-- Tab 1: Single File Validation (existing functionality) -->
         <Tab text="Single File" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-check" iconSize="16" iconColor="#007bff"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-check" iconSize="16" iconColor="#007bff"/>
             </graphic>
 
             <!-- Main Content Area + Favorites -->
@@ -132,19 +132,19 @@
                     <!-- Empty State (visible by default, controller can hide when files loaded) -->
                     <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
                           visible="true" managed="true">
-                        <FontIcon iconLiteral="bi-check-circle" iconSize="64" iconColor="#adb5bd"/>
+                        <IconifyIcon iconLiteral="bi-check-circle" iconSize="64" iconColor="#adb5bd"/>
                         <Label text="Ready to Validate" styleClass="empty-state-title"/>
                         <Label text="Load XML and XSD files to begin validation" wrapText="true" textAlignment="CENTER"
                                styleClass="empty-state-description" maxWidth="400"/>
                         <HBox spacing="10" alignment="CENTER">
                             <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" styleClass="btn-primary">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
+                                    <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="emptyStateFavoritesButton" text="Browse Favorites" styleClass="btn-secondary">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-star-fill" iconSize="16" iconColor="#ffc107"/>
+                                    <IconifyIcon iconLiteral="bi-star-fill" iconSize="16" iconColor="#ffc107"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -168,7 +168,7 @@
                                 <Button fx:id="xmlLoadButtonGrid" onAction="#selectXmlFile"
                                         text="Browse..." styleClass="accent">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                     </graphic>
                                     <tooltip>
                                         <Tooltip text="Select XML file"/>
@@ -195,7 +195,7 @@
                                 <Button fx:id="xsdLoadButtonGrid" onAction="#selectXsdFile"
                                         text="Browse..." styleClass="accent" disable="true">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                     </graphic>
                                     <tooltip>
                                         <Tooltip text="Select XSD schema file"/>
@@ -217,7 +217,7 @@
 
                         <HBox fx:id="statusPane" alignment="CENTER_LEFT" spacing="10"
                               styleClass="panel-light">
-                            <FontIcon fx:id="statusIcon" iconLiteral="bi-info-circle" iconSize="20" iconColor="#17a2b8"/>
+                            <IconifyIcon fx:id="statusIcon" iconLiteral="bi-info-circle" iconSize="20" iconColor="#17a2b8"/>
                             <Label fx:id="statusLabel" text="Ready for validation." styleClass="panel-header-label"/>
                             <Region HBox.hgrow="ALWAYS"/>
                             <ProgressIndicator fx:id="progressIndicator" maxWidth="40" maxHeight="40" progress="0.0" visible="false"/>
@@ -247,7 +247,7 @@
         <!-- Tab 2: Batch Validation (new functionality) -->
         <Tab text="Batch Validation" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-files" iconSize="16" iconColor="#28a745"/>
+                <IconifyIcon iconLiteral="bi-files" iconSize="16" iconColor="#28a745"/>
             </graphic>
 
             <VBox spacing="10" styleClass="p-4">
@@ -265,7 +265,7 @@
                         <TextField fx:id="batchXsdFileName" editable="false" promptText="Select XSD file..." prefWidth="250" disable="true"/>
                         <Button fx:id="selectBatchXsdBtn" text="Select XSD" disable="true" onAction="#selectBatchXsd">
                             <graphic>
-                                <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                             </graphic>
                         </Button>
                     </HBox>
@@ -275,7 +275,7 @@
                 <ToolBar styleClass="batch-toolbar-transparent">
                     <Button fx:id="addBatchFilesBtn" text="Add Files" onAction="#addFilesToBatch">
                         <graphic>
-                            <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="14" iconColor="#007bff"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="14" iconColor="#007bff"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Add XML files to validate"/>
@@ -283,7 +283,7 @@
                     </Button>
                     <Button fx:id="addBatchFolderBtn" text="Add Folder" onAction="#addFolderToBatch">
                         <graphic>
-                            <FontIcon iconLiteral="bi-folder-plus" iconSize="14" iconColor="#007bff"/>
+                            <IconifyIcon iconLiteral="bi-folder-plus" iconSize="14" iconColor="#007bff"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Add all XML files from folder (recursive)"/>
@@ -292,18 +292,18 @@
                     <Separator orientation="VERTICAL"/>
                     <Button fx:id="removeBatchSelectedBtn" text="Remove Selected" onAction="#removeBatchSelected">
                         <graphic>
-                            <FontIcon iconLiteral="bi-dash-circle" iconSize="14" iconColor="#dc3545"/>
+                            <IconifyIcon iconLiteral="bi-dash-circle" iconSize="14" iconColor="#dc3545"/>
                         </graphic>
                     </Button>
                     <Button fx:id="clearBatchBtn" text="Clear All" onAction="#clearBatch">
                         <graphic>
-                            <FontIcon iconLiteral="bi-trash" iconSize="14" iconColor="#dc3545"/>
+                            <IconifyIcon iconLiteral="bi-trash" iconSize="14" iconColor="#dc3545"/>
                         </graphic>
                     </Button>
                     <Separator orientation="VERTICAL"/>
                     <Button fx:id="runBatchBtn" text="Run Validation" onAction="#runBatchValidation" styleClass="btn-execute">
                         <graphic>
-                            <FontIcon iconLiteral="bi-play-fill" iconSize="14" iconColor="#28a745"/>
+                            <IconifyIcon iconLiteral="bi-play-fill" iconSize="14" iconColor="#28a745"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Start batch validation (F5)"/>
@@ -311,13 +311,13 @@
                     </Button>
                     <Button fx:id="cancelBatchBtn" text="Cancel" onAction="#cancelBatchValidation" disable="true">
                         <graphic>
-                            <FontIcon iconLiteral="bi-stop-fill" iconSize="14" iconColor="#dc3545"/>
+                            <IconifyIcon iconLiteral="bi-stop-fill" iconSize="14" iconColor="#dc3545"/>
                         </graphic>
                     </Button>
                     <Separator orientation="VERTICAL"/>
                     <Button fx:id="exportBatchAllBtn" text="Export All" onAction="#exportBatchAll">
                         <graphic>
-                            <FontIcon iconLiteral="bi-file-earmark-excel" iconSize="14" iconColor="#17a2b8"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-excel" iconSize="14" iconColor="#17a2b8"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Export all results to Excel"/>
@@ -325,7 +325,7 @@
                     </Button>
                     <Button fx:id="exportBatchSelectedBtn" text="Export Selected" onAction="#exportBatchSelected">
                         <graphic>
-                            <FontIcon iconLiteral="bi-download" iconSize="14" iconColor="#17a2b8"/>
+                            <IconifyIcon iconLiteral="bi-download" iconSize="14" iconColor="#17a2b8"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Export selected file errors to Excel"/>
@@ -347,7 +347,7 @@
                         <TableView fx:id="batchFilesTable" VBox.vgrow="ALWAYS">
                             <placeholder>
                                 <VBox alignment="CENTER" spacing="10">
-                                    <FontIcon iconLiteral="bi-files" iconSize="48" iconColor="#adb5bd"/>
+                                    <IconifyIcon iconLiteral="bi-files" iconSize="48" iconColor="#adb5bd"/>
                                     <Label text="No files added" styleClass="placeholder-title"/>
                                     <Label text="Click 'Add Files' or 'Add Folder' to add XML files for batch validation"
                                            styleClass="placeholder-description"/>

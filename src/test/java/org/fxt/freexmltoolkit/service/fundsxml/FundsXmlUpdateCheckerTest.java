@@ -18,12 +18,8 @@
 
 package org.fxt.freexmltoolkit.service.fundsxml;
 
-import org.fxt.freexmltoolkit.domain.FundsXmlMetadata;
-import org.fxt.freexmltoolkit.domain.GitHubRelease;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Constructor;
 import java.nio.file.Path;
@@ -34,8 +30,12 @@ import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.fxt.freexmltoolkit.domain.FundsXmlMetadata;
+import org.fxt.freexmltoolkit.domain.GitHubRelease;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 @DisplayName("FundsXmlUpdateChecker Tests")
 class FundsXmlUpdateCheckerTest {

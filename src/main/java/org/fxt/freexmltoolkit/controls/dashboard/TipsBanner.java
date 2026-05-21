@@ -13,8 +13,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.domain.statistics.FeatureTip;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * A banner component displaying contextual tips for undiscovered features.
@@ -25,7 +25,7 @@ public class TipsBanner extends VBox {
     private final List<FeatureTip> tips = new ArrayList<>();
     private int currentTipIndex = 0;
     private final Label tipLabel;
-    private final FontIcon tipIcon;
+    private final IconifyIcon tipIcon;
     private final Button actionButton;
     private final HBox navigationBox;
     private final Label tipCounter;
@@ -45,7 +45,7 @@ public class TipsBanner extends VBox {
         HBox header = new HBox(8);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        FontIcon lightbulbIcon = new FontIcon("bi-lightbulb");
+        IconifyIcon lightbulbIcon = new IconifyIcon("bi-lightbulb");
         lightbulbIcon.setIconSize(16);
         lightbulbIcon.getStyleClass().add("tips-header-icon");
 
@@ -56,7 +56,7 @@ public class TipsBanner extends VBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button dismissAllButton = new Button();
-        dismissAllButton.setGraphic(new FontIcon("bi-x"));
+        dismissAllButton.setGraphic(new IconifyIcon("bi-x"));
         dismissAllButton.getStyleClass().add("tips-dismiss-button");
         dismissAllButton.setOnAction(e -> {
             tips.clear();
@@ -69,7 +69,7 @@ public class TipsBanner extends VBox {
         HBox tipContent = new HBox(10);
         tipContent.setAlignment(Pos.CENTER_LEFT);
 
-        tipIcon = new FontIcon("bi-info-circle");
+        tipIcon = new IconifyIcon("bi-info-circle");
         tipIcon.setIconSize(20);
         tipIcon.getStyleClass().add("tip-icon");
 
@@ -96,7 +96,7 @@ public class TipsBanner extends VBox {
         navigationBox.setAlignment(Pos.CENTER);
 
         Button prevButton = new Button();
-        prevButton.setGraphic(new FontIcon("bi-chevron-left"));
+        prevButton.setGraphic(new IconifyIcon("bi-chevron-left"));
         prevButton.getStyleClass().add("tips-nav-button");
         prevButton.setOnAction(e -> showPreviousTip());
 
@@ -104,7 +104,7 @@ public class TipsBanner extends VBox {
         tipCounter.getStyleClass().add("tips-counter");
 
         Button nextButton = new Button();
-        nextButton.setGraphic(new FontIcon("bi-chevron-right"));
+        nextButton.setGraphic(new IconifyIcon("bi-chevron-right"));
         nextButton.getStyleClass().add("tips-nav-button");
         nextButton.setOnAction(e -> showNextTip());
 

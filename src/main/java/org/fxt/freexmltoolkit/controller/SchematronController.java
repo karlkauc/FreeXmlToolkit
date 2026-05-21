@@ -3009,8 +3009,8 @@ public class SchematronController implements FavoritesParentController {
         // Apply compact style
         button.setStyle(style);
 
-        // Update icon size if the button has a FontIcon graphic
-        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+        // Update icon size if the button has a IconifyIcon graphic
+        if (button.getGraphic() instanceof org.fxt.freexmltoolkit.controls.icons.IconifyIcon fontIcon) {
             fontIcon.setIconSize(iconSize);
         }
     }

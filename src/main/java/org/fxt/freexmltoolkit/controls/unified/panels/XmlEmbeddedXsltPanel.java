@@ -26,10 +26,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Embedded XSLT development panel for the XML Unified Editor.
@@ -150,7 +150,7 @@ public class XmlEmbeddedXsltPanel extends VBox {
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(2, 4, 2, 4));
 
-        FontIcon icon = new FontIcon("bi-arrow-repeat");
+        IconifyIcon icon = new IconifyIcon("bi-arrow-repeat");
         icon.setIconSize(14);
         Label title = new Label("XSLT Development");
         title.setGraphic(icon);
@@ -269,8 +269,8 @@ public class XmlEmbeddedXsltPanel extends VBox {
         executorService.shutdownNow();
     }
 
-    private FontIcon createIcon(String literal, int size) {
-        FontIcon fi = new FontIcon(literal);
+    private IconifyIcon createIcon(String literal, int size) {
+        IconifyIcon fi = new IconifyIcon(literal);
         fi.setIconSize(size);
         return fi;
     }

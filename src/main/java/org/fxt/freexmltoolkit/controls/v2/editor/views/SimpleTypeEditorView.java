@@ -24,6 +24,7 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.FacetsPanel;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.TypeDocumentationPanel;
@@ -34,8 +35,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Main view for editing a SimpleType.
@@ -221,7 +220,7 @@ public class SimpleTypeEditorView extends BorderPane {
         ToolBar toolbar = new ToolBar();
 
         saveBtn = new Button("Save Type");
-        saveBtn.setGraphic(new FontIcon(BootstrapIcons.SAVE));
+        saveBtn.setGraphic(new IconifyIcon("bi-save"));
         saveBtn.setTooltip(new Tooltip("Save changes (Ctrl+S)"));
         saveBtn.setStyle("-fx-font-weight: bold;");
         saveBtn.setDisable(true); // Enabled when callback is set
@@ -232,7 +231,7 @@ public class SimpleTypeEditorView extends BorderPane {
         });
 
         closeBtn = new Button("Close");
-        closeBtn.setGraphic(new FontIcon(BootstrapIcons.X_CIRCLE));
+        closeBtn.setGraphic(new IconifyIcon("bi-x-circle"));
         closeBtn.setTooltip(new Tooltip("Close editor (Esc)"));
         closeBtn.setDisable(true); // Enabled when callback is set
         closeBtn.setOnAction(e -> {
@@ -242,7 +241,7 @@ public class SimpleTypeEditorView extends BorderPane {
         });
 
         findUsageBtn = new Button("Find Usage");
-        findUsageBtn.setGraphic(new FontIcon(BootstrapIcons.SEARCH));
+        findUsageBtn.setGraphic(new IconifyIcon("bi-search"));
         findUsageBtn.setTooltip(new Tooltip("Find where this type is used (Ctrl+U)"));
         findUsageBtn.setDisable(true); // Enabled when callback is set
         findUsageBtn.setOnAction(e -> {
@@ -438,7 +437,7 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Tab 1: Facets
         Tab facetsTab = new Tab("Facets");
-        facetsTab.setGraphic(new FontIcon("bi-funnel"));
+        facetsTab.setGraphic(new IconifyIcon("bi-funnel"));
         facetsPanel = new FacetsPanel(editorContext);
         if (currentRestriction != null) {
             facetsPanel.setRestriction(currentRestriction);
@@ -500,12 +499,12 @@ public class SimpleTypeEditorView extends BorderPane {
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
         Button addEnumBtn = new Button("Add");
-        addEnumBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        addEnumBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
         Button editEnumBtn = new Button("Edit");
-        editEnumBtn.setGraphic(new FontIcon("bi-pencil"));
+        editEnumBtn.setGraphic(new IconifyIcon("bi-pencil"));
         editEnumBtn.setDisable(true);
         Button removeEnumBtn = new Button("Remove");
-        removeEnumBtn.setGraphic(new FontIcon("bi-trash"));
+        removeEnumBtn.setGraphic(new IconifyIcon("bi-trash"));
         removeEnumBtn.setDisable(true);
 
         // Enable/disable buttons based on selection
@@ -529,7 +528,7 @@ public class SimpleTypeEditorView extends BorderPane {
         vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), enumerationsListView, buttonBox);
 
         Tab tab = new Tab("Enumerations", vbox);
-        tab.setGraphic(new FontIcon("bi-list-ul"));
+        tab.setGraphic(new IconifyIcon("bi-list-ul"));
         return tab;
     }
 
@@ -564,12 +563,12 @@ public class SimpleTypeEditorView extends BorderPane {
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
         Button addPatternBtn = new Button("Add");
-        addPatternBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        addPatternBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
         Button editPatternBtn = new Button("Edit");
-        editPatternBtn.setGraphic(new FontIcon("bi-pencil"));
+        editPatternBtn.setGraphic(new IconifyIcon("bi-pencil"));
         editPatternBtn.setDisable(true);
         Button removePatternBtn = new Button("Remove");
-        removePatternBtn.setGraphic(new FontIcon("bi-trash"));
+        removePatternBtn.setGraphic(new IconifyIcon("bi-trash"));
         removePatternBtn.setDisable(true);
 
         // Enable/disable buttons based on selection
@@ -589,7 +588,7 @@ public class SimpleTypeEditorView extends BorderPane {
         vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), patternsListView, buttonBox);
 
         Tab tab = new Tab("Patterns", vbox);
-        tab.setGraphic(new FontIcon("bi-braces"));
+        tab.setGraphic(new IconifyIcon("bi-braces"));
         return tab;
     }
 
@@ -624,12 +623,12 @@ public class SimpleTypeEditorView extends BorderPane {
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
         Button addAssertBtn = new Button("Add");
-        addAssertBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        addAssertBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
         Button editAssertBtn = new Button("Edit");
-        editAssertBtn.setGraphic(new FontIcon("bi-pencil"));
+        editAssertBtn.setGraphic(new IconifyIcon("bi-pencil"));
         editAssertBtn.setDisable(true);
         Button removeAssertBtn = new Button("Remove");
-        removeAssertBtn.setGraphic(new FontIcon("bi-trash"));
+        removeAssertBtn.setGraphic(new IconifyIcon("bi-trash"));
         removeAssertBtn.setDisable(true);
 
         // Enable/disable buttons based on selection
@@ -654,7 +653,7 @@ public class SimpleTypeEditorView extends BorderPane {
         vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), assertionsListView, buttonBox, infoLabel);
 
         Tab tab = new Tab("Assertions", vbox);
-        tab.setGraphic(new FontIcon("bi-check2-square"));
+        tab.setGraphic(new IconifyIcon("bi-check2-square"));
         return tab;
     }
 
@@ -1222,12 +1221,12 @@ public class SimpleTypeEditorView extends BorderPane {
         }
 
         Button addBtn = new Button("Add Member Type");
-        addBtn.setGraphic(new FontIcon(BootstrapIcons.PLUS_CIRCLE));
+        addBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
         addBtn.setTooltip(new Tooltip("Add a type to the union"));
         addBtn.setOnAction(e -> handleAddMemberType(memberTypesList));
 
         Button removeBtn = new Button("Remove");
-        removeBtn.setGraphic(new FontIcon(BootstrapIcons.TRASH));
+        removeBtn.setGraphic(new IconifyIcon("bi-trash"));
         removeBtn.setTooltip(new Tooltip("Remove selected type"));
         removeBtn.setStyle("-fx-text-fill: red;");
         removeBtn.setOnAction(e -> handleRemoveMemberType(memberTypesList));

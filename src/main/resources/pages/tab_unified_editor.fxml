@@ -32,7 +32,7 @@
         <!-- New File Menu -->
         <MenuButton fx:id="newFileMenu" text="New" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Create New File"/>
@@ -40,28 +40,28 @@
             <items>
                 <MenuItem text="XML File" onAction="#newXmlFile">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="XSD Schema" onAction="#newXsdFile">
                     <graphic>
-                        <FontIcon iconLiteral="bi-diagram-3" iconSize="16" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-diagram-3" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="XSLT Stylesheet" onAction="#newXsltFile">
                     <graphic>
-                        <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16" iconColor="#fd7e14"/>
+                        <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="16" iconColor="#fd7e14"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="Schematron" onAction="#newSchematronFile">
                     <graphic>
-                        <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#6f42c1"/>
+                        <IconifyIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#6f42c1"/>
                     </graphic>
                 </MenuItem>
                 <SeparatorMenuItem/>
                 <MenuItem text="JSON File" onAction="#newJsonFile">
                     <graphic>
-                        <FontIcon iconLiteral="bi-braces" iconSize="16" iconColor="#fd7e14"/>
+                        <IconifyIcon iconLiteral="bi-braces" iconSize="16" iconColor="#fd7e14"/>
                     </graphic>
                 </MenuItem>
             </items>
@@ -69,7 +69,7 @@
 
         <Button fx:id="openFileButton" text="Open" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#openFile">
             <graphic>
-                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open File (Ctrl+O)"/>
@@ -78,7 +78,7 @@
 
         <Button fx:id="saveButton" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveCurrentTab">
             <graphic>
-                <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save (Ctrl+S)"/>
@@ -87,7 +87,7 @@
 
         <Button fx:id="saveAllButton" text="Save All" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAllTabs">
             <graphic>
-                <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save All (Ctrl+Shift+S)"/>
@@ -96,7 +96,7 @@
 
         <MenuButton fx:id="recentFilesMenu" text="Recent" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Recent Files (Ctrl+Shift+R)"/>
@@ -107,7 +107,7 @@
 
         <Button fx:id="closeTabButton" text="Close" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#closeCurrentTab">
             <graphic>
-                <FontIcon iconLiteral="bi-x-circle" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
+                <IconifyIcon iconLiteral="bi-x-circle" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Close Current Tab (Ctrl+W)"/>
@@ -118,7 +118,7 @@
 
         <Button fx:id="validateButton" text="Validate" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#validateCurrentTab">
             <graphic>
-                <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Validate (F5)"/>
@@ -127,7 +127,7 @@
 
         <Button fx:id="formatButton" text="Format" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#formatCurrentTab">
             <graphic>
-                <FontIcon iconLiteral="bi-text-left" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-text-left" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Format/Pretty Print (Ctrl+Shift+F)"/>
@@ -138,7 +138,7 @@
 
         <Button fx:id="undoButton" text="Undo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#undo">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Undo (Ctrl+Z)"/>
@@ -147,7 +147,7 @@
 
         <Button fx:id="redoButton" text="Redo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#redo">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Redo (Ctrl+Y)"/>
@@ -159,7 +159,7 @@
         <!-- View Mode Switcher -->
         <MenuButton fx:id="viewModeMenu" text="View" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-layout-sidebar" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-layout-sidebar" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Switch View Mode (Tabs/Split)"/>
@@ -167,17 +167,17 @@
             <items>
                 <MenuItem text="Tabs View" onAction="#setViewModeTabs">
                     <graphic>
-                        <FontIcon iconLiteral="bi-segmented-nav" iconSize="16" iconColor="#6c757d"/>
+                        <IconifyIcon iconLiteral="bi-segmented-nav" iconSize="16" iconColor="#6c757d"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="Side-by-Side" onAction="#setViewModeSplitSideBySide">
                     <graphic>
-                        <FontIcon iconLiteral="bi-layout-split" iconSize="16" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-layout-split" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="Top-Bottom" onAction="#setViewModeSplitTopBottom">
                     <graphic>
-                        <FontIcon iconLiteral="bi-layout-three-columns" iconSize="16" iconColor="#fd7e14" rotate="90"/>
+                        <IconifyIcon iconLiteral="bi-layout-three-columns" iconSize="16" iconColor="#fd7e14" rotate="90"/>
                     </graphic>
                 </MenuItem>
             </items>
@@ -188,7 +188,7 @@
         <!-- XML Tools Section -->
         <MenuButton fx:id="convertMenu" text="Convert" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-table" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-table" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Convert XML to/from Spreadsheets (Ctrl+E)"/>
@@ -196,12 +196,12 @@
             <items>
                 <MenuItem text="XML to Excel/CSV..." onAction="#showXmlToSpreadsheet">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-excel" iconSize="16" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-excel" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="Excel/CSV to XML..." onAction="#showSpreadsheetToXml">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                 </MenuItem>
             </items>
@@ -210,7 +210,7 @@
         <Button fx:id="templatesButton" text="Templates" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#showTemplates">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-ruled" iconSize="20" iconColor="#ffc107"
+                <IconifyIcon iconLiteral="bi-file-earmark-ruled" iconSize="20" iconColor="#ffc107"
                           styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
@@ -221,7 +221,7 @@
         <Button fx:id="generatorButton" text="Generator" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#showGenerator">
             <graphic>
-                <FontIcon iconLiteral="bi-lightning" iconSize="20" iconColor="#6f42c1"
+                <IconifyIcon iconLiteral="bi-lightning" iconSize="20" iconColor="#6f42c1"
                           styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
@@ -235,7 +235,7 @@
         <Button fx:id="minifyButton" text="Minify" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#minifyJson" visible="false" managed="false">
             <graphic>
-                <FontIcon iconLiteral="bi-arrows-collapse" iconSize="20" iconColor="#fd7e14"
+                <IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="20" iconColor="#fd7e14"
                           styleClass="toolbar-icon-orange"/>
             </graphic>
             <tooltip>
@@ -246,7 +246,7 @@
         <MenuButton fx:id="jsonSchemaMenu" text="Schema" contentDisplay="LEFT" styleClass="toolbar-button"
                     visible="false" managed="false">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-check" iconSize="20" iconColor="#28a745"
+                <IconifyIcon iconLiteral="bi-file-earmark-check" iconSize="20" iconColor="#28a745"
                           styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
@@ -255,18 +255,18 @@
             <items>
                 <MenuItem text="Load Schema..." onAction="#loadJsonSchema">
                     <graphic>
-                        <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="Clear Schema" onAction="#clearJsonSchema">
                     <graphic>
-                        <FontIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
+                        <IconifyIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
                     </graphic>
                 </MenuItem>
                 <SeparatorMenuItem/>
                 <MenuItem text="Validate Against Schema" onAction="#validateJsonAgainstSchema">
                     <graphic>
-                        <FontIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                 </MenuItem>
             </items>
@@ -276,7 +276,7 @@
         <ToggleButton fx:id="consolePanelToggle" text="Console" contentDisplay="LEFT" styleClass="toolbar-button"
                       onAction="#toggleConsolePanel" visible="false" managed="false">
             <graphic>
-                <FontIcon iconLiteral="bi-terminal" iconSize="20" iconColor="#6c757d"
+                <IconifyIcon iconLiteral="bi-terminal" iconSize="20" iconColor="#6c757d"
                           styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
@@ -287,7 +287,7 @@
         <ToggleButton fx:id="xsltDevPanelToggle" text="XSLT" contentDisplay="LEFT" styleClass="toolbar-button"
                       onAction="#toggleXsltDevPanel" visible="false" managed="false">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-repeat" iconSize="20" iconColor="#fd7e14"
+                <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="20" iconColor="#fd7e14"
                           styleClass="toolbar-icon-orange"/>
             </graphic>
             <tooltip>
@@ -298,7 +298,7 @@
         <ToggleButton fx:id="templateDevPanelToggle" text="Template" contentDisplay="LEFT" styleClass="toolbar-button"
                       onAction="#toggleTemplateDevPanel" visible="false" managed="false">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-ruled" iconSize="20" iconColor="#ffc107"
+                <IconifyIcon iconLiteral="bi-file-earmark-ruled" iconSize="20" iconColor="#ffc107"
                           styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
@@ -310,7 +310,7 @@
         <MenuButton fx:id="schematronInsertMenu" text="Insert" contentDisplay="LEFT" styleClass="toolbar-button"
                     visible="false" managed="false">
             <graphic>
-                <FontIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#6f42c1"
+                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#6f42c1"
                           styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
@@ -319,23 +319,23 @@
             <items>
                 <MenuItem text="New Pattern" onAction="#insertSchematronPattern">
                     <graphic>
-                        <FontIcon iconLiteral="bi-grid-3x3-gap" iconSize="16" iconColor="#6f42c1"/>
+                        <IconifyIcon iconLiteral="bi-grid-3x3-gap" iconSize="16" iconColor="#6f42c1"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="New Rule" onAction="#insertSchematronRule">
                     <graphic>
-                        <FontIcon iconLiteral="bi-list-check" iconSize="16" iconColor="#6f42c1"/>
+                        <IconifyIcon iconLiteral="bi-list-check" iconSize="16" iconColor="#6f42c1"/>
                     </graphic>
                 </MenuItem>
                 <SeparatorMenuItem/>
                 <MenuItem text="Assert" onAction="#insertSchematronAssert">
                     <graphic>
-                        <FontIcon iconLiteral="bi-exclamation-triangle" iconSize="16" iconColor="#dc3545"/>
+                        <IconifyIcon iconLiteral="bi-exclamation-triangle" iconSize="16" iconColor="#dc3545"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="Report" onAction="#insertSchematronReport">
                     <graphic>
-                        <FontIcon iconLiteral="bi-info-circle" iconSize="16" iconColor="#17a2b8"/>
+                        <IconifyIcon iconLiteral="bi-info-circle" iconSize="16" iconColor="#17a2b8"/>
                     </graphic>
                 </MenuItem>
             </items>
@@ -346,7 +346,7 @@
 
         <MenuButton fx:id="toolsMenu" text="Tools" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-tools" iconSize="20" iconColor="#6c757d"
+                <IconifyIcon iconLiteral="bi-tools" iconSize="20" iconColor="#6c757d"
                           styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
@@ -355,12 +355,12 @@
             <items>
                 <MenuItem text="PDF Generation (FOP)" onAction="#openFopToolTab">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-richtext" iconSize="16" iconColor="#dc3545"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-richtext" iconSize="16" iconColor="#dc3545"/>
                     </graphic>
                 </MenuItem>
                 <MenuItem text="Digital Signatures" onAction="#openSignatureToolTab">
                     <graphic>
-                        <FontIcon iconLiteral="bi-shield-lock" iconSize="16" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-shield-lock" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                 </MenuItem>
             </items>
@@ -372,7 +372,7 @@
 
         <ToggleButton fx:id="linkedFilesToggle" text="Linked" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#toggleLinkedFilesPanel">
             <graphic>
-                <FontIcon iconLiteral="bi-link-45deg" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+                <IconifyIcon iconLiteral="bi-link-45deg" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle Linked Files Panel (Ctrl+L)"/>
@@ -381,7 +381,7 @@
 
         <ToggleButton fx:id="xpathPanelToggle" text="XPath" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#toggleXPathPanel">
             <graphic>
-                <FontIcon iconLiteral="bi-search" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-orange"/>
+                <IconifyIcon iconLiteral="bi-search" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-orange"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle XPath/XQuery Panel (Ctrl+Shift+X)"/>
@@ -390,7 +390,7 @@
 
         <ToggleButton fx:id="propertiesToggle" text="Properties" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#togglePropertiesPanel">
             <graphic>
-                <FontIcon iconLiteral="bi-sliders" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-sliders" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle Properties Panel (Ctrl+Shift+P)"/>
@@ -399,7 +399,7 @@
 
         <Button fx:id="favoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showFavoritesPanel">
             <graphic>
-                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Show Favorites (Ctrl+Shift+B)"/>
@@ -408,7 +408,7 @@
 
         <Button fx:id="addFavoriteButton" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#addCurrentFileToFavorites">
             <graphic>
-                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add Current File to Favorites (Ctrl+D)"/>
@@ -419,7 +419,7 @@
 
         <Button fx:id="helpButton" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help"/>
@@ -442,7 +442,7 @@
 
             <Label text="Linked Files" styleClass="linked-files-header">
                 <graphic>
-                    <FontIcon iconLiteral="bi-link-45deg" iconSize="16" iconColor="#6f42c1"/>
+                    <IconifyIcon iconLiteral="bi-link-45deg" iconSize="16" iconColor="#6f42c1"/>
                 </graphic>
             </Label>
 
@@ -455,12 +455,12 @@
             <HBox spacing="8">
                 <Button text="Open Selected" onAction="#openSelectedLinkedFile" HBox.hgrow="ALWAYS" maxWidth="Infinity">
                     <graphic>
-                        <FontIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14" iconColor="#007bff"/>
                     </graphic>
                 </Button>
                 <Button text="Open All" onAction="#openAllLinkedFiles">
                     <graphic>
-                        <FontIcon iconLiteral="bi-collection" iconSize="14" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-collection" iconSize="14" iconColor="#28a745"/>
                     </graphic>
                 </Button>
             </HBox>
@@ -471,7 +471,7 @@
     <HBox fx:id="statusBar" spacing="16" styleClass="unified-status-bar">
         <Label fx:id="statusLabel" text="Ready" styleClass="theme-text-secondary">
             <graphic>
-                <FontIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
+                <IconifyIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
             </graphic>
         </Label>
 
@@ -487,7 +487,7 @@
 
         <Label fx:id="linkedFilesCountLabel" text="" styleClass="status-bar-label-linked">
             <graphic>
-                <FontIcon iconLiteral="bi-link-45deg" iconSize="12" iconColor="#6f42c1"/>
+                <IconifyIcon iconLiteral="bi-link-45deg" iconSize="12" iconColor="#6f42c1"/>
             </graphic>
         </Label>
     </HBox>

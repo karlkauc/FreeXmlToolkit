@@ -25,7 +25,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.kordamp.ikonli.javafx.FontIcon;
+
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.xml.sax.SAXParseException;
 
 /**
@@ -152,7 +153,7 @@ public final class ValidationErrorRenderer {
         if (goToAction != null) {
             Button goTo = new Button("Go to error");
             goTo.getStyleClass().add("btn-secondary");
-            FontIcon icon = new FontIcon("bi-box-arrow-up-right");
+            IconifyIcon icon = new IconifyIcon("bi-box-arrow-up-right");
             icon.setIconSize(14);
             goTo.setGraphic(icon);
             goTo.setOnAction(e -> goToAction.run());
@@ -169,7 +170,7 @@ public final class ValidationErrorRenderer {
      * @return a styled card node
      */
     public static VBox buildSuccessCard(String message) {
-        FontIcon icon = new FontIcon("bi-check-circle-fill");
+        IconifyIcon icon = new IconifyIcon("bi-check-circle-fill");
         icon.setIconSize(18);
 
         Label label = new Label(message);

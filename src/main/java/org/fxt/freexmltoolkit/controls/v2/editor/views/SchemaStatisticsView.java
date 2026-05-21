@@ -41,14 +41,13 @@ import javafx.stage.Window;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdSchemaReferenceInfo;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatistics;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatisticsCollector;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdStatisticsExporter;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * View displaying comprehensive statistics about an XSD schema.
@@ -194,27 +193,27 @@ public class SchemaStatisticsView extends BorderPane {
      */
     private ToolBar createToolbar() {
         Button refreshBtn = new Button("Refresh");
-        refreshBtn.setGraphic(new FontIcon(BootstrapIcons.ARROW_CLOCKWISE));
+        refreshBtn.setGraphic(new IconifyIcon("bi-arrow-clockwise"));
         refreshBtn.setOnAction(e -> refreshStatistics());
 
         Button exportCsvBtn = new Button("CSV");
-        exportCsvBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_SPREADSHEET));
+        exportCsvBtn.setGraphic(new IconifyIcon("bi-file-earmark-spreadsheet"));
         exportCsvBtn.setOnAction(e -> exportToCsv());
 
         Button exportJsonBtn = new Button("JSON");
-        exportJsonBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_CODE));
+        exportJsonBtn.setGraphic(new IconifyIcon("bi-file-earmark-code"));
         exportJsonBtn.setOnAction(e -> exportToJson());
 
         Button exportPdfBtn = new Button("PDF");
-        exportPdfBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_RICHTEXT));
+        exportPdfBtn.setGraphic(new IconifyIcon("bi-file-earmark-richtext"));
         exportPdfBtn.setOnAction(e -> exportToPdf());
 
         Button exportHtmlBtn = new Button("HTML");
-        exportHtmlBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_TEXT));
+        exportHtmlBtn.setGraphic(new IconifyIcon("bi-file-earmark-text"));
         exportHtmlBtn.setOnAction(e -> exportToHtml());
 
         Button exportExcelBtn = new Button("Excel");
-        exportExcelBtn.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_EXCEL));
+        exportExcelBtn.setGraphic(new IconifyIcon("bi-file-earmark-excel"));
         exportExcelBtn.setOnAction(e -> exportToExcel());
 
         Region spacer = new Region();
@@ -247,7 +246,7 @@ public class SchemaStatisticsView extends BorderPane {
         TitledPane pane = new TitledPane("Schema Information", grid);
         pane.setExpanded(true);
         pane.setCollapsible(true);
-        pane.setGraphic(new FontIcon(BootstrapIcons.FILE_EARMARK_CODE));
+        pane.setGraphic(new IconifyIcon("bi-file-earmark-code"));
         return pane;
     }
 
@@ -261,7 +260,7 @@ public class SchemaStatisticsView extends BorderPane {
         // Warning label for unresolved references
         schemaReferencesWarningLabel = new Label();
         schemaReferencesWarningLabel.getStyleClass().add("warning-box");
-        schemaReferencesWarningLabel.setGraphic(new FontIcon(BootstrapIcons.EXCLAMATION_TRIANGLE));
+        schemaReferencesWarningLabel.setGraphic(new IconifyIcon("bi-exclamation-triangle"));
         schemaReferencesWarningLabel.setVisible(false);
         schemaReferencesWarningLabel.setManaged(false);
 
@@ -284,7 +283,7 @@ public class SchemaStatisticsView extends BorderPane {
                     setGraphic(null);
                 } else {
                     setText(item);
-                    FontIcon icon = new FontIcon();
+                    IconifyIcon icon = new IconifyIcon();
                     icon.setIconSize(14);
                     if ("Include".equals(item)) {
                         icon.setIconLiteral("bi-link-45deg");
@@ -317,7 +316,7 @@ public class SchemaStatisticsView extends BorderPane {
                     setTooltip(null);
                 } else {
                     setText(item);
-                    FontIcon icon = new FontIcon();
+                    IconifyIcon icon = new IconifyIcon();
                     icon.setIconSize(14);
                     if ("Resolved".equals(item)) {
                         icon.setIconLiteral("bi-check-circle-fill");
@@ -362,7 +361,7 @@ public class SchemaStatisticsView extends BorderPane {
         TitledPane pane = new TitledPane("Schema References", content);
         pane.setExpanded(true);
         pane.setCollapsible(true);
-        pane.setGraphic(new FontIcon(BootstrapIcons.COLLECTION));
+        pane.setGraphic(new IconifyIcon("bi-collection"));
         return pane;
     }
 
@@ -388,7 +387,7 @@ public class SchemaStatisticsView extends BorderPane {
         TitledPane pane = new TitledPane("Node Counts", grid);
         pane.setExpanded(true);
         pane.setCollapsible(true);
-        pane.setGraphic(new FontIcon(BootstrapIcons.DIAGRAM_3));
+        pane.setGraphic(new IconifyIcon("bi-diagram-3"));
         return pane;
     }
 
@@ -412,7 +411,7 @@ public class SchemaStatisticsView extends BorderPane {
         TitledPane pane = new TitledPane("Documentation Statistics", grid);
         pane.setExpanded(true);
         pane.setCollapsible(true);
-        pane.setGraphic(new FontIcon(BootstrapIcons.FILE_TEXT));
+        pane.setGraphic(new IconifyIcon("bi-file-text"));
         return pane;
     }
 
@@ -426,7 +425,7 @@ public class SchemaStatisticsView extends BorderPane {
         TitledPane pane = new TitledPane("Top Used Types", typeUsageBox);
         pane.setExpanded(true);
         pane.setCollapsible(true);
-        pane.setGraphic(new FontIcon(BootstrapIcons.BAR_CHART));
+        pane.setGraphic(new IconifyIcon("bi-bar-chart"));
         return pane;
     }
 
@@ -447,7 +446,7 @@ public class SchemaStatisticsView extends BorderPane {
         TitledPane pane = new TitledPane("Cardinality Statistics", grid);
         pane.setExpanded(true);
         pane.setCollapsible(true);
-        pane.setGraphic(new FontIcon(BootstrapIcons.HASH));
+        pane.setGraphic(new IconifyIcon("bi-hash"));
         return pane;
     }
 

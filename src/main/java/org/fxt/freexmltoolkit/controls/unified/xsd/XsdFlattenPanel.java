@@ -20,13 +20,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.xsd.XsdParseOptions;
 import org.fxt.freexmltoolkit.service.xsd.XsdParsingService;
 import org.fxt.freexmltoolkit.service.xsd.XsdParsingServiceImpl;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Panel for flattening XSD schemas (merging includes/imports into single file).
@@ -77,7 +77,7 @@ public class XsdFlattenPanel extends VBox {
         // Action
         Button flattenBtn = new Button("Flatten Schema");
         flattenBtn.setStyle("-fx-font-size: 14px;");
-        FontIcon flatIcon = new FontIcon("bi-layers");
+        IconifyIcon flatIcon = new IconifyIcon("bi-layers");
         flatIcon.setIconSize(16);
         flattenBtn.setGraphic(flatIcon);
         flattenBtn.setOnAction(e -> flattenSchema());
