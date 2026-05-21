@@ -106,6 +106,11 @@ public class GitHubReleaseClient {
     /**
      * Returns the latest published release for the given repo, or {@code null} on error /
      * if no releases exist.
+     *
+     * <p>HTTP 404 is treated as a *normal* "no releases published" state and logged at
+     * DEBUG only — some repos (notably {@code fundsxml/examples}) ship from the default
+     * branch instead of cutting releases, and the caller already has a main-branch
+     * fallback for that case.
      */
     public GitHubRelease getLatestRelease(String repo) {
         URI uri = URI.create(API_BASE + repo + "/releases/latest");
@@ -113,7 +118,12 @@ public class GitHubReleaseClient {
             String json = httpGetString(uri);
             return parseRelease(JsonParser.parseString(json).getAsJsonObject());
         } catch (IOException e) {
-            logger.warn("Failed to fetch latest release for {}: {}", repo, e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && msg.startsWith("HTTP 404 ")) {
+                logger.debug("No published releases for {} (HTTP 404 from {})", repo, uri);
+            } else {
+                logger.warn("Failed to fetch latest release for {}: {}", repo, msg);
+            }
             return null;
         } catch (Exception e) {
             logger.warn("Failed to parse latest release JSON for {}: {}", repo, e.getMessage());
