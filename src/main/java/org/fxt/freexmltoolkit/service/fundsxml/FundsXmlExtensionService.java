@@ -218,9 +218,39 @@ public class FundsXmlExtensionService {
         FundsXmlPostDownloadRegistrar.RegistrarResult snipResult =
                 registrar.seedSnippets(cache.getQueriesDir());
 
-        result.favoritesAdded(
-                (favResult.examplesFolderAdded() ? 1 : 0) + favResult.schematronFilesAdded());
+        // Active version may have just been set, but the metadata save below also covers
+        // the first-install case. Resolve schema for whichever version is now active.
+        FundsXmlMetadata metaForActive = cache.loadMetadata();
+        String activeVersion = metaForActive.getActiveSchemaVersion();
+        if (activeVersion == null || activeVersion.isBlank()) {
+            activeVersion = version;
+        }
+        Path activeSchema = cache.getSchemaFile(activeVersion);
+        cb.onProgress("Registering schema favorite", -1, -1, "Adding active schema to favorites");
+        FundsXmlPostDownloadRegistrar.RegistrarResult schemaResult =
+                registrar.registerSchemaFavorite(activeSchema);
+        cb.onProgress("Registering XSLT favorites", -1, -1, "Indexing FundsXML XSLT stylesheets");
+        FundsXmlPostDownloadRegistrar.RegistrarResult xsltResult =
+                registrar.registerXsltFavorites(cache.getExamplesDir());
+        cb.onProgress("Registering featured samples", -1, -1, "Surfacing the most compact samples");
+        FundsXmlPostDownloadRegistrar.RegistrarResult featuredResult =
+                registrar.registerFeaturedXmlFavorites(cache.getExamplesDir());
+        cb.onProgress("Seeding new-document templates", -1, -1,
+                "Adding samples to the template library");
+        FundsXmlPostDownloadRegistrar.RegistrarResult tmplResult =
+                registrar.registerXmlTemplates(cache.getExamplesDir());
+
+        int totalFavoritesAdded = (favResult.examplesFolderAdded() ? 1 : 0)
+                + favResult.schematronFilesAdded()
+                + (schemaResult.schemaFavoriteAdded() ? 1 : 0)
+                + xsltResult.xsltFilesAdded()
+                + featuredResult.featuredXmlAdded();
+        result.favoritesAdded(totalFavoritesAdded);
         result.snippetsAdded(snipResult.snippetsAdded());
+        result.schemaFavoriteAdded(schemaResult.schemaFavoriteAdded());
+        result.xsltFavoritesAdded(xsltResult.xsltFilesAdded());
+        result.featuredXmlFavoritesAdded(featuredResult.featuredXmlAdded());
+        result.templatesAdded(tmplResult.templatesAdded());
 
         FundsXmlMetadata meta = cache.loadMetadata();
         String now = Instant.now().toString();
@@ -435,6 +465,10 @@ public class FundsXmlExtensionService {
         private final int queriesDownloaded;
         private final int favoritesAdded;
         private final int snippetsAdded;
+        private final boolean schemaFavoriteAdded;
+        private final int xsltFavoritesAdded;
+        private final int featuredXmlFavoritesAdded;
+        private final int templatesAdded;
         private final String error;
 
         private DownloadResult(Builder b) {
@@ -446,6 +480,10 @@ public class FundsXmlExtensionService {
             this.queriesDownloaded = b.queriesDownloaded;
             this.favoritesAdded = b.favoritesAdded;
             this.snippetsAdded = b.snippetsAdded;
+            this.schemaFavoriteAdded = b.schemaFavoriteAdded;
+            this.xsltFavoritesAdded = b.xsltFavoritesAdded;
+            this.featuredXmlFavoritesAdded = b.featuredXmlFavoritesAdded;
+            this.templatesAdded = b.templatesAdded;
             this.error = b.error;
         }
 
@@ -457,6 +495,10 @@ public class FundsXmlExtensionService {
         public int queriesDownloaded() { return queriesDownloaded; }
         public int favoritesAdded() { return favoritesAdded; }
         public int snippetsAdded() { return snippetsAdded; }
+        public boolean schemaFavoriteAdded() { return schemaFavoriteAdded; }
+        public int xsltFavoritesAdded() { return xsltFavoritesAdded; }
+        public int featuredXmlFavoritesAdded() { return featuredXmlFavoritesAdded; }
+        public int templatesAdded() { return templatesAdded; }
         public String error() { return error; }
         public boolean isSuccess() { return error == null; }
 
@@ -471,6 +513,10 @@ public class FundsXmlExtensionService {
             private int queriesDownloaded;
             private int favoritesAdded;
             private int snippetsAdded;
+            private boolean schemaFavoriteAdded;
+            private int xsltFavoritesAdded;
+            private int featuredXmlFavoritesAdded;
+            private int templatesAdded;
             private String error;
 
             public Builder latestRelease(GitHubRelease r) { this.latestRelease = r; return this; }
@@ -481,6 +527,10 @@ public class FundsXmlExtensionService {
             public Builder queriesDownloaded(int n) { this.queriesDownloaded = n; return this; }
             public Builder favoritesAdded(int n) { this.favoritesAdded = n; return this; }
             public Builder snippetsAdded(int n) { this.snippetsAdded = n; return this; }
+            public Builder schemaFavoriteAdded(boolean v) { this.schemaFavoriteAdded = v; return this; }
+            public Builder xsltFavoritesAdded(int n) { this.xsltFavoritesAdded = n; return this; }
+            public Builder featuredXmlFavoritesAdded(int n) { this.featuredXmlFavoritesAdded = n; return this; }
+            public Builder templatesAdded(int n) { this.templatesAdded = n; return this; }
             public Builder error(String msg) { this.error = msg; return this; }
             public DownloadResult build() { return new DownloadResult(this); }
         }

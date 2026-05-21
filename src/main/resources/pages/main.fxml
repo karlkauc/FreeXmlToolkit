@@ -271,6 +271,12 @@
                                 <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#28a745"/>
                             </graphic>
                         </MenuItem>
+                        <MenuItem fx:id="fundsxmlMenuGenerateDocs" text="Generate Schema Documentation..."
+                                  onAction="#generateFundsXmlSchemaDocumentation">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-file-earmark-richtext" iconSize="16" iconColor="#6f42c1"/>
+                            </graphic>
+                        </MenuItem>
                         <SeparatorMenuItem/>
                         <MenuItem fx:id="fundsxmlMenuOpenExamples" text="Open Examples Folder"
                                   onAction="#openFundsXmlExamplesFolder">

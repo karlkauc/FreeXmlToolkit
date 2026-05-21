@@ -148,6 +148,8 @@ public class XsltDeveloperController implements FavoritesParentController {
     @FXML
     private MenuButton recentFilesMenuBtn;
     @FXML
+    private MenuButton fundsxmlXsltMenuBtn;
+    @FXML
     private Button validateXmlBtn;
 
     // UI Components - Parameters (Grid Layout)
@@ -333,6 +335,7 @@ public class XsltDeveloperController implements FavoritesParentController {
         setupKeyboardShortcuts();
         setupDragAndDrop();
         populateRecentFilesMenu();
+        setupFundsXmlXsltMenu();
 
         // Apply small icons setting from user preferences
         applySmallIconsSetting();
@@ -904,6 +907,73 @@ public class XsltDeveloperController implements FavoritesParentController {
         clearItem.setGraphic(new FontIcon("bi-trash"));
         clearItem.setOnAction(e -> clearRecentFiles());
         recentFilesMenuBtn.getItems().add(clearItem);
+    }
+
+    /**
+     * Wires the FundsXML XSLT MenuButton — visible only when the FundsXML feature is
+     * enabled, and rescanned on every open so newly downloaded XSLTs show up immediately.
+     */
+    private void setupFundsXmlXsltMenu() {
+        if (fundsxmlXsltMenuBtn == null) {
+            return;
+        }
+        boolean enabled = isFundsXmlFeatureEnabled();
+        fundsxmlXsltMenuBtn.setVisible(enabled);
+        fundsxmlXsltMenuBtn.setManaged(enabled);
+        if (!enabled) {
+            return;
+        }
+        fundsxmlXsltMenuBtn.setOnShowing(e -> populateFundsXmlXsltMenu());
+        populateFundsXmlXsltMenu();
+    }
+
+    private boolean isFundsXmlFeatureEnabled() {
+        try {
+            PropertiesService propertiesService = ServiceRegistry.get(PropertiesService.class);
+            return Boolean.parseBoolean(propertiesService.loadProperties().getProperty(
+                    org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED, "false"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void populateFundsXmlXsltMenu() {
+        if (fundsxmlXsltMenuBtn == null) {
+            return;
+        }
+        fundsxmlXsltMenuBtn.getItems().clear();
+        java.nio.file.Path examplesDir =
+                org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache.getInstance().getExamplesDir();
+        java.util.List<java.io.File> xsltFiles = new java.util.ArrayList<>();
+        if (java.nio.file.Files.isDirectory(examplesDir)) {
+            try (java.util.stream.Stream<java.nio.file.Path> walk = java.nio.file.Files.walk(examplesDir)) {
+                walk.filter(java.nio.file.Files::isRegularFile)
+                        .filter(p -> {
+                            String name = p.getFileName().toString().toLowerCase(java.util.Locale.ROOT);
+                            return name.endsWith(".xsl") || name.endsWith(".xslt");
+                        })
+                        .sorted(java.util.Comparator.comparing(p -> p.getFileName().toString()))
+                        .forEach(p -> xsltFiles.add(p.toFile()));
+            } catch (java.io.IOException e) {
+                logger.warn("Failed to scan FundsXML XSLT folder {}: {}", examplesDir, e.getMessage());
+            }
+        }
+        if (xsltFiles.isEmpty()) {
+            MenuItem empty = new MenuItem("(no FundsXML XSLTs cached)");
+            empty.setDisable(true);
+            fundsxmlXsltMenuBtn.getItems().add(empty);
+            return;
+        }
+        for (java.io.File file : xsltFiles) {
+            MenuItem item = new MenuItem(file.getName());
+            item.setGraphic(new FontIcon("bi-file-earmark-code"));
+            Tooltip.install(item.getGraphic(), new Tooltip(file.getAbsolutePath()));
+            item.setOnAction(e -> {
+                loadXsltFileInternal(file);
+                showContent();
+            });
+            fundsxmlXsltMenuBtn.getItems().add(item);
+        }
     }
 
     /**

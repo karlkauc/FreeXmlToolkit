@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.controller;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.util.Optional;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
@@ -52,6 +53,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
@@ -463,22 +465,67 @@ public class SettingsController {
                 return;
             }
 
-            StringBuilder summary = new StringBuilder();
-            if (result.schemaVersion() != null) {
-                summary.append("Schema version: ").append(result.schemaVersion())
-                        .append(result.schemaDownloaded() ? " (downloaded)" : " (already installed)")
-                        .append("\n");
-            }
-            summary.append("Examples: ").append(result.examplesDownloaded()).append(" file(s)\n");
-            summary.append("Schematron rules: ").append(result.schematronDownloaded()).append(" file(s)\n");
-            summary.append("Query snippets: ").append(result.queriesDownloaded()).append(" file(s)\n");
-            summary.append("Favorites registered: ").append(result.favoritesAdded()).append("\n");
-            summary.append("Snippets seeded: ").append(result.snippetsAdded()).append("\n");
-            summary.append("\nCache location: ")
-                    .append(FundsXmlCache.getInstance().getBaseDir().toString());
-
-            showAlert(Alert.AlertType.INFORMATION, "FundsXML Content Updated", summary.toString());
+            showFundsXmlSuccessDialog(result);
         }));
+    }
+
+    /**
+     * Shows the post-download summary as a confirmation dialog that includes an
+     * "Open Quick Start" button. The button opens the smallest sample XML in the
+     * editor so the user has something concrete to explore.
+     */
+    private void showFundsXmlSuccessDialog(FundsXmlExtensionService.DownloadResult result) {
+        StringBuilder summary = new StringBuilder();
+        if (result.schemaVersion() != null) {
+            summary.append("Schema version: ").append(result.schemaVersion())
+                    .append(result.schemaDownloaded() ? " (downloaded)" : " (already installed)")
+                    .append("\n");
+        }
+        summary.append("Downloaded files\n");
+        summary.append("  • Examples (XML + XSLT): ").append(result.examplesDownloaded()).append("\n");
+        summary.append("  • Schematron rules: ").append(result.schematronDownloaded()).append("\n");
+        summary.append("  • Query files: ").append(result.queriesDownloaded()).append("\n");
+        summary.append("\nIntegrated into the application\n");
+        summary.append("  • Favorites (schema + examples + XSLT + schematron): ")
+                .append(result.favoritesAdded()).append("\n");
+        if (result.schemaFavoriteAdded()) {
+            summary.append("  • Active schema registered under \"FundsXML Schema\"\n");
+        }
+        if (result.xsltFavoritesAdded() > 0) {
+            summary.append("  • XSLT favorites: ").append(result.xsltFavoritesAdded()).append("\n");
+        }
+        if (result.featuredXmlFavoritesAdded() > 0) {
+            summary.append("  • Featured sample favorites: ").append(result.featuredXmlFavoritesAdded()).append("\n");
+        }
+        if (result.templatesAdded() > 0) {
+            summary.append("  • New-document templates added: ").append(result.templatesAdded()).append("\n");
+        }
+        summary.append("  • XPath/XQuery snippets: ").append(result.snippetsAdded()).append("\n");
+        summary.append("\nCache location: ")
+                .append(FundsXmlCache.getInstance().getBaseDir().toString());
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("FundsXML Content Updated");
+        alert.setHeaderText("FundsXML starter package ready");
+        alert.setContentText(summary.toString());
+
+        ButtonType quickStart = new ButtonType("Open Quick Start", ButtonBar.ButtonData.LEFT);
+        ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(quickStart, close);
+
+        Optional<File> starter = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlQuickStart.findStarterSample();
+        Button quickStartButton = (Button) alert.getDialogPane().lookupButton(quickStart);
+        if (starter.isEmpty() || parentController == null) {
+            quickStartButton.setDisable(true);
+            Tooltip.install(quickStartButton, new Tooltip(
+                    starter.isEmpty() ? "No sample XML found in cache" : "Main controller unavailable"));
+        }
+
+        alert.showAndWait().ifPresent(choice -> {
+            if (choice == quickStart && starter.isPresent() && parentController != null) {
+                parentController.openXmlFileInEditor(starter.get());
+            }
+        });
     }
 
     /**

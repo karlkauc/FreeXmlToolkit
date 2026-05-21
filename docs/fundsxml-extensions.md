@@ -55,13 +55,17 @@ After enabling the feature, you need to fetch the content from GitHub once.
 The application will:
 
 - Download the latest **schema release** from `fundsxml/schema` (the official `FundsXML4.xsd` and its included files).
-- Download **example documents**, **Schematron rule files**, and **XPath/XQuery snippets** from `fundsxml/examples`.
-- Register the example XML files as Favorites under the category **FundsXML Examples**.
+- Download **example documents**, **XSLT stylesheets**, **Schematron rule files**, and **XPath/XQuery snippets** from `fundsxml/examples`.
+- Register the active **XSD schema** as a Favorite under the category **FundsXML Schema** (XSD type), so it shows up alongside your other schema favorites.
+- Register the **examples folder** as a Favorite under **FundsXML Examples**, plus the most compact sample XMLs (up to 10) as individual file favorites for one-click access.
+- Register each **XSLT stylesheet** found in the examples as an XSLT Favorite under **FundsXML XSLT**.
 - Register the Schematron files as Favorites under the category **FundsXML Schematron**.
-- Seed the XPath/XQuery snippets into your **Saved Queries** (visible in the XPath/XQuery tab of the XSLT Developer), tagged `fundsxml`.
+- Register the most compact sample XMLs as **new-document templates** under the **FundsXML** category, so you can start a fresh document from a real sample via *File → New from Template*.
+- Seed the XPath/XQuery snippets into your **Saved Queries** (visible in the XPath/XQuery tab of the XSLT Developer **and** via right-click in the XML editor), tagged `fundsxml`.
 - Select the newly downloaded schema version as the **active** version.
+- Show a summary dialog with an **Open Quick Start** button that loads the smallest sample XML so you can immediately try **Ctrl+Shift+F** to validate.
 
-You can repeat this step whenever you want to update to the latest published content. Existing versions are kept on disk - downloads are additive, not replacements.
+You can repeat this step whenever you want to update to the latest published content. Existing versions are kept on disk - downloads are additive, not replacements. Re-running is **idempotent** — favorites, snippets, and templates that already exist are not duplicated.
 
 ---
 
@@ -102,7 +106,10 @@ The **FundsXML** top-level menu provides shortcuts to open the cache folders in 
 | **Open Schema Folder** | The folder containing the active schema and its include files |
 | **Open Examples Folder** | The folder with downloaded sample XML documents |
 | **Open Schematron Folder** | The folder with downloaded `.sch` rule files |
+| **Generate Schema Documentation…** | Generates browsable HTML documentation for the active schema into `~/.freeXmlToolkit/fundsxml/docs/<version>/` and opens the folder |
 | **Online Documentation** | Opens [https://fundsxml.org/](https://fundsxml.org/) in your default browser |
+
+The **XSLT Developer** tab also gains a **FundsXML XSLT** toolbar button (only visible when the FundsXML feature is enabled) that lists every XSLT in the cache for one-click loading.
 
 You can also reach the example files directly from the Favorites menu (category **FundsXML Examples**) in any editor.
 

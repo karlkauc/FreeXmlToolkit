@@ -231,4 +231,158 @@ class FundsXmlPostDownloadRegistrarTest {
         assertEquals(0, favResult.schematronFilesAdded());
         assertEquals(0, snipResult.snippetsAdded());
     }
+
+    // ---------------------------------------------------------------------
+    // New: schema, XSLT, featured-XML registration
+    // ---------------------------------------------------------------------
+
+    @Test
+    @DisplayName("registerSchemaFavorite adds the XSD as a single favorite under 'FundsXML Schema'")
+    void registersSchemaFavorite() throws Exception {
+        Path schemaVersionDir = Files.createDirectories(tempDir.resolve("fundsxml/schema/4.2.10"));
+        Path schemaFile = schemaVersionDir.resolve("FundsXML4.xsd");
+        Files.writeString(schemaFile, "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"/>");
+
+        FundsXmlPostDownloadRegistrar.RegistrarResult result =
+                registrar.registerSchemaFavorite(schemaFile);
+
+        assertTrue(result.schemaFavoriteAdded());
+        java.util.List<FileFavorite> schemaFavs = FavoritesService.getInstance()
+                .getFavoritesByFolder(FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_SCHEMA);
+        assertEquals(1, schemaFavs.size());
+        assertEquals(schemaFile.toAbsolutePath().toString(), schemaFavs.get(0).getFilePath());
+        assertEquals(FileFavorite.FileType.XSD, schemaFavs.get(0).getFileType());
+        // Version-qualified display name
+        assertTrue(schemaFavs.get(0).getName().contains("4.2.10"),
+                "Expected schema favorite name to include version, got: " + schemaFavs.get(0).getName());
+    }
+
+    @Test
+    @DisplayName("registerSchemaFavorite is idempotent")
+    void registerSchemaFavoriteIdempotent() throws Exception {
+        Path schemaVersionDir = Files.createDirectories(tempDir.resolve("fundsxml/schema/4.2.10"));
+        Path schemaFile = schemaVersionDir.resolve("FundsXML4.xsd");
+        Files.writeString(schemaFile, "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"/>");
+
+        registrar.registerSchemaFavorite(schemaFile);
+        FundsXmlPostDownloadRegistrar.RegistrarResult second =
+                registrar.registerSchemaFavorite(schemaFile);
+
+        assertTrue(second.schemaFavoriteSkipped());
+        assertFalse(second.schemaFavoriteAdded());
+        assertEquals(1, FavoritesService.getInstance()
+                .getFavoritesByFolder(FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_SCHEMA)
+                .size());
+    }
+
+    @Test
+    @DisplayName("registerSchemaFavorite handles null / missing files gracefully")
+    void registerSchemaFavoriteHandlesMissing() {
+        FundsXmlPostDownloadRegistrar.RegistrarResult nullResult =
+                registrar.registerSchemaFavorite(null);
+        FundsXmlPostDownloadRegistrar.RegistrarResult missingResult =
+                registrar.registerSchemaFavorite(tempDir.resolve("nope.xsd"));
+
+        assertFalse(nullResult.schemaFavoriteAdded());
+        assertFalse(missingResult.schemaFavoriteAdded());
+    }
+
+    @Test
+    @DisplayName("registerXsltFavorites picks up .xsl and .xslt only")
+    void registersXsltFavorites() throws Exception {
+        Files.writeString(examplesDir.resolve("transform.xsl"), "<xsl:stylesheet/>");
+        Files.writeString(examplesDir.resolve("report.xslt"), "<xsl:stylesheet/>");
+        Files.writeString(examplesDir.resolve("sample.xml"), "<root/>"); // ignored
+
+        FundsXmlPostDownloadRegistrar.RegistrarResult result =
+                registrar.registerXsltFavorites(examplesDir);
+
+        assertEquals(2, result.xsltFilesAdded());
+        java.util.List<FileFavorite> xsltFavs = FavoritesService.getInstance()
+                .getFavoritesByFolder(FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_XSLT);
+        assertEquals(2, xsltFavs.size());
+        for (FileFavorite f : xsltFavs) {
+            assertEquals(FileFavorite.FileType.XSLT, f.getFileType());
+        }
+    }
+
+    @Test
+    @DisplayName("registerXsltFavorites is idempotent")
+    void registerXsltFavoritesIdempotent() throws Exception {
+        Files.writeString(examplesDir.resolve("transform.xsl"), "<xsl:stylesheet/>");
+
+        registrar.registerXsltFavorites(examplesDir);
+        FundsXmlPostDownloadRegistrar.RegistrarResult second =
+                registrar.registerXsltFavorites(examplesDir);
+
+        assertEquals(0, second.xsltFilesAdded());
+        assertEquals(1, second.xsltFilesSkipped());
+    }
+
+    @Test
+    @DisplayName("registerFeaturedXmlFavorites picks smallest XML files, capped at 10")
+    void registerFeaturedXmlBySizeHeuristic() throws Exception {
+        // Create 12 XML files of varying sizes; smallest 10 should be picked.
+        for (int i = 0; i < 12; i++) {
+            String content = "<root>" + "x".repeat(i * 20) + "</root>";
+            Files.writeString(examplesDir.resolve("sample-" + i + ".xml"), content);
+        }
+        // Non-XML must be ignored.
+        Files.writeString(examplesDir.resolve("readme.txt"), "ignored");
+
+        FundsXmlPostDownloadRegistrar.RegistrarResult result =
+                registrar.registerFeaturedXmlFavorites(examplesDir);
+
+        assertEquals(FundsXmlPostDownloadRegistrar.FEATURED_SAMPLE_LIMIT, result.featuredXmlAdded());
+        java.util.List<FileFavorite> favs = FavoritesService.getInstance()
+                .getFavoritesByFolder(FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_EXAMPLES);
+        // All featured favorites are XML files (not the folder favorite, which is separate)
+        assertEquals(FundsXmlPostDownloadRegistrar.FEATURED_SAMPLE_LIMIT,
+                favs.stream().filter(f -> !f.isDirectory()).count());
+    }
+
+    @Test
+    @DisplayName("registerFeaturedXmlFavorites honors featured.json when present")
+    void registerFeaturedXmlFromManifest() throws Exception {
+        Files.writeString(examplesDir.resolve("big.xml"), "<root>" + "x".repeat(10_000) + "</root>");
+        Files.writeString(examplesDir.resolve("featured.json"), """
+                [
+                  { "file": "big.xml", "name": "Big Featured Sample" }
+                ]
+                """);
+
+        FundsXmlPostDownloadRegistrar.RegistrarResult result =
+                registrar.registerFeaturedXmlFavorites(examplesDir);
+
+        assertEquals(1, result.featuredXmlAdded());
+        java.util.List<FileFavorite> favs = FavoritesService.getInstance()
+                .getFavoritesByFolder(FundsXmlPostDownloadRegistrar.FAVORITE_FOLDER_EXAMPLES);
+        assertTrue(favs.stream().anyMatch(f -> "Big Featured Sample".equals(f.getName())));
+    }
+
+    @Test
+    @DisplayName("registerXmlTemplates is a no-op when no TemplateRepository is wired")
+    void registerXmlTemplatesNoOpWithoutRepo() throws Exception {
+        Files.writeString(examplesDir.resolve("sample.xml"), "<root/>");
+        // The default test setUp() uses the 2-arg ctor, so templateRepository is null
+        FundsXmlPostDownloadRegistrar.RegistrarResult result =
+                registrar.registerXmlTemplates(examplesDir);
+
+        assertEquals(0, result.templatesAdded());
+        assertEquals(0, result.templatesSkipped());
+    }
+
+    @Test
+    @DisplayName("disabled() registrar performs no work for new methods either")
+    void disabledRegistrarNoOpForNewMethods() throws Exception {
+        Path schemaFile = Files.createFile(tempDir.resolve("schema.xsd"));
+        Files.writeString(examplesDir.resolve("transform.xsl"), "<xsl:stylesheet/>");
+        Files.writeString(examplesDir.resolve("sample.xml"), "<root/>");
+        FundsXmlPostDownloadRegistrar noOp = FundsXmlPostDownloadRegistrar.disabled();
+
+        assertFalse(noOp.registerSchemaFavorite(schemaFile).schemaFavoriteAdded());
+        assertEquals(0, noOp.registerXsltFavorites(examplesDir).xsltFilesAdded());
+        assertEquals(0, noOp.registerFeaturedXmlFavorites(examplesDir).featuredXmlAdded());
+        assertEquals(0, noOp.registerXmlTemplates(examplesDir).templatesAdded());
+    }
 }

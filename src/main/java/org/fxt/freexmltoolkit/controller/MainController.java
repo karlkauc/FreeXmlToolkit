@@ -2658,6 +2658,46 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Generates HTML documentation for the active FundsXML schema and writes it to
+     * {@code ~/.freeXmlToolkit/fundsxml/docs/<version>/}. Runs on a background thread
+     * so the UI stays responsive; opens the result folder on completion.
+     */
+    @FXML
+    public void generateFundsXmlSchemaDocumentation() {
+        java.nio.file.Path activeSchema = FundsXmlCache.getInstance().getActiveSchemaFile();
+        if (activeSchema == null) {
+            DialogHelper.showInformation("FundsXML Documentation",
+                    "No active FundsXML schema",
+                    "Download FundsXML content first, then pick an active schema version from the FundsXML menu.");
+            return;
+        }
+        String version = FundsXmlCache.getInstance().loadMetadata().getActiveSchemaVersion();
+        java.nio.file.Path outputDir = FundsXmlCache.getInstance().getBaseDir()
+                .resolve("docs").resolve(version == null ? "current" : version);
+
+        service.submit(() -> {
+            try {
+                java.nio.file.Files.createDirectories(outputDir);
+                org.fxt.freexmltoolkit.service.XsdDocumentationService docService =
+                        new org.fxt.freexmltoolkit.service.XsdDocumentationService();
+                docService.setXsdFilePath(activeSchema.toString());
+                docService.generateXsdDocumentation(outputDir.toFile());
+                Platform.runLater(() -> {
+                    DialogHelper.showInformation("FundsXML Documentation",
+                            "Documentation generated",
+                            "Schema documentation has been written to:\n" + outputDir);
+                    openInFileManager(outputDir);
+                });
+            } catch (Exception e) {
+                logger.error("Failed to generate FundsXML schema documentation", e);
+                Platform.runLater(() -> DialogHelper.showError("FundsXML Documentation",
+                        "Failed to generate documentation",
+                        e.getMessage() == null ? e.toString() : e.getMessage()));
+            }
+        });
+    }
+
     private void openInFileManager(java.nio.file.Path path) {
         try {
             if (!java.nio.file.Files.exists(path)) {

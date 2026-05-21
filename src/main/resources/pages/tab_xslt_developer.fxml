@@ -58,6 +58,15 @@
             </tooltip>
         </MenuButton>
 
+        <MenuButton fx:id="fundsxmlXsltMenuBtn" text="FundsXML XSLT" contentDisplay="LEFT" styleClass="toolbar-button" visible="false" managed="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-collection" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Load XSLT from FundsXML Cache"/>
+            </tooltip>
+        </MenuButton>
+
         <Separator orientation="VERTICAL"/>
 
         <!-- Transform Action -->
