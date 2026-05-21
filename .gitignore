@@ -127,6 +127,17 @@ FreeXmlToolkit.properties
 
 # Error logs
 error.log
+error.md
+
+# Stray screenshot dropped in repo root
+/update.png
+
+# WebDAV scratch directory
+.DAV/
+
+# Claude Code runtime artefacts (lock files and agent worktrees)
+.claude/scheduled_tasks.lock
+.claude/worktrees/
 
 output
 
