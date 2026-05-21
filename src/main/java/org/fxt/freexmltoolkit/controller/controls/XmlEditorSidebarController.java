@@ -499,7 +499,7 @@ public class XmlEditorSidebarController {
         );
         if (fundsxmlContainer != null) {
             sidebarTabPane.getTabs().add(
-                    buildTab("FundsXML", "bi-piggy-bank", FUNDSXML_COLOR, fundsxmlContainer));
+                    buildTab("FundsXML", "bi-collection", FUNDSXML_COLOR, fundsxmlContainer));
         }
 
         VBox.setVgrow(sidebarTabPane, Priority.ALWAYS);

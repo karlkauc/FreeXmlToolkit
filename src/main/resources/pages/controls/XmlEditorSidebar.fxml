@@ -227,7 +227,7 @@
             <VBox fx:id="fundsxmlSection" styleClass="sidebar-section-container">
                 <TitledPane text="FundsXML" styleClass="xml-sidebar-titled-pane"
                             collapsible="true" expanded="true">
-                    <graphic><FontIcon iconLiteral="bi-piggy-bank" iconSize="14" iconColor="#28a745"/></graphic>
+                    <graphic><FontIcon iconLiteral="bi-collection" iconSize="14" iconColor="#28a745"/></graphic>
                     <VBox spacing="8">
                         <padding><Insets bottom="5" left="5" right="5" top="5"/></padding>
                         <HBox spacing="5" alignment="CENTER_LEFT">

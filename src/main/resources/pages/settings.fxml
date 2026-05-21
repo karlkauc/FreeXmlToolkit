@@ -541,7 +541,7 @@
             <!-- Tab 6: FundsXML Extensions -->
             <Tab text="FundsXML" closable="false">
                 <graphic>
-                    <FontIcon iconLiteral="bi-piggy-bank" iconSize="16" iconColor="#28a745"/>
+                    <FontIcon iconLiteral="bi-collection" iconSize="16" iconColor="#28a745"/>
                 </graphic>
                 <content>
                     <ScrollPane fitToWidth="true" styleClass="dashboard-scroll">

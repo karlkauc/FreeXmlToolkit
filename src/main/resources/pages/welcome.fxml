@@ -200,7 +200,7 @@
                       minHeight="160" maxHeight="160" visible="false" managed="false"
                       onMouseClicked="#openFundsXmlExtensions">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-green">
-                        <FontIcon iconLiteral="bi-piggy-bank" iconSize="24" iconColor="#28a745"/>
+                        <FontIcon iconLiteral="bi-collection" iconSize="24" iconColor="#28a745"/>
                     </StackPane>
                     <Label text="FundsXML Extensions" styleClass="action-card-title"/>
                     <Label text="Browse downloaded FundsXML examples and schemas." styleClass="action-card-description" wrapText="true"/>

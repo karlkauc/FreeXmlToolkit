@@ -249,7 +249,7 @@
 
                 <Menu fx:id="fundsxmlMenu" text="FundsXML" visible="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-piggy-bank" iconSize="16" iconColor="#28a745"/>
+                        <FontIcon iconLiteral="bi-collection" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                     <items>
                         <MenuItem fx:id="fundsxmlMenuDownload" text="Download / Update Content..."
