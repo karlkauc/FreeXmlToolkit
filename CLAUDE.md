@@ -23,12 +23,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Release Checklist
 
-Update version in these locations:
+The version is defined in a **single location**:
 
-1. **build.gradle.kts** (line ~26): `version = "X.Y.Z"`
-2. **UpdateCheckServiceImpl.java**: `DEFAULT_VERSION` constant
-   - Location: `src/main/java/org/fxt/freexmltoolkit/service/UpdateCheckServiceImpl.java`
-   - Prevents false update notifications during IDE development
+1. **build.gradle.kts** (line ~35): `version = "X.Y.Z"`
+
+The Gradle build generates `build-info.properties` from this value during
+`processResources`. At runtime, `org.fxt.freexmltoolkit.util.VersionUtil`
+resolves the version (JAR manifest → `build-info.properties` → fallback),
+so the About dialog, update check, etc. always show the current version —
+including in IDE / `./gradlew run` mode.
 
 ## Technology Stack
 

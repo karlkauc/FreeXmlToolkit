@@ -1065,45 +1065,248 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Handles the About menu action by displaying the application information dialog.
+     * Handles the About menu action by displaying a modern application information dialog.
+     *
+     * <p>The dialog presents:
+     * <ul>
+     *     <li>Application logo and tagline</li>
+     *     <li>Live version (from {@link org.fxt.freexmltoolkit.util.VersionUtil}) and build timestamp</li>
+     *     <li>Runtime info (Java, JavaFX, OS)</li>
+     *     <li>Action buttons for GitHub, documentation, license, copy-version and update-check</li>
+     * </ul>
      */
     @FXML
     public void handleAboutAction() {
-        Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
-        aboutDialog.setTitle("About FreeXMLToolkit");
-        aboutDialog.setHeaderText("FreeXMLToolkit - Universal Toolkit for XML");
+        showAboutDialog();
+    }
 
+    private void showAboutDialog() {
+        final String version = org.fxt.freexmltoolkit.util.VersionUtil.getVersion();
+        final String buildTs = org.fxt.freexmltoolkit.util.VersionUtil.getBuildTimestampFormatted();
+
+        javafx.scene.control.Dialog<Void> dialog = new javafx.scene.control.Dialog<>();
+        dialog.setTitle("About FreeXmlToolkit");
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        if (contentPane != null && contentPane.getScene() != null) {
+            dialog.initOwner(contentPane.getScene().getWindow());
+        }
+
+        javafx.scene.control.DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getStylesheets().add(Objects.requireNonNull(
+                getClass().getResource("/css/dialog-theme.css")).toExternalForm());
+        dialogPane.setPrefWidth(560);
+
+        // Window icon
         try {
-            Stage stage = (Stage) aboutDialog.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/logo.png"))));
+            Stage stage = (Stage) dialogPane.getScene().getWindow();
+            stage.getIcons().add(new Image(Objects.requireNonNull(
+                    getClass().getResourceAsStream("/img/logo.png"))));
         } catch (Exception e) {
             logger.warn("Could not load logo for about dialog window.", e);
         }
 
+        // ---- Header: logo + title + tagline + version pill ----
+        ImageView logo = null;
         try {
-            ImageView logo = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/logo.png"))));
-            logo.setFitHeight(60);
+            logo = new ImageView(new Image(Objects.requireNonNull(
+                    getClass().getResourceAsStream("/img/logo.png"))));
+            logo.setFitHeight(72);
             logo.setPreserveRatio(true);
-            aboutDialog.setGraphic(logo);
+            logo.setSmooth(true);
         } catch (Exception e) {
             logger.warn("Could not load logo for about dialog graphic.", e);
         }
 
-        // Get version from manifest or use default
-        String version = getClass().getPackage().getImplementationVersion();
-        if (version == null || version.isBlank()) {
-            version = "1.2.1"; // Default version for IDE development
+        Label title = new Label("FreeXmlToolkit");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: #1f2937;");
+
+        Label tagline = new Label("Universal Toolkit for XML, XSD, XSLT, Schematron & FOP");
+        tagline.setStyle("-fx-font-size: 12.5px; -fx-text-fill: #6b7280;");
+        tagline.setWrapText(true);
+
+        Label versionPill = new Label("v" + version);
+        versionPill.setStyle(
+                "-fx-background-color: #e7f3ff;" +
+                        "-fx-text-fill: #0b5ed7;" +
+                        "-fx-font-weight: 600;" +
+                        "-fx-font-size: 12px;" +
+                        "-fx-padding: 3 10 3 10;" +
+                        "-fx-background-radius: 12;");
+
+        VBox titleBox = new VBox(4, title, tagline, versionPill);
+        titleBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        HBox header = new HBox(16);
+        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        if (logo != null) {
+            header.getChildren().add(logo);
         }
+        header.getChildren().add(titleBox);
+        HBox.setHgrow(titleBox, javafx.scene.layout.Priority.ALWAYS);
 
-        aboutDialog.setContentText(
-                "Version: " + version + "\n" +
-                "Copyright (c) Karl Kauc 2024-2025.\n\n" +
-                "This product is licensed under the Apache License, Version 2.0.\n" +
-                "A copy of the license is available at:\n" +
-                "http://www.apache.org/licenses/LICENSE-2.0"
-        );
+        // ---- Info grid (Build / Runtime) ----
+        javafx.scene.layout.GridPane info = new javafx.scene.layout.GridPane();
+        info.setHgap(14);
+        info.setVgap(6);
+        info.setStyle(
+                "-fx-background-color: #f9fafb;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-border-color: #e5e7eb;" +
+                        "-fx-border-radius: 8;" +
+                        "-fx-padding: 12;");
 
-        aboutDialog.showAndWait();
+        javafx.scene.layout.ColumnConstraints c1 = new javafx.scene.layout.ColumnConstraints();
+        c1.setMinWidth(120);
+        c1.setHalignment(javafx.geometry.HPos.LEFT);
+        javafx.scene.layout.ColumnConstraints c2 = new javafx.scene.layout.ColumnConstraints();
+        c2.setHgrow(javafx.scene.layout.Priority.ALWAYS);
+        info.getColumnConstraints().addAll(c1, c2);
+
+        int row = 0;
+        addInfoRow(info, row++, "Version", version);
+        if (!buildTs.isBlank()) {
+            addInfoRow(info, row++, "Build", buildTs);
+        }
+        addInfoRow(info, row++, "Java", System.getProperty("java.version", "?")
+                + "  (" + System.getProperty("java.vm.vendor", "?") + ")");
+        addInfoRow(info, row++, "JavaFX", System.getProperty("javafx.runtime.version", "?"));
+        addInfoRow(info, row++, "OS",
+                System.getProperty("os.name", "?") + " "
+                        + System.getProperty("os.version", "")
+                        + "  (" + System.getProperty("os.arch", "?") + ")");
+
+        // ---- Copyright + license ----
+        Label copyright = new Label("Copyright © "
+                + org.fxt.freexmltoolkit.util.VersionUtil.getVendor()
+                + " 2024-2026. All rights reserved.");
+        copyright.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #6b7280;");
+
+        javafx.scene.control.Hyperlink licenseLink = new javafx.scene.control.Hyperlink(
+                "Licensed under the Apache License, Version 2.0");
+        licenseLink.setOnAction(e -> openExternalUrl("http://www.apache.org/licenses/LICENSE-2.0"));
+        licenseLink.setStyle("-fx-padding: 0; -fx-text-fill: #0b5ed7;");
+
+        VBox legal = new VBox(2, copyright, licenseLink);
+
+        // ---- Link buttons ----
+        Button githubBtn = linkButton("bi-github", "GitHub",
+                "https://github.com/karlkauc/FreeXmlToolkit");
+        Button docsBtn = linkButton("bi-book", "Documentation",
+                "https://karlkauc.github.io/FreeXmlToolkit");
+        Button issueBtn = linkButton("bi-bug", "Report an issue",
+                "https://github.com/karlkauc/FreeXmlToolkit/issues/new");
+
+        HBox links = new HBox(8, githubBtn, docsBtn, issueBtn);
+        links.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        VBox content = new VBox(14, header, new Separator(), info, legal, links);
+        content.setStyle("-fx-padding: 18 20 8 20;");
+        dialogPane.setContent(content);
+
+        // ---- Button bar ----
+        javafx.scene.control.ButtonType copyVersionType = new javafx.scene.control.ButtonType(
+                "Copy version", javafx.scene.control.ButtonBar.ButtonData.LEFT);
+        javafx.scene.control.ButtonType checkUpdatesType = new javafx.scene.control.ButtonType(
+                "Check for updates", javafx.scene.control.ButtonBar.ButtonData.LEFT);
+        dialogPane.getButtonTypes().addAll(copyVersionType, checkUpdatesType, ButtonType.CLOSE);
+
+        Button copyBtn = (Button) dialogPane.lookupButton(copyVersionType);
+        copyBtn.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-clipboard"));
+        copyBtn.addEventFilter(ActionEvent.ACTION, evt -> {
+            javafx.scene.input.Clipboard.getSystemClipboard().setContent(
+                    java.util.Map.of(javafx.scene.input.DataFormat.PLAIN_TEXT,
+                            "FreeXmlToolkit " + version
+                                    + (buildTs.isBlank() ? "" : " (build " + buildTs + ")")));
+            copyBtn.setText("Copied!");
+            javafx.animation.PauseTransition pt =
+                    new javafx.animation.PauseTransition(Duration.seconds(1.5));
+            pt.setOnFinished(e -> copyBtn.setText("Copy version"));
+            pt.play();
+            evt.consume();
+        });
+
+        Button updatesBtn = (Button) dialogPane.lookupButton(checkUpdatesType);
+        updatesBtn.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-arrow-clockwise"));
+        updatesBtn.addEventFilter(ActionEvent.ACTION, evt -> {
+            evt.consume();
+            checkForUpdatesFromAbout(updatesBtn);
+        });
+
+        dialog.showAndWait();
+    }
+
+    private void addInfoRow(javafx.scene.layout.GridPane grid, int row, String key, String value) {
+        Label k = new Label(key);
+        k.setStyle("-fx-text-fill: #6b7280; -fx-font-size: 11.5px; -fx-font-weight: 600;");
+        Label v = new Label(value);
+        v.setStyle("-fx-text-fill: #1f2937; -fx-font-size: 12.5px;");
+        v.setWrapText(true);
+        grid.add(k, 0, row);
+        grid.add(v, 1, row);
+    }
+
+    private Button linkButton(String iconLiteral, String text, String url) {
+        Button btn = new Button(text);
+        btn.setGraphic(new org.kordamp.ikonli.javafx.FontIcon(iconLiteral));
+        btn.setStyle(
+                "-fx-background-color: transparent;" +
+                        "-fx-border-color: #d1d5db;" +
+                        "-fx-border-radius: 6;" +
+                        "-fx-background-radius: 6;" +
+                        "-fx-text-fill: #1f2937;" +
+                        "-fx-padding: 5 12 5 12;" +
+                        "-fx-cursor: hand;");
+        btn.setOnAction(e -> openExternalUrl(url));
+        return btn;
+    }
+
+    private void openExternalUrl(String url) {
+        try {
+            if (java.awt.Desktop.isDesktopSupported()
+                    && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
+                java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+            }
+        } catch (Exception ex) {
+            logger.warn("Could not open URL {}: {}", url, ex.getMessage());
+        }
+    }
+
+    private void checkForUpdatesFromAbout(Button trigger) {
+        String original = trigger.getText();
+        trigger.setText("Checking...");
+        trigger.setDisable(true);
+
+        UpdateCheckService service = ServiceRegistry.get(UpdateCheckService.class);
+        service.checkForUpdates()
+                .whenComplete((updateInfo, ex) -> Platform.runLater(() -> {
+                    trigger.setText(original);
+                    trigger.setDisable(false);
+                    if (ex != null) {
+                        showUpdateCheckError(ex);
+                        return;
+                    }
+                    if (updateInfo != null && updateInfo.updateAvailable()) {
+                        showUpdateDialog(updateInfo);
+                    } else {
+                        Alert info = new Alert(Alert.AlertType.INFORMATION);
+                        info.initOwner(trigger.getScene().getWindow());
+                        info.setTitle("Up to date");
+                        info.setHeaderText("You are running the latest version.");
+                        info.setContentText("FreeXmlToolkit "
+                                + (updateInfo != null ? updateInfo.currentVersion()
+                                        : org.fxt.freexmltoolkit.util.VersionUtil.getVersion())
+                                + " is current.");
+                        info.showAndWait();
+                    }
+                }));
+    }
+
+    private void showUpdateCheckError(Throwable ex) {
+        Alert err = new Alert(Alert.AlertType.WARNING);
+        err.setTitle("Update check failed");
+        err.setHeaderText("Could not check for updates");
+        err.setContentText(ex.getMessage() != null ? ex.getMessage() : ex.toString());
+        err.showAndWait();
     }
 
     // ======================================================================

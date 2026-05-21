@@ -16,6 +16,10 @@
  *
  */
 
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+
 plugins {
     java
     application
@@ -186,9 +190,34 @@ tasks {
     }
 }
 
-// Exclude node_modules from resources processing
+// Generate build-info.properties so the app can show version+build time at runtime
+// (also works in IDE/gradle run, not just packaged JARs).
+val buildInfoMap = mapOf(
+    "version" to project.version.toString(),
+    "buildTimestamp" to OffsetDateTime
+        .now(ZoneOffset.UTC)
+        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+    "vendor" to "Karl Kauc"
+)
+
+val generateBuildInfo = tasks.register("generateBuildInfo") {
+    val outDir = layout.buildDirectory.dir("generated/resources/build-info")
+    outputs.dir(outDir)
+    inputs.properties(buildInfoMap)
+    doLast {
+        val target = outDir.get().asFile
+        target.mkdirs()
+        target.resolve("build-info.properties").writeText(
+            buildInfoMap.entries.joinToString(System.lineSeparator()) { "${it.key}=${it.value}" } +
+                    System.lineSeparator()
+        )
+    }
+}
+
+// Exclude node_modules from resources processing and include generated build-info
 tasks.processResources {
     exclude("**/node_modules/**")
+    from(generateBuildInfo)
 }
 
 tasks.jar {
