@@ -2085,13 +2085,17 @@
 <p>The application will:</p>
 <ul>
 <li>Download the latest <strong>schema release</strong> from <code>fundsxml/schema</code> (the official <code>FundsXML4.xsd</code> and its included files).</li>
-<li>Download <strong>example documents</strong>, <strong>Schematron rule files</strong>, and <strong>XPath/XQuery snippets</strong> from <code>fundsxml/examples</code>.</li>
-<li>Register the example XML files as Favorites under the category <strong>FundsXML Examples</strong>.</li>
+<li>Download <strong>example documents</strong>, <strong>XSLT stylesheets</strong>, <strong>Schematron rule files</strong>, and <strong>XPath/XQuery snippets</strong> from <code>fundsxml/examples</code>.</li>
+<li>Register the active <strong>XSD schema</strong> as a Favorite under the category <strong>FundsXML Schema</strong> (XSD type), so it shows up alongside your other schema favorites.</li>
+<li>Register the <strong>examples folder</strong> as a Favorite under <strong>FundsXML Examples</strong>, plus the most compact sample XMLs (up to 10) as individual file favorites for one-click access.</li>
+<li>Register each <strong>XSLT stylesheet</strong> found in the examples as an XSLT Favorite under <strong>FundsXML XSLT</strong>.</li>
 <li>Register the Schematron files as Favorites under the category <strong>FundsXML Schematron</strong>.</li>
-<li>Seed the XPath/XQuery snippets into your <strong>Saved Queries</strong> (visible in the XPath/XQuery tab of the XSLT Developer), tagged <code>fundsxml</code>.</li>
+<li>Register the most compact sample XMLs as <strong>new-document templates</strong> under the <strong>FundsXML</strong> category, so you can start a fresh document from a real sample via <em>File → New from Template</em>.</li>
+<li>Seed the XPath/XQuery snippets into your <strong>Saved Queries</strong> (visible in the XPath/XQuery tab of the XSLT Developer <strong>and</strong> via right-click in the XML editor), tagged <code>fundsxml</code>.</li>
 <li>Select the newly downloaded schema version as the <strong>active</strong> version.</li>
+<li>Show a summary dialog with an <strong>Open Quick Start</strong> button that loads the smallest sample XML so you can immediately try <strong>Ctrl+Shift+F</strong> to validate.</li>
 </ul>
-<p>You can repeat this step whenever you want to update to the latest published content. Existing versions are kept on disk - downloads are additive, not replacements.</p>
+<p>You can repeat this step whenever you want to update to the latest published content. Existing versions are kept on disk - downloads are additive, not replacements. Re-running is <strong>idempotent</strong> — favorites, snippets, and templates that already exist are not duplicated.</p>
 <hr />
 <h2 id="choosing-an-active-schema-version">Choosing an Active Schema Version<a class="headerlink" href="#choosing-an-active-schema-version" title="Permanent link">&para;</a></h2>
 <p>If you have downloaded more than one version of the FundsXML schema, you can switch between them.</p>
@@ -2138,11 +2142,16 @@
 <td>The folder with downloaded <code>.sch</code> rule files</td>
 </tr>
 <tr>
+<td><strong>Generate Schema Documentation…</strong></td>
+<td>Generates browsable HTML documentation for the active schema into <code>~/.freeXmlToolkit/fundsxml/docs/&lt;version&gt;/</code> and opens the folder</td>
+</tr>
+<tr>
 <td><strong>Online Documentation</strong></td>
 <td>Opens <a href="https://fundsxml.org/">https://fundsxml.org/</a> in your default browser</td>
 </tr>
 </tbody>
 </table>
+<p>The <strong>XSLT Developer</strong> tab also gains a <strong>FundsXML XSLT</strong> toolbar button (only visible when the FundsXML feature is enabled) that lists every XSLT in the cache for one-click loading.</p>
 <p>You can also reach the example files directly from the Favorites menu (category <strong>FundsXML Examples</strong>) in any editor.</p>
 <hr />
 <h2 id="where-the-files-are-stored">Where the Files Are Stored<a class="headerlink" href="#where-the-files-are-stored" title="Permanent link">&para;</a></h2>
