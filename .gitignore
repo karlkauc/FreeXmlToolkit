@@ -154,6 +154,9 @@ certs/*/summary.txt
 # Debug output
 debug_output.svg
 
+# Local test artifact (rotating timestamp + encrypted proxy password)
+test-encryption-props.properties
+
 Icon?
 
 # MkDocs generated site
