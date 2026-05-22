@@ -138,6 +138,8 @@ public class IconifyIcon extends Region {
 
     private void rebuild() {
         content.getChildren().clear();
+        // Honour Ikonli-style "literal:size[:color]" suffixes for backwards compatibility.
+        applyInlineModifiers(getIconLiteral());
         List<IconifyIconService.IconPath> paths =
                 IconifyIconService.getInstance().resolve(getIconLiteral());
 
@@ -153,6 +155,32 @@ public class IconifyIcon extends Region {
         }
         applyColor();
         applySize();
+    }
+
+    /**
+     * Applies an Ikonli-style {@code literal:size[:color]} suffix, if present, to this icon's
+     * {@code iconSize} / {@code iconColor}. The suffix is otherwise ignored by the renderer
+     * (the service resolves the bare icon name).
+     */
+    private void applyInlineModifiers(String literal) {
+        if (literal == null) {
+            return;
+        }
+        String[] parts = literal.split(":");
+        if (parts.length >= 2) {
+            try {
+                setIconSize(Double.parseDouble(parts[1].trim()));
+            } catch (NumberFormatException ignored) {
+                // Not a numeric size; leave iconSize unchanged.
+            }
+        }
+        if (parts.length >= 3 && !parts[2].isBlank()) {
+            try {
+                setIconColor(Color.web(parts[2].trim()));
+            } catch (IllegalArgumentException ignored) {
+                // Not a valid colour; leave iconColor unchanged.
+            }
+        }
     }
 
     private Node buildPlaceholder() {

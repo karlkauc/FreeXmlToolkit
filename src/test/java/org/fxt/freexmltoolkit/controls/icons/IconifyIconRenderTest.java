@@ -147,6 +147,22 @@ class IconifyIconRenderTest {
     }
 
     @Test
+    @DisplayName("Ikonli-style 'literal:size' suffix resolves and applies the size")
+    void inlineSizeSuffix() throws Exception {
+        AtomicReference<IconifyIcon> ref = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            // Constructor only: no explicit setIconSize, so the suffix should drive the size.
+            ref.set(new IconifyIcon("bi-code-slash:24"));
+            latch.countDown();
+        });
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "FX task timed out");
+        IconifyIcon icon = ref.get();
+        assertTrue(svgPathCount(icon) >= 1, "bi-code-slash:24 should resolve the base icon");
+        assertEquals(24.0, icon.getIconSize(), "the :24 suffix should set iconSize");
+    }
+
+    @Test
     @DisplayName("Unknown literal renders a placeholder and does not throw")
     void unknownLiteralFallsBack() throws Exception {
         IconifyIcon icon = onFx("bi-does-not-exist-xyz", 16);

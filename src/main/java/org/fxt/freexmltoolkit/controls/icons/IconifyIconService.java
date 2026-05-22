@@ -121,6 +121,12 @@ public final class IconifyIconService {
         }
         String prefix = literal.substring(0, dash);
         String name = literal.substring(dash + 1);
+        // Tolerate Ikonli-style "name:size[:color]" suffixes (e.g. "bi-gear:16"); the size/color
+        // part is applied by IconifyIcon, here we only need the bare icon name.
+        int colon = name.indexOf(':');
+        if (colon >= 0) {
+            name = name.substring(0, colon);
+        }
 
         IconSet set = sets.computeIfAbsent(prefix, IconifyIconService::loadSet);
         if (set == null) {
