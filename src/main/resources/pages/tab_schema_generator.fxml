@@ -33,7 +33,7 @@
         <Button fx:id="loadXmlBtn" text="Open XML" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#loadXml">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open XML File"/>
@@ -46,7 +46,7 @@
         <Button fx:id="generateSchemaBtn" text="Generate" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#generateSchema">
             <graphic>
-                <FontIcon iconLiteral="bi-play-circle-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-play-circle-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Generate XSD Schema (F5)"/>
@@ -58,7 +58,7 @@
         <!-- Favorites Group -->
         <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add to Favorites (Ctrl+D)"/>
@@ -67,7 +67,7 @@
 
         <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Show/Hide Favorites (Ctrl+Shift+D)"/>
@@ -79,7 +79,7 @@
         <!-- Help -->
         <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
@@ -94,19 +94,19 @@
             <!-- Empty State -->
             <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
                   visible="true" managed="true">
-                <FontIcon iconLiteral="bi-diagram-3" iconSize="64" iconColor="#adb5bd"/>
+                <IconifyIcon iconLiteral="bi-diagram-3" iconSize="64" iconColor="#adb5bd"/>
                 <Label text="Ready to Generate Schema" styleClass="empty-state-title"/>
                 <Label text="Load an XML file or paste XML content to generate an XSD schema" wrapText="true" textAlignment="CENTER"
                        styleClass="empty-state-description" maxWidth="400"/>
                 <HBox spacing="10" alignment="CENTER">
                     <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" styleClass="btn-primary">
                         <graphic>
-                            <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
                         </graphic>
                     </Button>
                     <Button fx:id="emptyStatePasteButton" text="Paste XML" styleClass="btn-secondary">
                         <graphic>
-                            <FontIcon iconLiteral="bi-clipboard" iconSize="16"/>
+                            <IconifyIcon iconLiteral="bi-clipboard" iconSize="16"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -165,12 +165,12 @@
                     <Region HBox.hgrow="ALWAYS"/>
                     <Button fx:id="pasteXmlBtn" text="Paste" styleClass="btn-outline" onAction="#pasteXml">
                         <graphic>
-                            <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/>
                         </graphic>
                     </Button>
                     <Button fx:id="clearXmlBtn" text="Clear" styleClass="btn-outline" onAction="#clearXml">
                         <graphic>
-                            <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -200,7 +200,7 @@
                 <Button fx:id="exportSchemaBtn" text="Export XSD" styleClass="btn-primary" onAction="#exportSchema"
                         disable="true">
                     <graphic>
-                        <FontIcon iconLiteral="bi-download" iconSize="16"/>
+                        <IconifyIcon iconLiteral="bi-download" iconSize="16"/>
                     </graphic>
                 </Button>
             </HBox>
@@ -210,7 +210,7 @@
                 <!-- Generated XSD Tab -->
                 <Tab text="Generated XSD" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                     <VBox spacing="5">
                         <HBox spacing="10" alignment="CENTER_LEFT">
@@ -219,7 +219,7 @@
                             <Region HBox.hgrow="ALWAYS"/>
                             <Button fx:id="copyXsdBtn" text="Copy" styleClass="btn-outline" onAction="#copyXsd">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -231,7 +231,7 @@
                 <!-- Analysis Results Tab -->
                 <Tab text="Analysis Results" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-graph-up" iconSize="16" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-graph-up" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                     <VBox spacing="10">
                         <HBox spacing="20">
@@ -287,7 +287,7 @@
                 <!-- Type Definitions Tab -->
                 <Tab text="Type Definitions" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-list-ul" iconSize="16" iconColor="#6c757d"/>
+                        <IconifyIcon iconLiteral="bi-list-ul" iconSize="16" iconColor="#6c757d"/>
                     </graphic>
                     <VBox spacing="10">
                         <HBox spacing="10" alignment="CENTER_LEFT">

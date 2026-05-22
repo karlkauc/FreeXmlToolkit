@@ -10,9 +10,10 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.debugger.Breakpoint;
 import org.fxt.freexmltoolkit.debugger.DebugSession;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Table listing every active breakpoint. Each row offers an enable toggle
@@ -68,7 +69,7 @@ public class BreakpointsPanel extends TableView<Breakpoint> {
         deleteCol.setCellFactory(col -> new TableCell<>() {
             private final Button btn = new Button();
             {
-                FontIcon fi = new FontIcon("bi-trash");
+                IconifyIcon fi = new IconifyIcon("bi-trash");
                 fi.setIconSize(12);
                 btn.setGraphic(fi);
                 btn.getStyleClass().add("btn-flat");

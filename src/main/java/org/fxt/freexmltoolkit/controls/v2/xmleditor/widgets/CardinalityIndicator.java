@@ -26,8 +26,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Visual indicator for XSD cardinality (minOccurs/maxOccurs).
@@ -130,31 +129,31 @@ public class CardinalityIndicator {
      *
      * @param minOccurs minimum occurrences
      * @param maxOccurs maximum occurrences
-     * @return a FontIcon representing the cardinality
+     * @return a IconifyIcon representing the cardinality
      */
-    public static FontIcon createCompactIndicator(String minOccurs, String maxOccurs) {
+    public static IconifyIcon createCompactIndicator(String minOccurs, String maxOccurs) {
         CardinalityInfo info = parseCardinality(minOccurs, maxOccurs);
 
-        FontIcon icon;
+        IconifyIcon icon;
         switch (info.type()) {
             case EXACTLY_ONE -> {
-                icon = new FontIcon(BootstrapIcons.RECORD_FILL);
+                icon = new IconifyIcon("bi-record-fill");
                 icon.setIconColor(Color.web(REQUIRED_COLOR));
             }
             case OPTIONAL -> {
-                icon = new FontIcon(BootstrapIcons.RECORD);
+                icon = new IconifyIcon("bi-record");
                 icon.setIconColor(Color.web(OPTIONAL_COLOR));
             }
             case REQUIRED_MULTI -> {
-                icon = new FontIcon(BootstrapIcons.PLUS_CIRCLE_FILL);
+                icon = new IconifyIcon("bi-plus-circle-fill");
                 icon.setIconColor(Color.web(MULTI_COLOR));
             }
             case OPTIONAL_MULTI -> {
-                icon = new FontIcon(BootstrapIcons.PLUS_CIRCLE);
+                icon = new IconifyIcon("bi-plus-circle");
                 icon.setIconColor(Color.web(UNBOUNDED_COLOR));
             }
             default -> {
-                icon = new FontIcon(BootstrapIcons.QUESTION_CIRCLE);
+                icon = new IconifyIcon("bi-question-circle");
                 icon.setIconColor(Color.web(OPTIONAL_COLOR));
             }
         }

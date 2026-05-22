@@ -44,6 +44,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.FavoritesParentController;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.CustomizableSectionContainer;
 import org.fxt.freexmltoolkit.controls.shared.SectionSettingsPopup;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
@@ -51,7 +52,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdPropertiesPanel;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Multi-functional side pane for the Unified Editor.
@@ -181,7 +181,7 @@ public class MultiFunctionalSidePane extends VBox {
 
         // Settings gear button
         settingsGearButton = new Button();
-        FontIcon gearIcon = new FontIcon("bi-gear");
+        IconifyIcon gearIcon = new IconifyIcon("bi-gear");
         gearIcon.setIconSize(14);
         settingsGearButton.setGraphic(gearIcon);
         settingsGearButton.setTooltip(new Tooltip("Customize sections"));
@@ -190,7 +190,7 @@ public class MultiFunctionalSidePane extends VBox {
 
         // Close button
         closeButton = new Button();
-        FontIcon closeIcon = new FontIcon("bi-x");
+        IconifyIcon closeIcon = new IconifyIcon("bi-x");
         closeIcon.setIconSize(14);
         closeButton.setGraphic(closeIcon);
         closeButton.setTooltip(new Tooltip("Hide Panel"));
@@ -297,7 +297,7 @@ public class MultiFunctionalSidePane extends VBox {
         placeholder.setAlignment(Pos.CENTER);
         placeholder.setPadding(new Insets(20));
 
-        FontIcon icon = new FontIcon("bi-diagram-3");
+        IconifyIcon icon = new IconifyIcon("bi-diagram-3");
         icon.setIconSize(48);
         icon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
 
@@ -339,7 +339,7 @@ public class MultiFunctionalSidePane extends VBox {
         placeholder.setPadding(new Insets(20));
         placeholder.setAlignment(Pos.TOP_CENTER);
 
-        FontIcon icon = new FontIcon("bi-braces");
+        IconifyIcon icon = new IconifyIcon("bi-braces");
         icon.setIconSize(48);
         icon.setIconColor(javafx.scene.paint.Color.web("#f57c00"));
 
@@ -369,7 +369,7 @@ public class MultiFunctionalSidePane extends VBox {
         errorBox.setPadding(new Insets(16));
         errorBox.setAlignment(Pos.TOP_CENTER);
 
-        FontIcon icon = new FontIcon("bi-exclamation-triangle");
+        IconifyIcon icon = new IconifyIcon("bi-exclamation-triangle");
         icon.setIconSize(32);
         icon.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
 

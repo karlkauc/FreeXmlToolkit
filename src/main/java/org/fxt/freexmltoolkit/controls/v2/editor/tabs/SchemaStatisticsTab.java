@@ -4,11 +4,10 @@ import javafx.scene.control.Tab;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.views.SchemaAnalysisTabPane;
 import org.fxt.freexmltoolkit.controls.v2.editor.views.SchemaStatisticsView;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 
 /**
@@ -36,7 +35,7 @@ public class SchemaStatisticsTab extends Tab {
         this.schema = schema;
 
         // Set tab icon
-        FontIcon icon = new FontIcon(BootstrapIcons.CLIPBOARD_DATA);
+        IconifyIcon icon = new IconifyIcon("bi-clipboard-data");
         icon.setIconSize(14);
         setGraphic(icon);
 

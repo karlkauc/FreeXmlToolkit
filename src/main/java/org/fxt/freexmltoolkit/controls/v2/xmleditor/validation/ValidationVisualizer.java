@@ -32,10 +32,9 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Provides visual feedback for validation results in the XML editor.
@@ -184,23 +183,23 @@ public class ValidationVisualizer {
      * Creates an icon for the given validation severity.
      *
      * @param severity the validation severity
-     * @return a FontIcon for the severity
+     * @return a IconifyIcon for the severity
      */
-    public FontIcon createValidationIcon(ValidationSeverity severity) {
-        FontIcon icon;
+    public IconifyIcon createValidationIcon(ValidationSeverity severity) {
+        IconifyIcon icon;
         Color color;
 
         switch (severity) {
             case ERROR -> {
-                icon = new FontIcon(BootstrapIcons.X_CIRCLE_FILL);
+                icon = new IconifyIcon("bi-x-circle-fill");
                 color = ERROR_COLOR;
             }
             case WARNING -> {
-                icon = new FontIcon(BootstrapIcons.EXCLAMATION_TRIANGLE_FILL);
+                icon = new IconifyIcon("bi-exclamation-triangle-fill");
                 color = WARNING_COLOR;
             }
             default -> {
-                icon = new FontIcon(BootstrapIcons.CHECK_CIRCLE_FILL);
+                icon = new IconifyIcon("bi-check-circle-fill");
                 color = VALID_COLOR;
             }
         }
@@ -220,7 +219,7 @@ public class ValidationVisualizer {
         HBox badge = new HBox(4);
         badge.setAlignment(Pos.CENTER_LEFT);
 
-        FontIcon icon = createValidationIcon(result != null ? result.severity() : ValidationSeverity.INFO);
+        IconifyIcon icon = createValidationIcon(result != null ? result.severity() : ValidationSeverity.INFO);
         badge.getChildren().add(icon);
 
         if (result != null && result.errorMessage() != null && !result.errorMessage().isEmpty()) {

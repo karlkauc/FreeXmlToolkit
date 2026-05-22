@@ -17,7 +17,7 @@
 
         <!-- Title Bar -->
         <HBox alignment="CENTER_LEFT" spacing="10">
-            <FontIcon iconLiteral="bi-star-fill" iconSize="18" iconColor="#ffc107"/>
+            <IconifyIcon iconLiteral="bi-star-fill" iconSize="18" iconColor="#ffc107"/>
             <Label text="Favorites Manager"
                    style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0; 
                           -fx-font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;"/>
@@ -26,7 +26,7 @@
             <!-- Action Buttons -->
             <Button fx:id="syncButton" styleClass="icon-button">
                 <graphic>
-                    <FontIcon iconLiteral="bi-cloud-arrow-down" iconSize="14" iconColor="#4a90e2"/>
+                    <IconifyIcon iconLiteral="bi-cloud-arrow-down" iconSize="14" iconColor="#4a90e2"/>
                 </graphic>
                 <tooltip>
                     <Tooltip text="Sync Favorites"/>
@@ -34,7 +34,7 @@
             </Button>
             <Button fx:id="settingsButton" styleClass="icon-button">
                 <graphic>
-                    <FontIcon iconLiteral="bi-gear" iconSize="14" iconColor="#6c757d"/>
+                    <IconifyIcon iconLiteral="bi-gear" iconSize="14" iconColor="#6c757d"/>
                 </graphic>
                 <tooltip>
                     <Tooltip text="Settings"/>
@@ -54,29 +54,29 @@
 
             <MenuButton fx:id="filterButton" text="All"
                         style="-fx-background-color: white; -fx-border-color: #4a90e2;">
-                <graphic><FontIcon iconLiteral="bi-funnel" iconSize="14" iconColor="#4a90e2"/></graphic>
+                <graphic><IconifyIcon iconLiteral="bi-funnel" iconSize="14" iconColor="#4a90e2"/></graphic>
                 <items>
                     <MenuItem text="All Files">
-                        <graphic><FontIcon iconLiteral="bi-files" iconSize="14" iconColor="#6c757d"/></graphic>
+                        <graphic><IconifyIcon iconLiteral="bi-files" iconSize="14" iconColor="#6c757d"/></graphic>
                     </MenuItem>
                     <MenuItem text="XML Documents">
-                        <graphic><FontIcon iconLiteral="bi-file-earmark-code" iconSize="14" iconColor="#28a745"/></graphic>
+                        <graphic><IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="14" iconColor="#28a745"/></graphic>
                     </MenuItem>
                     <MenuItem text="XSD Schemas">
-                        <graphic><FontIcon iconLiteral="bi-diagram-3" iconSize="14" iconColor="#007bff"/></graphic>
+                        <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="14" iconColor="#007bff"/></graphic>
                     </MenuItem>
                     <MenuItem text="XSLT Stylesheets">
-                        <graphic><FontIcon iconLiteral="bi-arrow-repeat" iconSize="14" iconColor="#fd7e14"/></graphic>
+                        <graphic><IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="14" iconColor="#fd7e14"/></graphic>
                     </MenuItem>
                     <MenuItem text="XQuery Scripts">
-                        <graphic><FontIcon iconLiteral="bi-braces" iconSize="14" iconColor="#6f42c1"/></graphic>
+                        <graphic><IconifyIcon iconLiteral="bi-braces" iconSize="14" iconColor="#6f42c1"/></graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem text="Recent">
-                        <graphic><FontIcon iconLiteral="bi-clock-history" iconSize="14" iconColor="#17a2b8"/></graphic>
+                        <graphic><IconifyIcon iconLiteral="bi-clock-history" iconSize="14" iconColor="#17a2b8"/></graphic>
                     </MenuItem>
                     <MenuItem text="Modified">
-                        <graphic><FontIcon iconLiteral="bi-pencil-square" iconSize="14" iconColor="#ffc107"/></graphic>
+                        <graphic><IconifyIcon iconLiteral="bi-pencil-square" iconSize="14" iconColor="#ffc107"/></graphic>
                     </MenuItem>
                 </items>
             </MenuButton>
@@ -84,7 +84,7 @@
             <Button fx:id="addButton" styleClass="primary-button" text="Add"
                     style="-fx-background-color: #4a90e2; -fx-text-fill: white;">
                 <graphic>
-                    <FontIcon iconLiteral="bi-plus-circle" iconSize="14" iconColor="white"/>
+                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14" iconColor="white"/>
                 </graphic>
             </Button>
         </HBox>
@@ -105,7 +105,7 @@
                     <HBox styleClass="collection-item" spacing="8" alignment="CENTER_LEFT"
                           style="-fx-padding: 8; -fx-background-color: #f0f8ff; 
                                  -fx-background-radius: 4; -fx-cursor: hand;">
-                        <FontIcon iconLiteral="bi-clock-history" iconSize="16" iconColor="#4a90e2"/>
+                        <IconifyIcon iconLiteral="bi-clock-history" iconSize="16" iconColor="#4a90e2"/>
                         <Label text="Recently Used" style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="recentCountLabel" text="12"
@@ -115,7 +115,7 @@
                     <HBox styleClass="collection-item" spacing="8" alignment="CENTER_LEFT"
                           style="-fx-padding: 8; -fx-background-color: #f0f8ff; 
                                  -fx-background-radius: 4; -fx-cursor: hand;">
-                        <FontIcon iconLiteral="bi-star" iconSize="16" iconColor="#ffc107"/>
+                        <IconifyIcon iconLiteral="bi-star" iconSize="16" iconColor="#ffc107"/>
                         <Label text="Most Popular" style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="popularCountLabel" text="8"
@@ -125,7 +125,7 @@
                     <HBox styleClass="collection-item" spacing="8" alignment="CENTER_LEFT"
                           style="-fx-padding: 8; -fx-background-color: #f0f8ff; 
                                  -fx-background-radius: 4; -fx-cursor: hand;">
-                        <FontIcon iconLiteral="bi-calendar-week" iconSize="16" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-calendar-week" iconSize="16" iconColor="#28a745"/>
                         <Label text="This Week" style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Label fx:id="weekCountLabel" text="5"

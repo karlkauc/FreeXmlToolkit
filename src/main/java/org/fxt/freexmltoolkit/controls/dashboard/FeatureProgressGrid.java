@@ -14,9 +14,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.domain.statistics.FeatureUsage;
 import org.fxt.freexmltoolkit.service.SkillTracker;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * A grid component showing feature discovery progress.
@@ -116,11 +116,11 @@ public class FeatureProgressGrid extends VBox {
         }
 
         // Icon
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(14);
 
         // Check mark for discovered features
-        FontIcon checkIcon = new FontIcon(discovered ? "bi-check-circle-fill" : "bi-circle");
+        IconifyIcon checkIcon = new IconifyIcon(discovered ? "bi-check-circle-fill" : "bi-circle");
         checkIcon.setIconSize(12);
         checkIcon.getStyleClass().add(discovered ? "check-icon-discovered" : "check-icon-undiscovered");
 

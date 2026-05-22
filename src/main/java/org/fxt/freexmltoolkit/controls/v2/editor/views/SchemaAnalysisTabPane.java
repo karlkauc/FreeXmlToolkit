@@ -8,9 +8,8 @@ import javafx.scene.control.TabPane;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 
 /**
@@ -122,19 +121,19 @@ public class SchemaAnalysisTabPane extends TabPane {
     private void initializeTabs() {
         // Statistics Tab (reuse existing view)
         statisticsView = new SchemaStatisticsView(schema);
-        statisticsTab = createTab("Statistics", BootstrapIcons.BAR_CHART, statisticsView);
+        statisticsTab = createTab("Statistics", "bi-bar-chart", statisticsView);
 
         // Identity Constraints Tab
         identityConstraintsView = new IdentityConstraintsView(schema);
-        identityConstraintsTab = createTab("Identity Constraints", BootstrapIcons.KEY, identityConstraintsView);
+        identityConstraintsTab = createTab("Identity Constraints", "bi-key", identityConstraintsView);
 
         // XPath Validation Tab
         xpathValidationView = new XPathValidationView(schema);
-        xpathValidationTab = createTab("XPath Validation", BootstrapIcons.CHECK2_CIRCLE, xpathValidationView);
+        xpathValidationTab = createTab("XPath Validation", "bi-check2-circle", xpathValidationView);
 
         // Quality Checks Tab
         qualityChecksView = new QualityChecksView(schema);
-        qualityChecksTab = createTab("Quality", BootstrapIcons.AWARD, qualityChecksView);
+        qualityChecksTab = createTab("Quality", "bi-award", qualityChecksView);
 
         // Add tabs
         getTabs().addAll(statisticsTab, identityConstraintsTab, xpathValidationTab, qualityChecksTab);
@@ -151,9 +150,9 @@ public class SchemaAnalysisTabPane extends TabPane {
      * @param content the JavaFX node to display as tab content
      * @return a new non-closable Tab instance configured with the specified properties
      */
-    private Tab createTab(String text, BootstrapIcons icon, javafx.scene.Node content) {
+    private Tab createTab(String text, String icon, javafx.scene.Node content) {
         Tab tab = new Tab(text);
-        FontIcon fontIcon = new FontIcon(icon);
+        IconifyIcon fontIcon = new IconifyIcon(icon);
         fontIcon.setIconSize(14);
         tab.setGraphic(fontIcon);
         tab.setContent(content);

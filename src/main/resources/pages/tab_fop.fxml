@@ -16,7 +16,7 @@
         <!-- File Operations Group -->
         <Button fx:id="openXmlBtn" text="Open XML" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#openXmlFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open XML File (Ctrl+1)"/>
@@ -25,7 +25,7 @@
 
         <Button fx:id="openXslBtn" text="Open XSL" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#openXslFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open XSL-FO Stylesheet (Ctrl+2)"/>
@@ -34,7 +34,7 @@
 
         <Button fx:id="pdfOutBtn" text="PDF Out" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#openPdfFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
+                <IconifyIcon iconLiteral="bi-file-earmark" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Select Output PDF File (Ctrl+3)"/>
@@ -46,7 +46,7 @@
         <!-- Primary Action Group -->
         <Button fx:id="generateBtn" text="Generate" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#buttonConversion">
             <graphic>
-                <FontIcon iconLiteral="bi-play-circle-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-play-circle-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Generate PDF (F5)"/>
@@ -58,7 +58,7 @@
         <!-- Favorites Group -->
         <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add to Favorites (Ctrl+D)"/>
@@ -67,7 +67,7 @@
 
         <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Show/Hide Favorites (Ctrl+Shift+D)"/>
@@ -79,7 +79,7 @@
         <!-- Help -->
         <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
@@ -95,19 +95,19 @@
             <!-- Empty State -->
             <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
                   visible="true" managed="true">
-                <FontIcon iconLiteral="bi-file-text" iconSize="64" iconColor="#adb5bd"/>
+                <IconifyIcon iconLiteral="bi-file-text" iconSize="64" iconColor="#adb5bd"/>
                 <Label text="Ready to Generate PDF" styleClass="empty-state-title"/>
                 <Label text="Load XML and XSL-FO files to generate a PDF document" wrapText="true" textAlignment="CENTER"
                        styleClass="empty-state-description" maxWidth="400"/>
                 <HBox spacing="10" alignment="CENTER">
                     <Button fx:id="emptyStateOpenXmlButton" text="Open XML File" styleClass="btn-primary">
                         <graphic>
-                            <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
                         </graphic>
                     </Button>
                     <Button fx:id="emptyStateFavoritesButton" text="Browse Favorites" styleClass="btn-secondary">
                         <graphic>
-                            <FontIcon iconLiteral="bi-star-fill" iconSize="16" iconColor="#ffc107"/>
+                            <IconifyIcon iconLiteral="bi-star-fill" iconSize="16" iconColor="#ffc107"/>
                         </graphic>
                     </Button>
                 </HBox>
@@ -130,7 +130,7 @@
                                            HBox.hgrow="ALWAYS"/>
                                 <Button onAction="#openXmlFile">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
                                     </graphic>
                                 </Button>
                             </HBox>
@@ -143,7 +143,7 @@
                                            HBox.hgrow="ALWAYS"/>
                                 <Button onAction="#openXslFile">
                                     <graphic>
-                                        <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat"
+                                        <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat"
                                                   iconSize="16"/>
                                     </graphic>
                                 </Button>
@@ -156,7 +156,7 @@
                                            promptText="Define the output PDF file path" HBox.hgrow="ALWAYS"/>
                                 <Button onAction="#openPdfFile">
                                     <graphic>
-                                        <FontIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
+                                        <IconifyIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
                                     </graphic>
                                 </Button>
                             </HBox>
@@ -212,7 +212,7 @@
                                            HBox.hgrow="ALWAYS"/>
                                 <Button>
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-gear" iconSize="16"/>
+                                        <IconifyIcon iconLiteral="bi-gear" iconSize="16"/>
                                     </graphic>
                                 </Button>
                             </HBox>

@@ -20,7 +20,6 @@ package org.fxt.freexmltoolkit.controller;
 
 import java.awt.Desktop;
 import java.io.File;
-import java.util.Optional;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
@@ -28,6 +27,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
@@ -65,6 +65,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSortOrder;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
+import org.fxt.freexmltoolkit.domain.FundsXmlMetadata;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.service.ConnectionService;
@@ -72,10 +73,9 @@ import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.fxt.freexmltoolkit.service.UsageTrackingService;
-import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache;
+import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys;
-import org.fxt.freexmltoolkit.domain.FundsXmlMetadata;
 import org.jetbrains.annotations.NotNull;
 
 /**

@@ -44,7 +44,7 @@
             <!-- Tab 1: Interface & Files -->
             <Tab text="Interface &amp; Files" closable="false">
                 <graphic>
-                    <FontIcon iconLiteral="bi-palette" iconSize="16" iconColor="#4a90e2"/>
+                    <IconifyIcon iconLiteral="bi-palette" iconSize="16" iconColor="#4a90e2"/>
                 </graphic>
                 <content>
                     <ScrollPane fitToWidth="true" styleClass="dashboard-scroll">
@@ -147,7 +147,7 @@
                                             text="Clear Statistics"
                                             styleClass="btn-warning-action">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                     <Label text="This will reset all your progress data"
@@ -168,7 +168,7 @@
                                 <!-- Cache Information -->
                                 <VBox spacing="6" styleClass="settings-section-green-dark">
                                     <HBox spacing="8" alignment="CENTER_LEFT">
-                                        <FontIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#28a745"/>
+                                        <IconifyIcon iconLiteral="bi-folder2" iconSize="14" iconColor="#28a745"/>
                                         <Label text="Cache Folder:"
                                                styleClass="settings-section-subtitle"/>
                                     </HBox>
@@ -185,7 +185,7 @@
                                             text="Clear Local Cache"
                                             styleClass="btn-danger">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                     <Button fx:id="openCacheFolderButton" mnemonicParsing="false"
@@ -193,7 +193,7 @@
                                             text="Open Folder"
                                             styleClass="btn-gray">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                 </HBox>
@@ -206,7 +206,7 @@
             <!-- Tab 2: Network & Proxy -->
             <Tab text="Network &amp; Proxy" closable="false">
                 <graphic>
-                    <FontIcon iconLiteral="bi-hdd-network" iconSize="16" iconColor="#4a90e2"/>
+                    <IconifyIcon iconLiteral="bi-hdd-network" iconSize="16" iconColor="#4a90e2"/>
                 </graphic>
                 <content>
                     <ScrollPane fitToWidth="true" styleClass="dashboard-scroll">
@@ -277,7 +277,7 @@
                                         text="Check for Updates Now"
                                         styleClass="btn-success-action">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-arrow-repeat" iconSize="14"/>
+                                        <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="14"/>
                                     </graphic>
                                 </Button>
                             </VBox>
@@ -286,7 +286,7 @@
                                     text="Test Connection"
                                     styleClass="btn-check-connection">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-plug-fill" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-plug-fill" iconSize="14"/>
                                 </graphic>
                             </Button>
                         </VBox>
@@ -297,7 +297,7 @@
             <!-- Tab 3: XML Editor -->
             <Tab text="XML Editor" closable="false">
                 <graphic>
-                    <FontIcon iconLiteral="bi-code-slash" iconSize="16" iconColor="#4a90e2"/>
+                    <IconifyIcon iconLiteral="bi-code-slash" iconSize="16" iconColor="#4a90e2"/>
                 </graphic>
                 <content>
                     <ScrollPane fitToWidth="true" styleClass="dashboard-scroll">
@@ -364,7 +364,7 @@
             <!-- Tab 4: XSD Editor -->
             <Tab text="XSD Editor" closable="false">
                 <graphic>
-                    <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#4a90e2"/>
+                    <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#4a90e2"/>
                 </graphic>
                 <content>
                     <ScrollPane fitToWidth="true" styleClass="dashboard-scroll">
@@ -416,7 +416,7 @@
                                         <Button fx:id="browseBackupDirectory" onAction="#browseBackupDirectory" text="Browse..."
                                                 styleClass="btn-gray">
                                             <graphic>
-                                                <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                             </graphic>
                                         </Button>
                                     </HBox>
@@ -462,7 +462,7 @@
             <!-- Tab 5: Favorites -->
             <Tab text="Favorites" closable="false">
                 <graphic>
-                    <FontIcon iconLiteral="bi-star-fill" iconSize="16" iconColor="#ffc107"/>
+                    <IconifyIcon iconLiteral="bi-star-fill" iconSize="16" iconColor="#ffc107"/>
                 </graphic>
                 <content>
                     <ScrollPane fitToWidth="true" styleClass="dashboard-scroll">
@@ -489,26 +489,26 @@
                                     <Button fx:id="openFavoriteButton" onAction="#openSelectedFavorite" text="Open"
                                             styleClass="btn-info-action">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                     <Button fx:id="editFavoriteButton" onAction="#editSelectedFavorite" text="Edit"
                                             styleClass="btn-gray">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-pencil" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-pencil" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                     <Button fx:id="removeFavoriteButton" onAction="#removeSelectedFavorite" text="Remove"
                                             styleClass="btn-danger">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                     <Button fx:id="removeNonExistentButton" onAction="#removeNonExistentFavorites"
                                             text="Cleanup"
                                             styleClass="btn-warning-action">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-x-circle" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-x-circle" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                 </HBox>
@@ -525,7 +525,7 @@
                                                 text="Create"
                                                 styleClass="btn-success-action">
                                             <graphic>
-                                                <FontIcon iconLiteral="bi-plus-circle" iconSize="14"/>
+                                                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14"/>
                                             </graphic>
                                         </Button>
                                     </HBox>
@@ -541,7 +541,7 @@
             <!-- Tab 6: FundsXML Extensions -->
             <Tab text="FundsXML" closable="false">
                 <graphic>
-                    <FontIcon iconLiteral="bi-collection" iconSize="16" iconColor="#28a745"/>
+                    <IconifyIcon iconLiteral="bi-collection" iconSize="16" iconColor="#28a745"/>
                 </graphic>
                 <content>
                     <ScrollPane fitToWidth="true" styleClass="dashboard-scroll">
@@ -586,7 +586,7 @@
                                             text="Download / Update FundsXML Content"
                                             styleClass="btn-success-action">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-cloud-download" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-cloud-download" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                     <Button fx:id="fundsxmlOpenFolderButton"
@@ -595,7 +595,7 @@
                                             text="Open Cache Folder"
                                             styleClass="btn-info-action">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                 </HBox>
@@ -614,13 +614,13 @@
             <Button mnemonicParsing="false" onAction="#performSave" text="Save Settings"
                     styleClass="btn-save">
                 <graphic>
-                    <FontIcon iconLiteral="bi-save" iconSize="16"/>
+                    <IconifyIcon iconLiteral="bi-save" iconSize="16"/>
                 </graphic>
             </Button>
             <Button mnemonicParsing="false" onAction="#loadCurrentSettings" text="Cancel"
                     styleClass="btn-cancel">
                 <graphic>
-                    <FontIcon iconLiteral="bi-x-circle" iconSize="16"/>
+                    <IconifyIcon iconLiteral="bi-x-circle" iconSize="16"/>
                 </graphic>
             </Button>
         </HBox>

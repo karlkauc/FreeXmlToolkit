@@ -1440,7 +1440,7 @@
     -fx-spacing: 8;
 }
 
-.sidebar-section-header .ikonli-font-icon {
+.sidebar-section-header .iconify-icon {
     -fx-icon-color: #6c757d;
     -fx-icon-size: 14;
 }
@@ -1511,7 +1511,7 @@
     -fx-spacing: 10;
 }
 
-.xsd-required-overlay .ikonli-font-icon {
+.xsd-required-overlay .iconify-icon {
     -fx-icon-color: #adb5bd;
     -fx-icon-size: 28;
 }

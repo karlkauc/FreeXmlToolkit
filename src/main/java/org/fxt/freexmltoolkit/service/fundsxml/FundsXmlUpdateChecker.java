@@ -18,18 +18,18 @@
 
 package org.fxt.freexmltoolkit.service.fundsxml;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.FundsXmlMetadata;
-import org.fxt.freexmltoolkit.domain.GitHubRelease;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.FundsXmlMetadata;
+import org.fxt.freexmltoolkit.domain.GitHubRelease;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 
 /**
  * Encapsulates the startup-time "is there a newer FundsXML release on GitHub?" logic.

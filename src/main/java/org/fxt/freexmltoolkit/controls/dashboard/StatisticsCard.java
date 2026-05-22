@@ -4,7 +4,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * A card component displaying a single statistic with icon, value, label, and trend indicator.
@@ -12,7 +12,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
  */
 public class StatisticsCard extends VBox {
 
-    private final FontIcon icon;
+    private final IconifyIcon icon;
     private final Label valueLabel;
     private final Label titleLabel;
     private final Label trendLabel;
@@ -39,7 +39,7 @@ public class StatisticsCard extends VBox {
         setSpacing(8);
 
         // Icon
-        icon = new FontIcon(iconLiteral);
+        icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(28);
         icon.getStyleClass().add("statistics-card-icon");
 

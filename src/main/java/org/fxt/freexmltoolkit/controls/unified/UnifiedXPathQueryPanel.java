@@ -33,7 +33,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
@@ -138,7 +138,7 @@ public class UnifiedXPathQueryPanel extends VBox {
         Label titleLabel = new Label("XPath/XQuery Console");
         titleLabel.getStyleClass().add("theme-text-primary");
         titleLabel.setStyle("-fx-font-weight: bold;");
-        FontIcon terminalIcon = new FontIcon("bi-terminal");
+        IconifyIcon terminalIcon = new IconifyIcon("bi-terminal");
         terminalIcon.setIconSize(16);
         terminalIcon.setIconColor(Color.web("#6c757d"));
 
@@ -172,14 +172,14 @@ public class UnifiedXPathQueryPanel extends VBox {
         // Create tabs
         xPathTab = new Tab("XPath");
         xPathTab.setClosable(false);
-        FontIcon xpathIcon = new FontIcon("bi-code-slash");
+        IconifyIcon xpathIcon = new IconifyIcon("bi-code-slash");
         xpathIcon.setIconSize(14);
         xPathTab.setGraphic(xpathIcon);
         xPathTab.setContent(xpathScrollPane);
 
         xQueryTab = new Tab("XQuery");
         xQueryTab.setClosable(false);
-        FontIcon xqueryIcon = new FontIcon("bi-braces");
+        IconifyIcon xqueryIcon = new IconifyIcon("bi-braces");
         xqueryIcon.setIconSize(14);
         xQueryTab.setGraphic(xqueryIcon);
         xQueryTab.setContent(xqueryScrollPane);
@@ -273,7 +273,7 @@ public class UnifiedXPathQueryPanel extends VBox {
      */
     private Button createIconButton(String iconLiteral, String tooltip, String iconColor) {
         Button button = new Button();
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(16);
         icon.setIconColor(Color.web(iconColor));
         button.setGraphic(icon);

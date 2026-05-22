@@ -43,6 +43,7 @@ import javafx.stage.Stage;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.unified.AbstractUnifiedEditorTab;
 import org.fxt.freexmltoolkit.controls.unified.JsonUnifiedTab;
 import org.fxt.freexmltoolkit.controls.unified.MultiFunctionalSidePane;
@@ -61,7 +62,6 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
 import org.fxt.freexmltoolkit.service.TemplateEngine;
 import org.fxt.freexmltoolkit.service.TemplateRepository;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Controller for the Unified Editor page.
@@ -1880,7 +1880,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
         } else {
             button.getStyleClass().remove(compactClass);
         }
-        if (button.getGraphic() instanceof FontIcon fontIcon) {
+        if (button.getGraphic() instanceof IconifyIcon fontIcon) {
             fontIcon.setIconSize(iconSize);
         }
     }
@@ -1984,7 +1984,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                     // Add icon based on file type
                     UnifiedEditorFileType fileType = UnifiedEditorFileType.fromFile(file);
                     if (fileType != null) {
-                        FontIcon icon = new FontIcon(fileType.getIcon());
+                        IconifyIcon icon = new IconifyIcon(fileType.getIcon());
                         icon.setIconSize(16);
                         icon.setIconColor(javafx.scene.paint.Color.web(fileType.getColor()));
                         item.setGraphic(icon);
@@ -2029,7 +2029,7 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
                 setText(item.getDisplayName());
 
                 // Set icon based on file type
-                FontIcon icon = new FontIcon(item.getFileType().getIcon());
+                IconifyIcon icon = new IconifyIcon(item.getFileType().getIcon());
                 icon.setIconSize(16);
 
                 getStyleClass().removeAll("linked-file-resolved", "linked-file-unresolved");

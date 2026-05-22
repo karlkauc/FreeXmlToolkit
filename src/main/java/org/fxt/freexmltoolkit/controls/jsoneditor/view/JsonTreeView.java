@@ -40,12 +40,12 @@ import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonArray;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * A TreeView-based component for displaying and navigating JSON documents.
@@ -78,7 +78,7 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
         searchField.setOnAction(e -> search(searchField.getText()));
 
         Button searchButton = new Button();
-        searchButton.setGraphic(new FontIcon("bi-search"));
+        searchButton.setGraphic(new IconifyIcon("bi-search"));
         searchButton.setOnAction(e -> search(searchField.getText()));
 
         HBox searchBar = new HBox(8, searchField, searchButton);
@@ -364,7 +364,7 @@ public class JsonTreeView extends VBox implements PropertyChangeListener {
             }
 
             // Create icon
-            FontIcon icon = new FontIcon(node.getNodeType().getIcon());
+            IconifyIcon icon = new IconifyIcon(node.getNodeType().getIcon());
             icon.setIconSize(14);
             icon.setIconColor(Color.web(node.getNodeType().getColor()));
             setGraphic(icon);

@@ -29,6 +29,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.domain.LinkedFileInfo;
@@ -37,7 +38,6 @@ import org.fxt.freexmltoolkit.service.LinkedFileDetector;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Full-featured Unified Editor tab for XSLT Stylesheet files.
@@ -198,14 +198,14 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
         // Create output section
         Tab textTab = new Tab("Text Output");
         textTab.setClosable(false);
-        FontIcon textIcon = new FontIcon("bi-file-text");
+        IconifyIcon textIcon = new IconifyIcon("bi-file-text");
         textIcon.setIconSize(14);
         textTab.setGraphic(textIcon);
         textTab.setContent(new VirtualizedScrollPane<>(textOutputArea));
 
         Tab htmlTab = new Tab("HTML Preview");
         htmlTab.setClosable(false);
-        FontIcon htmlIcon = new FontIcon("bi-globe");
+        IconifyIcon htmlIcon = new IconifyIcon("bi-globe");
         htmlIcon.setIconSize(14);
         htmlTab.setGraphic(htmlIcon);
         htmlTab.setContent(htmlPreview);
@@ -214,7 +214,7 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
         performancePanel = new org.fxt.freexmltoolkit.controls.unified.xslt.XsltPerformancePanel();
         Tab performanceTab = new Tab("Performance");
         performanceTab.setClosable(false);
-        FontIcon perfIcon = new FontIcon("bi-speedometer2");
+        IconifyIcon perfIcon = new IconifyIcon("bi-speedometer2");
         perfIcon.setIconSize(14);
         performanceTab.setGraphic(perfIcon);
         performanceTab.setContent(performancePanel);
@@ -223,7 +223,7 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
         debugPanel = new org.fxt.freexmltoolkit.controls.unified.xslt.XsltDebugPanel();
         Tab debugTab = new Tab("Debug");
         debugTab.setClosable(false);
-        FontIcon debugIcon = new FontIcon("bi-bug");
+        IconifyIcon debugIcon = new IconifyIcon("bi-bug");
         debugIcon.setIconSize(14);
         debugTab.setGraphic(debugIcon);
         debugTab.setContent(debugPanel);
@@ -272,13 +272,13 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
      */
     private ToolBar createToolbar() {
         // Live transform toggle
-        FontIcon liveIcon = new FontIcon("bi-lightning-charge");
+        IconifyIcon liveIcon = new IconifyIcon("bi-lightning-charge");
         liveIcon.setIconSize(14);
         liveTransformToggle.setGraphic(liveIcon);
         liveTransformToggle.setTooltip(new Tooltip("Enable live transformation on edit"));
 
         // Run button
-        FontIcon runIcon = new FontIcon("bi-play-fill");
+        IconifyIcon runIcon = new IconifyIcon("bi-play-fill");
         runIcon.setIconSize(14);
         runTransformButton.setGraphic(runIcon);
         runTransformButton.setTooltip(new Tooltip("Run transformation (Ctrl+Enter)"));
@@ -286,7 +286,7 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
 
         // Clear output button
         Button clearButton = new Button();
-        FontIcon clearIcon = new FontIcon("bi-trash");
+        IconifyIcon clearIcon = new IconifyIcon("bi-trash");
         clearIcon.setIconSize(14);
         clearButton.setGraphic(clearIcon);
         clearButton.setTooltip(new Tooltip("Clear output"));
@@ -298,7 +298,7 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
 
         // Open in Browser button
         Button openInBrowserButton = new Button();
-        FontIcon browserIcon = new FontIcon("bi-globe2");
+        IconifyIcon browserIcon = new IconifyIcon("bi-globe2");
         browserIcon.setIconSize(14);
         openInBrowserButton.setGraphic(browserIcon);
         openInBrowserButton.setTooltip(new Tooltip("Open HTML output in browser"));
@@ -331,14 +331,14 @@ public class XsltUnifiedTab extends AbstractUnifiedEditorTab {
         xmlLabel.setStyle("-fx-font-weight: bold;");
 
         Button loadXmlButton = new Button();
-        FontIcon loadIcon = new FontIcon("bi-folder2-open");
+        IconifyIcon loadIcon = new IconifyIcon("bi-folder2-open");
         loadIcon.setIconSize(14);
         loadXmlButton.setGraphic(loadIcon);
         loadXmlButton.setTooltip(new Tooltip("Load XML file"));
         loadXmlButton.setOnAction(e -> loadXmlInput());
 
         Button clearXmlButton = new Button();
-        FontIcon clearIcon = new FontIcon("bi-x-circle");
+        IconifyIcon clearIcon = new IconifyIcon("bi-x-circle");
         clearIcon.setIconSize(14);
         clearXmlButton.setGraphic(clearIcon);
         clearXmlButton.setTooltip(new Tooltip("Clear XML input"));

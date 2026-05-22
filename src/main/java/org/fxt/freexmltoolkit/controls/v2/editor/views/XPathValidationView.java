@@ -29,13 +29,12 @@ import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdXPathValidator;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdXPathValidator.Severity;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdXPathValidator.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdXPathValidator.XPathValidationIssue;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 
 /**
@@ -131,7 +130,7 @@ public class XPathValidationView extends BorderPane {
         showInfoCheckBox.setOnAction(e -> filterTable());
 
         Button validateBtn = new Button("Validate All");
-        validateBtn.setGraphic(new FontIcon(BootstrapIcons.PLAY_FILL));
+        validateBtn.setGraphic(new IconifyIcon("bi-play-fill"));
         validateBtn.setOnAction(e -> refresh());
 
         HBox titleRow = new HBox(10, titleLabel, spacer, showInfoCheckBox, validateBtn);
@@ -150,27 +149,27 @@ public class XPathValidationView extends BorderPane {
      */
     private HBox createSummaryRow() {
         // Total
-        FontIcon totalIcon = new FontIcon(BootstrapIcons.LIST_OL);
+        IconifyIcon totalIcon = new IconifyIcon("bi-list-ol");
         totalIcon.setIconSize(16);
         totalLabel = new Label("Total: 0");
         HBox totalBox = createSummaryItem(totalIcon, totalLabel, "#333333");
 
         // Valid
-        FontIcon validIcon = new FontIcon(BootstrapIcons.CHECK_CIRCLE_FILL);
+        IconifyIcon validIcon = new IconifyIcon("bi-check-circle-fill");
         validIcon.setIconSize(16);
         validIcon.setIconColor(Color.GREEN);
         validLabel = new Label("Valid: 0");
         HBox validBox = createSummaryItem(validIcon, validLabel, "#28a745");
 
         // Errors
-        FontIcon errorIcon = new FontIcon(BootstrapIcons.X_CIRCLE_FILL);
+        IconifyIcon errorIcon = new IconifyIcon("bi-x-circle-fill");
         errorIcon.setIconSize(16);
         errorIcon.setIconColor(Color.RED);
         errorsLabel = new Label("Errors: 0");
         HBox errorsBox = createSummaryItem(errorIcon, errorsLabel, "#dc3545");
 
         // Warnings
-        FontIcon warningIcon = new FontIcon(BootstrapIcons.EXCLAMATION_TRIANGLE_FILL);
+        IconifyIcon warningIcon = new IconifyIcon("bi-exclamation-triangle-fill");
         warningIcon.setIconSize(16);
         warningIcon.setIconColor(Color.ORANGE);
         warningsLabel = new Label("Warnings: 0");
@@ -193,7 +192,7 @@ public class XPathValidationView extends BorderPane {
     /**
      * Creates a summary item.
      */
-    private HBox createSummaryItem(FontIcon icon, Label label, String color) {
+    private HBox createSummaryItem(IconifyIcon icon, Label label, String color) {
         label.setStyle("-fx-font-weight: bold; -fx-text-fill: " + color + ";");
         HBox box = new HBox(5, icon, label);
         box.setAlignment(Pos.CENTER_LEFT);
@@ -220,7 +219,7 @@ public class XPathValidationView extends BorderPane {
                     setGraphic(null);
                 } else {
                     Severity severity = Severity.valueOf(item);
-                    FontIcon icon = getSeverityIcon(severity);
+                    IconifyIcon icon = getSeverityIcon(severity);
                     setGraphic(icon);
                     setText(severity.name());
                 }
@@ -281,8 +280,8 @@ public class XPathValidationView extends BorderPane {
     /**
      * Gets severity icon.
      */
-    private FontIcon getSeverityIcon(Severity severity) {
-        FontIcon icon = new FontIcon();
+    private IconifyIcon getSeverityIcon(Severity severity) {
+        IconifyIcon icon = new IconifyIcon();
         icon.setIconSize(14);
 
         switch (severity) {

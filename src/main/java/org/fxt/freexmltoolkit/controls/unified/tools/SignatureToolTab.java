@@ -23,9 +23,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.unified.AbstractToolTab;
 import org.fxt.freexmltoolkit.service.SignatureService;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Tool tab for XML digital signatures - create certificates, sign, and validate.
@@ -65,7 +65,7 @@ public class SignatureToolTab extends AbstractToolTab {
 
     private Tab createCertificateTab() {
         Tab tab = new Tab("Create Certificate");
-        FontIcon icon = new FontIcon("bi-award");
+        IconifyIcon icon = new IconifyIcon("bi-award");
         icon.setIconSize(14);
         tab.setGraphic(icon);
 
@@ -157,7 +157,7 @@ public class SignatureToolTab extends AbstractToolTab {
 
     private Tab createSignTab() {
         Tab tab = new Tab("Sign XML");
-        FontIcon icon = new FontIcon("bi-pen");
+        IconifyIcon icon = new IconifyIcon("bi-pen");
         icon.setIconSize(14);
         tab.setGraphic(icon);
 
@@ -241,7 +241,7 @@ public class SignatureToolTab extends AbstractToolTab {
 
     private Tab createValidateTab() {
         Tab tab = new Tab("Validate Signature");
-        FontIcon icon = new FontIcon("bi-check-circle");
+        IconifyIcon icon = new IconifyIcon("bi-check-circle");
         icon.setIconSize(14);
         tab.setGraphic(icon);
 

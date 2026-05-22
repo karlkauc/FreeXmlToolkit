@@ -19,6 +19,7 @@ import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
@@ -33,7 +34,6 @@ import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Full-featured Unified Editor tab for XML files.
@@ -132,13 +132,13 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
         viewTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         // XML (Text) tab
-        FontIcon xmlIcon = new FontIcon("bi-code-slash");
+        IconifyIcon xmlIcon = new IconifyIcon("bi-code-slash");
         xmlIcon.setIconSize(14);
         xmlTab.setGraphic(xmlIcon);
         xmlTab.getStyleClass().add("primary-tab");
 
         // Graphic tab
-        FontIcon graphicIcon = new FontIcon("bi-columns-gap");
+        IconifyIcon graphicIcon = new IconifyIcon("bi-columns-gap");
         graphicIcon.setIconSize(14);
         graphicTab.setGraphic(graphicIcon);
         graphicTab.getStyleClass().add("output-tab");

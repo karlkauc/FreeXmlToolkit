@@ -40,7 +40,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * A popup window that displays section settings for a {@link CustomizableSectionContainer}.
@@ -79,7 +79,7 @@ public class SectionSettingsPopup {
 
         // Reset button
         Button resetButton = new Button("Reset to Defaults");
-        FontIcon resetIcon = new FontIcon("bi-arrow-counterclockwise");
+        IconifyIcon resetIcon = new IconifyIcon("bi-arrow-counterclockwise");
         resetIcon.setIconSize(14);
         resetButton.setGraphic(resetIcon);
         resetButton.getStyleClass().add("settings-popup-reset-button");
@@ -151,7 +151,7 @@ public class SectionSettingsPopup {
         row.getStyleClass().add("settings-popup-item");
 
         // Drag handle
-        FontIcon dragHandle = new FontIcon("bi-grip-vertical");
+        IconifyIcon dragHandle = new IconifyIcon("bi-grip-vertical");
         dragHandle.setIconSize(12);
         dragHandle.getStyleClass().add("section-drag-handle");
 
@@ -169,7 +169,7 @@ public class SectionSettingsPopup {
 
         // Move up button
         Button moveUpBtn = new Button();
-        FontIcon upIcon = new FontIcon("bi-arrow-up");
+        IconifyIcon upIcon = new IconifyIcon("bi-arrow-up");
         upIcon.setIconSize(12);
         moveUpBtn.setGraphic(upIcon);
         moveUpBtn.getStyleClass().add("section-move-button");
@@ -179,7 +179,7 @@ public class SectionSettingsPopup {
 
         // Move down button
         Button moveDownBtn = new Button();
-        FontIcon downIcon = new FontIcon("bi-arrow-down");
+        IconifyIcon downIcon = new IconifyIcon("bi-arrow-down");
         downIcon.setIconSize(12);
         moveDownBtn.setGraphic(downIcon);
         moveDownBtn.getStyleClass().add("section-move-button");

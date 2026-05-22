@@ -20,10 +20,10 @@ import javafx.stage.FileChooser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.unified.AbstractToolTab;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.FOPService;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Tool tab for PDF generation from XML + XSL-FO using Apache FOP.
@@ -116,7 +116,7 @@ public class FopToolTab extends AbstractToolTab {
         // Generate button
         Button generateBtn = new Button("Generate PDF");
         generateBtn.setStyle("-fx-font-size: 16px; -fx-padding: 8 24;");
-        FontIcon genIcon = new FontIcon("bi-file-earmark-richtext");
+        IconifyIcon genIcon = new IconifyIcon("bi-file-earmark-richtext");
         genIcon.setIconSize(20);
         generateBtn.setGraphic(genIcon);
         generateBtn.setOnAction(e -> generatePdf());

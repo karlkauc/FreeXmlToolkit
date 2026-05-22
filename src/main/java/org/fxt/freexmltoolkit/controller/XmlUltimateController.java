@@ -1152,8 +1152,8 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         // Apply compact style
         button.setStyle(style);
 
-        // Update icon size if the button has a FontIcon graphic
-        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+        // Update icon size if the button has a IconifyIcon graphic
+        if (button.getGraphic() instanceof org.fxt.freexmltoolkit.controls.icons.IconifyIcon fontIcon) {
             fontIcon.setIconSize(iconSize);
         }
     }
@@ -2431,7 +2431,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                 String queryName = FavoritesService.getQueryName(queryFile);
                 MenuItem item = new MenuItem(queryName);
                 item.setOnAction(e -> loadSavedXPathQuery(queryFile));
-                item.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-code-slash"));
+                item.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-code-slash"));
                 savedXPathQueriesMenu.getItems().add(item);
             }
         }
@@ -2440,12 +2440,12 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         savedXPathQueriesMenu.getItems().add(new SeparatorMenuItem());
 
         MenuItem addToFavoritesItem = new MenuItem("Add Current Query to Favorites...");
-        addToFavoritesItem.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-star"));
+        addToFavoritesItem.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-star"));
         addToFavoritesItem.setOnAction(e -> addCurrentXPathQueryToFavorites());
         savedXPathQueriesMenu.getItems().add(addToFavoritesItem);
 
         MenuItem openFolderItem = new MenuItem("Open Queries Folder...");
-        openFolderItem.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-folder2-open"));
+        openFolderItem.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-folder2-open"));
         openFolderItem.setOnAction(e -> openQueriesFolder(true));
         savedXPathQueriesMenu.getItems().add(openFolderItem);
     }
@@ -2468,7 +2468,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
                 String queryName = FavoritesService.getQueryName(queryFile);
                 MenuItem item = new MenuItem(queryName);
                 item.setOnAction(e -> loadSavedXQueryQuery(queryFile));
-                item.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-braces"));
+                item.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-braces"));
                 savedXQueryQueriesMenu.getItems().add(item);
             }
         }
@@ -2477,12 +2477,12 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         savedXQueryQueriesMenu.getItems().add(new SeparatorMenuItem());
 
         MenuItem addToFavoritesItem = new MenuItem("Add Current Query to Favorites...");
-        addToFavoritesItem.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-star"));
+        addToFavoritesItem.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-star"));
         addToFavoritesItem.setOnAction(e -> addCurrentXQueryQueryToFavorites());
         savedXQueryQueriesMenu.getItems().add(addToFavoritesItem);
 
         MenuItem openFolderItem = new MenuItem("Open Queries Folder...");
-        openFolderItem.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-folder2-open"));
+        openFolderItem.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-folder2-open"));
         openFolderItem.setOnAction(e -> openQueriesFolder(false));
         savedXQueryQueriesMenu.getItems().add(openFolderItem);
     }
@@ -2498,7 +2498,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         dialog.setTitle("Add XPath Query to Favorites");
         dialog.setHeaderText("Save and add XPath query to favorites");
         dialog.setContentText("Query name:");
-        dialog.getDialogPane().setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-star"));
+        dialog.getDialogPane().setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-star"));
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(name -> {
@@ -2532,7 +2532,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         dialog.setTitle("Add XQuery to Favorites");
         dialog.setHeaderText("Save and add XQuery to favorites");
         dialog.setContentText("Query name:");
-        dialog.getDialogPane().setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-star"));
+        dialog.getDialogPane().setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-star"));
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(name -> {
@@ -2603,7 +2603,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         dialog.setTitle("Save XPath Query");
         dialog.setHeaderText("Save XPath Query to File");
         dialog.setContentText("Query name:");
-        dialog.getDialogPane().setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-save"));
+        dialog.getDialogPane().setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-save"));
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(name -> {
@@ -2634,7 +2634,7 @@ public class XmlUltimateController implements Initializable, FavoritesParentCont
         dialog.setTitle("Save XQuery Query");
         dialog.setHeaderText("Save XQuery to File");
         dialog.setContentText("Query name:");
-        dialog.getDialogPane().setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-save"));
+        dialog.getDialogPane().setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-save"));
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(name -> {

@@ -1,15 +1,16 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
-import org.fxmisc.richtext.CodeArea;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.function.BiConsumer;
+import org.fxmisc.richtext.CodeArea;
 
 /**
  * The thin pane between the two diff CodeAreas that renders per-chunk

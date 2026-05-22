@@ -22,6 +22,7 @@ import javafx.scene.control.TabPane;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
@@ -34,7 +35,6 @@ import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
 import org.fxt.freexmltoolkit.service.LinkedFileDetector;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Full-featured Unified Editor tab for XSD Schema files.
@@ -162,13 +162,13 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
         viewTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         // Text tab
-        FontIcon textIcon = new FontIcon("bi-code-slash");
+        IconifyIcon textIcon = new IconifyIcon("bi-code-slash");
         textIcon.setIconSize(14);
         textTab.setGraphic(textIcon);
         textTab.getStyleClass().add("primary-tab");
 
         // Graphic tab (initially with placeholder)
-        FontIcon graphicIcon = new FontIcon("bi-diagram-3");
+        IconifyIcon graphicIcon = new IconifyIcon("bi-diagram-3");
         graphicIcon.setIconSize(14);
         graphicTab.setGraphic(graphicIcon);
         graphicTab.getStyleClass().add("primary-tab");
@@ -178,37 +178,37 @@ public class XsdUnifiedTab extends AbstractUnifiedEditorTab {
         graphicTab.setContent(new Label("Loading graphic view..."));
 
         // Sub-tabs with icons
-        FontIcon typeLibIcon = new FontIcon("bi-collection");
+        IconifyIcon typeLibIcon = new IconifyIcon("bi-collection");
         typeLibIcon.setIconSize(14);
         typeLibraryTab.setGraphic(typeLibIcon);
         typeLibraryTab.getStyleClass().add("utility-tab");
         typeLibraryTab.setContent(new Label("Load an XSD file to browse types"));
 
-        FontIcon typeEdIcon = new FontIcon("bi-pencil-square");
+        IconifyIcon typeEdIcon = new IconifyIcon("bi-pencil-square");
         typeEdIcon.setIconSize(14);
         typeEditorTab.setGraphic(typeEdIcon);
         typeEditorTab.getStyleClass().add("primary-tab");
         typeEditorTab.setContent(new Label("Load an XSD file to edit types"));
 
-        FontIcon analysisIcon = new FontIcon("bi-bar-chart");
+        IconifyIcon analysisIcon = new IconifyIcon("bi-bar-chart");
         analysisIcon.setIconSize(14);
         analysisTab.setGraphic(analysisIcon);
         analysisTab.getStyleClass().add("utility-tab");
         analysisTab.setContent(new Label("Load an XSD file to analyze"));
 
-        FontIcon docIcon = new FontIcon("bi-file-text");
+        IconifyIcon docIcon = new IconifyIcon("bi-file-text");
         docIcon.setIconSize(14);
         documentationTab.setGraphic(docIcon);
         documentationTab.getStyleClass().add("output-tab");
         documentationTab.setContent(new Label("Load an XSD file for documentation"));
 
-        FontIcon sampleIcon = new FontIcon("bi-file-earmark-code");
+        IconifyIcon sampleIcon = new IconifyIcon("bi-file-earmark-code");
         sampleIcon.setIconSize(14);
         sampleDataTab.setGraphic(sampleIcon);
         sampleDataTab.getStyleClass().add("output-tab");
         sampleDataTab.setContent(new Label("Load an XSD file for sample generation"));
 
-        FontIcon flattenIcon = new FontIcon("bi-layers");
+        IconifyIcon flattenIcon = new IconifyIcon("bi-layers");
         flattenIcon.setIconSize(14);
         flattenTab.setGraphic(flattenIcon);
         flattenTab.getStyleClass().add("utility-tab");

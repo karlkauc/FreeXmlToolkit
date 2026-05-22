@@ -65,6 +65,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controller.controls.ValidationErrorRenderer;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.BatchValidationFile;
 import org.fxt.freexmltoolkit.domain.ValidationStatus;
@@ -72,7 +73,6 @@ import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.xml.sax.SAXParseException;
 
 /**
@@ -111,7 +111,7 @@ public class XsdValidationController implements FavoritesParentController {
     @FXML
     private HBox statusPane;
     @FXML
-    private FontIcon statusIcon;
+    private IconifyIcon statusIcon;
     @FXML
     private Label statusLabel;
 
@@ -691,7 +691,7 @@ public class XsdValidationController implements FavoritesParentController {
         // Create header with filename
         Label fileLabel = new Label("File: " + currentFile.getName());
         fileLabel.getStyleClass().add("validation-file-header");
-        FontIcon fileIcon = new FontIcon("bi-file-earmark-code");
+        IconifyIcon fileIcon = new IconifyIcon("bi-file-earmark-code");
         fileIcon.setIconSize(16);
         fileLabel.setGraphic(fileIcon);
         fileLabel.setGraphicTextGap(8);
@@ -701,7 +701,7 @@ public class XsdValidationController implements FavoritesParentController {
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         Label timestampLabel = new Label("Validated: " + timestamp);
         timestampLabel.getStyleClass().addAll("theme-text-secondary", "label-small");
-        FontIcon clockIcon = new FontIcon("bi-clock");
+        IconifyIcon clockIcon = new IconifyIcon("bi-clock");
         clockIcon.setIconSize(14);
         clockIcon.setIconColor(Color.web("#6c757d"));
         timestampLabel.setGraphic(clockIcon);
@@ -925,8 +925,8 @@ public class XsdValidationController implements FavoritesParentController {
             button.getStyleClass().add(compactClass);
         }
 
-        // Update icon size if the button has a FontIcon graphic
-        if (button.getGraphic() instanceof FontIcon fontIcon) {
+        // Update icon size if the button has a IconifyIcon graphic
+        if (button.getGraphic() instanceof IconifyIcon fontIcon) {
             fontIcon.setIconSize(iconSize);
         }
     }
@@ -1181,7 +1181,7 @@ public class XsdValidationController implements FavoritesParentController {
                         setStyle("");
                     } else {
                         setText(status.getDisplayText());
-                        FontIcon icon = new FontIcon(status.getIconLiteral());
+                        IconifyIcon icon = new IconifyIcon(status.getIconLiteral());
                         icon.setIconColor(Color.web(status.getColor()));
                         icon.setIconSize(14);
                         setGraphic(icon);
@@ -1517,7 +1517,7 @@ public class XsdValidationController implements FavoritesParentController {
         HBox statusBox = new HBox(5);
         statusBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         Label statusLabel = new Label("Status: " + file.getStatus().getDisplayText());
-        FontIcon statusIcon = new FontIcon(file.getStatus().getIconLiteral());
+        IconifyIcon statusIcon = new IconifyIcon(file.getStatus().getIconLiteral());
         statusIcon.setIconColor(Color.web(file.getStatus().getColor()));
         statusIcon.setIconSize(16);
         statusBox.getChildren().addAll(statusIcon, statusLabel);

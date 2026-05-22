@@ -77,6 +77,7 @@ import javafx.stage.Window;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2Factory;
 import org.fxt.freexmltoolkit.controls.v2.editor.services.MutableXmlSchemaProvider;
@@ -90,7 +91,6 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Controller for the Advanced XSLT Developer - Revolutionary Feature #2
@@ -890,7 +890,7 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         for (File file : recentFiles) {
             MenuItem menuItem = new MenuItem(file.getName());
-            menuItem.setGraphic(new FontIcon("bi-file-earmark-code"));
+            menuItem.setGraphic(new IconifyIcon("bi-file-earmark-code"));
             menuItem.setOnAction(e -> {
                 loadXsltFileInternal(file);
                 showContent();
@@ -904,7 +904,7 @@ public class XsltDeveloperController implements FavoritesParentController {
         // Add separator and clear option
         recentFilesMenuBtn.getItems().add(new SeparatorMenuItem());
         MenuItem clearItem = new MenuItem("Clear Recent Files");
-        clearItem.setGraphic(new FontIcon("bi-trash"));
+        clearItem.setGraphic(new IconifyIcon("bi-trash"));
         clearItem.setOnAction(e -> clearRecentFiles());
         recentFilesMenuBtn.getItems().add(clearItem);
     }
@@ -966,7 +966,7 @@ public class XsltDeveloperController implements FavoritesParentController {
         }
         for (java.io.File file : xsltFiles) {
             MenuItem item = new MenuItem(file.getName());
-            item.setGraphic(new FontIcon("bi-file-earmark-code"));
+            item.setGraphic(new IconifyIcon("bi-file-earmark-code"));
             Tooltip.install(item.getGraphic(), new Tooltip(file.getAbsolutePath()));
             item.setOnAction(e -> {
                 loadXsltFileInternal(file);
@@ -1037,7 +1037,7 @@ public class XsltDeveloperController implements FavoritesParentController {
 
         // Delete Button
         Button deleteBtn = new Button();
-        deleteBtn.setGraphic(new FontIcon("bi-trash"));
+        deleteBtn.setGraphic(new IconifyIcon("bi-trash"));
         deleteBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
         deleteBtn.setTooltip(new Tooltip("Remove parameter"));
         deleteBtn.setOnAction(e -> removeParameter(param, row));
@@ -2689,8 +2689,8 @@ public class XsltDeveloperController implements FavoritesParentController {
         // Apply compact style
         button.setStyle(style);
 
-        // Update icon size if the button has a FontIcon graphic
-        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+        // Update icon size if the button has a IconifyIcon graphic
+        if (button.getGraphic() instanceof org.fxt.freexmltoolkit.controls.icons.IconifyIcon fontIcon) {
             fontIcon.setIconSize(iconSize);
         }
     }
@@ -2818,7 +2818,7 @@ public class XsltDeveloperController implements FavoritesParentController {
     private Button makeDebugButton(String text, String iconLiteral, String color,
                                     String tooltip, Runnable handler) {
         Button btn = new Button(text);
-        org.kordamp.ikonli.javafx.FontIcon fi = new org.kordamp.ikonli.javafx.FontIcon(iconLiteral);
+        org.fxt.freexmltoolkit.controls.icons.IconifyIcon fi = new org.fxt.freexmltoolkit.controls.icons.IconifyIcon(iconLiteral);
         fi.setIconSize(16);
         try {
             fi.setIconColor(javafx.scene.paint.Color.web(color));

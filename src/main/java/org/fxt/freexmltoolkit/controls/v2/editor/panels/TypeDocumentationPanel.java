@@ -27,9 +27,9 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Reusable panel for editing type documentation (multi-language) and AppInfo.
@@ -78,7 +78,7 @@ public class TypeDocumentationPanel extends BorderPane {
         documentationEditor = new InlineDocumentationEditor(editorContext);
         TitledPane documentationPane = new TitledPane("Documentation", documentationEditor);
         documentationPane.setExpanded(true);
-        documentationPane.setGraphic(new FontIcon("bi-file-text"));
+        documentationPane.setGraphic(new IconifyIcon("bi-file-text"));
 
         // AppInfo TitledPane with embedded AppInfoEditorPanel
         TitledPane appInfoPane = createAppInfoPane();
@@ -109,7 +109,7 @@ public class TypeDocumentationPanel extends BorderPane {
         VBox.setVgrow(appInfoPanel, Priority.ALWAYS);
 
         TitledPane pane = new TitledPane("Application Info (AppInfo)", content);
-        pane.setGraphic(new FontIcon("bi-gear"));
+        pane.setGraphic(new IconifyIcon("bi-gear"));
         return pane;
     }
 

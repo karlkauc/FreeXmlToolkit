@@ -1,5 +1,15 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.event.Event;
@@ -19,19 +29,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
-import org.kordamp.ikonli.javafx.FontIcon;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * A {@link Tab} that hosts the side-by-side compare & merge view.
@@ -92,7 +93,7 @@ public final class DiffView extends Tab {
         gutter = new DiffGutter(leftArea, rightArea, this::applyChunk);
 
         setText("Compare: " + leftDisplayName + " ↔ " + rightDisplayName);
-        setGraphic(new FontIcon("bi-files"));
+        setGraphic(new IconifyIcon("bi-files"));
         setContent(buildLayout());
 
         installSyncScroll();
@@ -154,7 +155,7 @@ public final class DiffView extends Tab {
 
     private static Button makeButton(String text, String iconLiteral, String iconColor, String tip) {
         Button b = new Button(text);
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(20);
         icon.setIconColor(javafx.scene.paint.Color.web(iconColor));
         b.setGraphic(icon);

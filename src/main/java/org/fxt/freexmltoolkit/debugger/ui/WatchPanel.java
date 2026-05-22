@@ -13,8 +13,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.debugger.WatchExpression;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Compact panel for user-defined XPath watch expressions evaluated at every
@@ -50,7 +51,7 @@ public class WatchPanel extends VBox {
         deleteCol.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
             private final Button btn = new Button();
             {
-                FontIcon fi = new FontIcon("bi-x-circle");
+                IconifyIcon fi = new IconifyIcon("bi-x-circle");
                 fi.setIconSize(12);
                 btn.setGraphic(fi);
                 btn.getStyleClass().add("btn-flat");
@@ -75,7 +76,7 @@ public class WatchPanel extends VBox {
 
         input.setPromptText("XPath expression (e.g. count(*))");
         Button addBtn = new Button();
-        FontIcon addIcon = new FontIcon("bi-plus-circle");
+        IconifyIcon addIcon = new IconifyIcon("bi-plus-circle");
         addIcon.setIconSize(14);
         addBtn.setGraphic(addIcon);
         addBtn.setTooltip(new javafx.scene.control.Tooltip("Add watch expression"));

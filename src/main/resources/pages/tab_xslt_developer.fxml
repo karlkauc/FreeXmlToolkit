@@ -33,7 +33,7 @@
         <!-- File Operations Group -->
         <Button fx:id="loadXmlBtn" text="Open XML" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open XML File"/>
@@ -42,7 +42,7 @@
 
         <Button fx:id="loadXsltBtn" text="Open XSLT" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#loadXsltFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open XSLT Stylesheet"/>
@@ -51,7 +51,7 @@
 
         <MenuButton fx:id="recentFilesMenuBtn" text="Recent" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon"/>
+                <IconifyIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Recently Opened XSLT Files"/>
@@ -60,7 +60,7 @@
 
         <MenuButton fx:id="fundsxmlXsltMenuBtn" text="FundsXML XSLT" contentDisplay="LEFT" styleClass="toolbar-button" visible="false" managed="false">
             <graphic>
-                <FontIcon iconLiteral="bi-collection" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-collection" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Load XSLT from FundsXML Cache"/>
@@ -72,7 +72,7 @@
         <!-- Transform Action -->
         <Button fx:id="transformBtn" text="Transform" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#executeTransformation">
             <graphic>
-                <FontIcon iconLiteral="bi-play-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-play-fill" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Execute Transformation (F5 or Ctrl+R)"/>
@@ -81,7 +81,7 @@
 
         <ToggleButton fx:id="liveTransformToggle" text="Live" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-lightning" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-lightning" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle Live Transform (Ctrl+L)"/>
@@ -93,7 +93,7 @@
         <!-- Favorites Group -->
         <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add to Favorites (Ctrl+D)"/>
@@ -102,7 +102,7 @@
 
         <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Show/Hide Favorites (Ctrl+Shift+D)"/>
@@ -114,7 +114,7 @@
         <!-- Help -->
         <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
@@ -127,24 +127,24 @@
         <!-- Empty State -->
         <VBox fx:id="emptyStatePane" spacing="20" alignment="CENTER" styleClass="empty-state"
               visible="true" managed="true">
-            <FontIcon iconLiteral="bi-arrow-repeat" iconSize="64" iconColor="#adb5bd"/>
+            <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="64" iconColor="#adb5bd"/>
             <Label text="Ready to Transform XML" styleClass="empty-state-title"/>
             <Label text="Load XML and XSLT/XQuery files to transform your documents" wrapText="true" textAlignment="CENTER"
                    styleClass="empty-state-description" maxWidth="400"/>
             <HBox spacing="10" alignment="CENTER">
                 <Button fx:id="emptyStateLoadXmlButton" text="Open XML File" styleClass="btn-primary">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="white"/>
                     </graphic>
                 </Button>
                 <Button fx:id="emptyStateLoadXsltButton" text="Open XSLT File" styleClass="btn-secondary">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-text" iconSize="16"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="16"/>
                     </graphic>
                 </Button>
                 <Button fx:id="emptyStateLoadXQueryButton" text="Open XQuery File" styleClass="btn-secondary">
                     <graphic>
-                        <FontIcon iconLiteral="bi-braces" iconSize="16"/>
+                        <IconifyIcon iconLiteral="bi-braces" iconSize="16"/>
                     </graphic>
                 </Button>
             </HBox>
@@ -164,7 +164,7 @@
                 <!-- XML Input Tab -->
                 <Tab text="XML Source" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                     <VBox spacing="8">
                         <!-- Mode Toggle: Single File vs Multi-File -->
@@ -175,13 +175,13 @@
                             <RadioButton fx:id="singleFileMode" text="Single File" toggleGroup="$xmlInputModeGroup"
                                          selected="true" onAction="#switchXmlInputMode">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-file-earmark" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-file-earmark" iconSize="14"/>
                                 </graphic>
                             </RadioButton>
                             <RadioButton fx:id="multiFileMode" text="Multiple Files (Batch)" toggleGroup="$xmlInputModeGroup"
                                          onAction="#switchXmlInputMode">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-files" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-files" iconSize="14"/>
                                 </graphic>
                             </RadioButton>
                             <Region HBox.hgrow="ALWAYS"/>
@@ -197,13 +197,13 @@
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <Button fx:id="innerLoadXmlBtn" text="Open" styleClass="btn-outline" onAction="#loadXmlFile">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                     <Button fx:id="innerValidateXmlBtn" text="Validate" styleClass="btn-warning"
                                             onAction="#validateXml">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-check-circle" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                 </HBox>
@@ -216,7 +216,7 @@
                                 <HBox alignment="CENTER_LEFT" spacing="8">
                                     <Button fx:id="addXmlFilesBtn" text="Add Files" styleClass="btn-outline" onAction="#addXmlFiles">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="14" iconColor="#28a745"/>
+                                            <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="14" iconColor="#28a745"/>
                                         </graphic>
                                         <tooltip>
                                             <Tooltip text="Select multiple XML files"/>
@@ -224,7 +224,7 @@
                                     </Button>
                                     <Button fx:id="addXmlDirectoryBtn" text="Add Directory" styleClass="btn-outline" onAction="#addXmlDirectory">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-folder-plus" iconSize="14" iconColor="#007bff"/>
+                                            <IconifyIcon iconLiteral="bi-folder-plus" iconSize="14" iconColor="#007bff"/>
                                         </graphic>
                                         <tooltip>
                                             <Tooltip text="Add all XML files from a directory"/>
@@ -233,7 +233,7 @@
                                     <Separator orientation="VERTICAL"/>
                                     <Button fx:id="removeSelectedFilesBtn" text="Remove" styleClass="btn-outline" onAction="#removeSelectedFiles">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-trash" iconSize="14" iconColor="#dc3545"/>
+                                            <IconifyIcon iconLiteral="bi-trash" iconSize="14" iconColor="#dc3545"/>
                                         </graphic>
                                         <tooltip>
                                             <Tooltip text="Remove selected files"/>
@@ -241,7 +241,7 @@
                                     </Button>
                                     <Button fx:id="clearAllFilesBtn" text="Clear All" styleClass="btn-outline" onAction="#clearAllFiles">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-x-circle" iconSize="14" iconColor="#6c757d"/>
+                                            <IconifyIcon iconLiteral="bi-x-circle" iconSize="14" iconColor="#6c757d"/>
                                         </graphic>
                                     </Button>
                                     <Region HBox.hgrow="ALWAYS"/>
@@ -260,7 +260,7 @@
                                     </columns>
                                     <placeholder>
                                         <VBox spacing="10" alignment="CENTER" styleClass="empty-state">
-                                            <FontIcon iconLiteral="bi-files" iconSize="64" iconColor="#adb5bd"/>
+                                            <IconifyIcon iconLiteral="bi-files" iconSize="64" iconColor="#adb5bd"/>
                                             <Label text="No XML files added" styleClass="placeholder-title"/>
                                             <Label text="Use 'Add Files' or 'Add Directory' to select files for batch processing"
                                                    styleClass="placeholder-description" wrapText="true" textAlignment="CENTER"/>
@@ -275,7 +275,7 @@
                 <!-- XSLT Stylesheet Tab -->
                 <Tab fx:id="xsltStylesheetTab" text="XSLT Stylesheet" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-text" iconSize="16" iconColor="#fd7e14"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="16" iconColor="#fd7e14"/>
                     </graphic>
                     <VBox spacing="8">
                         <HBox alignment="CENTER_LEFT" spacing="10">
@@ -283,18 +283,18 @@
                             <Region HBox.hgrow="ALWAYS"/>
                             <Button fx:id="innerLoadXsltBtn" text="Open" styleClass="btn-outline" onAction="#loadXsltFile">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="innerSaveXsltBtn" text="Save" styleClass="btn-outline" onAction="#saveXsltFile">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-save" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-save" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="innerValidateXsltBtn" text="Validate" styleClass="btn-warning"
                                     onAction="#validateXslt">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-check-circle" iconSize="14"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -306,7 +306,7 @@
                 <!-- XQuery Script Tab -->
                 <Tab fx:id="xqueryScriptTab" text="XQuery Script" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-braces" iconSize="16" iconColor="#6f42c1"/>
+                        <IconifyIcon iconLiteral="bi-braces" iconSize="16" iconColor="#6f42c1"/>
                     </graphic>
                     <VBox spacing="8">
                         <HBox alignment="CENTER_LEFT" spacing="10">
@@ -314,37 +314,37 @@
                             <Region HBox.hgrow="ALWAYS"/>
                             <Button fx:id="innerLoadXQueryBtn" text="Open" styleClass="btn-outline" onAction="#loadXQueryFile">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="innerSaveXQueryBtn" text="Save" styleClass="btn-outline" onAction="#saveXQueryFile">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-save" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-save" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="innerValidateXQueryBtn" text="Validate" styleClass="btn-warning"
                                     onAction="#validateXQuery">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-check-circle" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <MenuButton fx:id="xqueryExamplesMenu" text="Examples" styleClass="btn-outline">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-collection" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-collection" iconSize="14"/>
                                 </graphic>
                                 <items>
                                     <MenuItem text="Simple Query" onAction="#insertXQueryExampleSimple">
-                                        <graphic><FontIcon iconLiteral="bi-code" iconSize="14" iconColor="#007bff"/></graphic>
+                                        <graphic><IconifyIcon iconLiteral="bi-code" iconSize="14" iconColor="#007bff"/></graphic>
                                     </MenuItem>
                                     <MenuItem text="FLWOR Expression" onAction="#insertXQueryExampleFlwor">
-                                        <graphic><FontIcon iconLiteral="bi-braces" iconSize="14" iconColor="#6f42c1"/></graphic>
+                                        <graphic><IconifyIcon iconLiteral="bi-braces" iconSize="14" iconColor="#6f42c1"/></graphic>
                                     </MenuItem>
                                     <MenuItem text="HTML Report" onAction="#insertXQueryExampleHtmlReport">
-                                        <graphic><FontIcon iconLiteral="bi-file-earmark-code" iconSize="14" iconColor="#e44d26"/></graphic>
+                                        <graphic><IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="14" iconColor="#e44d26"/></graphic>
                                     </MenuItem>
                                     <SeparatorMenuItem/>
                                     <MenuItem text="Data Quality Check" onAction="#insertXQueryExampleDqCheck">
-                                        <graphic><FontIcon iconLiteral="bi-check2-square" iconSize="14" iconColor="#28a745"/></graphic>
+                                        <graphic><IconifyIcon iconLiteral="bi-check2-square" iconSize="14" iconColor="#28a745"/></graphic>
                                     </MenuItem>
                                 </items>
                             </MenuButton>
@@ -357,7 +357,7 @@
                 <!-- Parameters Tab -->
                 <Tab text="Parameters" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-gear" iconSize="16" iconColor="#6c757d"/>
+                        <IconifyIcon iconLiteral="bi-gear" iconSize="16" iconColor="#6c757d"/>
                     </graphic>
                     <VBox spacing="10">
                         <padding>
@@ -369,7 +369,7 @@
                             <Button fx:id="addParameterBtn" text="Add" styleClass="btn-primary"
                                     onAction="#addParameter">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-plus-circle" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -416,7 +416,7 @@
                 <!-- Transformation Result Tab -->
                 <Tab text="Result" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                     <VBox spacing="8">
                         <!-- Batch Result Controls (visible only in multi-file mode) -->
@@ -428,7 +428,7 @@
                             <RadioButton fx:id="combinedResultMode" text="Combined" toggleGroup="$resultViewModeGroup"
                                          selected="true" onAction="#switchResultViewMode">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-collection" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-collection" iconSize="14"/>
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Show combined output from all files"/>
@@ -437,7 +437,7 @@
                             <RadioButton fx:id="perFileResultMode" text="Per File" toggleGroup="$resultViewModeGroup"
                                          onAction="#switchResultViewMode">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-file-earmark-text" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="14"/>
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Show results for each file individually"/>
@@ -456,7 +456,7 @@
                             <Region HBox.hgrow="ALWAYS"/>
                             <Button fx:id="copyResultBtn" text="Copy" styleClass="btn-outline" onAction="#copyResult">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/>
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Copy Result (Ctrl+Shift+C)"/>
@@ -464,7 +464,7 @@
                             </Button>
                             <Button fx:id="saveResultBtn" text="Save" styleClass="btn-outline" onAction="#saveResult">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-save" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-save" iconSize="14"/>
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Save Result (Ctrl+Alt+S)"/>
@@ -473,7 +473,7 @@
                             <Button fx:id="saveAllResultsBtn" text="Save All" styleClass="btn-outline"
                                     onAction="#saveAllBatchResults" visible="false" managed="false">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-download" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-download" iconSize="14"/>
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Save all batch results to files"/>
@@ -489,7 +489,7 @@
                 <!-- Live Preview Tab -->
                 <Tab text="Live Preview" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-eye" iconSize="16" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-eye" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                     <VBox spacing="5">
                         <HBox alignment="CENTER_LEFT" spacing="10">
@@ -498,7 +498,7 @@
                             <Button fx:id="refreshPreviewBtn" text="Refresh" styleClass="btn-outline"
                                     onAction="#refreshPreview">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="14"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -510,7 +510,7 @@
                 <!-- Performance Tab -->
                 <Tab text="Performance" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-speedometer2" iconSize="16" iconColor="#ffc107"/>
+                        <IconifyIcon iconLiteral="bi-speedometer2" iconSize="16" iconColor="#ffc107"/>
                     </graphic>
                     <VBox spacing="10">
                         <HBox spacing="20">
@@ -551,7 +551,7 @@
                 <!-- Live Debugger Tab (interactive XSLT debugger with breakpoints, step, variables) -->
                 <Tab text="Live Debugger" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-bug-fill" iconSize="16" iconColor="#dc3545"/>
+                        <IconifyIcon iconLiteral="bi-bug-fill" iconSize="16" iconColor="#dc3545"/>
                     </graphic>
                     <StackPane fx:id="debugPanelRoot"/>
                 </Tab>
@@ -559,7 +559,7 @@
                 <!-- Debug Tab -->
                 <Tab text="Debug" closable="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-bug" iconSize="16" iconColor="#dc3545"/>
+                        <IconifyIcon iconLiteral="bi-bug" iconSize="16" iconColor="#dc3545"/>
                     </graphic>
                     <VBox spacing="10">
                         <HBox alignment="CENTER_LEFT" spacing="10">
@@ -568,7 +568,7 @@
                             <CheckBox fx:id="enableDebugMode" text="Enable Debug Mode"/>
                             <Button fx:id="clearDebugBtn" text="Clear" styleClass="btn-outline" onAction="#clearDebug">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                                 </graphic>
                             </Button>
                         </HBox>

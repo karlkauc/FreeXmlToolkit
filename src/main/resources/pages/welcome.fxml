@@ -44,7 +44,7 @@
                 <padding>
                     <Insets bottom="12" left="16" right="16" top="12"/>
                 </padding>
-                <FontIcon iconLiteral="bi-info-circle-fill" iconSize="16" iconColor="#0ea5e9"/>
+                <IconifyIcon iconLiteral="bi-info-circle-fill" iconSize="16" iconColor="#0ea5e9"/>
                 <Label text="An update is available!" style="-fx-font-weight: bold"/>
                 <Hyperlink fx:id="updateLink" onAction="#openUpdatePage" text="Download latest version"/>
             </HBox>
@@ -61,14 +61,14 @@
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
                       onMouseClicked="#createNewXmlFile">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-blue">
-                        <FontIcon iconLiteral="bi-plus" iconSize="24" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-plus" iconSize="24" iconColor="#2563eb"/>
                     </StackPane>
                     <Label text="New XML File" styleClass="action-card-title"/>
                     <Label text="Create a blank XML document." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
                         <Label text="Create File" styleClass="action-link-text"/>
-                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
@@ -76,14 +76,14 @@
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
                       onMouseClicked="#openXsdTools">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-purple">
-                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="24" iconColor="#9333ea"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="24" iconColor="#9333ea"/>
                     </StackPane>
                     <Label text="XSD Schema Editor" styleClass="action-card-title"/>
                     <Label text="Design schemas visually or via code." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
                         <Label text="Open Editor" styleClass="action-link-text"/>
-                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
@@ -91,14 +91,14 @@
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
                       onMouseClicked="#openValidation">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-green">
-                        <FontIcon iconLiteral="bi-file-earmark-check" iconSize="24" iconColor="#16a34a"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-check" iconSize="24" iconColor="#16a34a"/>
                     </StackPane>
                     <Label text="Validate Document" styleClass="action-card-title"/>
                     <Label text="Validate against XSD or DTD." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
                         <Label text="Run Validation" styleClass="action-link-text"/>
-                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
@@ -106,14 +106,14 @@
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
                       onMouseClicked="#openXsltDeveloper">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-yellow">
-                        <FontIcon iconLiteral="bi-arrow-repeat" iconSize="24" iconColor="#d97706"/>
+                        <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="24" iconColor="#d97706"/>
                     </StackPane>
                     <Label text="XSLT Developer" styleClass="action-card-title"/>
                     <Label text="Transform XML with XSLT." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
                         <Label text="Open XSLT" styleClass="action-link-text"/>
-                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
             </HBox>
@@ -124,14 +124,14 @@
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
                       onMouseClicked="#openJsonEditor">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-orange">
-                        <FontIcon iconLiteral="bi-braces" iconSize="24" iconColor="#ea580c"/>
+                        <IconifyIcon iconLiteral="bi-braces" iconSize="24" iconColor="#ea580c"/>
                     </StackPane>
                     <Label text="JSON Editor" styleClass="action-card-title"/>
                     <Label text="Edit, validate and query JSON." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
                         <Label text="Open JSON Editor" styleClass="action-link-text"/>
-                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
@@ -139,14 +139,14 @@
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
                       onMouseClicked="#openSchematron">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-pink">
-                        <FontIcon iconLiteral="bi-shield-check" iconSize="24" iconColor="#be185d"/>
+                        <IconifyIcon iconLiteral="bi-shield-check" iconSize="24" iconColor="#be185d"/>
                     </StackPane>
                     <Label text="Schematron" styleClass="action-card-title"/>
                     <Label text="Validate with business rules." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
                         <Label text="Open Schematron" styleClass="action-link-text"/>
-                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
@@ -154,14 +154,14 @@
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
                       onMouseClicked="#openSchemaGenerator">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-cyan">
-                        <FontIcon iconLiteral="bi-diagram-3" iconSize="24" iconColor="#0891b2"/>
+                        <IconifyIcon iconLiteral="bi-diagram-3" iconSize="24" iconColor="#0891b2"/>
                     </StackPane>
                     <Label text="Schema Generator" styleClass="action-card-title"/>
                     <Label text="Generate XSD from XML." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
                         <Label text="Generate Schema" styleClass="action-link-text"/>
-                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
@@ -169,14 +169,14 @@
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
                       onMouseClicked="#openFop">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-violet">
-                        <FontIcon iconLiteral="bi-printer" iconSize="24" iconColor="#7c3aed"/>
+                        <IconifyIcon iconLiteral="bi-printer" iconSize="24" iconColor="#7c3aed"/>
                     </StackPane>
                     <Label text="PDF Generation" styleClass="action-card-title"/>
                     <Label text="Generate PDFs with Apache FOP." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
                         <Label text="Open FOP" styleClass="action-link-text"/>
-                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
@@ -184,14 +184,14 @@
                 <VBox styleClass="action-card" spacing="8" HBox.hgrow="ALWAYS" minHeight="160" maxHeight="160"
                       onMouseClicked="#openSignature">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-amber">
-                        <FontIcon iconLiteral="bi-key" iconSize="24" iconColor="#ca8a04"/>
+                        <IconifyIcon iconLiteral="bi-key" iconSize="24" iconColor="#ca8a04"/>
                     </StackPane>
                     <Label text="XML Signature" styleClass="action-card-title"/>
                     <Label text="Sign and verify XML documents." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
                         <Label text="Open Signature" styleClass="action-link-text"/>
-                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
 
@@ -200,14 +200,14 @@
                       minHeight="160" maxHeight="160" visible="false" managed="false"
                       onMouseClicked="#openFundsXmlExtensions">
                     <StackPane styleClass="action-card-icon-wrapper, action-card-icon-green">
-                        <FontIcon iconLiteral="bi-collection" iconSize="24" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-collection" iconSize="24" iconColor="#28a745"/>
                     </StackPane>
                     <Label text="FundsXML Extensions" styleClass="action-card-title"/>
                     <Label text="Browse downloaded FundsXML examples and schemas." styleClass="action-card-description" wrapText="true"/>
                     <Region VBox.vgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" spacing="4" styleClass="action-card-link">
                         <Label text="Open FundsXML" styleClass="action-link-text"/>
-                        <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                        <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                     </HBox>
                 </VBox>
             </HBox>
@@ -225,7 +225,7 @@
                 <VBox HBox.hgrow="ALWAYS" spacing="0" styleClass="recent-projects-card" minWidth="400">
                     <!-- Header -->
                     <HBox alignment="CENTER_LEFT" spacing="8" styleClass="recent-projects-header">
-                        <FontIcon iconLiteral="bi-file-earmark-text" iconSize="18" iconColor="#6b7280"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="18" iconColor="#6b7280"/>
                         <Label text="Recent Projects" styleClass="section-title"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Hyperlink text="View all" onAction="#openRecentFilesDialog"/>
@@ -233,7 +233,7 @@
 
                     <!-- Drag & Drop Area -->
                     <VBox fx:id="dragDropArea" alignment="CENTER" spacing="8" styleClass="drag-drop-area">
-                        <FontIcon iconLiteral="bi-cloud-arrow-up" iconSize="20" iconColor="#9ca3af"/>
+                        <IconifyIcon iconLiteral="bi-cloud-arrow-up" iconSize="20" iconColor="#9ca3af"/>
                         <Label text="Drag &amp; drop files here to open quickly" styleClass="drag-drop-text"/>
                     </VBox>
 
@@ -250,7 +250,7 @@
                     <!-- Empty State Placeholder -->
                     <VBox fx:id="emptyFilesPlaceholder" alignment="CENTER" spacing="8"
                           managed="false" visible="false" minHeight="150" styleClass="empty-state">
-                        <FontIcon iconLiteral="bi-folder2-open" iconSize="64" iconColor="#9ca3af"/>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="64" iconColor="#9ca3af"/>
                         <Label text="No recent files" styleClass="empty-state-title"/>
                         <Label text="Open a file or drag and drop one here to get started." styleClass="empty-state-description"/>
                     </VBox>
@@ -269,19 +269,19 @@
                         <VBox spacing="8">
                             <HBox alignment="CENTER_LEFT" spacing="8">
                                 <StackPane styleClass="update-check-icon">
-                                    <FontIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
+                                    <IconifyIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
                                 </StackPane>
                                 <Label text="NEW: JSON Editor with Tree View" styleClass="update-item-text"/>
                             </HBox>
                             <HBox alignment="CENTER_LEFT" spacing="8">
                                 <StackPane styleClass="update-check-icon">
-                                    <FontIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
+                                    <IconifyIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
                                 </StackPane>
                                 <Label text="JSONPath Queries &amp; Schema Validation" styleClass="update-item-text"/>
                             </HBox>
                             <HBox alignment="CENTER_LEFT" spacing="8">
                                 <StackPane styleClass="update-check-icon">
-                                    <FontIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
+                                    <IconifyIcon iconLiteral="bi-check" iconSize="12" iconColor="#16a34a"/>
                                 </StackPane>
                                 <Label text="Support for JSONC and JSON5" styleClass="update-item-text"/>
                             </HBox>
@@ -289,7 +289,7 @@
 
                         <HBox alignment="CENTER_LEFT" spacing="4" styleClass="changelog-link">
                             <Hyperlink text="Read Changelog" onAction="#openChangelog"/>
-                            <FontIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
+                            <IconifyIcon iconLiteral="bi-arrow-right" iconSize="14" iconColor="#2563eb"/>
                         </HBox>
                     </VBox>
 
@@ -302,12 +302,12 @@
             <Separator/>
             <HBox alignment="CENTER" spacing="30">
                 <HBox alignment="CENTER_LEFT" spacing="5">
-                    <FontIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
+                    <IconifyIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#6c757d"/>
                     <Label fx:id="versionLabel" text="Version: loading..."
                            styleClass="footer-label"/>
                 </HBox>
                 <HBox alignment="CENTER_LEFT" spacing="5">
-                    <FontIcon iconLiteral="bi-clock" iconSize="14" iconColor="#6c757d"/>
+                    <IconifyIcon iconLiteral="bi-clock" iconSize="14" iconColor="#6c757d"/>
                     <Label fx:id="durationLabel" text="Total usage time: loading..."
                            styleClass="footer-label"/>
                 </HBox>

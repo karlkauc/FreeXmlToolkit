@@ -14,7 +14,7 @@
         <!-- File Operations Group -->
         <Button fx:id="newSchematronFileButton" text="New" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#newSchematronFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Create New Schematron File"/>
@@ -23,7 +23,7 @@
 
         <Button fx:id="loadSchematronFileButton" text="Open" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#loadSchematronFile">
             <graphic>
-                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open Schematron File"/>
@@ -32,7 +32,7 @@
 
         <Button fx:id="saveSchematronButton" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveSchematron">
             <graphic>
-                <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save Schematron File (Ctrl+S)"/>
@@ -41,7 +41,7 @@
 
         <Button fx:id="saveAsSchematronButton" text="Save As" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#saveAsSchematron">
             <graphic>
-                <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save As... (Ctrl+Shift+S)"/>
@@ -53,7 +53,7 @@
         <!-- Editing Group -->
         <Button fx:id="newRuleButton" text="Add Rule" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add New Rule (Ctrl+R)"/>
@@ -65,7 +65,7 @@
         <!-- Favorites Group -->
         <Button fx:id="addToFavoritesBtn" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add to Favorites (Ctrl+D)"/>
@@ -74,7 +74,7 @@
 
         <Button fx:id="toggleFavoritesButton" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Show/Hide Favorites (Ctrl+Shift+D)"/>
@@ -86,7 +86,7 @@
         <!-- Help -->
         <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
@@ -102,14 +102,14 @@
         <!-- Code Editor Tab -->
         <Tab fx:id="codeTab" text="Code" closable="false" styleClass="primary-tab">
             <graphic>
-                <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                <IconifyIcon iconLiteral="bi-code-slash" iconSize="16"/>
             </graphic>
             <VBox spacing="0">
                 <!-- Toolbar -->
                 <ToolBar fx:id="toolbar">
                     <Button fx:id="innerLoadSchematronFileButton" text="Load Schematron" onAction="#loadSchematronFile">
                         <graphic>
-                            <FontIcon iconLiteral="bi-folder2-open" iconColor="#007bff" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-folder2-open" iconColor="#007bff" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Load an existing Schematron file"/>
@@ -118,7 +118,7 @@
 
                     <Button fx:id="innerNewSchematronFileButton" text="New File" onAction="#newSchematronFile">
                         <graphic>
-                            <FontIcon iconLiteral="bi-file-earmark-plus" iconColor="#28a745" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-plus" iconColor="#28a745" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Create a new empty Schematron file"/>
@@ -127,7 +127,7 @@
 
                     <Button fx:id="innerSaveSchematronButton" text="Save" onAction="#saveSchematron">
                         <graphic>
-                            <FontIcon iconLiteral="bi-save" iconColor="#6c757d" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-save" iconColor="#6c757d" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Save current Schematron file"/>
@@ -136,7 +136,7 @@
 
                     <Button fx:id="innerSaveAsSchematronButton" text="Save As" onAction="#saveAsSchematron">
                         <graphic>
-                            <FontIcon iconLiteral="bi-hdd-fill" iconColor="#17a2b8" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-hdd-fill" iconColor="#17a2b8" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Save Schematron file with new name"/>
@@ -147,7 +147,7 @@
 
                     <Button fx:id="innerNewRuleButton" text="New Rule">
                         <graphic>
-                            <FontIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Insert a new rule template"/>
@@ -156,7 +156,7 @@
 
                     <Button fx:id="innerNewPatternButton" text="New Pattern">
                         <graphic>
-                            <FontIcon iconLiteral="bi-collection" iconColor="#007bff" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-collection" iconColor="#007bff" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Insert a new pattern template"/>
@@ -167,7 +167,7 @@
 
                     <Button fx:id="innerFormatButton" text="Format" onAction="#formatSchematron">
                         <graphic>
-                            <FontIcon iconLiteral="bi-code" iconColor="#6f42c1" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-code" iconColor="#6f42c1" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Format Schematron XML"/>
@@ -176,7 +176,7 @@
 
                     <Button fx:id="innerValidateButton" text="Validate">
                         <graphic>
-                            <FontIcon iconLiteral="bi-check-circle" iconColor="#17a2b8" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-check-circle" iconColor="#17a2b8" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Validate Schematron syntax"/>
@@ -185,7 +185,7 @@
 
                     <Button fx:id="innerTestRulesButton" text="Test Rules">
                         <graphic>
-                            <FontIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Test rules against XML files"/>
@@ -247,7 +247,7 @@
                                 <ListView prefHeight="100">
                                     <placeholder>
                                         <VBox alignment="CENTER" spacing="5">
-                                            <FontIcon iconLiteral="bi-file-earmark-code" iconColor="#ced4da"
+                                            <IconifyIcon iconLiteral="bi-file-earmark-code" iconColor="#ced4da"
                                                       iconSize="64"/>
                                             <Label text="No schema loaded yet"
                                                    styleClass="theme-text-secondary,label-small"/>
@@ -272,7 +272,7 @@
                                            styleClass="label-small"/>
                                 <Button text="Test" styleClass="sidebar-btn-xs">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-play" iconSize="10"/>
+                                        <IconifyIcon iconLiteral="bi-play" iconSize="10"/>
                                     </graphic>
                                 </Button>
 
@@ -308,7 +308,7 @@
         <!-- Visual Builder Tab -->
         <Tab fx:id="visualBuilderTab" text="Visual Builder" closable="false" styleClass="primary-tab">
             <graphic>
-                <FontIcon iconLiteral="bi-diagram-3" iconColor="#007bff" iconSize="16"/>
+                <IconifyIcon iconLiteral="bi-diagram-3" iconColor="#007bff" iconSize="16"/>
             </graphic>
 
             <VBox fx:id="visualBuilderContainer" spacing="0" SplitPane.resizableWithParent="true">
@@ -320,13 +320,13 @@
         <!-- Test Tab -->
         <Tab fx:id="testTab" text="Test" closable="false" styleClass="output-tab">
             <graphic>
-                <FontIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="16"/>
+                <IconifyIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="16"/>
             </graphic>
             <VBox spacing="15" styleClass="p-5">
 
                     <!-- Header -->
                     <HBox alignment="CENTER_LEFT" spacing="10">
-                        <FontIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="32"/>
+                        <IconifyIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="32"/>
                         <VBox spacing="5">
                             <Label text="Schematron Testing" styleClass="revolutionary-title"/>
                             <Label text="Test your Schematron rules with XML documents"
@@ -349,19 +349,19 @@
                             <Button fx:id="loadSchemaFromFileButton" text="Load Schema from File"
                                     onAction="#loadSchemaFromFile">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="useCurrentSchemaButton" text="Use Current Schema"
                                     onAction="#useCurrentSchema">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-code-slash" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-code-slash" iconSize="14"/>
                                 </graphic>
                             </Button>
                         </HBox>
                         <!-- Display loaded schema file -->
                         <HBox alignment="CENTER_LEFT" spacing="5">
-                            <FontIcon iconLiteral="bi-file-earmark-check" iconColor="#28a745" iconSize="14"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-check" iconColor="#28a745" iconSize="14"/>
                             <Label text="Loaded Schema:" styleClass="label-bold,label-small"/>
                             <Label fx:id="loadedSchemaLabel" text="None"
                                    styleClass="info-label-secondary,label-small"/>
@@ -377,17 +377,17 @@
                         <HBox spacing="10">
                             <Button fx:id="addXmlFileButton" text="Add XML File" onAction="#addXmlFile">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="addFolderButton" text="Add Folder" onAction="#addFolder">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-folder-plus" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-folder-plus" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="loadSampleXmlsButton" text="Load Samples" onAction="#loadSampleXmls">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-lightbulb" iconColor="#ffc107" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-lightbulb" iconColor="#ffc107" iconSize="14"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -402,12 +402,12 @@
                         <TableView fx:id="testFilesTable" prefHeight="200">
                             <placeholder>
                                 <VBox alignment="CENTER" spacing="10" styleClass="empty-state">
-                                    <FontIcon iconLiteral="bi-inbox" iconColor="#ced4da" iconSize="64"/>
+                                    <IconifyIcon iconLiteral="bi-inbox" iconColor="#ced4da" iconSize="64"/>
                                     <Label text="No test files added" styleClass="theme-text-secondary"/>
                                     <Button fx:id="addFirstXmlFileButton" text="Add First XML File"
                                             onAction="#addXmlFile">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                 </VBox>
@@ -424,17 +424,17 @@
                         <HBox spacing="10">
                             <Button fx:id="addFileButton" text="Add File" onAction="#addXmlFile">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-plus-circle" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="removeSelectedButton" text="Remove Selected" onAction="#removeSelected">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-dash-circle" iconColor="#dc3545" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-dash-circle" iconColor="#dc3545" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="removeAllButton" text="Remove All" onAction="#removeAll">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-trash" iconColor="#dc3545" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-trash" iconColor="#dc3545" iconSize="14"/>
                                 </graphic>
                             </Button>
 
@@ -444,12 +444,12 @@
                             <Button fx:id="runAllTestsButton" text="Run All Tests (F5)" styleClass="label-bold"
                                     onAction="#runAllTests">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-play-fill" iconColor="#28a745" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-play-fill" iconColor="#28a745" iconSize="14"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="testSingleFileButton" text="Test Selected" onAction="#testSingleFile">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-play" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-play" iconSize="14"/>
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Test Selected File (Ctrl+T)"/>
@@ -464,7 +464,7 @@
                             <Label text="Test Results:" styleClass="label-bold,label-large"/>
                             <Button fx:id="exportResultsButton" text="Export Results" onAction="#exportResults">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-download" iconSize="14"/>
+                                    <IconifyIcon iconLiteral="bi-download" iconSize="14"/>
                                 </graphic>
                                 <tooltip>
                                     <Tooltip text="Export Results (Ctrl+E)"/>
@@ -478,7 +478,7 @@
                                     <VBox fx:id="overviewContent" spacing="10" styleClass="p-3">
                                         <!-- Summary will be displayed here -->
                                         <VBox fx:id="overviewPlaceholder" alignment="CENTER" spacing="15" styleClass="empty-state">
-                                            <FontIcon iconLiteral="bi-graph-up" iconColor="#6c757d" iconSize="64"/>
+                                            <IconifyIcon iconLiteral="bi-graph-up" iconColor="#6c757d" iconSize="64"/>
                                             <Label text="Run tests to see an overview of results"
                                                    styleClass="empty-state-description"/>
                                         </VBox>
@@ -491,7 +491,7 @@
                                     <VBox fx:id="detailsContent" spacing="10" styleClass="p-3">
                                         <!-- Detailed results will be displayed here -->
                                         <VBox fx:id="detailsPlaceholder" alignment="CENTER" spacing="15" styleClass="empty-state">
-                                            <FontIcon iconLiteral="bi-list-ul" iconColor="#6c757d" iconSize="64"/>
+                                            <IconifyIcon iconLiteral="bi-list-ul" iconColor="#6c757d" iconSize="64"/>
                                             <Label text="Detailed validation results will be displayed here"
                                                    styleClass="empty-state-description"/>
                                         </VBox>
@@ -504,7 +504,7 @@
                                     <VBox fx:id="errorsContent" spacing="10" styleClass="p-3">
                                         <!-- Errors will be displayed here -->
                                         <VBox fx:id="errorsPlaceholder" alignment="CENTER" spacing="15" styleClass="empty-state">
-                                            <FontIcon iconLiteral="bi-exclamation-triangle" iconColor="#6c757d"
+                                            <IconifyIcon iconLiteral="bi-exclamation-triangle" iconColor="#6c757d"
                                                       iconSize="64"/>
                                             <Label text="Validation errors and rule violations will be listed here"
                                                    styleClass="empty-state-description"/>
@@ -518,7 +518,7 @@
                     <!-- Testing Tips -->
                 <TitledPane text="Testing Tips" expanded="true" collapsible="true" animated="true">
                     <graphic>
-                        <FontIcon iconLiteral="bi-lightbulb" iconColor="#0c5460" iconSize="16"/>
+                        <IconifyIcon iconLiteral="bi-lightbulb" iconColor="#0c5460" iconSize="16"/>
                     </graphic>
                     <VBox spacing="10" styleClass="info-tip-box">
                         <VBox spacing="5">
@@ -539,7 +539,7 @@
         <!-- Documentation Tab -->
         <Tab fx:id="documentationTab" text="Documentation" closable="false" styleClass="utility-tab">
             <graphic>
-                <FontIcon iconLiteral="bi-book" iconColor="#16a34a" iconSize="16"/>
+                <IconifyIcon iconLiteral="bi-book" iconColor="#16a34a" iconSize="16"/>
             </graphic>
             <VBox fx:id="documentationContainer" spacing="0" SplitPane.resizableWithParent="true">
                 <org.fxt.freexmltoolkit.controls.SchematronDocumentationGenerator fx:id="docGenerator"

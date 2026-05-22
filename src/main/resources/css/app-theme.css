@@ -614,7 +614,7 @@
    EMPTY STATE COMPONENT
    ============================================ */
 
-.empty-state .ikonli-font-icon {
+.empty-state .iconify-icon {
     -fx-icon-size: 64;
     -fx-icon-color: -text-muted;
 }

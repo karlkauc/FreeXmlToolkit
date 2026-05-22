@@ -42,8 +42,8 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * A reusable container that wraps sections (typically TitledPanes) and provides:
@@ -164,7 +164,7 @@ public class CustomizableSectionContainer extends VBox {
      */
     public Button createSettingsButton() {
         Button button = new Button();
-        FontIcon gearIcon = new FontIcon("bi-gear");
+        IconifyIcon gearIcon = new IconifyIcon("bi-gear");
         gearIcon.setIconSize(14);
         gearIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
         button.setGraphic(gearIcon);
@@ -379,13 +379,13 @@ public class CustomizableSectionContainer extends VBox {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem hideItem = new MenuItem("Hide \"" + def.displayName() + "\"");
-        FontIcon hideIcon = new FontIcon("bi-eye-slash");
+        IconifyIcon hideIcon = new IconifyIcon("bi-eye-slash");
         hideIcon.setIconSize(14);
         hideItem.setGraphic(hideIcon);
         hideItem.setOnAction(e -> setSectionVisible(sectionId, false));
 
         MenuItem customizeItem = new MenuItem("Customize Sections...");
-        FontIcon customizeIcon = new FontIcon("bi-gear");
+        IconifyIcon customizeIcon = new IconifyIcon("bi-gear");
         customizeIcon.setIconSize(14);
         customizeItem.setGraphic(customizeIcon);
         customizeItem.setOnAction(e -> {

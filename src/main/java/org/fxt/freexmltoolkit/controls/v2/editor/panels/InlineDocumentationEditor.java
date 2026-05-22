@@ -40,11 +40,11 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDocumentationsCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Inline tab-based editor for multi-language XSD documentation.
@@ -108,7 +108,7 @@ public class InlineDocumentationEditor extends VBox implements PropertyChangeLis
         tabBar.getStyleClass().add("doc-tab-bar");
 
         addButton = new Button();
-        FontIcon addIcon = new FontIcon("bi-plus-circle");
+        IconifyIcon addIcon = new IconifyIcon("bi-plus-circle");
         addIcon.setIconSize(14);
         addButton.setGraphic(addIcon);
         addButton.setTooltip(new Tooltip("Add documentation entry"));
@@ -150,7 +150,7 @@ public class InlineDocumentationEditor extends VBox implements PropertyChangeLis
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         deleteButton = new Button("Delete");
-        FontIcon deleteIcon = new FontIcon("bi-trash");
+        IconifyIcon deleteIcon = new IconifyIcon("bi-trash");
         deleteIcon.setIconSize(14);
         deleteButton.setGraphic(deleteIcon);
         deleteButton.getStyleClass().add("btn-danger");
@@ -165,7 +165,7 @@ public class InlineDocumentationEditor extends VBox implements PropertyChangeLis
         emptyState.setPadding(new Insets(20));
         emptyState.getStyleClass().add("doc-empty-state");
 
-        FontIcon emptyIcon = new FontIcon("bi-journal-text");
+        IconifyIcon emptyIcon = new IconifyIcon("bi-journal-text");
         emptyIcon.setIconSize(48);
         emptyIcon.setIconColor(javafx.scene.paint.Color.web("#adb5bd"));
 

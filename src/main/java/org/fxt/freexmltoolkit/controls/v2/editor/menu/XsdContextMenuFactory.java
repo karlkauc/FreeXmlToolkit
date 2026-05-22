@@ -15,6 +15,7 @@ import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAllCommand;
@@ -42,7 +43,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Factory for creating context-sensitive context menus for XSD editor nodes.
@@ -1645,15 +1645,15 @@ public class XsdContextMenuFactory {
     }
 
     /**
-     * Creates a colored FontIcon for menu items.
+     * Creates a colored IconifyIcon for menu items.
      * Matches the style from XmlGraphicEditor for consistent look & feel.
      *
      * @param iconLiteral the icon literal (e.g., "bi-plus-circle")
      * @param color the hex color code (e.g., "#28a745")
-     * @return the configured FontIcon
+     * @return the configured IconifyIcon
      */
-    private FontIcon createColoredIcon(String iconLiteral, String color) {
-        FontIcon icon = new FontIcon(iconLiteral);
+    private IconifyIcon createColoredIcon(String iconLiteral, String color) {
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconColor(Color.web(color));
         icon.setIconSize(12);
         return icon;

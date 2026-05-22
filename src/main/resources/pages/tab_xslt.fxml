@@ -33,7 +33,7 @@
         <!-- File Operations Group -->
         <Button fx:id="reloadBtn" text="Reload" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#checkFiles">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Reload/Transform Files (Ctrl+R)"/>
@@ -45,7 +45,7 @@
         <!-- View Operations Group -->
         <Button fx:id="openInDefaultWebBrowser" text="Browser" contentDisplay="LEFT" styleClass="toolbar-button" disable="true">
             <graphic>
-                <FontIcon iconLiteral="bi-globe" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-globe" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open in Web Browser (Ctrl+B)"/>
@@ -54,7 +54,7 @@
 
         <Button fx:id="openInDefaultTextEditor" text="Editor" contentDisplay="LEFT" styleClass="toolbar-button" disable="true">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#fd7e14" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Open in Text Editor (Ctrl+Shift+E)"/>
@@ -66,7 +66,7 @@
         <!-- Help -->
         <Button fx:id="helpBtn" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#showHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help (F1)"/>
@@ -81,7 +81,7 @@
         <Button fx:id="addXmlFolderBtn" text="Add" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#handleAddXmlFolderFavorite">
             <graphic>
-                <FontIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"
+                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"
                           styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
@@ -96,7 +96,7 @@
         <Button fx:id="addXsltFolderBtn" text="Add" contentDisplay="LEFT" styleClass="toolbar-button"
                 onAction="#handleAddXsltFolderFavorite">
             <graphic>
-                <FontIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"
+                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"
                           styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
@@ -142,7 +142,7 @@
                     <Tooltip text="View transformation result as text"/>
                 </tooltip>
                 <graphic>
-                    <FontIcon iconLiteral="bi-file-text" iconSize="16"/>
+                    <IconifyIcon iconLiteral="bi-file-text" iconSize="16"/>
                 </graphic>
                 <StackPane fx:id="textView" styleClass="theme-bg-primary"/>
             </Tab>
@@ -152,7 +152,7 @@
                     <Tooltip text="View transformation result as rendered HTML"/>
                 </tooltip>
                 <graphic>
-                    <FontIcon iconLiteral="bi-globe" iconSize="16"/>
+                    <IconifyIcon iconLiteral="bi-globe" iconSize="16"/>
                 </graphic>
                 <WebView fx:id="webView"/>
             </Tab>
@@ -162,7 +162,7 @@
                     <Tooltip text="View transformation performance metrics"/>
                 </tooltip>
                 <graphic>
-                    <FontIcon iconLiteral="bi-speedometer2" iconSize="16"/>
+                    <IconifyIcon iconLiteral="bi-speedometer2" iconSize="16"/>
                 </graphic>
                 <VBox styleClass="p-4" spacing="10">
                     <Label text="Transformation Statistics" styleClass="panel-header-label,label-medium"/>

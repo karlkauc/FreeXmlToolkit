@@ -36,9 +36,9 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.CustomizableSectionContainer;
 import org.fxt.freexmltoolkit.controls.shared.SectionDefinition;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Properties pane for Schematron editor in the MultiFunctionalSidePane.
@@ -139,7 +139,7 @@ public class SchematronPropertiesPane extends VBox {
         content.getChildren().add(intro);
 
         TitledPane pane = new TitledPane("Quick Help", content);
-        FontIcon icon = new FontIcon("bi-question-circle");
+        IconifyIcon icon = new IconifyIcon("bi-question-circle");
         icon.setIconSize(14);
         pane.setGraphic(icon);
         pane.setCollapsible(true);
@@ -158,7 +158,7 @@ public class SchematronPropertiesPane extends VBox {
         // Refresh button
         HBox toolbar = new HBox(4);
         Button refreshBtn = new Button("Refresh");
-        FontIcon refreshIcon = new FontIcon("bi-arrow-clockwise");
+        IconifyIcon refreshIcon = new IconifyIcon("bi-arrow-clockwise");
         refreshIcon.setIconSize(12);
         refreshBtn.setGraphic(refreshIcon);
         refreshBtn.setOnAction(e -> {
@@ -172,7 +172,7 @@ public class SchematronPropertiesPane extends VBox {
         VBox.setVgrow(structureTree, Priority.ALWAYS);
 
         TitledPane pane = new TitledPane("Document Structure", content);
-        FontIcon icon = new FontIcon("bi-list-nested");
+        IconifyIcon icon = new IconifyIcon("bi-list-nested");
         icon.setIconSize(14);
         pane.setGraphic(icon);
         pane.setCollapsible(true);
@@ -198,7 +198,7 @@ public class SchematronPropertiesPane extends VBox {
         );
 
         TitledPane pane = new TitledPane("Templates", content);
-        FontIcon icon = new FontIcon("bi-file-earmark-plus");
+        IconifyIcon icon = new IconifyIcon("bi-file-earmark-plus");
         icon.setIconSize(14);
         pane.setGraphic(icon);
         pane.setCollapsible(true);
@@ -213,7 +213,7 @@ public class SchematronPropertiesPane extends VBox {
     private Button createTemplateButton(String text, String iconLiteral, String template) {
         Button btn = new Button(text);
         btn.setMaxWidth(Double.MAX_VALUE);
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(14);
         btn.setGraphic(icon);
         btn.setAlignment(Pos.CENTER_LEFT);
@@ -239,7 +239,7 @@ public class SchematronPropertiesPane extends VBox {
         HBox.setHgrow(xpathInput, Priority.ALWAYS);
 
         Button testBtn = new Button();
-        FontIcon playIcon = new FontIcon("bi-play-fill");
+        IconifyIcon playIcon = new IconifyIcon("bi-play-fill");
         playIcon.setIconSize(14);
         testBtn.setGraphic(playIcon);
         testBtn.setTooltip(new Tooltip("Test XPath"));
@@ -258,7 +258,7 @@ public class SchematronPropertiesPane extends VBox {
         VBox.setVgrow(xpathResult, Priority.ALWAYS);
 
         TitledPane pane = new TitledPane("XPath Tester", content);
-        FontIcon icon = new FontIcon("bi-search");
+        IconifyIcon icon = new IconifyIcon("bi-search");
         icon.setIconSize(14);
         pane.setGraphic(icon);
         pane.setCollapsible(true);
@@ -330,7 +330,7 @@ public class SchematronPropertiesPane extends VBox {
      */
     public void addPattern(String patternId, String title) {
         TreeItem<String> patternItem = new TreeItem<>("Pattern: " + (title != null ? title : patternId));
-        FontIcon icon = new FontIcon("bi-grid-3x3");
+        IconifyIcon icon = new IconifyIcon("bi-grid-3x3");
         icon.setIconSize(14);
         patternItem.setGraphic(icon);
         patternItem.setExpanded(true);
@@ -347,7 +347,7 @@ public class SchematronPropertiesPane extends VBox {
         if (!rootItem.getChildren().isEmpty()) {
             TreeItem<String> lastPattern = rootItem.getChildren().get(rootItem.getChildren().size() - 1);
             TreeItem<String> ruleItem = new TreeItem<>("Rule: " + context);
-            FontIcon icon = new FontIcon("bi-code-square");
+            IconifyIcon icon = new IconifyIcon("bi-code-square");
             icon.setIconSize(14);
             ruleItem.setGraphic(icon);
             lastPattern.getChildren().add(ruleItem);

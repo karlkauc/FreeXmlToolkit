@@ -44,8 +44,8 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Properties pane for XSLT editor in the MultiFunctionalSidePane.
@@ -155,7 +155,7 @@ public class XsltOutputPane extends VBox {
         content.getChildren().addAll(formatRow, encodingRow, indentOutputCheck);
 
         TitledPane pane = new TitledPane("Output Configuration", content);
-        FontIcon icon = new FontIcon("bi-gear");
+        IconifyIcon icon = new IconifyIcon("bi-gear");
         icon.setIconSize(14);
         pane.setGraphic(icon);
         pane.setCollapsible(true);
@@ -213,14 +213,14 @@ public class XsltOutputPane extends VBox {
         toolbar.setAlignment(Pos.CENTER_LEFT);
 
         Button addBtn = new Button();
-        FontIcon addIcon = new FontIcon("bi-plus-circle");
+        IconifyIcon addIcon = new IconifyIcon("bi-plus-circle");
         addIcon.setIconSize(14);
         addBtn.setGraphic(addIcon);
         addBtn.setTooltip(new Tooltip("Add Parameter"));
         addBtn.setOnAction(e -> addParameter());
 
         Button removeBtn = new Button();
-        FontIcon removeIcon = new FontIcon("bi-dash-circle");
+        IconifyIcon removeIcon = new IconifyIcon("bi-dash-circle");
         removeIcon.setIconSize(14);
         removeBtn.setGraphic(removeIcon);
         removeBtn.setTooltip(new Tooltip("Remove Selected"));
@@ -228,7 +228,7 @@ public class XsltOutputPane extends VBox {
         removeBtn.disableProperty().bind(parametersTable.getSelectionModel().selectedItemProperty().isNull());
 
         Button clearBtn = new Button();
-        FontIcon clearIcon = new FontIcon("bi-trash");
+        IconifyIcon clearIcon = new IconifyIcon("bi-trash");
         clearIcon.setIconSize(14);
         clearBtn.setGraphic(clearIcon);
         clearBtn.setTooltip(new Tooltip("Clear All"));
@@ -240,7 +240,7 @@ public class XsltOutputPane extends VBox {
         VBox.setVgrow(parametersTable, Priority.ALWAYS);
 
         TitledPane pane = new TitledPane("Parameters", content);
-        FontIcon icon = new FontIcon("bi-sliders");
+        IconifyIcon icon = new IconifyIcon("bi-sliders");
         icon.setIconSize(14);
         pane.setGraphic(icon);
         pane.setCollapsible(true);
@@ -268,7 +268,7 @@ public class XsltOutputPane extends VBox {
         content.getChildren().addAll(timeRow, sizeRow, memoryRow);
 
         TitledPane pane = new TitledPane("Performance", content);
-        FontIcon icon = new FontIcon("bi-speedometer2");
+        IconifyIcon icon = new IconifyIcon("bi-speedometer2");
         icon.setIconSize(14);
         pane.setGraphic(icon);
         pane.setCollapsible(true);
@@ -284,7 +284,7 @@ public class XsltOutputPane extends VBox {
         HBox row = new HBox(8);
         row.setAlignment(Pos.CENTER_LEFT);
 
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(14);
         icon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
 

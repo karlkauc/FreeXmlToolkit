@@ -54,7 +54,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * A custom VBox implementation for displaying a file explorer.
@@ -143,12 +143,12 @@ public class FileExplorer extends VBox {
                     return;
                 }
 
-                FontIcon icon;
+                IconifyIcon icon;
                 if (Files.isDirectory(item)) {
-                    icon = new FontIcon("bi-folder");
+                    icon = new IconifyIcon("bi-folder");
                     icon.setIconColor(javafx.scene.paint.Color.ORANGE);
                 } else {
-                    icon = new FontIcon("bi-file-earmark");
+                    icon = new IconifyIcon("bi-file-earmark");
                     icon.setIconColor(javafx.scene.paint.Color.DODGERBLUE);
                 }
                 icon.setIconSize(16);
@@ -164,7 +164,7 @@ public class FileExplorer extends VBox {
                     TreeItem<Path> genericTreeItem = row.getTreeItem();
                     if (genericTreeItem != null) {
                         if (Files.isDirectory(item) && genericTreeItem.isExpanded()) {
-                            ((FontIcon) getGraphic()).setIconLiteral("bi-folder2-open");
+                            ((IconifyIcon) getGraphic()).setIconLiteral("bi-folder2-open");
                         }
 
                         if (genericTreeItem instanceof FileExplorerTreeItem customTreeItem) {
@@ -220,7 +220,7 @@ public class FileExplorer extends VBox {
                 });
 
         Button homeButton = new Button();
-        FontIcon homeIcon = new FontIcon("bi-house");
+        IconifyIcon homeIcon = new IconifyIcon("bi-house");
         homeIcon.setIconSize(16);
         homeButton.setGraphic(homeIcon);
         homeButton.setTooltip(new Tooltip("Go to User Home Directory"));

@@ -67,6 +67,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.FileExplorer;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.DragDropService;
@@ -74,7 +75,6 @@ import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 public class XsltController {
 
@@ -199,7 +199,7 @@ public class XsltController {
 
         Button btn = new Button(label);
         btn.getStyleClass().add("toolbar-button");
-        FontIcon icon = new FontIcon("bi-folder");
+        IconifyIcon icon = new IconifyIcon("bi-folder");
         icon.setIconSize(16);
         icon.setIconColor(Color.web("#fd7e14"));
         btn.setGraphic(icon);
@@ -280,7 +280,7 @@ public class XsltController {
         ContextMenu menu = new ContextMenu();
 
         MenuItem rename = new MenuItem("Rename");
-        FontIcon renameIcon = new FontIcon("bi-pencil");
+        IconifyIcon renameIcon = new IconifyIcon("bi-pencil");
         renameIcon.setIconSize(16);
         rename.setGraphic(renameIcon);
         rename.setOnAction(e -> {
@@ -296,7 +296,7 @@ public class XsltController {
         });
 
         MenuItem openOs = new MenuItem("Open in System File Manager");
-        FontIcon openIcon = new FontIcon("bi-box-arrow-up-right");
+        IconifyIcon openIcon = new IconifyIcon("bi-box-arrow-up-right");
         openIcon.setIconSize(16);
         openOs.setGraphic(openIcon);
         openOs.setOnAction(e -> {
@@ -311,7 +311,7 @@ public class XsltController {
         });
 
         MenuItem remove = new MenuItem("Remove");
-        FontIcon removeIcon = new FontIcon("bi-trash");
+        IconifyIcon removeIcon = new IconifyIcon("bi-trash");
         removeIcon.setIconSize(16);
         removeIcon.setIconColor(Color.web("#dc3545"));
         remove.setGraphic(removeIcon);
@@ -953,8 +953,8 @@ public class XsltController {
         // Apply compact style
         button.setStyle(style);
 
-        // Update icon size if the button has a FontIcon graphic
-        if (button.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon fontIcon) {
+        // Update icon size if the button has a IconifyIcon graphic
+        if (button.getGraphic() instanceof org.fxt.freexmltoolkit.controls.icons.IconifyIcon fontIcon) {
             fontIcon.setIconSize(iconSize);
         }
     }

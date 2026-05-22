@@ -19,7 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Template development panel for testing XML templates with parameters.
@@ -100,7 +100,7 @@ public class XmlTemplateDevelopmentPanel extends VBox {
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(2, 4, 2, 4));
 
-        FontIcon icon = new FontIcon("bi-file-earmark-ruled");
+        IconifyIcon icon = new IconifyIcon("bi-file-earmark-ruled");
         icon.setIconSize(14);
         Label title = new Label("Template Development");
         title.setGraphic(icon);
@@ -214,8 +214,8 @@ public class XmlTemplateDevelopmentPanel extends VBox {
         this.onCloseRequested = handler;
     }
 
-    private FontIcon createIcon(String literal, int size) {
-        FontIcon fi = new FontIcon(literal);
+    private IconifyIcon createIcon(String literal, int size) {
+        IconifyIcon fi = new IconifyIcon(literal);
         fi.setIconSize(size);
         return fi;
     }

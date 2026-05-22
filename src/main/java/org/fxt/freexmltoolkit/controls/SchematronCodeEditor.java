@@ -28,9 +28,8 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.XmlService;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Enhanced code editor specifically designed for Schematron documents.
@@ -55,7 +54,7 @@ public class SchematronCodeEditor extends StackPane {
     // Validation status bar
     private final HBox validationStatusBar;
     private final Label validationStatusLabel;
-    private final FontIcon validationStatusIcon;
+    private final IconifyIcon validationStatusIcon;
 
     // Error highlighting
     private final List<ValidationIssue> currentIssues = new ArrayList<>();
@@ -84,7 +83,7 @@ public class SchematronCodeEditor extends StackPane {
         setupCodeArea();
 
         // Initialize validation status bar
-        validationStatusIcon = new FontIcon(BootstrapIcons.CHECK_CIRCLE);
+        validationStatusIcon = new IconifyIcon("bi-check-circle");
         validationStatusIcon.setIconSize(16);
         validationStatusIcon.setIconColor(Color.GREEN);
 
@@ -385,7 +384,7 @@ public class SchematronCodeEditor extends StackPane {
     private void updateValidationStatusBar(SchematronSyntaxHighlighter.SchematronValidationResult result) {
         javafx.application.Platform.runLater(() -> {
             if (result.hasErrors()) {
-                validationStatusIcon.setIconCode(BootstrapIcons.X_CIRCLE);
+                validationStatusIcon.setIconLiteral("bi-x-circle");
                 validationStatusIcon.setIconColor(Color.RED);
                 int errorCount = result.getErrors().size();
                 int warningCount = result.getWarnings().size();
@@ -409,7 +408,7 @@ public class SchematronCodeEditor extends StackPane {
                 }
                 validationStatusLabel.setTooltip(new Tooltip(tooltip.toString().trim()));
             } else if (result.hasWarnings()) {
-                validationStatusIcon.setIconCode(BootstrapIcons.EXCLAMATION_TRIANGLE);
+                validationStatusIcon.setIconLiteral("bi-exclamation-triangle");
                 validationStatusIcon.setIconColor(Color.ORANGE);
                 int warningCount = result.getWarnings().size();
                 validationStatusLabel.setText(warningCount + " warning" + (warningCount != 1 ? "s" : ""));
@@ -421,7 +420,7 @@ public class SchematronCodeEditor extends StackPane {
                 }
                 validationStatusLabel.setTooltip(new Tooltip(tooltip.toString().trim()));
             } else {
-                validationStatusIcon.setIconCode(BootstrapIcons.CHECK_CIRCLE);
+                validationStatusIcon.setIconLiteral("bi-check-circle");
                 validationStatusIcon.setIconColor(Color.GREEN);
                 validationStatusLabel.setText("Valid Schematron");
                 validationStatusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #28a745;");

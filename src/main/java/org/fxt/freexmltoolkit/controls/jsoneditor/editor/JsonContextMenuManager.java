@@ -27,7 +27,7 @@ import javafx.scene.input.ClipboardContent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Manages the context menu for JSON code editing.
@@ -190,10 +190,10 @@ public class JsonContextMenuManager {
     }
 
     /**
-     * Creates a colored FontIcon for menu items.
+     * Creates a colored IconifyIcon for menu items.
      */
-    private FontIcon createColoredIcon(String iconLiteral, String color) {
-        FontIcon icon = new FontIcon(iconLiteral);
+    private IconifyIcon createColoredIcon(String iconLiteral, String color) {
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconColor(javafx.scene.paint.Color.web(color));
         icon.setIconSize(14);
         return icon;

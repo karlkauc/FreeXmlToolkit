@@ -31,6 +31,7 @@ import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.CustomizableSectionContainer;
 import org.fxt.freexmltoolkit.controls.shared.SectionDefinition;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
@@ -64,7 +65,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Properties panel for editing XSD node properties.
@@ -105,7 +105,7 @@ public class XsdPropertiesPanel extends BorderPane {
     // General section controls
     private TextField nameField;
     private ComboBox<String> typeComboBox;
-    private FontIcon typeIcon;
+    private IconifyIcon typeIcon;
     private java.util.List<String> allAvailableTypes; // For autocomplete filtering
     private Spinner<Integer> minOccursSpinner;
     private Spinner<Integer> maxOccursSpinner;
@@ -242,7 +242,7 @@ public class XsdPropertiesPanel extends BorderPane {
         javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
         javafx.scene.control.Button gearButton = new javafx.scene.control.Button();
-        FontIcon gearIcon = new FontIcon("bi-gear");
+        IconifyIcon gearIcon = new IconifyIcon("bi-gear");
         gearIcon.setIconSize(14);
         gearButton.setGraphic(gearIcon);
         gearButton.setTooltip(new javafx.scene.control.Tooltip("Customize sections"));
@@ -250,7 +250,7 @@ public class XsdPropertiesPanel extends BorderPane {
         gearButton.setOnAction(e -> showActiveTabSectionSettings(gearButton));
 
         javafx.scene.control.Button closeButton = new javafx.scene.control.Button();
-        FontIcon closeIcon = new FontIcon("bi-x");
+        IconifyIcon closeIcon = new IconifyIcon("bi-x");
         closeIcon.setIconSize(14);
         closeButton.setGraphic(closeIcon);
         closeButton.setTooltip(new javafx.scene.control.Tooltip("Hide Panel"));
@@ -325,7 +325,7 @@ public class XsdPropertiesPanel extends BorderPane {
         ScrollPane scrollPane = wrapInScrollPane(attributesSectionContainer);
 
         Tab tab = new Tab("Attributes", scrollPane);
-        FontIcon icon = new FontIcon("bi-tags");
+        IconifyIcon icon = new IconifyIcon("bi-tags");
         icon.setIconSize(16);
         icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
         tab.setGraphic(icon);
@@ -356,7 +356,7 @@ public class XsdPropertiesPanel extends BorderPane {
         ScrollPane scrollPane = wrapInScrollPane(facetsSectionContainer);
 
         Tab tab = new Tab("Facets", scrollPane);
-        FontIcon icon = new FontIcon("bi-sliders");
+        IconifyIcon icon = new IconifyIcon("bi-sliders");
         icon.setIconSize(16);
         icon.setIconColor(Color.web(FACETS_COLOR));
         tab.setGraphic(icon);
@@ -373,7 +373,7 @@ public class XsdPropertiesPanel extends BorderPane {
         documentationEditor = new InlineDocumentationEditor(editorContext);
         TitledPane documentationPane = new TitledPane("Documentation", documentationEditor);
         documentationPane.setExpanded(true);
-        FontIcon docIcon = new FontIcon("bi-book");
+        IconifyIcon docIcon = new IconifyIcon("bi-book");
         docIcon.setIconSize(14);
         docIcon.setIconColor(Color.web(DOCS_COLOR));
         documentationPane.setGraphic(docIcon);
@@ -390,7 +390,7 @@ public class XsdPropertiesPanel extends BorderPane {
         ScrollPane scrollPane = wrapInScrollPane(docsSectionContainer);
 
         Tab tab = new Tab("Docs", scrollPane);
-        FontIcon icon = new FontIcon("bi-journal-text");
+        IconifyIcon icon = new IconifyIcon("bi-journal-text");
         icon.setIconSize(16);
         icon.setIconColor(Color.web(DOCS_COLOR));
         tab.setGraphic(icon);
@@ -430,7 +430,7 @@ public class XsdPropertiesPanel extends BorderPane {
         pane.setExpanded(true);
 
         // Add icon to title
-        FontIcon icon = new FontIcon("bi-info-circle");
+        IconifyIcon icon = new IconifyIcon("bi-info-circle");
         icon.setIconSize(14);
         icon.setIconColor(Color.web("#17a2b8"));
         pane.setGraphic(icon);
@@ -462,7 +462,7 @@ public class XsdPropertiesPanel extends BorderPane {
         typeComboBox.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(typeComboBox, Priority.ALWAYS);
 
-        typeIcon = new FontIcon("bi-diagram-3");
+        typeIcon = new IconifyIcon("bi-diagram-3");
         typeIcon.setIconSize(18);
         typeIcon.setIconColor(Color.web("#666666"));
 
@@ -475,7 +475,7 @@ public class XsdPropertiesPanel extends BorderPane {
         TitledPane titledPane = new TitledPane("General", grid);
         titledPane.setExpanded(true);
 
-        FontIcon icon = new FontIcon("bi-gear");
+        IconifyIcon icon = new IconifyIcon("bi-gear");
         icon.setIconSize(14);
         icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
         titledPane.setGraphic(icon);
@@ -511,7 +511,7 @@ public class XsdPropertiesPanel extends BorderPane {
         TitledPane titledPane = new TitledPane("Cardinality", grid);
         titledPane.setExpanded(true);
 
-        FontIcon icon = new FontIcon("bi-hash");
+        IconifyIcon icon = new IconifyIcon("bi-hash");
         icon.setIconSize(14);
         icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
         titledPane.setGraphic(icon);
@@ -544,7 +544,7 @@ public class XsdPropertiesPanel extends BorderPane {
         TitledPane titledPane = new TitledPane("Constraints", vbox);
         titledPane.setExpanded(false);
 
-        FontIcon icon = new FontIcon("bi-lock");
+        IconifyIcon icon = new IconifyIcon("bi-lock");
         icon.setIconSize(14);
         icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
         titledPane.setGraphic(icon);
@@ -582,7 +582,7 @@ public class XsdPropertiesPanel extends BorderPane {
         TitledPane titledPane = new TitledPane("Advanced", grid);
         titledPane.setExpanded(false);
 
-        FontIcon icon = new FontIcon("bi-sliders");
+        IconifyIcon icon = new IconifyIcon("bi-sliders");
         icon.setIconSize(14);
         icon.setIconColor(Color.web(ATTRIBUTES_COLOR));
         titledPane.setGraphic(icon);
@@ -614,7 +614,7 @@ public class XsdPropertiesPanel extends BorderPane {
         TitledPane pane = new TitledPane("Facets", vbox);
         pane.setExpanded(true);
 
-        FontIcon icon = new FontIcon("bi-funnel");
+        IconifyIcon icon = new IconifyIcon("bi-funnel");
         icon.setIconSize(14);
         icon.setIconColor(Color.web(FACETS_COLOR));
         pane.setGraphic(icon);
@@ -651,7 +651,7 @@ public class XsdPropertiesPanel extends BorderPane {
                 } else {
                     setText(item);
                     if (patternsFromReferencedType) {
-                        FontIcon lockIcon = new FontIcon("bi-lock-fill");
+                        IconifyIcon lockIcon = new IconifyIcon("bi-lock-fill");
                         lockIcon.setIconSize(12);
                         lockIcon.getStyleClass().add("lock-icon-muted");
                         setGraphic(lockIcon);
@@ -669,9 +669,9 @@ public class XsdPropertiesPanel extends BorderPane {
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
         addPatternBtn = new Button("Add");
-        addPatternBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        addPatternBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
         removePatternBtn = new Button("Remove");
-        removePatternBtn.setGraphic(new FontIcon("bi-trash"));
+        removePatternBtn.setGraphic(new IconifyIcon("bi-trash"));
         removePatternBtn.setDisable(true);
 
         // Enable/disable remove button based on selection
@@ -697,7 +697,7 @@ public class XsdPropertiesPanel extends BorderPane {
         TitledPane pane = new TitledPane("Patterns", vbox);
         pane.setExpanded(true);
 
-        FontIcon icon = new FontIcon("bi-braces");
+        IconifyIcon icon = new IconifyIcon("bi-braces");
         icon.setIconSize(14);
         icon.setIconColor(Color.web(FACETS_COLOR));
         pane.setGraphic(icon);
@@ -725,9 +725,9 @@ public class XsdPropertiesPanel extends BorderPane {
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
         addEnumerationBtn = new Button("Add");
-        addEnumerationBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        addEnumerationBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
         removeEnumerationBtn = new Button("Remove");
-        removeEnumerationBtn.setGraphic(new FontIcon("bi-trash"));
+        removeEnumerationBtn.setGraphic(new IconifyIcon("bi-trash"));
         removeEnumerationBtn.setDisable(true);
 
         // Enable/disable remove button based on selection
@@ -753,7 +753,7 @@ public class XsdPropertiesPanel extends BorderPane {
         TitledPane pane = new TitledPane("Enumerations", vbox);
         pane.setExpanded(true);
 
-        FontIcon icon = new FontIcon("bi-list-ul");
+        IconifyIcon icon = new IconifyIcon("bi-list-ul");
         icon.setIconSize(14);
         icon.setIconColor(Color.web(FACETS_COLOR));
         pane.setGraphic(icon);
@@ -781,9 +781,9 @@ public class XsdPropertiesPanel extends BorderPane {
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
         addAssertionBtn = new Button("Add");
-        addAssertionBtn.setGraphic(new FontIcon("bi-plus-circle"));
+        addAssertionBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
         removeAssertionBtn = new Button("Remove");
-        removeAssertionBtn.setGraphic(new FontIcon("bi-trash"));
+        removeAssertionBtn.setGraphic(new IconifyIcon("bi-trash"));
         removeAssertionBtn.setDisable(true);
 
         // Enable/disable remove button based on selection
@@ -814,7 +814,7 @@ public class XsdPropertiesPanel extends BorderPane {
         TitledPane pane = new TitledPane("Assertions", vbox);
         pane.setExpanded(false);
 
-        FontIcon icon = new FontIcon("bi-check2-square");
+        IconifyIcon icon = new IconifyIcon("bi-check2-square");
         icon.setIconSize(14);
         icon.setIconColor(Color.web(FACETS_COLOR));
         pane.setGraphic(icon);
@@ -841,7 +841,7 @@ public class XsdPropertiesPanel extends BorderPane {
         TitledPane titledPane = new TitledPane("AppInfo", vbox);
         titledPane.setExpanded(true);
 
-        FontIcon icon = new FontIcon("bi-info-square");
+        IconifyIcon icon = new IconifyIcon("bi-info-square");
         icon.setIconSize(14);
         icon.setIconColor(Color.web(DOCS_COLOR));
         titledPane.setGraphic(icon);
@@ -1346,7 +1346,7 @@ public class XsdPropertiesPanel extends BorderPane {
                 label.setMinWidth(100);
                 label.getStyleClass().add("theme-text-muted");
             } else {
-                FontIcon lockIcon = new FontIcon("bi-lock-fill");
+                IconifyIcon lockIcon = new IconifyIcon("bi-lock-fill");
                 lockIcon.setIconSize(12);
                 lockIcon.getStyleClass().add("lock-icon-muted");
                 label = new Label(facetType.getXmlName() + ":", lockIcon);
@@ -2670,7 +2670,7 @@ public class XsdPropertiesPanel extends BorderPane {
                     textField.setStyle("-fx-opacity: 0.7;");
                     label.getStyleClass().add("theme-text-secondary");
                     // Add lock icon to indicate read-only
-                    FontIcon lockIcon = new FontIcon("bi-lock-fill");
+                    IconifyIcon lockIcon = new IconifyIcon("bi-lock-fill");
                     lockIcon.setIconSize(12);
                     lockIcon.getStyleClass().add("lock-icon-muted");
                     Label labelWithIcon = new Label(facetType.getXmlName() + ":", lockIcon);
@@ -2797,7 +2797,7 @@ public class XsdPropertiesPanel extends BorderPane {
             // Title
             HBox titleBox = new HBox(8);
             titleBox.setAlignment(Pos.CENTER_LEFT);
-            FontIcon commentIcon = new FontIcon("bi-chat-left-quote");
+            IconifyIcon commentIcon = new IconifyIcon("bi-chat-left-quote");
             commentIcon.setIconSize(18);
             commentIcon.setIconColor(Color.web("#6c757d"));
             Label titleLabel = new Label("Comment");
@@ -2815,7 +2815,7 @@ public class XsdPropertiesPanel extends BorderPane {
 
             // Apply button
             Button applyBtn = new Button("Apply");
-            FontIcon applyIcon = new FontIcon("bi-check-circle");
+            IconifyIcon applyIcon = new IconifyIcon("bi-check-circle");
             applyIcon.setIconSize(16);
             applyIcon.setIconColor(Color.web("#28a745"));
             applyBtn.setGraphic(applyIcon);

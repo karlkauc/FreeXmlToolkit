@@ -17,7 +17,7 @@
         <!-- ===================================================================== -->
         <Tab text="Create Certificate" styleClass="primary-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="#28a745"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Create a new certificate and keystore"/>
@@ -86,7 +86,7 @@
                         <Button onAction="#createNewSignatureFile" text="Create Certificate and Keystore"
                                 maxWidth="Infinity" styleClass="btn-success">
                             <graphic>
-                                <FontIcon iconLiteral="bi-shield-lock" iconSize="16" iconColor="white"/>
+                                <IconifyIcon iconLiteral="bi-shield-lock" iconSize="16" iconColor="white"/>
                             </graphic>
                         </Button>
                     </VBox>
@@ -99,7 +99,7 @@
         <!-- ===================================================================== -->
         <Tab text="Sign XML File" styleClass="primary-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-pencil-square" iconSize="16" iconColor="#007bff"/>
+                <IconifyIcon iconLiteral="bi-pencil-square" iconSize="16" iconColor="#007bff"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Digitally sign an XML document"/>
@@ -116,7 +116,7 @@
                                 <Button fx:id="signLoadXmlFileButton" text="XML File*" GridPane.columnIndex="0"
                                         GridPane.rowIndex="0">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
                                     </graphic>
                                 </Button>
                                 <Label fx:id="xmlFileInfo" text="No file selected" GridPane.columnIndex="1"
@@ -125,7 +125,7 @@
                                 <Button fx:id="signLoadKeystoreButton" text="Keystore File*"
                                         GridPane.columnIndex="0" GridPane.rowIndex="1">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-key" iconSize="16"/>
+                                        <IconifyIcon iconLiteral="bi-key" iconSize="16"/>
                                     </graphic>
                                 </Button>
                                 <Label fx:id="certFileInfo" text="No file selected" GridPane.columnIndex="1"
@@ -177,7 +177,7 @@
                         <Button onAction="#signDocument" text="Sign Document" maxWidth="Infinity"
                                 styleClass="btn-primary">
                             <graphic>
-                                <FontIcon iconLiteral="bi-pencil-square" iconSize="16" iconColor="white"/>
+                                <IconifyIcon iconLiteral="bi-pencil-square" iconSize="16" iconColor="white"/>
                             </graphic>
                         </Button>
                     </VBox>
@@ -190,7 +190,7 @@
         <!-- ===================================================================== -->
         <Tab text="Validate Signed File" styleClass="output-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-patch-check" iconSize="16" iconColor="#28a745"/>
+                <IconifyIcon iconLiteral="bi-patch-check" iconSize="16" iconColor="#28a745"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Validate and verify XML signature"/>
@@ -207,7 +207,7 @@
                                 <Button fx:id="validateLoadXmlFileButton" text="Signed XML File*"
                                         GridPane.columnIndex="0" GridPane.rowIndex="0">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
                                     </graphic>
                                 </Button>
                                 <Label fx:id="validateXmlFileInfo" text="No file selected" GridPane.columnIndex="1"
@@ -223,7 +223,7 @@
                         <Button onAction="#validateSignedDocument" text="Validate Document" maxWidth="Infinity"
                                 styleClass="btn-success">
                             <graphic>
-                                <FontIcon iconLiteral="bi-patch-check" iconSize="16" iconColor="white"/>
+                                <IconifyIcon iconLiteral="bi-patch-check" iconSize="16" iconColor="white"/>
                             </graphic>
                         </Button>
                     </VBox>
@@ -236,7 +236,7 @@
         <!-- ===================================================================== -->
         <Tab text="Expert Mode" styleClass="utility-tab" closable="false">
             <graphic>
-                <FontIcon iconLiteral="bi-gear-fill" iconSize="16" iconColor="#6c757d"/>
+                <IconifyIcon iconLiteral="bi-gear-fill" iconSize="16" iconColor="#6c757d"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Advanced XML-DSig operations"/>
@@ -351,7 +351,7 @@
                                 <Button onAction="#expertCreateCertificate" text="Generate Advanced Certificate"
                                         maxWidth="Infinity" styleClass="btn-success">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-shield-lock-fill" iconSize="16" iconColor="white"/>
+                                        <IconifyIcon iconLiteral="bi-shield-lock-fill" iconSize="16" iconColor="white"/>
                                     </graphic>
                                 </Button>
                             </VBox>
@@ -368,7 +368,7 @@
                                     <Button fx:id="expertLoadXmlButton" text="XML File" GridPane.columnIndex="0"
                                             GridPane.rowIndex="0">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                                            <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
                                         </graphic>
                                     </Button>
                                     <Label fx:id="expertXmlFileInfo" text="No file selected" GridPane.columnIndex="1"
@@ -377,7 +377,7 @@
                                     <Button fx:id="expertLoadKeystoreButton" text="Keystore File"
                                             GridPane.columnIndex="0" GridPane.rowIndex="1">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-key-fill" iconSize="16"/>
+                                            <IconifyIcon iconLiteral="bi-key-fill" iconSize="16"/>
                                         </graphic>
                                     </Button>
                                     <Label fx:id="expertKeystoreInfo" text="No file selected" GridPane.columnIndex="1"
@@ -440,7 +440,7 @@
                                 <Button onAction="#expertSignDocument" text="Sign with Advanced Options"
                                         maxWidth="Infinity" styleClass="btn-primary">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-pen-fill" iconSize="16" iconColor="white"/>
+                                        <IconifyIcon iconLiteral="bi-pen-fill" iconSize="16" iconColor="white"/>
                                     </graphic>
                                 </Button>
                             </VBox>
@@ -457,7 +457,7 @@
                                     <Button fx:id="expertValidateButton" text="Signed XML File" GridPane.columnIndex="0"
                                             GridPane.rowIndex="0">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-file-earmark-check" iconSize="16"/>
+                                            <IconifyIcon iconLiteral="bi-file-earmark-check" iconSize="16"/>
                                         </graphic>
                                     </Button>
                                     <Label fx:id="expertValidateFileInfo" text="No file selected"
@@ -486,7 +486,7 @@
                                 <Button onAction="#expertValidateDocument" text="Advanced Validation"
                                         maxWidth="Infinity" styleClass="btn-success">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="white"/>
+                                        <IconifyIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="white"/>
                                     </graphic>
                                 </Button>
                             </VBox>

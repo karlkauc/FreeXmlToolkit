@@ -8,7 +8,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Placeholder component shown when the graphical XSD view is not yet loaded.
@@ -36,7 +36,7 @@ public class XsdGraphViewPlaceholder extends VBox {
         getStyleClass().add("graph-view-placeholder");
 
         // Icon
-        FontIcon icon = new FontIcon("bi-diagram-3");
+        IconifyIcon icon = new IconifyIcon("bi-diagram-3");
         icon.setIconSize(64);
         icon.setIconColor(Color.valueOf("#6c757d"));
 

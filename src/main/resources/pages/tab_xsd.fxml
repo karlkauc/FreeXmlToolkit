@@ -33,7 +33,7 @@
         <!-- File Operations -->
         <Button fx:id="toolbarNewFile" text="New" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarNewFile">
             <graphic>
-                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="New XSD File"/>
@@ -42,7 +42,7 @@
 
         <Button fx:id="toolbarLoadFile" text="Open" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarLoadFile">
             <graphic>
-                <FontIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Load XSD File"/>
@@ -51,7 +51,7 @@
 
         <Button fx:id="toolbarSave" text="Save" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarSave">
             <graphic>
-                <FontIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save (Ctrl+S)"/>
@@ -60,7 +60,7 @@
 
         <Button fx:id="toolbarSaveAs" text="Save As" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarSaveAs">
             <graphic>
-                <FontIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-save-fill" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Save As (Ctrl+Shift+S)"/>
@@ -69,7 +69,7 @@
 
         <Button fx:id="toolbarCompare" text="Compare" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarCompare">
             <graphic>
-                <FontIcon iconLiteral="bi-files" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
+                <IconifyIcon iconLiteral="bi-files" iconSize="20" iconColor="#007bff" styleClass="toolbar-icon-primary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Compare with file..."/>
@@ -80,7 +80,7 @@
 
         <Button fx:id="toolbarReload" text="Reload" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarReload">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Reload from Disk (Ctrl+R)"/>
@@ -89,7 +89,7 @@
 
         <Button fx:id="toolbarClose" text="Close" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarClose">
             <graphic>
-                <FontIcon iconLiteral="bi-x-circle" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
+                <IconifyIcon iconLiteral="bi-x-circle" iconSize="20" iconColor="#dc3545" styleClass="toolbar-icon-danger"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Close File (Ctrl+W)"/>
@@ -98,7 +98,7 @@
 
         <Button fx:id="toolbarValidate" text="Validate" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarValidate">
             <graphic>
-                <FontIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
+                <IconifyIcon iconLiteral="bi-check-circle" iconSize="20" iconColor="#28a745" styleClass="toolbar-icon-success"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Validate XSD Schema (F5)"/>
@@ -110,7 +110,7 @@
         <!-- Editing Operations -->
         <Button fx:id="toolbarUndo" text="Undo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarUndo">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Undo (Ctrl+Z)"/>
@@ -119,7 +119,7 @@
 
         <Button fx:id="toolbarRedo" text="Redo" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarRedo">
             <graphic>
-                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Redo (Ctrl+Y)"/>
@@ -128,7 +128,7 @@
 
         <Button fx:id="toolbarFind" text="Find" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarFind">
             <graphic>
-                <FontIcon iconLiteral="bi-search" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+                <IconifyIcon iconLiteral="bi-search" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Find/Replace (Ctrl+F)"/>
@@ -137,7 +137,7 @@
 
         <Button fx:id="toolbarFormat" text="Format" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarFormat">
             <graphic>
-                <FontIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#20c997" styleClass="toolbar-icon-teal"/>
+                <IconifyIcon iconLiteral="bi-code-square" iconSize="20" iconColor="#20c997" styleClass="toolbar-icon-teal"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Format/Pretty Print (Ctrl+Alt+F)"/>
@@ -149,7 +149,7 @@
         <!-- Favorites & Recent -->
         <Button fx:id="toolbarAddFavorite" text="Add Favorite" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarAddFavorite">
             <graphic>
-                <FontIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Add to Favorites (Ctrl+D)"/>
@@ -158,7 +158,7 @@
 
         <Button fx:id="toolbarShowFavorites" text="Favorites" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarShowFavorites">
             <graphic>
-                <FontIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
+                <IconifyIcon iconLiteral="bi-star-fill" iconSize="20" iconColor="#ffc107" styleClass="toolbar-icon-warning"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Show/Hide Favorites (Ctrl+Shift+D)"/>
@@ -167,7 +167,7 @@
 
         <Button fx:id="toolbarXPathQuery" text="XPath" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarXPathQuery">
             <graphic>
-                <FontIcon iconLiteral="bi-braces" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
+                <IconifyIcon iconLiteral="bi-braces" iconSize="20" iconColor="#6f42c1" styleClass="toolbar-icon-purple"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Toggle XPath/XQuery Panel (Ctrl+Q)"/>
@@ -176,7 +176,7 @@
 
         <MenuButton fx:id="toolbarRecentFiles" text="Recent" contentDisplay="LEFT" styleClass="toolbar-button">
             <graphic>
-                <FontIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
+                <IconifyIcon iconLiteral="bi-clock-history" iconSize="20" iconColor="#6c757d" styleClass="toolbar-icon-secondary"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Recent Files (Ctrl+Shift+R)"/>
@@ -188,7 +188,7 @@
         <!-- Help -->
         <Button fx:id="toolbarHelp" text="Help" contentDisplay="LEFT" styleClass="toolbar-button" onAction="#handleToolbarHelp">
             <graphic>
-                <FontIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
+                <IconifyIcon iconLiteral="bi-question-circle" iconSize="20" iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
             </graphic>
             <tooltip>
                 <Tooltip text="Help/Overview (Ctrl+H / F1)"/>
@@ -202,7 +202,7 @@
                 <Tooltip text="Visual XSD Editor - Interactive schema design (Ctrl+1)"/>
             </tooltip>
             <graphic>
-                <FontIcon iconLiteral="bi-diagram-2"/>
+                <IconifyIcon iconLiteral="bi-diagram-2"/>
             </graphic>
             <BorderPane>
                 <!-- Schema Information panel removed - now integrated in Properties Panel -->
@@ -219,7 +219,7 @@
                                         <children>
                                             <VBox fx:id="noFileLoadedPane" alignment="CENTER" spacing="20.0" styleClass="empty-state">
                                                 <children>
-                                                    <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                                                    <IconifyIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
                                                               iconSize="64"/>
                                                     <Label styleClass="empty-state-title"
                                                            text="No XSD file loaded"/>
@@ -229,7 +229,7 @@
                                                         <Button onAction="#createNewXsdFile" styleClass="button"
                                                                 text="New XSD File">
                                                             <graphic>
-                                                                <FontIcon iconLiteral="bi-file-plus"
+                                                                <IconifyIcon iconLiteral="bi-file-plus"
                                                                           iconColor="#28a745"/>
                                                             </graphic>
                                                         </Button>
@@ -237,7 +237,7 @@
                                                                 styleClass="button, :default"
                                                                 text="Load XSD File">
                                                             <graphic>
-                                                                <FontIcon iconLiteral="bi-folder2-open"/>
+                                                                <IconifyIcon iconLiteral="bi-folder2-open"/>
                                                             </graphic>
                                                         </Button>
                                                     </HBox>
@@ -272,14 +272,14 @@
                 <Tooltip text="Type Library - Browse and analyze all types (Ctrl+2)"/>
             </tooltip>
             <graphic>
-                <FontIcon iconLiteral="bi-collection"/>
+                <IconifyIcon iconLiteral="bi-collection"/>
             </graphic>
             <content>
                 <StackPane fx:id="typeLibraryStackPane" styleClass="theme-bg-secondary">
                     <!-- No File Loaded View -->
                     <VBox fx:id="noFileLoadedPaneTypeLibrary" alignment="CENTER" spacing="20.0" styleClass="empty-state">
                         <children>
-                            <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                            <IconifyIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
                                       iconSize="64"/>
                             <Label styleClass="empty-state-title"
                                    text="No XSD file loaded"/>
@@ -289,7 +289,7 @@
                                 <Button onAction="#createNewXsdFile" styleClass="button"
                                         text="New XSD File">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-file-plus"
+                                        <IconifyIcon iconLiteral="bi-file-plus"
                                                   iconColor="#28a745"/>
                                     </graphic>
                                 </Button>
@@ -297,7 +297,7 @@
                                         styleClass="button, :default"
                                         text="Load XSD File">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-folder2-open"/>
+                                        <IconifyIcon iconLiteral="bi-folder2-open"/>
                                     </graphic>
                                 </Button>
                             </HBox>
@@ -312,14 +312,14 @@
                 <Tooltip text="Type Editor - Edit ComplexTypes and SimpleTypes"/>
             </tooltip>
             <graphic>
-                <FontIcon iconLiteral="bi-pencil-square"/>
+                <IconifyIcon iconLiteral="bi-pencil-square"/>
             </graphic>
             <content>
                 <StackPane fx:id="typeEditorStackPane" styleClass="theme-bg-secondary">
                     <!-- No File Loaded View -->
                     <VBox fx:id="noFileLoadedPaneTypeEditor" alignment="CENTER" spacing="20.0" styleClass="empty-state">
                         <children>
-                            <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                            <IconifyIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
                                       iconSize="64"/>
                             <Label styleClass="empty-state-title"
                                    text="No XSD file loaded"/>
@@ -329,7 +329,7 @@
                                 <Button onAction="#createNewXsdFile" styleClass="button"
                                         text="New XSD File">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-file-plus"
+                                        <IconifyIcon iconLiteral="bi-file-plus"
                                                   iconColor="#28a745"/>
                                     </graphic>
                                 </Button>
@@ -337,7 +337,7 @@
                                         styleClass="button, :default"
                                         text="Load XSD File">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-folder2-open"/>
+                                        <IconifyIcon iconLiteral="bi-folder2-open"/>
                                     </graphic>
                                 </Button>
                             </HBox>
@@ -352,7 +352,7 @@
                 <Tooltip text="Source Code View - Raw XSD editing (Ctrl+3)"/>
             </tooltip>
             <graphic>
-                <FontIcon iconLiteral="bi-card-text"/>
+                <IconifyIcon iconLiteral="bi-card-text"/>
             </graphic>
             <BorderPane>
                 <top>
@@ -384,7 +384,7 @@
                                         <children>
                                             <VBox fx:id="noFileLoadedPaneText" alignment="CENTER" spacing="20.0" styleClass="empty-state">
                                                 <children>
-                                                    <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                                                    <IconifyIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
                                                               iconSize="64"/>
                                                     <Label styleClass="empty-state-title"
                                                            text="No XSD file loaded"/>
@@ -394,13 +394,13 @@
                                                         <Button onAction="#createNewXsdFile" styleClass="button"
                                                                 text="New XSD File">
                                                             <graphic>
-                                                                <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
+                                                                <IconifyIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
                                                             </graphic>
                                                         </Button>
                                                         <Button onAction="#handleToolbarLoadFile" styleClass="button, :default"
                                                                 text="Load XSD File">
                                                             <graphic>
-                                                                <FontIcon iconLiteral="bi-folder2-open"/>
+                                                                <IconifyIcon iconLiteral="bi-folder2-open"/>
                                                             </graphic>
                                                         </Button>
                                                     </HBox>
@@ -435,7 +435,7 @@
                 <Tooltip text="Sample Data Generator - Create XML examples with profiles (Ctrl+6)"/>
             </tooltip>
             <graphic>
-                <FontIcon iconLiteral="bi-keyboard" iconSize="16"/>
+                <IconifyIcon iconLiteral="bi-keyboard" iconSize="16"/>
             </graphic>
             <VBox spacing="8" styleClass="p-5, theme-bg-primary">
                 <!-- Config Bar -->
@@ -447,7 +447,7 @@
                                        HBox.hgrow="ALWAYS"/>
                             <Button onAction="#handleToolbarLoadFile" text="Load XSD">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                                    <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -458,32 +458,32 @@
                                       onAction="#handleProfileSelection"/>
                             <Button onAction="#handleSaveProfile" text="Save">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
+                                    <IconifyIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
                                 </graphic>
                                 <tooltip><Tooltip text="Save current profile"/></tooltip>
                             </Button>
                             <Button onAction="#handleSaveProfileAs" text="Save As...">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-save2" iconSize="16"/>
+                                    <IconifyIcon iconLiteral="bi-save2" iconSize="16"/>
                                 </graphic>
                                 <tooltip><Tooltip text="Save as new profile"/></tooltip>
                             </Button>
                             <Button onAction="#handleDeleteProfile">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-trash" iconSize="16" iconColor="#dc3545"/>
+                                    <IconifyIcon iconLiteral="bi-trash" iconSize="16" iconColor="#dc3545"/>
                                 </graphic>
                                 <tooltip><Tooltip text="Delete selected profile"/></tooltip>
                             </Button>
                             <Separator orientation="VERTICAL"/>
                             <Button onAction="#handleImportProfile" text="Import...">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-upload" iconSize="16" iconColor="#28a745"/>
+                                    <IconifyIcon iconLiteral="bi-upload" iconSize="16" iconColor="#28a745"/>
                                 </graphic>
                                 <tooltip><Tooltip text="Import profile from JSON file"/></tooltip>
                             </Button>
                             <Button onAction="#handleExportProfile" text="Export...">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-download" iconSize="16"/>
+                                    <IconifyIcon iconLiteral="bi-download" iconSize="16"/>
                                 </graphic>
                                 <tooltip><Tooltip text="Export current profile to JSON file"/></tooltip>
                             </Button>
@@ -508,7 +508,7 @@
                                        HBox.hgrow="ALWAYS"/>
                             <Button onAction="#selectOutputXmlFile" text="Browse">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                                    <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -523,32 +523,32 @@
                         <Button fx:id="generateSampleDataButton" onAction="#generateSampleDataAction"
                                 text="Generate" disable="true" styleClass="btn-success">
                             <graphic>
-                                <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
+                                <IconifyIcon iconLiteral="bi-play-fill" iconSize="16"/>
                             </graphic>
                         </Button>
                         <Button fx:id="cancelSampleDataButton" onAction="#handleCancelSampleDataGeneration"
                                 text="Cancel">
                             <graphic>
-                                <FontIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
+                                <IconifyIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
                             </graphic>
                             <tooltip><Tooltip text="Cancel running XML generation"/></tooltip>
                         </Button>
                         <Button fx:id="validateGeneratedXmlButton" onAction="#validateGeneratedXmlAction"
                                 text="Validate" disable="true">
                             <graphic>
-                                <FontIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
+                                <IconifyIcon iconLiteral="bi-check-circle" iconSize="16" iconColor="#28a745"/>
                             </graphic>
                         </Button>
                         <Separator orientation="VERTICAL"/>
                         <Button onAction="#handleAutoFillXPaths" text="Auto-fill XPaths" disable="${generateSampleDataButton.disable}">
                             <graphic>
-                                <FontIcon iconLiteral="bi-list-check" iconSize="16" iconColor="#007bff"/>
+                                <IconifyIcon iconLiteral="bi-list-check" iconSize="16" iconColor="#007bff"/>
                             </graphic>
                             <tooltip><Tooltip text="Extract all XPaths from the loaded XSD"/></tooltip>
                         </Button>
                         <Button onAction="#handleAddRule" text="Add Rule">
                             <graphic>
-                                <FontIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"/>
+                                <IconifyIcon iconLiteral="bi-plus-circle" iconSize="16" iconColor="#28a745"/>
                             </graphic>
                         </Button>
                     </HBox>
@@ -577,7 +577,7 @@
                         <!-- Validation Result Panel -->
                         <VBox fx:id="sampleDataValidationResultPanel" spacing="8" visible="false" managed="false">
                             <HBox spacing="10" alignment="CENTER_LEFT">
-                                <FontIcon fx:id="sampleDataValidationIcon" iconSize="18"/>
+                                <IconifyIcon fx:id="sampleDataValidationIcon" iconSize="18"/>
                                 <VBox spacing="2" HBox.hgrow="ALWAYS">
                                     <Label fx:id="sampleDataValidationTitle" styleClass="label-bold"/>
                                     <Label fx:id="sampleDataValidationMessage" wrapText="true" styleClass="label-small"/>
@@ -586,13 +586,13 @@
                                     <Button fx:id="exportValidationErrorsButton" onAction="#exportValidationErrors"
                                             text="Export" styleClass="label-small">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-download" iconSize="12"/>
+                                            <IconifyIcon iconLiteral="bi-download" iconSize="12"/>
                                         </graphic>
                                     </Button>
                                     <Button onAction="#closeSampleDataValidationPanel"
                                             style="-fx-background-color: transparent; -fx-padding: 2;">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-x" iconSize="14"/>
+                                            <IconifyIcon iconLiteral="bi-x" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                 </HBox>

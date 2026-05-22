@@ -45,8 +45,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Separator;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.DragEvent;
@@ -1211,7 +1211,7 @@ public class MainController implements Initializable {
         dialogPane.getButtonTypes().addAll(copyVersionType, checkUpdatesType, ButtonType.CLOSE);
 
         Button copyBtn = (Button) dialogPane.lookupButton(copyVersionType);
-        copyBtn.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-clipboard"));
+        copyBtn.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-clipboard"));
         copyBtn.addEventFilter(ActionEvent.ACTION, evt -> {
             javafx.scene.input.Clipboard.getSystemClipboard().setContent(
                     java.util.Map.of(javafx.scene.input.DataFormat.PLAIN_TEXT,
@@ -1226,7 +1226,7 @@ public class MainController implements Initializable {
         });
 
         Button updatesBtn = (Button) dialogPane.lookupButton(checkUpdatesType);
-        updatesBtn.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("bi-arrow-clockwise"));
+        updatesBtn.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-arrow-clockwise"));
         updatesBtn.addEventFilter(ActionEvent.ACTION, evt -> {
             evt.consume();
             checkForUpdatesFromAbout(updatesBtn);
@@ -1247,7 +1247,7 @@ public class MainController implements Initializable {
 
     private Button linkButton(String iconLiteral, String text, String url) {
         Button btn = new Button(text);
-        btn.setGraphic(new org.kordamp.ikonli.javafx.FontIcon(iconLiteral));
+        btn.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon(iconLiteral));
         btn.setStyle(
                 "-fx-background-color: transparent;" +
                         "-fx-border-color: #d1d5db;" +

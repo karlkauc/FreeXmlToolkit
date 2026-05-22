@@ -86,25 +86,35 @@ The style guide covers: color palette, typography, icons, components, CSS classe
 
 ### Icon Usage (Critical)
 
-1. **Only use icons from Ikonli Bootstrap Icons** (bi-* prefix)
-2. **Always verify icon existence** at https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
-3. **NEVER use `bi-database`** - it does not exist!
+Icons are rendered by the project's own **`IconifyIcon`** control
+(`org.fxt.freexmltoolkit.controls.icons.IconifyIcon`), backed by bundled
+[Iconify](https://iconify.design/) SVG data — **not** Ikonli. The control is a drop-in
+replacement for the old `FontIcon`: same `iconLiteral` / `iconSize` / `iconColor` attributes.
+
+1. **Use Bootstrap Icon names** (`bi-*` prefix); browse them at https://icons.getbootstrap.com/
+   (the bundled set is `src/main/resources/icons/iconify/bi.json`).
+2. **Unknown icons never crash.** An unresolved literal renders a placeholder and logs a warning
+   instead of throwing (the old Ikonli failure mode is gone).
+3. **`IconifyIconCoverageTest` is the safety net:** it fails the build if any `bi-*` literal in
+   FXML/Java is not in the bundle. Run `./gradlew test --tests "*IconifyIconCoverageTest"`.
 4. **Standard sizes:** Menu items: `iconSize="16"`, Toolbar: `iconSize="20"`, Empty states: `iconSize="48"` or `iconSize="64"`
 5. **Semantic colors:** Success `#28a745`, Danger `#dc3545`, Info `#17a2b8`, Warning `#ffc107`, Primary `#007bff`
 
 ### Example FXML Icon Usage
 
+Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
+
 ```xml
 <Button onAction="#handleSave">
     <graphic>
-        <FontIcon iconLiteral="bi-save" iconSize="20"
+        <IconifyIcon iconLiteral="bi-save" iconSize="20"
                   iconColor="#17a2b8" styleClass="toolbar-icon-info"/>
     </graphic>
 </Button>
 
 <MenuItem text="Delete" onAction="#handleDelete">
     <graphic>
-        <FontIcon iconLiteral="bi-trash" iconSize="16" iconColor="#dc3545"/>
+        <IconifyIcon iconLiteral="bi-trash" iconSize="16" iconColor="#dc3545"/>
     </graphic>
 </MenuItem>
 ```
@@ -127,17 +137,17 @@ The style guide covers: color palette, typography, icons, components, CSS classe
 
 ## Common Mistakes to Avoid
 
-- **Invalid Icons:** Never use `bi-database` (does not exist). Always validate against the cheat sheet.
+- **Icons:** Use `IconifyIcon` with `bi-*` names. Unknown names no longer crash (placeholder +
+  log), but `IconifyIconCoverageTest` fails the build for them — keep literals valid.
 - **XSD Infinite Loops:** Child nodes can reference parent types. Always check circular references.
 - **FXML Controller Methods:** All `@FXML` methods MUST be `public` (module system requirement for jpackage).
-- **Icon References:** Validate all `bi-*` icons before committing.
 
 ## Project-Specific Patterns
 
 - **XSLT/XQuery:** Saxon HE 12.9 for XSLT 3.0, XPath 3.1, XQuery 3.1
 - **XML Validation:** Xerces 2.12.2 (exist-db fork) for XSD 1.1
 - **UI Framework:** JavaFX 24.0.1 with AtlantaFX theme
-- **Icons:** Ikonli Bootstrap Icons - always verify existence
+- **Icons:** `IconifyIcon` control (bundled Iconify Bootstrap Icons SVG); graceful fallback on unknown names
 - **Async Operations:** `Platform.runLater()` for UI updates from background threads
 - **Background Tasks:** `FxtGui.executorService` or `ThreadPoolManager`
 

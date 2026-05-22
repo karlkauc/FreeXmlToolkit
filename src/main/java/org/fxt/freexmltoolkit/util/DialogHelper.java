@@ -21,8 +21,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Utility class for creating consistent, modern dialogs across the application.
@@ -324,7 +324,7 @@ public class DialogHelper {
         headerContent.setAlignment(Pos.CENTER_LEFT);
 
         // Icon
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(48);
         icon.setIconColor(Color.WHITE);
 
@@ -393,7 +393,7 @@ public class DialogHelper {
         feature.setAlignment(Pos.TOP_LEFT);
 
         // Icon
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(24);
         icon.setIconColor(Color.web(iconColor));
         icon.getStyleClass().add("dialog-feature-icon");
@@ -431,7 +431,7 @@ public class DialogHelper {
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        FontIcon icon = new FontIcon(type.getIconLiteral());
+        IconifyIcon icon = new IconifyIcon(type.getIconLiteral());
         icon.setIconSize(20);
 
         Label titleLabel = new Label(title);
@@ -512,7 +512,7 @@ public class DialogHelper {
 
         // Set custom icon
         if (iconLiteral != null) {
-            FontIcon icon = new FontIcon(iconLiteral);
+            IconifyIcon icon = new IconifyIcon(iconLiteral);
             icon.setIconSize(32);
 
             // Set icon color based on alert type
@@ -588,7 +588,7 @@ public class DialogHelper {
         titleBox.setAlignment(Pos.CENTER_LEFT);
         titleBox.setPadding(new Insets(0, 0, 5, 0));
 
-        FontIcon icon = new FontIcon(iconLiteral);
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
         icon.setIconSize(20);
         icon.setIconColor(Color.web(iconColor));
 

@@ -110,7 +110,7 @@
     -fx-background-radius: 4;
 }
 
-.section-move-button .ikonli-font-icon {
+.section-move-button .iconify-icon {
     -fx-icon-color: #6c757d;
 }
 
@@ -118,7 +118,7 @@
     -fx-background-color: #e9ecef;
 }
 
-.section-move-button:hover .ikonli-font-icon {
+.section-move-button:hover .iconify-icon {
     -fx-icon-color: #212529;
 }
 
@@ -127,7 +127,7 @@
     -fx-cursor: default;
 }
 
-.section-move-button:disabled .ikonli-font-icon {
+.section-move-button:disabled .iconify-icon {
     -fx-icon-color: #adb5bd;
 }
 

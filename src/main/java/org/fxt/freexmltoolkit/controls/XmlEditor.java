@@ -55,6 +55,7 @@ import org.controlsfx.control.PopOver;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.common.utilities.XmlEditorUIHelper;
 import org.fxt.freexmltoolkit.controls.v2.common.utilities.XmlValidationHelper;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
@@ -72,7 +73,6 @@ import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
@@ -213,9 +213,9 @@ public class XmlEditor extends Tab {
         tabPane.setCache(true);
         tabPane.setCacheHint(CacheHint.SPEED);
 
-        xml.setGraphic(new FontIcon("bi-code-slash:16"));
+        xml.setGraphic(new IconifyIcon("bi-code-slash:16"));
         xml.getStyleClass().add("primary-tab");
-        graphic.setGraphic(new FontIcon("bi-columns-gap:16"));
+        graphic.setGraphic(new IconifyIcon("bi-columns-gap:16"));
         graphic.getStyleClass().add("output-tab");
 
         xml.setOnSelectionChanged(e -> {
@@ -369,7 +369,7 @@ public class XmlEditor extends Tab {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button gearButton = new Button();
-        FontIcon gearIcon = new FontIcon("bi-gear");
+        IconifyIcon gearIcon = new IconifyIcon("bi-gear");
         gearIcon.setIconSize(14);
         gearButton.setGraphic(gearIcon);
         gearButton.setTooltip(new Tooltip("Customize sections"));
@@ -381,7 +381,7 @@ public class XmlEditor extends Tab {
         });
 
         Button closeButton = new Button();
-        FontIcon closeIcon = new FontIcon("bi-x");
+        IconifyIcon closeIcon = new IconifyIcon("bi-x");
         closeIcon.setIconSize(14);
         closeButton.setGraphic(closeIcon);
         closeButton.setTooltip(new Tooltip("Hide Panel"));

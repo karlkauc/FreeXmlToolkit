@@ -24,11 +24,11 @@ import javafx.scene.layout.VBox;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeAppinfoCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Structured editor panel for XSD AppInfo annotations (XsdDoc).
@@ -144,7 +144,7 @@ public class AppInfoEditorPanel extends VBox {
         grid.getColumnConstraints().addAll(col1, col2);
 
         TitledPane pane = new TitledPane("Version Info", grid);
-        pane.setGraphic(new FontIcon("bi-info-circle"));
+        pane.setGraphic(new IconifyIcon("bi-info-circle"));
         return pane;
     }
 
@@ -170,11 +170,11 @@ public class AppInfoEditorPanel extends VBox {
 
         // Buttons
         addSeeButton = new Button("Add");
-        addSeeButton.setGraphic(new FontIcon("bi-plus-circle"));
+        addSeeButton.setGraphic(new IconifyIcon("bi-plus-circle"));
         addSeeButton.setOnAction(e -> handleAddSeeReference());
 
         removeSeeButton = new Button("Remove");
-        removeSeeButton.setGraphic(new FontIcon("bi-dash-circle"));
+        removeSeeButton.setGraphic(new IconifyIcon("bi-dash-circle"));
         removeSeeButton.setOnAction(e -> handleRemoveSeeReference());
         removeSeeButton.setDisable(true);
 
@@ -188,7 +188,7 @@ public class AppInfoEditorPanel extends VBox {
         content.getChildren().addAll(descLabel, seeListView, buttonBox);
 
         TitledPane pane = new TitledPane("See Also (@see)", content);
-        pane.setGraphic(new FontIcon("bi-link-45deg"));
+        pane.setGraphic(new IconifyIcon("bi-link-45deg"));
         return pane;
     }
 
@@ -228,7 +228,7 @@ public class AppInfoEditorPanel extends VBox {
         content.getChildren().addAll(deprecatedCheckBox, descLabel, deprecatedTextArea);
 
         TitledPane pane = new TitledPane("Deprecation (@deprecated)", content);
-        pane.setGraphic(new FontIcon("bi-exclamation-triangle"));
+        pane.setGraphic(new IconifyIcon("bi-exclamation-triangle"));
 
         // Style the pane header when deprecated
         deprecatedCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
@@ -555,14 +555,14 @@ public class AppInfoEditorPanel extends VBox {
      */
     private static class SeeReferenceCell extends ListCell<String> {
         private final HBox content;
-        private final FontIcon icon;
+        private final IconifyIcon icon;
         private final Label textLabel;
 
         SeeReferenceCell() {
             content = new HBox(8);
             content.setAlignment(Pos.CENTER_LEFT);
 
-            icon = new FontIcon("bi-link-45deg");
+            icon = new IconifyIcon("bi-link-45deg");
             icon.setIconSize(14);
 
             textLabel = new Label();

@@ -13,7 +13,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import org.kordamp.ikonli.javafx.FontIcon;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Collapsible console panel for log output and messages.
@@ -39,7 +39,7 @@ public class XmlConsolePanel extends VBox {
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(2, 4, 2, 4));
 
-        FontIcon icon = new FontIcon("bi-terminal");
+        IconifyIcon icon = new IconifyIcon("bi-terminal");
         icon.setIconSize(14);
         Label title = new Label("Console");
         title.setGraphic(icon);
@@ -137,8 +137,8 @@ public class XmlConsolePanel extends VBox {
         this.onCloseRequested = handler;
     }
 
-    private FontIcon createIcon(String literal, int size) {
-        FontIcon fi = new FontIcon(literal);
+    private IconifyIcon createIcon(String literal, int size) {
+        IconifyIcon fi = new IconifyIcon(literal);
         fi.setIconSize(size);
         return fi;
     }

@@ -8,6 +8,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+
 import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
 
 /**

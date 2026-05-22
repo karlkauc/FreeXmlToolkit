@@ -36,84 +36,84 @@
             <MenuBar>
                 <Menu text="File">
                     <graphic>
-                        <FontIcon iconLiteral="bi-folder" iconSize="16" iconColor="#17a2b8"/>
+                        <IconifyIcon iconLiteral="bi-folder" iconSize="16" iconColor="#17a2b8"/>
                     </graphic>
                     <MenuItem fx:id="menuItemNew" onAction="#handleNewFile" text="New" accelerator="Shortcut+N">
                         <graphic>
-                            <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="#28a745"/>
+                            <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="#28a745"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="menuItemOpen" onAction="#handleOpenFile" text="Open..." accelerator="Shortcut+O">
                         <graphic>
-                            <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
+                            <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="menuItemSave" onAction="#handleSave" text="Save" accelerator="Shortcut+S">
                         <graphic>
-                            <FontIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
+                            <IconifyIcon iconLiteral="bi-save" iconSize="16" iconColor="#17a2b8"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="menuItemSaveAs" onAction="#handleSaveAs" text="Save As..."
                               accelerator="Shortcut+Shift+S">
                         <graphic>
-                            <FontIcon iconLiteral="bi-save-fill" iconSize="16" iconColor="#17a2b8"/>
+                            <IconifyIcon iconLiteral="bi-save-fill" iconSize="16" iconColor="#17a2b8"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="menuItemClose" onAction="#handleClose" text="Close" accelerator="Shortcut+W">
                         <graphic>
-                            <FontIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
+                            <IconifyIcon iconLiteral="bi-x-circle" iconSize="16" iconColor="#dc3545"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="menuItemCloseAll" onAction="#handleCloseAll" text="Close All">
                         <graphic>
-                            <FontIcon iconLiteral="bi-x-square" iconSize="16" iconColor="#dc3545"/>
+                            <IconifyIcon iconLiteral="bi-x-square" iconSize="16" iconColor="#dc3545"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
                     <Menu fx:id="lastOpenFilesMenu" text="Recent Files">
                         <graphic>
-                            <FontIcon iconLiteral="bi-clock-history" iconSize="16" iconColor="#6f42c1"/>
+                            <IconifyIcon iconLiteral="bi-clock-history" iconSize="16" iconColor="#6f42c1"/>
                         </graphic>
                     </Menu>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="menuItemSettings" onAction="#openSettings" text="Settings...">
                         <graphic>
-                            <FontIcon iconLiteral="bi-gear" iconSize="16" iconColor="#6c757d"/>
+                            <IconifyIcon iconLiteral="bi-gear" iconSize="16" iconColor="#6c757d"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="menuItemExit" onAction="#handleExit" text="Exit">
                         <graphic>
-                            <FontIcon iconLiteral="bi-door-closed" iconSize="16" iconColor="#495057"/>
+                            <IconifyIcon iconLiteral="bi-door-closed" iconSize="16" iconColor="#495057"/>
                         </graphic>
                     </MenuItem>
                 </Menu>
                 <Menu text="Edit">
                     <graphic>
-                        <FontIcon iconLiteral="bi-pencil" iconSize="16" iconColor="#6f42c1"/>
+                        <IconifyIcon iconLiteral="bi-pencil" iconSize="16" iconColor="#6f42c1"/>
                     </graphic>
                     <MenuItem fx:id="menuItemUndo" onAction="#handleUndo" text="Undo" accelerator="Shortcut+Z">
                         <graphic>
-                            <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16" iconColor="#17a2b8"/>
+                            <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16" iconColor="#17a2b8"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="menuItemRedo" onAction="#handleRedo" text="Redo" accelerator="Shortcut+Shift+Z">
                         <graphic>
-                            <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16" iconColor="#17a2b8"/>
+                            <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16" iconColor="#17a2b8"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="menuItemFind" onAction="#handleFind" text="Find..." accelerator="Shortcut+F">
                         <graphic>
-                            <FontIcon iconLiteral="bi-search" iconSize="16" iconColor="#6f42c1"/>
+                            <IconifyIcon iconLiteral="bi-search" iconSize="16" iconColor="#6f42c1"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="menuItemFindReplace" onAction="#handleFindReplace" text="Find &amp; Replace..."
                               accelerator="Shortcut+H">
                         <graphic>
-                            <FontIcon iconLiteral="bi-arrow-left-right" iconSize="16" iconColor="#6f42c1"/>
+                            <IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="16" iconColor="#6f42c1"/>
                         </graphic>
                     </MenuItem>
                 </Menu>
@@ -121,38 +121,38 @@
                 <!-- XSD Tools Menu -->
                 <Menu text="XSD Tools">
                     <graphic>
-                        <FontIcon iconLiteral="bi-diagram-3" iconSize="16" iconColor="#9c27b0"/>
+                        <IconifyIcon iconLiteral="bi-diagram-3" iconSize="16" iconColor="#9c27b0"/>
                     </graphic>
                     <items>
                         <MenuItem fx:id="menuTypeLibrary" text="Type Library..." onAction="#openTypeLibrary">
                             <graphic>
-                                <FontIcon iconLiteral="bi-collection" iconSize="16" iconColor="#6f42c1"/>
+                                <IconifyIcon iconLiteral="bi-collection" iconSize="16" iconColor="#6f42c1"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuTypeEditor" text="Type Editor..." onAction="#openTypeEditor">
                             <graphic>
-                                <FontIcon iconLiteral="bi-pencil-square" iconSize="16" iconColor="#6f42c1"/>
+                                <IconifyIcon iconLiteral="bi-pencil-square" iconSize="16" iconColor="#6f42c1"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuSchemaAnalysis" text="Schema Analysis..." onAction="#openSchemaAnalysis">
                             <graphic>
-                                <FontIcon iconLiteral="bi-bar-chart-line" iconSize="16" iconColor="#17a2b8"/>
+                                <IconifyIcon iconLiteral="bi-bar-chart-line" iconSize="16" iconColor="#17a2b8"/>
                             </graphic>
                         </MenuItem>
                         <SeparatorMenuItem/>
                         <MenuItem fx:id="menuXsdDocumentation" text="Documentation Generator..." onAction="#openXsdDocumentation">
                             <graphic>
-                                <FontIcon iconLiteral="bi-book" iconSize="16" iconColor="#007bff"/>
+                                <IconifyIcon iconLiteral="bi-book" iconSize="16" iconColor="#007bff"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuGenerateExampleData" text="Generate Example Data..." onAction="#openGenerateExampleData">
                             <graphic>
-                                <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="#28a745"/>
+                                <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16" iconColor="#28a745"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuFlattenSchema" text="Flatten Schema..." onAction="#openFlattenSchema">
                             <graphic>
-                                <FontIcon iconLiteral="bi-layers" iconSize="16" iconColor="#fd7e14"/>
+                                <IconifyIcon iconLiteral="bi-layers" iconSize="16" iconColor="#fd7e14"/>
                             </graphic>
                         </MenuItem>
                     </items>
@@ -161,28 +161,28 @@
                 <!-- XML Tools Menu -->
                 <Menu text="XML Tools">
                     <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#fd7e14"/>
+                        <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#fd7e14"/>
                     </graphic>
                     <items>
                         <MenuItem fx:id="menuXsltDeveloper" text="XSLT Developer..." onAction="#openXsltDeveloper">
                             <graphic>
-                                <FontIcon iconLiteral="bi-arrow-repeat" iconSize="16" iconColor="#fd7e14"/>
+                                <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="16" iconColor="#fd7e14"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuTemplateBuilder" text="Template Builder..." onAction="#openTemplateBuilder">
                             <graphic>
-                                <FontIcon iconLiteral="bi-file-earmark-ruled" iconSize="16" iconColor="#007bff"/>
+                                <IconifyIcon iconLiteral="bi-file-earmark-ruled" iconSize="16" iconColor="#007bff"/>
                             </graphic>
                         </MenuItem>
                         <SeparatorMenuItem/>
                         <MenuItem fx:id="menuXmlToCsv" text="XML to Excel/CSV..." onAction="#openXmlToCsv">
                             <graphic>
-                                <FontIcon iconLiteral="bi-table" iconSize="16" iconColor="#28a745"/>
+                                <IconifyIcon iconLiteral="bi-table" iconSize="16" iconColor="#28a745"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuGenerateSchema" text="Generate Schema from XML..." onAction="#openGenerateSchema">
                             <graphic>
-                                <FontIcon iconLiteral="bi-gear" iconSize="16" iconColor="#6c757d"/>
+                                <IconifyIcon iconLiteral="bi-gear" iconSize="16" iconColor="#6c757d"/>
                             </graphic>
                         </MenuItem>
                     </items>
@@ -191,22 +191,22 @@
                 <!-- Schematron Tools Menu -->
                 <Menu text="Schematron Tools">
                     <graphic>
-                        <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#ffc107"/>
+                        <IconifyIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#ffc107"/>
                     </graphic>
                     <items>
                         <MenuItem fx:id="menuSchematronBuilder" text="Visual Rule Builder..." onAction="#openSchematronBuilder">
                             <graphic>
-                                <FontIcon iconLiteral="bi-bricks" iconSize="16" iconColor="#ffc107"/>
+                                <IconifyIcon iconLiteral="bi-bricks" iconSize="16" iconColor="#ffc107"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuSchematronTest" text="Test Rules..." onAction="#openSchematronTest">
                             <graphic>
-                                <FontIcon iconLiteral="bi-check2-circle" iconSize="16" iconColor="#28a745"/>
+                                <IconifyIcon iconLiteral="bi-check2-circle" iconSize="16" iconColor="#28a745"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuSchematronDocs" text="Generate Documentation..." onAction="#openSchematronDocumentation">
                             <graphic>
-                                <FontIcon iconLiteral="bi-journal-text" iconSize="16" iconColor="#007bff"/>
+                                <IconifyIcon iconLiteral="bi-journal-text" iconSize="16" iconColor="#007bff"/>
                             </graphic>
                         </MenuItem>
                     </items>
@@ -215,33 +215,33 @@
                 <!-- PDF & Signatures Menu -->
                 <Menu text="PDF &amp; Signatures">
                     <graphic>
-                        <FontIcon iconLiteral="bi-shield-lock" iconSize="16" iconColor="#dc3545"/>
+                        <IconifyIcon iconLiteral="bi-shield-lock" iconSize="16" iconColor="#dc3545"/>
                     </graphic>
                     <items>
                         <MenuItem fx:id="menuGeneratePdf" text="Generate PDF (FOP)..." onAction="#openGeneratePdf">
                             <graphic>
-                                <FontIcon iconLiteral="bi-file-earmark-richtext" iconSize="16" iconColor="#dc3545"/>
+                                <IconifyIcon iconLiteral="bi-file-earmark-richtext" iconSize="16" iconColor="#dc3545"/>
                             </graphic>
                         </MenuItem>
                         <SeparatorMenuItem/>
                         <MenuItem fx:id="menuCreateCertificate" text="Create Certificate..." onAction="#openCreateCertificate">
                             <graphic>
-                                <FontIcon iconLiteral="bi-award" iconSize="16" iconColor="#ffc107"/>
+                                <IconifyIcon iconLiteral="bi-award" iconSize="16" iconColor="#ffc107"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuSignXml" text="Sign XML Document..." onAction="#openSignXml">
                             <graphic>
-                                <FontIcon iconLiteral="bi-pen" iconSize="16" iconColor="#007bff"/>
+                                <IconifyIcon iconLiteral="bi-pen" iconSize="16" iconColor="#007bff"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuValidateSignature" text="Validate Signature..." onAction="#openValidateSignature">
                             <graphic>
-                                <FontIcon iconLiteral="bi-patch-check" iconSize="16" iconColor="#28a745"/>
+                                <IconifyIcon iconLiteral="bi-patch-check" iconSize="16" iconColor="#28a745"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="menuExpertSigning" text="Expert Signing Mode..." onAction="#openExpertSigning">
                             <graphic>
-                                <FontIcon iconLiteral="bi-sliders" iconSize="16" iconColor="#6c757d"/>
+                                <IconifyIcon iconLiteral="bi-sliders" iconSize="16" iconColor="#6c757d"/>
                             </graphic>
                         </MenuItem>
                     </items>
@@ -249,18 +249,18 @@
 
                 <Menu fx:id="fundsxmlMenu" text="FundsXML" visible="false">
                     <graphic>
-                        <FontIcon iconLiteral="bi-collection" iconSize="16" iconColor="#28a745"/>
+                        <IconifyIcon iconLiteral="bi-collection" iconSize="16" iconColor="#28a745"/>
                     </graphic>
                     <items>
                         <MenuItem fx:id="fundsxmlMenuDownload" text="Download / Update Content..."
                                   onAction="#openFundsXmlDownload">
                             <graphic>
-                                <FontIcon iconLiteral="bi-cloud-download" iconSize="16" iconColor="#28a745"/>
+                                <IconifyIcon iconLiteral="bi-cloud-download" iconSize="16" iconColor="#28a745"/>
                             </graphic>
                         </MenuItem>
                         <Menu fx:id="fundsxmlMenuActiveVersion" text="Active Schema Version">
                             <graphic>
-                                <FontIcon iconLiteral="bi-tag" iconSize="16" iconColor="#17a2b8"/>
+                                <IconifyIcon iconLiteral="bi-tag" iconSize="16" iconColor="#17a2b8"/>
                             </graphic>
                         </Menu>
                         <SeparatorMenuItem/>
@@ -268,39 +268,39 @@
                                   onAction="#validateAgainstFundsXml"
                                   accelerator="Shortcut+Shift+F">
                             <graphic>
-                                <FontIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#28a745"/>
+                                <IconifyIcon iconLiteral="bi-shield-check" iconSize="16" iconColor="#28a745"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="fundsxmlMenuGenerateDocs" text="Generate Schema Documentation..."
                                   onAction="#generateFundsXmlSchemaDocumentation">
                             <graphic>
-                                <FontIcon iconLiteral="bi-file-earmark-richtext" iconSize="16" iconColor="#6f42c1"/>
+                                <IconifyIcon iconLiteral="bi-file-earmark-richtext" iconSize="16" iconColor="#6f42c1"/>
                             </graphic>
                         </MenuItem>
                         <SeparatorMenuItem/>
                         <MenuItem fx:id="fundsxmlMenuOpenExamples" text="Open Examples Folder"
                                   onAction="#openFundsXmlExamplesFolder">
                             <graphic>
-                                <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#fd7e14"/>
+                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#fd7e14"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="fundsxmlMenuOpenSchema" text="Open Schema Folder"
                                   onAction="#openFundsXmlSchemaFolder">
                             <graphic>
-                                <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
+                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#007bff"/>
                             </graphic>
                         </MenuItem>
                         <MenuItem fx:id="fundsxmlMenuOpenSchematron" text="Open Schematron Folder"
                                   onAction="#openFundsXmlSchematronFolder">
                             <graphic>
-                                <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#dc3545"/>
+                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#dc3545"/>
                             </graphic>
                         </MenuItem>
                         <SeparatorMenuItem/>
                         <MenuItem fx:id="fundsxmlMenuOnlineDocs" text="Open FundsXML Online Docs"
                                   onAction="#openFundsXmlOnlineDocs">
                             <graphic>
-                                <FontIcon iconLiteral="bi-box-arrow-up-right" iconSize="16" iconColor="#007bff"/>
+                                <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="16" iconColor="#007bff"/>
                             </graphic>
                         </MenuItem>
                     </items>
@@ -308,51 +308,51 @@
 
                 <Menu text="Window">
                     <graphic>
-                        <FontIcon iconLiteral="bi-window" iconSize="16" iconColor="#1e88e5"/>
+                        <IconifyIcon iconLiteral="bi-window" iconSize="16" iconColor="#1e88e5"/>
                     </graphic>
                     <CheckMenuItem fx:id="showMenuMenuItem" onAction="#toggleMenuBar" text="Show Menu">
                         <graphic>
-                            <FontIcon iconLiteral="bi-menu-up" iconSize="16" iconColor="#6c757d"/>
+                            <IconifyIcon iconLiteral="bi-menu-up" iconSize="16" iconColor="#6c757d"/>
                         </graphic>
                     </CheckMenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="menuItemFullScreen" onAction="#toggleFullScreen" text="Full Screen"
                               accelerator="F11">
                         <graphic>
-                            <FontIcon iconLiteral="bi-fullscreen" iconSize="16" iconColor="#1e88e5"/>
+                            <IconifyIcon iconLiteral="bi-fullscreen" iconSize="16" iconColor="#1e88e5"/>
                         </graphic>
                     </MenuItem>
                 </Menu>
                 <Menu text="Help">
                     <graphic>
-                        <FontIcon iconLiteral="bi-question-circle" iconSize="16" iconColor="#007bff"/>
+                        <IconifyIcon iconLiteral="bi-question-circle" iconSize="16" iconColor="#007bff"/>
                     </graphic>
                     <MenuItem fx:id="menuItemUserGuide" onAction="#openUserGuide" text="User Guide">
                         <graphic>
-                            <FontIcon iconLiteral="bi-book" iconSize="16" iconColor="#007bff"/>
+                            <IconifyIcon iconLiteral="bi-book" iconSize="16" iconColor="#007bff"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="menuItemKeyboardShortcuts" onAction="#showKeyboardShortcuts"
                               text="Keyboard Shortcuts">
                         <graphic>
-                            <FontIcon iconLiteral="bi-keyboard" iconSize="16" iconColor="#6c757d"/>
+                            <IconifyIcon iconLiteral="bi-keyboard" iconSize="16" iconColor="#6c757d"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="menuItemCheckUpdates" onAction="#checkForUpdates" text="Check for Updates">
                         <graphic>
-                            <FontIcon iconLiteral="bi-cloud-download" iconSize="16" iconColor="#28a745"/>
+                            <IconifyIcon iconLiteral="bi-cloud-download" iconSize="16" iconColor="#28a745"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="menuItemReportIssue" onAction="#reportIssue" text="Report Issue">
                         <graphic>
-                            <FontIcon iconLiteral="bi-github" iconSize="16" iconColor="#495057"/>
+                            <IconifyIcon iconLiteral="bi-github" iconSize="16" iconColor="#495057"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="menuItemAbout" onAction="#handleAboutAction" text="About FreeXmlToolkit">
                         <graphic>
-                            <FontIcon iconLiteral="bi-info-circle" iconSize="16" iconColor="#17a2b8"/>
+                            <IconifyIcon iconLiteral="bi-info-circle" iconSize="16" iconColor="#17a2b8"/>
                         </graphic>
                     </MenuItem>
                 </Menu>
@@ -396,21 +396,21 @@
                                 <Button fx:id="unifiedEditor" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="Editor" VBox.vgrow="ALWAYS">
                                     <graphic>
-                                        <FontIcon iconColor="#6f42c1" iconLiteral="bi-stack" iconSize="16"/>
+                                        <IconifyIcon iconColor="#6f42c1" iconLiteral="bi-stack" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                         text="XML Editor" fx:id="xmlUltimate">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                                        <IconifyIcon iconLiteral="bi-code-slash" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button fx:id="json" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="JSON Editor" VBox.vgrow="ALWAYS">
                                     <graphic>
-                                        <FontIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
+                                        <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
@@ -421,21 +421,21 @@
                                 <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" VBox.vgrow="ALWAYS"
                                         fx:id="xsd">
                                     <graphic>
-                                        <FontIcon iconColor="#007bff" iconLiteral="bi-diagram-3" iconSize="16"/>
+                                        <IconifyIcon iconColor="#007bff" iconLiteral="bi-diagram-3" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                         text="XSD Validation" VBox.vgrow="ALWAYS" fx:id="xsdValidation">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
+                                        <IconifyIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button fx:id="schemaGenerator" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="Schema Generator" VBox.vgrow="ALWAYS">
                                     <graphic>
-                                        <FontIcon iconColor="#9c27b0" iconLiteral="bi-diagram-3" iconSize="16"/>
+                                        <IconifyIcon iconColor="#9c27b0" iconLiteral="bi-diagram-3" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
@@ -446,14 +446,14 @@
                                 <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                         text="XSLT Viewer" VBox.vgrow="ALWAYS" fx:id="xslt">
                                     <graphic>
-                                        <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
+                                        <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button fx:id="xsltDeveloper" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="XSLT Developer" VBox.vgrow="ALWAYS">
                                     <graphic>
-                                        <FontIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
+                                        <IconifyIcon iconColor="#fd7e14" iconLiteral="bi-braces" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
@@ -464,21 +464,21 @@
                                 <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                         text="Schematron Editor" VBox.vgrow="ALWAYS" fx:id="schematron">
                                     <graphic>
-                                        <FontIcon iconColor="#ffc107" iconLiteral="bi-shield-check" iconSize="16"/>
+                                        <IconifyIcon iconColor="#ffc107" iconLiteral="bi-shield-check" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button fx:id="fop" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                         text="FOP" VBox.vgrow="ALWAYS">
                                     <graphic>
-                                        <FontIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
+                                        <IconifyIcon iconColor="#dc3545" iconLiteral="bi-file-earmark-richtext" iconSize="16"/>
                                     </graphic>
                                 </Button>
 
                                 <Button fx:id="signature" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="Signature" VBox.vgrow="ALWAYS">
                                     <graphic>
-                                        <FontIcon iconColor="#28a745" iconLiteral="bi-key" iconSize="16"/>
+                                        <IconifyIcon iconColor="#28a745" iconLiteral="bi-key" iconSize="16"/>
                                     </graphic>
                                 </Button>
                             </VBox>
@@ -491,18 +491,18 @@
                                 <Button fx:id="help" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="Help" HBox.hgrow="ALWAYS">
                                     <graphic>
-                                        <FontIcon iconColor="#17a2b8" iconLiteral="bi-question-square" iconSize="16"/>
+                                        <IconifyIcon iconColor="#17a2b8" iconLiteral="bi-question-square" iconSize="16"/>
                                     </graphic>
                                 </Button>
                                 <Button fx:id="settings" mnemonicParsing="false" onAction="#loadPage"
                                         styleClass="menu_button" text="Settings" HBox.hgrow="ALWAYS">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-gear-fill" iconSize="16"/>
+                                        <IconifyIcon iconLiteral="bi-gear-fill" iconSize="16"/>
                                     </graphic>
                                 </Button>
                                 <Button fx:id="exit" styleClass="menu_button" text="Exit" HBox.hgrow="ALWAYS">
                                     <graphic>
-                                        <FontIcon iconColor="#495057" iconLiteral="bi-door-closed" iconSize="16"/>
+                                        <IconifyIcon iconColor="#495057" iconLiteral="bi-door-closed" iconSize="16"/>
                                     </graphic>
                                 </Button>
                             </HBox>

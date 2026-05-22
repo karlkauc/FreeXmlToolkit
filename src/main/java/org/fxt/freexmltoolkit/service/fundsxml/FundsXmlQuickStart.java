@@ -18,9 +18,6 @@
 
 package org.fxt.freexmltoolkit.service.fundsxml;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,6 +26,9 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Helper for the "Open Quick Start" action shown after a successful FundsXML download.

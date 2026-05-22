@@ -588,7 +588,7 @@ public class XmlEditorSidebarController {
         scrollPane.getStyleClass().add("sidebar-scroll-pane");
 
         javafx.scene.control.Tab tab = new javafx.scene.control.Tab(title, scrollPane);
-        org.kordamp.ikonli.javafx.FontIcon icon = new org.kordamp.ikonli.javafx.FontIcon(iconLiteral);
+        org.fxt.freexmltoolkit.controls.icons.IconifyIcon icon = new org.fxt.freexmltoolkit.controls.icons.IconifyIcon(iconLiteral);
         icon.setIconSize(16);
         icon.setIconColor(javafx.scene.paint.Color.web(color));
         tab.setGraphic(icon);
@@ -1848,7 +1848,7 @@ public class XmlEditorSidebarController {
         TreeItem<String> item = new TreeItem<>(displayText);
 
         // Set icon based on node type
-        var icon = new org.kordamp.ikonli.javafx.FontIcon(getIconForNodeType(node));
+        var icon = new org.fxt.freexmltoolkit.controls.icons.IconifyIcon(getIconForNodeType(node));
         icon.setIconSize(14);
         icon.setIconColor(javafx.scene.paint.Color.web(getColorForNodeType(node)));
         item.setGraphic(icon);
@@ -1868,7 +1868,7 @@ public class XmlEditorSidebarController {
                 if (!text.isEmpty()) {
                     // Add text content as a child node
                     TreeItem<String> textItem = new TreeItem<>(truncateText(text, 50));
-                    var textIcon = new org.kordamp.ikonli.javafx.FontIcon("bi-fonts");
+                    var textIcon = new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-fonts");
                     textIcon.setIconSize(14);
                     textIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
                     textItem.setGraphic(textIcon);
@@ -1877,7 +1877,7 @@ public class XmlEditorSidebarController {
             } else if (nodeType == org.w3c.dom.Node.COMMENT_NODE) {
                 String comment = child.getTextContent().trim();
                 TreeItem<String> commentItem = new TreeItem<>("<!-- " + truncateText(comment, 40) + " -->");
-                var commentIcon = new org.kordamp.ikonli.javafx.FontIcon("bi-chat-left-text");
+                var commentIcon = new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-chat-left-text");
                 commentIcon.setIconSize(14);
                 commentIcon.setIconColor(javafx.scene.paint.Color.web("#28a745"));
                 commentItem.setGraphic(commentIcon);
@@ -1885,7 +1885,7 @@ public class XmlEditorSidebarController {
             } else if (nodeType == org.w3c.dom.Node.CDATA_SECTION_NODE) {
                 String cdata = child.getTextContent().trim();
                 TreeItem<String> cdataItem = new TreeItem<>("<![CDATA[" + truncateText(cdata, 30) + "]]>");
-                var cdataIcon = new org.kordamp.ikonli.javafx.FontIcon("bi-braces");
+                var cdataIcon = new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-braces");
                 cdataIcon.setIconSize(14);
                 cdataIcon.setIconColor(javafx.scene.paint.Color.web("#fd7e14"));
                 cdataItem.setGraphic(cdataIcon);

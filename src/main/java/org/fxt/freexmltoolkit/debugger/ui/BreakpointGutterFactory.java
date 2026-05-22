@@ -9,8 +9,9 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.debugger.DebugSession;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * Paragraph graphic factory contributing breakpoint markers and the
@@ -62,17 +63,17 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         Node icon;
         if (isCurrent && hasBp) {
             // Both — show a yellow arrow on top of the breakpoint
-            FontIcon fi = new FontIcon("bi-arrow-right-circle-fill");
+            IconifyIcon fi = new IconifyIcon("bi-arrow-right-circle-fill");
             fi.setIconSize(12);
             fi.setIconColor(javafx.scene.paint.Color.web("#ffc107"));
             icon = fi;
         } else if (isCurrent) {
-            FontIcon fi = new FontIcon("bi-arrow-right-circle-fill");
+            IconifyIcon fi = new IconifyIcon("bi-arrow-right-circle-fill");
             fi.setIconSize(12);
             fi.setIconColor(javafx.scene.paint.Color.web("#28a745"));
             icon = fi;
         } else if (hasBp) {
-            FontIcon fi = new FontIcon("bi-circle-fill");
+            IconifyIcon fi = new IconifyIcon("bi-circle-fill");
             fi.setIconSize(10);
             fi.setIconColor(javafx.scene.paint.Color.web("#dc3545"));
             Tooltip.install(fi, new Tooltip("Click to remove breakpoint"));

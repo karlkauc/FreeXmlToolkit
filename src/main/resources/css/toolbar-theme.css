@@ -94,19 +94,19 @@
    ICON STYLING
    ============================================ */
 
-.unified-toolbar .button .ikonli-font-icon,
-.xsd-toolbar .button .ikonli-font-icon {
+.unified-toolbar .button .iconify-icon,
+.xsd-toolbar .button .iconify-icon {
     -fx-icon-color: -text-secondary;
     -fx-icon-size: 16px;
 }
 
-.unified-toolbar .button:hover .ikonli-font-icon,
-.xsd-toolbar .button:hover .ikonli-font-icon {
+.unified-toolbar .button:hover .iconify-icon,
+.xsd-toolbar .button:hover .iconify-icon {
     -fx-icon-color: -border-focus;
 }
 
-.unified-toolbar .button:disabled .ikonli-font-icon,
-.xsd-toolbar .button:disabled .ikonli-font-icon {
+.unified-toolbar .button:disabled .iconify-icon,
+.xsd-toolbar .button:disabled .iconify-icon {
     -fx-icon-color: -text-muted;
 }
 
@@ -161,14 +161,14 @@
 }
 
 /* MenuButton icon styling */
-.unified-toolbar .menu-button .ikonli-font-icon,
-.xsd-toolbar .menu-button .ikonli-font-icon {
+.unified-toolbar .menu-button .iconify-icon,
+.xsd-toolbar .menu-button .iconify-icon {
     -fx-icon-color: -text-secondary;
     -fx-icon-size: 16px;
 }
 
-.unified-toolbar .menu-button:hover .ikonli-font-icon,
-.xsd-toolbar .menu-button:hover .ikonli-font-icon {
+.unified-toolbar .menu-button:hover .iconify-icon,
+.xsd-toolbar .menu-button:hover .iconify-icon {
     -fx-icon-color: -border-focus;
 }
 
@@ -234,8 +234,8 @@
     -fx-border-color: -border-focus;
 }
 
-.unified-toolbar .toggle-button:selected .ikonli-font-icon,
-.xsd-toolbar .toggle-button:selected .ikonli-font-icon {
+.unified-toolbar .toggle-button:selected .iconify-icon,
+.xsd-toolbar .toggle-button:selected .iconify-icon {
     -fx-icon-color: -border-focus;
 }
 
@@ -369,8 +369,8 @@
     -fx-border-color: -color-primary;
 }
 
-.unified-toolbar .button.primary-action .ikonli-font-icon,
-.xsd-toolbar .button.primary-action .ikonli-font-icon {
+.unified-toolbar .button.primary-action .iconify-icon,
+.xsd-toolbar .button.primary-action .iconify-icon {
     -fx-icon-color: white;
 }
 
@@ -387,8 +387,8 @@
     -fx-border-color: -color-success;
 }
 
-.unified-toolbar .button.success-action .ikonli-font-icon,
-.xsd-toolbar .button.success-action .ikonli-font-icon {
+.unified-toolbar .button.success-action .iconify-icon,
+.xsd-toolbar .button.success-action .iconify-icon {
     -fx-icon-color: white;
 }
 
@@ -405,8 +405,8 @@
     -fx-border-color: -color-danger;
 }
 
-.unified-toolbar .button.danger-action .ikonli-font-icon,
-.xsd-toolbar .button.danger-action .ikonli-font-icon {
+.unified-toolbar .button.danger-action .iconify-icon,
+.xsd-toolbar .button.danger-action .iconify-icon {
     -fx-icon-color: white;
 }
 

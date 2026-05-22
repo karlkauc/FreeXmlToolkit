@@ -28,13 +28,12 @@ import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer.AnalysisResult;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer.IdentityConstraintInfo;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer.ValidationStatus;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * View displaying identity constraints (Key, KeyRef, Unique) and assertions.
@@ -117,7 +116,7 @@ public class IdentityConstraintsView extends BorderPane {
         summaryLabel.getStyleClass().add("theme-text-secondary");
 
         Button refreshBtn = new Button("Refresh");
-        refreshBtn.setGraphic(new FontIcon(BootstrapIcons.ARROW_CLOCKWISE));
+        refreshBtn.setGraphic(new IconifyIcon("bi-arrow-clockwise"));
         refreshBtn.setOnAction(e -> refresh());
 
         return new ToolBar(titleLabel, spacer, summaryLabel, refreshBtn);
@@ -144,7 +143,7 @@ public class IdentityConstraintsView extends BorderPane {
                     setGraphic(null);
                 } else {
                     setText(item);
-                    FontIcon icon = getIconForType(item);
+                    IconifyIcon icon = getIconForType(item);
                     setGraphic(icon);
                 }
             }
@@ -182,7 +181,7 @@ public class IdentityConstraintsView extends BorderPane {
                     setGraphic(null);
                 } else {
                     ValidationStatus status = ValidationStatus.valueOf(item);
-                    FontIcon icon = getStatusIcon(status);
+                    IconifyIcon icon = getStatusIcon(status);
                     setGraphic(icon);
                     setText(getStatusText(status));
                 }
@@ -244,8 +243,8 @@ public class IdentityConstraintsView extends BorderPane {
     /**
      * Gets the icon for a constraint type.
      */
-    private FontIcon getIconForType(String type) {
-        FontIcon icon = new FontIcon();
+    private IconifyIcon getIconForType(String type) {
+        IconifyIcon icon = new IconifyIcon();
         icon.setIconSize(14);
 
         switch (type) {
@@ -277,8 +276,8 @@ public class IdentityConstraintsView extends BorderPane {
     /**
      * Gets the status icon.
      */
-    private FontIcon getStatusIcon(ValidationStatus status) {
-        FontIcon icon = new FontIcon();
+    private IconifyIcon getStatusIcon(ValidationStatus status) {
+        IconifyIcon icon = new IconifyIcon();
         icon.setIconSize(14);
 
         switch (status) {

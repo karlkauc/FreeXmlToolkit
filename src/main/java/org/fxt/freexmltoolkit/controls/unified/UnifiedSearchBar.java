@@ -11,8 +11,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
  * A search bar component for the Unified Editor.
@@ -73,7 +73,7 @@ public class UnifiedSearchBar extends HBox {
 
         // Find Previous button
         Button findPrevButton = new Button();
-        FontIcon prevIcon = new FontIcon("bi-chevron-up");
+        IconifyIcon prevIcon = new IconifyIcon("bi-chevron-up");
         prevIcon.setIconSize(14);
         findPrevButton.setGraphic(prevIcon);
         findPrevButton.setTooltip(new Tooltip("Find Previous (Shift+Enter)"));
@@ -81,7 +81,7 @@ public class UnifiedSearchBar extends HBox {
 
         // Find Next button
         Button findNextButton = new Button();
-        FontIcon nextIcon = new FontIcon("bi-chevron-down");
+        IconifyIcon nextIcon = new IconifyIcon("bi-chevron-down");
         nextIcon.setIconSize(14);
         findNextButton.setGraphic(nextIcon);
         findNextButton.setTooltip(new Tooltip("Find Next (Enter)"));
@@ -89,7 +89,7 @@ public class UnifiedSearchBar extends HBox {
 
         // Toggle Replace button
         toggleReplaceButton = new Button();
-        FontIcon replaceIcon = new FontIcon("bi-arrow-left-right");
+        IconifyIcon replaceIcon = new IconifyIcon("bi-arrow-left-right");
         replaceIcon.setIconSize(14);
         toggleReplaceButton.setGraphic(replaceIcon);
         toggleReplaceButton.setTooltip(new Tooltip("Toggle Replace (Ctrl+H)"));
@@ -97,7 +97,7 @@ public class UnifiedSearchBar extends HBox {
 
         // Close button
         Button closeButton = new Button();
-        FontIcon closeIcon = new FontIcon("bi-x");
+        IconifyIcon closeIcon = new IconifyIcon("bi-x");
         closeIcon.setIconSize(14);
         closeButton.setGraphic(closeIcon);
         closeButton.setTooltip(new Tooltip("Close (Escape)"));

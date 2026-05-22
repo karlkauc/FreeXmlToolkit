@@ -12,13 +12,13 @@
         <Tooltip text="Documentation Generator - Create HTML docs (Ctrl+4)"/>
     </tooltip>
     <graphic>
-        <FontIcon iconLiteral="bi-journal-text" iconSize="16"/>
+        <IconifyIcon iconLiteral="bi-journal-text" iconSize="16"/>
     </graphic>
     <content>
         <TabPane fx:id="docSubTabPane">
             <Tab fx:id="documentation" text="Generator" styleClass="output-tab" closable="false">
                 <graphic>
-                    <FontIcon iconLiteral="bi-journal-text" iconSize="16"/>
+                    <IconifyIcon iconLiteral="bi-journal-text" iconSize="16"/>
                 </graphic>
 
                 <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: #e8ecf0; -fx-background: #e8ecf0;">
@@ -46,7 +46,7 @@
                                                    style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;"/>
                                         <Button onAction="#openXsdFileChooser" style="-fx-background-color: #f3f4f6; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;">
                                             <graphic>
-                                                <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#6b7280"/>
+                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#6b7280"/>
                                             </graphic>
                                         </Button>
                                     </HBox>
@@ -59,7 +59,7 @@
                                                    style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;"/>
                                         <Button onAction="#openOutputFolderDialog" style="-fx-background-color: #f3f4f6; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #d1d5db; -fx-padding: 8 12;">
                                             <graphic>
-                                                <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#6b7280"/>
+                                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#6b7280"/>
                                             </graphic>
                                         </Button>
                                     </HBox>
@@ -134,7 +134,7 @@
                             <VBox fx:id="htmlSettingsContainer" spacing="12" HBox.hgrow="ALWAYS"
                                   style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
                                 <HBox alignment="CENTER_LEFT" spacing="10">
-                                    <FontIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#E34F26"/>
+                                    <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="20" iconColor="#E34F26"/>
                                     <Label text="HTML Options"
                                            style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
                                 </HBox>
@@ -156,7 +156,7 @@
                                   visible="false" managed="false"
                                   style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
                                 <HBox alignment="CENTER_LEFT" spacing="10">
-                                    <FontIcon iconLiteral="bi-file-earmark-richtext" iconSize="20" iconColor="#2B579A"/>
+                                    <IconifyIcon iconLiteral="bi-file-earmark-richtext" iconSize="20" iconColor="#2B579A"/>
                                     <Label text="Word Options"
                                            style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
                                 </HBox>
@@ -168,7 +168,7 @@
                                   visible="false" managed="false"
                                   style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 20;">
                                 <HBox alignment="CENTER_LEFT" spacing="10">
-                                    <FontIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#DC3545"/>
+                                    <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="20" iconColor="#DC3545"/>
                                     <Label text="PDF Options"
                                            style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
                                 </HBox>
@@ -182,13 +182,13 @@
                                     visible="false" managed="false"
                                     style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-x-circle" iconSize="18" iconColor="white"/>
+                                    <IconifyIcon iconLiteral="bi-x-circle" iconSize="18" iconColor="white"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="generateDocumentationButton" onAction="#generateDocumentation" text="Generate" prefWidth="200" prefHeight="45"
                                     style="-fx-background-color: #4a7fd9; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-play-fill" iconSize="18" iconColor="white"/>
+                                    <IconifyIcon iconLiteral="bi-play-fill" iconSize="18" iconColor="white"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -202,7 +202,7 @@
                         <!-- Status Message -->
                         <HBox fx:id="statusMessageContainer" alignment="CENTER_LEFT" visible="false" managed="false"
                               style="-fx-background-color: #d4edda; -fx-background-radius: 8; -fx-padding: 15; -fx-border-radius: 8; -fx-border-color: #c3e6cb; -fx-border-width: 1;">
-                            <FontIcon iconLiteral="bi-check-circle-fill" iconSize="18" iconColor="#28a745"/>
+                            <IconifyIcon iconLiteral="bi-check-circle-fill" iconSize="18" iconColor="#28a745"/>
                             <Label fx:id="statusText" style="-fx-text-fill: #155724; -fx-font-size: 14px; -fx-padding: 0 0 0 10;"/>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Button fx:id="openDocFolder" onAction="#openGeneratedDocFolder" text="Open Folder"

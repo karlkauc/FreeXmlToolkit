@@ -77,12 +77,8 @@ dependencies {
     implementation("de.marhali:json5-java:3.0.0")                  // JSON5 support (comments, trailing commas)
     implementation("com.networknt:json-schema-validator:3.0.0")    // JSON Schema validation
     implementation("com.jayway.jsonpath:json-path:3.0.0")          // JSONPath queries
-    implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
-    implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.4.0")
-    implementation("org.kordamp.ikonli:ikonli-win10-pack:12.4.0")
-    implementation("org.kordamp.ikonli:ikonli-feather-pack:12.4.0")
-    implementation("org.kordamp.ikonli:ikonli-coreui-pack:12.4.0")
-    implementation("org.kordamp.ikonli:ikonli-fontawesome-pack:12.4.0")
+    // Icons are rendered by the in-house IconifyIcon control (controls/icons) using bundled
+    // Iconify SVG data under resources/icons/iconify/. Ikonli was removed in favour of it.
     implementation("io.github.mkpaz:atlantafx-base:2.1.0")
 
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")
