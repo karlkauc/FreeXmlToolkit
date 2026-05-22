@@ -75,6 +75,35 @@ class IconifyIconCoverageTest {
         }
     }
 
+    @Test
+    void everyFxmlUsingIconifyIconImportsIt() throws IOException {
+        String importLine = "import org.fxt.freexmltoolkit.controls.icons.IconifyIcon";
+        Map<String, String> offenders = new TreeMap<>();
+        try (Stream<Path> files = Files.walk(MAIN)) {
+            files.filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().endsWith(".fxml"))
+                    .forEach(p -> {
+                        try {
+                            String c = Files.readString(p);
+                            if (c.contains("<IconifyIcon") && !c.contains(importLine)) {
+                                offenders.put(p.toString(),
+                                        "uses <IconifyIcon> but is missing the <?import ...IconifyIcon?>");
+                            }
+                            // Guard against leftover Ikonli imports (incl. wildcards).
+                            if (c.contains("org.kordamp.ikonli")) {
+                                offenders.put(p.toString() + " (ikonli)", "still references org.kordamp.ikonli");
+                            }
+                        } catch (IOException ignored) {
+                        }
+                    });
+        }
+        if (!offenders.isEmpty()) {
+            StringBuilder sb = new StringBuilder("FXML import problems (").append(offenders.size()).append("):\n");
+            offenders.forEach((f, why) -> sb.append("  ").append(f).append(" — ").append(why).append('\n'));
+            fail(sb.toString());
+        }
+    }
+
     /** @return map of icon literal -> first file where it was seen */
     private Map<String, String> collectLiterals() throws IOException {
         Map<String, String> result = new TreeMap<>();

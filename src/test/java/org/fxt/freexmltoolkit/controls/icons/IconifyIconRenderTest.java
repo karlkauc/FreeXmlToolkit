@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.controls.icons;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
@@ -112,6 +113,37 @@ class IconifyIconRenderTest {
         double w16 = onFx("bi-save", 16).getLayoutBounds().getWidth();
         double w32 = onFx("bi-save", 32).getLayoutBounds().getWidth();
         assertTrue(w32 > w16 * 1.5, "32px icon should be markedly larger than 16px (" + w16 + " vs " + w32 + ")");
+    }
+
+    @Test
+    @DisplayName("IconifyIcon is instantiable from FXML")
+    void instantiableFromFxml() throws Exception {
+        String fxml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+                <IconifyIcon xmlns="http://javafx.com/javafx"
+                             iconLiteral="bi-save" iconSize="20" iconColor="#17a2b8"/>
+                """;
+        AtomicReference<Object> ref = new AtomicReference<>();
+        AtomicReference<Throwable> err = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            try {
+                var loader = new javafx.fxml.FXMLLoader();
+                ref.set(loader.load(new java.io.ByteArrayInputStream(
+                        fxml.getBytes(java.nio.charset.StandardCharsets.UTF_8))));
+            } catch (Throwable t) {
+                err.set(t);
+            } finally {
+                latch.countDown();
+            }
+        });
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "FX task timed out");
+        assertNull(err.get(), () -> "FXML load failed: " + err.get());
+        assertTrue(ref.get() instanceof IconifyIcon, "root should be an IconifyIcon");
+        IconifyIcon icon = (IconifyIcon) ref.get();
+        assertEquals("bi-save", icon.getIconLiteral());
+        assertEquals(20.0, icon.getIconSize());
     }
 
     @Test
