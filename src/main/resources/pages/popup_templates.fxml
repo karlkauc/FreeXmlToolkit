@@ -3,7 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import org.kordamp.ikonli.javafx.*?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <VBox prefHeight="500.0" prefWidth="700.0" spacing="10" styleClass="popup-container"
       xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1">

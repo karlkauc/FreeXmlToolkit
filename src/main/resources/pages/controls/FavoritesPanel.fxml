@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.*?>
-<?import org.kordamp.ikonli.javafx.*?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController"
       styleClass="favorites-panel" prefWidth="350" minWidth="280"

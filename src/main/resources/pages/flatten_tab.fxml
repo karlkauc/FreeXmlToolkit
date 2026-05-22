@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import org.fxmisc.flowless.VirtualizedScrollPane?>
 <?import org.fxmisc.richtext.CodeArea?>
-<?import org.kordamp.ikonli.javafx.*?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
 <Tab fx:id="flattenTab" text="Flatten Schema" styleClass="utility-tab" closable="false"
      xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
