@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg"
      style="background-color: #f0f8ff"
-     width="552.0"
+     width="551.0"
      height="455.15625">
    <defs>
       <linearGradient y2="100%" id="elementGradient" x1="0%" x2="0%" y1="0%">
@@ -148,7 +148,7 @@
       <rect x="32"
             y="147"
             fill="#f0f8ff"
-            width="52.0"
+            width="55.0"
             style="stroke: #4a90e2; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);"
             filter="url(#dropShadow)"
             class="hoverable-rect"
@@ -172,12 +172,12 @@
    </g>
    <line y2="168.447265625"
          style="stroke: #6c757d; stroke-width: 2; fill: none;"
-         x1="84.0"
+         x1="87.0"
          class="connection-line"
-         x2="119.0"
+         x2="122.0"
          y1="168.447265625"/>
    <g>
-      <rect x="119.0"
+      <rect x="122.0"
             y="153.447265625"
             fill="url(#sequenceGradient)"
             width="50.0"
@@ -187,12 +187,12 @@
             stroke="#6c757d"
             stroke-width="2"/>
       <use xmlns:xlink="http://www.w3.org/1999/xlink"
-           x="136.0"
+           x="139.0"
            y="160.447265625"
            xlink:href="#sequence-icon"/>
    </g>
    <a href="Name_3750c6f5f8485c3fad597eee321054b2.html">
-      <rect x="244.0"
+      <rect x="247.0"
             y="32.0"
             fill="#f0f8ff"
             width="174.0"
@@ -204,7 +204,7 @@
             height="69.7890625"
             id="/Fund/SEQUENCE_1/Name"/>
       <g>
-         <text x="256.0"
+         <text x="259.0"
                fill="#2c5aa0"
                y="62.89453125"
                font-size="14"
@@ -212,26 +212,26 @@
                font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">Name</text>
          <line y2="66.89453125"
                stroke-width="1"
-               x1="256.0"
-               x2="406.0"
+               x1="259.0"
+               x2="409.0"
                stroke="#e0e0e0"
                y1="66.89453125"/>
-         <text x="256.0"
+         <text x="259.0"
                fill="#6c757d"
                y="89.7890625"
                font-size="13"
                font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">xs:string</text>
          <g>
-            <rect x="381.0"
+            <rect x="385.0"
                   y="74.89453125"
                   fill="#e9ecef"
-                  width="25.0"
+                  width="24.0"
                   rx="2"
                   ry="2"
                   height="16"
                   stroke="#adb5bd"
                   stroke-width="1"/>
-            <text x="385.0"
+            <text x="389.0"
                   fill="#495057"
                   y="85.89453125"
                   font-size="10"
@@ -242,10 +242,10 @@
    </a>
    <path fill="none"
          stroke-width="2"
-         d="M 169.0 168.447265625 H 187.75 V 66.89453125 H 244.0"
+         d="M 172.0 168.447265625 H 190.75 V 66.89453125 H 247.0"
          stroke="#6c757d"/>
    <a href="FundDynamicData_bb29e5655e5370bba6c0410d72b34aa6.html">
-      <rect x="244.0"
+      <rect x="247.0"
             y="133.7890625"
             fill="#f0f8ff"
             width="174.0"
@@ -257,7 +257,7 @@
             height="69.7890625"
             id="/Fund/SEQUENCE_1/FundDynamicData"/>
       <g>
-         <text x="256.0"
+         <text x="259.0"
                fill="#2c5aa0"
                y="164.68359375"
                font-size="14"
@@ -265,26 +265,26 @@
                font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">FundDynamicData</text>
          <line y2="168.68359375"
                stroke-width="1"
-               x1="256.0"
-               x2="406.0"
+               x1="259.0"
+               x2="409.0"
                stroke="#e0e0e0"
                y1="168.68359375"/>
-         <text x="256.0"
+         <text x="259.0"
                fill="#6c757d"
                y="191.578125"
                font-size="13"
                font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">xs:string</text>
          <g>
-            <rect x="381.0"
+            <rect x="385.0"
                   y="176.68359375"
                   fill="#e9ecef"
-                  width="25.0"
+                  width="24.0"
                   rx="2"
                   ry="2"
                   height="16"
                   stroke="#adb5bd"
                   stroke-width="1"/>
-            <text x="385.0"
+            <text x="389.0"
                   fill="#495057"
                   y="187.68359375"
                   font-size="10"
@@ -295,10 +295,10 @@
    </a>
    <path fill="none"
          stroke-width="2"
-         d="M 169.0 168.447265625 H 187.75 V 168.68359375 H 244.0"
+         d="M 172.0 168.447265625 H 190.75 V 168.68359375 H 247.0"
          stroke="#6c757d"/>
    <g>
-      <rect x="289.0"
+      <rect x="292.0"
             y="255.578125"
             fill="url(#choiceGradient)"
             width="30.0"
@@ -309,19 +309,19 @@
             stroke="#ff8c00"
             stroke-width="2"/>
       <use xmlns:xlink="http://www.w3.org/1999/xlink"
-           x="295.0"
+           x="298.0"
            y="262.578125"
            xlink:href="#choice-icon"/>
    </g>
    <path fill="none"
          stroke-width="2"
-         d="M 169.0 168.447265625 H 199.0 V 270.578125 H 289.0"
+         d="M 172.0 168.447265625 H 202.0 V 270.578125 H 292.0"
          stroke="#ff8c00"/>
    <a href="SingleFund_2d9bb4835d2ccdede2366aabb891564a.html">
-      <rect x="374.0"
+      <rect x="377.0"
             y="255.578125"
             fill="#f0f8ff"
-            width="146.0"
+            width="142.0"
             style="stroke: #4a90e2; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);"
             filter="url(#dropShadow)"
             class="hoverable-rect"
@@ -330,7 +330,7 @@
             height="69.7890625"
             id="/Fund/SEQUENCE_1/CHOICE_3/SingleFund"/>
       <g>
-         <text x="386.0"
+         <text x="389.0"
                fill="#2c5aa0"
                y="286.47265625"
                font-size="14"
@@ -338,11 +338,11 @@
                font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">SingleFund</text>
          <line y2="290.47265625"
                stroke-width="1"
-               x1="386.0"
-               x2="508.0"
+               x1="389.0"
+               x2="507.0"
                stroke="#e0e0e0"
                y1="290.47265625"/>
-         <text x="386.0"
+         <text x="389.0"
                fill="#6c757d"
                y="313.3671875"
                font-size="13"
@@ -351,7 +351,7 @@
             <rect x="483.0"
                   y="298.47265625"
                   fill="#e9ecef"
-                  width="25.0"
+                  width="24.0"
                   rx="2"
                   ry="2"
                   height="16"
@@ -368,13 +368,13 @@
    </a>
    <path fill="none"
          stroke-width="2"
-         d="M 334.0 270.578125 H 350.0 V 290.47265625 H 374.0"
+         d="M 337.0 270.578125 H 353.0 V 290.47265625 H 377.0"
          stroke="#ff8c00"/>
    <a href="Subfunds_7296c82fb4314fb08c74f08139b519b5.html">
-      <rect x="374.0"
+      <rect x="377.0"
             y="357.3671875"
             fill="#f0f8ff"
-            width="146.0"
+            width="142.0"
             style="stroke: #4a90e2; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);"
             filter="url(#dropShadow)"
             class="hoverable-rect"
@@ -383,7 +383,7 @@
             height="69.7890625"
             id="/Fund/SEQUENCE_1/CHOICE_3/Subfunds"/>
       <g>
-         <text x="386.0"
+         <text x="389.0"
                fill="#2c5aa0"
                y="388.26171875"
                font-size="14"
@@ -391,11 +391,11 @@
                font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">Subfunds</text>
          <line y2="392.26171875"
                stroke-width="1"
-               x1="386.0"
-               x2="508.0"
+               x1="389.0"
+               x2="507.0"
                stroke="#e0e0e0"
                y1="392.26171875"/>
-         <text x="386.0"
+         <text x="389.0"
                fill="#6c757d"
                y="415.15625"
                font-size="13"
@@ -404,7 +404,7 @@
             <rect x="483.0"
                   y="400.26171875"
                   fill="#e9ecef"
-                  width="25.0"
+                  width="24.0"
                   rx="2"
                   ry="2"
                   height="16"
@@ -421,6 +421,6 @@
    </a>
    <path fill="none"
          stroke-width="2"
-         d="M 334.0 270.578125 H 350.0 V 392.26171875 H 374.0"
+         d="M 337.0 270.578125 H 353.0 V 392.26171875 H 377.0"
          stroke="#ff8c00"/>
 </svg>
