@@ -127,6 +127,10 @@ public class XmlEditor extends Tab {
     // This is updated when xsdDocumentationData is loaded asynchronously
     private XmlEditorContext currentGraphicViewContext;
 
+    // The current graphical canvas view (V2), or null if not built / invalid XML.
+    // Used as the search target when Ctrl-F is pressed on the Graphic tab.
+    private XmlCanvasView currentCanvasView;
+
     // Pending XML from graphical edits — applied when switching back to text view
     private volatile String pendingGraphicEditXml;
 
@@ -254,6 +258,20 @@ public class XmlEditor extends Tab {
 
         setupHover();
         setupSearchAndReplace();
+
+        // Ensure Ctrl-F / Ctrl-R also work while the Graphic tab is focused
+        // (the codeArea handler only fires when the text editor has focus).
+        tabPane.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            if (event.isControlDown()) {
+                if (event.getCode() == javafx.scene.input.KeyCode.F) {
+                    showSearchPopup(true);
+                    event.consume();
+                } else if (event.getCode() == javafx.scene.input.KeyCode.R) {
+                    showSearchPopup(false);
+                    event.consume();
+                }
+            }
+        });
 
         // Set XML tab content to V2 editor
         xml.setContent(xmlCodeEditorV2);
@@ -680,6 +698,11 @@ public class XmlEditor extends Tab {
         try {
             org.fxt.freexmltoolkit.controls.shared.utilities.FindReplaceDialog dialog =
                 new org.fxt.freexmltoolkit.controls.shared.utilities.FindReplaceDialog(codeArea);
+            // On the Graphic tab, search/navigate matches in the canvas view instead
+            // of the (hidden) text editor.
+            if (graphic.isSelected() && currentCanvasView != null) {
+                dialog.setSearchTarget(currentCanvasView);
+            }
             dialog.showAndWait();
         } catch (Exception e) {
             logger.error("Error opening find/replace dialog: {}", e.getMessage(), e);
@@ -2024,6 +2047,7 @@ public class XmlEditor extends Tab {
 
             // Create XmlCanvasView with the context (XMLSpy Grid-style view)
             XmlCanvasView canvasView = new XmlCanvasView(xmlEditorContext);
+            this.currentCanvasView = canvasView;
 
             // Store changes for deferred sync when switching back to text view.
             // Writing directly to a hidden CodeArea breaks syntax highlighting
@@ -2071,6 +2095,7 @@ public class XmlEditor extends Tab {
     private void showGraphicViewPlaceholder(String message) {
         // Clear the reference to the graphic view context since we're showing a placeholder
         this.currentGraphicViewContext = null;
+        this.currentCanvasView = null;
 
         VBox vBox = new VBox();
         vBox.setPadding(new Insets(20));

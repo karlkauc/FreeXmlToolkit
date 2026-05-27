@@ -14,7 +14,7 @@ The Unified Editor lets you work with multiple related files simultaneously in a
 - **Unified toolbar** - Common operations (Save, Validate, Format) work across all file types
 - **Context-sensitive tools** - Toolbar buttons change based on the active file type
 - **Integrated XPath/XQuery** - Query panel works with any XML-based file
-- **Search & Replace** - Unified search across all editor types
+- **Search & Replace** - Unified search across all editor types; in XML files it works in both the Text and Graphic views (see note below)
 - **Favorites** - Quick access to frequently used files
 
 ## Getting Started
@@ -116,6 +116,8 @@ When editing an XSLT file:
 | Ctrl+E | XML to Spreadsheet |
 | Ctrl+T | Templates |
 | Ctrl+G | Generate XSD |
+
+> **Search in XML files (updated in v1.10):** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next. The search works in both the **Text** and **Graphic** views of an XML file. In the Graphic view it searches element names, attribute names, and values across the whole document, auto-expands collapsed nodes to reach a match, selects the matching row, and scrolls it into view; matches wrap around when you reach the end. Switching between the Text and Graphic sub-tabs while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only. See [XML Editor Features](xml-editor-features.md#search-find) for details.
 
 ## Drag and Drop
 

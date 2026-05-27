@@ -34,6 +34,7 @@ import javafx.util.Duration;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand;
@@ -61,7 +62,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFacto
  * @author Claude Code
  * @since 2.0
  */
-public class XmlCanvasView extends Pane {
+public class XmlCanvasView extends Pane implements XmlSearchTarget {
 
     private static final Logger logger = LogManager.getLogger(XmlCanvasView.class);
 
@@ -87,6 +88,17 @@ public class XmlCanvasView extends Pane {
 
     /** Cumulative Y offset for each visible row index, accounting for expanded tables above. */
     private double[] rowYPositions = new double[0];
+
+    // ==================== Search State ====================
+
+    /** Last search text used to build {@link #searchMatches}. */
+    private String lastSearchText = "";
+
+    /** Rows matching the current search text, in document order. */
+    private List<FlatRow> searchMatches = new ArrayList<>();
+
+    /** Index of the currently highlighted match within {@link #searchMatches}, or -1. */
+    private int currentMatchIndex = -1;
 
     // ==================== Layout Constants ====================
 
@@ -2596,23 +2608,105 @@ public class XmlCanvasView extends Pane {
         if (node != null) {
             for (FlatRow row : allRows) {
                 if (row.getModelNode() == node) {
-                    // Ensure ancestors are expanded
-                    FlatRow parent = row.getParentRow();
-                    while (parent != null) {
-                        if (parent.isExpandable() && !parent.isExpanded()) {
-                            parent.setExpanded(true);
-                        }
-                        parent = parent.getParentRow();
-                    }
-                    recalculateVisibility();
-                    recalculateVisibleRows();
-                    updateScrollBars();
-
-                    selectRow(row);
-                    ensureRowVisible(row);
+                    revealRow(row);
                     return;
                 }
             }
         }
+    }
+
+    // ==================== Search (XmlSearchTarget) ====================
+
+    /**
+     * Navigates to the next or previous row whose name or value matches the
+     * search text. Matches are searched across the whole document; a match
+     * hidden inside a collapsed node is revealed by auto-expanding its ancestors.
+     *
+     * @param searchText the text to find (case-insensitive)
+     * @param forward    true to move to the next match, false for the previous
+     * @return true if a match was found and navigated to
+     */
+    @Override
+    public boolean find(String searchText, boolean forward) {
+        if (searchText == null || searchText.isEmpty()) {
+            return false;
+        }
+        if (!searchText.equals(lastSearchText)) {
+            rebuildMatches(searchText);
+        }
+        if (searchMatches.isEmpty()) {
+            return false;
+        }
+
+        if (forward) {
+            currentMatchIndex = (currentMatchIndex + 1) % searchMatches.size();
+        } else {
+            currentMatchIndex = (currentMatchIndex - 1 + searchMatches.size()) % searchMatches.size();
+        }
+
+        revealRow(searchMatches.get(currentMatchIndex));
+        return true;
+    }
+
+    /**
+     * Counts matches for the given text and navigates to the first one.
+     *
+     * @param searchText the text to find (case-insensitive)
+     * @return the number of matching rows
+     */
+    @Override
+    public int findAll(String searchText) {
+        rebuildMatches(searchText);
+        if (!searchMatches.isEmpty()) {
+            currentMatchIndex = 0;
+            revealRow(searchMatches.get(0));
+        }
+        return searchMatches.size();
+    }
+
+    /**
+     * Clears the cached search state.
+     */
+    @Override
+    public void clearSearch() {
+        lastSearchText = "";
+        searchMatches = new ArrayList<>();
+        currentMatchIndex = -1;
+    }
+
+    /**
+     * Rebuilds the match list for the given search text and resets the cursor.
+     *
+     * @param searchText the text to match
+     */
+    private void rebuildMatches(String searchText) {
+        lastSearchText = searchText;
+        searchMatches = XmlCanvasSearch.findMatches(allRows, searchText);
+        currentMatchIndex = -1;
+    }
+
+    /**
+     * Expands the row's ancestors so it becomes visible, then selects it and
+     * scrolls it into view.
+     *
+     * @param row the row to reveal (ignored if null)
+     */
+    private void revealRow(FlatRow row) {
+        if (row == null) {
+            return;
+        }
+        FlatRow parent = row.getParentRow();
+        while (parent != null) {
+            if (parent.isExpandable() && !parent.isExpanded()) {
+                parent.setExpanded(true);
+            }
+            parent = parent.getParentRow();
+        }
+        recalculateVisibility();
+        recalculateVisibleRows();
+        updateScrollBars();
+
+        selectRow(row);
+        ensureRowVisible(row);
     }
 }

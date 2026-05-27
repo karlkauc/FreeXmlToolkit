@@ -1207,7 +1207,18 @@ public class UnifiedEditorController implements Initializable, FavoritesParentCo
      */
     private void connectSearchBarToTab(AbstractUnifiedEditorTab tab) {
         if (tab instanceof XmlUnifiedTab xmlTab) {
-            searchBar.setCurrentEditor(xmlTab.getTextEditor());
+            // Re-target search when the user switches between text/graphic views
+            // while the search bar is open.
+            xmlTab.setOnViewChanged(() -> {
+                if (searchBar != null && searchBar.isVisible()) {
+                    connectSearchBarToTab(xmlTab);
+                }
+            });
+            if (xmlTab.isGraphicViewActive() && xmlTab.getGraphicView() != null) {
+                searchBar.setCurrentSearchTarget(xmlTab.getGraphicView());
+            } else {
+                searchBar.setCurrentEditor(xmlTab.getTextEditor());
+            }
         } else if (tab instanceof XsdUnifiedTab xsdTab) {
             searchBar.setCurrentEditor(xsdTab.getTextEditor());
         } else if (tab instanceof XsltUnifiedTab xsltTab) {

@@ -1,8 +1,40 @@
 # XML Editor Features
 
-> **Last Updated:** November 2025 | **Version:** 1.0.0
+> **Last Updated:** May 2026 | **Version:** 1.0.0
 
 This page describes the advanced features available in the XML Editor.
+
+---
+
+## Search (Find)
+
+> **Updated in v1.10** - Search now works in the **Graphic** view too, not just the text view.
+
+### Finding Text in Your Document
+
+Press **Ctrl+F** to open the Find feature and type the text you are looking for. Use the up and down arrows (**Find Previous** / **Find Next**) to move between matches. When you reach the last match, the search wraps around and continues from the beginning.
+
+### Search Works in Both Views
+
+You can search in either the **Text** view or the **Graphic** view of an XML document:
+
+- **Text view** - Matches are highlighted in the source code. **Replace** is available here.
+- **Graphic view** - The search looks through element names, attribute names, and values across the whole document. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.
+
+Searching is **case-insensitive** in both views.
+
+### Switching Views While Searching
+
+If you switch between the **Text** and **Graphic** sub-tabs while the search bar is open, the search automatically re-targets the view you switched to, so you can keep navigating without retyping your search term.
+
+### Where Search Is Available
+
+| Editor | How Search Appears |
+|--------|--------------------|
+| **XML** tab | A Find / Replace dialog (opens with Ctrl+F) |
+| **Unified Editor** | An inline search bar with up/down chevron arrows |
+
+> **Note:** In the **Graphic** view, search is for finding and navigating only - **Replace** is not available there. To replace text, use the **Text** view.
 
 ---
 

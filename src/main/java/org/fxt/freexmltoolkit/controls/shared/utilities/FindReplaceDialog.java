@@ -51,6 +51,15 @@ public class FindReplaceDialog extends Dialog<Void> {
     private final CheckBox wholeWordCheck = new CheckBox("Whole Word");
     private final CheckBox regexCheck = new CheckBox("Regex");
 
+    /**
+     * Optional graphical search target. When set, find next/previous navigate
+     * matches in this target (e.g. the canvas view) instead of the CodeArea,
+     * and replace operations are disabled.
+     */
+    private XmlSearchTarget searchTarget;
+    private Button replaceButtonRef;
+    private Button replaceAllButtonRef;
+
 
     /**
      * Creates a new FindReplaceDialog for the given CodeArea.
@@ -73,6 +82,24 @@ public class FindReplaceDialog extends Dialog<Void> {
 
         // Prevent dialog from closing except for Close button
         setupResultConverter();
+    }
+
+    /**
+     * Sets a graphical search target. When non-null, find next/previous operate
+     * on this target (e.g. the canvas view) and replace operations are disabled.
+     *
+     * @param target the search target, or null to search the CodeArea
+     */
+    public void setSearchTarget(XmlSearchTarget target) {
+        this.searchTarget = target;
+        boolean canvasMode = target != null;
+        if (replaceButtonRef != null) {
+            replaceButtonRef.setDisable(canvasMode);
+        }
+        if (replaceAllButtonRef != null) {
+            replaceAllButtonRef.setDisable(canvasMode);
+        }
+        replaceField.setDisable(canvasMode);
     }
     
     /**
@@ -237,6 +264,7 @@ public class FindReplaceDialog extends Dialog<Void> {
         });
         replaceButton.getStyleClass().addAll("btn-info");
         addButtonIcon(replaceButton, "/img/icons8-aktualisieren-48.png");
+        this.replaceButtonRef = replaceButton;
 
         // Configure Replace All button - use addEventFilter to prevent dialog from closing
         final Button replaceAllButton = (Button) getDialogPane().lookupButton(replaceAllButtonType);
@@ -246,6 +274,7 @@ public class FindReplaceDialog extends Dialog<Void> {
         });
         replaceAllButton.getStyleClass().addAll("btn-warning");
         addButtonIcon(replaceAllButton, "/img/icons8-aktualisieren-48.png");
+        this.replaceAllButtonRef = replaceAllButton;
 
         // Configure Close button - this one SHOULD close the dialog
         final Button closeButton = (Button) getDialogPane().lookupButton(closeButtonType);
@@ -327,6 +356,12 @@ public class FindReplaceDialog extends Dialog<Void> {
             return;
         }
 
+        if (searchTarget != null) {
+            boolean found = searchTarget.find(searchText, true);
+            updateSearchStatus(found, searchText);
+            return;
+        }
+
         String content = codeArea.getText();
         int fromIndex = codeArea.getSelection().getEnd();
 
@@ -351,6 +386,12 @@ public class FindReplaceDialog extends Dialog<Void> {
     private void findPrevious() {
         String searchText = findField.getText();
         if (searchText.isEmpty()) {
+            return;
+        }
+
+        if (searchTarget != null) {
+            boolean found = searchTarget.find(searchText, false);
+            updateSearchStatus(found, searchText);
             return;
         }
 

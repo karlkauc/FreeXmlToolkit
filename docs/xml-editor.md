@@ -101,6 +101,23 @@ The grid editor provides:
 
 ---
 
+## Search (Find)
+
+> **Updated in v1.10** - Search now works in the **Graphic** view too, not just the text view.
+
+Press **Ctrl+F** to find text in your document. A Find / Replace dialog opens where you type your search term and use the up and down arrows (**Find Previous** / **Find Next**) to move between matches; the search wraps around at the end.
+
+Search works in both views (case-insensitive):
+
+- **Text view** - Matches are highlighted in the source. **Replace** is available here.
+- **Graphic view** - The search looks through element names, attribute names, and values across the whole document. The editor jumps to each matching node, auto-expanding collapsed parent nodes, selecting the matching row, and scrolling it into view. (**Replace** is not available in the Graphic view.)
+
+If you switch between the **Text** and **Graphic** sub-tabs while the dialog is open, the search re-targets the active view automatically.
+
+Learn more: [Search (Find)](xml-editor-features.md#search-find)
+
+---
+
 ## Auto-Completion (IntelliSense)
 
 ![Auto-Completion](img/xml-editor-intellisense.png)

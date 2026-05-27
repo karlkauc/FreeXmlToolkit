@@ -37,7 +37,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
  *
  * <p>Target: &lt;400 lines - only coordination logic here.</p>
  */
-public class XmlCodeEditorV2 extends VBox {
+public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget {
 
     private static final Logger logger = LogManager.getLogger(XmlCodeEditorV2.class);
 

@@ -75,6 +75,12 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
     private XsdDocumentationData xsdDocumentationData;
     private XmlEditorContext graphicViewContext;
 
+    /** The current graphical canvas view, or null if not yet built / invalid XML. */
+    private XmlCanvasView graphicView;
+
+    /** Notified when the active view (text vs. graphic) changes, so the search bar can re-target. */
+    private Runnable onViewChanged;
+
     // State
     private String lastSavedContent;
     private LinkedFileDetector linkDetector;
@@ -155,12 +161,18 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
                 // Switching to text view - sync from graphic view if it has changes
                 syncFromGraphicView();
             }
+            if (xmlTab.isSelected()) {
+                notifyViewChanged();
+            }
         });
 
         graphicTab.setOnSelectionChanged(e -> {
             if (graphicTab.isSelected() && !syncingViews && currentViewMode == ViewMode.TABS) {
                 // Switching to graphic view - sync from text
                 syncToGraphicView();
+            }
+            if (graphicTab.isSelected()) {
+                notifyViewChanged();
             }
         });
 
@@ -226,6 +238,7 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
         } finally {
             syncingViews = false;
         }
+        notifyViewChanged();
     }
 
     @Override
@@ -271,11 +284,13 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
             });
 
             XmlCanvasView canvasView = new XmlCanvasView(graphicViewContext);
+            this.graphicView = canvasView;
             VBox container = new VBox(canvasView);
             VBox.setVgrow(canvasView, Priority.ALWAYS);
             setGraphicViewContent(container);
         } catch (Exception e) {
             graphicViewContext = null;
+            this.graphicView = null;
             setGraphicViewContent(new Label("Invalid XML: " + e.getMessage()));
         }
     }
@@ -751,6 +766,42 @@ public class XmlUnifiedTab extends AbstractUnifiedEditorTab {
      */
     public XmlCodeEditorV2 getTextEditor() {
         return textEditor;
+    }
+
+    /**
+     * Gets the current graphical canvas view, or null if it has not been built
+     * yet or the XML is invalid.
+     *
+     * @return the canvas view, or null
+     */
+    public XmlCanvasView getGraphicView() {
+        return graphicView;
+    }
+
+    /**
+     * Returns whether the graphical view is the currently active view (so that
+     * search should operate on the canvas rather than the text editor). In split
+     * modes the text editor remains the primary search target.
+     *
+     * @return true if the Graphic tab is selected in TABS mode
+     */
+    public boolean isGraphicViewActive() {
+        return currentViewMode == ViewMode.TABS && graphicTab.isSelected();
+    }
+
+    /**
+     * Registers a callback invoked when the active view (text vs. graphic) changes.
+     *
+     * @param callback the callback, or null to clear
+     */
+    public void setOnViewChanged(Runnable callback) {
+        this.onViewChanged = callback;
+    }
+
+    private void notifyViewChanged() {
+        if (onViewChanged != null) {
+            onViewChanged.run();
+        }
     }
 
     /**

@@ -12,6 +12,7 @@ import javafx.scene.layout.Priority;
 
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 
 /**
@@ -29,6 +30,8 @@ public class UnifiedSearchBar extends HBox {
 
     private XmlCodeEditorV2 currentEditor;
     private CodeArea currentCodeArea;
+    /** Active find/navigate target (text editor or graphical canvas); null for raw CodeArea mode. */
+    private XmlSearchTarget currentSearchTarget;
     private Runnable onCloseCallback;
 
     private boolean replaceMode = false;
@@ -156,6 +159,7 @@ public class UnifiedSearchBar extends HBox {
     public void setCurrentEditor(XmlCodeEditorV2 editor) {
         this.currentEditor = editor;
         this.currentCodeArea = editor != null ? editor.getCodeArea() : null;
+        this.currentSearchTarget = editor;
     }
 
     /**
@@ -166,6 +170,19 @@ public class UnifiedSearchBar extends HBox {
     public void setCurrentCodeArea(CodeArea codeArea) {
         this.currentCodeArea = codeArea;
         this.currentEditor = null;
+        this.currentSearchTarget = null;
+    }
+
+    /**
+     * Sets a generic search target, e.g. the graphical canvas view. Replace
+     * operations are unavailable in this mode (find/navigate only).
+     *
+     * @param target the search target to navigate within
+     */
+    public void setCurrentSearchTarget(XmlSearchTarget target) {
+        this.currentSearchTarget = target;
+        this.currentEditor = null;
+        this.currentCodeArea = null;
     }
 
     /**
@@ -195,8 +212,8 @@ public class UnifiedSearchBar extends HBox {
     public void hide() {
         setVisible(false);
         setManaged(false);
-        if (currentEditor != null) {
-            currentEditor.clearSearch();
+        if (currentSearchTarget != null) {
+            currentSearchTarget.clearSearch();
         }
         if (onCloseCallback != null) {
             onCloseCallback.run();
@@ -228,8 +245,8 @@ public class UnifiedSearchBar extends HBox {
         }
 
         boolean found = false;
-        if (currentEditor != null) {
-            found = currentEditor.find(text, true);
+        if (currentSearchTarget != null) {
+            found = currentSearchTarget.find(text, true);
         } else if (currentCodeArea != null) {
             found = findInCodeArea(text, true);
         }
@@ -249,8 +266,8 @@ public class UnifiedSearchBar extends HBox {
         }
 
         boolean found = false;
-        if (currentEditor != null) {
-            found = currentEditor.find(text, false);
+        if (currentSearchTarget != null) {
+            found = currentSearchTarget.find(text, false);
         } else if (currentCodeArea != null) {
             found = findInCodeArea(text, false);
         }
@@ -309,8 +326,8 @@ public class UnifiedSearchBar extends HBox {
         }
 
         int count = 0;
-        if (currentEditor != null) {
-            count = currentEditor.findAll(text);
+        if (currentSearchTarget != null) {
+            count = currentSearchTarget.findAll(text);
         } else if (currentCodeArea != null) {
             String content = currentCodeArea.getText();
             if (content != null) {
