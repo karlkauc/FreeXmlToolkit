@@ -672,6 +672,67 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#search-find" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search (Find)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Search (Find)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finding-text-in-your-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Text in Your Document
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-works-in-both-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search Works in Both Views
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#switching-views-while-searching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switching Views While Searching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-search-is-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where Search Is Available
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#schematron-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1834,6 +1895,67 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#search-find" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search (Find)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Search (Find)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finding-text-in-your-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Text in Your Document
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search-works-in-both-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search Works in Both Views
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#switching-views-while-searching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switching Views While Searching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-search-is-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where Search Is Available
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#schematron-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2072,9 +2194,47 @@
 
 <h1 id="xml-editor-features">XML Editor Features<a class="headerlink" href="#xml-editor-features" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Last Updated:</strong> November 2025 | <strong>Version:</strong> 1.0.0</p>
+<p><strong>Last Updated:</strong> May 2026 | <strong>Version:</strong> 1.0.0</p>
 </blockquote>
 <p>This page describes the advanced features available in the XML Editor.</p>
+<hr />
+<h2 id="search-find">Search (Find)<a class="headerlink" href="#search-find" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Updated in v1.10</strong> - Search now works in the <strong>Graphic</strong> view too, not just the text view.</p>
+</blockquote>
+<h3 id="finding-text-in-your-document">Finding Text in Your Document<a class="headerlink" href="#finding-text-in-your-document" title="Permanent link">&para;</a></h3>
+<p>Press <strong>Ctrl+F</strong> to open the Find feature and type the text you are looking for. Use the up and down arrows (<strong>Find Previous</strong> / <strong>Find Next</strong>) to move between matches. When you reach the last match, the search wraps around and continues from the beginning.</p>
+<h3 id="search-works-in-both-views">Search Works in Both Views<a class="headerlink" href="#search-works-in-both-views" title="Permanent link">&para;</a></h3>
+<p>You can search in either the <strong>Text</strong> view or the <strong>Graphic</strong> view of an XML document:</p>
+<ul>
+<li><strong>Text view</strong> - Matches are highlighted in the source code. <strong>Replace</strong> is available here.</li>
+<li><strong>Graphic view</strong> - The search looks through element names, attribute names, and values across the whole document. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.</li>
+</ul>
+<p>Searching is <strong>case-insensitive</strong> in both views.</p>
+<h3 id="switching-views-while-searching">Switching Views While Searching<a class="headerlink" href="#switching-views-while-searching" title="Permanent link">&para;</a></h3>
+<p>If you switch between the <strong>Text</strong> and <strong>Graphic</strong> sub-tabs while the search bar is open, the search automatically re-targets the view you switched to, so you can keep navigating without retyping your search term.</p>
+<h3 id="where-search-is-available">Where Search Is Available<a class="headerlink" href="#where-search-is-available" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Editor</th>
+<th>How Search Appears</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>XML</strong> tab</td>
+<td>A Find / Replace dialog (opens with Ctrl+F)</td>
+</tr>
+<tr>
+<td><strong>Unified Editor</strong></td>
+<td>An inline search bar with up/down chevron arrows</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> In the <strong>Graphic</strong> view, search is for finding and navigating only - <strong>Replace</strong> is not available there. To replace text, use the <strong>Text</strong> view.</p>
+</blockquote>
 <hr />
 <h2 id="schematron-integration">Schematron Integration<a class="headerlink" href="#schematron-integration" title="Permanent link">&para;</a></h2>
 <p><img alt="Schematron Validation" src="../img/xml-editor-schematron.png" />

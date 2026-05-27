@@ -2001,7 +2001,7 @@
 <li><strong>Unified toolbar</strong> - Common operations (Save, Validate, Format) work across all file types</li>
 <li><strong>Context-sensitive tools</strong> - Toolbar buttons change based on the active file type</li>
 <li><strong>Integrated XPath/XQuery</strong> - Query panel works with any XML-based file</li>
-<li><strong>Search &amp; Replace</strong> - Unified search across all editor types</li>
+<li><strong>Search &amp; Replace</strong> - Unified search across all editor types; in XML files it works in both the Text and Graphic views (see note below)</li>
 <li><strong>Favorites</strong> - Quick access to frequently used files</li>
 </ul>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
@@ -2185,6 +2185,9 @@
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p><strong>Search in XML files (updated in v1.10):</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next. The search works in both the <strong>Text</strong> and <strong>Graphic</strong> views of an XML file. In the Graphic view it searches element names, attribute names, and values across the whole document, auto-expands collapsed nodes to reach a match, selects the matching row, and scrolls it into view; matches wrap around when you reach the end. Switching between the Text and Graphic sub-tabs while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
+</blockquote>
 <h2 id="drag-and-drop">Drag and Drop<a class="headerlink" href="#drag-and-drop" title="Permanent link">&para;</a></h2>
 <p>Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.</p>
 <h2 id="relationship-to-other-editor-pages">Relationship to Other Editor Pages<a class="headerlink" href="#relationship-to-other-editor-pages" title="Permanent link">&para;</a></h2>
