@@ -25,6 +25,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -263,7 +264,49 @@ public class UnifiedXPathQueryPanel extends VBox {
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', 'Courier New', monospace; -fx-font-size: 13px;");
         codeArea.setWrapText(false);
+        attachInputContextMenu(codeArea);
         return codeArea;
+    }
+
+    /**
+     * Attaches a standard right-click context menu (Cut, Copy, Paste, Select All,
+     * Clear) to an editable query input CodeArea. Items are enabled based on
+     * selection, content, and clipboard state.
+     */
+    private void attachInputContextMenu(CodeArea codeArea) {
+        MenuItem cutItem = new MenuItem("Cut");
+        cutItem.setGraphic(menuIcon("bi-scissors"));
+        cutItem.setOnAction(e -> codeArea.cut());
+
+        MenuItem copyItem = new MenuItem("Copy");
+        copyItem.setGraphic(menuIcon("bi-clipboard"));
+        copyItem.setOnAction(e -> codeArea.copy());
+
+        MenuItem pasteItem = new MenuItem("Paste");
+        pasteItem.setGraphic(menuIcon("bi-clipboard-plus"));
+        pasteItem.setOnAction(e -> codeArea.paste());
+
+        MenuItem selectAllItem = new MenuItem("Select All");
+        selectAllItem.setGraphic(menuIcon("bi-check-all"));
+        selectAllItem.setOnAction(e -> codeArea.selectAll());
+
+        MenuItem clearItem = new MenuItem("Clear");
+        clearItem.setGraphic(menuIcon("bi-trash"));
+        clearItem.setOnAction(e -> codeArea.clear());
+
+        ContextMenu menu = new ContextMenu(cutItem, copyItem, pasteItem,
+                new SeparatorMenuItem(), selectAllItem, new SeparatorMenuItem(), clearItem);
+        menu.setOnShowing(e -> {
+            boolean hasSelection = !codeArea.getSelectedText().isEmpty();
+            boolean hasText = codeArea.getLength() > 0;
+            boolean clipboardHasText = Clipboard.getSystemClipboard().hasString();
+            cutItem.setDisable(!hasSelection);
+            copyItem.setDisable(!hasSelection);
+            pasteItem.setDisable(!clipboardHasText);
+            selectAllItem.setDisable(!hasText);
+            clearItem.setDisable(!hasText);
+        });
+        codeArea.setContextMenu(menu);
     }
 
     /**
