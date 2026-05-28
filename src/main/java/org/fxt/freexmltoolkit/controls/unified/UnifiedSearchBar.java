@@ -40,21 +40,21 @@ public class UnifiedSearchBar extends HBox {
      * Creates a new UnifiedSearchBar.
      */
     public UnifiedSearchBar() {
-        setSpacing(8);
+        setSpacing(6);
         setPadding(new Insets(6, 10, 6, 10));
         setAlignment(Pos.CENTER_LEFT);
         getStyleClass().add("search-bar");
-        setStyle("-fx-background-color: -fx-control-inner-background; -fx-border-color: -fx-box-border; -fx-border-width: 0 0 1 0;");
 
         // Status label (initialize early as it's used in searchField listener)
         statusLabel = new Label();
-        statusLabel.setStyle("-fx-text-fill: -fx-mid-text-color;");
+        statusLabel.getStyleClass().add("search-status");
         statusLabel.setMinWidth(80);
 
         // Search field
         searchField = new TextField();
         searchField.setPromptText("Search...");
         searchField.setPrefWidth(250);
+        searchField.getStyleClass().add("search-input");
         searchField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 if (e.isShiftDown()) {
@@ -77,32 +77,36 @@ public class UnifiedSearchBar extends HBox {
         // Find Previous button
         Button findPrevButton = new Button();
         IconifyIcon prevIcon = new IconifyIcon("bi-chevron-up");
-        prevIcon.setIconSize(14);
+        prevIcon.setIconSize(15);
         findPrevButton.setGraphic(prevIcon);
+        findPrevButton.getStyleClass().add("search-icon-button");
         findPrevButton.setTooltip(new Tooltip("Find Previous (Shift+Enter)"));
         findPrevButton.setOnAction(e -> findPrevious());
 
         // Find Next button
         Button findNextButton = new Button();
         IconifyIcon nextIcon = new IconifyIcon("bi-chevron-down");
-        nextIcon.setIconSize(14);
+        nextIcon.setIconSize(15);
         findNextButton.setGraphic(nextIcon);
+        findNextButton.getStyleClass().add("search-icon-button");
         findNextButton.setTooltip(new Tooltip("Find Next (Enter)"));
         findNextButton.setOnAction(e -> findNext());
 
         // Toggle Replace button
         toggleReplaceButton = new Button();
         IconifyIcon replaceIcon = new IconifyIcon("bi-arrow-left-right");
-        replaceIcon.setIconSize(14);
+        replaceIcon.setIconSize(15);
         toggleReplaceButton.setGraphic(replaceIcon);
+        toggleReplaceButton.getStyleClass().add("search-icon-button");
         toggleReplaceButton.setTooltip(new Tooltip("Toggle Replace (Ctrl+H)"));
         toggleReplaceButton.setOnAction(e -> toggleReplaceMode());
 
         // Close button
         Button closeButton = new Button();
-        IconifyIcon closeIcon = new IconifyIcon("bi-x");
+        IconifyIcon closeIcon = new IconifyIcon("bi-x-lg");
         closeIcon.setIconSize(14);
         closeButton.setGraphic(closeIcon);
+        closeButton.getStyleClass().addAll("search-icon-button", "search-close-button");
         closeButton.setTooltip(new Tooltip("Close (Escape)"));
         closeButton.setOnAction(e -> hide());
 
@@ -110,6 +114,7 @@ public class UnifiedSearchBar extends HBox {
         replaceField = new TextField();
         replaceField.setPromptText("Replace with...");
         replaceField.setPrefWidth(200);
+        replaceField.getStyleClass().add("search-input");
         replaceField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 replaceNext();
@@ -119,10 +124,12 @@ public class UnifiedSearchBar extends HBox {
         });
 
         Button replaceButton = new Button("Replace");
+        replaceButton.getStyleClass().add("search-pill-button");
         replaceButton.setOnAction(e -> replaceNext());
         replaceButton.setTooltip(new Tooltip("Replace current match"));
 
         Button replaceAllButton = new Button("All");
+        replaceAllButton.getStyleClass().add("search-pill-button");
         replaceAllButton.setOnAction(e -> replaceAll());
         replaceAllButton.setTooltip(new Tooltip("Replace all matches"));
 
@@ -343,7 +350,7 @@ public class UnifiedSearchBar extends HBox {
 
         if (count > 0) {
             statusLabel.setText(count + " found");
-            statusLabel.setStyle("-fx-text-fill: -fx-mid-text-color;");
+            statusLabel.setStyle("");
         } else {
             statusLabel.setText("Not found");
             statusLabel.setStyle("-fx-text-fill: #dc3545;");

@@ -30,13 +30,12 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
  * Dialog for finding and replacing text in a CodeArea.
@@ -242,7 +241,7 @@ public class FindReplaceDialog extends Dialog<Void> {
         });
         findPrevButton.setDisable(true);
         findPrevButton.getStyleClass().addAll("btn-primary");
-        addButtonIcon(findPrevButton, "/img/previous.png");
+        addButtonIcon(findPrevButton, "bi-chevron-up", "#ffffff");
         findField.textProperty().addListener((obs, old, text) -> findPrevButton.setDisable(text.isEmpty()));
 
         // Configure Find Next button - use addEventFilter to prevent dialog from closing
@@ -253,7 +252,7 @@ public class FindReplaceDialog extends Dialog<Void> {
         });
         findButton.setDisable(true);
         findButton.getStyleClass().addAll("btn-primary");
-        addButtonIcon(findButton, "/img/next.png");
+        addButtonIcon(findButton, "bi-chevron-down", "#ffffff");
         findField.textProperty().addListener((obs, old, text) -> findButton.setDisable(text.isEmpty()));
 
         // Configure Replace button - use addEventFilter to prevent dialog from closing
@@ -263,7 +262,7 @@ public class FindReplaceDialog extends Dialog<Void> {
             e.consume(); // Consume event BEFORE dialog processes it
         });
         replaceButton.getStyleClass().addAll("btn-info");
-        addButtonIcon(replaceButton, "/img/icons8-aktualisieren-48.png");
+        addButtonIcon(replaceButton, "bi-arrow-repeat", "#ffffff");
         this.replaceButtonRef = replaceButton;
 
         // Configure Replace All button - use addEventFilter to prevent dialog from closing
@@ -273,33 +272,28 @@ public class FindReplaceDialog extends Dialog<Void> {
             e.consume(); // Consume event BEFORE dialog processes it
         });
         replaceAllButton.getStyleClass().addAll("btn-warning");
-        addButtonIcon(replaceAllButton, "/img/icons8-aktualisieren-48.png");
+        addButtonIcon(replaceAllButton, "bi-arrow-repeat", "#212529");
         this.replaceAllButtonRef = replaceAllButton;
 
         // Configure Close button - this one SHOULD close the dialog
         final Button closeButton = (Button) getDialogPane().lookupButton(closeButtonType);
         // Don't add event filter here - let the default close behavior work
         closeButton.getStyleClass().addAll("btn-secondary");
-        addButtonIcon(closeButton, "/img/icons8-stornieren-48.png");
+        addButtonIcon(closeButton, "bi-x-lg", "#ffffff");
     }
     
     /**
-     * Adds an icon to a button.
+     * Adds a crisp vector icon to a button.
+     *
+     * @param button      the button to decorate
+     * @param iconLiteral the Bootstrap icon literal (e.g. {@code bi-chevron-up})
+     * @param color       the icon fill color as a CSS hex string
      */
-    private void addButtonIcon(Button button, String iconPath) {
-        try {
-            var iconResource = getClass().getResource(iconPath);
-            if (iconResource != null) {
-                Image icon = new Image(iconResource.toExternalForm());
-                ImageView iconView = new ImageView(icon);
-                iconView.setFitWidth(16);
-                iconView.setFitHeight(16);
-                iconView.setPreserveRatio(true);
-                button.setGraphic(iconView);
-            }
-        } catch (Exception e) {
-            // Icon loading failed, button will display without icon
-        }
+    private void addButtonIcon(Button button, String iconLiteral, String color) {
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
+        icon.setIconSize(16);
+        icon.setIconColor(javafx.scene.paint.Color.web(color));
+        button.setGraphic(icon);
     }
     
     /**

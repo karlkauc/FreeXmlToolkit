@@ -2241,6 +2241,69 @@
   -fx-background-color: linear-gradient(to bottom, #ab47bc, #7b1fa2);
 }
 
+/* Find / Replace Search Bar (dark) */
+.search-bar {
+  -fx-background-color: #252526;
+  -fx-border-color: #3c3c3c;
+}
+
+.search-bar .search-input {
+  -fx-background-color: #1e1e1e;
+  -fx-border-color: #3c3c3c;
+  -fx-text-fill: #d4d4d4;
+  -fx-prompt-text-fill: #6e6e6e;
+}
+
+.search-bar .search-input:focused {
+  -fx-border-color: #3794ff;
+  -fx-effect: dropshadow(gaussian, rgba(55, 148, 255, 0.35), 5, 0, 0, 0);
+}
+
+.search-bar .search-icon-button .iconify-icon {
+  -fx-icon-color: #c5c5c5;
+}
+
+.search-bar .search-icon-button:hover {
+  -fx-background-color: rgba(55, 148, 255, 0.20);
+}
+
+.search-bar .search-icon-button:hover .iconify-icon {
+  -fx-icon-color: #3794ff;
+}
+
+.search-bar .search-icon-button:pressed {
+  -fx-background-color: rgba(55, 148, 255, 0.32);
+}
+
+.search-bar .search-icon-button:focused {
+  -fx-background-color: rgba(55, 148, 255, 0.20);
+}
+
+.search-bar .search-close-button:hover {
+  -fx-background-color: rgba(220, 53, 69, 0.25);
+}
+
+.search-bar .search-close-button:hover .iconify-icon {
+  -fx-icon-color: #f48771;
+}
+
+.search-bar .search-pill-button {
+  -fx-background-color: #3794ff;
+  -fx-text-fill: white;
+}
+
+.search-bar .search-pill-button:hover {
+  -fx-background-color: #1f7fe5;
+}
+
+.search-bar .search-pill-button:pressed {
+  -fx-background-color: #1668c0;
+}
+
+.search-bar .search-status {
+  -fx-text-fill: #9d9d9d;
+}
+
 .linked-files-panel {
   -fx-background-color: #2d2d30;
   -fx-border-color: #3c3c3c;

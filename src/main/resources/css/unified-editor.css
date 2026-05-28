@@ -211,3 +211,95 @@
 .unified-editor .context-menu .menu-item:hover {
     -fx-background-color: rgba(0, 123, 255, 0.1);
 }
+
+/* ===== Find / Replace Search Bar ===== */
+
+.search-bar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* Search / replace text inputs */
+.search-bar .search-input {
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 4 8;
+    -fx-prompt-text-fill: #adb5bd;
+}
+
+.search-bar .search-input:focused {
+    -fx-border-color: #007bff;
+    -fx-effect: dropshadow(gaussian, rgba(0, 123, 255, 0.25), 5, 0, 0, 0);
+}
+
+/* Flat icon buttons (prev / next / toggle replace / close) */
+.search-bar .search-icon-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-padding: 5 7;
+    -fx-cursor: hand;
+}
+
+.search-bar .search-icon-button .iconify-icon {
+    -fx-icon-color: #495057;
+}
+
+.search-bar .search-icon-button:hover {
+    -fx-background-color: rgba(0, 123, 255, 0.12);
+}
+
+.search-bar .search-icon-button:hover .iconify-icon {
+    -fx-icon-color: #007bff;
+}
+
+.search-bar .search-icon-button:pressed {
+    -fx-background-color: rgba(0, 123, 255, 0.22);
+}
+
+.search-bar .search-icon-button:focused {
+    -fx-background-color: rgba(0, 123, 255, 0.12);
+}
+
+/* Close button: neutral, turns red on hover */
+.search-bar .search-close-button:hover {
+    -fx-background-color: rgba(220, 53, 69, 0.14);
+}
+
+.search-bar .search-close-button:hover .iconify-icon {
+    -fx-icon-color: #dc3545;
+}
+
+/* Accent pill buttons (Replace / All) */
+.search-bar .search-pill-button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-padding: 5 14;
+    -fx-cursor: hand;
+}
+
+.search-bar .search-pill-button:hover {
+    -fx-background-color: #0069d9;
+}
+
+.search-bar .search-pill-button:pressed {
+    -fx-background-color: #0056b3;
+}
+
+.search-bar .search-pill-button:disabled {
+    -fx-opacity: 0.5;
+}
+
+/* Status label */
+.search-bar .search-status {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 12px;
+}
